@@ -30,7 +30,7 @@ theorem StrongHealingWindow.window {p : Params} {V : Type} {E : Generic.Env V}
   ⟨h.1, (le_max_left _ _).trans h.2⟩
 
 /-- Later labels keep the same batch cutoff. -/
-theorem HealingWindow.mono {p : Params} {V : Type} {E : Generic.Env V}
+theorem HealingWindow.cut_mono {p : Params} {V : Type} {E : Generic.Env V}
     {back : Nat} {s w : Slot} (h : HealingWindow p E back s) (hsw : s ≤ w) :
     HealingWindow p E back w := by
   refine ⟨h.1.trans hsw, h.2.trans ?_⟩

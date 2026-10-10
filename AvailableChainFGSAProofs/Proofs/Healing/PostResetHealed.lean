@@ -101,7 +101,7 @@ theorem healing_firstProposal [Fintype V] {G ΔF : Time}
   obtain ⟨Q, hQ⟩ := repair_honest_proposal E rho hrec hs
     (by have := healing_recovery_start_lower (p := p) E
         linarith [p.deltaPos])
-    ((healing_ready_proposal_window E (htrigger.trans hlo.le)).prior.mono (Nat.sub_le s 1)).2
+    ((healing_ready_proposal_window E (htrigger.trans hlo.le)).prior.cut_mono (Nat.sub_le s 1)).2
     (hhi.trans hwindow)
   have hex : ∃ v, w.sStar + 2 ≤ v ∧
       ∃ B, HonestProposal E rho (fgsaInterface p c) v B := ⟨s, hlower, Q, hQ⟩

@@ -498,7 +498,7 @@ theorem postReset_written_domain
       emittedNonempty emittedName hK
       (Nat.le_of_succ_le (written_source_label p c E rho hrec hiy hK)) hgst.le hy hiy
       (healing_recovery_joined E rho hrec hy
-        ((postReset_written_window p c E rho hrec h0r hx hix hCB hmem).mono (Nat.le_succ s)).2
+        ((postReset_written_window p c E rho hrec h0r hx hix hCB hmem).cut_mono (Nat.le_succ s)).2
         (by apply hgst.le.trans
             change 4 * p.Δ * (s : Int) + p.Δ ≤
               4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ
@@ -655,7 +655,7 @@ theorem postReset_written_first_head
     hgst.le (postReset_written_window p c E rho hrec h0r hx hix hCB hmem) harm hy hiy
     (healing_gate_enabled_of_result E rho hrec.base.valid.toScheduleWellFormed hix hres)
     (healing_recovery_joined E rho hrec hy
-      ((postReset_written_window p c E rho hrec h0r hx hix hCB hmem).mono (Nat.le_succ s)).2
+      ((postReset_written_window p c E rho hrec h0r hx hix hCB hmem).cut_mono (Nat.le_succ s)).2
       (by apply hgst.le.trans
           change 4 * p.Δ * (s : Int) + p.Δ ≤ 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ
           push_cast; linarith [p.deltaPos])
@@ -800,7 +800,7 @@ theorem postReset_written_later_result
   obtain ⟨a, z, hz, ha, -, -⟩ :=
     healing_gate_result_supporter p c E rho hrec
       (healing_raw_service_scope_recovery E rho hrec mono) hgst
-      ((postReset_written_window p c E rho hrec h0r hx hk hCB hmem).mono
+      ((postReset_written_window p c E rho hrec h0r hx hk hCB hmem).cut_mono
         (Nat.le_of_succ_le hsj)).2 hy hi hresult
   have hBH := hcov z hz _ (written_head_label p c E rho hrec ha)
   have hBK : ∀ K r, SourceBefore p c E rho i K r → high p w K →
@@ -822,7 +822,7 @@ theorem postReset_written_later_result
         obtain ⟨aK, zH, hzH, haK, hCKH, -⟩ :=
           healing_gate_result_supporter p c E rho hrec
             (healing_raw_service_scope_recovery E rho hrec mono) hgst
-            ((postReset_written_window p c E rho hrec h0r hx hk hCB hmem).mono
+            ((postReset_written_window p c E rho hrec h0r hx hk hCB hmem).cut_mono
               (Nat.le_of_succ_le hsj)).2 hrow.1 hik hraw
         exact Gen.Pure.block_compatible_of_common
           (hcov zH hzH _ (written_head_label p c E rho hrec haK))
@@ -872,7 +872,7 @@ theorem postReset_written_later_result
   have hhor := (hs.in_horizon _ (List.mem_of_getElem? hi)).2
   obtain ⟨D', hconf, hBD⟩ := healing_support_gate_cover E rho hrec hgst hhor hcov hi
     (healing_support_gate_scope_recovery E rho hrec mono
-      ((postReset_written_window p c E rho hrec h0r hx hk hCB hmem).mono
+      ((postReset_written_window p c E rho hrec h0r hx hk hCB hmem).cut_mono
         (Nat.le_of_succ_le hsj)) hy
       (healing_gate_enabled_of_result E rho hs hi hresult)
       (healing_support_gate_geometry E rho hs hcov (by
@@ -1184,9 +1184,9 @@ theorem postReset_written_next_head
     (healing_recovery_epoch_after_vote E rho hrec hy hgst (by
       change 4 * p.Δ * (l : Int) + p.Δ < 4 * p.Δ * (l : Int) + 3 * p.Δ
       linarith [p.deltaPos]) _)
-  have hCut := (postReset_written_window p c E rho hrec h0r hx hix hCB hmem).mono
+  have hCut := (postReset_written_window p c E rho hrec h0r hx hix hCB hmem).cut_mono
     (Nat.le_of_succ_le hsl)
-  have hJ := healing_recovery_joined E rho hrec hy (hCut.mono (Nat.le_succ l)).2
+  have hJ := healing_recovery_joined E rho hrec hy (hCut.cut_mono (Nat.le_succ l)).2
     (by apply hgst.trans
         change 4 * p.Δ * (l : Int) + p.Δ ≤ 4 * p.Δ * ((l + 1 : Nat) : Int) + p.Δ
         push_cast; linarith [p.deltaPos])
@@ -1319,7 +1319,7 @@ theorem postReset_written_moving_parent
     xing origin h0r hinv hgst hCB hbatch hy hip hpi hafter hupper le_rfl hX hZ hF
   apply healing_proposal_moving_parent p c E rho hrec
     (healing_raw_service_scope_recovery E rho hrec mono) mono hgst
-    ((postReset_written_window p c E rho hrec h0r hx hix hCB hmem).mono
+    ((postReset_written_window p c E rho hrec h0r hx hix hCB hmem).cut_mono
       (Nat.le_of_succ_le hsl)).2 hbatch hp
   · intro j hj
     have he : j = ip := fgsa_tick_unique E rho hs hj hip
@@ -1708,7 +1708,7 @@ theorem postReset_written_outputs_succ
       Gen.Pure.Batch (joinedHonest p E rho (SA.voteTime p.toParams l)).card
         (Gen.V2.Duty.faulty rho).card := by
     intro l hsl _hcut hhor
-    have hCut := (postReset_written_window p c E rho hrec h0r hx hix hCB hmem).mono
+    have hCut := (postReset_written_window p c E rho hrec h0r hx hix hCB hmem).cut_mono
       (Nat.le_of_succ_le hsl)
     exact (healing_recovery_joined_counts E rho hrec l hCut.2 hCut.sync hhor).2
   apply healing_output_moving_suffix_at p c E rho hrec

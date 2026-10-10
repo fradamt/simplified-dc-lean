@@ -57,7 +57,7 @@ example : ¬ D.SleepWellFormed env { run.toD with events := [.restart 0 3] } := 
   have := h.restart_awake 0 3 (by simp)
   contradiction
 
-private theorem sleep_valid : SleepWellFormed env run := by
+private theorem engine_sleep_valid : SleepWellFormed env run := by
   refine ⟨?_, ?_, ?_, ?_⟩
   · intro v t h
     simp only [run, List.mem_cons, List.not_mem_nil, or_false,
@@ -77,8 +77,8 @@ private theorem sleep_valid : SleepWellFormed env run := by
       rcases ht with rfl | rfl <;> simp [run]
     · dsimp [Time] at *; omega
 
-private theorem valid : ExecutionValid env run := by
-  refine { toSleepWellFormed := sleep_valid, toScheduleWellFormed := ?_,
+private theorem engine_run_valid : ExecutionValid env run := by
+  refine { toSleepWellFormed := engine_sleep_valid, toScheduleWellFormed := ?_,
            toDeliveryWellFormed := ?_, toUnforgeableSignatures := ?_ }
   · refine ⟨by decide, by decide, by decide, ?_, ?_, ?_, ?_⟩
     · intro e he
@@ -128,11 +128,11 @@ private theorem valid : ExecutionValid env run := by
 
 -- Tests 2 and 9: a valid run freezes the sleeping node, in both twins.
 example : ExecutionValid env run ∧
-    Run.stateBefore env run 2 0 = Run.stateBefore env run 3 0 := ⟨valid, by decide⟩
+    Run.stateBefore env run 2 0 = Run.stateBefore env run 3 0 := ⟨engine_run_valid, by decide⟩
 
 example : D.ExecutionValid env run.toD ∧
     D.Run.stateBefore env run.toD 2 0 = D.Run.stateBefore env run.toD 3 0 := by
-  exact ⟨(D.executionValid_toD_iff env run).mpr valid, by decide⟩
+  exact ⟨(D.executionValid_toD_iff env run).mpr engine_run_valid, by decide⟩
 
 example : D.ExecutionValid env run.toD ↔ ExecutionValid env run :=
   D.executionValid_toD_iff env run
@@ -181,11 +181,11 @@ example : ¬ D.SleepWellFormed env { run.toD with events := [.restart 0 5] } := 
 
 -- Test 4: zero is a wake, but the valid run has no restart there.
 example : Wakes env 0 0 ∧ Event.restart 0 0 ∉ run.events ∧
-    ExecutionValid env run := ⟨by unfold Wakes; decide, by decide, valid⟩
+    ExecutionValid env run := ⟨by unfold Wakes; decide, by decide, engine_run_valid⟩
 
 example : D.Wakes env 0 0 ∧ Event.restart 0 0 ∉ run.toD.events ∧
     D.ExecutionValid env run.toD :=
-  ⟨by unfold D.Wakes; decide, by decide, (D.executionValid_toD_iff env run).mpr valid⟩
+  ⟨by unfold D.Wakes; decide, by decide, (D.executionValid_toD_iff env run).mpr engine_run_valid⟩
 
 -- Test 5: same-time phases and the action cut include only the restart.
 private def sameTime : Run (Fin 2) toy :=
@@ -204,7 +204,7 @@ example : (Run.stateAfterRestartsAt env run 5 0).1 = 5 ∧
 example : Run.emits env run 1 first 0 := ⟨1, rfl, by decide⟩
 example : Run.emits env run 1 second 4 := ⟨2, rfl, by decide⟩
 
-private theorem demand (o : toy.Object) (ho : o = first ∨ o = second) (send : Time) :
+private theorem sleep_demand (o : toy.Object) (ho : o = first ∨ o = second) (send : Time) :
     DeliveryDemand env run 1 0 o send (fun a => max a 5 + 2) 10 := by
   intro a _ _ hlt _ hh hr _
   have ha : a = 5 := by
@@ -223,16 +223,16 @@ private theorem demand (o : toy.Object) (ho : o = first ∨ o = second) (send : 
   · exact ⟨5, by decide, by decide, 5, second, rfl, rfl⟩
 
 example : DeliveryDemand env run 1 0 first 0 (fun a => max a 5 + 2) 10 :=
-  demand first (Or.inl rfl) 0
+  sleep_demand first (Or.inl rfl) 0
 
 example : DeliveryDemand env run 1 0 second 4 (fun a => max a 5 + 2) 10 :=
-  demand second (Or.inr rfl) 4
+  sleep_demand second (Or.inr rfl) 4
 
 example : D.DeliveryDemand env run.toD 1 0 first 0 (fun a => max a 5 + 2) 10 :=
-  (D.deliveryDemand_toD_iff env run 1 0 first 0 _ 10).mpr (demand first (Or.inl rfl) 0)
+  (D.deliveryDemand_toD_iff env run 1 0 first 0 _ 10).mpr (sleep_demand first (Or.inl rfl) 0)
 
 example : D.DeliveryDemand env run.toD 1 0 second 4 (fun a => max a 5 + 2) 10 :=
-  (D.deliveryDemand_toD_iff env run 1 0 second 4 _ 10).mpr (demand second (Or.inr rfl) 4)
+  (D.deliveryDemand_toD_iff env run 1 0 second 4 _ 10).mpr (sleep_demand second (Or.inr rfl) 4)
 
 -- Anchor 5 meets every demand guard, for both send times and both objects.
 example (o : toy.Object) (send : Time) (hs : send = 0 ∨ send = 4) :
@@ -398,13 +398,13 @@ example : Run.emits servedEnv servedRun 0 first 0 ∧
   · intro t ht _; simpa [servedEnv] using ht
 
 -- Positive sleep premises include real restarts at both open interval endpoints.
-private theorem restarts : RestartsAtWakes env run := by
+private theorem sleep_restarts : RestartsAtWakes env run := by
   intro v t h
   simp only [run, List.mem_cons, List.not_mem_nil, or_false,
     Event.restart.injEq, reduceCtorEq, false_or, or_false] at h
   rcases h with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩ <;> exact ⟨by decide, by unfold Wakes; decide⟩
 
-example : D.RestartsAtWakes env run.toD := (D.restartsAtWakes_toD_iff env run).mpr restarts
+example : D.RestartsAtWakes env run.toD := (D.restartsAtWakes_toD_iff env run).mpr sleep_restarts
 
 private theorem noRestartOn : NoRestartOn run 0 5 10 := by
   intro i t hi ha hb
@@ -419,22 +419,22 @@ example : D.NoRestartOn run.toD 0 5 10 := (D.noRestartOn_toD_iff run 0 5 10).mpr
 private def extendedRun : Run (Fin 2) toy := { run with horizon := 11 }
 
 private theorem extended_valid : ExecutionValid env extendedRun := by
-  refine { valid with
+  refine { engine_run_valid with
     horizon_nonneg := by decide, in_horizon := ?_,
     tick_total := ?_, wake_restart := ?_ }
   · intro e he
-    have h := valid.in_horizon e he
+    have h := engine_run_valid.in_horizon e he
     exact ⟨h.1, le_trans h.2 (by decide)⟩
   · intro v hv t ⟨k, hk⟩ h0 hh ha
     have ht : t ≤ run.horizon := by
       simp [env] at hk
       simp [extendedRun] at hh
       dsimp [run, Time] at *; omega
-    exact valid.tick_total v hv t ⟨k, hk⟩ h0 ht ha
+    exact engine_run_valid.tick_total v hv t ⟨k, hk⟩ h0 ht ha
   · intro v hv t h0 hh hw
     have ht : t = 5 ∨ t = 10 := by
       fin_cases v <;> simp [Wakes, env] at hw <;> dsimp [Time] at * <;> omega
-    exact valid.wake_restart v hv t h0 (by rcases ht with rfl | rfl <;> decide) hw
+    exact engine_run_valid.wake_restart v hv t h0 (by rcases ht with rfl | rfl <;> decide) hw
 
 private def lateRestart : Run (Fin 2) toy :=
   { extendedRun with events := run.events ++ [.restart 0 11] }
@@ -453,7 +453,7 @@ private theorem late_valid : ExecutionValid env lateRestart := by
     · decide
   · intro e _; exact Finset.mem_univ _
   · intro v t h
-    apply valid.tick_public v t
+    apply engine_run_valid.tick_public v t
     simpa [lateRestart] using h
   · intro v hv t hp h0 hh ha
     exact List.mem_append_left _ (extended_valid.tick_total v hv t hp h0 hh ha)
@@ -470,15 +470,15 @@ private theorem late_valid : ExecutionValid env lateRestart := by
       simp [Run.holder, first, second] at hu
   · intro v o t _ o' hc; exact hc.elim
   · intro v t h
-    apply valid.tick_awake v t
+    apply engine_run_valid.tick_awake v t
     simpa [lateRestart] using h
   · intro v o t h
-    apply valid.deliver_awake v o t
+    apply engine_run_valid.deliver_awake v o t
     simpa [lateRestart] using h
   · intro v t h
     simp only [lateRestart, List.mem_append, List.mem_singleton, Event.restart.injEq] at h
     rcases h with h | ⟨rfl, rfl⟩
-    · exact valid.restart_awake v t h
+    · exact engine_run_valid.restart_awake v t h
     · decide
   · intro v hv t h0 hh hw
     exact List.mem_append_left _ (extended_valid.wake_restart v hv t h0 hh hw)

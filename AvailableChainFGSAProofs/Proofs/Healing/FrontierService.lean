@@ -43,7 +43,7 @@ theorem healing_frontier_service_scopes_recovery [Fintype V] (E : Generic.Env V)
   refine ⟨?_, ?_, ?_⟩
   · intro hready hgate hhor
     exact healing_frontier_read_scope_recovery E rho hrec mono
-      ((healing_ready_proposal_window E hready).prior.mono (Nat.sub_le q 1)) hgate hhor
+      ((healing_ready_proposal_window E hready).prior.cut_mono (Nat.sub_le q 1)) hgate hhor
   · intro u t m J contested hready hphase _
     exact healing_support_permanence_recovery E rho hrec mono hready hphase
   · intro s ip x N _ _ hcut hx hip hem

@@ -39,7 +39,7 @@ theorem head_emitted : ownHead ∈ V2.D.Run.emitsAt ownEnv ownRun 10 := by
   exact List.mem_singleton_self _
 
 /-- Full validity includes the honest own-row emission and exact non-public wake. -/
-theorem own_valid : V2.D.ExecutionValid ownEnv ownRun := by
+theorem fgp_own_valid : V2.D.ExecutionValid ownEnv ownRun := by
   refine { toSleepWellFormed := ?_, toScheduleWellFormed := ?_,
            toDeliveryWellFormed := ?_, toUnforgeableSignatures := ?_ }
   · refine ⟨by decide, by decide, by decide, ?_, ?_, ?_, ?_⟩
@@ -131,7 +131,7 @@ theorem full_vote_service_fails :
 
 end AvailableChain.FGSA.Run.Tests.FinalityEpochs
 
-#print axioms AvailableChain.FGSA.Run.Tests.FinalityEpochs.own_valid
+#print axioms AvailableChain.FGSA.Run.Tests.FinalityEpochs.fgp_own_valid
 #print axioms AvailableChain.FGSA.Run.Tests.FinalityEpochs.fresh_head_erased
 #print axioms AvailableChain.FGSA.Run.Tests.FinalityEpochs.full_vote_service_fails
 

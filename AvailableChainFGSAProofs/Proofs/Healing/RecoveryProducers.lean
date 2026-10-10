@@ -492,9 +492,9 @@ theorem healing_fast_support_scope_of_factories {G ΔF : Time}
   · intro ix iy y hy hi hj _ hg hJ
     exact first s ix iy x y hCut.sync hx hy hi hj hg hJ
   · intro w hw _ iy y hy hi hj
-    exact next w iy y (hCut.mono ((Nat.le_succ s).trans hw)) hy hi hj
+    exact next w iy y (hCut.cut_mono ((Nat.le_succ s).trans hw)) hy hi hj
   · intro w hw _ j y hy hi hg B hgeom
-    exact gates w j y (hCut.mono ((Nat.le_succ s).trans hw)) hy hi hg B hgeom
+    exact gates w j y (hCut.cut_mono ((Nat.le_succ s).trans hw)) hy hi hg B hgeom
   · intro w _ iy y t _
     exact carriers w iy y t
 
@@ -543,7 +543,7 @@ theorem healing_support_permanence_of_factories {G ΔF : Time}
         (fgsa_postClock_slot (c := c) (rho.stateBefore E ip x) _).2.symm.trans
           (fgsa_proposal_slot (c := c) _ (r + 1))
       simpa only [hs] using hjoin
-    exact proposal r ip x _ (hCut.mono ((Nat.le_succ s).trans hr)) hread (Or.inl rfl)
+    exact proposal r ip x _ (hCut.cut_mono ((Nat.le_succ s).trans hr)) hread (Or.inl rfl)
 
 omit [Fintype V] next proposal in
 /-- Conditional P7 assembly keeps each gate's selected geometry. -/
@@ -571,18 +571,18 @@ theorem healing_frontier_read_scope_of_factories {G ΔF : Time}
     exact first s i iq x x hSync hx hx hi hq hg hj
   · intro w hw _ x nd B hx _ _
     exact healing_fast_support_scope_of_factories E rho first next gates carriers
-      hrec (hCut.mono ((Nat.le_succ q).trans hw)) hx
+      hrec (hCut.cut_mono ((Nat.le_succ q).trans hw)) hx
   · intro w hw _ hWindow x st C B j hx _ _ _ _ _
     exact healing_slow_support_scope_of_factories E rho first next gates carriers proposal
-      hrec (hCut.mono ((Nat.le_succ q).trans hw)) hWindow hx
+      hrec (hCut.cut_mono ((Nat.le_succ q).trans hw)) hWindow hx
   · intro r hr _ ip x hx hip hj
     have hs : slotAt p (SA.proposalTime p.toParams (r + 1)) = r + 1 :=
       (fgsa_postClock_slot (c := c) (rho.stateBefore E ip x) _).2.symm.trans
         (fgsa_proposal_slot (c := c) _ (r + 1))
-    exact proposal r ip x _ (hCut.mono ((Nat.le_succ q).trans hr))
+    exact proposal r ip x _ (hCut.cut_mono ((Nat.le_succ q).trans hr))
       ⟨hx, hip, by simpa only [hs] using hj⟩ (Or.inl rfl)
   · intro r hr _ ih y hy hi hj
-    exact next r ih y (hCut.mono ((Nat.le_succ q).trans hr)) hy hi hj
+    exact next r ih y (hCut.cut_mono ((Nat.le_succ q).trans hr)) hy hi hj
   · intro r _ iy y t _
     exact carriers r iy y t
 
@@ -817,7 +817,7 @@ theorem healing_loss_service_scope_of_factories {G ΔF : Time}
   · intro B sB i iy y hB hi hy hiy hJ
     rw [HighSrcN_def, SrcN_def] at hB
     have hCut := healing_high_source_window p c E rho emittedNonempty emittedName hB.1 hB.2
-    exact next i iy y (hCut.mono ((Nat.le_succ sB).trans hi)) hy hiy hJ
+    exact next i iy y (hCut.cut_mono ((Nat.le_succ sB).trans hi)) hy hiy hJ
   · intro B sB l k x hB _ _ _ y nd hy _ _
     rw [HighSrcN_def, SrcN_def] at hB
     have hCut := healing_high_source_window p c E rho emittedNonempty emittedName hB.1 hB.2
@@ -881,7 +881,7 @@ theorem healing_support_permanence_recovery {G ΔF : Time}
           (fgsa_proposal_slot (c := c) _ (r + 1))
       simpa only [hs] using hjoin
     exact healing_proposal_support_scope_recovery E rho hrec
-      (hCut.mono ((Nat.le_succ s).trans hr)) hread (Or.inl rfl)
+      (hCut.cut_mono ((Nat.le_succ s).trans hr)) hread (Or.inl rfl)
 
 /-- P7: selected repair gate services have complete recovery factories. -/
 theorem healing_repair_gate_scope_recovery {G ΔF : Time}
@@ -970,7 +970,7 @@ theorem healing_ready_batch_release_compat_recovery {G ΔF : Time}
     (healing_gate_cut_of_batch_cut E s hCut.2)
   have hhor := (hrec.base.valid.in_horizon _ (List.mem_of_getElem? hiy)).2
   have hJ := healing_recovery_joined E rho hrec hy (s := s + 1)
-    (hCut.mono (Nat.le_succ s)).2 (hCut.sync.trans ?_) hhor
+    (hCut.cut_mono (Nat.le_succ s)).2 (hCut.sync.trans ?_) hhor
   · exact healing_ready_batch_release_compat E rho hrec hready hx hy hix hiy
       (healing_support_gate_scope_recovery E rho hrec mono hCut hx hG hgeom) hgeom
       (healing_first_transfer_scope_recovery E rho hrec mono hCut.sync hx hy hix hiy hG hJ) hFB

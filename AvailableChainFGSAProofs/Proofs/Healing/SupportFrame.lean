@@ -252,7 +252,7 @@ theorem healing_joined_tick_of_window [Fintype V] {G ΔF : Time}
     rw [← hs]
     exact Internal.slotOf_mono (p := p) ht
   refine ⟨hx, hi, healing_recovery_joined E rho hrec hx ?_ (hCut.sync.trans ht) hh⟩
-  exact (hCut.mono hst).2
+  exact (hCut.cut_mono hst).2
 
 /-- A real bounded tick after recoveryStart gives the carrier reader's join. -/
 theorem healing_joined_tick_of_ready [Fintype V] {G ΔF : Time}

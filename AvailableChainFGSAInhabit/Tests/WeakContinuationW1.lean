@@ -69,7 +69,7 @@ open AvailableChain.FGSA.Run.Tests.WeakContinuationWitness
 #check witness_window_bounds
 #check horizons
 #check endpoint
-#check covered
+#check witness_covered
 #check environments
 #check honest_sets
 #check faulty_sets
@@ -105,7 +105,7 @@ open AvailableChain.FGSA.Run.Tests.WeakContinuationWitness
 #check suffix_after_endpoint
 #check agreement_of_suffix
 #check agreement
-#check committees
+#check witness_committees
 #check recovery_awake
 #check prefix_tick
 #check suffix_tick
@@ -117,7 +117,7 @@ open AvailableChain.FGSA.Run.Tests.WeakContinuationWitness
 #check continuation_honest_only
 #check source_tick_public
 #check continuation_tick_public
-#check source_tick_total
+#check witness_source_tick_total
 #check continuation_tick_total
 #check suffix_has_ticks
 #check phase_le_two
@@ -180,7 +180,7 @@ open AvailableChain.FGSA.Run.Tests.WeakContinuationWitness
 #check suffix_nodup
 #check source_nodup
 #check continuation_nodup
-#check source_schedule
+#check witness_source_schedule
 #check continuation_schedule
 #check runData_stateBefore
 #check genOrigin_runData

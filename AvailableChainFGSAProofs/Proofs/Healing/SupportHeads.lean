@@ -633,7 +633,7 @@ theorem healing_heads_transfer [Fintype V] (E : Generic.Env V)
     have hiz := V2.D.Run.tickIdx?_spec hiz'
     have hKeq := Option.some.inj hK
     subst hKeq
-    have hci := hCut.mono ((Nat.le_succ s).trans hi)
+    have hci := hCut.cut_mono ((Nat.le_succ s).trans hi)
     have hj := healing_recovery_joined_next E rho hrec hci hz hvi (hv.trans hphase.2.1)
     exact healing_next_transfer_core E rho hrec mono crossing hgst hphase (hhead.trans hsi)
       (ih (hvi.trans hv)) hz hiz (hScopes i hi hv iz z hz hiz hj) hci hv

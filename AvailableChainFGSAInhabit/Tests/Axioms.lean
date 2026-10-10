@@ -28,7 +28,7 @@ namespace AvailableChain.FGSA.Run.Tests.WeakContinuationWitness
 #print axioms witness_window_bounds
 #print axioms horizons
 #print axioms endpoint
-#print axioms covered
+#print axioms witness_covered
 #print axioms environments
 #print axioms honest_sets
 #print axioms faulty_sets
@@ -64,7 +64,7 @@ namespace AvailableChain.FGSA.Run.Tests.WeakContinuationWitness
 #print axioms suffix_after_endpoint
 #print axioms agreement_of_suffix
 #print axioms agreement
-#print axioms committees
+#print axioms witness_committees
 #print axioms recovery_awake
 #print axioms prefix_tick
 #print axioms suffix_tick
@@ -76,7 +76,7 @@ namespace AvailableChain.FGSA.Run.Tests.WeakContinuationWitness
 #print axioms continuation_honest_only
 #print axioms source_tick_public
 #print axioms continuation_tick_public
-#print axioms source_tick_total
+#print axioms witness_source_tick_total
 #print axioms continuation_tick_total
 #print axioms suffix_has_ticks
 #print axioms phase_le_two
@@ -139,7 +139,7 @@ namespace AvailableChain.FGSA.Run.Tests.WeakContinuationWitness
 #print axioms suffix_nodup
 #print axioms source_nodup
 #print axioms continuation_nodup
-#print axioms source_schedule
+#print axioms witness_source_schedule
 #print axioms continuation_schedule
 #print axioms runData_stateBefore
 #print axioms genOrigin_runData

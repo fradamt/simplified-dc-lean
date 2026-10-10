@@ -435,9 +435,9 @@ theorem healing_proposals_cover [Fintype V] (E : Generic.Env V)
     (hheads r (by exact_mod_cast hrI) (hvr.trans hv)) hxh hip
     (hScopes r (by exact_mod_cast hrI) hv ip _ hxh hip
       (healing_recovery_joined_next E rho hrec
-        (hCut.mono (by exact_mod_cast (show (s : Int) ≤ r from by omega))) hxh hvr
+        (hCut.cut_mono (by exact_mod_cast (show (s : Int) ≤ r from by omega))) hxh hvr
         (hv.trans hphase.2.1)))
-    (hCut.mono (by exact_mod_cast (show (s : Int) ≤ r from by omega))) hv
+    (hCut.cut_mono (by exact_mod_cast (show (s : Int) ≤ r from by omega))) hv
     (hlease (r + 1) hi hv ip _ hxh hip)
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]

@@ -285,7 +285,8 @@ example [Fintype V] {G ΔF : Time}
   healing_output_moving_suffix_at p c E rho hrec
     (healing_raw_service_scope_recovery E rho hrec mono) mono hgst
     (fun l hsl _ hhor => (healing_recovery_joined_counts E rho hrec l
-      (hCut.mono (Nat.le_of_succ_le hsl)).2 (hCut.mono (Nat.le_of_succ_le hsl)).sync hhor).2)
+      (hCut.cut_mono (Nat.le_of_succ_le hsl)).2
+      (hCut.cut_mono (Nat.le_of_succ_le hsl)).sync hhor).2)
     hguard hheads hfinality hlease
 
 -- Lead step range, conditional package: the public zero producer starts the joint induction.

@@ -23,9 +23,9 @@ structure SlowSupportScope (E : Generic.Env V)
   window : ∀ w, s + 1 - p.k ≤ w → w ≤ s →
     SameLabelServiceScope E rho w
 
-theorem SlowSupportScope.mono {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
+theorem SlowSupportScope.cut_mono {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     {s : Slot} {u v : Time} {x : V} (h : SlowSupportScope E rho s v x) (huv : u ≤ v) :
-    SlowSupportScope E rho s u x := ⟨h.phase.mono huv, h.late, h.window⟩
+    SlowSupportScope E rho s u x := ⟨h.phase.cut_mono huv, h.late, h.window⟩
 
 omit [DecidableEq V] in
 private theorem slow_idx_lt (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
@@ -600,7 +600,7 @@ theorem healing_slow_first_transfer [Fintype V] (E : Generic.Env V)
               4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ
             push_cast; linarith [p.deltaPos]) (hv.trans hphase.2.1))) hv
     (healing_slow_lease E rho hrec mono writes (hgst.trans hhead) hhor hx hgw hst hres hBC
-      hel le_rfl (hv.trans hphase.2.1) (hScopes.mono hv)
+      hel le_rfl (hv.trans hphase.2.1) (hScopes.cut_mono hv)
       (fun w hw1 hw2 => absurd (hw1.trans hw2) (Nat.not_succ_le_self s)) hy hiy)
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -682,12 +682,12 @@ theorem healing_slow_heads [Fintype V] (E : Generic.Env V)
     exact healing_next_transfer_core E rho hrec (fun _ => mono) crossing
       hgst hphase (hhead.trans hsi)
       (ih hvi i hi le_rfl) hz hiz (hScopes.phase.next i hi hv iz z hz hiz
-        (healing_recovery_joined_next E rho hrec (hCut.mono ((Nat.le_succ s).trans hi)) hz
+        (healing_recovery_joined_next E rho hrec (hCut.cut_mono ((Nat.le_succ s).trans hi)) hz
           (hvmono (Nat.le_succ i)) (hv.trans hphase.2.1)))
-      (hCut.mono ((Nat.le_succ s).trans hi)) hv
+      (hCut.cut_mono ((Nat.le_succ s).trans hi)) hv
       (healing_slow_lease E rho hrec mono writes (hgst.trans hhead) (hgate.trans hphase.2.1)
         hx hgw hst hres hBC hel ((Nat.le_succ s).trans hi) (hv.trans hphase.2.1)
-        (hScopes.mono hv) (ih hvi) hz hiz)
+        (hScopes.cut_mono hv) (ih hvi) hz hiz)
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21:650–715 (H.1 + H.2 S2, slow arm); plan H-SUPPORT §5.

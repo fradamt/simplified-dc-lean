@@ -117,7 +117,7 @@ theorem block_exact : ∀ o, IsBlock o → delayOf o = env.Δ := by
   intro o ho
   simp [delayOf, ho]
 
-theorem no_emission (v : Fin 2) (o : toy.Object) (t : Time) :
+theorem delivery_no_emission (v : Fin 2) (o : toy.Object) (t : Time) :
     ¬ D.Run.emits env run v o t := by
   rintro ⟨i, hi, _⟩
   have hm := List.mem_of_getElem? hi
@@ -164,7 +164,7 @@ theorem relay_delivery (v : Fin 2) (i : Nat) (o : toy.Object) (t : Time)
       change (if o.payload then true else false) = false at hp <;>
       simp [ho] at hp
 
-private theorem relay_service {o : toy.Object} {a d : Time}
+theorem relay_service {o : toy.Object} {a d : Time}
     (ho : IsRow o) (w : Fin 2) (ha : 4 ≤ a) (hd : a + ΔF ≤ d) :
     D.DeliveryService env run w o a d := by
   have hw : w = 0 ∨ w = 1 := by
@@ -191,7 +191,7 @@ private theorem relay_service {o : toy.Object} {a d : Time}
 theorem partial_by : PartialSynchronyBy env run delayOf := by
   constructor
   · intro v hv o t he
-    exact (no_emission v o t he).elim
+    exact (delivery_no_emission v o t he).elim
   · intro v hv i o t ha w hw a hta _ _ _ _ _ _
     obtain ⟨ho, ht⟩ := acceptance_cases ha
     have h4 : 4 ≤ a := by rcases ht with ⟨_, _, rfl⟩ | ⟨_, _, rfl⟩ <;>
@@ -203,7 +203,7 @@ theorem partial_by : PartialSynchronyBy env run delayOf := by
 theorem prefix_by : HealthyPrefixDeliveryBy env run delayOf 12 := by
   constructor
   · intro v hv o t he
-    exact (no_emission v o t he).elim
+    exact (delivery_no_emission v o t he).elim
   · intro v hv i o t ha w hw a hta _ _ _ _ _ _
     obtain ⟨ho, ht⟩ := acceptance_cases ha
     have h4 : 4 ≤ a := by rcases ht with ⟨_, _, rfl⟩ | ⟨_, _, rfl⟩ <;>
@@ -245,7 +245,7 @@ theorem block_facts_recovery : LabelFactsOn env run IsBlock 0 2 1 0 :=
 theorem row_accepted_through_block : D.Run.acceptsAt env run 0 0 row 4 := by
   exact ⟨⟨block, rfl, Or.inr ⟨rfl, rfl⟩⟩, rfl, rfl⟩
 
-private theorem row_fresh_at_four : ¬ D.ProcessedByActionCut env run 1 row 4 := by
+theorem row_fresh_at_four : ¬ D.ProcessedByActionCut env run 1 row 4 := by
   rintro ⟨k, hk, hp⟩
   have hk0 : k = 0 := by simpa [D.Run.actionCut, Event.time, Event.phase] using hk
   subst k
@@ -325,7 +325,7 @@ abbrev trace (deliveryTime : Time) : D.Run Unit stamped where
   seatOf := fun _ _ => ()
   input := fun _ _ => ()
 
-private theorem trace_valid (deliveryTime : Time) :
+theorem trace_valid (deliveryTime : Time) :
     D.ExecutionValid awake (trace deliveryTime) := by
   have hcases : deliveryTime = 2 ∨ deliveryTime ≠ 2 := eq_or_ne deliveryTime 2
   rcases hcases with h | h
@@ -391,7 +391,7 @@ abbrev stampedClock : ClockLaws stamped :=
 abbrev stampedRestore : RestoreTimeLaw stampedClock := ⟨fun _ _ => rfl⟩
 
 -- All premises of the receipt core hold together, including an actual wake.
-private theorem stampedHooks : D.HooksSound stamped where
+theorem stampedHooks : D.HooksSound stamped where
   excludes_inert := by intros st o h; contradiction
   excludes_stable := by intros V _ E rho hS v o i j hij hrf hx; contradiction
   processed_stable := by
@@ -405,16 +405,16 @@ private theorem stampedHooks : D.HooksSound stamped where
   recordOwn_deps := by intros; rfl
   recordOwn_excludes := by intros; assumption
 
-private theorem stampedAcceptance :
+theorem stampedAcceptance :
     AcceptanceLaw stamped (fun _ _ => True) (fun _ => True) :=
   ⟨by intros; exact Or.inl rfl⟩
 
-private theorem fresh : ¬ D.ProcessedByActionCut awake (trace 2) () object 2 := by
+theorem fresh : ¬ D.ProcessedByActionCut awake (trace 2) () object 2 := by
   rintro ⟨i, hi, hp⟩
   have hi' : i ≤ 1 := by simpa [D.Run.actionCut, Event.time, Event.phase] using hi
   interval_cases i <;> contradiction
 
-private theorem receipt_core :
+theorem receipt_core :
     stamped.processed (D.Run.stateBeforeTime awake (trace 2) 4 ()) object = true := by
   apply processed_by_deadline_of_service awake (trace 2) (fun _ _ => True)
     (fun _ => True) () object 2 4 (trace_valid 2).toScheduleWellFormed (by decide)
@@ -426,19 +426,19 @@ private theorem receipt_core :
   have hlt' : k < 3 := by simpa [D.Run.idxBefore, Event.time] using hlt
   interval_cases k <;> simp at he
 
-private theorem demand :
+theorem demand :
     D.DeliveryDemand awake (trace 2) () () object 2 (fun a => a + 2) 4 := by
   intro a hsend _ _ hcut _ _ _
   have ha : a = 2 := by dsimp [Time] at *; omega
   subst a
   exact Or.inr ⟨2, le_rfl, by decide, 2, object, rfl, rfl⟩
 
-private theorem handler_before_cutoff : D.HandledBetween awake (trace 2) () object 2 4 :=
+theorem handler_before_cutoff : D.HandledBetween awake (trace 2) () object 2 4 :=
   (demand 2 le_rfl (by decide) (by decide) (by decide) (by decide)
     (by intro t ha _; exact decide_eq_true ha) rfl).resolve_left fresh
 
 -- dl(2) = C = 4. The stored receipt uses the handler's pre-event clock.
-private theorem stamp_before_equal_cutoff : (fun a : Time => a + 2) 2 = (4 : Time) ∧
+theorem stamp_before_equal_cutoff : (fun a : Time => a + 2) 2 = (4 : Time) ∧
     ∃ stamp, (D.Run.stateBeforeTime awake (trace 2) 4 ()).2 = some stamp ∧ stamp < 4 := by
   obtain ⟨t, _, ht, i, o, hi, _⟩ := handler_before_cutoff
   have hil : i < 4 := (List.getElem?_eq_some_iff.mp hi).1
@@ -451,21 +451,21 @@ private theorem stamp_before_equal_cutoff : (fun a : Time => a + 2) 2 = (4 : Tim
       (show (trace 2).events[2]? = some (.deliver () object 2) from rfl) ()) ht
 
 -- A valid delivery exactly at C stores C, which fails the strict receipt test.
-private theorem late_stamp_rejected : D.ExecutionValid awake (trace 4) ∧
+theorem late_stamp_rejected : D.ExecutionValid awake (trace 4) ∧
     (D.Run.stateBefore awake (trace 4) 4 ()).2 = some 4 ∧
     ¬ (4 : Time) < 4 := ⟨trace_valid 4, rfl, by decide⟩
 
-private theorem late_handler_at_cutoff : D.Run.handlesAt awake (trace 4) 3 () object 4 :=
+theorem late_handler_at_cutoff : D.Run.handlesAt awake (trace 4) 3 () object 4 :=
   ⟨object, rfl, rfl⟩
 
-private theorem late_handler_rejected : ¬ D.HandledBetween awake (trace 4) () object 2 4 := by
+theorem late_handler_rejected : ¬ D.HandledBetween awake (trace 4) () object 2 4 := by
   rintro ⟨t, _, ht, i, o, hi, _⟩
   have hm := List.mem_of_getElem? hi
   simp at hm
   obtain ⟨_, _, rfl⟩ := hm
   exact (lt_irrefl _ ht)
 
-private theorem late_demand_rejected :
+theorem late_demand_rejected :
     ¬ D.DeliveryDemand awake (trace 4) () () object 2 (fun a => a + 2) 4 := by
   intro hd
   have hs := hd 2 le_rfl (by decide) (by decide) (by decide) (by decide)
@@ -475,7 +475,7 @@ private theorem late_demand_rejected :
     interval_cases i <;> contradiction
   · exact late_handler_rejected hh
 
-private theorem late_read_empty :
+theorem late_read_empty :
     stamped.processed (D.Run.stateBeforeTime awake (trace 4) 4 ()) object = false := rfl
 
 -- A second wake clears a receipt that was processed before the sleep.
@@ -485,7 +485,7 @@ abbrev erased : D.Run Unit stamped :=
   { trace 2 with events :=
     [.restart () 2, .tick () 2, .deliver () object 2, .restart () 4, .tick () 4] }
 
-private theorem erased_valid : D.ExecutionValid twiceAwake erased where
+theorem erased_valid : D.ExecutionValid twiceAwake erased where
   horizon_nonneg := by decide
   sorted := by decide
   nodup := by decide
@@ -528,12 +528,12 @@ private theorem erased_valid : D.ExecutionValid twiceAwake erased where
     have ht : t = 2 ∨ t = 4 := by dsimp [Time] at *; omega
     rcases ht with rfl | rfl <;> simp
 
-private theorem erased_execution : D.ExecutionValid twiceAwake erased := erased_valid
+theorem erased_execution : D.ExecutionValid twiceAwake erased := erased_valid
 
-private theorem erased_service : D.DeliveryService twiceAwake erased () object 4 6 :=
+theorem erased_service : D.DeliveryService twiceAwake erased () object 4 6 :=
   Or.inl ⟨3, by decide, rfl⟩
 
-private theorem erased_history_rejected : ¬ HistorySafeAt twiceAwake erased () object 4 := by
+theorem erased_history_rejected : ¬ HistorySafeAt twiceAwake erased () object 4 := by
   intro h
   have := h ⟨3, by decide, rfl⟩
   contradiction
@@ -543,7 +543,7 @@ abbrev refusing : ProtocolSpecD Unit :=
   { stamped with init := (0, some 0), process := fun st _ => st }
 abbrev refused : D.Run Unit refusing := { trace 2 with }
 
-private theorem refused_valid : D.ExecutionValid awake refused where
+theorem delivery_refused_valid : D.ExecutionValid awake refused where
   horizon_nonneg := (trace_valid 2).horizon_nonneg
   sorted := (trace_valid 2).sorted
   nodup := (trace_valid 2).nodup
@@ -571,16 +571,16 @@ private theorem refused_valid : D.ExecutionValid awake refused where
     contradiction
   carried := by intro v o t _ o' hc; exact hc.elim
 
-private theorem refused_handler :
+theorem refused_handler :
     D.ExecutionValid awake refused ∧ D.Run.handlesAt awake refused 2 () object 2 :=
-  ⟨refused_valid, object, rfl, rfl⟩
+  ⟨delivery_refused_valid, object, rfl, rfl⟩
 
-private theorem refused_history_rejected : ¬ HistorySafeAt awake refused () object 2 := by
+theorem refused_history_rejected : ¬ HistorySafeAt awake refused () object 2 := by
   intro h
   have := h ⟨0, by decide, rfl⟩
   contradiction
 
-private theorem refused_acceptance_rejected :
+theorem refused_acceptance_rejected :
     ¬ AcceptanceLaw refusing (fun _ _ => True) (fun _ => True) := by
   intro h
   have := h.processed_of_not_excluded (2, none) object object
@@ -594,7 +594,7 @@ private theorem refused_acceptance_rejected :
 #print axioms demand
 #print axioms handler_before_cutoff
 #print axioms erased_valid
-#print axioms refused_valid
+#print axioms delivery_refused_valid
 
 #print axioms receipt_core
 #print axioms stamp_before_equal_cutoff
@@ -630,7 +630,7 @@ end AvailableChain.Gen.V2.Duty.DeliveryByTests
 #print axioms AvailableChain.Gen.V2.Duty.DeliveryByTests.row_deadline_strict
 #print axioms AvailableChain.Gen.V2.Duty.DeliveryByTests.row_exact
 #print axioms AvailableChain.Gen.V2.Duty.DeliveryByTests.block_exact
-#print axioms AvailableChain.Gen.V2.Duty.DeliveryByTests.no_emission
+#print axioms AvailableChain.Gen.V2.Duty.DeliveryByTests.delivery_no_emission
 #print axioms AvailableChain.Gen.V2.Duty.DeliveryByTests.acceptance_cases
 #print axioms AvailableChain.Gen.V2.Duty.DeliveryByTests.relay_delivery
 #print axioms AvailableChain.Gen.V2.Duty.DeliveryByTests.partial_by

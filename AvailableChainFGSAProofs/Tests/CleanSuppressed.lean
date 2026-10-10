@@ -27,7 +27,7 @@ def run : V2.D.Run (Fin 2) (fgsa p unitCodec) where
   input := fun _ _ => ()
 
 /-- The fixture includes every awake public tick and orders the wake before its duties. -/
-theorem schedule : V2.D.ScheduleWellFormed env run := by
+theorem fgp_schedule : V2.D.ScheduleWellFormed env run := by
   refine
     { horizon_nonneg := by decide
       sorted := by decide
@@ -66,7 +66,7 @@ theorem raw_nonempty :
 
 /-- The executed gate is suppressed, although the diagnostic raw result is nonempty. -/
 theorem executed_empty : gateResultAt p unitCodec env run 8 = some none := by
-  apply clean_gate_unjoined (v := (0 : Fin 2)) (s := 1) schedule
+  apply clean_gate_unjoined (v := (0 : Fin 2)) (s := 1) fgp_schedule
     (by change run.events[8]? = some (.tick 0 20); decide)
   intro hE
   have hm : (storeAt p unitCodec env run 8 0).restartTime = some 9 := by decide +kernel
@@ -82,7 +82,7 @@ end AvailableChain.FGSA.Run.Tests.CleanSuppressed
 #print axioms AvailableChain.FGSA.Run.Tests.CleanSuppressed.env
 #print axioms AvailableChain.FGSA.Run.Tests.CleanSuppressed.head
 #print axioms AvailableChain.FGSA.Run.Tests.CleanSuppressed.run
-#print axioms AvailableChain.FGSA.Run.Tests.CleanSuppressed.schedule
+#print axioms AvailableChain.FGSA.Run.Tests.CleanSuppressed.fgp_schedule
 #print axioms AvailableChain.FGSA.Run.Tests.CleanSuppressed.raw_nonempty
 #print axioms AvailableChain.FGSA.Run.Tests.CleanSuppressed.executed_empty
 

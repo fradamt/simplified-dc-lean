@@ -130,7 +130,7 @@ private theorem restart_time {v : Fin 1} {t : Time}
 private theorem event_awake : ∀ e ∈ rho.events, E.awake e.node e.time = true := by
   decide +kernel
 
-private theorem sleep_valid : V2.D.SleepWellFormed E rho where
+private theorem fgp_sleep_valid : V2.D.SleepWellFormed E rho where
   tick_awake := fun _ _ he => event_awake _ he
   deliver_awake := fun _ _ _ he => event_awake _ he
   restart_awake := fun _ _ he => event_awake _ he
@@ -149,7 +149,7 @@ private theorem restarts : V2.D.RestartsAtWakes E rho := by
   exact ⟨by decide, ⟨by decide, by decide⟩⟩
 
 private theorem lsync_execution : V2.D.ExecutionValid E rho where
-  toSleepWellFormed := sleep_valid
+  toSleepWellFormed := fgp_sleep_valid
   toScheduleWellFormed := lsync_schedule
   wire := by
     intro i v o t hi
@@ -587,7 +587,7 @@ theorem not_outage₂ (fast : Bool) : ¬ Outage₂ p unitCodec fast E rho 4 12 1
   fun h => old_budget_fails h.budget
 
 #print axioms outageContinuation_inhabited_sleep
-#print axioms sleep_valid
+#print axioms fgp_sleep_valid
 #print axioms restarts
 #print axioms joined
 #print axioms delay_receiptRoots

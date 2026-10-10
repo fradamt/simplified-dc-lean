@@ -20,7 +20,7 @@ abbrev run : Run Unit proto where
   seatOf := fun _ _ => ()
   input := fun _ _ => ()
 
-private theorem schedule : ScheduleWellFormed env run where
+private theorem kit_sleep_schedule : ScheduleWellFormed env run where
   horizon_nonneg := by decide
   sorted := by decide
   nodup := by decide
@@ -58,11 +58,11 @@ abbrev restoreTime : RestoreTimeLaw clock := ⟨fun _ _ => rfl⟩
 
 -- The non-public wake at 1 precedes the delivery at the same time.
 example : ∃ i, i < 1 ∧ run.events[i]? = some (.restart () 1) :=
-  wake_restart_before_event schedule sleep (by simp) (by decide) (by decide)
+  wake_restart_before_event kit_sleep_schedule sleep (by simp) (by decide) (by decide)
     ⟨rfl, rfl⟩ rfl rfl rfl (by decide)
 
 example : ∃ i, i < 1 ∧ run.toD.events[i]? = some (.restart () 1) :=
-  D.Engine.wake_restart_before_event ((D.scheduleWellFormed_toD_iff env run).mpr schedule)
+  D.Engine.wake_restart_before_event ((D.scheduleWellFormed_toD_iff env run).mpr kit_sleep_schedule)
     ((D.sleepWellFormed_toD_iff env run).mpr sleep)
     (by simp) (by decide) (by decide) ⟨rfl, rfl⟩ rfl rfl rfl (by decide)
 
@@ -104,7 +104,7 @@ example : D.Run.stateBefore frozenEnv frozenRun.toD 0 0 =
 
 -- The tick reads the restored state; the old strict-time read omits the restart.
 example : Run.stateBefore env run 2 () = Run.stateAfterRestartsAt env run 2 () :=
-  stateBefore_tick_eq_stateAfterRestartsAt schedule rfl
+  stateBefore_tick_eq_stateAfterRestartsAt kit_sleep_schedule rfl
 
 abbrev wakeTickEnv : Generic.Env Unit :=
   ⟨2, by decide, 0, le_rfl, fun _ t => decide (2 ≤ t)⟩
@@ -154,8 +154,8 @@ example : Run.stateBefore wakeTickEnv wakeTickRun 1 () ≠
     Run.stateBeforeTime wakeTickEnv wakeTickRun 2 () := by decide
 
 -- Full validity includes delivery freshness and signature provenance.
-private theorem valid : ExecutionValid env run where
-  toScheduleWellFormed := schedule
+private theorem kit_sleep_valid : ExecutionValid env run where
+  toScheduleWellFormed := kit_sleep_schedule
   toSleepWellFormed := sleep
   wire := by intros; rfl
   deps := by intros; rfl
@@ -228,7 +228,7 @@ private theorem wakeTickValid : ExecutionValid wakeTickEnv wakeTickRun where
   carried := by intro v o t _ o' hc; exact hc.elim
 
 example : ExecutionValid env run ∧ D.ExecutionValid env run.toD :=
-  ⟨valid, (D.executionValid_toD_iff env run).mpr valid⟩
+  ⟨kit_sleep_valid, (D.executionValid_toD_iff env run).mpr kit_sleep_valid⟩
 
 example : ExecutionValid frozenEnv frozenRun ∧
     D.ExecutionValid frozenEnv frozenRun.toD :=
@@ -255,7 +255,7 @@ example : ¬ D.ExecutionValid frozenEnv asleepTick.toD := by
   have := h.tick_awake 0 2 (by simp)
   contradiction
 
-#print axioms valid
+#print axioms kit_sleep_valid
 #print axioms frozenValid
 #print axioms wakeTickValid
 

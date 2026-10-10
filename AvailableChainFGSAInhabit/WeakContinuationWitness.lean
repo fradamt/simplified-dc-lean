@@ -135,7 +135,7 @@ theorem horizons : source.horizon = 253 ∧ continuation.horizon = 269 := ⟨rfl
 
 theorem endpoint : source.horizon = recoveryStart params strongEnv + B_HF params 1 4 := by decide
 
-theorem covered : source.horizon < continuation.horizon := by decide
+theorem witness_covered : source.horizon < continuation.horizon := by decide
 
 theorem environments : strongEnv.Δ = params.Δ ∧ weakEnv.Δ = params.Δ ∧
     strongEnv.t_GST = 0 ∧ weakEnv.t_GST = 0 := by decide
@@ -393,7 +393,7 @@ theorem agreement : AgreesThrough₂ params unitCodec strongEnv source weakEnv c
   simp only [Time] at *
   omega
 
-theorem committees :
+theorem witness_committees :
     V2.D.CStar (fgsaFamilies params unitCodec).fresh source ∧
     V2.D.CStar (fgsaFamilies params unitCodec).fresh continuation ∧
     V2.D.Linked (fgsaFamilies params unitCodec).linked source ∧
@@ -469,7 +469,7 @@ theorem continuation_tick_public (v : Validator) (t : Time)
   have hn : 0 ≤ t := (continuation_in_horizon _ ht).1
   exact ⟨t.toNat, by simpa [weakEnv, strongEnv] using (Int.toNat_of_nonneg hn).symm⟩
 
-theorem source_tick_total (v : Validator) (_hv : v ∈ source.honest) (t : Time)
+theorem witness_source_tick_total (v : Validator) (_hv : v ∈ source.honest) (t : Time)
     (_hp : V2.PublicTime strongEnv t) (ht : 0 ≤ t) (hh : t ≤ source.horizon) :
     V2.Event.tick v t ∈ source.events := by
   have he : (t.toNat : Int) = t := Int.toNat_of_nonneg ht
@@ -488,7 +488,7 @@ theorem continuation_tick_total (v : Validator) (_hv : v ∈ continuation.honest
   change V2.Event.tick v t ∈ source.events ++ (buildSuffix 16).2
   by_cases he : t ≤ 253
   · apply List.mem_append_left
-    exact source_tick_total v (Finset.mem_univ _) t
+    exact witness_source_tick_total v (Finset.mem_univ _) t
       ⟨t.toNat, by simpa [strongEnv] using (Int.toNat_of_nonneg ht).symm⟩ ht he
   · apply List.mem_append_right
     have hcast : (((254 + (t - 254).toNat : Nat)) : Time) = t := by
@@ -1159,14 +1159,14 @@ theorem continuation_nodup : continuation.events.Nodup := by
   have hge := (suffix_times 16 e hd).1
   exact (not_lt_of_ge hge hlt)
 
-theorem source_schedule : V2.D.ScheduleWellFormed strongEnv source where
+theorem witness_source_schedule : V2.D.ScheduleWellFormed strongEnv source where
   horizon_nonneg := source_horizon_nonneg
   sorted := source_sorted
   nodup := source_nodup
   in_horizon := source_in_horizon
   honest_only := source_honest_only
   tick_public := source_tick_public
-  tick_total := fun v hv t hp ht hh _ => source_tick_total v hv t hp ht hh
+  tick_total := fun v hv t hp ht hh _ => witness_source_tick_total v hv t hp ht hh
 
 theorem continuation_schedule : V2.D.ScheduleWellFormed weakEnv continuation where
   horizon_nonneg := continuation_horizon_nonneg
@@ -2593,9 +2593,9 @@ theorem fx_emit_wire (h : Time) (es : List Event)
 
 /-- The source schedule has the same public times in the weak environment. -/
 theorem fx_source_schedule : V2.D.ScheduleWellFormed weakEnv source :=
-  { source_schedule with
-    tick_public := source_schedule.tick_public
-    tick_total := fun v hv t hp ht hh _ => source_tick_total v hv t hp ht hh }
+  { witness_source_schedule with
+    tick_public := witness_source_schedule.tick_public
+    tick_total := fun v hv t hp ht hh _ => witness_source_tick_total v hv t hp ht hh }
 
 /-- Proposal wire checks now hold for every source delivery. -/
 theorem fx_source_wire (i : Nat) (v : Validator) (o : Obj params) (t : Time)
@@ -3074,7 +3074,7 @@ theorem fx_continuation_sleep : V2.D.SleepWellFormed weakEnv continuation where
 
 /-- Complete execution validity, including the full-sleep parent. -/
 theorem fx_source_execution : V2.D.ExecutionValid strongEnv source where
-  toScheduleWellFormed := source_schedule
+  toScheduleWellFormed := witness_source_schedule
   wire := fx_source_wire
   deps := fx_source_deps
   fresh := source_fresh
@@ -3151,7 +3151,7 @@ theorem fx_receipt_roots_of_table (E : Generic.Env Validator)
 #print axioms witness_window_bounds
 #print axioms horizons
 #print axioms endpoint
-#print axioms covered
+#print axioms witness_covered
 #print axioms environments
 #print axioms honest_sets
 #print axioms faulty_sets
@@ -3187,7 +3187,7 @@ theorem fx_receipt_roots_of_table (E : Generic.Env Validator)
 #print axioms suffix_after_endpoint
 #print axioms agreement_of_suffix
 #print axioms agreement
-#print axioms committees
+#print axioms witness_committees
 #print axioms recovery_awake
 #print axioms prefix_tick
 #print axioms suffix_tick
@@ -3199,7 +3199,7 @@ theorem fx_receipt_roots_of_table (E : Generic.Env Validator)
 #print axioms continuation_honest_only
 #print axioms source_tick_public
 #print axioms continuation_tick_public
-#print axioms source_tick_total
+#print axioms witness_source_tick_total
 #print axioms continuation_tick_total
 #print axioms suffix_has_ticks
 #print axioms phase_le_two
@@ -3258,7 +3258,7 @@ theorem fx_receipt_roots_of_table (E : Generic.Env Validator)
 #print axioms suffix_nodup
 #print axioms source_nodup
 #print axioms continuation_nodup
-#print axioms source_schedule
+#print axioms witness_source_schedule
 #print axioms continuation_schedule
 #print axioms runData_stateBefore
 #print axioms genOrigin_runData

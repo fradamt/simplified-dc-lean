@@ -488,7 +488,7 @@ theorem healing_loss_domain [Fintype V] {G ΔF : Time}
   have hsrc := hB
   rw [HighSrcN_def, SrcN_def] at hsrc
   have hCut := healing_high_source_window p c E rho emittedNonempty emittedName hsrc.1 hsrc.2
-  have hci := hCut.mono hl
+  have hci := hCut.cut_mono hl
   have hJoin := healing_recovery_joined_vote_next E rho hrec hci hx hk
   rcases Nat.eq_or_lt_of_le hl with rfl | hlt
   · exact healing_first_transfer_domain p c E rho hrec.toRecovery₂ emittedNonempty emittedName
@@ -570,7 +570,7 @@ theorem healing_loss_cause [Fintype V] {G ΔF : Time}
   have hsrc := (SrcN_def p c E rho B sB) ▸ hB'.1
   have hgst := healing_high_source_sync p c E rho emittedNonempty emittedName hsrc hB'.2
   have hCut := healing_high_source_window p c E rho emittedNonempty emittedName hsrc hB'.2
-  have hJoin := healing_recovery_joined_vote_next E rho hrec (hCut.mono hsi) hx hk
+  have hJoin := healing_recovery_joined_vote_next E rho hrec (hCut.cut_mono hsi) hx hk
   have hgsti : E.t_GST ≤ SA.voteTime p.toParams i := by
     refine hgst.trans ?_
     have hsi' : (sB : Int) ≤ (i : Int) := by exact_mod_cast hsi

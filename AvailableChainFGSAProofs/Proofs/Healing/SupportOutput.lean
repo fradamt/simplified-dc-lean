@@ -316,7 +316,7 @@ theorem healing_output_cover [Fintype V] (E : Generic.Env V)
       (hroots := hrec.base.receiptIdealization)
       E rho (fun _ => mono) crossing hE hDelta
       hrec.sync hgst hphase hu1 hq1v hy hjz
-      y (healing_carriers_window_at p c E rho hrec (hCut.mono (Nat.le_succ s))
+      y (healing_carriers_window_at p c E rho hrec (hCut.cut_mono (Nat.le_succ s))
         (hServices (s + 1) le_rfl j1 y _ hguard) hy hj1 hq1 jz y hy hjz) hBK hy
       ((hidxmono hq1).trans hb1)
       ((hidxmono (hu1.trans ((le_add_of_nonneg_right hd.le).trans hq1))).trans hb1) hbv

@@ -26,7 +26,7 @@ def run : V2.D.Run (Fin 1) (fgsa p unitCodec) where
   input := fun _ _ => ()
 
 /-- The wake is before the vote at the same time. Each scheduled tick is awake. -/
-theorem schedule : V2.D.ScheduleWellFormed env run ∧
+theorem fgp_schedule : V2.D.ScheduleWellFormed env run ∧
     V2.D.SleepWellFormed env run ∧ V2.D.RestartsAtWakes env run := by
   refine ⟨⟨by decide, by decide, by decide, ?_, ?_, ?_, ?_⟩,
     ⟨?_, ?_, ?_, ?_⟩, ?_⟩
@@ -77,9 +77,9 @@ theorem schedule : V2.D.ScheduleWellFormed env run ∧
     exact ⟨by decide, by unfold V2.D.Wakes; decide⟩
 
 /-- Empty delivery leaves all delivery and signature obligations satisfied. -/
-theorem valid : V2.D.ExecutionValid env run := by
-  refine { toScheduleWellFormed := schedule.1
-           toSleepWellFormed := schedule.2.1
+theorem fgp_valid : V2.D.ExecutionValid env run := by
+  refine { toScheduleWellFormed := fgp_schedule.1
+           toSleepWellFormed := fgp_schedule.2.1
            toDeliveryWellFormed := ?_
            toUnforgeableSignatures := ?_ }
   · refine ⟨?_, ?_, ?_⟩ <;> intro i v o t hi <;>
@@ -132,13 +132,18 @@ theorem no_head_emission : run.emitsAt env 2 = [] := by decide +kernel
 theorem genesis_coverage :
     ∀ z ∈ run.honest, ∀ K, headAtLabel p unitCodec env run z 1 = some K →
       Block.Preceq .genesis K := by
-  intro z _ K _
-  exact Gen.Pure.block_genesis_preceq K
+  intro z hz K hK
+  have hz0 : z = 0 := Finset.mem_singleton.mp hz
+  subst z
+  have hgen : headAtLabel p unitCodec env run 0 1 = some .genesis := by decide +kernel
+  have he : K = .genesis := Option.some.inj (hK.symm.trans hgen)
+  rw [he]
+  exact Gen.Pure.block_preceq_refl .genesis
 
 end AvailableChain.FGSA.Run.Tests.HealingOpeningSupport
 
-#print axioms AvailableChain.FGSA.Run.Tests.HealingOpeningSupport.valid
-#print axioms AvailableChain.FGSA.Run.Tests.HealingOpeningSupport.schedule
+#print axioms AvailableChain.FGSA.Run.Tests.HealingOpeningSupport.fgp_valid
+#print axioms AvailableChain.FGSA.Run.Tests.HealingOpeningSupport.fgp_schedule
 #print axioms AvailableChain.FGSA.Run.Tests.HealingOpeningSupport.wake_at_vote
 #print axioms AvailableChain.FGSA.Run.Tests.HealingOpeningSupport.genesis_coverage
 

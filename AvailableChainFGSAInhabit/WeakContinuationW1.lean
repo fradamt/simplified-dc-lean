@@ -718,7 +718,7 @@ theorem w1_continuation_sleep : V2.D.SleepWellFormed weakEnv continuation where
 
 /-- Complete execution validity, including the full-sleep parent. -/
 theorem w1_source_execution : V2.D.ExecutionValid strongEnv source where
-  toScheduleWellFormed := source_schedule
+  toScheduleWellFormed := witness_source_schedule
   wire := w1_source_wire
   deps := w1_source_deps
   fresh := source_fresh
@@ -2366,7 +2366,7 @@ theorem w1_cleanContinuation :
   base := ⟨w1_continuation_execution, linked 269 _, cstar 269 _, fx_continuation_restarts, rfl,
     w1_continuation_receiptRoots⟩
   agrees := agreement
-  covered := le_of_lt covered
+  covered := le_of_lt witness_covered
   sync := by
     have h := (Gen.V2.Duty.partialSynchrony_iff_by_const weakEnv continuation).mp
       w1_continuation_sync

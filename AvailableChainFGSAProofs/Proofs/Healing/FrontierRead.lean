@@ -52,14 +52,14 @@ structure FrontierReadScope (E : Generic.Env V)
   carriers : ∀ r, q + 1 ≤ r →
     ∀ iy y t, t ≤ v → HealingCarriersAt E rho r iy y t
 
-theorem FrontierReadScope.mono {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
+theorem FrontierReadScope.cut_mono {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     {q : Slot} {u v : Time} (h : FrontierReadScope E rho q v) (huv : u ≤ v) :
     FrontierReadScope E rho q u :=
-  ⟨fun x hx => (h.seed x hx).mono huv,
+  ⟨fun x hx => (h.seed x hx).cut_mono huv,
     fun s hs ht hSync => h.first s hs (ht.trans huv) hSync,
-    fun w hw ht x nd B hx hnd hB => (h.fast w hw (ht.trans huv) x nd B hx hnd hB).mono huv,
+    fun w hw ht x nd B hx hnd hB => (h.fast w hw (ht.trans huv) x nd B hx hnd hB).cut_mono huv,
     fun w hw ht hSync x st C B j hx hs hc hb hel hj =>
-      (h.slow w hw (ht.trans huv) hSync x st C B j hx hs hc hb hel hj).mono huv,
+      (h.slow w hw (ht.trans huv) hSync x st C B j hx hs hc hb hel hj).cut_mono huv,
     fun r hr ht => h.prior r hr (ht.trans huv),
     fun r hr ht => h.next r hr (ht.trans huv),
     fun r hr iy y t ht => h.carriers r hr iy y t (ht.trans huv)⟩

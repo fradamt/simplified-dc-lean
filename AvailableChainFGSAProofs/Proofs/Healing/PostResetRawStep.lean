@@ -228,7 +228,7 @@ theorem postReset_raw_first_head_above
     (healing_first_transfer_scope_recovery E rho hrec mono hgst.le hx hy hix hiy
       (healing_gate_enabled_of_result E rho hs hix hres)
       (healing_recovery_joined E rho hrec hy
-        ((postReset_written_window p c E rho hrec h0r hx hix hCB hmem).mono
+        ((postReset_written_window p c E rho hrec h0r hx hix hCB hmem).cut_mono
           (Nat.le_succ s)).2
         (by apply hgst.le.trans
             change 4 * p.Δ * (s : Int) + p.Δ ≤ 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ
@@ -278,7 +278,7 @@ private theorem rawStep_reset_first_head
     (Or.inl hτ) hy hiy (healing_gate_enabled_of_result E rho hs hix hres)
     (healing_recovery_joined E rho hrec hy
       (healing_window_of_cut E (healing_ready_vote_cutoff E
-        (healing_reset_source_ready h0r)) |>.mono (Nat.le_succ w.sStar)).2
+        (healing_reset_source_ready h0r)) |>.cut_mono (Nat.le_succ w.sStar)).2
       (by apply h0r.synchronous.trans
           change 4 * p.Δ * (w.sStar : Int) + p.Δ ≤
             4 * p.Δ * ((w.sStar + 1 : Nat) : Int) + p.Δ
@@ -574,8 +574,8 @@ theorem postReset_raw_heads_succ_above
         (by change 4 * p.Δ * (l : Int) + p.Δ < 4 * p.Δ * (l : Int) + 3 * p.Δ
             linarith [p.deltaPos]) _)
     have hCut := (healing_window_of_cut E (healing_ready_vote_cutoff E
-      (healing_reset_source_ready h0r))).mono (hlabel.trans (Nat.le_of_succ_le hsl))
-    have hJ := healing_recovery_joined E rho hrec hy (hCut.mono (Nat.le_succ l)).2
+      (healing_reset_source_ready h0r))).cut_mono (hlabel.trans (Nat.le_of_succ_le hsl))
+    have hJ := healing_recovery_joined E rho hrec hy (hCut.cut_mono (Nat.le_succ l)).2
       (by apply hgst.trans
           change 4 * p.Δ * (l : Int) + p.Δ ≤ 4 * p.Δ * ((l + 1 : Nat) : Int) + p.Δ
           push_cast; linarith [p.deltaPos])
@@ -721,7 +721,7 @@ theorem postReset_raw_proposals_succ_above
   apply healing_proposal_moving_parent p c E rho hrec
     (healing_raw_service_scope_recovery E rho hrec mono) mono hgst
     (healing_window_of_cut E (healing_ready_vote_cutoff E
-      (healing_reset_source_ready h0r)) |>.mono
+      (healing_reset_source_ready h0r)) |>.cut_mono
         (hlabel.trans (Nat.le_of_succ_le hsl))).2 hbatch hp
   · intro j hj
     have he : j = ip := fgsa_tick_unique E rho hs hj hip
@@ -813,7 +813,7 @@ theorem postReset_raw_finality_compatible_above
         healing_gate_result_supporter p c E rho hrec
           (healing_raw_service_scope_recovery E rho hrec mono) hgst.le
           (healing_window_of_cut E (healing_ready_vote_cutoff E
-            (healing_reset_source_ready h0r)) |>.mono hlabel).2 hx hix hres
+            (healing_reset_source_ready h0r)) |>.cut_mono hlabel).2 hx hix hres
       exact ⟨a, z, hz, ha, hCH, hr⟩
     · simp only [hr, ite_false]
       obtain ⟨j, z, q, row, hjb, hrow, -, he⟩ := hK
@@ -944,7 +944,7 @@ theorem postReset_raw_outputs_succ_above
         (Gen.V2.Duty.faulty rho).card := by
     intro l hsl _hcut hhor
     have hCut := (healing_window_of_cut E (healing_ready_vote_cutoff E
-      (healing_reset_source_ready h0r))).mono (hlabel.trans (Nat.le_of_succ_le hsl))
+      (healing_reset_source_ready h0r))).cut_mono (hlabel.trans (Nat.le_of_succ_le hsl))
     exact (healing_recovery_joined_counts E rho hrec l hCut.2 hCut.sync hhor).2
   apply healing_output_moving_suffix_at p c E rho hrec
     (healing_raw_service_scope_recovery E rho hrec mono) mono hgst batches hhor (cut := i)

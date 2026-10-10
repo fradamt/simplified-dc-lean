@@ -172,7 +172,7 @@ public section
 #print axioms AvailableChain.FGSA.Run.HealingWindow
 #print axioms AvailableChain.FGSA.Run.StrongHealingWindow
 #print axioms AvailableChain.FGSA.Run.StrongHealingWindow.window
-#print axioms AvailableChain.FGSA.Run.HealingWindow.mono
+#print axioms AvailableChain.FGSA.Run.HealingWindow.cut_mono
 #print axioms AvailableChain.FGSA.Run.HealingWindow.sync
 #print axioms AvailableChain.FGSA.Run.HealingWindow.prior
 #print axioms AvailableChain.FGSA.Run.HealingWindow.after
@@ -215,7 +215,7 @@ public section
 #print axioms AvailableChain.FGSA.Run.healing_support_vote_tick
 #print axioms AvailableChain.FGSA.Run.healing_recovery_same_label
 #print axioms AvailableChain.FGSA.Run.FastSupportScope.firstOn
-#print axioms AvailableChain.FGSA.Run.FastSupportScope.mono
+#print axioms AvailableChain.FGSA.Run.FastSupportScope.cut_mono
 #print axioms AvailableChain.FGSA.Run.healing_lease_clock_nongate
 #print axioms AvailableChain.FGSA.Run.healing_lease_persist
 #print axioms AvailableChain.FGSA.Run.healing_fast_source
@@ -230,7 +230,7 @@ public section
 #print axioms AvailableChain.FGSA.Run.healing_proposal_core
 #print axioms AvailableChain.FGSA.Run.healing_proposals_cover
 #print axioms AvailableChain.FGSA.Run.healing_fast_proposals
-#print axioms AvailableChain.FGSA.Run.SlowSupportScope.mono
+#print axioms AvailableChain.FGSA.Run.SlowSupportScope.cut_mono
 #print axioms AvailableChain.FGSA.Run.healing_clock_nongate
 #print axioms AvailableChain.FGSA.Run.healing_slow_window
 #print axioms AvailableChain.FGSA.Run.healing_slow_majority
@@ -332,7 +332,7 @@ public section
 #print axioms AvailableChain.FGSA.Run.repair_gate_old_output
 #print axioms AvailableChain.FGSA.Run.repair_gate_opening
 #print axioms AvailableChain.FGSA.Run.repair_gate_geometry
-#print axioms AvailableChain.FGSA.Run.FrontierReadScope.mono
+#print axioms AvailableChain.FGSA.Run.FrontierReadScope.cut_mono
 #print axioms AvailableChain.FGSA.Run.frontier_seed_leases
 #print axioms AvailableChain.FGSA.Run.frontier_lease_cover
 #print axioms AvailableChain.FGSA.Run.frontier_pivot_held

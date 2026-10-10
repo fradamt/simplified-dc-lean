@@ -60,7 +60,7 @@ theorem zeroSlot_delivery {i : Nat} {v : Fin 1} {o : Obj p} {t : Time}
     reduceCtorEq] at h
   all_goals first | contradiction | (cases h; simp)
 
-theorem valid : V2.D.ExecutionValid env run := by
+theorem zero_slot_valid : V2.D.ExecutionValid env run := by
   constructor
   · constructor
     · decide
@@ -135,7 +135,7 @@ theorem in_scope (N : NamedProposal p.n) (h : NamedProposalInRun p unitCodec env
   exact of_decide_eq_true hn
 
 theorem zeroSlot_base : Base₂ p unitCodec env run := by
-  refine ⟨valid, ?_, ?_, ?_, rfl, ?_⟩
+  refine ⟨zero_slot_valid, ?_, ?_, ?_, rfl, ?_⟩
   · refine ⟨1, Equiv.refl _, ?_⟩
     intro l hl
     cases l with

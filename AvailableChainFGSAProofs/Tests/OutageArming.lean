@@ -214,7 +214,7 @@ def run : V2.D.Run (Fin 1) P where
   seatOf := fun _ _ => 0
   input := fun _ _ => ()
 
-theorem emitted_cases {v : Fin 1} {o : Obj p} {t : Time}
+theorem fgp_emitted_cases {v : Fin 1} {o : Obj p} {t : Time}
     (h : V2.D.Run.emits env run v o t) :
     (o = head0 ∧ t = 2) ∨ (o = proposal ∧ t = 8) := by
   obtain ⟨i, hi, ho⟩ := h
@@ -227,7 +227,7 @@ theorem emitted_cases {v : Fin 1} {o : Obj p} {t : Time}
     | (change o ∈ [head0] at ho; exact Or.inl ⟨List.mem_singleton.mp ho, rfl⟩)
     | (change o ∈ [proposal] at ho; exact Or.inr ⟨List.mem_singleton.mp ho, rfl⟩)
 
-theorem valid : V2.D.ExecutionValid env run := by
+theorem fgp_valid : V2.D.ExecutionValid env run := by
   refine {
     toScheduleWellFormed := ?_
     toSleepWellFormed := ?_
@@ -283,7 +283,7 @@ theorem valid : V2.D.ExecutionValid env run := by
     change true = false at hf
     cases hf
 
-theorem roots : NamedReceiptRootCollisionFree p unitCodec env run := by
+theorem fgp_roots : NamedReceiptRootCollisionFree p unitCodec env run := by
   have old {A : NamedProposal p.n} (hA : NamedProposalInRun p unitCodec env run A) :
       A = .genesis := by
     rcases namedProposalInRun_genesis_or_delivered env run (by
@@ -299,7 +299,7 @@ theorem roots : NamedReceiptRootCollisionFree p unitCodec env run := by
       A = .genesis ∨ A = body := by
     rcases hA with hA | ⟨v, hv, o, t, N, he, ho, hAN⟩
     · exact Or.inl (old hA)
-    · rcases emitted_cases he with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
+    · rcases fgp_emitted_cases he with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
       · cases ho
       · change Msg.proposal body = Msg.proposal N at ho
         cases Msg.proposal.inj ho
@@ -314,7 +314,7 @@ theorem roots : NamedReceiptRootCollisionFree p unitCodec env run := by
     | rfl
     | exact False.elim ((by decide +kernel : ¬ (type_of% he)) he)
 
-theorem healthy : Gen.V2.Duty.HealthyPrefixDeliveryBy env run (fgsaDelay env.Δ 2) 8 := by
+theorem fgp_healthy : Gen.V2.Duty.HealthyPrefixDeliveryBy env run (fgsaDelay env.Δ 2) 8 := by
   have demand : V2.D.DeliveryDemand env run 0 0 head0 2 (fun a => a + 2) 8 := by
     intro a ha hn hl hc hh hr hx
     change a + 2 ≤ 8 at hc
@@ -328,7 +328,7 @@ theorem healthy : Gen.V2.Duty.HealthyPrefixDeliveryBy env run (fgsaDelay env.Δ 
     have hv0 : v = 0 := Subsingleton.elim _ _
     have hw0 : w = 0 := Subsingleton.elim _ _
     subst v; subst w
-    rcases emitted_cases he with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
+    rcases fgp_emitted_cases he with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
     · exact demand
     · intro a ha hn hl hc
       change a + 2 ≤ 8 at hc
@@ -362,7 +362,7 @@ theorem base : Base₂ p unitCodec env run := by
     cases l with
     | base l => cases l <;> rfl
     | prop s => rfl
-  refine ⟨valid, ?_, ?_, ?_, rfl, roots⟩
+  refine ⟨fgp_valid, ?_, ?_, ?_, rfl, fgp_roots⟩
   · refine ⟨1, Equiv.refl _, ?_⟩
     intro l hl
     exact ⟨hseats l, fun i => Subsingleton.elim _ _⟩
@@ -390,7 +390,7 @@ theorem regime : OutageSleep₂ p unitCodec true env run 0 8 8 2 := by
     rw [ha]
     decide
   have hpre : HealthyPrefix₂ p unitCodec env run 8 2 :=
-    ⟨base, by decide, healthy, le_rfl, fun t _ _ => hpart t⟩
+    ⟨base, by decide, fgp_healthy, le_rfl, fun t _ _ => hpart t⟩
   have hsleep : ∀ t : Time,
       (awakeHonestIn env run (t - p.η) t ∪ Gen.V2.Duty.faulty run).card <
         2 * (Gen.V2.Duty.awakeHonest env run t).card := by
@@ -452,10 +452,10 @@ theorem prefix_receipt : OutagePrefixReceipt p unitCodec env run true 0 8 := by
 
 end AvailableChain.FGSA.Run.Tests.OutageArming.EarlyCut
 
-#print axioms AvailableChain.FGSA.Run.Tests.OutageArming.EarlyCut.emitted_cases
-#print axioms AvailableChain.FGSA.Run.Tests.OutageArming.EarlyCut.valid
-#print axioms AvailableChain.FGSA.Run.Tests.OutageArming.EarlyCut.roots
-#print axioms AvailableChain.FGSA.Run.Tests.OutageArming.EarlyCut.healthy
+#print axioms AvailableChain.FGSA.Run.Tests.OutageArming.EarlyCut.fgp_emitted_cases
+#print axioms AvailableChain.FGSA.Run.Tests.OutageArming.EarlyCut.fgp_valid
+#print axioms AvailableChain.FGSA.Run.Tests.OutageArming.EarlyCut.fgp_roots
+#print axioms AvailableChain.FGSA.Run.Tests.OutageArming.EarlyCut.fgp_healthy
 #print axioms AvailableChain.FGSA.Run.Tests.OutageArming.EarlyCut.joined_all
 #print axioms AvailableChain.FGSA.Run.Tests.OutageArming.EarlyCut.base
 #print axioms AvailableChain.FGSA.Run.Tests.OutageArming.EarlyCut.regime
@@ -1054,7 +1054,7 @@ def originTime (i : Nat) : Time :=
   if i = 2 then 1 else if i = 6 then 4 else if i = 8 then 5
   else if i = 13 ∨ i = 14 then 9 else if i = 18 then 13 else 17
 
-theorem delivery_checks (late : Bool) : ∀ i : Fin 25,
+theorem fgp_delivery_checks (late : Bool) : ∀ i : Fin 25,
     match (run late).events[i.val]? with
     | some (.deliver v o _) => P.wellFormed o = true ∧
         P.depsPresent (V2.D.Run.stateBefore env (run late) i v) o = true ∧
@@ -1122,7 +1122,7 @@ theorem delivery_valid (late : Bool) : V2.D.DeliveryWellFormed env (run late) :=
   all_goals intro i v o t hi
   all_goals have hib := (List.getElem?_eq_some_iff.mp hi).1
   all_goals have hb : i < 25 := by cases late <;> simpa [run] using hib
-  all_goals have hc := delivery_checks late ⟨i, hb⟩
+  all_goals have hc := fgp_delivery_checks late ⟨i, hb⟩
   all_goals rw [hi] at hc
   · exact hc.1
   · exact hc.2.1
@@ -1158,18 +1158,18 @@ theorem signatures_valid (late : Bool) : V2.D.UnforgeableSignatures env (run lat
          change head 0 ∈ [head 0]
          exact List.mem_singleton_self _⟩)
 
-theorem sleep_valid (late : Bool) : V2.D.SleepWellFormed env (run late) := by
+theorem fgp_sleep_valid (late : Bool) : V2.D.SleepWellFormed env (run late) := by
   refine ⟨by intros; rfl, by intros; rfl, by intros; rfl, ?_⟩
   intro v _ t _ _ hw
   have hf := hw.2
   change true = false at hf
   cases hf
 
-theorem valid (late : Bool) : V2.D.ExecutionValid env (run late) :=
+theorem fgp_valid (late : Bool) : V2.D.ExecutionValid env (run late) :=
   { toScheduleWellFormed := schedule_valid late
     toDeliveryWellFormed := delivery_valid late
     toUnforgeableSignatures := signatures_valid late
-    toSleepWellFormed := sleep_valid late }
+    toSleepWellFormed := fgp_sleep_valid late }
 
 theorem read (late : Bool) :
     V2.D.outputAt env (run late) (fgsaInterface p unitCodec).stable 0 10 = B := by
@@ -1329,7 +1329,7 @@ theorem fast_gate :
     Block.Preceq B (S_at p unitCodec env (run true) 25 0) ∧
       ∃ dl, leaseOf (storeAt p unitCodec env (run true) 25 0) B = some dl ∧
         18 < dl ∧ 18 + L p ≤ dl := by
-  have hc := arming_sleep_gate_core_scoped (valid true) rfl (by decide : B ≠ .genesis)
+  have hc := arming_sleep_gate_core_scoped (fgp_valid true) rfl (by decide : B ≠ .genesis)
     fast_certificate (by decide) 0 (receiver true)
   have hF : F_at p unitCodec env (run true) 25 0 = .genesis := by decide +kernel
   change Block.Preceq B (S_at p unitCodec env (run true) 25 0) ∧ _ at hc
@@ -1344,7 +1344,7 @@ theorem slow_gate :
     Block.Preceq B (S_at p unitCodec env (run false) 25 0) ∧
       ∃ dl, leaseOf (storeAt p unitCodec env (run false) 25 0) B = some dl ∧
         18 < dl ∧ 18 + L p ≤ dl := by
-  have hc := arming_sleep_gate_core (valid false) rfl (by decide : B ≠ .genesis)
+  have hc := arming_sleep_gate_core (fgp_valid false) rfl (by decide : B ≠ .genesis)
     slow_certificate (by decide) 0 (receiver false)
   have hF : F_at p unitCodec env (run false) 25 0 = .genesis := by decide +kernel
   change Block.Preceq B (S_at p unitCodec env (run false) 25 0) ∧ _ at hc
@@ -1369,7 +1369,7 @@ theorem positive_fast :
       Block.Preceq B (S_at p unitCodec env (run true) 25 0) ∧
         ∃ dl, leaseOf (storeAt p unitCodec env (run true) 25 0) B = some dl ∧
           18 < dl ∧ 18 + L p ≤ dl := by
-  exact ⟨valid true, by decide, read true, receiver true, fast_certificate, no_last, fast_gate⟩
+  exact ⟨fgp_valid true, by decide, read true, receiver true, fast_certificate, no_last, fast_gate⟩
 
 /-- The slow run has a label-2 result, a current-epoch saved row, and an executed lease. -/
 theorem positive_slow :
@@ -1380,17 +1380,17 @@ theorem positive_slow :
       Block.Preceq B (S_at p unitCodec env (run false) 25 0) ∧
         ∃ dl, leaseOf (storeAt p unitCodec env (run false) 25 0) B = some dl ∧
           18 < dl ∧ 18 + L p ≤ dl := by
-  exact ⟨valid false, by decide, read false, receiver false, slow_certificate, slow_gate⟩
+  exact ⟨fgp_valid false, by decide, read false, receiver false, slow_certificate, slow_gate⟩
 
 end AvailableChain.FGSA.Run.Tests.OutageArming.Finite
 
-#print axioms AvailableChain.FGSA.Run.Tests.OutageArming.Finite.delivery_checks
+#print axioms AvailableChain.FGSA.Run.Tests.OutageArming.Finite.fgp_delivery_checks
 #print axioms AvailableChain.FGSA.Run.Tests.OutageArming.Finite.origin_checks
 #print axioms AvailableChain.FGSA.Run.Tests.OutageArming.Finite.schedule_valid
 #print axioms AvailableChain.FGSA.Run.Tests.OutageArming.Finite.delivery_valid
 #print axioms AvailableChain.FGSA.Run.Tests.OutageArming.Finite.signatures_valid
-#print axioms AvailableChain.FGSA.Run.Tests.OutageArming.Finite.sleep_valid
-#print axioms AvailableChain.FGSA.Run.Tests.OutageArming.Finite.valid
+#print axioms AvailableChain.FGSA.Run.Tests.OutageArming.Finite.fgp_sleep_valid
+#print axioms AvailableChain.FGSA.Run.Tests.OutageArming.Finite.fgp_valid
 #print axioms AvailableChain.FGSA.Run.Tests.OutageArming.Finite.read
 #print axioms AvailableChain.FGSA.Run.Tests.OutageArming.Finite.receiver
 #print axioms AvailableChain.FGSA.Run.Tests.OutageArming.Finite.result_table

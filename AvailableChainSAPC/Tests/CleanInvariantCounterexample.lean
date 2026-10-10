@@ -71,7 +71,7 @@ theorem next_save :
   decide
 
 
-private theorem schedule : ScheduleWellFormed env run := by
+private theorem sapc_counterexample_schedule : ScheduleWellFormed env run := by
   refine { horizon_nonneg := by decide
            sorted := by decide
            nodup := by decide
@@ -163,7 +163,7 @@ private theorem signatures : UnforgeableSignatures (sapc p) env run := by
     exact (plain_no_carried hp hc).elim
 
 theorem execution : ExecutionValid (sapc p) env run :=
-  { schedule, delivery, signatures with }
+  { sapc_counterexample_schedule, delivery, signatures with }
 
 private theorem broadcasts : ∀ i : Fin run.events.length,
     (match run.events[i.val] with
@@ -189,7 +189,7 @@ private theorem relay : AcceptedObjectRelay (sapc p) env run := by
   subst parent
   obtain ⟨j, hj, hf, ht⟩ := of_decide_eq_true (receipts _ hm) w hw
   refine ⟨t, le_refl _, ?_, j, ⟨o, ?_, Or.inl rfl⟩, hf, ht⟩
-  · have := (schedule.in_horizon _ hm).1
+  · have := (sapc_counterexample_schedule.in_horizon _ hm).1
     change t < max t 0 + 1
     exact lt_of_le_of_lt (le_max_left t 0) (lt_add_one _)
   · exact List.getElem?_eq_some_iff.mpr ⟨j.isLt, hj⟩
@@ -371,7 +371,7 @@ theorem before_cutoff : CleanPathFacts p env run 42 rejectedPath := by
   · intro i hi v _ r _ he
     exact (no_gate_before i hi v r he).elim
   · intro i hi v _ r c he _ hc
-    have ht := (schedule.in_horizon _ (List.mem_iff_getElem?.mpr ⟨i, he⟩)).2
+    have ht := (sapc_counterexample_schedule.in_horizon _ (List.mem_iff_getElem?.mpr ⟨i, he⟩)).2
     have hr : r < 2 := by
       change 4 * (r : Time) + 1 ≤ 6 at ht
       have hr : (r : Time) < 2 := by linarith
@@ -412,7 +412,7 @@ theorem canonical_before : cleanRunPath p run 42 = (fun b => b = .genesis) := by
       · simp [savedTimely, hn] at hs
     | gate j hj v hv r c ht ha hc => exact no_gate_before j hj v r ht
     | head j hj v hv r c ht ha hc =>
-      have ht' := (schedule.in_horizon _ (List.mem_iff_getElem?.mpr ⟨j, ht⟩)).2
+      have ht' := (sapc_counterexample_schedule.in_horizon _ (List.mem_iff_getElem?.mpr ⟨j, ht⟩)).2
       have hr : r < 2 := by
         change 4 * (r : Time) + 1 ≤ 6 at ht'
         have hr : (r : Time) < 2 := by linarith

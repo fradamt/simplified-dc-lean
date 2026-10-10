@@ -70,7 +70,7 @@ example [Fintype V] {G ΔF : Time}
           (eraseFG B) = true) := hcase.imp_right (fun hel => ⟨hgw, hel⟩)
   have hCut := healing_window_of_cut E (healing_ready_vote_cutoff E
     (postReset_written_ready p c E rho hrec h0r hx hix hCB hmem).le)
-  have hJ := healing_recovery_joined E rho hrec hy (hCut.mono (Nat.le_succ s)).2
+  have hJ := healing_recovery_joined E rho hrec hy (hCut.cut_mono (Nat.le_succ s)).2
     (by apply hgst.le.trans
         change 4 * p.Δ * (s : Int) + p.Δ ≤ 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ
         push_cast; linarith [p.deltaPos])

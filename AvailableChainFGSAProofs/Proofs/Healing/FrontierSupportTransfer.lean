@@ -191,7 +191,7 @@ theorem frontier_first_transfer_slow [Fintype V] (E : Generic.Env V)
     hgate hcoverQ hx hjx hkh ho hko hsupD hmaj hy hiy (hScope.phase.firstOn jx iy y hy hjx hiy hv
       (healing_recovery_next_vote_joined_of_cut E rho hrec hCut hy hiy)) hv
     (healing_slow_lease E rho hrec mono lastWrite hgsts hhor hx hgw hst hres hBC
-      hel le_rfl (hv.trans hvh) (hScope.mono hv)
+      hel le_rfl (hv.trans hvh) (hScope.cut_mono hv)
       (fun w hw1 hw2 => absurd (hw1.trans hw2) (Nat.not_succ_le_self s)) hy hiy)
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -339,7 +339,7 @@ theorem frontier_Q_heads [Fintype V] (E : Generic.Env V)
   · intro i hi hv ih iy y hy hiy hFB
     obtain ⟨nd, hnd, hQnd⟩ := hfast y hy
     exact healing_fast_lease E rho hrec mono lastWrite hgstq hy hnd hQnd hi (hv.trans hvh)
-      ((hScopes y hy).mono hv) (hGST.trans hu) ih
+      ((hScopes y hy).cut_mono hv) (hGST.trans hu) ih
       hy hiy hFB
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -397,7 +397,7 @@ theorem frontier_fast_heads [Fintype V] (E : Generic.Env V)
       (hQ w le_rfl hvw) hx hnd hB hScope hCut hz hv hK
   · intro i hi hv ih iy y hy hiy hFB
     exact healing_fast_lease E rho hrec mono lastWrite hgstw hx hnd hB hi (hv.trans hvh)
-      (hScope.mono hv) hCut ih
+      (hScope.cut_mono hv) hCut ih
       hy hiy hFB
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -458,7 +458,7 @@ theorem frontier_slow_heads [Fintype V] (E : Generic.Env V)
       hgate (hQ w le_rfl hvw) hx hgw hst hres hBC hel hjx hScope hCut hz hv hK
   · intro i hi hv ih iy y hy hiy hFB
     exact healing_slow_lease E rho hrec mono lastWrite hgstw (hgate.trans hvh) hx hgw hst hres
-      hBC hel ((Nat.le_succ w).trans hi) (hv.trans hvh) (hScope.mono hv) ih hy hiy hFB
+      hBC hel ((Nat.le_succ w).trans hi) (hv.trans hvh) (hScope.cut_mono hv) ih hy hiy hFB
 
 end AvailableChain.FGSA.Run
 end

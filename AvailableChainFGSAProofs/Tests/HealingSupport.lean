@@ -442,14 +442,14 @@ def run : V2.D.Run (Fin 2) (fgsa p unitCodec) where
   seatOf := fun l q => match l with | .base _ => q | _ => 1
   input := fun _ _ => ()
 
-private theorem no_delivery (v : Fin 2) (o : Obj p) (t : Time) :
+private theorem fgp_no_delivery (v : Fin 2) (o : Obj p) (t : Time) :
     ¬ V2.D.Run.processes run v o t := by
   rintro ⟨i, hi⟩
   have hm := List.mem_of_getElem? hi
   simp [run] at hm
 
 /-- A finite valid sleep execution restarts at GST, then has an enabled HEAD read. -/
-theorem valid : V2.D.ExecutionValid env run := by
+theorem fgp_valid : V2.D.ExecutionValid env run := by
   refine { toSleepWellFormed := ?_, toScheduleWellFormed := ?_,
            toDeliveryWellFormed := ?_, toUnforgeableSignatures := ?_ }
   · refine ⟨by decide, by decide, by decide, ?_, ?_, ?_, ?_⟩
@@ -471,10 +471,10 @@ theorem valid : V2.D.ExecutionValid env run := by
       change t ≤ 18 at hh
       simp [env] at hk ha
       simp [run]; dsimp [Time] at *; omega
-  · refine ⟨?_, ?_, ?_⟩ <;> intro i v o t hi <;> exact (no_delivery v o t ⟨i, hi⟩).elim
+  · refine ⟨?_, ?_, ?_⟩ <;> intro i v o t hi <;> exact (fgp_no_delivery v o t ⟨i, hi⟩).elim
   · refine ⟨?_, ?_⟩
-    · intro v o t hp; exact (no_delivery v o t hp).elim
-    · intro v o t hp; exact (no_delivery v o t hp).elim
+    · intro v o t hp; exact (fgp_no_delivery v o t hp).elim
+    · intro v o t hp; exact (fgp_no_delivery v o t hp).elim
   · refine ⟨?_, ?_, ?_, ?_⟩
     · intro v t h
       simp [run] at h
@@ -524,7 +524,7 @@ private theorem scope_genesis (N : NamedProposal p.n)
     rw [he] at hh
     cases hh
 
-private theorem roots : NamedReceiptRootCollisionFree p unitCodec env run := by
+private theorem fgp_roots : NamedReceiptRootCollisionFree p unitCodec env run := by
   intro A B hA hB _
   exact (scope_genesis A hA).trans (scope_genesis B hB).symm
 
@@ -590,9 +590,9 @@ theorem relay_positive :
           (heightView p W).h ∧
         Gen.V2.Duty.HoldsBefore env run
           (fun nd => ∀ B, FGBlock.Preceq B W → B ∈ nd.st.fg.TF) 18 0 := by
-  exact healing_head_witness_relay_on p unitCodec env run crossing valid
+  exact healing_head_witness_relay_on p unitCodec env run crossing fgp_valid
     (i := 10) (x := (0 : Fin 2)) (s := 4) (y := (0 : Fin 2))
-    (by decide) (by rfl) (by decide) carrier roots
+    (by decide) (by rfl) (by decide) carrier fgp_roots
 
 /-- The review's restart-at-9 gate is suppressed; its false cutoff is not needed. -/
 theorem early_gate_suppressed :
@@ -615,7 +615,7 @@ theorem suppressed_writes :
     (run.stateBefore env 8 0).st.base.stableRecord =
       (run.stateBefore env 7 0).st.base.stableRecord := by
   constructor
-  · exact fgsa_gate_saved_unjoined env run valid.toScheduleWellFormed
+  · exact fgsa_gate_saved_unjoined env run fgp_valid.toScheduleWellFormed
       (show run.events[7]? = some (.tick 0 14) from rfl) (by decide +kernel)
   constructor <;> decide +kernel
 
@@ -628,7 +628,7 @@ theorem label_zero_guard :
 end AvailableChain.FGSA.Run.Tests.HealingSupport.PositiveSleep
 end
 
-#print axioms AvailableChain.FGSA.Run.Tests.HealingSupport.PositiveSleep.valid
+#print axioms AvailableChain.FGSA.Run.Tests.HealingSupport.PositiveSleep.fgp_valid
 #print axioms AvailableChain.FGSA.Run.Tests.HealingSupport.PositiveSleep.read_nonempty
 #print axioms AvailableChain.FGSA.Run.Tests.HealingSupport.PositiveSleep.carrier
 #print axioms AvailableChain.FGSA.Run.Tests.HealingSupport.PositiveSleep.relay_positive

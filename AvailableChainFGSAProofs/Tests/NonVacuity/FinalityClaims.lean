@@ -1105,7 +1105,7 @@ theorem emitted_fresh (n : Nat) (hn : n < 412) (o : Object)
     rw [hslot] at hh
     exact lt_irrefl s hh
 
-theorem fresh : ∀ (i : Nat) (v : Fin 1) (o : Object) (t : Time),
+theorem fgp_fresh : ∀ (i : Nat) (v : Fin 1) (o : Object) (t : Time),
     run.events[i]? = some (.deliver v o t) →
     (fgsa params unitCodec).processed (V2.D.Run.stateBefore env run i v) o = false := by
   intro i v o t hi
@@ -1124,7 +1124,7 @@ theorem nvExecution : V2.D.ExecutionValid env run where
   toScheduleWellFormed := nvSchedule
   wire := wire
   deps := deps
-  fresh := fresh
+  fresh := fgp_fresh
   unforgeable := by
     rintro v o t ⟨i, hi⟩ u _ _
     obtain ⟨n, hn, rfl, _, ho⟩ := delivery_source hi

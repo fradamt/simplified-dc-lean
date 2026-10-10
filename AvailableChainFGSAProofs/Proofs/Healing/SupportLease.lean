@@ -67,7 +67,7 @@ structure FastSupportScope (E : Generic.Env V)
   sameLabel : SameLabelServiceScope E rho s
 
 /-- Restricting the interval keeps the same object services and exact epochs. -/
-theorem FastSupportScope.mono {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
+theorem FastSupportScope.cut_mono {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     {s : Slot} {u v : Time} {x : V} (h : FastSupportScope E rho s v x) (huv : u ≤ v) :
     FastSupportScope E rho s u x :=
   ⟨h.source, fun ix iy y hy hi hj ht hg hJ =>
@@ -667,13 +667,13 @@ theorem healing_fast_heads [Fintype V] (E : Generic.Env V)
       hgst hphase (hhead.trans hsi)
       (hcov i' hi' le_rfl) hz hiz
       (hScopes.next i' hi' hv iz z hz hiz
-        (healing_recovery_joined_next E rho hrec (hCut.mono ((Nat.le_succ s).trans hi')) hz
+        (healing_recovery_joined_next E rho hrec (hCut.cut_mono ((Nat.le_succ s).trans hi')) hz
           (by change 4 * p.Δ * (i' : Int) + p.Δ ≤
                 4 * p.Δ * ((i' + 1 : Nat) : Int) + p.Δ
               push_cast; linarith [p.deltaPos]) (hv.trans hphase.2.1)))
-      (hCut.mono ((Nat.le_succ s).trans hi')) hv
+      (hCut.cut_mono ((Nat.le_succ s).trans hi')) hv
       (healing_fast_lease E rho hrec mono writes (hgst.trans hhead) hx hnd hB hi'
-        (hv.trans hphase.2.1) (hScopes.mono hv)
+        (hv.trans hphase.2.1) (hScopes.cut_mono hv)
         (healing_gate_cut_of_batch_cut E s hCut.2) hcov hz hiz)
 
 end AvailableChain.FGSA.Run
