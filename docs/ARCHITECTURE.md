@@ -1260,3 +1260,21 @@ raw successors still need their sleep ports. No all-cut source closure is
 claimed. The map has 105/114 GREEN targets; nine retain P-H2. Exact obligations:
 scripts/dev-pkg/P-H2.round8-handoff.md. No public claim, budget sum, GST saved
 window or GST RowPermissionAt bound changes.
+
+
+P-H2 Round 9 (sleep-ph2j): PostResetLeaseMove uses the actual bounded read,
+the selected source supporter and the receiver floor. Receipt is at freeze;
+TF content is durable. LeaseStep and RawStep use produced P1/P2/P10 scopes,
+HeadRelayLocalServiceScope and local frozen epochs. Written reset extensions
+supply a full recovery batch window. The fast arm releases every conflicting
+lease, including a live pre-GST lease when k > 2R+3; it does not assume expiry.
+The bounded output-suffix companion requires its vote time to be within the
+run horizon. Its two uses prove this guard from actual bounded gate ticks. The
+original H1 consumer keeps its exact statement and wraps this companion.
+HealingInputExport constructs all six joint steps, inv, the selected full-H0
+extension, local HealingInput and full HealingInput. Local input requires only
+tstar <= horizon. Full input keeps the complete Jst horizon and budget sum.
+Only u and QStar change in the extension. The remaining arguments are named
+Foundation producers, row service and progress/finality laws. Healing.Export
+exposes these producers. Tests use producer modules and named Foundation leaves;
+there is no new test-to-Export or Healing-to-Foundations import.

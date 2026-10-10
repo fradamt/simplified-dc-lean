@@ -49,14 +49,14 @@ Blueprint 21 H.15:2894–2900; plan J4-A A1 synchrony;
 B1/B13/B17/B18. DC: SAME causal frontier cut. A stored prefix above C*
 cannot be held at u₀. Its gate is after u₀, so its HEAD label is after GST.
 This uses the actual stored prefix, without an emitted-source premise. -/
-theorem postReset_written_sync [Fintype V] {G ΔF : Time}
-    (hrec : Recovery₂ p c E rho G ΔF) {w : HealingWitness}
+theorem postReset_written_ready [Fintype V] {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) {w : HealingWitness}
     (h0r : H0Reset p c E rho w) {i : Nat} {y : V} {s : Slot} {B : Block}
     (hy : y ∈ rho.honest) (ht : IsGateTick p c rho i y s)
     (hCB : Block.Preceq w.CStar B)
     (hB : B ∈ (actView (clockPre p (storeAt p c E rho i y)
       (SA.gateTime p.toParams s))).blocks) :
-    E.t_GST < SA.voteTime p.toParams s := by
+    recoveryStart p E < SA.voteTime p.toParams s := by
   have hs := hrec.base.valid.toScheduleWellFormed
   have hb := (actView_blocks _ _).mp hB |>.1
   rw [(clockPre_fields p _ _).2.1] at hb
@@ -83,8 +83,30 @@ theorem postReset_written_sync [Fintype V] {G ΔF : Time}
     nlinarith [p.deltaPos]
   have hlow := h0r.cut_lower
   change w.u₀ < 4 * p.Δ * (s : Int) + 6 * p.Δ at hcut
-  change E.t_GST < 4 * p.Δ * (s : Int) + p.Δ
+  change recoveryStart p E < 4 * p.Δ * (s : Int) + p.Δ
   linarith [p.deltaPos]
+
+/-- The stored reset extension starts after the complete recovery batch cut. -/
+theorem postReset_written_sync [Fintype V] {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) {w : HealingWitness}
+    (h0r : H0Reset p c E rho w) {i : Nat} {y : V} {s : Slot} {B : Block}
+    (hy : y ∈ rho.honest) (ht : IsGateTick p c rho i y s)
+    (hCB : Block.Preceq w.CStar B)
+    (hB : B ∈ (actView (clockPre p (storeAt p c E rho i y)
+      (SA.gateTime p.toParams s))).blocks) :
+    E.t_GST < SA.voteTime p.toParams s :=
+  lt_of_le_of_lt (healing_recoveryStart_ge p E)
+    (postReset_written_ready p c E rho hrec h0r hy ht hCB hB)
+
+theorem postReset_written_window [Fintype V] {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) {w : HealingWitness}
+    (h0r : H0Reset p c E rho w) {i : Nat} {y : V} {s : Slot} {B : Block}
+    (hy : y ∈ rho.honest) (ht : IsGateTick p c rho i y s)
+    (hCB : Block.Preceq w.CStar B)
+    (hB : B ∈ (actView (clockPre p (storeAt p c E rho i y)
+      (SA.gateTime p.toParams s))).blocks) : HealingWindow p E 1 s :=
+  healing_window_of_cut E (healing_ready_vote_cutoff E
+    (postReset_written_ready p c E rho hrec h0r hy ht hCB hB).le)
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. Blueprint 21 H.15:2902–2914, H.1:673–699; plan J4-A A1;
@@ -93,7 +115,7 @@ The fast arm uses release. The slow arm uses the last-write window.
 Assembly supplies fgsa_rMono and fgsa_leaseOrigins_lastWrite. The domain
 and label synchrony are explicit read guards for the H.15 producer. -/
 theorem healing_first_transfer_written [Fintype V] {G ΔF : Time}
-    (hrec : Recovery₂ p c E rho G ΔF) (mono : RMono p c E rho)
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (mono : RMonoAll p c E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -104,6 +126,7 @@ theorem healing_first_transfer_written [Fintype V] {G ΔF : Time}
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -115,6 +138,7 @@ theorem healing_first_transfer_written [Fintype V] {G ΔF : Time}
     (hres : gateResultAt p c E rho ix = some (some C))
     {B : FGBlock (Fin p.n)} (hBC : Block.Preceq (eraseFG B) C)
     (hgst : E.t_GST ≤ SA.voteTime p.toParams s)
+    (hCut : HealingWindow p E 1 s)
     (harm : SA.releaseThreshold p.toParams ≤ SA.Root.prefixSupport p.toParams
         (actView (clockPre p (storeAt p c E rho ix x) (SA.gateTime p.toParams s))) s
         (eraseFG B) ∨
@@ -124,6 +148,8 @@ theorem healing_first_transfer_written [Fintype V] {G ΔF : Time}
           (eraseFG B) = true))
     {iy : Nat} {y : V} (hy : y ∈ rho.honest)
     (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (s + 1))))
+    (hGuard : enabledGateAt p c E rho ix x s)
+    (hJoin : joinedAt p E rho y (s + 1) (SA.voteTime p.toParams (s + 1)))
     {X : Finset (FGBlock (Fin p.n))}
     (hXv : X ⊆ voterBlocks p (FGSA.clock p (storeAt p c E rho iy y)
       (SA.voteTime p.toParams (s + 1))) (s + 1))
@@ -133,8 +159,9 @@ theorem healing_first_transfer_written [Fintype V] {G ΔF : Time}
     Block.Preceq (eraseFG B) (headAtIdx p c E rho iy (s + 1)) := by
   have hE := hrec.base.valid
   have hS := hE.toScheduleWellFormed
-  have hN := hrec.base.noRestart
   have hDelta := hrec.base.delta
+  have hScope := healing_first_transfer_scope_recovery E rho hrec mono hgst hx hy
+    hix hiy hGuard hJoin
   have hhor : SA.gateTime p.toParams s ≤ rho.horizon :=
     (hS.in_horizon _ (List.mem_of_getElem? hix)).2
   have hvd : SA.voteTime p.toParams s + E.Δ ≤ SA.gateTime p.toParams s := by
@@ -186,14 +213,16 @@ theorem healing_first_transfer_written [Fintype V] {G ΔF : Time}
   -- Both admission arms remove conflicting leases at this HEAD read.
   have hrows : ∀ row ∈ dst.base.obligations, Block.Compatible row.1 (eraseFG B) := by
     rcases harm with hτ | ⟨hgw, hel⟩
-    · exact healing_support_release_compat (hroots := hrec.base.idealization) E rho hE hN hDelta s
-        hSync hx hy hix hiy hτ hFB0
+    · exact healing_support_release_compat (hroots := hrec.base.receiptIdealization)
+        E rho hE hDelta s
+        hSync hx hy hix hiy hScope hτ hFB0
     · have hst : gateIn p c E rho x s =
           some (clockPre p (storeAt p c E rho ix x) (SA.gateTime p.toParams s)) := by
         rw [gateIn_def, preTick_def, fgsa_tickIdx_of_event p c E rho hS hix]
         rfl
       exact healing_slow_lease E rho hrec mono writes hgst hhor hx hgw hst hres' hBC hel
         le_rfl (hS.in_horizon _ (List.mem_of_getElem? hiy)).2
+        (healing_slow_support_scope_recovery E rho hrec mono hCut hgw hx)
         (fun w hw1 hw2 => absurd (hw1.trans hw2) (Nat.not_succ_le_self s)) hy hiy hFB0
   have hanchor : Block.Compatible (liveRoot p dst) (eraseFG B) := by
     have hselect := Gen.Pure.foldl_select_mem (fun (best b : Block) =>
@@ -226,17 +255,22 @@ theorem healing_first_transfer_written [Fintype V] {G ΔF : Time}
       rw [Gen.AC.Root.voteSupports_def, hlookup] at hsup'
       exact (Bool.and_eq_true_iff.mp hsup').2
     obtain ⟨Kfg', hKe', hpath'⟩ :=
-      healing_support_target_path (hroots := hrec.base.receiptIdealization)
-      E rho hE hN hDelta s hSync
-      hx hy hiy K' hKm' hKst' (Gen.Pure.block_preceq_trans hFB' hBK')
-    exact fgsa_cleanSupport_forward_relay E rho hE hN hDelta s hSync hx hy hix hiy o' ho'
-      seat hs' Kfg' (hKe' ▸ hK') (eraseFG B) (hKe' ▸ hBK') hpath' hFB'
+      healing_support_target_path_on (hroots := hrec.base.receiptIdealization)
+      E rho hS hy hiy
+      (healing_recovery_epoch_after_vote E rho hrec hy hgst (by
+        change 4 * p.Δ * (s : Int) + p.Δ < 4 * p.Δ * (s : Int) + 3 * p.Δ
+        linarith [p.deltaPos]) _ ) K'
+      (hScope.targets K' hKm' hKst' (Gen.Pure.block_preceq_trans hFB0 hBK'))
+    exact fgsa_cleanSupport_forward_relay_on_receipt E rho hE s hx hy hix hiy o' ho'
+      seat hs' (fun b hb => hScope.forward seat b (hb ▸ ho'))
+      Kfg' (hKe' ▸ hK') (eraseFG B) (hKe' ▸ hBK') hpath' hFB'
   have htr := Gen.AC.Root.transfer src.blocks dst.base.blocks
     (GridCO.cleanSupport p.toParams.engine src s) (GridCO.lateVotes p.toParams.engine src s)
     (FGSA.headVotes p dst (s + 1)) (FGSA.headSupport p dst (s + 1)) (eraseFG B)
     (fun _ ho' => fgsa_early_subset_late p src s (List.mem_filter.mp ho').1)
     (fgsa_cleanSupport_seat_clean_late p src s) hforward
-    (fgsa_headVotes_backward_relay E rho hE hN hDelta s hSync hx hy hix hiy)
+    (fgsa_headVotes_backward_relay_on_receipt E rho hE s ix iy x y hx
+      (fun q b hb => hScope.backward q b (Or.inr hb)))
     (fgsa_headSupport_subset_headVotes E rho hE iy y s) hmaj
   rw [Gen.AC.Root.TransferBounds_def] at htr
   rw [healing_headAtIdx_tick p c E rho hiy]
@@ -247,7 +281,8 @@ theorem healing_first_transfer_written [Fintype V] {G ΔF : Time}
 
 section WrittenDomain
 variable [Fintype V] {G ΔF : Time}
-    (hrec : Recovery₂ p c E rho G ΔF) (mono : RMono p c E rho)
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (mono : RMonoAll p c E rho)
+    (source : TSrc p c E rho)
     (emittedNonempty : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n},
       HonestRowAt p c E rho j x r a → ∃ e, namedEntry a.payload.height_pair = some e)
     (emittedName : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n} {e : Height × BlockId},
@@ -266,6 +301,7 @@ variable [Fintype V] {G ΔF : Time}
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -275,9 +311,9 @@ variable [Fintype V] {G ΔF : Time}
     (xing : RXing p c E rho) (origin : RQCOrigin p c E rho)
     {w : HealingWitness} (h0r : H0Reset p c E rho w)
 
-include hrec mono emittedNonempty emittedName writes xing origin h0r
+include hrec mono source emittedNonempty emittedName writes xing origin h0r
 
-omit mono emittedNonempty emittedName writes xing origin h0r in
+omit mono source emittedNonempty emittedName writes xing origin h0r in
 private theorem written_source_label {iy : Nat} {y : V} {s : Slot}
     (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (s + 1))))
     {K : FGBlock (Fin p.n)} {r : Slot} (hK : SourceBefore p c E rho iy K r) :
@@ -310,11 +346,15 @@ theorem postReset_written_source_compatible
     (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (s + 1)))) :
     ∀ K r, SourceBefore p c E rho iy K r → high p w K →
       Block.Compatible (eraseFG B) (eraseFG K) := by
-  have noLoss := (healing_high_source_compat p c E rho hrec mono emittedNonempty
+  have noLoss := (healing_high_source_compat p c E rho hrec
+    (healing_loss_service_scope_recovery E rho hrec mono source emittedNonempty emittedName)
+    mono emittedNonempty
     emittedName writes xing origin).1
   have hgst := postReset_written_sync p c E rho hrec h0r hx hix hCB hmem
   obtain ⟨jh, z, hz, hjh, hCH, -⟩ :=
-    healing_gate_result_supporter p c E rho hrec hgst.le hx hix hres
+    healing_gate_result_supporter p c E rho hrec
+      (healing_raw_service_scope_recovery E rho hrec mono) hgst.le
+      (postReset_written_window p c E rho hrec h0r hx hix hCB hmem).2 hx hix hres
   intro K r hK hhK
   have hrs := written_source_label p c E rho hrec hiy hK
   have hKn : HighSrcN p c E rho K r := by
@@ -329,7 +369,7 @@ theorem postReset_written_source_compatible
     exact ⟨hKn, z, s, hz, hrs, hjh, hn⟩
   exact Gen.Pure.block_compatible_of_common (Gen.Pure.block_preceq_trans hBC hCH) hKH
 
-omit hrec mono emittedNonempty emittedName writes xing origin h0r in
+omit hrec mono source emittedNonempty emittedName writes xing origin h0r in
 omit [Fintype V] in
 private theorem written_stored {ix : Nat} {x : V} {s : Slot} {B : FGBlock (Fin p.n)}
     (hmem : eraseFG B ∈ (actView (clockPre p (storeAt p c E rho ix x)
@@ -339,7 +379,7 @@ private theorem written_stored {ix : Nat} {x : V} {s : Slot} {B : FGBlock (Fin p
   obtain ⟨A, hA, he⟩ := (cstoreInv_stateBefore E rho ix x).baseTree (eraseFG B) |>.mp hb
   exact (eraseFG_injective he) ▸ hA
 
-omit hrec mono emittedNonempty emittedName writes xing origin h0r in
+omit hrec mono source emittedNonempty emittedName writes xing origin h0r in
 omit [Fintype V] in
 private theorem written_source_mono {j i : Nat} {K : FGBlock (Fin p.n)} {r : Slot}
     (h : SourceBefore p c E rho j K r) (hji : j ≤ i) : SourceBefore p c E rho i K r := by
@@ -371,8 +411,7 @@ theorem postReset_written_domain
     B ∈ D_at p c E rho iy y
       (storeAt p c E rho (V2.D.Run.idxBefore rho (SA.freezeTime p.toParams s)) y).fg.TF := by
   have hs := hrec.base.valid.toScheduleWellFormed
-  have hN := hrec.base.noRestart
-  have hBK := postReset_written_source_compatible p c E rho hrec mono emittedNonempty
+  have hBK := postReset_written_source_compatible p c E rho hrec mono source emittedNonempty
     emittedName writes xing origin h0r hx hix hres hCB hmem hBC hiy
   obtain ⟨-, -, -, Cfg, -, -, -, heC, hhC⟩ := h0r.fresh
   have hCBfg : FGBlock.Preceq Cfg B := written_lift p (by rwa [heC])
@@ -405,7 +444,11 @@ theorem postReset_written_domain
   have hres' := (gateResultAt_eq_gateResult p c E rho hs hix).symm.trans hres
   have hmaj := healing_slow_majority E rho hs hix hres' hBC
   have hhor := (hs.in_horizon _ (List.mem_of_getElem? hix)).2
-  obtain ⟨-, o, -, ho, -, hsup⟩ := healing_slow_honest_seat E rho hrec hgst.le hhor hx hix hmaj
+  obtain ⟨-, o, -, ho, -, hsup⟩ := healing_slow_honest_seat E rho hrec hgst.le hhor hx hix
+    ((healing_raw_service_scope_recovery E rho hrec mono).late s ix x
+      (postReset_written_window p c E rho hrec h0r hx hix hCB hmem) hx hix
+      (healing_gate_enabled_of_result E rho hs hix hres))
+    (healing_gate_enabled_of_result E rho hs hix hres) hmaj
   obtain ⟨K, hKt, hKm, hstamp, -, -, -⟩ := healing_support_clean_target E rho o ho
   have hBKt : Block.Preceq (eraseFG B) K := by
     have hlookup : Gen.AC.Root.resolvedTarget?
@@ -427,9 +470,11 @@ theorem postReset_written_domain
       (SA.voteTime p.toParams (s + 1))).fg.F) K := by
     rw [clock_fg]
     exact Gen.Pure.block_preceq_trans (eraseFG_preceq hFB) hBKt
-  obtain ⟨Y, heY, hY⟩ := healing_block_receipt_sync (hroots := hrec.base.receiptIdealization)
-    p c E rho hrec.base.valid hN
-    hrec.base.delta s hSync hx hy hiy K hKm hstamp hFK
+  have service := healing_first_target_receipt_recovery E rho hrec mono hgst.le hx hy hiy
+    hKm hstamp (by simpa only [clock_fg] using hFK)
+  have hb := fgsa_target_receipt_on E rho hs hrec.base.receiptIdealization K
+    (SA.freezeTime p.toParams s) y hy service
+  obtain ⟨Y, hY, heY⟩ := ((storeBundle_stateBeforeTime E rho _ y).cstore.baseTree _).mp hb
   rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hs] at hY
   let X := (storeAt p c E rho (V2.D.Run.idxBefore rho (SA.freezeTime p.toParams s)) y).fg.TF
   have hBX : B ∈ X := by
@@ -448,8 +493,17 @@ theorem postReset_written_domain
       (heightView p B).h < (heightView p K).h →
       K ∈ X ∨ FGBlock.Preceq K (storeAt p c E rho iy y).fg.F := by
     intro K r hK hFK _hBK _hhK
-    exact Or.inl (healing_source_receipt p c E rho hrec emittedNonempty emittedName hK
-      (Nat.le_of_succ_le (written_source_label p c E rho hrec hiy hK)) hgst.le hy hiy hFK)
+    exact Or.inl (healing_source_receipt p c E rho hrec
+      (healing_loss_service_scope_recovery E rho hrec mono source emittedNonempty emittedName)
+      emittedNonempty emittedName hK
+      (Nat.le_of_succ_le (written_source_label p c E rho hrec hiy hK)) hgst.le hy hiy
+      (healing_recovery_joined E rho hrec hy
+        ((postReset_written_window p c E rho hrec h0r hx hix hCB hmem).mono (Nat.le_succ s)).2
+        (by apply hgst.le.trans
+            change 4 * p.Δ * (s : Int) + p.Δ ≤
+              4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ
+            push_cast; linarith [p.deltaPos])
+        (hs.in_horizon _ (List.mem_of_getElem? hiy)).2) hFK)
   have hhigh := hinv.high_compatible
   rw [PostResetHighCompatible_def] at hhigh
   rcases healing_descent (hroots := hrec.base.idealization) p c E rho xing origin hy hX hBX hcover
@@ -468,7 +522,7 @@ theorem postReset_written_domain
         (written_source_mono p c E rho hK' hyi) hhK hhK'))
 
 
-omit mono emittedNonempty emittedName writes xing origin in
+omit source emittedNonempty emittedName writes xing origin in
 private theorem written_slow_boundary
     {ix : Nat} {x : V} {s : Slot} {B : FGBlock (Fin p.n)}
     (hx : x ∈ rho.honest) (hCB : Block.Preceq w.CStar (eraseFG B))
@@ -506,12 +560,15 @@ private theorem written_slow_boundary
     | none => rw [hsg] at h; cases h
     | some C =>
       rw [hsg] at h
-      exact postReset_slow_window_sync p c E rho hrec h0r hx hsg hCB h
+      exact postReset_slow_window_sync p c E rho hrec
+        (healing_raw_service_scope_recovery E rho hrec mono) h0r hx hsg hCB h
 
-omit mono emittedNonempty emittedName writes xing origin h0r in
+omit mono source emittedNonempty emittedName writes xing origin h0r in
 private theorem written_frozen_geometry
     {iy : Nat} {y : V} {s : Slot}
-    (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (s + 1)))) :
+    (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (s + 1))))
+    (hEpoch : V2.D.restartFree rho y
+      (V2.D.Run.idxBefore rho (SA.freezeTime p.toParams s)) iy) :
     let X := (storeAt p c E rho
       (V2.D.Run.idxBefore rho (SA.freezeTime p.toParams s)) y).fg.TF.filter
         (fun A => FGBlock.Preceq (storeAt p c E rho iy y).fg.F A)
@@ -537,8 +594,9 @@ private theorem written_frozen_geometry
   constructor
   · intro W hW
     obtain ⟨hW, hFW⟩ := Finset.mem_filter.mp hW
-    exact healing_frozen_path p c E rho hs hrec.base.noRestart hdpos hdvote
-      (by rw [Nat.add_sub_cancel]) hW hread W
+    exact healing_frozen_path_on p c E rho hs hdpos hdvote
+      (by rw [Nat.add_sub_cancel]) hW hread
+      (fun j hj => (fgsa_tick_unique E rho hs hj hiy).symm ▸ hEpoch) W
       (by change FGBlock.Preceq (FGSA.clock p _ _).fg.F W; rw [clock_fg]; exact hFW)
       (KitFG.preceq_refl W)
   intro W hW A hFA hAW
@@ -577,7 +635,7 @@ theorem postReset_written_first_head
       push_cast
       linarith [p.deltaPos])
   obtain ⟨hmem, -, hBC, -, hcase⟩ := healing_support_key_cases p hkey
-  have hD := postReset_written_domain p c E rho hrec mono emittedNonempty emittedName
+  have hD := postReset_written_domain p c E rho hrec mono source emittedNonempty emittedName
     writes xing origin h0r hinv hx hix hres hCB hmem hBC hy hiy
     (hyx.le.trans hxi) hZ hF
   have hgst := postReset_written_sync p c E rho hrec h0r hx hix hCB hmem
@@ -588,10 +646,20 @@ theorem postReset_written_first_head
       GridCO.slowEligible p.toParams.engine
         (actView (clockPre p (storeAt p c E rho ix x) (SA.gateTime p.toParams s))) s
         (eraseFG B) = true) := hcase.imp_right (fun hel =>
-    ⟨(written_slow_boundary p c E rho hrec h0r hx hCB hel).le, hel⟩)
+    ⟨(written_slow_boundary p c E rho hrec mono h0r hx hCB hel).le, hel⟩)
   obtain ⟨hXv, hXc⟩ := written_frozen_geometry p c E rho hrec hiy
+    (healing_recovery_epoch_after_vote E rho hrec hy hgst.le (by
+      change 4 * p.Δ * (s : Int) + p.Δ < 4 * p.Δ * (s : Int) + 3 * p.Δ
+      linarith [p.deltaPos]) _)
   exact healing_first_transfer_written p c E rho hrec mono writes hx hix hres hBC
-    hgst.le harm hy hiy hXv hXc (by
+    hgst.le (postReset_written_window p c E rho hrec h0r hx hix hCB hmem) harm hy hiy
+    (healing_gate_enabled_of_result E rho hrec.base.valid.toScheduleWellFormed hix hres)
+    (healing_recovery_joined E rho hrec hy
+      ((postReset_written_window p c E rho hrec h0r hx hix hCB hmem).mono (Nat.le_succ s)).2
+      (by apply hgst.le.trans
+          change 4 * p.Δ * (s : Int) + p.Δ ≤ 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ
+          push_cast; linarith [p.deltaPos])
+      (hrec.base.valid.in_horizon _ (List.mem_of_getElem? hiy)).2) hXv hXc (by
       dsimp only [D_at] at hD ⊢
       simpa only [healing_domain_filter_F] using hD)
 
@@ -621,7 +689,7 @@ theorem postReset_written_first_head_label
       rw [healing_headAtIdx_tick p c E rho hiy]
       exact (Option.some.inj hhead).symm
     rw [hH]
-    exact postReset_written_first_head p c E rho hrec mono emittedNonempty emittedName
+    exact postReset_written_first_head p c E rho hrec mono source emittedNonempty emittedName
       writes xing origin h0r hinv hx hix hxi hres hCB hkey hy hiy
 
 
@@ -646,7 +714,7 @@ theorem postReset_written_heads_at_write_cut
       headAtLabel p c E rho y j = some H → Block.Preceq (eraseFG B) H := by
   intro y j H hy hsj hcut hhead
   rcases Nat.eq_or_lt_of_le hsj with rfl | hj
-  · exact postReset_written_first_head_label p c E rho hrec mono emittedNonempty emittedName
+  · exact postReset_written_first_head_label p c E rho hrec mono source emittedNonempty emittedName
       writes xing origin h0r hinv hx hi le_rfl
       hres hCB hkey hy hhead
   · delta headAtLabel at hhead
@@ -666,7 +734,7 @@ theorem postReset_written_heads_at_write_cut
       omega
 
 
-omit mono emittedNonempty emittedName writes xing origin h0r in
+omit mono source emittedNonempty emittedName writes xing origin h0r in
 private theorem written_head_label {a : Nat} {z : V} {j : Slot}
     (ha : rho.events[a]? = some (.tick z (SA.voteTime p.toParams j))) :
     headAtLabel p c E rho z j = some (headAtIdx p c E rho a j) := by
@@ -725,10 +793,15 @@ theorem postReset_written_later_result
     have hsj' : (s : Int) ≤ j := by exact_mod_cast (Nat.le_of_succ_le hsj)
     change 4 * p.Δ * (s : Int) + p.Δ ≤ 4 * p.Δ * (j : Int) + p.Δ
     nlinarith [p.deltaPos]
-  have noLoss := (healing_high_source_compat p c E rho hrec mono emittedNonempty
+  have noLoss := (healing_high_source_compat p c E rho hrec
+    (healing_loss_service_scope_recovery E rho hrec mono source emittedNonempty emittedName)
+    mono emittedNonempty
     emittedName writes xing origin).1
   obtain ⟨a, z, hz, ha, -, -⟩ :=
-    healing_gate_result_supporter p c E rho hrec hgst hy hi hresult
+    healing_gate_result_supporter p c E rho hrec
+      (healing_raw_service_scope_recovery E rho hrec mono) hgst
+      ((postReset_written_window p c E rho hrec h0r hx hk hCB hmem).mono
+        (Nat.le_of_succ_le hsj)).2 hy hi hresult
   have hBH := hcov z hz _ (written_head_label p c E rho hrec ha)
   have hBK : ∀ K r, SourceBefore p c E rho i K r → high p w K →
       Block.Compatible (eraseFG B) (eraseFG K) := by
@@ -747,7 +820,10 @@ theorem postReset_written_later_result
         have hik := V2.D.Run.tickIdx?_spec hidx
         have hraw := (gateResultAt_eq_gateResult p c E rho hs hik).trans hG
         obtain ⟨aK, zH, hzH, haK, hCKH, -⟩ :=
-          healing_gate_result_supporter p c E rho hrec hgst hrow.1 hik hraw
+          healing_gate_result_supporter p c E rho hrec
+            (healing_raw_service_scope_recovery E rho hrec mono) hgst
+            ((postReset_written_window p c E rho hrec h0r hx hk hCB hmem).mono
+              (Nat.le_of_succ_le hsj)).2 hrow.1 hik hraw
         exact Gen.Pure.block_compatible_of_common
           (hcov zH hzH _ (written_head_label p c E rho hrec haK))
           (Gen.Pure.block_preceq_trans hKCK hCKH)
@@ -794,7 +870,13 @@ theorem postReset_written_later_result
       · exact (KitFG.preceq_total_of_common hFK (written_lift p h)).resolve_right hBF
       · exact KitFG.preceq_trans hFK (written_lift p h)
   have hhor := (hs.in_horizon _ (List.mem_of_getElem? hi)).2
-  obtain ⟨D', hconf, hBD⟩ := healing_support_gate_cover E rho hrec hgst hhor hcov hi (by
+  obtain ⟨D', hconf, hBD⟩ := healing_support_gate_cover E rho hrec hgst hhor hcov hi
+    (healing_support_gate_scope_recovery E rho hrec mono
+      ((postReset_written_window p c E rho hrec h0r hx hk hCB hmem).mono
+        (Nat.le_of_succ_le hsj)) hy
+      (healing_gate_enabled_of_result E rho hs hi hresult)
+      (healing_support_gate_geometry E rho hs hcov (by
+        rw [clockPre_fg]; exact eraseFG_preceq hFB))) (by
     rw [clockPre_fg]
     exact eraseFG_preceq hFB)
   have hst : gateIn p c E rho y j =
@@ -802,14 +884,12 @@ theorem postReset_written_later_result
     rw [gateIn_def, preTick_def, fgsa_tickIdx_of_event p c E rho hs hi]
     rfl
   have hG := (gateResultAt_eq_gateResult p c E rho hs hi).symm.trans hresult
-  rw [gateResult_def] at hG
-  rw [hst] at hG
-  simp only [Option.map_some, Option.some.injEq] at hG
-  have heD : D' = D := Option.some.inj (hconf.symm.trans hG)
+  have hG' := (fgsa_gate_raw_of_nonempty p c E rho hs hi hG).2
+  have heD : D' = D := Option.some.inj (hconf.symm.trans hG')
   exact Or.inl (heD ▸ hBD)
 
 
-omit hrec mono emittedNonempty emittedName writes xing origin h0r in
+omit hrec mono source emittedNonempty emittedName writes xing origin h0r in
 omit [Fintype V] in
 private theorem written_key_of_guards {k : Nat} {x : V} {s : Slot} {B C : Block} {g : Nat}
     (hmem : B ∈ (actView (clockPre p (storeAt p c E rho k x)
@@ -852,7 +932,7 @@ theorem postReset_leaseSafe_results_succ {i : Nat} (hinv : PostResetInv p c E rh
       have hb := (actView_blocks _ _).mp hmem |>.1
       rw [(clockPre_fields p _ _).2.1] at hb
       obtain ⟨Bfg, -, he⟩ := (cstoreInv_stateBefore E rho k x).baseTree B |>.mp hb
-      have hresult' := postReset_written_later_result p c E rho hrec mono emittedNonempty
+      have hresult' := postReset_written_later_result p c E rho hrec mono source emittedNonempty
         emittedName writes xing origin h0r hinv hki hx ht hp hr
         (B := Bfg) (by rwa [he]) (by rwa [he]) (by rwa [he]) hy hsj hgate hresult
       simpa only [he] using hresult'
@@ -913,8 +993,8 @@ theorem postReset_moving_lease_compat
   have hconf : SA.Root.confirmationFrom p.toParams
       (eraseFG (storeAt p c E rho ix x).fg.F)
       (actView (clockPre p (storeAt p c E rho ix x) (SA.gateTime p.toParams s))) s = some C := by
-    rw [gateResult_def, hgate] at hraw
-    simpa only [Option.map_some, Option.some.injEq, clockPre_fg] using hraw
+    simpa only [clockPre_fg, storeAt] using
+      (fgsa_gate_raw_of_nonempty p c E rho hs hix hraw).2
   have hadm : g ∈ @GridCO.admissionLevels GridCO.slowLeasePolicy p.toParams.engine p.n .root
       (actView (clockPre p (storeAt p c E rho ix x) (SA.gateTime p.toParams s))) s
       (eraseFG B) := by
@@ -960,7 +1040,7 @@ theorem postReset_moving_lease_compat
       exact (KitFG.preceq_total_of_common hFZ hBZ).resolve_right hBF
     have hc := healing_support_idxBefore_le p c E rho hs hiy hafter.le
     have hfrozen := (fgsa_store_durable p c E rho hc y).1
-    have hD := postReset_moving_domain p c E rho hrec mono emittedNonempty emittedName
+    have hD := postReset_moving_domain p c E rho hrec mono source emittedNonempty emittedName
       writes xing origin h0r hinv hgstl hCB hbatch hy hiy hyi hafter hupper le_rfl hfrozen hBZ hBF
     exact (KitFG.mem_filteredFromView (heightView p) (R_at p c E rho iy y) _ B).mp hD |>.2.1
   have hqt : SA.voteTime p.toParams (s + 1) < t := by
@@ -969,8 +1049,10 @@ theorem postReset_moving_lease_compat
     push_cast
     change 4 * p.Δ * (l : Int) + 3 * p.Δ < t at hafter
     nlinarith [p.deltaPos]
-  have hawake := healing_vote_awake_of_recovery hrec hy h0r.synchronous
-    (by omega : w.sStar ≤ s + 1) (hqt.le.trans hhor)
+  have hawake := hrec.awake y hy _ (by
+    apply hgsts.le.trans
+    change 4 * p.Δ * (s : Int) + p.Δ ≤ 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ
+    push_cast; linarith [p.deltaPos]) (hqt.le.trans hhor)
   obtain ⟨iq, hiq⟩ := healing_support_vote_tick E rho hs hrec.base.delta hy (s + 1)
     (hqt.le.trans hhor) hawake
   have hqa := healing_idx_lt_of_time_lt p c E rho hs hiq hiy hqt
@@ -999,10 +1081,10 @@ theorem postReset_moving_lease_compat
     have hFD : Block.Preceq (F_at p c E rho j y) D := by
       have hg := (healing_support_gate_reads p c E rho hs ht).1
       have hd := (gateResultAt_eq_gateResult p c E rho hs ht).symm.trans hD
-      rw [gateResult_def, hg] at hd
       have hd' : SA.Root.confirmationFrom p.toParams (eraseFG (storeAt p c E rho j y).fg.F)
           (actView (clockPre p (storeAt p c E rho j y) (SA.gateTime p.toParams q))) q = some D := by
-        simpa only [Option.map_some, Option.some.injEq, clockPre_fg] using hd
+        simpa only [clockPre_fg, storeAt] using
+          (fgsa_gate_raw_of_nonempty p c E rho hs ht hd).2
       unfold SA.Root.confirmationFrom GridCO.confirmationFrom at hd'
       dsimp only at hd'
       split at hd'
@@ -1022,7 +1104,7 @@ theorem postReset_moving_lease_compat
       rw [hconf]
       obtain ⟨x', s', hx', hsaved, R, hR, hguard⟩ := hpass
       have hev : V2.Event.tick x' (SA.gateTime p.toParams s') =
-          V2.Event.tick x (SA.gateTime p.toParams s) := Option.some.inj (hx'.symm.trans hix)
+          V2.Event.tick x (SA.gateTime p.toParams s) := Option.some.inj (hx'.1.symm.trans hix)
       have he : x' = x ∧ s' = s := by
         have hv := V2.Event.tick.inj hev
         refine ⟨hv.1, ?_⟩
@@ -1038,10 +1120,18 @@ theorem postReset_moving_lease_compat
       change Block.preceq (eraseFG B) C = true at hBC
       exact List.mem_filter.mpr ⟨hmem, by simp [hgen, hBC, hfast]⟩
     exact healing_fast_lease_at E rho hrec mono writes hgsts.le (hst.le.trans hhor) hx
-      hclock hfastWrite hhor hcov hy hiq hqa hT (eraseFG_preceq hFB) row hrow
-  · have hwindow := written_slow_boundary p c E rho hrec h0r hx hCB hslow
+      hclock hfastWrite hhor
+      (healing_fast_support_scope_recovery E rho hrec mono
+        (postReset_written_window p c E rho hrec h0r hx hix hCB hmem) hx)
+      (healing_gate_cut_of_batch_cut E s
+        (postReset_written_window p c E rho hrec h0r hx hix hCB hmem).2)
+      hcov hy hiq hqa hT (eraseFG_preceq hFB) row hrow
+  · have hwindow := written_slow_boundary p c E rho hrec mono h0r hx hCB hslow
     exact healing_slow_lease_at E rho hrec mono writes hgsts.le (hst.le.trans hhor) hx
-      hwindow.le hgate hraw hBC hslow hhor hcov hy hiq hqa hT
+      hwindow.le hgate hraw hBC hslow hhor
+      (healing_slow_support_scope_recovery E rho hrec mono
+        (postReset_written_window p c E rho hrec h0r hx hix hCB hmem) hwindow.le hx)
+      hcov hy hiq hqa hT
       (eraseFG_preceq hFB) row hrow
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -1084,17 +1174,29 @@ theorem postReset_written_next_head
   have hcut := healing_support_idxBefore_le p c E rho
     hrec.base.valid.toScheduleWellFormed hiy hafter.le
   have hX := (fgsa_store_durable p c E rho hcut y).1
-  have hD := postReset_moving_domain p c E rho hrec mono emittedNonempty emittedName
+  have hD := postReset_moving_domain p c E rho hrec mono source emittedNonempty emittedName
     writes xing origin h0r hinv hgst hCB hbatch hy hiy hyi hafter le_rfl hX le_rfl hZ hF
-  have hlease := postReset_moving_lease_compat p c E rho hrec mono emittedNonempty emittedName
+  have hlease := postReset_moving_lease_compat p c E rho hrec mono source emittedNonempty
+    emittedName
     writes xing origin h0r hinv hx hix hxi hpass hres hCB hne hkey hsl
     hbatch hy hiy hyi hafter le_rfl
   obtain ⟨hXv, hXc⟩ := written_frozen_geometry p c E rho hrec hiy
-  exact healing_next_transfer_domain p c E rho hrec hgst hbatch hy hiy hXv hXc (by
+    (healing_recovery_epoch_after_vote E rho hrec hy hgst (by
+      change 4 * p.Δ * (l : Int) + p.Δ < 4 * p.Δ * (l : Int) + 3 * p.Δ
+      linarith [p.deltaPos]) _)
+  have hCut := (postReset_written_window p c E rho hrec h0r hx hix hCB hmem).mono
+    (Nat.le_of_succ_le hsl)
+  have hJ := healing_recovery_joined E rho hrec hy (hCut.mono (Nat.le_succ l)).2
+    (by apply hgst.trans
+        change 4 * p.Δ * (l : Int) + p.Δ ≤ 4 * p.Δ * ((l + 1 : Nat) : Int) + p.Δ
+        push_cast; linarith [p.deltaPos])
+    (hrec.base.valid.in_horizon _ (List.mem_of_getElem? hiy)).2
+  exact healing_next_transfer_domain p c E rho hrec mono hgst hbatch hy hiy
+    (healing_next_transfer_scope_recovery E rho hrec hCut hy hiy hJ) hCut hXv hXc (by
       dsimp only [D_at] at hD ⊢
       simpa only [healing_domain_filter_F] using hD) hlease
 
-omit [Fintype V] hrec mono emittedNonempty emittedName writes xing origin h0r in
+omit [Fintype V] hrec mono source emittedNonempty emittedName writes xing origin h0r in
 private theorem written_proposal_read
     {s : Slot} {Q : Block}
     (hp : HonestProposal E rho (fgsaInterface p c) s Q) :
@@ -1129,7 +1231,9 @@ private theorem written_proposal_read
       have he : m = .proposal N := congrArg V2.Signed.payload ho
       subst m
       cases d with
-      | headAction _ => cases hm
+      | headAction _ =>
+        change (if joinedNow p _ then some (Msg.head _) else none) = some (.proposal N) at hm
+        split_ifs at hm; cases hm
       | fgAction _ =>
         change (attest p _ _ _).1.map Msg.row = some (.proposal N) at hm
         obtain ⟨_, _, he⟩ := Option.map_eq_some_iff.mp hm
@@ -1142,6 +1246,9 @@ private theorem written_proposal_read
           have he : (s' : Int) = s := by nlinarith
           exact_mod_cast he
         subst s'
+        change (if joinedNow p _ then (propose p _ s).map (withApp p _) else none) =
+          some (.proposal N) at hm
+        split_ifs at hm
         exact (fgsa_walkRun_proposal_parent p _ s _ N hm).2.2
     · exact (List.not_mem_nil hem).elim
 
@@ -1208,9 +1315,12 @@ theorem postReset_written_moving_parent
     linarith [p.deltaPos]
   have hfroz := healing_support_idxBefore_le p c E rho hs hip hafter.le
   have hX := (fgsa_store_durable p c E rho hfroz y).1
-  have hD := postReset_moving_domain p c E rho hrec mono emittedNonempty emittedName writes
+  have hD := postReset_moving_domain p c E rho hrec mono source emittedNonempty emittedName writes
     xing origin h0r hinv hgst hCB hbatch hy hip hpi hafter hupper le_rfl hX hZ hF
-  apply healing_proposal_moving_parent p c E rho hrec hgst hbatch hp
+  apply healing_proposal_moving_parent p c E rho hrec
+    (healing_raw_service_scope_recovery E rho hrec mono) mono hgst
+    ((postReset_written_window p c E rho hrec h0r hx hix hCB hmem).mono
+      (Nat.le_of_succ_le hsl)).2 hbatch hp
   · intro j hj
     have he : j = ip := fgsa_tick_unique E rho hs hj hip
     subst j
@@ -1222,7 +1332,7 @@ theorem postReset_written_moving_parent
   · intro j hj
     have he : j = ip := fgsa_tick_unique E rho hs hj hip
     subst j
-    exact postReset_moving_lease_compat p c E rho hrec mono emittedNonempty emittedName
+    exact postReset_moving_lease_compat p c E rho hrec mono source emittedNonempty emittedName
       writes xing origin h0r hinv hx hix hxi hpass hres hCB hne hkey hsl
       hbatch hy hip hpi hafter hupper
 
@@ -1264,7 +1374,8 @@ theorem postReset_written_heads_succ
     by_cases hci : timeIdx rho (SA.voteTime p.toParams j) ≤ i
     · exact hheads y j H hy hsj hci hhead
     rcases Nat.eq_or_lt_of_le hsj with rfl | hsj
-    · exact postReset_written_first_head_label p c E rho hrec mono emittedNonempty emittedName
+    · exact postReset_written_first_head_label p c E rho hrec mono source emittedNonempty
+        emittedName
         writes xing origin h0r hinv hx hix hxi.le
         hres hCB hkey hy hhead
     obtain ⟨l, rfl⟩ : ∃ l : Slot, j = l + 1 := ⟨j - 1, (Nat.succ_pred_eq_of_pos (by omega)).symm⟩
@@ -1287,7 +1398,7 @@ theorem postReset_written_heads_succ
       have hbcut := postReset_moving_head_cut p c E rho
         hrec.base.valid.toScheduleWellFormed hiy hafter
       have hbatch := fun z hz K hK => hheads z l K hz hsl (hbcut.trans hiyle) hK
-      have hH := postReset_written_next_head p c E rho hrec mono emittedNonempty emittedName
+      have hH := postReset_written_next_head p c E rho hrec mono source emittedNonempty emittedName
         writes xing origin h0r hinv hx hix hxi.le hpass hres hCB hne hkey
         hsl hbatch hy hiy hiyle
       rw [ht] at hhead
@@ -1295,7 +1406,8 @@ theorem postReset_written_heads_succ
         rw [healing_headAtIdx_tick p c E rho hiy]
         exact (Option.some.inj hhead).symm
       exact he ▸ hH
-  · exact postReset_written_heads_at_write_cut p c E rho hrec mono emittedNonempty emittedName
+  · exact postReset_written_heads_at_write_cut p c E rho hrec mono source emittedNonempty
+      emittedName
       writes xing origin h0r hinv hx hix hres hCB hkey
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -1351,7 +1463,8 @@ theorem postReset_written_proposals_succ
   have hheads := (hsafe ix hxcut x s (eraseFG B) g C hx hix hpass hres hCB hne
     hmem hgen hBC hadm).2.1
   have hbatch := fun z hz H hH => hheads z l H hz hsl (hbcut.trans hpi) hH
-  exact postReset_written_moving_parent p c E rho hrec mono emittedNonempty emittedName writes
+  exact postReset_written_moving_parent p c E rho hrec mono source emittedNonempty
+    emittedName writes
     xing origin h0r hinv hx hix hxi hpass
     hres hCB hne hkey hsl hbatch hp hcut
 
@@ -1401,9 +1514,11 @@ theorem postReset_written_finality_compatible
     rw [high_def] at hhighK
     exact ⟨healing_srcN_of_source p c E rho hK,
       (Nat.succ_le_succ h0r.mu_le).trans hhighK⟩
-  have noLoss := (healing_high_source_compat p c E rho hrec mono emittedNonempty
+  have noLoss := (healing_high_source_compat p c E rho hrec
+    (healing_loss_service_scope_recovery E rho hrec mono source emittedNonempty emittedName)
+    mono emittedNonempty
     emittedName writes xing origin).1
-  have hheads := postReset_written_heads_succ p c E rho hrec mono emittedNonempty emittedName
+  have hheads := postReset_written_heads_succ p c E rho hrec mono source emittedNonempty emittedName
     writes xing origin h0r hinv hx hix hxi hpass hres
     hCB hne hkey
   obtain ⟨a, z, hz, ha, hBH, hrs⟩ : ∃ a z, z ∈ rho.honest ∧
@@ -1415,7 +1530,9 @@ theorem postReset_written_finality_compatible
     · simp only [hr, ite_true]
       have hgst := postReset_written_sync p c E rho hrec h0r hx hix hCB hmem
       obtain ⟨a, z, hz, ha, hCH, -⟩ :=
-        healing_gate_result_supporter p c E rho hrec hgst.le hx hix hres
+        healing_gate_result_supporter p c E rho hrec
+          (healing_raw_service_scope_recovery E rho hrec mono) hgst.le
+          (postReset_written_window p c E rho hrec h0r hx hix hCB hmem).2 hx hix hres
       exact ⟨a, z, hz, ha, Gen.Pure.block_preceq_trans
         (healing_support_key_cases p hkey).2.2.1 hCH, hr⟩
     · simp only [hr, ite_false]
@@ -1430,8 +1547,11 @@ theorem postReset_written_finality_compatible
         by_contra hn
         have ht := (V2.D.Engine.index_lt_read_length_iff hs _ hj).mp (Nat.lt_of_not_ge hn)
         exact (not_lt_of_ge ht) htime
-      have hawake := healing_vote_awake_of_recovery hrec hx h0r.synchronous
-        (by omega : w.sStar ≤ r + 1)
+      have hawake := hrec.awake x hx _ (by
+        apply (postReset_written_sync p c E rho hrec h0r hx hix hCB hmem).le.trans
+        have hh : (s : Int) ≤ r := by exact_mod_cast Nat.le_of_not_lt hr
+        change 4 * p.Δ * (s : Int) + p.Δ ≤ 4 * p.Δ * ((r + 1 : Nat) : Int) + p.Δ
+        push_cast; nlinarith [p.deltaPos])
         (htime.le.trans ((hs.in_horizon _ (List.mem_of_getElem? hj)).2))
       obtain ⟨a, ha⟩ := healing_support_vote_tick E rho hs hrec.base.delta hx (r + 1)
         (htime.le.trans ((hs.in_horizon _ (List.mem_of_getElem? hj)).2)) hawake
@@ -1484,9 +1604,9 @@ theorem postReset_written_gate_lease_compat
   have hconf : SA.Root.confirmationFrom p.toParams
       (eraseFG (storeAt p c E rho ix x).fg.F)
       (actView (clockPre p (storeAt p c E rho ix x) (SA.gateTime p.toParams s))) s = some C := by
-    rw [gateResult_def, hgate] at hraw
-    simpa only [Option.map_some, Option.some.injEq, clockPre_fg] using hraw
-  have hheads := postReset_written_heads_succ p c E rho hrec mono emittedNonempty emittedName
+    simpa only [clockPre_fg, storeAt] using
+      (fgsa_gate_raw_of_nonempty p c E rho hs hix hraw).2
+  have hheads := postReset_written_heads_succ p c E rho hrec mono source emittedNonempty emittedName
     writes xing origin h0r hinv hx hix hxi hpass hres
     hCB hne hkey
   have hcov : ∀ q, s + 1 ≤ q → SA.gateTime p.toParams q ≤ SA.gateTime p.toParams (s + 1) →
@@ -1504,8 +1624,10 @@ theorem postReset_written_gate_lease_compat
     change 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ <
       4 * p.Δ * ((s + 1 : Nat) : Int) + 6 * p.Δ
     linarith [p.deltaPos]
-  have hawake := healing_vote_awake_of_recovery hrec hy h0r.synchronous
-    (by omega : w.sStar ≤ s + 1) (hqt.le.trans hhor)
+  have hawake := hrec.awake y hy _ (by
+    apply hgsts.le.trans
+    change 4 * p.Δ * (s : Int) + p.Δ ≤ 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ
+    push_cast; linarith [p.deltaPos]) (hqt.le.trans hhor)
   obtain ⟨iq, hiq⟩ := healing_support_vote_tick E rho hs hrec.base.delta hy (s + 1)
     (hqt.le.trans hhor) hawake
   have hqa := healing_idx_lt_of_time_lt p c E rho hs hiq hiy hqt
@@ -1525,7 +1647,7 @@ theorem postReset_written_gate_lease_compat
       rw [hconf]
       obtain ⟨x', s', hx', hsaved, R, hR, hguard⟩ := hpass
       have hev : V2.Event.tick x' (SA.gateTime p.toParams s') =
-          V2.Event.tick x (SA.gateTime p.toParams s) := Option.some.inj (hx'.symm.trans hix)
+          V2.Event.tick x (SA.gateTime p.toParams s) := Option.some.inj (hx'.1.symm.trans hix)
       have he : x' = x ∧ s' = s := by
         have hv := V2.Event.tick.inj hev
         refine ⟨hv.1, ?_⟩
@@ -1541,10 +1663,18 @@ theorem postReset_written_gate_lease_compat
       change Block.preceq (eraseFG B) C = true at hBC
       exact List.mem_filter.mpr ⟨hmem, by simp [hgen, hBC, hfast]⟩
     exact healing_fast_lease_at E rho hrec mono writes hgsts.le (hst.trans hhor) hx
-      hclock hfastWrite hhor hcov hy hiq hqa hT hFB row hrow
-  · have hwindow := written_slow_boundary p c E rho hrec h0r hx hCB hslow
+      hclock hfastWrite hhor
+      (healing_fast_support_scope_recovery E rho hrec mono
+        (postReset_written_window p c E rho hrec h0r hx hix hCB hmem) hx)
+      (healing_gate_cut_of_batch_cut E s
+        (postReset_written_window p c E rho hrec h0r hx hix hCB hmem).2)
+      hcov hy hiq hqa hT hFB row hrow
+  · have hwindow := written_slow_boundary p c E rho hrec mono h0r hx hCB hslow
     exact healing_slow_lease_at E rho hrec mono writes hgsts.le (hst.trans hhor) hx
-      hwindow.le hgate hraw hBC hslow hhor hcov hy hiq hqa hT
+      hwindow.le hgate hraw hBC hslow hhor
+      (healing_slow_support_scope_recovery E rho hrec mono
+        (postReset_written_window p c E rho hrec h0r hx hix hCB hmem) hwindow.le hx)
+      hcov hy hiq hqa hT
       hFB row hrow
 
 
@@ -1570,18 +1700,28 @@ theorem postReset_written_outputs_succ
       Block.Preceq (eraseFG B) (S_at p c E rho a y) := by
   obtain ⟨hmem, -, -, -, -⟩ := healing_support_key_cases p hkey
   have hgst := postReset_written_sync p c E rho hrec h0r hx hix hCB hmem
-  have hheads := postReset_written_heads_succ p c E rho hrec mono emittedNonempty emittedName
+  have hheads := postReset_written_heads_succ p c E rho hrec mono source emittedNonempty emittedName
     writes xing origin h0r hinv hx hix hxi hpass hres
     hCB hne hkey
-  apply healing_output_moving_suffix p c E rho hrec mono hgst.le hguard
+  have batches : ∀ l, s + 1 ≤ l → timeIdx rho (SA.voteTime p.toParams l) ≤ i →
+      SA.voteTime p.toParams l ≤ rho.horizon →
+      Gen.Pure.Batch (joinedHonest p E rho (SA.voteTime p.toParams l)).card
+        (Gen.V2.Duty.faulty rho).card := by
+    intro l hsl _hcut hhor
+    have hCut := (postReset_written_window p c E rho hrec h0r hx hix hCB hmem).mono
+      (Nat.le_of_succ_le hsl)
+    exact (healing_recovery_joined_counts E rho hrec l hCut.2 hCut.sync hhor).2
+  apply healing_output_moving_suffix_at p c E rho hrec
+    (healing_raw_service_scope_recovery E rho hrec mono) mono hgst.le batches hguard
   · intro l hsl hcut z hz H hH
     exact hheads z l H hz hsl (hcut.trans (Nat.le_succ i)) hH
   · intro b hbi y hy _hstart
-    exact postReset_written_finality_compatible p c E rho hrec mono emittedNonempty emittedName
+    exact postReset_written_finality_compatible p c E rho hrec mono source emittedNonempty
+      emittedName
       writes xing origin h0r hinv hx hix hxi hpass hres
       hCB hne hkey hbi hy
   · intro j y hy hj hji hFB
-    exact postReset_written_gate_lease_compat p c E rho hrec mono emittedNonempty emittedName
+    exact postReset_written_gate_lease_compat p c E rho hrec mono source emittedNonempty emittedName
       writes xing origin h0r hinv hx hix hxi hpass hres
       hCB hne hkey hy hj hji hFB
 
@@ -1604,19 +1744,20 @@ theorem postReset_leaseSafe_succ : ∀ i, PostResetLeaseStep p c E rho w i := by
   obtain ⟨Bfg, -, he⟩ := (cstoreInv_stateBefore E rho k x).baseTree B |>.mp hb
   have hki := Nat.le_of_lt_succ hk
   refine ⟨?_, ?_, ?_, ?_⟩
-  · exact postReset_leaseSafe_results_succ p c E rho hrec mono emittedNonempty emittedName
+  · exact postReset_leaseSafe_results_succ p c E rho hrec mono source emittedNonempty emittedName
       writes xing origin h0r hinv k hk x s B g C hx ht hp hr
       hCB hne hmem hgen hBC hg
-  · have h := postReset_written_heads_succ p c E rho hrec mono emittedNonempty emittedName
+  · have h := postReset_written_heads_succ p c E rho hrec mono source emittedNonempty emittedName
       writes xing origin h0r hinv hx ht hki hp hr
       (B := Bfg) (by rwa [he]) (by rwa [he]) (by rwa [he])
     simpa only [he] using h
-  · have h := postReset_written_proposals_succ p c E rho hrec mono emittedNonempty emittedName
+  · have h := postReset_written_proposals_succ p c E rho hrec mono source emittedNonempty
+      emittedName
       writes xing origin h0r
       hinv hx ht hki hp hr (B := Bfg) (by rwa [he]) (by rwa [he]) (by rwa [he])
     simpa only [he] using h
   · intro j y hj hy hguard hsuffix
-    have h := postReset_written_outputs_succ p c E rho hrec mono emittedNonempty emittedName
+    have h := postReset_written_outputs_succ p c E rho hrec mono source emittedNonempty emittedName
       writes xing origin h0r
       hinv hx ht hki hp hr (B := Bfg) (by rwa [he]) (by rwa [he]) (by rwa [he]) hguard
       j y hy (Nat.le_of_lt_succ hj) hsuffix

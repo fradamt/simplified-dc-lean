@@ -20,7 +20,7 @@ variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
 -- Conditional package (composition): A1 covers an actual written prefix
 -- that has no emitted source. Its synchrony comes from the reset cut.
 example [Fintype V] {G ΔF : Time}
-    (hrec : Recovery₂ p c E rho G ΔF) (mono : RMono p c E rho)
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (mono : RMonoAll p c E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -31,6 +31,7 @@ example [Fintype V] {G ΔF : Time}
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -67,13 +68,22 @@ example [Fintype V] {G ΔF : Time}
         GridCO.slowEligible p.toParams.engine
           (actView (clockPre p (storeAt p c E rho ix x) (SA.gateTime p.toParams s))) s
           (eraseFG B) = true) := hcase.imp_right (fun hel => ⟨hgw, hel⟩)
+  have hCut := healing_window_of_cut E (healing_ready_vote_cutoff E
+    (postReset_written_ready p c E rho hrec h0r hx hix hCB hmem).le)
+  have hJ := healing_recovery_joined E rho hrec hy (hCut.mono (Nat.le_succ s)).2
+    (by apply hgst.le.trans
+        change 4 * p.Δ * (s : Int) + p.Δ ≤ 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ
+        push_cast; linarith [p.deltaPos])
+    (hrec.base.valid.in_horizon _ (List.mem_of_getElem? hiy)).2
   exact ⟨healing_first_transfer_written p c E rho hrec mono writes hx hix hres hBC
-    hgst.le harm hy hiy hXv (fun W hW A _hFA hAW => hXc W hW A hAW) hD,
+    hgst.le hCut harm hy hiy
+    (healing_gate_enabled_of_result E rho hrec.base.valid.toScheduleWellFormed hix hres)
+    hJ hXv (fun W hW A _hFA hAW => hXc W hW A hAW) hD,
     hpass, hne, hnotSource⟩
 
 -- conditional package: the causal cut gives strict label synchrony even
 -- without a gate result or an emitted action source for the prefix.
-example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+example [Fintype V] {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     {w : HealingWitness} (h0r : H0Reset p c E rho w)
     {i : Nat} {y : V} {s : Slot} {B : Block}
     (hy : y ∈ rho.honest) (ht : IsGateTick p c rho i y s)
@@ -85,7 +95,8 @@ example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
 
 section WrittenConsumers
 variable [Fintype V] {G ΔF : Time}
-    (hrec : Recovery₂ p c E rho G ΔF) (mono : RMono p c E rho)
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (mono : RMonoAll p c E rho)
+    (source : TSrc p c E rho)
     (emittedNonempty : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n},
       HonestRowAt p c E rho j x r a → ∃ e, namedEntry a.payload.height_pair = some e)
     (emittedName : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n} {e : Height × BlockId},
@@ -104,6 +115,7 @@ variable [Fintype V] {G ΔF : Time}
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -113,7 +125,7 @@ variable [Fintype V] {G ΔF : Time}
     (xing : RXing p c E rho) (origin : RQCOrigin p c E rho)
     {w : HealingWitness} (h0r : H0Reset p c E rho w)
 
-include hrec mono emittedNonempty emittedName writes xing origin h0r
+include hrec mono source emittedNonempty emittedName writes xing origin h0r
 
 
 -- conditional package, anti-vacuity: A2 supplies a frozen domain witness
@@ -137,7 +149,7 @@ example {i : Nat} (hinv : PostResetInv p c E rho w i)
       (storeAt p c E rho (V2.D.Run.idxBefore rho (SA.freezeTime p.toParams s)) y).fg.TF ∧
       gatePassedAt p c E rho ix ∧ eraseFG B ≠ w.CStar ∧ ¬ ∃ r, SrcN p c E rho B r := by
   obtain ⟨hmem, -, hBC, -, -⟩ := healing_support_key_cases p hkey
-  exact ⟨postReset_written_domain p c E rho hrec mono emittedNonempty emittedName writes
+  exact ⟨postReset_written_domain p c E rho hrec mono source emittedNonempty emittedName writes
     xing origin h0r hinv hx hix hres hCB hmem hBC hy hiy hyi hnZ hnF,
     hpass, hne, hnotSource⟩
 
@@ -159,7 +171,7 @@ example {i : Nat} (hinv : PostResetInv p c E rho w i)
     (hhead : headAtLabel p c E rho y j = some H) :
     Block.Preceq (eraseFG B) H ∧ gatePassedAt p c E rho i ∧
       eraseFG B ≠ w.CStar ∧ ¬ ∃ r, SrcN p c E rho B r := by
-  exact ⟨postReset_written_heads_at_write_cut p c E rho hrec mono emittedNonempty emittedName
+  exact ⟨postReset_written_heads_at_write_cut p c E rho hrec mono source emittedNonempty emittedName
     writes xing origin h0r hinv hx hi hres hCB hkey
     y j H hy hsj hcut hhead, hpass, hne, hnotSource⟩
 
@@ -180,7 +192,7 @@ example {i : Nat} (hinv : PostResetInv p c E rho w i)
     (hi : IsGateTick p c rho i y j)
     (hresult : gateResultAt p c E rho i = some (some D)) :
     Block.Preceq B D ∨ Block.Preceq B (F_at p c E rho i y) := by
-  exact postReset_leaseSafe_results_succ p c E rho hrec mono emittedNonempty emittedName
+  exact postReset_leaseSafe_results_succ p c E rho hrec mono source emittedNonempty emittedName
     writes xing origin h0r hinv k (hki.trans (Nat.lt_succ_self i))
     x s B g C hx hk hpass hres hCB hne hmem hgen hBC hg
     i (Nat.lt_succ_self i) y j D hy hsj hi hresult
@@ -189,7 +201,8 @@ end WrittenConsumers
 
 section MovingConsumers
 variable [Fintype V] {G ΔF : Time}
-    (hrec : Recovery₂ p c E rho G ΔF) (mono : RMono p c E rho)
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (mono : RMonoAll p c E rho)
+    (source : TSrc p c E rho)
     (emittedNonempty : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n},
       HonestRowAt p c E rho j x r a → ∃ e, namedEntry a.payload.height_pair = some e)
     (emittedName : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n} {e : Height × BlockId},
@@ -208,6 +221,7 @@ variable [Fintype V] {G ΔF : Time}
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -218,7 +232,7 @@ variable [Fintype V] {G ΔF : Time}
     {w : HealingWitness} (h0r : H0Reset p c E rho w)
 
 
-include hrec mono emittedNonempty emittedName writes xing origin h0r
+include hrec mono source emittedNonempty emittedName writes xing origin h0r
 
 -- G2-proposal-no-source: the proposer view is the complete reader tree.
 -- The frozen-tree inclusion is derived; no domain or receipt premise is used.
@@ -246,7 +260,7 @@ example {i : Nat} (hinv : PostResetInv p c E rho w i)
   have hcut := healing_support_idxBefore_le p c E rho
     hrec.base.valid.toScheduleWellFormed hiy hafter.le
   have hfrozen := (fgsa_store_durable p c E rho hcut y).1
-  exact ⟨postReset_moving_domain p c E rho hrec mono emittedNonempty emittedName writes
+  exact ⟨postReset_moving_domain p c E rho hrec mono source emittedNonempty emittedName writes
     xing origin h0r hinv hgst hCB hbatch hy hiy hyi hafter hupper le_rfl hfrozen hnZ hnF,
     (postReset_moving_head_cut p c E rho hrec.base.valid.toScheduleWellFormed hiy hafter).trans hyi,
     hnotSource⟩
@@ -264,7 +278,8 @@ variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
 variable [Fintype V] {G ΔF : Time}
-    (hrec : Recovery₂ p c E rho G ΔF) (mono : RMono p c E rho)
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (mono : RMonoAll p c E rho)
+    (source : TSrc p c E rho)
     (emittedNonempty : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n},
       HonestRowAt p c E rho j x r a → ∃ e, namedEntry a.payload.height_pair = some e)
     (emittedName : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n} {e : Height × BlockId},
@@ -283,6 +298,7 @@ variable [Fintype V] {G ΔF : Time}
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -314,7 +330,7 @@ example
     (hupper : t ≤ SA.voteTime p.toParams (l + 1)) :
     (∀ row ∈ (FGSA.clock p (storeAt p c E rho iy y) t).base.obligations,
       Block.Compatible row.1 (eraseFG B)) ∧ ¬ ∃ r, SrcN p c E rho B r := by
-  exact ⟨postReset_moving_lease_compat p c E rho hrec mono emittedNonempty emittedName
+  exact ⟨postReset_moving_lease_compat p c E rho hrec mono source emittedNonempty emittedName
     writes xing origin h0r hinv hx hix hxi hpass hres hCB hne hkey
     hsl hbatch hy hiy hyi hafter hupper, hnotSource⟩
 
@@ -324,7 +340,7 @@ example {i : Nat}
       PostResetOpeningDomain p c E rho w i)
     (hresetNext : PostResetResetLeaseCompatible p c E rho w (i + 1)) :
     PostResetLeaseSafe p c E rho w (i + 1) := by
-  have h := postReset_leaseSafe_succ p c E rho hrec mono emittedNonempty emittedName writes
+  have h := postReset_leaseSafe_succ p c E rho hrec mono source emittedNonempty emittedName writes
     xing origin h0r i
   rw [PostResetLeaseStep_def] at h
   exact h hprev hresetNext
