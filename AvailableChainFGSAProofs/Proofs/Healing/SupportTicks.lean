@@ -67,6 +67,17 @@ theorem healing_recovery_seat_counts [Fintype V] (E : Generic.Env V)
   rw [healingJoinedSeats_card E rho hrec.base.cstar s]
   exact healing_recovery_joined_counts E rho hrec s h.2 h.sync hh
 
+/-- Readiness gives the release and Batch counts through the CStar seat bridge. -/
+theorem healing_ready_seat_counts [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) {s : Slot}
+    (hready : recoveryStart p E ≤ SA.voteTime p.toParams s)
+    (hhor : SA.voteTime p.toParams s ≤ rho.horizon) :
+    SA.releaseThreshold p.toParams ≤ (healingJoinedSeats E rho s).card ∧
+      Gen.Pure.Batch (healingJoinedSeats E rho s).card (Gen.V2.Duty.faulty rho).card :=
+  healing_recovery_seat_counts E rho hrec
+    (healing_window_of_cut E (healing_ready_vote_cutoff E hready)) hhor
+
 /-- With the batch cutoff, every seat outside the selected set is faulty. -/
 theorem healing_recovery_seat_rivals [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}

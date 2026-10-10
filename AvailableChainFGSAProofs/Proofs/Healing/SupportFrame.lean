@@ -254,6 +254,14 @@ theorem healing_joined_tick_of_window [Fintype V] {G ΔF : Time}
   refine ⟨hx, hi, healing_recovery_joined E rho hrec hx ?_ (hCut.sync.trans ht) hh⟩
   exact (hCut.mono hst).2
 
+/-- A real bounded tick after recoveryStart gives the carrier reader's join. -/
+theorem healing_joined_tick_of_ready [Fintype V] {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) {i : Nat} {x : V} {t : Time}
+    (hx : x ∈ rho.honest) (hi : rho.events[i]? = some (.tick x t))
+    (hready : recoveryStart p E ≤ t) (hhor : t ≤ rho.horizon) :
+    HealingJoinedTick E rho i x t :=
+  ⟨hx, hi, healing_joined_at_or_after_start E rho hrec hx hready hhor⟩
+
 /-- Use the guarded carrier at its fixed actual reader in a batch window. -/
 theorem healing_carriers_window_at [Fintype V] {G ΔF : Time}
     (hrec : RecoverySleep₂ p c E rho G ΔF) {s : Slot} (hCut : HealingWindow p E 1 s)

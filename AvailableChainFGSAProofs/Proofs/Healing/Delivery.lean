@@ -29,6 +29,9 @@ theorem healing_tDel [Fintype V] (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c
       ∀ j z W, z ∈ rho.honest →
       rho.events[j]? = some (.tick z (SA.voteTime p.toParams (r * p.R))) →
       W ∈ (storeAt p c E rho j z).fg.TF →
+      FGBlock.Preceq K W →
+      FGBlock.Preceq
+        (rho.stateBeforeTime E (SA.earlyTime p.toParams (r * p.R)) x).st.fg.F W →
       TargetReceiptService E rho (eraseFG W) (SA.earlyTime p.toParams (r * p.R)) x) :
     TDel p c E rho := by
   intro y r K hy hK hready hhor x hx

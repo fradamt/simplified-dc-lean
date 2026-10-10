@@ -155,6 +155,9 @@ theorem healing_resetTransferCore [Fintype V] (E : Generic.Env V)
     (hServices : ∀ x ∈ rho.honest, ∀ j z W, z ∈ rho.honest →
       rho.events[j]? = some (.tick z (SA.voteTime p.toParams w.sStar)) →
       W ∈ (storeAt p c E rho j z).fg.TF →
+      Block.Preceq w.CStar (eraseFG W) →
+      FGBlock.Preceq
+        (rho.stateBeforeTime E (SA.earlyTime p.toParams w.sStar) x).st.fg.F W →
       TargetReceiptService E rho (eraseFG W) (SA.earlyTime p.toParams w.sStar) x)
  :
     ResetTransferCore p c E rho w := by
@@ -251,6 +254,9 @@ theorem healing_tDelReset_of_reset [Fintype V] (E : Generic.Env V)
       ∀ x ∈ rho.honest, ∀ j z W, z ∈ rho.honest →
       rho.events[j]? = some (.tick z (SA.voteTime p.toParams w.sStar)) →
       W ∈ (storeAt p c E rho j z).fg.TF →
+      Block.Preceq w.CStar (eraseFG W) →
+      FGBlock.Preceq
+        (rho.stateBeforeTime E (SA.earlyTime p.toParams w.sStar) x).st.fg.F W →
       TargetReceiptService E rho (eraseFG W) (SA.earlyTime p.toParams w.sStar) x) :
     TDelReset p c E rho w := by
   intro h0 hhor

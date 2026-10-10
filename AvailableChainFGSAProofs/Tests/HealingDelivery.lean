@@ -39,6 +39,9 @@ private def DeliveryServices : Prop :=
     ∀ j z W, z ∈ rho.honest →
     rho.events[j]? = some (.tick z (SA.voteTime p.toParams (r * p.R))) →
     W ∈ (storeAt p c E rho j z).fg.TF →
+    FGBlock.Preceq K W →
+    FGBlock.Preceq
+      (rho.stateBeforeTime E (SA.earlyTime p.toParams (r * p.R)) x).st.fg.F W →
     TargetReceiptService E rho (eraseFG W) (SA.earlyTime p.toParams (r * p.R)) x
 
 -- Conditional package fixture: the frozen antecedent, as the consumer supplies it.
