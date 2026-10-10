@@ -2548,3 +2548,15 @@ GREEN audit with Lean. The broader source-parser coverage probe cannot resolve
 the inherited open-namespace command window_bit_add_of_row in WindowLiveness;
 that probe is not reported as a complete package coverage pass.
 Final FGSA shallow/deep regeneration PASS (243.60 s, 1,357 roots).
+
+Validation correction: the first DCK passes its build and 41 strict sources
+(4,017 commands), then the finality coverage control detects the missing
+canonical audit command for fgsa_finalizedMonotonicityRestartClaim. Add that
+command to Proofs.Tests.Axioms as required by the serial P-Fd handoff. The
+local strict command remains. No coverage allowance changes.
+The full canonical coverage writer is blocked by missing Shared.Regimes.
+The new P21 row is instead taken from CheckProofEqns' compiled local coverage
+output and rendered into the existing Foundations.Export owner block with
+check-proof-coverage.py's section writer. All other rows and keys are kept.
+The canonical source registration check passes: 24 modules, 227 declarations.
+This fragment integration is not a full canonical-audit build or regeneration.

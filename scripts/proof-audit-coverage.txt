@@ -2974,6 +2974,7 @@
             'AvailableChain.FGSA.Run.fgsa_fgFoundationClaim',
             'AvailableChain.FGSA.Run.fgsa_finalLockClaim',
             'AvailableChain.FGSA.Run.fgsa_finalizedMonotonicityClaim',
+            'AvailableChain.FGSA.Run.fgsa_finalizedMonotonicityRestartClaim',
             'AvailableChain.FGSA.Run.fgsa_finalizedSafetyClaim',
             'AvailableChain.FGSA.Run.fgsa_frameAt',
             'AvailableChain.FGSA.Run.fgsa_frameClaim',
