@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAClaims.Statements.Join
 public import AvailableChainFGSAClaims.Statements.BoundsW
 public import AvailableChainFGSAClaims.Statements.Reads
 public import AvailableChainFGSAClaims.Statements.Regimes
@@ -23,9 +24,9 @@ and family delays (blueprint 23:34-100); LivenessBoundW supplies κ≤R.
 -/
 structure StrongRecoverySearchPrefix₂ (E : Generic.Env V)
     (source : V2.D.Run V (fgsa p c)) (G ΔF : Time) : Prop
-    extends Recovery₂ p c E source G ΔF where
+    extends RecoverySleep₂ p c E source G ΔF where
   liveness : LivenessBoundW p ΔF
-  endpoint : source.horizon = E.t_GST + B_HF p ΔF G
+  endpoint : source.horizon = recoveryStart p E + B_HF p ΔF G
 
 /-- DC AgreesUntil
 (DecoupledConsensusStatements/Assumptions/PrefixAgreement.lean:18-22).
@@ -107,20 +108,26 @@ continuation and its completed cut. As in CleanSafetyAt, both outputs are covere
 -/
 structure SSafeFromCut₂ (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (iStar : Nat) (Q : Block) (ΔF : Time) : Prop where
-  compatible : Gen.Pure.CompatOn (· ∈ rho.honest) (S_at p c E rho)
+  compatible : ScopedCompat (confirmedReaderIdx p c E rho) (S_at p c E rho)
     (fun i => iStar ≤ i ∧ i ≤ rho.events.length)
-  monotone : Gen.Pure.MonoOn (· ∈ rho.honest) (S_at p c E rho)
+  monotone : ScopedMono (confirmedReaderIdx p c E rho) (S_at p c E rho)
     (fun i => iStar ≤ i ∧ i ≤ rho.events.length)
-  seed : Gen.Pure.ServedOn (· ∈ rho.honest) (S_at p c E rho) Q
+  seed : ScopedServed (confirmedReaderIdx p c E rho) (S_at p c E rho) Q
     (fun i => iStar ≤ i ∧ i ≤ rho.events.length)
   finalBelow : ∀ i x y, iStar ≤ i → i ≤ rho.events.length →
-    x ∈ rho.honest → y ∈ rho.honest →
+    x ∈ rho.honest → confirmedReaderIdx p c E rho y i →
     Block.Preceq (F_at p c E rho i x) (S_at p c E rho i y)
   outputs : ∀ g ∈ [(fgsaInterface p c).stable, (fgsaInterface p c).confirmed],
-    Gen.Pure.CompatOn (· ∈ rho.honest) (fun t x => V2.D.outputAt E rho g x t)
+    ScopedCompat (confirmedReader p c E rho) (fun t x => V2.D.outputAt E rho g x t)
       (fun t => iStar ≤ timeIdx rho t) ∧
-    Gen.Pure.MonoOn (· ∈ rho.honest) (fun t x => V2.D.outputAt E rho g x t)
+    ScopedMono (confirmedReader p c E rho) (fun t x => V2.D.outputAt E rho g x t)
       (fun t => iStar ≤ timeIdx rho t)
+
+structure CleanContinuationSleep₂ (E : Generic.Env V) (source : V2.D.Run V (fgsa p c))
+    (E' : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (ΔF : Time) : Prop
+    extends CleanContinuation₂ p c E source E' rho ΔF where
+  joinedParticipation : ∀ t, source.horizon < t → t ≤ rho.horizon →
+    (Gen.V2.Duty.faulty rho).card < (joinedHonest p E' rho t).card
 
 /-- DC Statements.BoundedSafetyRecovery (NamedVoteConsumers:56-61).
 The actual proposal, completed cut, and Q are chosen ONCE before all
@@ -141,7 +148,7 @@ def BoundedSafetyRecovery₂ (G ΔF : Time) : Prop :=
     ∃ (u : Slot) (Q : Block) (iStar : Nat),
       BoundedHealingCut₂ p c E source u Q iStar ΔF ∧
       ∀ (E' : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
-        CleanContinuation₂ p c E source E' rho ΔF →
+        CleanContinuationSleep₂ p c E source E' rho ΔF →
         SSafeFromCut₂ p c E' rho iStar Q ΔF
 
 end AvailableChain.FGSA.Run

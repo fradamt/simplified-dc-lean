@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAClaims.Statements.Join
 public import AvailableChainFGSAClaims.Statements.WeakContinuationLive
 public import AvailableChainFGSAClaims.Statements.FinalityApi
 
@@ -27,6 +28,16 @@ structure RetainedAgreesThrough₂ (E : Generic.Env V)
     rho.events.filter (fun e => decide (e.node = v ∧ e.time ≤ source.horizon)) =
       source.events.filter (fun e => decide (e.node = v ∧ e.time ≤ source.horizon))
 
+def SourcePendingReceipt (E : Generic.Env V) (source : V2.D.Run V (fgsa p c))
+    (E' : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (ΔF : Time) (v w : V) (o : (fgsa p c).Object) (send : Time) : Prop :=
+  ∀ a, send ≤ a → 0 ≤ a →
+    let dl := max a E.t_GST + fgsaDelay E'.Δ ΔF o
+    a < dl → source.horizon < dl → dl ≤ rho.horizon →
+    V2.D.LinkReadyOn E' rho v w a dl →
+    (fgsa p c).excludes (V2.D.Run.stateBeforeTime E' rho dl w) o = false →
+    V2.D.DeliveryService E' rho w o a dl
+
 /-- DC fixed-prefix network duties; INTENTIONAL: keep source duties for
 validators removed from the honest set. Broadcast and relay remain separate.
 The relay guard reads the original source post-acceptance state, and both
@@ -38,22 +49,12 @@ structure PendingSourceDelivery₂ (E : Generic.Env V)
   sourceBroadcast : ∀ v ∈ source.honest, ∀ o t,
     V2.D.Run.emits E source v o t → t ≤ source.horizon →
     ∀ w ∈ rho.honest,
-    source.horizon < max t E.t_GST + fgsaDelay E'.Δ ΔF o →
-    max t E.t_GST + fgsaDelay E'.Δ ΔF o ≤ rho.horizon →
-    (fgsa p c).excludes
-      (V2.D.Run.stateBeforeTime E' rho (max t E.t_GST + fgsaDelay E'.Δ ΔF o) w) o = false →
-    ∃ t', t ≤ t' ∧ t' < max t E.t_GST + fgsaDelay E'.Δ ΔF o ∧
-      ∃ j, V2.D.Run.handlesAt E' rho j w o t'
+    SourcePendingReceipt p c E source E' rho ΔF v w o t
   sourceRelay : ∀ v ∈ source.honest, ∀ i o t,
     V2.D.Run.acceptsAt E source i v o t → t ≤ source.horizon →
     ∀ w ∈ rho.honest,
     (fgsa p c).processed (V2.D.Run.stateBefore E source (i + 1) w) o = false →
-    source.horizon < max t E.t_GST + fgsaDelay E'.Δ ΔF o →
-    max t E.t_GST + fgsaDelay E'.Δ ΔF o ≤ rho.horizon →
-    (fgsa p c).excludes
-      (V2.D.Run.stateBeforeTime E' rho (max t E.t_GST + fgsaDelay E'.Δ ΔF o) w) o = false →
-    ∃ t', t ≤ t' ∧ t' < max t E.t_GST + fgsaDelay E'.Δ ΔF o ∧
-      ∃ j, V2.D.Run.handlesAt E' rho j w o t'
+    SourcePendingReceipt p c E source E' rho ΔF v w o t
 
 /-- DC RecoveredBy.recovered: retained-set continuation with the existing
 whole-run threshold-slashing premise. INTENTIONAL: pointwise SA participation
@@ -73,6 +74,13 @@ structure CleanGrowthContinuation₂ (E : Generic.Env V)
   participation : ∀ t, source.horizon < t → t ≤ rho.horizon →
     (Gen.V2.Duty.faulty rho).card < (Gen.V2.Duty.awakeHonest E' rho t).card
 
+structure CleanGrowthContinuationSleep₂ (E : Generic.Env V)
+    (source : V2.D.Run V (fgsa p c)) (E' : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) (ΔF : Time) : Prop
+    extends CleanGrowthContinuation₂ p c E source E' rho ΔF where
+  joinedParticipation : ∀ t, source.horizon < t → t ≤ rho.horizon →
+    (Gen.V2.Duty.faulty rho).card < (joinedHonest p E' rho t).card
+
 /-- DC bounded safety recovery: one source witness precedes all continuations.
 INTENTIONAL: each continuation has its own completed-gate index. The result
 keeps compatibility, monotonicity, seed preservation, finalBelow, both outputs,
@@ -85,7 +93,7 @@ def BoundedGrowthRecovery₂ (G ΔF : Time) : Prop :=
     ∃ (u : Slot) (Q : Block) (iSource : Nat),
       BoundedHealingCut₂ p c E source u Q iSource ΔF ∧
       ∀ (E' : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
-        CleanGrowthContinuation₂ p c E source E' rho ΔF →
+        CleanGrowthContinuationSleep₂ p c E source E' rho ΔF →
         WeakContinuationLiveAt₂ p c E' rho u Q
           (afterTicksIdx rho (SA.gateTime p.toParams u)) ΔF
 
@@ -98,7 +106,7 @@ theorem BoundedGrowthRecovery₂_def (G ΔF : Time) :
         ∃ (u : Slot) (Q : Block) (iSource : Nat),
           BoundedHealingCut₂ p c E source u Q iSource ΔF ∧
           ∀ (E' : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
-            CleanGrowthContinuation₂ p c E source E' rho ΔF →
+            CleanGrowthContinuationSleep₂ p c E source E' rho ΔF →
             WeakContinuationLiveAt₂ p c E' rho u Q
               (afterTicksIdx rho (SA.gateTime p.toParams u)) ΔF) := rfl
 

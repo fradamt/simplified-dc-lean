@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAClaims.Statements.Join
 public import AvailableChainFGSAClaims.Statements.Regimes
 public import AvailableChainFGSAClaims.Statements.Reads
 
@@ -45,6 +46,23 @@ def OutageContinuationConcl (p : Params) {In V : Type} (c : AppCodec In)
       Block.Preceq B (V2.D.outputAt E rho (fgsaInterface p c).stable y t) ∧
       Block.Preceq B (V2.D.outputAt E rho (fgsaInterface p c).confirmed y t) ∧
       Block.Compatible B (F_at p c E rho (timeIdx rho t) y)
+
+structure OutageContinuationSleepPrem (p : Params) {In V : Type} (c : AppCodec In)
+    [DecidableEq V] [Fintype V] (fast : Bool) (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) (T b₀ b₁ ΔF : Time) : Prop
+    extends OutageContinuationPrem p c fast E rho T b₀ b₁ ΔF where
+  sleepPre : HealthyPrefixSleep₂ p c E rho b₀ ΔF
+  joinedSleepy : ∀ t, 0 ≤ t → t < b₀ →
+    (sleepyBad p E rho t).card < 2 * (joinedHonest p E rho t).card
+  joinedFastPart : fast = true → ∀ t, 0 ≤ t → t < b₀ →
+    (p.n + 1) / 2 ≤ (joinedHonest p E rho t).card
+  protection : OutageE p E rho fast b₀ b₁
+  joinedPartAfter : ∀ t, OutageEnd p (restoredLabel p b₁) ≤ t →
+    t ≤ rho.horizon →
+    (Gen.V2.Duty.faulty rho).card < (joinedHonest p E rho t).card
+  sleepyAfter : ∀ t, OutageEnd p (restoredLabel p b₁) ≤ t →
+    t ≤ rho.horizon →
+    (sleepyBad p E rho t).card < 2 * (joinedHonest p E rho t).card
 
 end AvailableChain.FGSA.Run
 end

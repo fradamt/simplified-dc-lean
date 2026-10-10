@@ -1,5 +1,6 @@
 # S-Ap part 1. P23 remains with W3 until the part 2 handoff.
 [TARGETS]
+AvailableChainFGSAClaims.Tests.OutageAlignment
 AvailableChainFGCompose.Proofs.SafetyClient
 AvailableChainFGCompose.Proofs.SafetyMonotone
 AvailableChainFGCompose.Proofs.SafetyStore
@@ -9,18 +10,32 @@ AvailableChainFGCompose.Tests.Reads
 AvailableChainFGCompose.Tests.Restart
 AvailableChainFGCompose.Tests.SafetyAxioms
 AvailableChainFGCompose.Tests.SafetyControls
+AvailableChainFGSAClaims.Claims.Foundations
 AvailableChainFGSAClaims.Claims.Shared
+AvailableChainFGSAClaims.FGSAClaims
 AvailableChainFGSAClaims.Statements.ChannelProps
 AvailableChainFGSAClaims.Statements.Channels
+AvailableChainFGSAClaims.Statements.ComposeNext
 AvailableChainFGSAClaims.Statements.ComposeStmt
 AvailableChainFGSAClaims.Statements.Fold
 AvailableChainFGSAClaims.Statements.FrameNext
 AvailableChainFGSAClaims.Statements.Healed
+AvailableChainFGSAClaims.Statements.HealedBest
 AvailableChainFGSAClaims.Statements.Join
+AvailableChainFGSAClaims.Statements.LiveDC
+AvailableChainFGSAClaims.Statements.OutageContinuation
+AvailableChainFGSAClaims.Statements.OutageSleep
+AvailableChainFGSAClaims.Statements.OutputReads
+AvailableChainFGSAClaims.Statements.Packages.Finality
+AvailableChainFGSAClaims.Statements.Packages.FinalityGST
+AvailableChainFGSAClaims.Statements.Packages.Healing
 AvailableChainFGSAClaims.Statements.Packages.Safety
 AvailableChainFGSAClaims.Statements.Phases
 AvailableChainFGSAClaims.Statements.Reads
 AvailableChainFGSAClaims.Statements.Regimes
+AvailableChainFGSAClaims.Statements.WeakContinuation
+AvailableChainFGSAClaims.Statements.WeakContinuationGrowth
+AvailableChainFGSAClaims.Statements.WeakContinuationLive
 AvailableChainFGSAClaims.Statements.Windows
 AvailableChainFGSAClaims.Statements.Witness
 AvailableChainFGSAClaims.Tests.Axioms
@@ -231,22 +246,36 @@ AvailableChainFGSA.Tests.WindowRetention
 AvailableChainFGSA.Tests.WindowSelection
 AvailableChainFGSA.Tests.WindowStore
 AvailableChainFGSA.Tests.WindowViews
+AvailableChainFGSAClaims.Claims.Foundations
 AvailableChainFGSAClaims.Claims.Shared
+AvailableChainFGSAClaims.FGSAClaims
 AvailableChainFGSAClaims.Statements.Bounds
 AvailableChainFGSAClaims.Statements.BoundsW
 AvailableChainFGSAClaims.Statements.ChannelProps
 AvailableChainFGSAClaims.Statements.Channels
+AvailableChainFGSAClaims.Statements.ComposeNext
 AvailableChainFGSAClaims.Statements.ComposeStmt
 AvailableChainFGSAClaims.Statements.Counts
 AvailableChainFGSAClaims.Statements.Fold
 AvailableChainFGSAClaims.Statements.FrameNext
 AvailableChainFGSAClaims.Statements.Healed
+AvailableChainFGSAClaims.Statements.HealedBest
 AvailableChainFGSAClaims.Statements.Join
+AvailableChainFGSAClaims.Statements.LiveDC
+AvailableChainFGSAClaims.Statements.OutageContinuation
+AvailableChainFGSAClaims.Statements.OutageSleep
+AvailableChainFGSAClaims.Statements.OutputReads
+AvailableChainFGSAClaims.Statements.Packages.Finality
+AvailableChainFGSAClaims.Statements.Packages.FinalityGST
+AvailableChainFGSAClaims.Statements.Packages.Healing
 AvailableChainFGSAClaims.Statements.Packages.Safety
 AvailableChainFGSAClaims.Statements.Phases
 AvailableChainFGSAClaims.Statements.Reads
 AvailableChainFGSAClaims.Statements.Recurrence
 AvailableChainFGSAClaims.Statements.Regimes
+AvailableChainFGSAClaims.Statements.WeakContinuation
+AvailableChainFGSAClaims.Statements.WeakContinuationGrowth
+AvailableChainFGSAClaims.Statements.WeakContinuationLive
 AvailableChainFGSAClaims.Statements.Windows
 AvailableChainFGSAClaims.Statements.Witness
 AvailableChainFGSAClaims.Tests.Axioms
@@ -483,6 +512,7 @@ AvailableChainKitV2.Tests.Duties
 AvailableChainKitV2.Tests.Sleep
 AvailableChainKitV2.Tests.Toy
 [EXPECTED-FAIL]
+AvailableChainFGSAClaims.Tests.OutageAlignment P-Ou
 AvailableChainFGSAProofs.Proofs.Shared.BoundsW P-ShA
 AvailableChainFGSAProofs.Proofs.Shared.Channels P-ShA
 AvailableChainFGSAProofs.Proofs.Shared.Compose P-ShA

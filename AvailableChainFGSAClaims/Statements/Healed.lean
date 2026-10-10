@@ -39,14 +39,15 @@ F below S: 21:2998; 22:180. Both reads use the same event prefix.
 Proposal service: 21:2998–2999; 22:180–181. The gate read is after all ticks;
 the gate must be within the finite run horizon (P3 §4.6). -/
 def Healed (t : Time) : Prop :=
-  Gen.Pure.CompatOn (· ∈ rho.honest) (S_at p c E rho) (HealSuffix p c rho t) ∧
-  Gen.Pure.MonoOn (· ∈ rho.honest) (S_at p c E rho) (HealSuffix p c rho t) ∧
-  Gen.Pure.BelowOn (· ∈ rho.honest) (F_at p c E rho) (S_at p c E rho)
-    (HealSuffix p c rho t) ∧
+  ScopedCompat (confirmedReaderIdx p c E rho) (S_at p c E rho) (HealSuffix p c rho t) ∧
+  ScopedMono (confirmedReaderIdx p c E rho) (S_at p c E rho) (HealSuffix p c rho t) ∧
+  (∀ i x y, HealSuffix p c rho t i → x ∈ rho.honest →
+    confirmedReaderIdx p c E rho y i →
+    Block.Preceq (F_at p c E rho i x) (S_at p c E rho i y)) ∧
   (∀ s B, t ≤ V2.D.proposalTime (fgsaInterface p c) s →
     SA.gateTime p.toParams s ≤ rho.horizon →
     HonestProposal E rho (fgsaInterface p c) s B →
-    Gen.Pure.ServedOn (· ∈ rho.honest)
+    ScopedServed (confirmedReader p c E rho)
       (fun u x => (fgsaInterface p c).stable (afterTicks E rho u x)) B
       (· = SA.gateTime p.toParams s))
 
@@ -59,16 +60,19 @@ HEAD consumers: F8, Q0, QF4 S2. Output consumers: healing and finality compositi
 The output clause needs its cut within the horizon (ruling B31; 21:3289–3291). -/
 def H2A (w : HealingWitness) : Prop := ∀ y r K, y ∈ rho.honest →
   actionSourceFG p c E rho y r = some (some K) → high p w K →
-  (∀ x i H, x ∈ rho.honest → r * p.R + 1 ≤ i →
+  (∀ x i H, headReader p E rho x i (SA.voteTime p.toParams i) →
+    r * p.R + 1 ≤ i →
     headAtLabel p c E rho x i = some H → Block.Preceq (eraseFG K) H) ∧
-  (∀ i x, x ∈ rho.honest → p.actionTime r + 4 * p.Δ ≤ rho.horizon →
+  (∀ i x, confirmedReaderIdx p c E rho x i →
+    p.actionTime r + 4 * p.Δ ≤ rho.horizon →
     HealSuffix p c rho (p.actionTime r + 4 * p.Δ) i →
     Block.Preceq (eraseFG K) (S_at p c E rho i x))
 /-- H2′ [joint] (21:3104–3107), P3 A.9.
 Consumers: F6, F8, QF2 Q1, QF4 S1/S2 and Q0, FL-T7. -/
 def H2Prime (w : HealingWitness) : Prop := ∀ v Q,
   HonestProposal E rho (fgsaInterface p c) v Q → w.sStar + 2 ≤ v →
-  ∀ x i H, x ∈ rho.honest → v + 1 ≤ i → headAtLabel p c E rho x i = some H →
+  ∀ x i H, headReader p E rho x i (SA.voteTime p.toParams i) →
+    v + 1 ≤ i → headAtLabel p c E rho x i = some H →
     Block.Preceq Q H
 /-- H3 [joint] (21:3109–3114), P3 A.9.
 HEAD consumers: FF1, F6, F8, Q0, QF4 S2. Source consumer: QF4 S1.
@@ -79,9 +83,10 @@ def H3 (w : HealingWitness) : Prop := ∀ v Q,
 Uses the Gen property kernel, including cross-time compatibility. -/
 def H4 (w : HealingWitness) : Prop :=
   (∀ x ∈ rho.honest, (fgsaInterface p c).stable (afterTicks E rho (tstar p w) x) = w.QStar) ∧
-  Gen.Pure.CompatOn (· ∈ rho.honest) (S_at p c E rho) (HealSuffix p c rho (tstar p w)) ∧
-  Gen.Pure.MonoOn (· ∈ rho.honest) (S_at p c E rho) (HealSuffix p c rho (tstar p w)) ∧
-  (∀ i x y, HealSuffix p c rho (tstar p w) i → x ∈ rho.honest → y ∈ rho.honest →
+  ScopedCompat (confirmedReaderIdx p c E rho) (S_at p c E rho) (HealSuffix p c rho (tstar p w)) ∧
+  ScopedMono (confirmedReaderIdx p c E rho) (S_at p c E rho) (HealSuffix p c rho (tstar p w)) ∧
+  (∀ i x y, HealSuffix p c rho (tstar p w) i → x ∈ rho.honest →
+    confirmedReaderIdx p c E rho y i →
     Block.Preceq (F_at p c E rho i x) (S_at p c E rho i y))
 /-- H5 (21:3125–3132), P3 A.9. Consumer: Q0 in QF2 and QF4.
 No fast threshold or passed-guard premise is imposed on the raw result.
@@ -90,15 +95,17 @@ def H5RawTransfer (w : HealingWitness) : Prop := ∀ y j C,
   y ∈ rho.honest → w.sStar ≤ j → gateResult p c E rho y j = some (some C) →
   (∀ x nd, x ∈ rho.honest → postClock E rho x (SA.releaseTime p.toParams j) = some nd →
     ∀ lease ∈ nd.st.base.obligations, nd.st.base.now < lease.2.2 → Block.Compatible lease.1 C) ∧
-  (∀ x i H, x ∈ rho.honest → j + 1 ≤ i → headAtLabel p c E rho x i = some H →
+  (∀ x i H, headReader p E rho x i (SA.voteTime p.toParams i) →
+    j + 1 ≤ i → headAtLabel p c E rho x i = some H →
     Block.Preceq C H) ∧
   (∀ v Q, j + 2 ≤ v → HonestProposal E rho (fgsaInterface p c) v Q → Block.Preceq C Q.parent) ∧
-  (∀ i x, x ∈ rho.honest → SA.gateTime p.toParams j + 4 * p.Δ ≤ rho.horizon →
+  (∀ i x, confirmedReaderIdx p c E rho x i →
+    SA.gateTime p.toParams j + 4 * p.Δ ≤ rho.horizon →
     HealSuffix p c rho (SA.gateTime p.toParams j + 4 * p.Δ) i → Block.Preceq C (S_at p c E rho i x))
 /-- H6 (21:3134–3141), P3 A.9. Consumer: Q0 in QF2 and QF4.
 A unanimous synchronous batch gives a raw result, guard, fast write and lease. -/
 def H6GateService (w : HealingWitness) : Prop := ∀ j D,
-  w.sStar ≤ j → E.t_GST ≤ SA.voteTime p.toParams j →
+  w.sStar ≤ j → recoveryStart p E ≤ SA.voteTime p.toParams j →
   SA.gateTime p.toParams j ≤ rho.horizon → D ≠ .genesis →
   (∀ x ∈ rho.honest, ∃ H, headAtLabel p c E rho x j = some H ∧ Block.Preceq D H) →
   (∀ x st, x ∈ rho.honest → gateIn p c E rho x j = some st → Block.Preceq (eraseFG st.fg.F) D) →
@@ -152,10 +159,10 @@ def HTimeStatement (G ΔF : Time) : Prop := p.δt = 2 * p.R →
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
     HealingSet p c E rho G ΔF → LivenessBoundW p ΔF →
-    E.t_GST + B_HF p ΔF G ≤ rho.horizon →
+    recoveryStart p E + B_HF p ΔF G ≤ rho.horizon →
     ∃ w, HealingInput p c E rho w ΔF ∧
       tstar p w ≤ p.actionTime w.rStar + Γ p G + 4 * p.Δ ∧
-      p.actionTime w.rStar + Γ p G + 4 * p.Δ < E.t_GST + B_HF p ΔF G
+      p.actionTime w.rStar + Γ p G + 4 * p.Δ < recoveryStart p E + B_HF p ΔF G
 
 theorem HTimeStatement_def (G ΔF : Time) :
     HTimeStatement p G ΔF =
@@ -163,10 +170,11 @@ theorem HTimeStatement_def (G ΔF : Time) :
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
     HealingSet p c E rho G ΔF → LivenessBoundW p ΔF →
-    E.t_GST + B_HF p ΔF G ≤ rho.horizon →
+    recoveryStart p E + B_HF p ΔF G ≤ rho.horizon →
     ∃ w, HealingInput p c E rho w ΔF ∧
       tstar p w ≤ p.actionTime w.rStar + Γ p G + 4 * p.Δ ∧
-      p.actionTime w.rStar + Γ p G + 4 * p.Δ < E.t_GST + B_HF p ΔF G) := by rfl
+      p.actionTime w.rStar + Γ p G + 4 * p.Δ < recoveryStart p E + B_HF p ΔF G) := by
+  rfl
 
 -- equation export required by BUILD §7.2 B3a (post-freeze additive _def batch)
 omit [DecidableEq V] in

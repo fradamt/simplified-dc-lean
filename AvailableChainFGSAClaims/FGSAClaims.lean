@@ -84,7 +84,7 @@ structure FGSAFinalityClaims (p : FGSA.Params) : Prop where
   runAgreement : WholeRunAgreementClaim p
   eventPrefixAgreement : EventPrefixAgreementClaim p
   faultCountSlashableBound : FaultCountSlashableBoundClaim p
-  finalizedMonotone : FinalizedMonotonicityClaim p
+  finalizedMonotone : FinalizedMonotonicityRestartClaim p
   honestNeverSlashed : HonestNeverSlashedClaim p
 
 /-- The G-F0b output contract. Recovery is a premise; healing witnesses are outputs.

@@ -1,4 +1,6 @@
 module
+public import AvailableChainFGSAClaims.Statements.WeakContinuationGrowth
+public import AvailableChainFGSAClaims.Statements.OutageSleep
 public import AvailableChainFGSAClaims.Statements.FinalityApi -- shake: keep (S4.5b axiom audit)
 public import AvailableChainFGSAClaims.Statements.Packages.Inclusion -- shake: keep (S4.5b axiom audit)
 public import AvailableChainFGSAClaims.Claims.Outage -- shake: keep (S4.5b axiom audit)
@@ -98,8 +100,8 @@ The guard scans all compiled constants. -/
 #print axioms AvailableChain.FGSA.Run.cleanWin
 #print axioms AvailableChain.FGSA.Run.cleanPrefixWin
 #print axioms AvailableChain.FGSA.Run.cleanLabelWin
-#print axioms AvailableChain.FGSA.Run.gapWin
-#print axioms AvailableChain.FGSA.Run.formWinAt
+#print axioms AvailableChain.FGSA.Run.gapWinReady
+#print axioms AvailableChain.FGSA.Run.formWinAtReady
 #print axioms AvailableChain.FGSA.Run.kernelWin
 #print axioms AvailableChain.FGSA.Run.trigWin
 #print axioms AvailableChain.FGSA.Run.PtS
@@ -802,13 +804,6 @@ namespace AvailableChain.FGSA.Run.Tests.WeakContinuationLive
 
 variable {p : Params} {In V : Type} {c : AppCodec In} [DecidableEq V] [Fintype V]
 
--- Claims imports are permitted in this audit module. Check the neutral bodies.
-example (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : PtSP) :
-    ServedFromGateAt p c E rho pt = InclusionAt p c E rho pt := rfl
-
-example (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (t d : Time) :
-    JointGrowthAt p c E rho t d = AvailableGrowthConcl p c E rho t d := rfl
-
 -- Intended universal claim projection; this does not prove the live claim.
 example (G : Time) : WeakContinuationLiveClaim p G → WeakContinuationClaim p G := by
   intro h V _ _ In c ΔF hδ E source hs
@@ -921,3 +916,11 @@ end
 #print axioms AvailableChain.FGSA.Run.RStoreEpoch_def
 #print axioms AvailableChain.FGSA.Run.RFrameNextEpoch
 #print axioms AvailableChain.FGSA.Run.RFrameNextEpoch_def
+#print axioms AvailableChain.FGSA.Run.FinalizedMonotonicityRestartClaim
+#print axioms AvailableChain.FGSA.Run.OutageContinuationSleepPrem
+#print axioms AvailableChain.FGSA.Run.CleanContinuationSleep₂
+#print axioms AvailableChain.FGSA.Run.CleanGrowthContinuationSleep₂
+#print axioms AvailableChain.FGSA.Run.SourcePendingReceipt
+#print axioms AvailableChain.FGSA.Run.OutageContinuationReceiptDerivedClaim
+#print axioms AvailableChain.FGSA.Run.OutageE1DerivedClaim
+#print axioms AvailableChain.FGSA.Run.OutagePrefixReceiptDerivedClaim

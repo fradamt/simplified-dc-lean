@@ -44,9 +44,9 @@ Blueprint bp.store.v1, bp.frame.v1, bp.chainCertificates.v1,
 bp.sourceDiscipline.v1, and bp.reconcile.v1. -/
 structure FGFoundation : Prop where
   store : RStore p c E rho
-  cumul : RStoreCumul p c E rho
-  mono : RMono p c E rho
-  frame : RFrameExactNext p c E rho
+  cumul : RStoreDurable p c E rho ∧ RStoreEpoch p c E rho
+  mono : RMonoAll p c E rho
+  frame : RFrameExactNext p c E rho ∧ RFrameNextEpoch p c E rho
   geo : RGeo p c E rho
   strat : RStrat p c E rho
   reconcile : RRec p c E rho
