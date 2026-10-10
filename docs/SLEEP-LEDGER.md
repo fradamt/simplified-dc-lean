@@ -2636,3 +2636,17 @@ P-Ou prepared validation: the first DCK run passed with default controls.
 The final map adds the compiled PersistenceHistory, PersistenceFrame, and
 ContinuationFrame support modules. The complete local strict audit has
 44 commands. Final export/coverage checks and a final DCK run follow.
+
+## P-Ou — approved family claim scopes (2026-10-10)
+
+Claims/Outage installs approved P10 joined proposal/HEAD reader scopes,
+P17 finite output scopes and G-only covering-lock service, and P20 growth
+reader guards at the trigger t and deadline d. No public meaning beyond
+the approved packet is added. Claims/Statements remains untouched under
+the explicit job restriction. The scalar argument changes are propagated
+to OutageCompatClaim, FastP1Claim, and SlowP1Claim.
+
+The neutral ServedFromGateAt and JointGrowthAt bodies are checked against
+InclusionAt and AvailableGrowthConcl by equality. The first growth check
+caught a local edit error (deadline reader at t); it was corrected to d
+before the claim commit. Kernel commit: f560b7e8.
