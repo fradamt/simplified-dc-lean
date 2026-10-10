@@ -924,6 +924,7 @@ end
 #print axioms AvailableChain.FGSA.Run.RFrameNextEpoch
 #print axioms AvailableChain.FGSA.Run.RFrameNextEpoch_def
 #print axioms AvailableChain.FGSA.Run.FinalizedMonotonicityRestartClaim
+#print axioms AvailableChain.FGSA.Run.OutageRepairReady
 #print axioms AvailableChain.FGSA.Run.OutageContinuationSleepPrem
 #print axioms AvailableChain.FGSA.Run.CleanContinuationSleep₂
 #print axioms AvailableChain.FGSA.Run.CleanGrowthContinuationSleep₂

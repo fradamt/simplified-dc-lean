@@ -6,7 +6,7 @@ Run the writer after a source change and review the complete diff.
 The check requires all current names, modules, kinds and hashes.
 Theorem proof values are excluded. Snapshot updates do not approve claims.
 
-Entries: 1357; modules: 59.
+Entries: 1358; modules: 59.
 
 `lake env lean --run scripts/V2Manifest.lean --scope fgsa --write` updates this file; `--check` checks it.
 
@@ -1076,7 +1076,8 @@ field AvailableChain.FGSA.Run.OutageContinuationPrem.fastPart 0982ef0b00a78c7e
 field AvailableChain.FGSA.Run.OutageContinuationPrem.sync 62eb85c98519bd0b
 field AvailableChain.FGSA.Run.OutageContinuationPrem.gst 0873886185da4f5a
 field AvailableChain.FGSA.Run.OutageContinuationPrem.partAfter 5d424be44ad9f881
-def AvailableChain.FGSA.Run.OutageContinuationConcl 470254a6b453047d
+def AvailableChain.FGSA.Run.OutageRepairReady f50983792c00ad02
+def AvailableChain.FGSA.Run.OutageContinuationConcl 7d400cefdc047217
 structure AvailableChain.FGSA.Run.OutageContinuationSleepPrem 3f9e888257f5e977
 field AvailableChain.FGSA.Run.OutageContinuationSleepPrem.toOutageContinuationPrem b18c4fb91c11164e
 ctor AvailableChain.FGSA.Run.OutageContinuationSleepPrem.mk 78b9391b6bcd8334

@@ -906,6 +906,7 @@
     'AvailableChain.FGSA.Run.OutageCompatClaim',
     'AvailableChain.FGSA.Run.OutageContinuationClaim',
     'AvailableChain.FGSA.Run.OutageContinuationConcl',
+    'AvailableChain.FGSA.Run.OutageRepairReady',
     'AvailableChain.FGSA.Run.OutageContinuationPrem',
     'AvailableChain.FGSA.Run.OutageContinuationPrem.fastPart',
     'AvailableChain.FGSA.Run.OutageContinuationPrem.gst',

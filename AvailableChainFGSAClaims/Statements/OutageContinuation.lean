@@ -35,25 +35,50 @@ structure OutageContinuationPrem (p : Params) {In V : Type} (c : AppCodec In)
   partAfter : ∀ t, b₁ ≤ t → t ≤ rho.horizon →
     (Gen.V2.Duty.faulty rho).card < (Gen.V2.Duty.awakeHonest E rho t).card
 
-/-- P17: scoped confirmed outputs and HEADs stay compatible; covered receivers
-keep inclusion. Durable finality stays compatible for every honest node. -/
+/-- INTENTIONAL FG-SA sleep adaptation: conditional safety after a repairing gate.
+This is not SAME as DC stableAsynchronyResilient. -/
+def OutageRepairReady (p : Params) {In V : Type} (c : AppCodec In)
+    [DecidableEq V] [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) (fast : Bool)
+    (b₀ b₁ : Time) (B : Block) (y : V) (t : Time) : Prop :=
+  y ∈ coveredNodes p E rho fast b₀ ∨
+  Block.Preceq B (F_at p c E rho (timeIdx rho t) y) ∨
+  ∃ s j, restoredLabel p b₁ + p.k ≤ s ∧
+    j < timeIdx rho t ∧
+    enabledGateAt p c E rho j y s ∧
+    (let st := FGSA.clockPre p (storeAt p c E rho j y)
+       (SA.gateTime p.toParams s)
+     Block.Compatible B st.base.stableRecord ∨
+       ∃ C, SA.Root.confirmationFrom p.toParams
+           (eraseFG st.fg.F) (FGSA.actView st) s = some C ∧
+         ¬ Block.Preceq C st.base.stableRecord)
+
+/-- INTENTIONAL FG-SA sleep adaptation: continuation outputs require repair readiness.
+HEAD and F safety are unchanged. This is not SAME as DC stableAsynchronyResilient. -/
 def OutageContinuationConcl (p : Params) {In V : Type} (c : AppCodec In)
-    [DecidableEq V] [Fintype V] (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (fast : Bool) (T b₀ b₁ : Time) : Prop :=
+    [DecidableEq V] [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) (fast : Bool)
+    (T b₀ b₁ : Time) : Prop :=
   ∀ x B, confirmedReader p c E rho x T →
     Block.Preceq B (S_at p c E rho (timeIdx rho T) x) →
     (∀ y t, b₀ ≤ t → t ≤ rho.horizon →
       outageConfirmedReader p c E rho fast b₀ b₁ y t →
+      OutageRepairReady p c E rho fast b₀ b₁ B y t →
       Block.Compatible B (S_at p c E rho (timeIdx rho t) y) ∧
-      Block.Compatible B (V2.D.outputAt E rho (fgsaInterface p c).stable y t) ∧
-      Block.Compatible B (V2.D.outputAt E rho (fgsaInterface p c).confirmed y t) ∧
+      Block.Compatible B
+        (V2.D.outputAt E rho (fgsaInterface p c).stable y t) ∧
+      Block.Compatible B
+        (V2.D.outputAt E rho (fgsaInterface p c).confirmed y t) ∧
       (y ∈ coveredNodes p E rho fast b₀ →
         Block.Preceq B (S_at p c E rho (timeIdx rho t) y) ∧
-        Block.Preceq B (V2.D.outputAt E rho (fgsaInterface p c).stable y t) ∧
-        Block.Preceq B (V2.D.outputAt E rho (fgsaInterface p c).confirmed y t))) ∧
+        Block.Preceq B
+          (V2.D.outputAt E rho (fgsaInterface p c).stable y t) ∧
+        Block.Preceq B
+          (V2.D.outputAt E rho (fgsaInterface p c).confirmed y t))) ∧
     (∀ y t o H, b₀ ≤ t → t ≤ rho.horizon →
       outageHeadReader p E rho fast b₀ b₁ y t →
-      V2.D.Run.emits E rho y o t → HeadTargetAtEmission p c E rho y o t H →
+      V2.D.Run.emits E rho y o t →
+      HeadTargetAtEmission p c E rho y o t H →
       Block.Compatible B H) ∧
     (∀ y t, y ∈ rho.honest → b₀ ≤ t → t ≤ rho.horizon →
       Block.Compatible B (F_at p c E rho (timeIdx rho t) y))

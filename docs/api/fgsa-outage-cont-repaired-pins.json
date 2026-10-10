@@ -1,0 +1,14 @@
+[
+  {
+    "name": "AvailableChain.FGSA.Run.OutageContinuationConcl",
+    "before": "470254a6b453047d",
+    "after": "7d400cefdc047217",
+    "reason": "OUTAGE-CONT-REPAIRED (lead ruling 2026-10-10)"
+  },
+  {
+    "name": "AvailableChain.FGSA.Run.OutageRepairReady",
+    "before": null,
+    "after": "f50983792c00ad02",
+    "reason": "OUTAGE-CONT-REPAIRED (lead ruling 2026-10-10)"
+  }
+]

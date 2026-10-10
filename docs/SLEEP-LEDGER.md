@@ -7259,3 +7259,22 @@ is conditional. P-As has three Outage caller repairs and the Root seed port.
 The full Round 13 task is incomplete. P-Ou is PREPARED; no public STOP is asserted.
 
 - Lead 2026-10-10 18:40: merged sleep-pou13 8bd2d9d7 (P-Ou r13) as PREPARED: outage supplier proved, both public exporters GREEN, continuation exporter conditional only on OutageWSeed. rev-pou13-astra: all pass except the architecture record (added by the lead in this merge). OutageWSeed truth check: wseed-derisk-astra.
+
+## P-Ou Round 15 — OUTAGE-CONT-REPAIRED statement (2026-10-10)
+
+Lead ruling: the old continuation output guarantee and O11-W-SEED are false.
+The source certificate is codex/jobs/wseed-run/run.md; wseed-verify.md confirms it.
+Node 7 retains conflicting S=A at 106 after a genuine genesis result.
+
+The public companion now uses the exact recommended OutageRepairReady and
+OutageContinuationConcl. Only continuation output reads require repair readiness.
+HEAD and F clauses, Statements/Join.lean and FGSAClaims fields are unchanged.
+This is an INTENTIONAL FG-SA sleep adaptation: conditional safety after a
+repairing gate, not SAME as DC stableAsynchronyResilient. No repair deadline is claimed.
+
+Current shallow and deep manifests are regenerated under DECISION P23-A's policy.
+The two changed shallow entries are pinned in
+docs/api/fgsa-outage-cont-repaired-pins.json with reason
+OUTAGE-CONT-REPAIRED (lead ruling 2026-10-10). Frozen baselines are unchanged.
+Statements compile: .lake/sleep-pou-r15/statements-build.log and claims-build.log.
+Writer evidence: .lake/sleep-pou-r15/manifest-write.log.

@@ -1765,6 +1765,7 @@
             'AvailableChain.FGSA.Run.liveDCDeadline_W_def',
         ),
         'AvailableChainFGSAClaims.Statements.OutageContinuation': (
+            'AvailableChain.FGSA.Run.OutageRepairReady',
             'AvailableChain.FGSA.Run.OutageContinuationSleepPrem',
         ),
         'AvailableChainFGSAClaims.Statements.OutageSleep': (
