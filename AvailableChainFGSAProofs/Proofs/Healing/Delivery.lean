@@ -52,5 +52,22 @@ theorem healing_tDel [Fintype V] (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c
     exact healing_source_body_relay E rho hrec source mono hy hx hK hgst heD hhor
       (delivery_lift hFK) (hServices y r K hy hK hready hhor x hx (delivery_lift hFK))
 
+/-- Ordinary source delivery from sleep recovery and the named source/mono producers.
+The selected object service is constructed at the source's actual vote tick. -/
+theorem healing_tDel_recovery [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (source : TSrc p c E rho) (mono : RMonoAll p c E rho) : TDel p c E rho := by
+  apply healing_tDel E rho hrec.toRecovery₂ source mono
+  intro y r K hy hK hready hhor x hx hFK j z W hz hj hW hKW hFloor
+  apply healing_source_delivery_service E rho hrec hz hx hj hW
+  · have := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
+  · apply le_trans _ hhor
+    change 4 * p.Δ * ((r * p.R : Nat) : Int) + 2 * p.Δ ≤
+      4 * p.Δ * ((r * p.R : Nat) : Int) + 3 * p.Δ
+    linarith [p.deltaPos]
+  · exact hFloor
+
 end AvailableChain.FGSA.Run
 end

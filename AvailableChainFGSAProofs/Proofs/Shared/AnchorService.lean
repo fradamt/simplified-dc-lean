@@ -251,5 +251,169 @@ theorem fgsa_transfer_path_anchor_service (hV : V2.D.ExecutionValid E rho)
   exact fgsa_awake_of_joinedAt E rho y (s + 1) _ _ hJ (h0.trans heu) (hs.trans heu)
     (huf.le.trans hfv.le)
 
+/-- A retained proposal uses its original acceptance and a public receiver anchor.
+The service requires only the receiver epoch after that anchor. -/
+theorem fgsa_proposal_service_at_anchor (hV : V2.D.ExecutionValid E rho)
+    (hDelta : E.Δ = p.Δ) {k : Nat} {v x : V} {s : Slot} {N : NamedProposal p.n}
+    (dl : Time → Time) (cut : Time) {send a freeze : Time}
+    (hv : v ∈ rho.honest) (hx : x ∈ rho.honest)
+    (hacc : V2.D.Run.acceptsAt E rho k v (ofWire p ⟨.proposer s, .proposal N⟩) send)
+    (hD : Gen.V2.Duty.DeliveryWithinOn E rho (fun o => ¬ isRowObject o)
+      dl cut)
+    (hsa : send ≤ a) (ha : 0 ≤ a) (hpub : V2.PublicTime E a)
+    (had : a < dl a) (hdc : dl a ≤ cut) (hdh : dl a ≤ rho.horizon)
+    (hdf : dl a ≤ freeze)
+    (haw : V2.D.AwakeOn E x a (dl a))
+    (hRF : V2.D.restartFree rho x (V2.D.Run.actionCut rho a)
+      (V2.D.Run.idxBefore rho freeze))
+    (hCompat : Block.Compatible N.erase (eraseFG (rho.stateBeforeTime E (dl a) x).st.fg.F)) :
+    Nonempty (ReceiverService E rho (ofWire p ⟨.proposer s, .proposal N⟩)
+      send freeze x) := by
+  have hd : (toWire p (ofWire p ⟨.proposer s, .proposal N⟩)).decode = some (.block s N) := by
+    rw [toWire_ofWire]
+    rfl
+  have hT : Gen.V2.Duty.Trigger E rho (ofWire p ⟨.proposer s, .proposal N⟩) send :=
+    Or.inr ⟨v, hv, k, hacc⟩
+  refine ⟨{
+    dl := dl, cut := cut, anchor := a
+    within := hD
+    ready := ⟨v, hv, Or.inr ⟨k, hacc⟩, haw⟩
+    send_le := hsa, nonneg := ha, later := had, cut_le := hdc
+    horizon := hdh, freeze_le := hdf
+    history := fgsa_historySafeAt_of_proposal x _ a hd
+    epoch := hRF
+    handlers := fgsa_proposal_handlers_at_anchor hV hDelta hx hd hacc hsa ha hpub
+      (haw a le_rfl had) had hdh
+      (hRF.mono le_rfl (fgsa_idxBefore_mono rho hdf))
+    not_excluded := ?_ }⟩
+  change excludesS p (rho.stateBeforeTime E (dl a) x).st
+    (ofWire p ⟨.proposer s, .proposal N⟩) = false
+  dsimp only [excludesS]
+  rw [hd]
+  change N.erase.compatible (eraseFG (rho.stateBeforeTime E (dl a) x).st.fg.F) = true at hCompat
+  simp only [blockExcluded, activeCompatible, hCompat, Bool.not_true, Bool.false_or]
+  exact fgsa_trigger_invalid_false E rho _ send s N hT hd _
+
+/-- The strict time read has a bounded clock, including exact-time restarts. -/
+theorem fgsa_clock_before_time_le (hS : V2.D.ScheduleWellFormed E rho)
+    (x : V) (d : Time) (hd : 0 ≤ d) : (rho.stateBeforeTime E d x).st.base.now ≤ d := by
+  rw [← Gen.V2.Duty.stateBefore_idxBefore E rho d hS]
+  have h := V2.D.Engine.stateBefore_now_source_atRestart (fgsaClock p c)
+    (fgsaRestoreTimeLaw p c) E rho (V2.D.Run.idxBefore rho d) x
+  simp only [fgsa_clock_now p c (rho.stateBefore E (V2.D.Run.idxBefore rho d) x)] at h
+  rcases h with hz | ⟨j, hj, he | he⟩
+  · rw [hz]
+    exact hd
+  · exact ((Gen.V2.Duty.index_lt_idxBefore_iff hS he d).mp hj).le
+  · exact ((Gen.V2.Duty.index_lt_idxBefore_iff hS he d).mp hj).le
+
+/-- A HEAD service keeps its original trigger and the receiver's local history. -/
+theorem fgsa_head_service_at_anchor (hV : V2.D.ExecutionValid E rho)
+    (hDelta : E.Δ = p.Δ) (dl : Time → Time) (cut : Time)
+    {s : Slot} {q : Fin p.n} {b : BlockId} {send a freeze : Time} {x : V}
+    (_hx : x ∈ rho.honest)
+    (hT : Gen.V2.Duty.Trigger E rho (ofHead p ⟨.seat (.head s) q, b⟩) send)
+    (hD : Gen.V2.Duty.DeliveryWithinOn E rho (fun o => ¬ isRowObject o) dl cut)
+    (hsa : send ≤ a) (ha : 0 ≤ a) (hpa : SA.proposalTime p.toParams s ≤ a)
+    (had : a < dl a) (hdc : dl a ≤ cut) (hdh : dl a ≤ rho.horizon)
+    (hdf : dl a ≤ freeze) (haw : V2.D.AwakeOn E x a (dl a))
+    (hHistory : Gen.V2.Duty.HistorySafeAt E rho x (ofHead p ⟨.seat (.head s) q, b⟩) a)
+    (hRF : V2.D.restartFree rho x (V2.D.Run.actionCut rho a)
+      (V2.D.Run.idxBefore rho freeze))
+    (hNX : (fgsa p c).excludes (rho.stateBeforeTime E (dl a) x)
+      (ofHead p ⟨.seat (.head s) q, b⟩) = false) :
+    Nonempty (ReceiverService E rho (ofHead p ⟨.seat (.head s) q, b⟩) send freeze x) := by
+  have hpub : V2.PublicTime E (SA.proposalTime p.toParams s) := by
+    refine ⟨4 * s, ?_⟩
+    rw [hDelta]
+    change 4 * p.Δ * (s : Int) = ((4 * s : Nat) : Int) * p.Δ
+    push_cast
+    ring
+  have hp0 : 0 ≤ SA.proposalTime p.toParams s := by
+    change 0 ≤ 4 * p.Δ * (s : Int)
+    have := p.deltaPos
+    positivity
+  refine ⟨{
+    dl := dl, cut := cut, anchor := a, within := hD
+    ready := ?_, send_le := hsa, nonneg := ha, later := had, cut_le := hdc
+    horizon := hdh, freeze_le := hdf, history := hHistory, epoch := hRF
+    handlers := ?_, not_excluded := hNX }⟩
+  · rcases hT with ⟨v, hv, he⟩ | ⟨v, hv, i, hi⟩
+    · exact ⟨v, hv, Or.inl he, haw⟩
+    · exact ⟨v, hv, Or.inr ⟨i, hi⟩, haw⟩
+  · intro j t hat htd hcall
+    have hhcall := hcall
+    obtain ⟨parent, hj, _⟩ := hcall
+    have hdeps := fgsa_hReady_of_not_block (by intro r N h; cases h)
+      (fgsa_hWF_of_delivery hV.wire) j t
+      ((Gen.V2.Duty.index_lt_idxBefore_iff hV.toScheduleWellFormed hj _).mpr htd) hhcall
+    refine ⟨hdeps.1, hdeps.2, ?_⟩
+    have hb := V2.D.Engine.delivery_now_ge_public_atRestart (fgsaClock p c)
+      (fgsaRestoreTimeLaw p c) E rho hV hj hpub hp0 (hpa.trans hat)
+    change SA.proposalTime p.toParams s ≤ (rho.stateBefore E j x).st.base.now
+    rw [fgsa_clock_now p c (rho.stateBefore E j x)] at hb
+    exact hb
+
+/-- An actual signed proposal supplies its own public admission anchor. -/
+theorem fgsa_proposal_service_of_emission (hV : V2.D.ExecutionValid E rho)
+    (hDelta : E.Δ = p.Δ) (dl : Time → Time) (cut : Time)
+    {i : Nat} {v x : V} {s : Slot} {N : NamedProposal p.n} {freeze : Time}
+    (hv : v ∈ rho.honest)
+    (hi : rho.events[i]? = some (.tick v (SA.proposalTime p.toParams s)))
+    (hem : ofWire p ⟨.proposer s, .proposal N⟩ ∈ rho.emitsAt E i)
+    (hD : Gen.V2.Duty.DeliveryWithinOn E rho (fun o => ¬ isRowObject o) dl cut)
+    (had : SA.proposalTime p.toParams s < dl (SA.proposalTime p.toParams s))
+    (hdc : dl (SA.proposalTime p.toParams s) ≤ cut)
+    (hdh : dl (SA.proposalTime p.toParams s) ≤ rho.horizon)
+    (hdf : dl (SA.proposalTime p.toParams s) ≤ freeze)
+    (haw : V2.D.AwakeOn E x (SA.proposalTime p.toParams s)
+      (dl (SA.proposalTime p.toParams s)))
+    (hRF : V2.D.restartFree rho x (V2.D.Run.actionCut rho (SA.proposalTime p.toParams s))
+      (V2.D.Run.idxBefore rho freeze))
+    (hCompat : Block.Compatible N.erase (eraseFG (rho.stateBeforeTime E
+      (dl (SA.proposalTime p.toParams s)) x).st.fg.F)) :
+    Nonempty (ReceiverService E rho (ofWire p ⟨.proposer s, .proposal N⟩)
+      (SA.proposalTime p.toParams s) freeze x) := by
+  have hd : (toWire p (ofWire p ⟨.proposer s, .proposal N⟩)).decode = some (.block s N) := by
+    rw [toWire_ofWire]
+    rfl
+  have hT : Gen.V2.Duty.Trigger E rho (ofWire p ⟨.proposer s, .proposal N⟩)
+      (SA.proposalTime p.toParams s) := Or.inl ⟨v, hv, i, hi, hem⟩
+  have ha : 0 ≤ SA.proposalTime p.toParams s := by
+    change 0 ≤ 4 * p.Δ * (s : Int)
+    have := p.deltaPos
+    positivity
+  have hpub : V2.PublicTime E (SA.proposalTime p.toParams s) := by
+    refine ⟨4 * s, ?_⟩
+    rw [hDelta]
+    change 4 * p.Δ * (s : Int) = ((4 * s : Nat) : Int) * p.Δ
+    push_cast
+    ring
+  refine ⟨{
+    dl := dl, cut := cut, anchor := SA.proposalTime p.toParams s, within := hD
+    ready := ⟨v, hv, Or.inl ⟨i, hi, hem⟩, haw⟩
+    send_le := le_rfl, nonneg := ha, later := had, cut_le := hdc
+    horizon := hdh, freeze_le := hdf
+    history := fgsa_historySafeAt_of_proposal x _ _ hd
+    epoch := hRF, handlers := ?_, not_excluded := ?_ }⟩
+  · intro j t hat htd hcall
+    obtain ⟨parent, hj, hh⟩ := hcall
+    have hp := proposal_direct _ parent _ hd hh
+    subst parent
+    refine ⟨hV.wire j x _ t hj, hV.deps j x _ t hj, ?_⟩
+    have hb := V2.D.Engine.delivery_now_ge_public_atRestart (fgsaClock p c)
+      (fgsaRestoreTimeLaw p c) E rho hV hj hpub ha hat
+    change SA.proposalTime p.toParams s ≤ (rho.stateBefore E j x).st.base.now
+    rw [fgsa_clock_now p c (rho.stateBefore E j x)] at hb
+    exact hb
+  · change excludesS p (rho.stateBeforeTime E (dl (SA.proposalTime p.toParams s)) x).st
+      (ofWire p ⟨.proposer s, .proposal N⟩) = false
+    dsimp only [excludesS]
+    rw [hd]
+    change N.erase.compatible (eraseFG (rho.stateBeforeTime E
+      (dl (SA.proposalTime p.toParams s)) x).st.fg.F) = true at hCompat
+    simp only [blockExcluded, activeCompatible, hCompat, Bool.not_true, Bool.false_or]
+    exact fgsa_trigger_invalid_false E rho _ _ s N hT hd _
+
 end AvailableChain.FGSA.Run
 end

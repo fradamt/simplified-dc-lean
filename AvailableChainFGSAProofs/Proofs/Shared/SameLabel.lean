@@ -1139,5 +1139,28 @@ theorem fgsa_vote_accepted_before_local
       norm_num at hwp
       exact ((not_lt.mpr hwp) hw0).elim
 
+/-- A local restart bound keeps label HEAD history at a later service anchor.
+The source proposal tick is real; no gate or global NoRestart is assumed. -/
+theorem fgsa_head_historySafeAt_of_tick
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hV : V2.D.ExecutionValid E rho) (hR : V2.D.RestartsAtWakes E rho)
+    {it : Nat} {x : V} {s : Slot} {a : Time}
+    (hit : rho.events[it]? = some (.tick x (SA.proposalTime p.toParams s)))
+    (hBound : ∀ j w, j < V2.D.Run.actionCut rho a →
+      rho.events[j]? = some (.restart x w) → w ≤ SA.proposalTime p.toParams s)
+    (q : Fin p.n) (b : BlockId) :
+    Gen.V2.Duty.HistorySafeAt E rho x (ofHead p ⟨.seat (.head s) q, b⟩) a := by
+  have hS := hV.toScheduleWellFormed
+  rintro ⟨k, hk, hp⟩
+  by_cases hkt : k ≤ it
+  · have hf := sl_before_proposal_absent E rho hV hR hit q b k hkt
+    rw [hf] at hp
+    cases hp
+  · exact (fgsaHooks p c).processed_stable E rho hS x _ k _ hk (by
+      intro j w hkj hja hj
+      have hji := V2.D.Engine.restart_index_lt_event hS hj hit (hBound j w hja hj)
+        (show 0 < 1 from by decide)
+      omega) hp
+
 end AvailableChain.FGSA.Run
 end

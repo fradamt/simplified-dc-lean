@@ -82,5 +82,25 @@ theorem healing_tDelReset [Fintype V] (E : Generic.Env V)
   exact healing_tDelReset_core E rho hrec source mono w h0.toH0Reset hhor
     (hCStarAboveLow h0.toH0Reset hhor) (hServices h0.toH0Reset hhor)
 
+/-- Reset source delivery constructs the selected object services from recovery.
+The release floor is supplied by healing_low_finality_at_reset_reset. -/
+theorem healing_tDelReset_recovery [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (source : TSrc p c E rho) (mono : RMonoAll p c E rho) (w : HealingWitness)
+    (hFloor : H0Reset p c E rho w →
+      SA.releaseTime p.toParams w.sStar ≤ rho.horizon →
+      ∀ x ∈ rho.honest, Block.Preceq
+        (eraseFG (rho.stateBeforeTime E (SA.releaseTime p.toParams w.sStar) x).st.fg.F)
+        w.CStar) : TDelReset p c E rho w := by
+  apply healing_tDelReset E rho hrec.toRecovery₂ source mono w hFloor
+  intro h0 hhor x hx j z W hz hj hW hCW hFW
+  apply healing_source_delivery_service E rho hrec hz hx hj hW h0.synchronous
+  · apply le_trans _ hhor
+    change 4 * p.Δ * (w.sStar : Int) + 2 * p.Δ ≤
+      4 * p.Δ * (w.sStar : Int) + 5 * p.Δ
+    linarith [p.deltaPos]
+  · exact hFW
+
 end AvailableChain.FGSA.Run
 end

@@ -24,6 +24,68 @@ theorem healing_recovery_epoch_after_vote {G ΔF : Time}
   dsimp [Time] at *
   omega
 
+/-- Recovery serves the jointly selected HEAD carrier and its actual direct target. -/
+theorem healing_carriers_recovery {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (s : Slot) (iy : Nat) (y : V) (t : Time) :
+    HealingCarriersAt E rho s iy y t := by
+  intro hSync hRead hDeadline hhor j z hz hj hJoin
+  have hpub : V2.PublicTime E (SA.voteTime p.toParams s) := by
+    refine ⟨4 * s + 1, ?_⟩
+    rw [hrec.base.delta]
+    change 4 * p.Δ * (s : Int) + p.Δ = ((4 * s + 1 : Nat) : Int) * p.Δ
+    push_cast
+    ring
+  have service (W : FGBlock (Fin p.n)) (hW : W ∈ (storeAt p c E rho j z).fg.TF)
+      (hCompat : Block.Compatible (eraseFG W)
+        (eraseFG (rho.stateBeforeTime E (SA.voteTime p.toParams s + p.Δ) y).st.fg.F)) :
+      TargetReceiptService E rho (eraseFG W) (SA.voteTime p.toParams s + p.Δ) y :=
+    healing_target_service_of_tick E rho hrec hz hRead.1 hj
+      (((storeBundle_stateBefore E rho j z).cstore.baseTree _).mpr ⟨W, hW, rfl⟩)
+      hpub hSync (hDeadline.trans hhor) hCompat
+  constructor
+  · intro demand
+    obtain ⟨K, hK, he, W, hW, hKW, hlo, hCompat⟩ := demand.witness
+    have hW0 : W ∈ (storeAt p c E rho j z).fg.TF := by
+      change W ∈ (clock p (storeAt p c E rho j z) _).fg.TF at hW
+      rwa [clock_fg] at hW
+    exact ⟨⟨K, hK, he, W, hW, hKW, hlo, hCompat, service W hW0 hCompat⟩⟩
+  · intro K hK he hFloor
+    exact service K hK (Bool.or_eq_true_iff.mpr (Or.inr hFloor))
+
+/-- The first transfer's selected target keeps its strict early source stamp. -/
+theorem healing_first_target_receipt_recovery {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (mono : RMonoAll p c E rho)
+    {s : Slot} {ix iy : Nat} {x y : V} {K : Block}
+    (hSync : E.t_GST ≤ SA.voteTime p.toParams s) (hx : x ∈ rho.honest)
+    (hy : y ∈ rho.honest)
+    (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (s + 1))))
+    (hK : K ∈ (storeAt p c E rho ix x).base.blocks)
+    (hStamp : GridCO.stampBlock (storeAt p c E rho ix x).base K < SA.earlyTime p.toParams s)
+    (hFloor : Block.Preceq (eraseFG (storeAt p c E rho iy y).fg.F) K) :
+    TargetReceiptService E rho K (SA.freezeTime p.toParams s) y := by
+  have he : SA.earlyTime p.toParams s + p.Δ = SA.freezeTime p.toParams s := by
+    change 4 * p.Δ * (s : Int) + 2 * p.Δ + p.Δ = 4 * p.Δ * (s : Int) + 3 * p.Δ
+    ring
+  have hfr : SA.freezeTime p.toParams s ≤ SA.voteTime p.toParams (s + 1) := by
+    change 4 * p.Δ * (s : Int) + 3 * p.Δ ≤ 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ
+    push_cast
+    linarith [p.deltaPos]
+  have hFE := healing_receipt_floor_before_tick E rho hrec.base.valid.toScheduleWellFormed
+    mono hy hiy hfr hFloor
+  have hpub : V2.PublicTime E (SA.earlyTime p.toParams s) := by
+    refine ⟨4 * s + 2, ?_⟩
+    rw [hrec.base.delta]
+    change 4 * p.Δ * (s : Int) + 2 * p.Δ = _
+    push_cast
+    ring
+  rw [← he] at hFE ⊢
+  apply healing_target_service_of_stored E rho hrec hx hy hK hStamp hpub
+  · apply le_trans hSync
+    change 4 * p.Δ * (s : Int) + p.Δ ≤ 4 * p.Δ * (s : Int) + 2 * p.Δ
+    linarith [p.deltaPos]
+  · exact he ▸ hfr.trans (hrec.base.valid.in_horizon _ (List.mem_of_getElem? hiy)).2
+  · exact Bool.or_eq_true_iff.mpr (Or.inr hFE)
+
 /-- The first transfer's guards and epoch are produced from recovery.
 The four object-service inputs are the remaining OPEN/P-H1 obligations. -/
 theorem healing_first_transfer_scope_of_services {G ΔF : Time}
@@ -146,6 +208,25 @@ theorem healing_proposal_support_scope_of_services {G ΔF : Time}
     change 4 * p.Δ * (r : Int) + p.Δ < 4 * p.Δ * (r : Int) + 2 * p.Δ
     linarith [p.deltaPos]
 
+/-- Recovery constructs the proposal/gate HEAD support factory. -/
+theorem healing_proposal_support_scope_recovery {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) {r : Slot} {ip : Nat} {x : V} {t : Time}
+    (hCut : HealingWindow p E 1 r) (hRead : HealingJoinedTick E rho ip x t)
+    (hTime : t = SA.proposalTime p.toParams (r + 1) ∨ t = SA.gateTime p.toParams r) :
+    ProposalSupportScope E rho ip x r t := by
+  apply healing_proposal_support_scope_of_services E rho hrec hCut hRead hTime
+  · intro q b hh hem
+    apply healing_fresh_head_service E rho hrec hRead.1 hh hem hCut.sync le_rfl
+    have hhor := (hrec.base.valid.in_horizon _ (List.mem_of_getElem? hRead.2.1)).2
+    apply le_trans _ hhor
+    rcases hTime with rfl | rfl
+    · change 4 * p.Δ * (r : Int) + 2 * p.Δ ≤ 4 * p.Δ * ((r + 1 : Nat) : Int)
+      push_cast
+      linarith [p.deltaPos]
+    · change 4 * p.Δ * (r : Int) + 2 * p.Δ ≤ 4 * p.Δ * (r : Int) + 6 * p.Δ
+      linarith [p.deltaPos]
+  · exact healing_carriers_recovery E rho hrec r ip x t
+
 /-- An enabled gate needs its actual guard, not a synthetic slot-start premise.
 The paired fresh HEAD and target service is the remaining OPEN/P-H1 input. -/
 theorem healing_gate_receipt_scope_of_services {G ΔF : Time}
@@ -186,6 +267,70 @@ theorem healing_support_gate_scope_of_services {G ΔF : Time}
     linarith [p.deltaPos]
   exact healing_support_gate_scope_of_cut E rho hrec hCut.2 hCut.sync hh
     (healing_gate_receipt_scope_of_services E rho hrec hCut.sync hx hGate services)
+
+/-- The actual gate geometry supplies the selected emitted targets' receiver floors. -/
+theorem healing_gate_receipt_scope_recovery {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (mono : RMonoAll p c E rho)
+    {s : Slot} {i : Nat} {x : V} {B : Block}
+    (hSync : E.t_GST ≤ SA.voteTime p.toParams s) (hx : x ∈ rho.honest)
+    (hGate : enabledGateAt p c E rho i x s)
+    (hgeom : GateReceiptGeometry E rho
+      (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s)) s B) :
+    GateReceiptScope E rho i x s := by
+  apply healing_gate_receipt_scope_of_services E rho hrec hSync hx hGate
+  intro q K hh hObs
+  have hObs0 := hObs
+  obtain ⟨j, _, _, hj, hem, _, _⟩ := hObs0
+  have hhor := (hrec.base.valid.in_horizon _ (List.mem_of_getElem? hGate.1)).2
+  have heg : SA.earlyTime p.toParams s ≤ SA.gateTime p.toParams s := by
+    change 4 * p.Δ * (s : Int) + 2 * p.Δ ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
+    linarith [p.deltaPos]
+  refine ⟨healing_fresh_head_service E rho hrec hx hh ⟨j, hj, hem⟩ hSync le_rfl
+    (heg.trans hhor), ?_⟩
+  have hK := headTargetAtEmission_at_tick E rho hrec.base.valid.toScheduleWellFormed hObs hj
+    (show (ofHead p ⟨.seat (.head s) q, K.root⟩).auth = .seat (.base (.head s)) q from rfl)
+  have hm := headVote_stored p
+    (clock p (storeAt p c E rho j (rho.seatOf (.base (.head s)) q))
+      (SA.voteTime p.toParams s))
+    (storeBundle_postClock E rho j (rho.seatOf (.base (.head s)) q)
+      (SA.voteTime p.toParams s)).cstore s
+  simp only [storeAt] at hm
+  rw [← hK] at hm
+  change K ∈ (clock p (storeAt p c E rho j _) _).base.blocks at hm
+  rw [(clock_cumulative p _ _).2.1] at hm
+  have hFloor := hgeom.target_floor q hh
+    (hrec.base.valid.tick_awake _ _ (List.mem_of_getElem? hj)) K hObs
+  rw [clockPre_fg] at hFloor
+  have hFE := healing_receipt_floor_before_tick E rho hrec.base.valid.toScheduleWellFormed
+    mono hx hGate.1 heg hFloor
+  have hpub : V2.PublicTime E (SA.voteTime p.toParams s) := by
+    refine ⟨4 * s + 1, ?_⟩
+    rw [hrec.base.delta]
+    change 4 * p.Δ * (s : Int) + p.Δ = _
+    push_cast
+    ring
+  have he : SA.voteTime p.toParams s + p.Δ = SA.earlyTime p.toParams s := by
+    change 4 * p.Δ * (s : Int) + p.Δ + p.Δ = 4 * p.Δ * (s : Int) + 2 * p.Δ
+    ring
+  rw [← he] at hFE ⊢
+  exact healing_target_service_of_tick E rho hrec hh hx hj hm hpub hSync
+    (he ▸ heg.trans hhor) (Bool.or_eq_true_iff.mpr (Or.inr hFE))
+
+/-- Current full-batch gates use the produced selected receipt scopes. -/
+theorem healing_support_gate_scope_recovery {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (mono : RMonoAll p c E rho)
+    {s : Slot} {i : Nat} {x : V} {B : Block}
+    (hCut : HealingWindow p E 1 s) (hx : x ∈ rho.honest)
+    (hGate : enabledGateAt p c E rho i x s)
+    (hgeom : GateReceiptGeometry E rho
+      (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s)) s B) :
+    SupportGateScope E rho i x s := by
+  have hh : SA.voteTime p.toParams s ≤ rho.horizon := by
+    apply le_trans _ (hrec.base.valid.in_horizon _ (List.mem_of_getElem? hGate.1)).2
+    change 4 * p.Δ * (s : Int) + p.Δ ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
+    linarith [p.deltaPos]
+  exact healing_support_gate_scope_of_cut E rho hrec hCut.2 hCut.sync hh
+    (healing_gate_receipt_scope_recovery E rho hrec mono hCut.sync hx hGate hgeom)
 
 /-- A full joined batch supplies the release threshold for its covered prefix. -/
 theorem healing_support_gate_prefix_count {G ΔF : Time}
@@ -437,6 +582,95 @@ theorem healing_repair_head_services_of_factories {G ΔF : Time}
     (Nat.le_trans (by decide : 1 ≤ 2) hCut.1)
   rw [hs]
 
+omit first next gates carriers proposal in
+/-- Recovery constructs the retained proposal and every selected score service. -/
+theorem healing_retained_service_scope_recovery {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (mono : RMonoAll p c E rho)
+    {s : Slot} {ip ih : Nat} {x y : V} {N : NamedProposal p.n}
+    (hCut : HealingWindow p E 2 s) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
+    (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
+    (hih : rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)))
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈ rho.emitsAt E ip)
+    (hFloor : Block.Preceq (eraseFG (rho.stateBeforeTime E
+      (SA.voteTime p.toParams s) y).st.fg.F) N.erase) :
+    RetainedServiceScope E rho ip ih x y s N := by
+  have hs : ((s - 1 : Nat) : Int) = (s : Int) - 1 := by have := hCut.1; omega
+  have hSync : E.t_GST ≤ SA.proposalTime p.toParams (s - 1) := by
+    apply le_trans hCut.2
+    change 4 * p.Δ * ((s : Int) - 2) ≤ 4 * p.Δ * ((s - 1 : Nat) : Int)
+    rw [hs]
+    linarith [p.deltaPos]
+  have hpp : SA.proposalTime p.toParams (s - 1) ≤ SA.proposalTime p.toParams s := by
+    change 4 * p.Δ * ((s - 1 : Nat) : Int) ≤ 4 * p.Δ * (s : Int)
+    rw [hs]
+    linarith [p.deltaPos]
+  have he : SA.freezeTime p.toParams (s - 1) + p.Δ = SA.proposalTime p.toParams s := by
+    change 4 * p.Δ * ((s - 1 : Nat) : Int) + 3 * p.Δ + p.Δ = 4 * p.Δ * (s : Int)
+    rw [hs]
+    ring
+  have hpf : SA.proposalTime p.toParams (s - 1) ≤ SA.freezeTime p.toParams (s - 1) := by
+    change 4 * p.Δ * ((s - 1 : Nat) : Int) ≤
+      4 * p.Δ * ((s - 1 : Nat) : Int) + 3 * p.Δ
+    linarith [p.deltaPos]
+  have hpub : V2.PublicTime E (SA.freezeTime p.toParams (s - 1)) := by
+    refine ⟨4 * (s - 1) + 3, ?_⟩
+    rw [hrec.base.delta]
+    change 4 * p.Δ * ((s - 1 : Nat) : Int) + 3 * p.Δ = _
+    push_cast
+    ring
+  have hh := (hrec.base.valid.in_horizon _ (List.mem_of_getElem? hih)).2
+  have hhp := (hrec.base.valid.in_horizon _ (List.mem_of_getElem? hip)).2
+  refine ⟨healing_retained_proposal_service E rho hrec hx hy hip hem
+    (hSync.trans hpp) hh hFloor, ?_⟩
+  intro D hgeom
+  refine ⟨?_, ?_, ?_, ?_⟩
+  · apply healing_recovery_epoch_after_vote E rho hrec hx hCut.prior.sync _ ip
+    change 4 * p.Δ * ((s - 1 : Nat) : Int) + p.Δ < 4 * p.Δ * (s : Int)
+    rw [hs]
+    linarith [p.deltaPos]
+  · intro q b hm hstamp hNX
+    rw [← he] at hNX
+    apply healing_stored_head_service E rho hrec hy hx hm hstamp hSync hpf hpub
+      he.le hhp hNX
+  · intro B hDB hB
+    have hFB : Block.Preceq (eraseFG (storeAt p c E rho ih y).fg.F) B := by
+      apply Gen.Pure.block_preceq_trans _ hDB
+      simpa only [clock_fg, storeAt] using hgeom.target_floor
+    have hFloorB := healing_receipt_floor_before_tick E rho
+      hrec.base.valid.toScheduleWellFormed mono hy hih le_rfl hFB
+    have hpubP : V2.PublicTime E (SA.proposalTime p.toParams s) := by
+      refine ⟨4 * s, ?_⟩
+      rw [hrec.base.delta]
+      change 4 * p.Δ * (s : Int) = _
+      push_cast
+      ring
+    exact healing_target_service_of_tick E rho hrec hx hy hip hB hpubP (hSync.trans hpp)
+      hh (Bool.or_eq_true_iff.mpr (Or.inr hFloorB))
+  · intro B hDB hB hstamp
+    have hFB : Block.Preceq (eraseFG (storeAt p c E rho ip x).fg.F) B := by
+      apply Gen.Pure.block_preceq_trans _ hDB
+      simpa only [clock_fg, storeAt] using hgeom.source_floor
+    have hFloorB := healing_receipt_floor_before_tick E rho
+      hrec.base.valid.toScheduleWellFormed mono hx hip le_rfl hFB
+    rw [← he] at hFloorB ⊢
+    exact healing_target_service_of_stored E rho hrec hy hx hB hstamp hpub
+      (hSync.trans hpf) (he ▸ hhp) (Bool.or_eq_true_iff.mpr (Or.inr hFloorB))
+
+omit first next gates carriers proposal in
+/-- Repair HEAD services now use the produced retained scope at each actual reader. -/
+theorem healing_repair_head_services_recovery {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (mono : RMonoAll p c E rho)
+    {s : Slot} {ip : Nat} {x : V} {N : NamedProposal p.n}
+    (hCut : HealingWindow p E 2 s) (hx : x ∈ rho.honest)
+    (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈ rho.emitsAt E ip) :
+    RepairHeadServices E rho s ip x N := by
+  apply healing_repair_head_services_of_factories E rho
+    (proposal := fun r j z t hC hR hT =>
+      healing_proposal_support_scope_recovery E rho hrec hC hR hT) hrec hCut hx hip hem
+  intro y hy ih hih hJoin hFloor
+  exact healing_retained_service_scope_recovery E rho hrec mono hCut hx hy hip hih hem hFloor
+
 variable
     (rawGates : ∀ s i x, E.t_GST ≤ SA.voteTime p.toParams s → x ∈ rho.honest →
       IsGateTick p c rho i x s → enabledGateAt p c E rho i x s →
@@ -463,6 +697,50 @@ theorem healing_raw_service_scope_of_factories {G ΔF : Time}
     exact proposal r ip x _ hCut ⟨hx, hip, by simpa only [hs] using hj⟩ (Or.inl rfl)
   · intro s hSync
     exact healing_recovery_same_label E rho hrec s hSync
+
+omit first next gates carriers proposal rawGates in
+/-- A selected prior source is served from its honest supporting HEAD history. -/
+theorem healing_source_before_receipt_recovery {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) (mono : RMonoAll p c E rho)
+    (source : TSrc p c E rho) {i k : Nat} {K : FGBlock (Fin p.n)} {s u : Slot} {x : V}
+    (hSource : SourceBefore p c E rho i K s) (hsu : s ≤ u)
+    (hSync : E.t_GST ≤ SA.voteTime p.toParams u) (hx : x ∈ rho.honest)
+    (hk : rho.events[k]? = some (.tick x (SA.voteTime p.toParams (u + 1))))
+    (hFloor : FGBlock.Preceq (storeAt p c E rho k x).fg.F K) :
+    TargetReceiptService E rho (eraseFG K) (SA.freezeTime p.toParams u) x := by
+  unfold SourceBefore at hSource
+  obtain ⟨j, y, r, a, _, ha, hK, rfl⟩ := hSource
+  obtain ⟨jz, z, W, hz, hjz, hW, hKW⟩ :=
+    healing_source_supporter_head E rho hrec.toRecovery₂ source ha.1 hK
+  have hKs := KitFG.ancestor_closed_of_parent_closed _
+    (storeBundle_stateBefore E rho jz z).cstore.fg.closed W hW K hKW
+  have he : SA.earlyTime p.toParams u + p.Δ = SA.freezeTime p.toParams u := by
+    change 4 * p.Δ * (u : Int) + 2 * p.Δ + p.Δ = 4 * p.Δ * (u : Int) + 3 * p.Δ
+    ring
+  have hfr : SA.freezeTime p.toParams u ≤ SA.voteTime p.toParams (u + 1) := by
+    change 4 * p.Δ * (u : Int) + 3 * p.Δ ≤ 4 * p.Δ * ((u + 1 : Nat) : Int) + p.Δ
+    push_cast
+    linarith [p.deltaPos]
+  have hFE := healing_receipt_floor_before_tick E rho hrec.base.valid.toScheduleWellFormed
+    mono hx hk hfr (eraseFG_preceq hFloor)
+  have hpub : V2.PublicTime E (SA.earlyTime p.toParams u) := by
+    refine ⟨4 * u + 2, ?_⟩
+    rw [hrec.base.delta]
+    change 4 * p.Δ * (u : Int) + 2 * p.Δ = _
+    push_cast
+    ring
+  rw [← he] at hFE ⊢
+  refine healing_target_service_of_earlier_tick E rho hrec hz hx hjz
+    (((storeBundle_stateBefore E rho jz z).cstore.baseTree _).mpr ⟨K, hKs, rfl⟩)
+    ?_ hpub ?_ ?_ ?_
+  · change 4 * p.Δ * ((r * p.R : Nat) : Int) + p.Δ < 4 * p.Δ * (u : Int) + 2 * p.Δ
+    have hsuI : ((r * p.R : Nat) : Int) ≤ u := by exact_mod_cast hsu
+    nlinarith [p.deltaPos]
+  · apply le_trans hSync
+    change 4 * p.Δ * (u : Int) + p.Δ ≤ 4 * p.Δ * (u : Int) + 2 * p.Δ
+    linarith [p.deltaPos]
+  · exact he ▸ hfr.trans (hrec.base.valid.in_horizon _ (List.mem_of_getElem? hk)).2
+  · exact Bool.or_eq_true_iff.mpr (Or.inr hFE)
 
 variable
     (emittedNonempty : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n},
