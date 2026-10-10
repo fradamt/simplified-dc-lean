@@ -1591,3 +1591,72 @@ Counts cover the 170 direct uses; M overlaps F. Audit commands and guard splits 
   no discriminating skipped-versus-executed confirmation claim is made.
 - Package map (§1.4/§8.1/§8.2): NamedDelivery and RetainedClock are TARGETS.
   ReceiptCoverage Statements is S-Ap; owners are W3 52, P-ShA 45, S-Ap 14.
+
+## W3 — P23-A receipt scope and bridge (2026-10-10)
+
+- DECISION P23-A, lead 04:05: keep P23 option (a). The receipt idealization includes
+  honest emitted bodies and their named ancestors. It replaces the old root premise
+  in receipt suppliers. No per-required NamedProposalInRun premise is added to P23.
+  This decision closes the W3 core stop recorded above. The old ReceiptAlias trace
+  remains a counterexample to the old form; it fails the new receipt idealization.
+- New internal statements, P23-A: NamedProposalReceiptScope and
+  NamedReceiptRootCollisionFree in Run/Statements/Roots. The old direct and ancestor
+  scopes are unchanged. The docstrings state that a global form over all values is
+  false because root is a free field. This is an idealization under valid execution.
+- New internal statements, P23-A: namedReceiptScope_of_namedScope embeds old scope;
+  namedReceiptScope_emitted includes each honest emitted body and its ancestors;
+  namedReceiptScope_ancestor closes that scope under ancestry.
+  NamedReceiptRootCollisionFree.toNamedRootCollisionFree supplies root_injective,
+  including both old tips' ancestor alternatives. Consumers: NamedDelivery,
+  Receipts, the ready core, and S-Ap's pending Base2.idealization projection.
+- New internal statements, P23-A: proposal_trigger_in_receipt_scope splits emission
+  from relay source acceptance. proposal_processed_in_scope extracts the exact
+  named body of a processed FG root (genesis or MetaInv.treeWire/wireTree), gives
+  that witness old scope, and identifies it with the receipt-scoped required body.
+  It needs an honest receiver; it needs no history persistence or deadline receipt.
+  emitted_proposal_history_in_scope applies this extraction to ProcessedByActionCut
+  for an honest emission. proposal_trigger_service_in_scope uses the history bridge
+  in DeliveryService's history arm, proposal_handle_in_scope in its handled arm,
+  and the source acceptance in the relay arm. The anchor may be after emission.
+  Consumers: Receipts, the ready core, WC/WCG scope readers, and family sleep readers.
+- Changed internal statement, P23-A: fgsa_proposal_receipt replaces hRoots with
+  NamedReceiptRootCollisionFree and drops hScope. Its Trigger supplies receipt scope;
+  processing at the deadline and proposal_processed_in_scope supply old scope.
+  AwakeOn, horizon, validity, NoRestart, deadlines, and the exact receipt remain.
+  The new ready core is its active in-package caller. The old ReceiptCoverage
+  wrapper is unchanged for S-Ap's explicit option (a) retirement.
+- Out-of-package proposal callers: replace the root argument with receipt collision
+  freedom, keep the approved readiness/horizon inputs, and remove any hScope input.
+  Base2 callers use receiptIdealization after S-Ap changes that field. Flat argument
+  lists must carry the stronger premise. These are family-owned argument swaps:
+
+```text
+┌────────┬─────────────────────────────────────────────────────────────────────┐
+│ Owner  │ AvailableChainFGSAProofs/Proofs caller                               │
+├────────┼─────────────────────────────────────────────────────────────────────┤
+│ P-ShA  │ Shared/HeldReceipt.lean:80; Shared/GateReceipt.lean:198                │
+│ P-ShA  │ Shared/ScoreRun.lean:497                                             │
+│ P-Ou   │ Outage/ExactProposal.lean:71                                         │
+│ P-WC   │ WeakContinuation/ExactProposal.lean:233                               │
+│ P-As   │ Assembly/WeakContinuationGrowth.lean:397                             │
+│ P-H1   │ Healing/PromotionReceipt.lean:128,200                                │
+│ P-H2   │ Healing/RiseOneAccept.lean:93                                        │
+│ P-H2   │ Healing/SupportRelay.lean:380; Healing/DescentLossNext.lean:128        │
+│ P-H2   │ Healing/PostResetRaw.lean:1291; Healing/PostResetLeaseMove.lean:102    │
+│ P-H2   │ Healing/SourceTiming.lean:293; Healing/PhaseRelay.lean:145,435         │
+└────────┴─────────────────────────────────────────────────────────────────────┘
+```
+
+- WC ExactProposal:254 and Assembly/WeakContinuationGrowth:418 can use
+  proposal_trigger_service_in_scope with the same ready service, or supply
+  emitted_proposal_history_in_scope to the existing scope callback. Relay readers
+  can still use proposal_handle_in_scope directly. Their old helpers stay available.
+- INTENTIONAL DC divergence: P2 permits a processed-root service instead of another
+  handler. Main's handler delivery excluded the alias trace only implicitly.
+  PC-SA has the same root-keyed processedS pattern. Its P2 receipt port remains an
+  open PC-SA-owned item; apply route A there. No PC-SA declaration changes here.
+- S-Ap owns Base2.receiptIdealization, its old idealization projection, the public
+  sleep statement/equation, public assumption lists, and retirement of the three
+  legacy P23 names. Safety-only statements retain NamedRootCollisionFree. Families
+  own stronger fixture evidence and their caller changes. No FGSAClaims statement
+  or Base2 declaration is changed by W3.

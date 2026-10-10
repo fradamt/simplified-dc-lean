@@ -29,6 +29,23 @@ structure NamedRootCollisionFree : Prop where
       (NamedProposal.Preceq D B ∨ NamedProposal.Preceq D C) →
       A.root = D.root → A = D
 
+/-- [P23-A] Delivered or held bodies, honest emitted bodies, and their named ancestors.
+This is a run-scoped idealization under valid execution. A global form over all
+values is false: root is a free field of NamedProposal. -/
+def NamedProposalReceiptScope (A : NamedProposal p.n) : Prop :=
+  NamedProposalInRun p c E rho A ∨
+  ∃ v, v ∈ rho.honest ∧ ∃ o t N,
+    V2.D.Run.emits E rho v o t ∧ o.payload = Msg.proposal N ∧
+    NamedProposal.Preceq A N
+
+/-- [P23-A] Root equality identifies exact bodies in the receipt scope.
+A global form over all values is false: root is a free field. This premise
+is an idealization under valid execution, not injectivity for every Params. -/
+def NamedReceiptRootCollisionFree : Prop :=
+  ∀ A B : NamedProposal p.n,
+    NamedProposalReceiptScope p c E rho A →
+    NamedProposalReceiptScope p c E rho B → A.root = B.root → A = B
+
 /-- [ROOT-DIGEST-2 W1; DC NamedRun.directBlockInRun] Project the direct named scope. -/
 def DirectRootBlockInRun (b : Block) : Prop :=
   ∃ N : NamedProposal p.n, DirectNamedProposalInRun p c E rho N ∧ N.erase = b
