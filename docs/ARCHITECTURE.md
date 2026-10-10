@@ -1093,10 +1093,14 @@ OutageWSeed (Outage/ScopedCatchUp, O11-W-SEED); P-As assembly and the global aud
 integration remain pending.
 
 P-H1 Round 10 HEAD boundary:
-Shared/Relay adds HeadRelayReceiptScope and four receipt consumers. The scope
-requires a stamped stored HEAD or two stamped equivocation witnesses at the
-actual read. HeadRelayServiceScope.toReceiptScope adapts the older sufficient
-object service. Clean and continuation retain their existing object interfaces.
+Shared/Relay adds HeadRelayLocalServiceScope, HeadRelayReceiptScope and four
+receipt consumers. The local service keeps the original index, epoch and window.
+Under non-exclusion at the strict deadline, its service field permits either
+local processing or an exact remote ReceiverService. The receipt adapter uses
+fgsa_head_stamp_before_read and keeps votes and stamps through the same epoch.
+The receipt evidence is a stored HEAD or two stamped cap witnesses at the read.
+The older object-only scope remains a compatibility interface for other lanes;
+healing P1/P2 no longer request it for every raw object.
 Healing/HeadRelay proves local carried provenance through the actual restart
 model, with the joined reader's label cutoff. A carried third HEAD can be refused
 without an acceptance or a relay for that object. Healing/RelayProducers relays

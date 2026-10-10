@@ -979,11 +979,32 @@ structure HeadRelayServiceScope (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)
     (ofHead p ⟨.seat (.head s) q, b⟩) = false →
     ∃ send, Nonempty (ReceiverService E rho (ofHead p ⟨.seat (.head s) q, b⟩) send freeze x)
 
-private theorem relay_receipt_at_read_on
+/-- Local processed-object alternative for the healing relay boundary.
+The original object-only scope remains a compatibility interface for other lanes. -/
+structure HeadRelayLocalServiceScope (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (s : Slot) (q : Fin p.n) (b : BlockId) (freeze : Time) (i : Nat) (x : V) : Prop where
+  index : V2.D.Run.idxBefore rho freeze ≤ i
+  epoch : V2.D.restartFree rho x (V2.D.Run.idxBefore rho freeze) i
+  window : (rho.stateBeforeTime E freeze x).st.slot p ≤ s + 1
+  service : (fgsa p c).excludes (rho.stateBeforeTime E freeze x)
+    (ofHead p ⟨.seat (.head s) q, b⟩) = false →
+    (fgsa p c).processed (rho.stateBeforeTime E freeze x)
+      (ofHead p ⟨.seat (.head s) q, b⟩) = true ∨
+    ∃ send, Nonempty (ReceiverService E rho (ofHead p ⟨.seat (.head s) q, b⟩) send freeze x)
+
+/-- A legacy remote scope also supplies the local processed-object alternative. -/
+theorem HeadRelayServiceScope.toLocalServiceScope
+    {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
+    {s : Slot} {q : Fin p.n} {b : BlockId} {freeze : Time} {i : Nat} {x : V}
+    (h : HeadRelayServiceScope E rho s q b freeze i x) :
+    HeadRelayLocalServiceScope E rho s q b freeze i x :=
+  ⟨h.index, h.epoch, h.window, fun hn => Or.inr (h.service hn)⟩
+
+private theorem relay_local_receipt_at_read_on
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hE : V2.D.ExecutionValid E rho) (s : Slot) (q : Fin p.n) (b : BlockId)
     (freeze : Time) (i : Nat) (x : V) (hx : x ∈ rho.honest)
-    (hScope : HeadRelayServiceScope E rho s q b freeze i x) :
+    (hScope : HeadRelayLocalServiceScope E rho s q b freeze i x) :
     ((⟨.seat s q, .head b⟩ : GridCO.Wire p.n .root) ∈
       (rho.stateBefore E i x).st.base.votes ∧
       GridCO.stampVote (rho.stateBefore E i x).st.base ⟨.seat s q, .head b⟩ < freeze) ∨
@@ -1005,8 +1026,12 @@ private theorem relay_receipt_at_read_on
       relay_stamp_of_prefix E rho _ x _ o hm hp⟩
   by_cases hn : (fgsa p c).excludes (rho.stateBeforeTime E freeze x)
       (ofHead p ⟨.seat (.head s) q, b⟩) = false
-  · obtain ⟨send, ⟨hs⟩⟩ := hScope.service hn
-    have hm := of_decide_eq_true (hs.processed hS hx (by change ¬ False; exact not_false))
+  · have hproc : (fgsa p c).processed (rho.stateBeforeTime E freeze x)
+        (ofHead p ⟨.seat (.head s) q, b⟩) = true := by
+      rcases hScope.service hn with hproc | ⟨send, ⟨hs⟩⟩
+      · exact hproc
+      · exact hs.processed hS hx (by change ¬ False; exact not_false)
+    have hm := of_decide_eq_true hproc
     have ht := fgsa_head_stamp_before_read E rho hS x freeze s q b hm
     have hk := keep _ hm
     exact Or.inl ⟨hk.1, hk.2 ▸ ht⟩
@@ -1016,6 +1041,22 @@ private theorem relay_receipt_at_read_on
     have hU := keep u hu
     have hV := keep v hv
     exact Or.inr ⟨u, hU.1, v, hV.1, hne, hlu, hlv, hku, hkv, hU.2 ▸ htu, hV.2 ▸ htv⟩
+
+private theorem relay_receipt_at_read_on
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho) (s : Slot) (q : Fin p.n) (b : BlockId)
+    (freeze : Time) (i : Nat) (x : V) (hx : x ∈ rho.honest)
+    (hScope : HeadRelayServiceScope E rho s q b freeze i x) :
+    ((⟨.seat s q, .head b⟩ : GridCO.Wire p.n .root) ∈
+      (rho.stateBefore E i x).st.base.votes ∧
+      GridCO.stampVote (rho.stateBefore E i x).st.base ⟨.seat s q, .head b⟩ < freeze) ∨
+    ∃ u ∈ (rho.stateBefore E i x).st.base.votes,
+      ∃ v ∈ (rho.stateBefore E i x).st.base.votes,
+      u ≠ v ∧ GridCO.headLabel? u = some s ∧ GridCO.headLabel? v = some s ∧
+      GridCO.headSeat? u = some q ∧ GridCO.headSeat? v = some q ∧
+      GridCO.stampVote (rho.stateBefore E i x).st.base u < freeze ∧
+      GridCO.stampVote (rho.stateBefore E i x).st.base v < freeze :=
+  relay_local_receipt_at_read_on E rho hE s q b freeze i x hx hScope.toLocalServiceScope
 
 /-- HEAD evidence at the actual read. A refused carried object needs only its cap.
 Unlike object transport service, this record also permits an already stored HEAD. -/
@@ -1041,11 +1082,20 @@ theorem HeadRelayServiceScope.toReceiptScope
     HeadRelayReceiptScope E rho s q b freeze i x :=
   ⟨relay_receipt_at_read_on E rho hE s q b freeze i x hx hScope⟩
 
+/-- Local or remote service gives the same stamped read evidence. -/
+theorem HeadRelayLocalServiceScope.toReceiptScope
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho) (s : Slot) (q : Fin p.n) (b : BlockId)
+    (freeze : Time) (i : Nat) (x : V) (hx : x ∈ rho.honest)
+    (hScope : HeadRelayLocalServiceScope E rho s q b freeze i x) :
+    HeadRelayReceiptScope E rho s q b freeze i x :=
+  ⟨relay_local_receipt_at_read_on E rho hE s q b freeze i x hx hScope⟩
+
 private theorem relay_receipt_scope_at_read
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (_hE : V2.D.ExecutionValid E rho) (s : Slot) (q : Fin p.n) (b : BlockId)
-    (freeze : Time) (i : Nat) (x : V) (_hx : x ∈ rho.honest)
-    (hScope : HeadRelayReceiptScope E rho s q b freeze i x) :
+    (hE : V2.D.ExecutionValid E rho) (s : Slot) (q : Fin p.n) (b : BlockId)
+    (freeze : Time) (i : Nat) (x : V) (hx : x ∈ rho.honest)
+    (hScope : HeadRelayLocalServiceScope E rho s q b freeze i x) :
     ((⟨.seat s q, .head b⟩ : GridCO.Wire p.n .root) ∈
       (rho.stateBefore E i x).st.base.votes ∧
       GridCO.stampVote (rho.stateBefore E i x).st.base ⟨.seat s q, .head b⟩ < freeze) ∨
@@ -1054,7 +1104,8 @@ private theorem relay_receipt_scope_at_read
       u ≠ v ∧ GridCO.headLabel? u = some s ∧ GridCO.headLabel? v = some s ∧
       GridCO.headSeat? u = some q ∧ GridCO.headSeat? v = some q ∧
       GridCO.stampVote (rho.stateBefore E i x).st.base u < freeze ∧
-      GridCO.stampVote (rho.stateBefore E i x).st.base v < freeze := hScope.service
+      GridCO.stampVote (rho.stateBefore E i x).st.base v < freeze :=
+  (hScope.toReceiptScope E rho hE s q b freeze i x hx).service
 
 private theorem relay_headVotes_label (st : State p.n) (s : Slot)
     (o : GridCO.Wire p.n .root) (ho : o ∈ headVotes p st (s + 1)) :
@@ -1310,7 +1361,7 @@ theorem fgsa_headVotes_provenance_on_receipt (E : Generic.Env V) (rho : V2.D.Run
       (⟨.seat s q, .head b⟩ : GridCO.Wire p.n .root) ∈
         headVotes p (clock p (rho.stateBefore E i y).st
           (SA.voteTime p.toParams (s + 1))) (s + 1) →
-      HeadRelayReceiptScope E rho s q b (SA.voteTime p.toParams (s + 1)) i y) :
+      HeadRelayLocalServiceScope E rho s q b (SA.voteTime p.toParams (s + 1)) i y) :
     let pre := (rho.stateBefore E i y).st
     let dst := clock p pre (SA.voteTime p.toParams (s + 1))
     ∀ o ∈ headVotes p dst (s + 1), ∀ q, GridCO.headSeat? o = some q →
@@ -1334,7 +1385,7 @@ theorem fgsa_headVotes_backward_relay_on_receipt
       (⟨.seat s q, .head b⟩ : GridCO.Wire p.n .root) ∈
         headVotes p (clock p (rho.stateBefore E iy y).st
           (SA.voteTime p.toParams (s + 1))) (s + 1) →
-      HeadRelayReceiptScope E rho s q b (SA.gateTime p.toParams s) ix x) :
+      HeadRelayLocalServiceScope E rho s q b (SA.gateTime p.toParams s) ix x) :
     let dst := clock p (rho.stateBefore E iy y).st (SA.voteTime p.toParams (s + 1))
     let L := GridCO.lateVotes p.toParams.engine
       (actView (clockPre p (rho.stateBefore E ix x).st (SA.gateTime p.toParams s))) s
@@ -1367,7 +1418,7 @@ theorem fgsa_cleanSupport_vote_forward_on_receipt
       (actView (clockPre p (rho.stateBefore E ix x).st (SA.gateTime p.toParams s))) s)
     (q : Fin p.n) (hq : GridCO.headSeat? o = some q)
     (hScopes : ∀ b, o = (⟨.seat s q, .head b⟩ : GridCO.Wire p.n .root) →
-      HeadRelayReceiptScope E rho s q b (SA.freezeTime p.toParams s) iy y) :
+      HeadRelayLocalServiceScope E rho s q b (SA.freezeTime p.toParams s) iy y) :
     let dst := clock p (rho.stateBefore E iy y).st (SA.voteTime p.toParams (s + 1))
     (o ∈ dst.base.votes ∧ GridCO.stampVote dst.base o < SA.freezeTime p.toParams s) ∨
       GridCO.equivocates (headVotes p dst (s + 1)) q = true := by
@@ -1400,7 +1451,7 @@ theorem fgsa_cleanSupport_forward_relay_on_receipt (E : Generic.Env V) (rho : V2
       (actView (clockPre p (V2.D.Run.stateBefore E rho ix x).st (SA.gateTime p.toParams s))) s)
     (seat : Fin p.n) (hk : GridCO.headSeat? o = some seat)
     (hScopes : ∀ b, o = (⟨.seat s seat, .head b⟩ : GridCO.Wire p.n .root) →
-      HeadRelayReceiptScope E rho s seat b (SA.freezeTime p.toParams s) iy y)
+      HeadRelayLocalServiceScope E rho s seat b (SA.freezeTime p.toParams s) iy y)
     (K : FGBlock (Fin p.n)) (hK : GridCO.resolvedHead?
       (actView (clockPre p (V2.D.Run.stateBefore E rho ix x).st
         (SA.gateTime p.toParams s))) o = some (eraseFG K))

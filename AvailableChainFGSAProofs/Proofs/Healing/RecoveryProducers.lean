@@ -101,14 +101,14 @@ theorem healing_first_transfer_scope_of_services {G ΔF : Time}
         GridCO.cleanSupport p.toParams.engine
           (actView (clockPre p (storeAt p c E rho ix x)
             (SA.gateTime p.toParams s))) s →
-      HeadRelayReceiptScope E rho s q b (SA.freezeTime p.toParams s) iy y)
+      HeadRelayLocalServiceScope E rho s q b (SA.freezeTime p.toParams s) iy y)
     (backward : ∀ q b,
       ((⟨.seat s q, .head b⟩ : GridCO.Wire p.n .root) ∈
           GridCO.votesAt (storeAt p c E rho iy y).base s ∨
         (⟨.seat s q, .head b⟩ : GridCO.Wire p.n .root) ∈
           headVotes p (clock p (storeAt p c E rho iy y)
             (SA.voteTime p.toParams (s + 1))) (s + 1)) →
-      HeadRelayReceiptScope E rho s q b (SA.gateTime p.toParams s) ix x)
+      HeadRelayLocalServiceScope E rho s q b (SA.gateTime p.toParams s) ix x)
     (targets : ∀ K, K ∈ (storeAt p c E rho ix x).base.blocks →
       GridCO.stampBlock (storeAt p c E rho ix x).base K <
         SA.earlyTime p.toParams s →
@@ -146,7 +146,7 @@ theorem healing_next_transfer_scope_of_services {G ΔF : Time}
       (⟨.seat s q, .head b⟩ : GridCO.Wire p.n .root) ∈
         headVotes p (clock p (storeAt p c E rho iy y)
           (SA.voteTime p.toParams (s + 1))) (s + 1) →
-      HeadRelayReceiptScope E rho s q b (SA.voteTime p.toParams (s + 1)) iy y)
+      HeadRelayLocalServiceScope E rho s q b (SA.voteTime p.toParams (s + 1)) iy y)
     (carriers : HealingCarriersAt E rho s iy y
       (SA.voteTime p.toParams (s + 1))) : NextTransferScope E rho iy y s := by
   have hhor := (hrec.base.valid.in_horizon _ (List.mem_of_getElem? hiy)).2
@@ -206,7 +206,7 @@ theorem healing_next_transfer_scope_recovery {G ΔF : Time}
         4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ
       push_cast
       linarith [p.deltaPos]
-  · exact healing_head_local_receipt hrec.base.valid hrec.base.delta hy hiy hJ
+  · exact healing_head_local_service_recovery E rho hrec hCut.sync hy hiy hJ
   · exact healing_carriers_recovery E rho hrec s iy y _
 
 /-- Proposal and late-gate support share the same proved seat counts and epoch.

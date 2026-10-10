@@ -486,16 +486,16 @@ private theorem support_gate_late_receipt (E : Generic.Env V)
 /-- Exact raw HEAD service at the source gate gives late-pool membership or a cap.
 The service keeps its own history premise, including after replay. -/
 theorem healing_support_raw_backward_on (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) (_hE : V2.D.ExecutionValid E rho)
-    {ix : Nat} {x : V} {s : Slot} (_hx : x ∈ rho.honest)
+    (rho : V2.D.Run V (fgsa p c)) (hE : V2.D.ExecutionValid E rho)
+    {ix : Nat} {x : V} {s : Slot} (hx : x ∈ rho.honest)
     (q : Fin p.n) (b : BlockId)
-    (hScope : HeadRelayReceiptScope E rho s q b (SA.gateTime p.toParams s) ix x) :
+    (hScope : HeadRelayLocalServiceScope E rho s q b (SA.gateTime p.toParams s) ix x) :
     let late := GridCO.lateVotes p.toParams.engine
       (actView (clockPre p (rho.stateBefore E ix x).st (SA.gateTime p.toParams s))) s
     (⟨.seat s q, .head b⟩ : GridCO.Wire p.n .root) ∈ late ∨
       GridCO.equivocates late q = true := by
   intro late
-  rcases hScope.service with hm | hc
+  rcases (hScope.toReceiptScope E rho hE s q b _ ix x hx).service with hm | hc
   · exact Or.inl (support_gate_late_receipt E rho ix x s _ hm.1 rfl hm.2)
   · obtain ⟨u, hu, v, hv, hne, hlu, hlv, hku, hkv, htu, htv⟩ := hc
     exact Or.inr ((cap_pair late q).mpr

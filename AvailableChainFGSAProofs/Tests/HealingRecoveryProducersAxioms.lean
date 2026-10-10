@@ -46,3 +46,8 @@ public import AvailableChainFGSAProofs.Proofs.Healing.DeliveryReset
 #print axioms AvailableChain.FGSA.Run.healing_head_backward_receipt
 #print axioms AvailableChain.FGSA.Run.healing_first_transfer_scope_recovery
 #print axioms AvailableChain.FGSA.Run.healing_next_transfer_scope_recovery
+#print axioms AvailableChain.FGSA.Run.HeadRelayServiceScope.toLocalServiceScope
+#print axioms AvailableChain.FGSA.Run.HeadRelayLocalServiceScope.toReceiptScope
+#print axioms AvailableChain.FGSA.Run.healing_tick_time_read_recovery
+#print axioms AvailableChain.FGSA.Run.healing_head_local_service_of_receipt
+#print axioms AvailableChain.FGSA.Run.healing_head_local_service_recovery

@@ -32,14 +32,14 @@ structure FirstTransferScope (E : Generic.Env V)
       GridCO.cleanSupport p.toParams.engine
         (actView (clockPre p (storeAt p c E rho ix x)
           (SA.gateTime p.toParams s))) s →
-    HeadRelayReceiptScope E rho s q b (SA.freezeTime p.toParams s) iy y
+    HeadRelayLocalServiceScope E rho s q b (SA.freezeTime p.toParams s) iy y
   backward : ∀ q b,
     ((⟨.seat s q, .head b⟩ : GridCO.Wire p.n .root) ∈
         GridCO.votesAt (storeAt p c E rho iy y).base s ∨
       (⟨.seat s q, .head b⟩ : GridCO.Wire p.n .root) ∈
         headVotes p (clock p (storeAt p c E rho iy y)
           (SA.voteTime p.toParams (s + 1))) (s + 1)) →
-    HeadRelayReceiptScope E rho s q b (SA.gateTime p.toParams s) ix x
+    HeadRelayLocalServiceScope E rho s q b (SA.gateTime p.toParams s) ix x
   targets : ∀ K, K ∈ (storeAt p c E rho ix x).base.blocks →
     GridCO.stampBlock (storeAt p c E rho ix x).base K <
       SA.earlyTime p.toParams s →

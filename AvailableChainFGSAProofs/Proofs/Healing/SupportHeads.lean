@@ -38,7 +38,7 @@ structure NextTransferScope (E : Generic.Env V)
     (⟨.seat s q, .head b⟩ : GridCO.Wire p.n .root) ∈
       headVotes p (clock p (storeAt p c E rho iy y)
         (SA.voteTime p.toParams (s + 1))) (s + 1) →
-    HeadRelayReceiptScope E rho s q b (SA.voteTime p.toParams (s + 1)) iy y
+    HeadRelayLocalServiceScope E rho s q b (SA.voteTime p.toParams (s + 1)) iy y
   carriers : HealingCarriersAt E rho s iy y
     (SA.voteTime p.toParams (s + 1))
 

@@ -1,4 +1,5 @@
-# P-H1 Round 10: P1/P2 produced; P5/TPerm production follows in the next group.
+# P-H1 Round 10: P1/P2 use produced local or remote HEAD service.
+# Four complete adversarial replay fixtures retain exact OPEN/P-H1 obligations.
 # H2 start ports retain P-H2 ownership; full proof facade also needs P-Ou/P-As.
 # 115 TARGETS; 564 GREEN; 19 EXPECTED-FAIL.
 [TARGETS]
