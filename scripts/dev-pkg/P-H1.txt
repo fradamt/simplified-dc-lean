@@ -1,7 +1,7 @@
-# P-H1 Round 10: P1/P2 use produced local or remote HEAD service.
+# P-H1 Round 10: P1-P10 and universal TPerm have recovery producers.
 # Four complete adversarial replay fixtures retain exact OPEN/P-H1 obligations.
 # H2 start ports retain P-H2 ownership; full proof facade also needs P-Ou/P-As.
-# 115 TARGETS; 564 GREEN; 19 EXPECTED-FAIL.
+# 118 TARGETS; 567 GREEN; 19 EXPECTED-FAIL.
 [TARGETS]
 AvailableChainFGSAProofs.Proofs.Healing.ReceiptProducers
 AvailableChainFGSAProofs.Tests.HealingRecoveryProducersAxioms
@@ -118,6 +118,9 @@ AvailableChainFGSAProofs.Proofs.Shared.Relay
 AvailableChainFGSAProofs.Proofs.Healing.HeadRelay
 AvailableChainFGSAProofs.Proofs.Healing.RelayProducers
 AvailableChainFGSAProofs.Tests.HealingHeadCap
+AvailableChainFGSAProofs.Proofs.Healing.RecoveryPerm
+AvailableChainFGSAProofs.Proofs.Healing.RepairLeaseRecovery
+AvailableChainFGSAProofs.Tests.HealingRecoveryPermAxioms
 
 [GREEN]
 AvailableChainFGSAProofs.Proofs.Healing.ReceiptProducers
@@ -684,6 +687,9 @@ AvailableChainFGSAProofs.Tests.NonVacuity.HealingRun
 AvailableChainFGSAProofs.Proofs.Healing.HeadRelay
 AvailableChainFGSAProofs.Proofs.Healing.RelayProducers
 AvailableChainFGSAProofs.Tests.HealingHeadCap
+AvailableChainFGSAProofs.Proofs.Healing.RecoveryPerm
+AvailableChainFGSAProofs.Proofs.Healing.RepairLeaseRecovery
+AvailableChainFGSAProofs.Tests.HealingRecoveryPermAxioms
 
 [EXPECTED-FAIL]
 AvailableChainFGSAProofs P-As
