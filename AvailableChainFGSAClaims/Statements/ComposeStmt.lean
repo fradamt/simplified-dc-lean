@@ -174,7 +174,8 @@ theorem ResetArrivalStatement_def (G ΔF : Time) :
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
     HealingSet p c E rho G ΔF → LivenessBoundW p ΔF →
     recoveryStart p E + B'_resetF p ΔF G ≤ rho.horizon →
-    ∃ w, H0Reset p c E rho w ∧ p.actionTime w.rStar < recoveryStart p E + B'_resetF p ΔF G) := by rfl
+    ∃ w, H0Reset p c E rho w ∧
+      p.actionTime w.rStar < recoveryStart p E + B'_resetF p ΔF G) := by rfl
 
 /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
 Full companion: H.11 reset plus H.18 (21:2868–2876;3174–3176),
