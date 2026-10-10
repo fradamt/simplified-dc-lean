@@ -1698,3 +1698,32 @@ Counts cover the 170 direct uses; M overlaps F. Audit commands and guard splits 
 - Restore export fix 672dbc93 is present through lead merge 2eba122b. The complete
   export check will rerun against this fix and the new ready core, with no new
   baseline, allow-list, or exception entry.
+
+## W3 — P23-A final validation (2026-10-10)
+
+- Implementation commits: 53112f9f (scope/bridge), 82bf0910 (ready core/tests/maps).
+- Final validation passes on 406 GREEN modules. The map retains 61 owned
+  EXPECTED-FAIL modules. No W3 P23-A STOP remains. S-Ap still owns the legacy
+  public retirement and full Run/audit roots; family argument swaps remain owned.
+- DCK PASS: 35 strict roots, 2,482 results, all 24 controls. Only propext,
+  Classical.choice, and Quot.sound occur. ReceiptReady prints all seven public laws.
+- Complete W3 export/audit coverage PASS: 116 proof modules, 250 exports,
+  0 unaccepted. The generated inventory has 97 entries across W3Axioms and the
+  three receipt controls. It uses the same explicit-root boundary as prior W3
+  checks, now including the ready core and controls. The default roots still
+  reach the S-Ap-owned legacy wrapper. The 17 Restore exports are removed.
+- No baseline, checker, protocol/model, FGSAClaims, Base2, or legacy P23 file
+  changed. Layer check: 72 findings, 0 new. New proofs use default heartbeats.
+
+```text
+┌────────────────────────────────────┬────────┬───────────┐
+│ Check                              │ Result │ Wall (s)  │
+├────────────────────────────────────┼────────┼───────────┤
+│ Focused core/tests/audit --wfail   │ PASS   │ 6.58      │
+│ Complete GREEN --wfail             │ PASS   │ 54.51     │
+│ Final GREEN --wfail                │ PASS   │ 10.91     │
+│ W3 DCK + strict audits + controls  │ PASS   │ 403.38    │
+│ Layers: 72 findings, 0 new         │ PASS   │ 0.39      │
+│ Complete export/audit coverage     │ PASS   │ 38.20     │
+└────────────────────────────────────┴────────┴───────────┘
+```

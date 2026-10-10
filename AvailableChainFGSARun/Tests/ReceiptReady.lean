@@ -245,3 +245,7 @@ end
 #print axioms AvailableChain.FGSA.Run.ReceiptReadyTests.receipt_roots
 #print axioms AvailableChain.FGSA.Run.ReceiptReadyTests.premises
 #print axioms AvailableChain.FGSA.Run.ReceiptReadyTests.coverage_ready
+
+#print axioms AvailableChain.FGSA.Run.ReceiptReadyTests.roots
+#print axioms AvailableChain.FGSA.Run.ReceiptReadyTests.within
+#print axioms AvailableChain.FGSA.Run.ReceiptReadyTests.ready
