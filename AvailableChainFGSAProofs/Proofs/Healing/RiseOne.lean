@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseBoot
-public import AvailableChainFGSAProofs.Proofs.Healing.OpeningService
+public import AvailableChainFGSAProofs.Proofs.Healing.OpeningGateRead
 
 public section
 
@@ -57,36 +57,36 @@ theorem healing_rise_one_of_frontier (hs : V2.D.ScheduleWellFormed E rho)
 /-- Plan A step 1. DC: SAME monotonicity and positive store height give
 frontier one at every prefix before the bounded endpoint with no rise. -/
 theorem healing_rise_one_frontier (hs : V2.D.ScheduleWellFormed E rho)
-    (hnr : V2.D.NoRestart rho) (hne : rho.honest.Nonempty) {D : Time}
+    (mono : RMonoAll p c E rho) (hne : rho.honest.Nonempty) {D : Time}
     (hstop : ¬ RiseOneBy p c E rho D) {i : Nat} (hi : i ≤ timeIdx rho D) :
     frontierAtIdx p c E rho i = 1 := by
   have hcap : frontierAtIdx p c E rho (timeIdx rho D) < 2 := by
     by_contra hn
     exact hstop (healing_rise_one_of_frontier p c E rho hs hne (by omega))
   have hlo := (healing_phase_initial_frontier p c E rho hne).symm ▸
-    healing_frontier_mono p c E rho hnr (Nat.zero_le i)
-  have hhi := (healing_frontier_mono p c E rho hnr hi).trans_lt hcap
+    healing_frontier_mono_all p c E rho mono (Nat.zero_le i)
+  have hhi := (healing_frontier_mono_all p c E rho mono hi).trans_lt hcap
   omega
 
 /-- Plan A step 1. DC: INTENTIONAL the no-rise branch uses the strict lower
 cut and the inclusive endpoint; it never crosses a known rise. -/
 theorem healing_rise_one_phase (hs : V2.D.ScheduleWellFormed E rho)
-    (hnr : V2.D.NoRestart rho) (hne : rho.honest.Nonempty) {u D : Time}
+    (mono : RMonoAll p c E rho) (hne : rho.honest.Nonempty) {u D : Time}
     (huD : u ≤ D) (hD : D ≤ rho.horizon) (hstop : ¬ RiseOneBy p c E rho D) :
     PhaseInterval p c E rho u D 1 (some .genesis) false := by
   exact boot_phase_one p c E rho huD hD (fun i _ hi =>
-    healing_rise_one_frontier p c E rho hs hnr hne hstop hi)
+    healing_rise_one_frontier p c E rho hs mono hne hstop hi)
 
 /-- Plan A step 1. DC: INTENTIONAL the bounded split needs no honest
 proposal, repair budget or settlement interval after D. -/
 theorem healing_rise_one_split (hs : V2.D.ScheduleWellFormed E rho)
-    (hnr : V2.D.NoRestart rho) (hne : rho.honest.Nonempty) {u D : Time}
+    (mono : RMonoAll p c E rho) (hne : rho.honest.Nonempty) {u D : Time}
     (huD : u ≤ D) (hD : D ≤ rho.horizon) :
     RiseOneBy p c E rho D ∨ PhaseInterval p c E rho u D 1 (some .genesis) false := by
   classical
   by_cases h : RiseOneBy p c E rho D
   · exact Or.inl h
-  · exact Or.inr (healing_rise_one_phase p c E rho hs hnr hne huD hD h)
+  · exact Or.inr (healing_rise_one_phase p c E rho hs mono hne huD hD h)
 
 /-- Plan A step 3. DC: SAME every height-one FG block has genesis entry.
 The height-zero alternative is excluded by FGHeightLaws.one_le_h. -/
@@ -110,7 +110,7 @@ theorem healing_rise_one_gate_copy (hs : V2.D.ScheduleWellFormed E rho)
       Qfg ∈ (storeAt p c E rho j x).fg.TF ∧ eraseFG Qfg = Q := by
   obtain ⟨j, ⟨hj, _⟩, _⟩ := (hexact.2 hgate x hx hReader).2.1
   obtain ⟨nd, hnd, hw⟩ := (hexact.2 hgate x hx hReader).2.2.1
-  have hclock := opening_postClock_of_tick E rho hs hj
+  have hclock := (healing_support_gate_reads p c E rho hs hj).2
   have he := Option.some.inj (hnd.symm.trans hclock)
   subst nd
   obtain ⟨_, _, _, hm, _⟩ := opening_fastWrite_spec E rho hs hj hw

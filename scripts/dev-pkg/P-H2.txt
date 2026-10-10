@@ -2,6 +2,7 @@
 # GREEN source is verified; service scope producers remain explicit.
 
 [TARGETS]
+AvailableChainFGSAProofs.Tests.HealingH2ResetRiseAxioms
 AvailableChainFGSAProofs.Proofs.Healing.FrontierSeedDefs
 AvailableChainFGSAProofs.Tests.HealingH2RecoveryAxioms
 AvailableChainFGSAProofs.Tests.HealingOpeningSupport
@@ -96,6 +97,10 @@ AvailableChainFGSAProofs.Tests.HealingRiseOne
 AvailableChainFGSAProofs.Tests.HealingH2ServiceAxioms
 
 [GREEN]
+AvailableChainFGSAProofs.Proofs.Healing.RiseOneAccept
+AvailableChainFGSAProofs.Proofs.Healing.RiseOne
+AvailableChainFGSAProofs.Proofs.Healing.Reset
+AvailableChainFGSAProofs.Tests.HealingH2ResetRiseAxioms
 AvailableChainFGSAProofs.Proofs.Healing.FrontierSeedDefs
 AvailableChainEngineV2
 AvailableChainEngineV2.Conditions.Committees
@@ -657,6 +662,3 @@ AvailableChainFGSAProofs.Tests.HealingH2ServiceAxioms P-H2
 AvailableChainFGSAProofs.Proofs.Healing.FrontierSeed P-H2
 AvailableChainFGSAProofs.Proofs.Healing.FrontierServiceGate P-H2
 AvailableChainFGSAProofs.Proofs.Healing.Repair P-H2
-AvailableChainFGSAProofs.Proofs.Healing.Reset P-H2
-AvailableChainFGSAProofs.Proofs.Healing.RiseOne P-H2
-AvailableChainFGSAProofs.Proofs.Healing.RiseOneAccept P-H2

@@ -186,7 +186,7 @@ theorem healing_postReset_opening_stored_at [Fintype V]
     have hmem := Next.tree_subset_TF p _ (Finset.mem_filter.mp hm).1
     change D ∈ (clock p (storeAt p c E rho ih x) (SA.voteTime p.toParams v)).fg.TF at hmem
     rwa [clock_fg] at hmem
-  exact ⟨D, he, (fgsa_store_cumulative p c E rho hrec.base.noRestart hik x).1 hstored⟩
+  exact ⟨D, he, (fgsa_store_durable p c E rho hik x).1 hstored⟩
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.17:3031–3040; plan J6-3 O1; B1/B17/B18.

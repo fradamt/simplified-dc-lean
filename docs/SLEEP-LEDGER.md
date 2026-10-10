@@ -5837,3 +5837,26 @@ Repair thresholds and the qualified frontier seed supply this bound. The saved
 the seed bound by grid arithmetic. Per-reader joined guards stay in the lower API.
 This corrects the earlier handoff note: the later cutoff is not merely removed;
 it is replaced by the exact earlier cutoff, proved at the actual callers.
+
+### P-H2 Round 4 — reset clock and durable ports (2026-10-10)
+
+The internal reset/search cut, deadline and budget use recoveryStart. This matches
+the approved ResetArrivalConcl; no public Claims/Statements file changes.
+Reset rowCap/mu and fields use durable membership. The two base.noRestart reset
+projections are gone. Reset compiles with --wfail and its ten strict audits pass.
+FrontierSeedDefs holds the unchanged seed predicate independently of service APIs.
+FrontierSearchStop now imports its phase proof helpers explicitly.
+
+RiseOne uses RMonoAll for stopped-frontier/phase facts. RiseOneAccept uses the
+original emitted proposal, its compatibility premise and ReceiverService.
+The independently compiled Reset/RiseOne slice has 24 strict audit commands,
+with only propext, Classical.choice and Quot.sound. The source-dependent
+RiseOneRepair/RiseOneRise ports remain OPEN on the indexed H1 requests.
+
+Durable post-reset membership ports also remove stale NoRestart arguments.
+The assigned projection census is now 30, down from 52. The remaining 30 are
+OPEN H2 repairs, not hidden prerequisites or transferred ownership. Exact sites:
+claude-files/sleep-ph2d/noRestart-remaining.tsv. No global NoRestart premise is added.
+The Assembly legacy ResetArrivalStatement adapter still has its old GST boundary;
+P-As must use the approved shifted conclusion. The exact internal request is in
+claude-files/sleep-ph2c/P-As-requests.md, Round 4 appendix.
