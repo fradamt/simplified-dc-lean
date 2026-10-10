@@ -2917,6 +2917,91 @@ The new frozen walk alias uses the named backward block service.
 `healing_held_block_receipt_on` obtains the exact held FG carrier from its
 TargetReceiptService. These forms cover the Relay and HeldReceipt entries in
 round 4's legacy-only inventory. Legacy conditional APIs remain unchanged.
+### P-H2 — sleep wave 3 prepared scope
+
+Base: sleep-ph2 at 60cdcf652308640f3fadc39360e2b2042879f633.
+P-H1 and P-Fd are PREPARED inputs. P-H2 is PREPARED; CLOSED stays open.
+
+Internal T17 replacement: opening_action_tick requires awake at the exact opening.
+An honest node that stays asleep has no tick there. Recovery supplies awake from
+GST through the exact horizon. OpeningTicks holds the scheduled-run helper;
+OpeningServiceOne and FrontierOpen pass their existing time bounds.
+
+GF consumers: a nonempty scheduled fast write proves the exact gate join guard.
+OpeningGateRead uses freshness, the unjoined empty row, and fast-label uniqueness.
+It derives enabledGateAt before constructing GateService. An executed nonempty
+result supplies its raw branch through fgsa_gate_raw_of_nonempty. The direct W3
+clockPre gate-view bridge keeps its type. The slot bound uses non-strict pre-tick
+clock order; it does not need a join premise merely to compare slots.
+
+RR consumer: PostResetRawStep needs expiry membership only. ReleaseScope proves
+that membership in both join branches. It does not infer a strict release count
+from an unjoined clock. Strict release consumers still need their exact guard.
+
+T23: all 19 H2 calls now pass awake at the exact node and vote. T15, T16, T18,
+T19 and T22 also pass their exact recovery awake witnesses. These blocked high-depth
+files remain EXPECTED-FAIL; source edits alone do not close their proofs.
+
+H1 handoff: the held-receipt caller passes deadline awake and receipt idealization.
+The three slot-proposal callers derive the exact proposer restart cutoff from
+RecoverySleep₂.suffixNoRestart and their lower proposal bounds. RiseOneRise also
+uses RecoverySleep₂. Named receipt callers use receiptIdealization where required.
+Legacy NoRestart receipt and transfer suppliers remain explicit open inputs.
+
+RecoveryScope consumes RStoreDurable, RMonoAll and RStoreEpoch as supplied channels.
+Its proofs use exact event indices from actionCut to idxBefore for the receiver
+stamp epoch. A restart at GST is permitted. No global NoRestart is inferred.
+The direct Foundations.Store import was removed to keep the Healing layer valid.
+P-Fd supplies the concrete producers through the package assembly interface.
+
+Prepared validation: 85 TARGETS; 468 GREEN; 85 EXPECTED-FAIL. The target split is
+6 GREEN and 79 open. Six REQUIRED supplier failures retain P-ShA/S-Ap ownership.
+DCK PASS: 37 strict roots, 2,812 results, all 24 controls PASS.
+Complete compiled exports: 111 proof modules, 251 exports, 0 unaccepted.
+Layers: 72 baseline findings, 0 new. No public statement, protocol declaration,
+checker, baseline, or allowance changed. The canonical audit fragment is in
+scripts/dev-pkg/P-H2.coverage-fragment.txt for serial integration at close.
+
+### P-H2 — reset join and durable retention follow-up
+
+ResetScope proves GST + 6Δ ≤ τ, and 6Δ ≤ τ - GST ≤ 10Δ - 1 for nonnegative
+integer GST. The first reset row is after the inclusive u₀ cut: otherwise
+H0Reset.rowCap would give M+1 ≤ M. With cut_lower, this places GST before
+slotStartZ(sStar). Later vote and gate cutoffs follow by slot order.
+No bound is taken from the synchronous vote alone.
+
+JOINED-VOTER internal replacement: the generic cone batch-seat helpers take
+GST ≤ slotStartZ(label-1). An awake voter at GST need not be joined at that
+vote. Recovery's closed awake interval supplies the exact joinedNow guard.
+PostResetConePool passes the cutoff; PostResetConeInput derives it from
+H0Reset and the shifted reset cut. Both honest_emits consumers pass joinedNow.
+The generic helper's old vote-time-only scope was insufficient under sleep.
+
+GF follow-up: the two PostResetLeaseStep fast-write consumers derive gate join
+from the executed nonempty result. OpeningServiceGate supplies enabledGateAt
+from its proposal lower bound and recovery interval. PostResetGate derives
+its exact cutoff from H6's existing τ ≤ voteTime premise; no new H0 premise
+or public meaning change is needed. The H6 signature test uses that approved
+τ premise. These high-depth files remain EXPECTED-FAIL while suppliers are open.
+
+Durable follow-up: opening_exact_stored no longer requires global NoRestart.
+OpeningGateRead proves it with fgsa_store_durable; OpeningService and FrontierOpen
+consume it. Reset/cone tree retention uses the same durable producer.
+RecoveryScope also consumes the RFrameNextEpoch wire/stamp companion with the
+exact receiver event interval. Assembly must supply the concrete P-Fd channels.
+The generic channel lemmas do not close a blocked high-depth consumer.
+
+Final validation and commit IDs are recorded in claude-files/sleep-ph2-report.md.
+The final map has 86 TARGETS, with 7 GREEN and 79 open. Six other REQUIRED
+supplier failures remain P-ShA/S-Ap-owned. The local audit has 27 commands.
+The full audit import/command fragment is scripts/dev-pkg/P-H2.audit-fragment.txt.
+No new canonical coverage key, allowance, or baseline is added.
+
+P-H2 final follow-up validation: 469 GREEN --wfail PASS (1.77 s), DCK PASS,
+37 strict roots, 2,822 permitted-axiom results, all 24 default controls PASS.
+Complete compiled exports: 112 proof modules, 251 exports, 0 unaccepted.
+Layers: 72 baseline findings, 0 new. The package remains PREPARED.
+The 79 assigned open targets and six REQUIRED suppliers prevent CLOSED.
 
 
 ## P-ShA round 6 — CLOSED (2026-10-10)
@@ -3117,3 +3202,1321 @@ Status: PREPARED, all owned module ports GREEN; not CLOSED. The exact receipt
 producer obligations above and S-Ap/P-As assembly closure remain open.
 No full gate, review, integration, push, merge, rebase, or public amendment
 is claimed. The report is claude-files/sleep-pfi-report.md, Round 2.
+## P-Ar wave 2 — receiver kernel (sleep-par, base 8384eb34)
+
+Scope: the 13 existing Arming modules, new ArmingKernel, and Tests/OutageArming.
+The package map is scripts/dev-pkg/P-Ar.txt. P-ShA files and public Claims
+statements are unchanged. This block belongs to P-Ar.
+
+T25, internal statement, exact sleep form: arming_tick_exists needs awake at
+that receiver's named public time. arming_healthy_batch takes one receiver,
+its early-time awake fact and exact read epoch, joined selected voters, and
+P-ShA FreshHeadService / TargetReceiptService. Sender participation does not
+supply receiver awake. Consumers at closure: ArmingMain and ArmingGate; P-Ou
+accepts this T25 repair through the P-Ar handoff.
+
+Internal statement, exact sleep form: arming_clean_of_tick and arming_max_label
+need an enabled gate. cleanResults already has the enabled marker condition.
+arming_enabled_of_pass gets this condition from an actual passed gate.
+Consumers at closure: ArmingPrefix, ArmingGate, and ArmingMain.
+
+The receiver kernel derives G-fast awake and restart-free on [t(j), g(j)].
+G-slow starts at t(q0), not vote(q0). The event-index epoch starts at actionCut,
+so a restart at t(q0) is before the epoch. arming_receiver_enabled proves the
+inclusive marker bound at each scoped gate. No global NoRestart is used by
+these sleep helpers.
+
+arming_saved_interval_on, arming_slow_saved_on, and arming_slow_eligible_on
+use only this receiver's current-epoch rows. The global no-restart wrappers
+remain for the old certificate until closure. The sleep kernel does not use
+hsavedKeep. Tests check erased saved rows, phase-zero wake reads, and no tick
+while asleep.
+
+arming_prefix_batch_receipt_on proves the exact prefix conclusion from local
+ArmingBatchReceiptService. Its HEAD branch has the approved finality
+alternative. Its proposal branch proves every ancestor and its strict stamp.
+The service record is internal proof data; it is not an outage premise.
+The public arming_prefix_batch_receipt : OutagePrefixReceiptDerivedClaim is
+still OPEN. Closure must derive this service record from OutageSleep₂ and the
+Clean joint induction, accept P-Cl1 clean_epoch_saved_row, port the seven
+remaining certificate consumers, and apply the serial facade/audit fragments.
+No public meaning change or public counterexample is asserted.
+
+ArmingReceipt holds the local receipt proofs. It does not import ArmingPending,
+so the public prefix theorem can consume it from ArmingPending at closure
+without an import cycle. ArmingKernel also supplies the actual gate-tick epoch
+and arming_tick_store_on for the exact receiver interval at equal-time phases.
+
+P-Ar kernel validation: DCK PASS with default controls (24 PASS). All 473 GREEN
+roots build with --wfail. Strict audits: 37 sources / 2,875 results, only the
+three permitted logical axioms. Complete GREEN exports: 262 proof modules /
+253 exports / zero unaccepted. Complete local coverage: 37 entries PASS.
+Layers: 72 inherited / zero new. Kernel PREPARED; full P-Ar and the public
+prefix receipt theorem remain OPEN on the closure inputs listed above.
+
+### P-Ar Round 2 — joined transfer repair
+
+Astra FIX-FIRST item 1: the T25 handoff at this block's first paragraph was
+not prepared at 71fa5c6c. Its transfer premise still covered every honest
+computed vHead read, including an unjoined node that emits no HEAD.
+arming_head_ge_on now restricts transfer to joinedAt at vote(s + 1).
+arming_healthy_batch uses that helper and passes its selected voter's hJoined.
+arming_head_ge remains a separate legacy helper with its old type.
+The T25 receiver and service scopes remain explicit. P-Ou must use the joined
+transfer premise; no all-honest vHead premise is required by the fixed batch.
+
+### P-Ar Round 2 — regime sources, receiver ports and public STOP
+
+Astra item 2: hp := OutageSleep₂.sleepPre.toHealthyPrefix₂ supplies healthy,
+cut and base. hp.base supplies valid, delta, cstar, linked and
+receiptIdealization. arming_nonrow_delivery derives the healthy non-row
+law with deadline a + p.Δ. arming_head_ready derives the fresh HEAD trigger
+from honest emission and the protected receiver's awake window.
+arming_fresh_head_service and arming_proposal_service derive transport,
+readiness, timing and the receiver epoch. They still need local handler
+acceptance, non-exclusion and proposal replay history proofs. No regime
+field directly supplies these proof conclusions or TargetReceiptService.
+The complete source map is claude-files/sleep-par-receipt-sources.md.
+
+ArmingPrefix and ArmingOutput are GREEN. Existing names/types are kept.
+The executed nonempty gate result supplies the enabled marker via
+arming_enabled_of_result. Passed source and lease gates supply it via
+arming_enabled_of_pass. arming_leases_interval_on and arming_S_interval_on
+use one receiver's event-index epoch beside their legacy NoRestart forms.
+arming_pending_rows_on consumes P-Cl1's intended current cut rows and
+transfers them to the actual pending tick. clean_epoch_saved_row is absent
+on this base and at the inspected sleep-pcl1 commit 075a92d6.
+
+PUBLIC STOP: OutagePrefixReceiptDerivedClaim is false as currently approved.
+Tests.OutageArming.EarlyCut.regime proves every OutageSleep₂ premise for
+Δ = 2, T = 0, b₀ = b₁ = horizon = 8 and ΔF = 2. The sole honest node is
+always awake and joined. Its slot-1 proposal is emitted at time 8 and is not
+delivered. The healthy cut is 8, so its first deadline 10 is outside that
+cut. coverLabel is 1 and the public claim requires this proposal processed
+at earlyTime 1 = 12. It is not excluded, and it is absent at that read.
+Tests.OutageArming.EarlyCut.prefix_claim_false proves the negation of the
+approved claim. The run is valid, has the receipt collision idealization,
+and meets all prefix, participation, protection, order, lag and budget
+fields. This is not a missing service proof.
+
+No public statement was changed. The lead must select an approved public
+repair (for example the first-gate cut bound, or an early-cut scope repair).
+The five remaining certificate consumers stay P-Ar EXPECTED-FAIL. Full
+P-Ar remains NOT CLOSED; the joined T25 kernel is PREPARED. P-Ou must not
+assume that the public receipt claim is available from this handoff.
+## P-Ou — sleep wave 3 local kernel (2026-10-10)
+
+Base: sleep-pou 15744443. Local kernel PREPARED; package OPEN.
+No owned repair with a failing changed target is marked CLOSED.
+
+- P15 local interface: RestoredReceipt.outage_restored_service uses
+  max(send,wake), a strict receipt deadline, deadline <= cutoff, checked
+  dependencies, history safety, finality exclusion, and the receiver epoch.
+  Joined readers supply awake and restart freedom at the required times.
+  outage_restored_receipt_with_service composes all three restored cuts;
+  its service inputs and P-Ar prefix must still be derived from the regime.
+  The public outage_restored_batch_receipt remains OPEN. No receipt field
+  is added to Outage premises.
+- P16: PersistenceSleep.outage_e1_of_e proves the approved E-to-E1 claim.
+  outage_good_bad_disjoint isolates U=A union W. The strict release bound
+  reuses outage_fault_lt_release. No good-vote premise is needed for E1.
+- P12/P17: restart keeps coverage of B, the lock, and its deadline.
+  outage_restart_live_lock limits the exception to wake < deadline.
+  No extension of an old tip or newcomer record is asserted.
+- Internal repair: a restarted block is traced to its original network
+  acceptance by inclusion_acceptance_before_index. A replay is not used
+  as a new acceptance. inclusion_receipt_of_compatible and
+  inclusion_proposal_receipt now use joined reader scope and explicit N4
+  service data. Their public Clean producer ports remain OPEN.
+- ExactProposalHistory consumes the cleanResults enabled-gate conjunct.
+- GateCount holds the four existing pure continuation count declarations.
+  ContinuationGate imports it. The latter's remaining repairs are OPEN.
+
+Ledger-use closure: P/E at ContinuationReceipt:283; P/K at :556 and :724;
+T26-T30; T31-T38; and T61 remain OPEN pending the regime/consumer ports.
+T25 belongs to P-Ar and waits on its closed handoff. The named reader
+window/epoch lemmas are prepared inputs, not closure of those use sites.
+
+Supplier closure inputs: P-Ar prefix and receiver arming, P-Cl1
+clean_epoch_saved_row, P-ShA scoped Clean service adapters, S-Ap D013
+OutageContinuationConcl, and P-Cl2 Growth/export fragments. Own closure
+work: good votes, opponent denominator, late writes, joint induction,
+handover, public receipts, exports, and the approved reader tests.
+
+Package map and local complete audit inventory are in scripts/dev-pkg/P-Ou*.
+Serial full audit/root/inventory fragments accompany the package report.
+No allow entry, existing shared scope row, or foreign source is changed.
+
+P-Ou prepared validation: the first DCK run passed with default controls.
+The final map adds the compiled PersistenceHistory, PersistenceFrame, and
+ContinuationFrame support modules. The complete local strict audit has
+44 commands. Final export/coverage checks and a final DCK run follow.
+
+## P-Ou — approved family claim scopes (2026-10-10)
+
+Claims/Outage installs approved P10 joined proposal/HEAD reader scopes,
+P17 finite output scopes and G-only covering-lock service, and P20 growth
+reader guards at the trigger t and deadline d. No public meaning beyond
+the approved packet is added. Claims/Statements remains untouched under
+the explicit job restriction. The scalar argument changes are propagated
+to OutageCompatClaim, FastP1Claim, and SlowP1Claim.
+
+The neutral ServedFromGateAt and JointGrowthAt bodies are checked against
+InclusionAt and AvailableGrowthConcl by equality. The first growth check
+caught a local edit error (deadline reader at t); it was corrected to d
+before the claim commit. Kernel commit: f560b7e8.
+
+P-Ou final committed-source validation (kernel PREPARED, package OPEN):
+DCK PASS on 479 GREEN modules, 37 strict sources, 2,882 axiom commands,
+and 24 default negative controls. Complete GREEN exports/coverage PASS:
+271 proof modules, 253 accepted exports, 0 unaccepted, 0 Gen exports;
+44 local audit commands. Layers: 72 accepted, 0 new. Both neutral claim
+body equalities and all 10 changed definition audits PASS. The 22
+EXPECTED-FAIL entries remain explicit (18 P-Ou, 4 suppliers). No full
+S1/S2/S3 gate or CLOSED family claim is asserted. Proof commits are
+f560b7e8 and 57022bd2; exact reports/fragments are under claude-files/.
+### P-WC — prepared guard, epoch and replay core (2026-10-10)
+
+Base: sleep-pwc at 3939ba54, with P-Cl1 prepared at 075a92d6.
+This is a PREPARED slice, not a CLOSED package. No owned EXPECTED-FAIL target
+is closed. The package map has 47 targets, 477 GREEN and 38 EXPECTED-FAIL
+modules. Six expected failures keep their P-ShA or S-Ap owner.
+
+- Internal statements, approved P19/D116/D117: WCInv.nonempty requires an
+  enabled gate; retrospective requires the joined voter at the exact next
+  vote. Saved and fast origins use event-index restartFree. served and
+  transitions use confirmedReaderIdx. WCReceiptOrigins includes the current
+  restore stamp and its local epoch. WCDutyInput carries the stored duty guard.
+- WC and WCG proof telescopes use RestartsAtWakes, joined vote counts,
+  RStoreDurable with RStoreEpoch, RMonoAll and RFrameNextEpoch. The restart
+  targets conclude WCInv at i+1. Their full step proofs remain open.
+- T49/T53/T57 supplier: wc_joined_gate_witness selects the actor at the earlier
+  gate time. wc_joined_retrospective_witness orders through that actor, then
+  returns the HEAD read of the original joined voter. The all-time count is
+  kept until that selection. The three caller ports are not closed.
+- T48/T54/T56 supplier: wc_currentEpoch_result gets the later enabled gate
+  from the confirmed reader's caughtUpAtIdx witness. It orders the old result
+  below that result in the reader's current awake epoch. Output persistence
+  and the complete current-epoch service theorem remain open.
+- W3-G: wc_gate_raw_enabled calls the joined saved-result equation;
+  wc_gate_suppressed calls the unjoined equation. The older WC/WCG callers
+  remain open until each exact guard is supplied.
+- WC replay transfers enabled guards, local event epochs, restore receipt
+  origins, and guarded duty inputs. WCG local replay uses restore at the exact
+  restart time. Both initialization proofs preserve the approved scoped WCInv.
+- Receipt deadline constraint: wc_receipt_anchor_deadline proves equality
+  when send <= anchor <= max(send,GST). wc_receipt_anchor_late proves that an
+  anchor after that maximum cannot fit the old deadline. A later service copy
+  needs its own receiver deadline or a proof of retained receipt/stamp safety.
+  No S-Ap receipt record was changed.
+- Supplier gap at this base: fgsa_receiptCoverage_ready and
+  fgsa_active_path_of_coverage still take global NoRestart and the old
+  ReceiptCoveragePremises. Count has no sleep/anchor-scoped path companion.
+  Needed at StepGateBatch, StepTransferReceipts and the two Dynamics sites:
+  the ready/safe/local-epoch core over ReceiptCoverageSleepPremises, with
+  handler readiness on the same anchor interval. Joined count companions at
+  Count:242/277/351 are also absent. These are P-ShA/W3 supplier requests.
+- Prepared validation: the contract, epoch, replay and initialization targets
+  build with --wfail and default heartbeats. The local strict audit has 116
+  commands. The package DCK and complete export check are in progress.
+  Layers: 72 baseline findings, 0 new. No public meaning STOP has occurred.
+- Shared audit/root/scope integration is supplied as a P-WC fragment. No
+  shared inventory, root facade, S-Ap statement or other package file changed.
+
+### P-WC — guarded saved-result callers (2026-10-10)
+
+Prepared checkpoint: a82b7533. This group keeps the package PREPARED, not CLOSED.
+The map now has 48 targets, 478 GREEN and 38 EXPECTED-FAIL modules (32 owned).
+
+- W3-G/W3-J: each saved-result caller in WC and WCG now passes the stored
+  join guard. Existing nonempty executed results supply it through the Shared
+  raw-result bridge. The WC/WCG gate-construction interfaces now require
+  enabledGateAt explicitly. The gate-write callers pass the pre-gate guard.
+  These caller modules remain EXPECTED-FAIL; the signature ports are not
+  claimed as compiled repairs.
+- The WCG gate guard adapters use Shared imports within their own lane.
+  No cross-family proof import or architecture exception was added.
+- WC guard replay now transfers each event/store field directly. This removes
+  three unaccepted generated match-equation exports. No allow entry, baseline,
+  checker code, checker rule or public claim was changed.
+- The first prepared DCK passed with default controls. Final validation is
+  running after the WCG guard target and audit update. The local audit has
+  119 commands. Layers: 72 baseline findings, 0 new.
+- The exact receipt and joined-count supplier requests are in the local
+  P-WC handoff. Output persistence, the full restart/event induction, all
+  four sleep receipt callers and the assembly-dependent tests remain open.
+
+### P-WC — final prepared validation (2026-10-10)
+
+- Final P-WC DCK PASS, with default controls. All 478 GREEN modules build
+  with --wfail. The local audit has 119 results and uses only propext,
+  Classical.choice and Quot.sound. All strict package audits pass.
+- Complete prepared export and audit coverage PASS: 112 proof modules,
+  251 exports, 0 unaccepted. No exception or baseline entry was added.
+- Layer check: 72 baseline findings, 0 new. Source diff checks pass.
+- The guarded caller build remains EXPECTED-FAIL in Safety, Frame,
+  Growth/Frame, StepInputs, StepFacts and Shared/HeadAdmit. These failures
+  block the higher caller modules. The full family is not validated or closed.
+- PREPARED only. Thirty-two owned targets stay EXPECTED-FAIL. Closure needs
+  the remaining P-WC proofs, the receipt/count supplier interfaces, closed
+  P-Cl1 and S-Ap inputs, and the assembly/test integration window.
+
+## S-Ap Round 3 — Run facade audit
+
+P3 wake-clock successors: replace the retired audit names
+fgsa_restore_now_retained, fgsa_hrestore_now_retained, and restore_st_retained
+with fgsa_restore_now, fgsaRestoreTimeLaw, and restore_st. The exact wake time
+replaces the old retained clock. No production statement changes.
+The existing spec_prune_restart_mem and spec_prune_sleep checks keep their names;
+import Proofs.Spec.Simulation so the audit can resolve them.
+Run facade --wfail PASS (10.79 s). Regenerated the existing Run audit
+coverage key (8.54 s); mark the Run facade and audit GREEN in S-Ap.
+
+## S-Ap Round 3 — P8 claim transfer
+
+D140: RowServiceBaseClaim now has the exact approved all-honest awake suffix
+from GST through the horizon. NoRestart remains. A permanent honest sleeper
+satisfies the old receiver demands vacuously but need not receive an emitted row.
+P8 public route: RowServiceClaim now takes RecoverySleep₂. The compiled P-Fd
+supplier fgsa_tRows_recovery accepts its toRecovery₂ projection. The base
+supplier fgsa_tRows accepts the new awake suffix. No new premise is invented.
+The P8 declarations and aggregate compile with --wfail (1.29 s). The broader
+Claims build also checked inherited fixtures: FinalityGST, FinalityW,
+HealedBest, WeakContinuation, OutageAlignment, and the kernel adapter example
+in Claims.Tests.Axioms fail on prior sleep changes. They are not P8 failures.
+The FGSA shallow/deep generator includes eight inherited P-Fi claim hashes.
+The auxiliary API generator stops on the missing Claims.Tests.Axioms artifact;
+its full source scope is kept. No generated entry is edited by hand.
+The Run inventory generator now succeeds (791 entries, 25.01 s) and removes
+the stale fgsa_receiptCoverage entry retired under DECISION P23-A.
+FGSA shallow/deep regeneration PASS (243.02 s, 1,357 roots).
+
+## S-Ap Round 3 — P17 D013/D014 continuation supplier
+
+OutageContinuationConcl is the exact approved D013 body: scoped record/output
+compatibility; inclusion only for coveredNodes; scoped emitted HEAD compatibility;
+durable F compatibility for every honest receiver. It takes fast, T, b₀, b₁
+and Fintype V. No proposal-parent extension is added.
+OutageContinuationClaim is the exact D014 wrapper with
+OutageContinuationSleepPrem and all four conclusion arguments. P-Ou's report
+at lines 43, 92 and 145 requests this supplier; its family proof remains P-Ou-owned.
+The two docstrings now describe the approved scopes.
+D013/D014 and the claim aggregate compile with --wfail (3.47 s).
+The claims inventory and auxiliary API writers stop on the inherited missing
+Claims.Tests.Axioms artifact; their source scopes are unchanged.
+FGSA shallow/deep regeneration PASS (238.12 s, 1,357 roots).
+
+## S-Ap Round 3 — remaining public wrappers
+
+P8 D034/D037/D048: HTimeConcl, ResetArrivalConcl, HTimeBestClaim, and
+HTimeSearchClaim now use the exact approved recoveryStart bounds and search
+origins. Their numerical budgets do not change. These supply P-H1's public route.
+
+Serial P-Fd fragment: fgsa_fgFoundationClaim uses the durable/epoch companions
+and RMonoAll; fgsa_rowServiceBaseClaim passes the approved awake suffix;
+fgsa_rowServiceClaim uses fgsa_tRows_recovery with toRecovery₂; the new P21(a)
+fgsa_finalizedMonotonicityRestartClaim exports its compiled Foundations body.
+All four wrappers have local strict audit commands. No family proof is replaced.
+
+The anonymous kernel adapter example in Claims.Tests.Axioms now takes an
+explicit Recovery₂-to-RecoverySleep₂ supplier. P-Fi must prove that supplier;
+the example checks only the composition with its new AC interface. No public
+claim, KernelPrem_W, or KernelJoinedPrem changes. The attempted move to
+FinalityW was discarded because CLAIM-USE forbids that import. No layer
+exception is added. The two best/search audit examples use the approved τ
+premises. Observed inherited fixture failures have family owners in S-Ap's map.
+
+P-Fi's eight approved public changes are already present. P-Ar's derived receipt
+claim type already exists. Neither report requests another S-Ap statement change.
+Their current receipt producers remain family proof obligations. P-Ou's other
+Claims.Outage replacements are prepared on sleep-pou; lead integration retains
+that package's work. D013/D014 are supplied in this branch.
+The serial Foundations wrappers compile. The final package --wfail build
+passes (3,675 jobs). Claims audit coverage regeneration keeps the existing
+814-entry key. Layer check: 72 accepted findings, zero new.
+The full claims inventory and auxiliary API writers now reach the inherited
+missing Tests.FinalityGST artifact. No failed family module is removed from
+the generators' scope, and no generated entry is edited by hand.
+Complete export check: all 471 GREEN roots, 279 proof modules, 253 exports,
+zero unaccepted; zero non-exposed Statements predicates (5.39 s). Complete
+coverage of the three changed audit sources also passes. DCK checks every
+GREEN audit with Lean. The broader source-parser coverage probe cannot resolve
+the inherited open-namespace command window_bit_add_of_row in WindowLiveness;
+that probe is not reported as a complete package coverage pass.
+Final FGSA shallow/deep regeneration PASS (243.60 s, 1,357 roots).
+
+Validation correction: the first DCK passes its build and 41 strict sources
+(4,017 commands), then the finality coverage control detects the missing
+canonical audit command for fgsa_finalizedMonotonicityRestartClaim. Add that
+command to Proofs.Tests.Axioms as required by the serial P-Fd handoff. The
+local strict command remains. No coverage allowance changes.
+The full canonical coverage writer is blocked by missing Shared.Regimes.
+The new P21 row is instead taken from CheckProofEqns' compiled local coverage
+output and rendered into the existing Foundations.Export owner block with
+check-proof-coverage.py's section writer. All other rows and keys are kept.
+The canonical source registration check passes: 24 modules, 227 declarations.
+This fragment integration is not a full canonical-audit build or regeneration.
+
+## S-Ap Round 3 — Count restriction, LEAD DECISION
+
+ReceiptCoverageSleepPremises.slotWindow has t <= a and dl(a) <= dl(t).
+Its deadline field makes dl monotone. Therefore dl(a) = dl(t).
+For Clean dl(t) = t + Δ, a = t. For WC/WCG
+ dl(t) = max(t, GST) + Δ, a <= max(t, GST).
+The Lean evidence is count-restriction.lean and count-restriction.log.
+
+The current Count handoff needs this correction: its hReady premise is over
+[t, dl(t)), not only [a, dl(a)). An anchor-scoped internal companion can fix
+that excess premise but cannot remove the public record's deadline restriction.
+The exact handler premise is:
+
+```lean
+∀ o t, required o t → ∀ j u, t ≤ u → u < dl t →
+  V2.D.Run.handlesAt E rho j x o u →
+  (fgsa p c).wellFormed o = true ∧
+  (fgsa p c).depsPresent (V2.D.Run.stateBefore E rho j x) o = true ∧
+  fgsaTimely p (V2.D.Run.stateBefore E rho j x) o
+```
+
+An approved consumer needs a later-anchor route: P19/P20
+SourcePendingReceipt, used by PendingSourceDelivery₂ and
+CleanGrowthContinuationSleep₂, quantifies over all a >= send. It uses
+max(a, GST) + delay, including wakes in the continuation after GST.
+The joined participation count does not forbid an individual receiver's wake.
+The old source trigger cannot in general be replaced by a new emission or relay
+at the wake. This affects the proposed Count ports of
+WeakContinuationGrowth.Dynamics.growthStepGateBatch_gate_active_heads and
+WeakContinuationGrowth.Dynamics.growthStepTransferReceipts_prefreeze_path.
+The Clean and WC historical-path ports have the same restriction when an old
+object must be supplied after a receiver wake. Fresh HEADs may instead use their
+own current emission anchor; durable stored paths need no new receipt.
+
+Concrete restriction witness: send = 0, GST = 1, wake/anchor = 3, Δ = 2.
+The approved pending service can use deadline 5. The existing Count record
+requires 5 <= 3. This is impossible. This arithmetic example refutes a general
+adapter from later-anchor service to the old Count record; it is not a
+counterexample to the full public continuation claim.
+
+Proposed exact additive change: keep ReceiptCoverageSleepPremises and
+ReceiptCoverageSleepStatement unchanged. Add
+ReceiptCoverageAnchoredSleepPremises with the same parameters and four field
+names. Copy within, compat and deadline byte for byte. Replace only slotWindow
+by the following type. In this companion, required o a and paths refer to the
+service anchor a; send is the original trigger time.
+
+```lean
+  slotWindow : ∀ o a, required o a →
+    ∃ send, send ≤ a ∧ 0 ≤ a ∧ a < dl a ∧
+    Gen.V2.Duty.ReadyTrigger E rho o send x a (dl a) ∧
+    Gen.V2.Duty.HistorySafeAt E rho x o a ∧
+    V2.D.restartFree rho x (V2.D.Run.actionCut rho a) (V2.D.Run.idxBefore rho D) ∧
+    first ≤ V2.D.Run.actionCut rho a ∧
+    (fgsa p c).wellFormed o = true ∧
+    (∀ s signer K, (toWire p o).decode = some (.vote s signer K) →
+      ((V2.D.Run.stateBeforeTime E rho (dl a) x).st.slot p ≤ s + 1) ∧
+      ∀ i t', V2.D.Run.actionCut rho a ≤ i → i < V2.D.Run.idxBefore rho (dl a) → a ≤ t' →
+        V2.D.Run.handlesAt E rho i x o t' →
+        s ≤ (V2.D.Run.stateBefore E rho i x).st.slot p ∧
+          (V2.D.Run.stateBefore E rho i x).st.slot p ≤ s + 1)
+```
+
+Add ReceiptCoverageAnchoredSleepStatement and
+ReceiptCoverageAnchoredSleepStatement_def by copying the existing statement
+and equation and changing only the record name and declaration names. Thus every dl t in the copied conclusion is the anchor deadline because
+the required predicate is now indexed by anchors. The original send is kept
+explicitly in ReadyTrigger. No old-send deadline is silently weakened.
+Any internal producer must still take or derive exact handler readiness on
+[a, dl(a)), safe history, and the receiver epoch. This proposal does not assert
+that the current bare public receipt statement has a proof.
+
+Decision needed: approve this additive anchor-indexed public contract, or require
+families to use direct receiver-service proofs when a exceeds max(send, GST).
+No public record, Count theorem, or consumer proof was changed for this item.
+
+### S-Ap Round 3 final validation
+
+DCK S-Ap PASS (169.98 s): 471 GREEN modules, 41 strict sources, 4,017 commands,
+and all default controls. Only propext, Classical.choice and Quot.sound occur.
+FGSA shallow API PASS (167.03 s): 1,357 entries, complete matching hashes.
+FGSA deep API PASS (118.80 s): 1,357 roots, 3,818 dependency nodes.
+All 55 deep-snapshot controls PASS (164.59 s). Complete GREEN exports PASS:
+279 proof modules, 253 exports, zero unaccepted. Layers: 72 accepted, zero new.
+All eight changed public definition bodies match the approved packet tokens.
+
+Full claims inventory/API generation and the auxiliary check remain blocked by
+Tests.FinalityGST. Snapshot controls pass V2/GEN/FGSA shallow, catalog-lock and
+source-scope checks, then stop on that artifact at the mapped-root control.
+Full canonical Proofs.Tests.Axioms coverage generation remains blocked by
+Shared.Regimes; the new P21 row is integrated from compiled generator evidence.
+These are recorded limits, not full API or family closure. No generator scope,
+public statement, baseline or allowance was weakened to bypass them.
+
+### Lead note at the S-Ap round 3 merge (2026-10-10)
+The S-Ap round 3 proposal of a PUBLIC anchor-indexed receipt contract is SUPERSEDED by DECISION ANCHOR-DL
+(sleep-join-port-notes.md): an additive internal ReceiptCoverageAnchorPremises with one explicit anchor function, in
+the P-ShA proof layer; public P23 text unchanged. DECISION P15-CUT amends OutagePrefixReceipt (S-Ap round 4).
+Open at integration (rev-sap3-sol finding 7): the Recovery₂ → RecoverySleep₂ supplier for the kernel adapter (P-Fi).
+
+Base: 1c777e97 on sleep-pcl1. This block belongs to P-Cl1.
+The package is PREPARED on the gate/epoch set. It is not CLOSED.
+The full Clean induction and the arming export are still open.
+
+- GR, internal statement, lead ruling 10-10: StateGate.clean_gate_raw now takes
+  enabledGateAt. GateEpoch.clean_gate_executed gives the exact guarded equation.
+  clean_gate_nonempty_raw extracts the enabled/raw branch from an executed result;
+  clean_gate_unjoined gives some none for a suppressed gate. Consumers:
+  StateGate, StepGate, TransferFrame, GateOutput. The last three remain open.
+- GF, internal statement, lead ruling 10-10: clean_gate_writes appends fastSet only
+  in the joined branch. Its suppressed row is empty. Lease and fast-write proofs
+  derive the guard from the nonempty executed result. No raw-result premise was added.
+- The Chain bridges include the guard required by S-Ap's cleanResults. The
+  index-result bridges take ScheduleWellFormed, which their run consumers have.
+- T08/T12 supplier: clean_enabledGate_awakeClosed proves the exact receiver's
+  closed interval from t_s through gate(s). It uses the valid tick, wake restart,
+  and the current stored marker. This includes label 0 and its early cutoff.
+  The StepGate consumers are still open; these rows are not closed as use sites.
+- T10 supplier: clean_joined_gate_witness chooses z from joinedHonest at the
+  earlier gate time. It gives z's actual enabled gate and its awake interval.
+  It does not claim that the later actor x had an enabled earlier gate.
+  The ordering/transfer use in StepGate is still open.
+- S/R7 supplier: clean_restart_fields keeps FG, blocks, leases and stableRecord,
+  and starts empty genuine/fastWrite caches. cleanHist_step_restart preserves
+  completed event history. clean_gate_fg_before_time compares only the kept FG
+  fields with the strict time read; it does not assert whole-store equality.
+  State/Closure still need their current-epoch induction port.
+- N4 receiver supplier: clean_enabledGate_service_epoch returns restartFree on
+  [actionCut a, idxBefore freeze] inside this gate's receiver interval.
+  HistorySafeAt remains a separate input. Past processing does not supply it.
+- Regression: Tests/CleanSuppressed has a well-formed schedule with wake 9 and
+  a fresh HEAD at 10. At gate label 1 (time 20), raw confirmation is some genesis;
+  the executed result is some none. This refutes the old unconditional raw equation.
+- Public FGSAClaims statements and other owners' files were not edited.
+  STOPs for approved public meaning changes: none.
+- Audit/root inventory changes are in the P-Cl1 report and its audit fragment.
+  The existing shared inventory and fixed S1 scope were not changed. These new
+  Clean modules are outside the fixed S1 domain and are explicit package targets.
+- Prepared validation: package DCK PASS with default controls (164.99 s; first
+  cold package run 458.04 s). Prepared audit-root build --wfail PASS (4.78 s).
+  The 48 core audit commands and three regression commands use only propext,
+  Classical.choice and Quot.sound. Complete export/coverage check: 0 unaccepted
+  (7.04 s). Layer check: 72 baseline findings, 0 new (0.30 s).
+
+### P-Cl1 — current epoch invariant and joined batch (2026-10-10)
+
+The prepared set now includes State, Action, GateOutput and Zero. The package
+remains PREPARED, not CLOSED. Five P-Cl1 targets remain EXPECTED-FAIL.
+
+- Internal statement, lead ruling 10-10: CleanHist.nonempty now requires
+  enabledGateAt, including label 0. CleanHist.continues requires the joined
+  voter at the exact next vote tick. CleanGateOutputStmt requires an enabled
+  gate. These are the P6/P11 forms; no FGSAClaims file was edited.
+- Internal statement, lead ruling 10-10: CleanState.saved requires the local
+  restartFree interval and activeCompatible at the read. savedOnly and
+  fastWrite origins include restartFree and an enabled origin gate. Durable
+  S and lease origins still use completed event history from all epochs.
+- Internal statement, lead ruling 10-10: CleanRestartStep no longer eliminates
+  a restart. It states preservation of CleanState after the kept-state restart,
+  under the existing foundation and source premises. State.clean_restartStateStep
+  proves it. cleanState_of_hist now handles that event. Closure's restart branch
+  uses cleanHist_step_restart; the full Closure module still waits for StepGate.
+- R7: clean_gateInputs_from_rows uses the kept FG equality at the strict time
+  cut. No whole-store equality or global NoRestart is used. The state proof
+  uses RMonoAll and the durable/epoch foundation split. Zero excludes a restart
+  at time 0 from RestartsAtWakes, rather than from global NoRestart.
+- T07 source: clean_enabledGate_of_confirmedReader gives this gate's enabled
+  guard from the exact confirmed reader at afterTicksIdx. Safety is still open.
+- T10 core: clean_gate_head_prefixes_joined orders older results through z's
+  earlier joined gate, then uses Continues for the joined voter y. The current
+  actor x is used only for the F/frame part. It compiles with default heartbeats.
+  StepGate.clean_gate_head_prefixes delegates to this exact interface.
+- P6/T09/T11/T12 sender source: clean_gate_batch_joined counts joinedHonest at
+  the vote tick. clean_joinedNow_of_joined_vote supplies the stored duty guard.
+  StepGate now selects joined voters and keeps that guard in the HEAD emission.
+  Its gate-zero and nonempty types require the enabled gate. N5 is still open.
+
+P-ShA request: Shared/Count.lean:242 fgsa_late_rest_bound, :277
+fgsa_gate_batch_premises, and :351 fgsa_gate_zero_of_receipts still require
+all awake honest seats to be in H. The P6 joined set cannot satisfy that premise
+when a voter wakes at its vote and has a suppressed duty. Add a joined-voter or
+actual-emitter companion, with the same count conclusions and receipt outputs.
+The joined-voter form replaces awake in hH by joinedAt at this exact vote tick.
+Its proof must obtain joinedness from the actual honest emission; receiver
+receipt callers still need ReadyTrigger, HistorySafeAt and their local epoch.
+P-Cl1 did not edit Count or any other P-ShA file. The existing local stamp
+supplier fgsa_gateReceipt_stamps_on is available and needs no replacement.
+
+Open targets: TransferFrame needs receipt/root/epoch caller ports; Transfer,
+StepGate, Closure and Safety then need their guarded consumer ports. These
+remain P-Cl1 work after the needed Shared interfaces are available. No owned
+repair with an EXPECTED-FAIL target is marked closed. clean_epoch_saved_row is
+not yet supplied; P-Ar must not close against this checkpoint.
+
+Validation: DCK PASS with default controls (250.37 s), including lake build
+--wfail of all 475 GREEN modules. The local core audit has 112 commands; the
+regression has three. All use only propext, Classical.choice and Quot.sound.
+Complete export/coverage check on the prepared roots: 0 unaccepted (8.74 s).
+Layer check: 72 baseline findings, 0 new. The expected-failure build fails in
+TransferFrame and blocks its four dependent targets (5.81 s). Thus full-scope
+export/audit closure remains open. No approved public meaning STOP occurred.
+
+### Lead note after the P-Cl1 review (2026-10-10): Count deadline obstruction
+rev-pcl1-astra finding 1: ReceiptCoverageSleepPremises (R/Statements/ReceiptCoverage.lean:64, :68, :78) forces
+dl(a) = dl(t). Clean callers (C/StepGate.lean:562-564, C/TransferFrame.lean:379-382, :474-477) require objects
+accepted at old times t with dl(t) = t + Δ, so a = t; a receiver that woke later (wake 24, acceptance 8, Δ = 2)
+cannot meet deadline 10, and no Clean regime field supplies readiness/restartFree from t. WC/WCG
+(dl(t) = max(t, GST) + Δ) force a = t after GST. These callers stay EXPECTED-FAIL. Choosing a = max(send, wake)
+with the old deadline cannot work. Open: an anchor-relative deadline form (design check anchor-dl-sol running).
+TransferFrame path interfaces (:335, :397) still need the joined receiver argument.
+
+## P-ShA round 4 — joined voters and local services (2026-10-10)
+
+Status: NOT CLOSED. Base: `1c777e97`. The JOINED-VOTER ruling applies to the
+internal action-batch and two gate-receipt regime producers. No FGSAClaims
+statement, Base₂ field, baseline or allow entry changed. Base₂ has no NoRestart
+projection. Green is a compile status; it does not mean every legacy route is ported.
+
+### Compiled interfaces and completed obligations
+
+- `CatchUp.ReceiverService`: exact N4 inputs for one object and receiver. The
+  ready anchor can follow a wake. The epoch starts at actionCut(anchor) and ends
+  at idxBefore(freeze). Safe retained history remains an explicit input.
+- `CatchUp.FreshHeadService.receipt`: processing and a strict freeze stamp for
+  the exact emitted HEAD. History safety comes from
+  `fgsa_historySafeAt_of_emitted_head`, at that same emission tick.
+- `CatchUp.ReceiverService.proposal` and `fgsa_target_receipt_on`: exact named-body
+  equality under P23-A, plus durable target membership. They do not equate roots
+  without the named receipt scope.
+- `Count.fgsa_receiptCoverage_on`: the sleep coverage branches, path receipts,
+  vote-or-cap receipts, and strict stamps use receiver-local epochs. The exact
+  handler WF/dependency/timeliness input remains explicit. This is stronger than
+  the bare ReceiptCoverageSleepStatement input list; the Run sleep statement
+  still has no proof on this base. No old-send awake premise is used by this route.
+- `Count.fgsa_active_path_of_coverage_on`: the restarted active-path interface.
+  The old `fgsa_active_path_of_coverage` type stays unchanged and remains legacy.
+- `Count.fgsa_stored_honest_head_joined`, `fgsa_late_rest_bound_joined` and
+  `fgsa_gate_batch_premises_joined`: joined HEAD origin and joined denominator.
+- `GateReceipt.fgsa_gateReceipt_on`: joined selected voters, FreshHeadService,
+  named target service, and the enabled gate actor. `GateReceiptScope` supplies
+  the exact early-to-gate receiver epoch. The theorem also proves awake at the
+  exact early read and the executed gate join test (T42).
+- `GateReceipt.fgsa_gateReceipt_block_stamp_lt_on` and
+  `fgsa_gateReceipt_block_to_tick_on`: local strict stamp and ready named receipt.
+  The legacy stamp theorem is an explicit wrapper of the local form.
+- `HeadAdmit.inclusion_head_receipt_early_on`: joined HEAD service at the exact
+  early read, with a local read-to-tick epoch. `fgsa_action_walk_batch` now takes
+  joined voters and a joined participation count, plus the exact services.
+  `fgsa_action_walk_batch_legacy` keeps the awake form with explicit NoRestart.
+- `ExactService.exactService_emitted_head_joined`, the receipt/raw/at/gate `_on`
+  forms, `exactService_of_head_and_gate_on` and
+  `exactService_participation_of_card_joined`: joined HEAD readers and selected
+  voters. Gate service uses GateReceiptScope; the all-reader route keeps
+  confirmedReaderAtIdx at the exact gate (T40).
+- `SameLabel.fgsa_sameLabel_on`: local cross-reader service with a receipt-or-cap
+  split. SameLabelServiceScope contains ready object service and exact enabled
+  read epochs. It has no NoRestart field.
+- `Regimes.fgsa_gateReceipt_clean` and `_recovery`: joined guard and the exact
+  GateReceiptScope, under the internal ruling. Both compile in isolation.
+  `_clean_legacy` and `_recovery_legacy` require explicit NoRestart.
+- `ScoreRun.fgsa_scoreRun_metadata_retained_restart` and
+  `fgsa_scoreRun_raw_subset_restart`: proposal metadata and the raw subset use
+  durable storage across restarts.
+- `RetainedPersist.fgsa_retained_proposal_mem_on_run_epoch`: ready named proposal
+  service with explicit safe history. Membership persists to the actual HEAD
+  tick through durable storage. This does not port the full retained geometry.
+- `StoreRun.fgsa_votes_cumulative_on`: volatile vote persistence in one receiver
+  epoch. Relay, SameLabel and ScoreRun keep their private legacy names and types
+  as explicit wrappers of this local form.
+- `Release.fgsa_release_bound_restart` remains the completed round 3 route.
+  The explicit legacy release wrapper stays available.
+
+### Exact blockers at the three open targets
+
+`Export.fgsa_sameLabelClaim` still calls the legacy fgsa_sameLabel with the absent
+Base₂.noRestart field. It needs a proof that SameLabelPrem.set plus its LabelSyncOn
+supplies SameLabelServiceScope, or a direct proof with the same local obligations.
+The conditional internal core now compiles. No false public conclusion is proved;
+no extra public premise was added. Adding a NoRestart premise is not an accepted fix.
+
+The following ten Regimes adapters still call legacy cores. Each failed projection
+is from Base₂.noRestart. The two repaired gate-receipt adapters are not in this list.
+
+- `fgsa_score_eq_on_clean_of_retained_proposal` and
+  `fgsa_score_eq_on_recovery_of_retained_proposal`: port fgsa_score_eq_on_run through
+  local frozen-vote, target-block and support receipts at the proposer/HEAD reads.
+- `fgsa_ghost_transfer_sfx_on_clean` and `_recovery`: port the walk block/reflection
+  routes and score equality, with their exact receiver epochs and ready services.
+- `exactService_head_of_proposal_clean` and `_recovery` (T39): retain the joined
+  HEAD-reader guard; port exactHead_of_proposal_on_run and its walk supplier.
+- `exactService_head_of_retained_proposal_clean` and `_recovery` (T45): retain the
+  joined HEAD-reader guard; port fgsa_retainedExactHead_geometry_on_run and the
+  retained read suppliers. Each retained HEAD needs a replay object or explicit
+  HistorySafeAt at its ready anchor. Past processing cannot supply that field.
+- `exactService_of_head_clean` and `_recovery`: use exactService_of_head_and_gate_on
+  with GateReceiptScope for each exact confirmed receiver and joined participation.
+  The CleanSleep₂/HealthyPrefixSleep₂ companion contains joined count fields; the
+  legacy CleanCut₂ fields count awake nodes. Recovery needs the joined window
+  after GST. The old input HEAD premise also lacks the joined reader guard.
+
+`Tests.RetainedConsumers`: Composes now has joined honest-reader quantifiers and
+all test roots take NamedReceiptRootCollisionFree. Compilation still waits for
+Regimes. Its `compose`, `check_H6`, `check_H6S`, `check_H17`, `check_L4R`, `check_HG1`,
+`check_L2`, `q1_H6` and `q1_H6S` still test legacy read/geometry
+suppliers with explicit NoRestart. Replacing only the reader quantifiers does not
+finish their sleep path.
+
+### Green legacy cores: theorem-level remaining work
+
+The entries below still have only a legacy run-service proof on this base. Their
+NoRestart premises are explicit. They must not be called final sleep APIs.
+
+- `Shared/Relay.lean:509` — `fgsa_headVotes_provenance`.
+- `Shared/Relay.lean:555` — `fgsa_vote_accepted_before_head_read`.
+- `Shared/Relay.lean:649` — `fgsa_headVotes_backward_relay`.
+- `Shared/Relay.lean:727` — `fgsa_cleanSupport_vote_forward`.
+- `Shared/Relay.lean:887` — `fgsa_cleanSupport_forward_relay`.
+- `Shared/ScoreRun.lean:350` — `fgsa_scoreRun_frozen_vote_relay`.
+- `Shared/ScoreRun.lean:457` — `fgsa_scoreRun_raw_extra`.
+- `Shared/ScoreRun.lean:592` — `fgsa_scoreRun_block_forward`.
+- `Shared/ScoreRun.lean:636` — `fgsa_scoreRun_block_backward`.
+- `Shared/ScoreRun.lean:718` — `fgsa_scoreRun_support_forward`.
+- `Shared/ScoreRun.lean:785` — `fgsa_scoreRun_support_backward`.
+- `Shared/ScoreRun.lean:907` — `fgsa_score_eq_on_run`.
+- `Shared/ScoreRun.lean:986` — `fgsa_walkRun_frozen_block`.
+- `Shared/ScoreRun.lean:1317` — `fgsa_walkRun_reflected_block`.
+- `Shared/ScoreRun.lean:1427` — `fgsa_ghost_transfer_sfx_on_run`.
+- `Shared/ExactHead.lean:95` — `exactHead_of_proposal_on_run`.
+- `Shared/ExactHead.lean:171` — `exactService_head_of_proposal`.
+- `Shared/RetainedPersist.lean:290` — `fgsa_retained_path_persists_on_run`.
+- `Shared/RetainedPersist.lean:358` — `fgsa_retainedWalk_geometry_on_run`.
+- `Shared/RetainedReflect.lean:235` — `fgsa_walkRun_reflected_old_child`.
+- `Shared/RetainedReflect.lean:268` — `fgsa_retained_old_child_reflects_on_run`.
+- `Shared/RetainedEndpoint.lean:189` — `fgsa_retainedExactHead_geometry_on_run`.
+- `Shared/RetainedConsumers.lean:333` — `fgsa_retainedReads_H6`.
+- `Shared/RetainedConsumers.lean:676` — `fgsa_retainedReads_H17`.
+- `Shared/RetainedConsumersH6S.lean:19` — `fgsa_retainedReads_H6S`.
+- `Shared/RetainedConsumersQ.lean:21` — `fgsa_retainedReads_L4R`.
+- `Shared/RetainedConsumersQ.lean:60` — `fgsa_retainedReads_HG1`.
+- `Shared/RetainedConsumersL2.lean:56` — `fgsa_retainedReads_L2`.
+- `Shared/HeldReceipt.lean:22` — `healing_held_block_receipt`.
+
+Relay provenance needs the restart replay branch of RelayCarried at the joined
+HEAD read. The accepted-before-head-read supplier needs a strict local epoch and
+an acceptance/replay origin. Its backward/forward relays need ready receiver
+service for each vote or cap witness, with safe history and the exact freeze.
+
+ScoreRun frozen-vote relay/raw-extra need the receiver's ready anchor, signed
+object identity and frozen stamp bounds. Block forward/backward/frozen/reflected
+routes need named target/ancestor services and exact endpoint floor compatibility.
+Support forward/backward must convert those receipts into resolved vote support.
+The score equality and ghost-transfer cores depend on those ports; a stored
+proposal's durable metadata alone does not supply them.
+
+ExactHead and the retained geometry/read suppliers need those score/walk ports.
+The joined reader scopes in T39/T45 are already present; those guards do not prove
+the missing service or retained history fields. HeldReceipt needs the same exact
+ready service at its held-block cutoff.
+
+### Family handoff: do not edit other packages
+
+Use `fgsa_active_path_of_coverage_on E rho hvalid hdelta ... hcovSleep hpath hFK
+hroots hReady`. Construct ReceiptCoverageSleepPremises with a valid post-wake
+anchor per required object. Supply WF, dependencies and fgsaTimely only for the
+named handler windows. Supply HistorySafeAt explicitly for retained routes.
+
+The following caller theorems must replace the legacy Count call. Their owners
+must also use Base₂.receiptIdealization for receipt-body equality.
+
+- Clean/StepGate: `gate_active_heads`.
+- Clean/TransferFrame: `clean_transfer_receipt_path`,
+  `clean_transfer_receipt_path_of_head`.
+- WeakContinuation/StepTransferReceipts: `prefreeze_path`.
+- WeakContinuation/StepGateBatch: `gate_active_heads`.
+- WeakContinuationGrowth/Dynamics: `growthStepGateBatch_gate_active_heads`,
+  `growthStepTransferReceipts_prefreeze_path`.
+
+P-Fi consumers `Finality/RowsBatch.rowsPrem_action_walk_batch` and
+`Finality/TailBatch.ktail_action_walk_batch` must use the ruled joined action API:
+joined selected voters, joinedHonest Batch, exact FreshHeadService/target service,
+and the read-to-action receiver epoch. The old name is retained for the corrected
+internal producer. The explicit old form is fgsa_action_walk_batch_legacy.
+
+### Map and validation boundary
+
+P-ShA map: 65 targets, 62 green including two input tests, three expected failures.
+Owned targets: 60 green, three expected failures. Full map: 476 green, five
+expected failures. HeadAdmit is now green. Run.Proofs.ReceiptCoverage is green
+from its actual retired-import-path build; it does not prove the sleep statement.
+Run and Run.Tests.Axioms stay S-Ap expected failures due to the five missing audit
+names already recorded in round 3. No external source file was edited.
+
+The new Regimes gate adapters and legacy companions have an isolated strict
+Lean check. That check does not classify the full Regimes module as green.
+The final checks and exact source lines are in claude-files/sleep-psha-report.md,
+Round 4. Successful validation covers the green map only. Package closure still
+requires every theorem-level blocker above to be resolved.
+
+Final round 4 checks: DCK PASS (180.905 s), 42 strict
+audits / 2,891 results, all 24 controls PASS. Complete green exports: 255 proof
+modules / 253 exports / zero unaccepted. SharedAxioms coverage: 364 entries PASS.
+Layers: 72 inherited / zero new. Expose and sleep scopes PASS. Two inherited W3
+transparency findings remain. The open-target check confirms the ten Regimes
+projections, Export's legacy call and the five missing S-Ap Run audit names.
+
+## P-ShA round 5: exact gate service
+
+The old Regimes declarations remain unchanged. Additive forms are in
+`Proofs/Shared/RegimesService.lean`. `exactService_of_head_clean_on` and
+`exactService_of_head_recovery_on` use joined HEAD readers, joined Batch and
+release counts, and `GateReceiptScope` for each confirmed receiver at the same gate.
+The Clean and Recovery consumer must supply these local scopes. Their old awake
+counts do not prove a joined count. Recovery needs its join window after GST.
+No `NoRestart` premise or restored Base field is used by these forms.
+
+### Round 5: proposal HEAD, score and walk ports
+
+Additive `ScoreServiceScope` supplies frozen HEAD ReceiverService and exact named
+block TargetReceiptService in both directions. It also supplies the source epoch
+from the strict proposal read to its tick. Each ReceiverService has its own
+HistorySafeAt and handler window. No theorem takes the final score equality,
+walk cover, or exact HEAD as a new service premise.
+
+The score and support proofs use durable proposal metadata after restart.
+The walk proof keeps both the frozen and authenticated proposal-path reflection
+arms. `exactService_head_of_proposal_on` keeps the joined-reader guard.
+Its Clean and Recovery consumers are the corresponding `_clean_on` and
+`_recovery_on` adapters in RegimesService. Those consumers supply the scopes.
+All previously compiled declarations remain unchanged.
+
+### Round 5: SameLabel public Export
+
+`fgsa_sameLabel_serviceScope` supplies the entire SameLabelServiceScope from
+ExecutionValid, RestartsAtWakes, the delta equation and LabelSyncOn. Export uses
+BaseSet's existing fields. The public SameLabelClaim type is unchanged.
+
+The proof rejects future HEADs before the label's proposal tick. A replayed HEAD
+comes from a raw list in a retained proposal. The raw label plus that proposal's
+strict slot bound rules out a same-label replay before this tick. This also
+handles the zero label, because RestartsAtWakes requires a positive wake time.
+Enabled gates bound every prior local restart by the label's proposal time.
+Those bounds give awake service at the early anchor, safe HEAD history, and the
+exact epochs through the strict gate read. The receipt deadline uses the same
+LabelSyncOn delivery law. No per-reader scope or history premise was added to
+SameLabelPrem or to the public claim.
+
+### Round 5: retained geometry and read services
+
+`RetainedServiceScope` supplies the named proposal service and ScoreServiceScope for each candidate whenever both endpoint floors apply. Candidate services keep
+HistorySafeAt per object; old processing is not used to fill that field.
+`RetainedExactHeadRunGeometryOn` restricts admission, walk and endpoint suppliers
+to joined readers. The new retained geometry theorem constructs those fields;
+it does not accept an exact HEAD or final walk cover as a service premise.
+The old geometry record and all its compiled consumers remain unchanged.
+
+All six read suppliers have additive `_on` forms: H6, H6S, H17, L4R, HG1 and L2.
+They use TargetReceiptService for the proposal and durable block storage to the
+actual HEAD tick. The local service input is separate from elementary lane reads.
+
+Named downstream suppliers (other families, not edited here):
+- Healing `repair_head_exact` and `frontier_seed_qSucc_head`: H6/H6S object service.
+- Healing `frontier_later_head`: HG1 object service and retained candidate services.
+- WeakContinuation `wc_retainedReads` / `wc_exactProposal`: H17 object service,
+  candidate services and safe retained replay history at each ready anchor.
+- Assembly `wcg_exactProposal`: the analogous WCG retained object services.
+- L4R and L2 callers supply the same object scope within their stop intervals;
+  their private type checks in Tests.RetainedConsumers identify the complete input.
+
+The Clean and Recovery retained `_on` adapters pass these inputs for each joined
+reader. No caller may infer retained HistorySafeAt from a past processed result.
+
+### Round 5: preserved original Regimes bodies — STOP on NoRestart
+
+False required implication:
+`ExecutionValid E rho ∧ RestartsAtWakes E rho → NoRestart rho`.
+Counterexample: Run.Tests.Sleep `joinEnv 9` / `joinRun 9` is ExecutionValid and
+restarts at wakes (`SleepTests.join_valid 9 (Or.inr rfl)`). Its event at index 1
+is `.restart 0 9`. Thus NoRestart fails at exactly that index. The receiver is
+awake at the slot-1 HEAD tick 10 but its wake exceeds the previous slot start 0;
+Tests.RestartEpochs `awake_head_tick_not_joined` checks the suppressed duty.
+The historical processing → HistorySafeAt implication is also false at wake 35
+in `retained_head_history_not_safe` in that test module.
+
+The ten original Regimes declarations still request `h.base.noRestart`. That
+projection does not exist and cannot be restored under the approved model.
+All their names and types are preserved as requested. This is a STOP on supplying
+the false legacy premise, not a kernel refutation of all ten full conclusions.
+Their new true forms are the ten `_on` declarations in RegimesService. They use
+joined participation, per-receiver gate scope, ScoreServiceScope, or
+RetainedServiceScope. No public FGSAClaims statement change is requested.
+The original module remains EXPECTED-FAIL; its legacy bodies are not certified.
+
+### Round 5: joined read suppliers
+
+H6/H6S/H17/L4R/HG1/L2 now also have `_joined` forms. Every elementary reader
+input, TargetReceiptService, and read-premise conclusion has the same joinedAt
+guard at the actual HEAD tick. Tests.RetainedConsumers uses these forms and its
+RetainedServiceScope input has that same guard. The earlier additive `_on`
+forms remain unchanged for callers that supply all-reader service.
+
+### Round 5: Relay and held-carrier inventory
+
+`HeadRelayServiceScope` has one HEAD object, a strict freeze, its reader index,
+its epoch, and a conditional ReceiverService. Scope suppliers are guarded by
+membership of the actual HEAD candidate, or by equality with the actual clean
+support wire. They do not require service for every possible payload.
+New Relay forms cover provenance, backward late-pool relay, frozen clean-support
+vote relay and forward support incidence. The existing path read input remains
+explicit in the support-incidence form.
+
+`fgsa_vote_accepted_before_local` excludes replay-only origins with a local
+restart bound and the earlier label tick. Relay's joined HEAD-read supplier
+constructs that tick and bound from joinedAt. No global NoRestart is needed.
+The new frozen walk alias uses the named backward block service.
+`healing_held_block_receipt_on` obtains the exact held FG carrier from its
+TargetReceiptService. These forms cover the Relay and HeldReceipt entries in
+round 4's legacy-only inventory. Legacy conditional APIs remain unchanged.
+
+## S-Ap Round 3 — Run facade audit
+
+P3 wake-clock successors: replace the retired audit names
+fgsa_restore_now_retained, fgsa_hrestore_now_retained, and restore_st_retained
+with fgsa_restore_now, fgsaRestoreTimeLaw, and restore_st. The exact wake time
+replaces the old retained clock. No production statement changes.
+The existing spec_prune_restart_mem and spec_prune_sleep checks keep their names;
+import Proofs.Spec.Simulation so the audit can resolve them.
+Run facade --wfail PASS (10.79 s). Regenerated the existing Run audit
+coverage key (8.54 s); mark the Run facade and audit GREEN in S-Ap.
+
+## S-Ap Round 3 — P8 claim transfer
+
+D140: RowServiceBaseClaim now has the exact approved all-honest awake suffix
+from GST through the horizon. NoRestart remains. A permanent honest sleeper
+satisfies the old receiver demands vacuously but need not receive an emitted row.
+P8 public route: RowServiceClaim now takes RecoverySleep₂. The compiled P-Fd
+supplier fgsa_tRows_recovery accepts its toRecovery₂ projection. The base
+supplier fgsa_tRows accepts the new awake suffix. No new premise is invented.
+The P8 declarations and aggregate compile with --wfail (1.29 s). The broader
+Claims build also checked inherited fixtures: FinalityGST, FinalityW,
+HealedBest, WeakContinuation, OutageAlignment, and the kernel adapter example
+in Claims.Tests.Axioms fail on prior sleep changes. They are not P8 failures.
+The FGSA shallow/deep generator includes eight inherited P-Fi claim hashes.
+The auxiliary API generator stops on the missing Claims.Tests.Axioms artifact;
+its full source scope is kept. No generated entry is edited by hand.
+The Run inventory generator now succeeds (791 entries, 25.01 s) and removes
+the stale fgsa_receiptCoverage entry retired under DECISION P23-A.
+FGSA shallow/deep regeneration PASS (243.02 s, 1,357 roots).
+
+## S-Ap Round 3 — P17 D013/D014 continuation supplier
+
+OutageContinuationConcl is the exact approved D013 body: scoped record/output
+compatibility; inclusion only for coveredNodes; scoped emitted HEAD compatibility;
+durable F compatibility for every honest receiver. It takes fast, T, b₀, b₁
+and Fintype V. No proposal-parent extension is added.
+OutageContinuationClaim is the exact D014 wrapper with
+OutageContinuationSleepPrem and all four conclusion arguments. P-Ou's report
+at lines 43, 92 and 145 requests this supplier; its family proof remains P-Ou-owned.
+The two docstrings now describe the approved scopes.
+D013/D014 and the claim aggregate compile with --wfail (3.47 s).
+The claims inventory and auxiliary API writers stop on the inherited missing
+Claims.Tests.Axioms artifact; their source scopes are unchanged.
+FGSA shallow/deep regeneration PASS (238.12 s, 1,357 roots).
+
+## S-Ap Round 3 — remaining public wrappers
+
+P8 D034/D037/D048: HTimeConcl, ResetArrivalConcl, HTimeBestClaim, and
+HTimeSearchClaim now use the exact approved recoveryStart bounds and search
+origins. Their numerical budgets do not change. These supply P-H1's public route.
+
+Serial P-Fd fragment: fgsa_fgFoundationClaim uses the durable/epoch companions
+and RMonoAll; fgsa_rowServiceBaseClaim passes the approved awake suffix;
+fgsa_rowServiceClaim uses fgsa_tRows_recovery with toRecovery₂; the new P21(a)
+fgsa_finalizedMonotonicityRestartClaim exports its compiled Foundations body.
+All four wrappers have local strict audit commands. No family proof is replaced.
+
+The anonymous kernel adapter example in Claims.Tests.Axioms now takes an
+explicit Recovery₂-to-RecoverySleep₂ supplier. P-Fi must prove that supplier;
+the example checks only the composition with its new AC interface. No public
+claim, KernelPrem_W, or KernelJoinedPrem changes. The attempted move to
+FinalityW was discarded because CLAIM-USE forbids that import. No layer
+exception is added. The two best/search audit examples use the approved τ
+premises. Observed inherited fixture failures have family owners in S-Ap's map.
+
+P-Fi's eight approved public changes are already present. P-Ar's derived receipt
+claim type already exists. Neither report requests another S-Ap statement change.
+Their current receipt producers remain family proof obligations. P-Ou's other
+Claims.Outage replacements are prepared on sleep-pou; lead integration retains
+that package's work. D013/D014 are supplied in this branch.
+The serial Foundations wrappers compile. The final package --wfail build
+passes (3,675 jobs). Claims audit coverage regeneration keeps the existing
+814-entry key. Layer check: 72 accepted findings, zero new.
+The full claims inventory and auxiliary API writers now reach the inherited
+missing Tests.FinalityGST artifact. No failed family module is removed from
+the generators' scope, and no generated entry is edited by hand.
+Complete export check: all 471 GREEN roots, 279 proof modules, 253 exports,
+zero unaccepted; zero non-exposed Statements predicates (5.39 s). Complete
+coverage of the three changed audit sources also passes. DCK checks every
+GREEN audit with Lean. The broader source-parser coverage probe cannot resolve
+the inherited open-namespace command window_bit_add_of_row in WindowLiveness;
+that probe is not reported as a complete package coverage pass.
+Final FGSA shallow/deep regeneration PASS (243.60 s, 1,357 roots).
+
+Validation correction: the first DCK passes its build and 41 strict sources
+(4,017 commands), then the finality coverage control detects the missing
+canonical audit command for fgsa_finalizedMonotonicityRestartClaim. Add that
+command to Proofs.Tests.Axioms as required by the serial P-Fd handoff. The
+local strict command remains. No coverage allowance changes.
+The full canonical coverage writer is blocked by missing Shared.Regimes.
+The new P21 row is instead taken from CheckProofEqns' compiled local coverage
+output and rendered into the existing Foundations.Export owner block with
+check-proof-coverage.py's section writer. All other rows and keys are kept.
+The canonical source registration check passes: 24 modules, 227 declarations.
+This fragment integration is not a full canonical-audit build or regeneration.
+
+## S-Ap Round 3 — Count restriction, LEAD DECISION
+
+ReceiptCoverageSleepPremises.slotWindow has t <= a and dl(a) <= dl(t).
+Its deadline field makes dl monotone. Therefore dl(a) = dl(t).
+For Clean dl(t) = t + Δ, a = t. For WC/WCG
+ dl(t) = max(t, GST) + Δ, a <= max(t, GST).
+The Lean evidence is count-restriction.lean and count-restriction.log.
+
+The current Count handoff needs this correction: its hReady premise is over
+[t, dl(t)), not only [a, dl(a)). An anchor-scoped internal companion can fix
+that excess premise but cannot remove the public record's deadline restriction.
+The exact handler premise is:
+
+```lean
+∀ o t, required o t → ∀ j u, t ≤ u → u < dl t →
+  V2.D.Run.handlesAt E rho j x o u →
+  (fgsa p c).wellFormed o = true ∧
+  (fgsa p c).depsPresent (V2.D.Run.stateBefore E rho j x) o = true ∧
+  fgsaTimely p (V2.D.Run.stateBefore E rho j x) o
+```
+
+An approved consumer needs a later-anchor route: P19/P20
+SourcePendingReceipt, used by PendingSourceDelivery₂ and
+CleanGrowthContinuationSleep₂, quantifies over all a >= send. It uses
+max(a, GST) + delay, including wakes in the continuation after GST.
+The joined participation count does not forbid an individual receiver's wake.
+The old source trigger cannot in general be replaced by a new emission or relay
+at the wake. This affects the proposed Count ports of
+WeakContinuationGrowth.Dynamics.growthStepGateBatch_gate_active_heads and
+WeakContinuationGrowth.Dynamics.growthStepTransferReceipts_prefreeze_path.
+The Clean and WC historical-path ports have the same restriction when an old
+object must be supplied after a receiver wake. Fresh HEADs may instead use their
+own current emission anchor; durable stored paths need no new receipt.
+
+Concrete restriction witness: send = 0, GST = 1, wake/anchor = 3, Δ = 2.
+The approved pending service can use deadline 5. The existing Count record
+requires 5 <= 3. This is impossible. This arithmetic example refutes a general
+adapter from later-anchor service to the old Count record; it is not a
+counterexample to the full public continuation claim.
+
+Proposed exact additive change: keep ReceiptCoverageSleepPremises and
+ReceiptCoverageSleepStatement unchanged. Add
+ReceiptCoverageAnchoredSleepPremises with the same parameters and four field
+names. Copy within, compat and deadline byte for byte. Replace only slotWindow
+by the following type. In this companion, required o a and paths refer to the
+service anchor a; send is the original trigger time.
+
+```lean
+  slotWindow : ∀ o a, required o a →
+    ∃ send, send ≤ a ∧ 0 ≤ a ∧ a < dl a ∧
+    Gen.V2.Duty.ReadyTrigger E rho o send x a (dl a) ∧
+    Gen.V2.Duty.HistorySafeAt E rho x o a ∧
+    V2.D.restartFree rho x (V2.D.Run.actionCut rho a) (V2.D.Run.idxBefore rho D) ∧
+    first ≤ V2.D.Run.actionCut rho a ∧
+    (fgsa p c).wellFormed o = true ∧
+    (∀ s signer K, (toWire p o).decode = some (.vote s signer K) →
+      ((V2.D.Run.stateBeforeTime E rho (dl a) x).st.slot p ≤ s + 1) ∧
+      ∀ i t', V2.D.Run.actionCut rho a ≤ i → i < V2.D.Run.idxBefore rho (dl a) → a ≤ t' →
+        V2.D.Run.handlesAt E rho i x o t' →
+        s ≤ (V2.D.Run.stateBefore E rho i x).st.slot p ∧
+          (V2.D.Run.stateBefore E rho i x).st.slot p ≤ s + 1)
+```
+
+Add ReceiptCoverageAnchoredSleepStatement and
+ReceiptCoverageAnchoredSleepStatement_def by copying the existing statement
+and equation and changing only the record name and declaration names. Thus every dl t in the copied conclusion is the anchor deadline because
+the required predicate is now indexed by anchors. The original send is kept
+explicitly in ReadyTrigger. No old-send deadline is silently weakened.
+Any internal producer must still take or derive exact handler readiness on
+[a, dl(a)), safe history, and the receiver epoch. This proposal does not assert
+that the current bare public receipt statement has a proof.
+
+Decision needed: approve this additive anchor-indexed public contract, or require
+families to use direct receiver-service proofs when a exceeds max(send, GST).
+No public record, Count theorem, or consumer proof was changed for this item.
+
+### S-Ap Round 3 final validation
+
+DCK S-Ap PASS (169.98 s): 471 GREEN modules, 41 strict sources, 4,017 commands,
+and all default controls. Only propext, Classical.choice and Quot.sound occur.
+FGSA shallow API PASS (167.03 s): 1,357 entries, complete matching hashes.
+FGSA deep API PASS (118.80 s): 1,357 roots, 3,818 dependency nodes.
+All 55 deep-snapshot controls PASS (164.59 s). Complete GREEN exports PASS:
+279 proof modules, 253 exports, zero unaccepted. Layers: 72 accepted, zero new.
+All eight changed public definition bodies match the approved packet tokens.
+
+Full claims inventory/API generation and the auxiliary check remain blocked by
+Tests.FinalityGST. Snapshot controls pass V2/GEN/FGSA shallow, catalog-lock and
+source-scope checks, then stop on that artifact at the mapped-root control.
+Full canonical Proofs.Tests.Axioms coverage generation remains blocked by
+Shared.Regimes; the new P21 row is integrated from compiled generator evidence.
+These are recorded limits, not full API or family closure. No generator scope,
+public statement, baseline or allowance was weakened to bypass them.
+
+## P-Fd Round 2 — CLOSED (2026-10-10)
+
+Base: fabc390e on sleep-pfd2. It includes the S-Ap Round 3 public P8 claims
+and four Foundations export fragments. P-ShA closure 80b08ce3 is not on this base;
+the interfaces needed by P-Fd are present in rounds 1–5. This entry closes P-Fd only.
+
+- P8 base: Foundations/Export.lean:160 applies RowService.lean:317 to the installed
+  RowServiceBaseClaim, including NoRestart and the exact all-honest awake suffix.
+- P8 recovery: Export.lean:166 applies fgsa_tRows_recovery to h.toRecovery₂.
+  Recovery supplies the awake suffix and the receiver epoch after GST. It needs
+  no global NoRestart. Public RowServiceClaim keeps RecoverySleep₂.
+- Export.lean:139 assembles the durable/epoch store, RMonoAll, and epoch frame tuple.
+  Export.lean:200 supplies the P21(a) retained-store restart monotonicity claim.
+  All four installed fragments compile against their installed public claim types.
+- Register all 37 exports in FoundationsAxioms through Assembly.Foundations.
+  Move the four temporary production audit commands to that test audit.
+  Append 28 missing supplier commands to Tests.Axioms and 28 matching rows under
+  its existing canonical coverage key. All 151 local declarations have canonical
+  commands and owner rows. The root already exposes Assembly.Foundations.
+- Owned consumers: Tests.RowService uses fgsa_rowService_receipt_sleep with the
+  exact receiver epoch; Tests.FinalityApi uses restart monotonicity without NoRestart.
+  No public meaning change, new STOP, allowance, baseline, or coverage key.
+- Map: 30 TARGETS, 497 GREEN, 2 EXPECTED-FAIL. Six inherited failures now compile.
+  Add the inherited S1 RegimesService entry. The remaining failures keep their owners:
+  Shared.Regimes (P-ShA) and the canonical Tests.Axioms root (P-As). Shared.Regimes
+  still projects removed Base₂.noRestart at ten legacy sites; its closed-branch fix
+  must be integrated. It does not block the P-Fd suppliers, exports, or local audit.
+
+Validation: DCK PASS (223.32 s), lake build --wfail on all 497 GREEN modules,
+40 strict sources / 3,436 results, and 24 default controls PASS. Only propext,
+Classical.choice, and Quot.sound occur. Complete GREEN export scan: 283 proof modules,
+253 exports, 0 unaccepted (5.94 s), complete local coverage of 151 commands,
+and export checker controls PASS. Inventory generation: 4.95 s. Canonical FGSafety
+coverage: PASS (15.92 s). Layers: 72 accepted findings, 0 new (0.47 s).
+Diff whitespace check PASS. No gate tier, review, agent, or dependency update.
+
+The broader all-audit inventory attempt found the unrelated namespace-local
+WindowLiveness name window_bit_add_of_row. The final export check uses complete
+FoundationsAxioms coverage and scans all GREEN roots; DCK strictly checks every
+GREEN audit source. Full canonical-root validation remains assembly integration work.
+Report and validation evidence: claude-files/sleep-pfd-report.md (Round 2),
+claude-files/sleep-pfd2/. Earlier PREPARED rows remain as session history.
+
+### Lead note after the P-Cl2 review (2026-10-10 08:35)
+
+Review rev-pcl2-astra: MERGE-AS-PREPARED (not CLOSED). Merged at sleep-int.
+- The "wait for the anchor-relative design" item in scripts/dev-pkg/P-Cl2.ledger-fragment.md:48-55 is stale.
+  DECISION ANCHOR-DL applies: ReceiptCoverageAnchorPremises and its Count proof are internal to P-ShA's
+  Shared layer. Do not wait for S-Ap to repair ReceiptCoverageSleepPremises; public P23 is unchanged.
+- Caller route for the P-Cl1 dependencies: Clean/StepGate.lean:562 anchor v_s, deadline e_s, with the
+  receiver's enabled-gate guard through gate_batch_of_history:644 and gate_active_heads:462 (s + 1 for
+  the successor-label call). Clean/TransferFrame.lean:379 and :474 anchor e_s, deadline f_s, with the
+  receiving node y's joined guard through :335 and :397. Bind readiness, handler interval, HistorySafeAt,
+  restartFree and path deadlines to the same anchor.
+- P-Ou applies the exact growth handoff (ledger fragment :61-122) with its Claims/Outage port. The
+  section-wide include lists at Outage/Export.lean:85 and :117 must not carry old all-honest
+  hmono/history suppliers into the new theorem.
+- DECISION P15-CUT is separate (S-Ap round 4). Record both decisions separately.
+- Before CLOSED: P-Cl1 and S-Ap closure, the P-ShA anchor caller ports, proofs of both growth suppliers
+  (proposal/history compatibility; scoped inclusion), the actual P-Ou consumer build, production
+  Clean/Export compilation, canonical strict/export audits.
+
+## P-ShA Round 7 — DECISION ANCHOR-DL internal supplier
+
+The lead's 2026-10-10 08:12 decision permits this additive internal interface.
+`Shared/Count.lean` now defines `ReceiptCoverageAnchorPremises` and
+`ReceiptCoverageAnchorStatement`, with `anchor : Obj p → Time → Time`.
+The fields match anchor-dl §1. The statement closes the final HEAD quantifier
+with `)`; the design text omitted that delimiter. This is a syntax repair.
+`fgsa_receiptCoverage_anchor` and `fgsa_active_path_of_coverage_anchor` use
+`dl (anchor o t)` for every receipt, strict HEAD stamp, and path vertex bound.
+They keep the requested path/read time D. No `dl(a) ≤ dl(t)` input is required.
+The proposal branch uses `ReceiverService.proposal`, whose proof uses N4.
+The HEAD branch uses the N4 receipt theorem or the cap alternative at dl(a).
+The record includes handlers on exactly `[a, dl(a))` and the receiver epoch
+from `actionCut(a)` to `idxBefore(D)`. The anchor need not be monotone.
+
+This interface is in the P-ShA proof layer. The old Count interfaces and all
+FGSARun/Statements and FGSAClaims declarations remain unchanged. The bare public
+`ReceiptCoverageSleepStatement` is still open. No public P23 amendment is made.
+
+The resume check found a missing required S1 scope entry for AnchorService.
+`scripts/dev-scope-s1.txt` now registers the module as REQUIRED. The package map
+and audit inventory already included it. No allowance or baseline was added.
+
+### Common proposal suppliers and record construction
+
+Import `AvailableChainFGSAProofs.Proofs.Shared.AnchorService` for service inputs
+and `AvailableChainFGSAProofs.Proofs.Shared.Count` for the coverage result.
+
+- `fgsa_historySafeAt_of_proposal` transfers each historical root witness through
+  durable TF, including across restart. It needs the proposal decode, not roots.
+- `fgsa_proposal_acceptance_facts` uses the original acceptance and validity for
+  send nonnegativity and well-formedness.
+- `fgsa_proposal_handlers_at_anchor` uses the original source acceptance, the
+  delay equation, and a public awake receiver anchor. Its tick precedes every
+  handler, including a same-time delivery. The source admission bound and the
+  local receiver epoch give timeliness. Valid direct delivery gives dependencies.
+- `fgsa_gate_path_anchor_service` takes THIS receiver's `enabledGateAt` hG,
+  validity, RestartsAtWakes, the delay equation, and each honest original proposal
+  acceptance before v_s. It derives ReadyTrigger at v_s through e_s, proposal
+  HistorySafeAt at v_s, the epoch through idxBefore(e_s), and proposal handlers
+  on `[v_s,e_s)`. `fgsa_enabledGate_anchor_epoch` supplies later strict reads up
+  to the gate. Honesty or selected-voter joinedness does not replace receiver hG.
+- `fgsa_transfer_path_anchor_service` takes
+  `joinedAt p E rho y (s+1) (voteTime (s+1))`, the next-vote horizon bound,
+  validity, the delay equation, and each honest original proposal acceptance
+  before e_s. It derives ReadyTrigger at e_s through f_s, proposal HistorySafeAt
+  at e_s, the epoch through idxBefore(v_(s+1)), and handlers on `[e_s,f_s)`.
+  Restrict its epoch to idxBefore(f_s) by `fgsa_idxBefore_mono` and `.mono`.
+
+Keep `first = 0` in all seven records. For gate paths select
+`anchor := fun _ _ => v_s`; for transfer paths select
+`anchor := fun _ _ => e_s`. Clean uses `dl(a) = a + Δ`. WC/WCG use
+`dl(a) = max(a,GST) + Δ`; their GST bound at v_s makes the chosen deadlines
+exactly e_s and f_s. Rewrite these equations in the supplier results.
+Use the regime's healthy/sync field for `within`. Use base.valid, base.delta,
+and base.receiptIdealization for validity, the delay equation, and receipt roots.
+The acceptance remains at the original t; do not invent a trigger at the anchor.
+
+The seven required predicates contain only proposals. Their `slotWindow` field
+is vacuous: the block decode cannot also be a vote decode. Construct `service`
+from the suppliers, the public time inequalities, `Nat.zero_le actionCut`, and
+well-formedness from `fgsa_proposal_acceptance_facts`. Keep the callers' existing
+compatibility, pathCoverage, proposalPaths, horizon/cut, ancestor, and F-below-target
+proofs. Each path vertex now requires `dl(anchor o t) ≤ d`, not `dl(t) ≤ d`.
+Call `fgsa_active_path_of_coverage_anchor` with the SAME anchor function.
+No general retained-HEAD history claim follows from these proposal suppliers.
+
+### Exact seven-caller owner port plan
+
+The source lines below are the pinned anchor-dl §3 references, not moving lines
+in this worktree. P-ShA has not edited Clean, WC, or WCG files.
+
+```text
+┌─────────────────────────────────────┬───────┬─────┬───────┬─────────┐
+│ Count call                          │ Owner │ Node│ Anchor│ Read D  │
+├─────────────────────────────────────┼───────┼─────┼───────┼─────────┤
+│ Clean/StepGate.lean:562              │ P-Cl1 │ x   │ v_s+1 │ e_s+1   │
+│ Clean/TransferFrame.lean:379         │ P-Cl1 │ y   │ e_s   │ f_s     │
+│ Clean/TransferFrame.lean:474         │ P-Cl1 │ y   │ e_s   │ f_s     │
+│ WC/StepGateBatch.lean:344            │ P-WC  │ x   │ v_s   │ e_s     │
+│ WC/StepTransferReceipts.lean:260      │ P-WC  │ y   │ e_s   │ f_s     │
+│ WCG/Dynamics.lean:1529               │ P-WC  │ x   │ v_s   │ e_s     │
+│ WCG/Dynamics.lean:2810               │ P-WC  │ y   │ e_s   │ f_s     │
+└─────────────────────────────────────┴───────┴─────┴───────┴─────────┘
+```
+
+Here `v_s+1` and `e_s+1` mean v_(s+1) and e_(s+1).
+
+1. Clean StepGate: pass the existing nonempty theorem's exact receiver hG at
+   :676 through `gate_batch_of_history` :644 and `gate_active_heads` :462.
+   Use the gate supplier with label s+1. Acceptances at :337/:350 precede v_(s+1).
+   Do not derive hG from the nonemptiness result that this proof establishes.
+2. Clean TransferFrame :379: add the joined y guard to the interface at :335.
+   Thread it from `CleanHist.continues`. Acceptances at :260/:267 precede e_s.
+   Use the transfer supplier; restrict its longer epoch to f_s for Count.
+3. Clean TransferFrame :474: add the same joined y guard at :397. Use the same
+   transfer supplier. Keep the support-head path geometry and source e_s stamp
+   at :468. A gate guard for source x does not supply receiver y's epoch.
+4. WC StepGateBatch: split suppressed gates in the helper at :250. In the enabled
+   branch pass THIS receiver's hG. Keep hGST at :251 and the acceptance cutoff
+   at :130. Use the gate supplier and sync. Selected-voter joinedParticipation
+   supplies selected voters; it does not join arbitrary receiver x.
+5. WC StepTransferReceipts: add joined y to `prefreeze_path` :228 and its call
+   at :473. Source it from P10's HEAD reader scope or the joined selected voter
+   route. Keep hGST :225/:229, acceptances :231/:253, the source frame, and F bound.
+   Use the transfer supplier and sync.
+6. WCG Dynamics :1529: pass receiver hG through the enabled gate branch at
+   :1434/:1441. Keep GST ≤ v_s and the source acceptance cutoff. Use the gate
+   supplier and sync. Retained-set agreement does not make every receiver awake.
+7. WCG Dynamics :2810: pass the exact joined y guard through
+   `growthStepTransferReceipts_prefreeze_path` :2770. Keep GST :2777 and the source
+   e_s stamp :2779. Use the transfer supplier and sync with the current honest
+   source acceptances. SourcePendingReceipt for a removed original source is a
+   separate route; it cannot supply a ReadyTrigger with a current honest source.
+
+Count ends at a strict read. For stamps used at the consuming gate or next vote,
+keep the receiver epoch through that action index as a separate owner obligation.
+The enabled guard or joined guard supplies the receiver scope for that extension.
+Do not infer an action-index epoch only from the Count record's idxBefore(D).
+The family ports remain open with P-Cl1/P-WC until their own builds pass.
+
+Final Round 7 validation: DCK PASS (262.407 s), 43 strict audits / 3016
+results, 24 controls. All 481 GREEN modules passed --wfail. SharedAxioms
+complete coverage: 485 entries PASS. Complete GREEN exports: 259 proof modules /
+253 exports / zero unaccepted. Layers: 72 inherited / zero new. Expose and
+sleep scopes PASS. The two inherited W3 transparency findings remain unchanged.
+The two S-Ap EXPECTED-FAIL targets are unchanged. P-ShA is CLOSED; the public
+P23 statement and the seven family-owner ports retain their stated open scope.
+
+## S-Ap Round 4 — DECISION P15-CUT (2026-10-10)
+
+Amend packet P15, “Additive: new declaration OutagePrefixReceipt”, with
+`SA.earlyTime p.toParams q ≤ b₀` immediately before the BatchReceiptAt conclusion.
+The bound applies to each selected label; equality is allowed. P15 now means:
+
+> Derive receipt for the selected prefix arming labels whose early receipt
+> cut is at most b₀, and for the restored batches q ≥ r.
+
+The additive claim types and theorem signatures keep their written Lean text.
+Their prefix conclusion refers to the corrected definition.
+OutageContinuationReceipt's first conjunct inherits this correction. D109's
+Outage₂ and D110's OutageContinuationPrem text stay unchanged. This amendment
+adds no public service record or acceptance assumption.
+
+The local `arming_prefix_batch_receipt_on` service input takes the same cut
+premise. `outage_restored_receipt_with_service` passes hPrefix unchanged.
+EarlyCut.regime still constructs the early-cut run. Its `missing` and
+`prefix_claim_false` tests are replaced by the positive `prefix_receipt` test:
+the selected q = 1 has earlyTime 1 = 12 > b₀ = 8. Thus this run does not refute
+the corrected claim. The test does not assert general regime-derived receipt.
+P-Ar still owns the joint-induction service proofs; P-Ou still owns the restored
+service proofs. This amendment does not close those family obligations.
+
+Source: DECISION P15-CUT in sleep-join-port-notes.md (08:21) and
+outage-cut/outage-cut.md §§2–3, 5–6. No other public meaning changes.
+
+The S-Ap package map adds the two direct receipt consumers and OutageArming to
+TARGETS/GREEN. It also classifies Shared.RegimesService as GREEN: the integrated
+required scope includes this module, but the inherited S-Ap map omitted it.
+This changes validation data only.
+
+Validation limit: full auxiliary API and claims inventory write/check commands
+stop at the missing compiled Claims.Tests.FinalityGST fixture (EXPECTED-FAIL,
+owner P-Fi). Their generated products remain unchanged. No generator scope or
+baseline is changed. This inherited limit does not block the targeted receipt
+build or complete S-Ap GREEN export check. The latter covers 293 proof modules
+and 253 exports, with zero unaccepted exports and zero non-exposed Statements
+predicates. The focused six-declaration receipt audit uses only permitted axioms.
+
+The standard FGSA generator also refreshes 13 shallow hashes from the integrated
+Claims.Outage source. That source is byte-for-byte unchanged from d825ed30 in
+this job. The only new public source change is OutagePrefixReceipt. No manifest
+names are added or removed, and no generated hash is edited by hand.
+
+DCK S-Ap passes in 325.25 s: 475 GREEN modules, 42 strict audit sources,
+4,227 permitted-axiom results, and 24 controls. The package has 126 TARGETS and
+57 explicitly owned EXPECTED-FAIL modules. The targeted receipt build passes;
+check-layers reports 72 accepted findings and zero new findings. The generated
+FGSA shallow/deep write passes (1,357 roots, 3,817 dependency nodes). Complete
+exports and strict receipt audits pass. Full auxiliary products have the limit
+recorded above; no full family or canonical-audit closure is claimed.
+
+FGSA generated checks pass: shallow 1,357 entries in 59 modules (163.66 s),
+deep 1,357 entries (116.44 s). Isolated deep controls pass (104.69 s).
+The final EarlyCut comment now records DECISION P15-CUT; its --wfail rebuild
+passes (4.68 s). The DCK result above precedes this comment-only correction.
+
+Snapshot controls pass V2/GEN/FGSA shallow, catalog-lock, and source-scope
+checks, then stop at the mapped-root control because FinalityGST is missing
+(262.83 s). This is the same inherited auxiliary-product limit above.
+Task 3 needs no edit: the lead note at the Round 3 merge already marks the
+public anchor proposal SUPERSEDED by DECISION ANCHOR-DL at base d825ed30.
+No new LEAD DECISION item is needed.

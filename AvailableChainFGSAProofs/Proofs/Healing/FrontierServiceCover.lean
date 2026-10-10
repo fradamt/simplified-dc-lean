@@ -119,8 +119,13 @@ theorem frontier_gate_guard_of_cover [Fintype V] (E : Generic.Env V)
       change 4 * p.Δ * ((q + 1 : Nat) : Int) + p.Δ ≤ 4 * p.Δ * (q : Int) + 6 * p.Δ
       push_cast
       linarith
+    have hawake := hrec.awake x hx (SA.voteTime p.toParams (q + 1)) (by
+      apply hgst.trans (hu.trans _)
+      change 4 * p.Δ * (q : Int) ≤ 4 * p.Δ * ((q + 1 : Nat) : Int) + p.Δ
+      push_cast
+      linarith [p.deltaPos]) ((hq1v.trans hgq).trans hvh)
     obtain ⟨iq, hiq⟩ := healing_support_vote_tick E rho hS hDelta hx (q + 1)
-      ((hq1v.trans hgq).trans hvh)
+      ((hq1v.trans hgq).trans hvh) hawake
     have hjq : j < iq := by
       apply repair_idx_lt E rho hS htj hiq
       change 4 * p.Δ * (w : Int) + 6 * p.Δ < 4 * p.Δ * ((q + 1 : Nat) : Int) + p.Δ
@@ -265,7 +270,9 @@ theorem frontier_gate_guard_of_cover [Fintype V] (E : Generic.Env V)
           exact frontier_slow_heads E rho hrec mono crossing writes hHeight hvh hcap
             (hgst.trans huw) hwv hQw hz hwindow hin hgrw hBCw hslow hjw
             s (by exact_mod_cast hwsI) hvs
-      obtain ⟨jz, hjz⟩ := healing_support_vote_tick E rho hS hDelta hx s (hvs.trans hvh)
+      have hawake := hrec.awake x hx (SA.voteTime p.toParams s) hgsts (hvs.trans hvh)
+      obtain ⟨jz, hjz⟩ := healing_support_vote_tick E rho hS hDelta hx s
+        (hvs.trans hvh) hawake
       have hhl : headAtLabel p c E rho x s = some (headVote p (FGSA.clock p
           (V2.D.Run.stateBefore E rho jz x).st (SA.voteTime p.toParams s)) s) := by
         unfold headAtLabel

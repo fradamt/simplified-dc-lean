@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Epoch
 public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepInit
 public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Frame
 public import AvailableChainFGSAProofs.Proofs.Shared.Roots
@@ -630,13 +631,14 @@ private theorem growthStepService_gate_served {i j : Nat} {x : V} {s : Slot} {B 
     (hr : WCResult p c E rho w iStar i j x s B) :
     Block.Preceq B (S_at p c E rho (j + 1) x) := by
   obtain ⟨C, hC, _, hpass⟩ := hi.nonempty j x s hr.afterCut hr.completed
-    hr.honest hr.event hr.label
+    hr.honest (wcg_gate_enabled_of_result hsch hr.event hr.value) hr.label
   have hrawAt : gateResultAt p c E rho j = some (SA.Root.confirmationFrom p.toParams
       (eraseFG (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s)).fg.F)
       (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s) := by
     rw [gateResultAt_eq_gateResult p c E rho hsch hr.event,
       gateResult_eq_saved p c E rho hsch hr.event, clockPre_fg]
     exact fgsa_gate_saved_result E rho hsch hr.event
+      (fgsa_gate_joined_of_enabled E rho (wcg_gate_enabled_of_result hsch hr.event hr.value))
   have hraw := Option.some.inj (hrawAt.symm.trans hr.value)
   obtain ⟨y, r, he, _, G, hG, hguard⟩ := hpass
   have hevent := V2.Event.tick.inj (Option.some.inj (he.symm.trans hr.event))
@@ -684,7 +686,9 @@ private theorem growthStepService_gate_served {i j : Nat} {x : V} {s : Slot} {B 
     split
     · assumption
     · exact block_preceq_refl _
-  rcases (fgsaAC_gate_write E rho j s x hr.event).effects with hskip | hrun
+  rcases (fgsaAC_gate_write E rho j s x
+    (wcg_gate_pre_joined (wcg_gate_enabled_of_result hsch hr.event hr.value))
+    hr.event).effects with hskip | hrun
   · obtain ⟨result, hsaved⟩ := hskip.1
     have hfresh := fgsa_gate_fresh E rho hsch hr.event
     change GridCO.savedGenuine (storeAt p c E rho j x).base s = some result at hsaved
@@ -1835,7 +1839,7 @@ theorem wcg_gateResult (hcausal : WCFinalityTargetEarlierStatement p c E rho) (�
       fp.height = (heightView p B).h_j ∧ fp.target = (heightView p B).J.root ∧
       TargetQCAt p.E B fp.height (heightView p B).J),
   WCSeed p c E rho w iStar → ∀ i x s, iStar ≤ i → i < rho.events.length →
-    WCInv p c E rho w iStar i → IsGateTick p c rho i x s → w.u < s →
+    WCInv p c E rho w iStar i → enabledGateAt p c E rho i x s → w.u < s →
     ∃ B, gateResultAt p c E rho i = some (some B) ∧ gatePassedAt p c E rho i ∧
       Block.Preceq w.QStar B ∧
       (∀ j y r C, WCResult p c E rho w iStar i j y r C → r < s → Block.Preceq C B) ∧
@@ -1844,7 +1848,8 @@ theorem wcg_gateResult (hcausal : WCFinalityTargetEarlierStatement p c E rho) (�
   intro hvalid hlinked hcstar hnr hdelta hroots hsync hdeltaF
     hfaultQ haccountable hpart hstore hcumul hmono hactive hframe hmeta hrec hgeo hcert
     hsrc hlabel hqc hstrat hnoslash hemitted htargets hlease hfast hdeadlines hheldRows
-    hscopeRows hfinalHead hs i x s hi hilen inv ht hslabel
+    hscopeRows hfinalHead hs i x s hi hilen inv hEnabled hslabel
+  have ht := hEnabled.1
   have hsch := hvalid.toScheduleWellFormed
   have hx := hvalid.honest_only _ (List.mem_of_getElem? ht)
   have hhead := wcg_gateHeads ΔF w iStar hvalid hlinked hcstar hnr hdelta hroots hsync hdeltaF
@@ -1875,6 +1880,7 @@ theorem wcg_gateResult (hcausal : WCFinalityTargetEarlierStatement p c E rho) (�
       (eraseFG (clockPre p (storeAt p c E rho i x) _).fg.F) _ s)
     rw [clockPre_fg]
     exact fgsa_gate_saved_result E rho hsch ht
+      (fgsa_gate_joined_of_enabled E rho hEnabled)
   have hB : gateResultAt p c E rho i = some (some B) := hrawAt.trans (congrArg some hraw)
   have ordered : ∀ j y r C, WCResult p c E rho w iStar i j y r C → r < s →
       Block.Preceq C B := by
@@ -2151,6 +2157,7 @@ private theorem growthStepOutput_gate_output {j : Nat} {x : V} {s : Slot} {B : B
     rw [gateResultAt_eq_gateResult p c E rho hsch ht,
       gateResult_eq_saved p c E rho hsch ht, clockPre_fg]
     exact fgsa_gate_saved_result E rho hsch ht
+      (fgsa_gate_joined_of_enabled E rho (wcg_gate_enabled_of_result hsch ht hB))
   have hraw := Option.some.inj (hrawAt.symm.trans hB)
   obtain ⟨y, r, he, _, G, hG, hguard⟩ := hpass
   have hevent := V2.Event.tick.inj (Option.some.inj (he.symm.trans ht))
@@ -2191,7 +2198,8 @@ private theorem growthStepOutput_gate_output {j : Nat} {x : V} {s : Slot} {B : B
       rcases Bool.or_eq_true_iff.mp hc with h | h
       · exact h
       · exact (hn h).elim
-  rcases (fgsaAC_gate_write E rho j s x ht).effects with hskip | hrun
+  rcases (fgsaAC_gate_write E rho j s x
+      (wcg_gate_pre_joined (wcg_gate_enabled_of_result hsch ht hB)) ht).effects with hskip | hrun
   · obtain ⟨result, hsaved⟩ := hskip.1
     have hfresh := fgsa_gate_fresh E rho hsch ht
     change GridCO.savedGenuine (storeAt p c E rho j x).base s = some result at hsaved
@@ -2963,6 +2971,7 @@ theorem wcg_retrospectivePaths [Fintype V] (ΔF : Time) (w : HealingWitness) (iS
     rw [gateResultAt_eq_gateResult p c E rho hsch ht,
       gateResult_eq_saved p c E rho hsch ht, clockPre_fg]
     exact fgsa_gate_saved_result E rho hsch ht
+      (fgsa_gate_joined_of_enabled E rho (wcg_gate_enabled_of_result hsch ht hB))
   have hraw := Option.some.inj (hrawAt.symm.trans hB)
   have hc := cstoreInv_clockPre p _ (storeBundle_stateBefore E rho i x).cstore
     (SA.gateTime p.toParams s)
@@ -3119,6 +3128,7 @@ theorem wcg_retrospective (hcausal : WCFinalityTargetEarlierStatement p c E rho)
       rw [gateResultAt_eq_gateResult p c E rho hsch ht,
         gateResult_eq_saved p c E rho hsch ht, clockPre_fg]
       exact fgsa_gate_saved_result E rho hsch ht
+        (fgsa_gate_joined_of_enabled E rho (wcg_gate_enabled_of_result hsch ht hB))
     exact Option.some.inj (hh.symm.trans hB)
   let P := GridCO.cleanSupport p.toParams.engine src s
   let L := GridCO.lateVotes p.toParams.engine src s
@@ -3420,7 +3430,8 @@ private theorem growthStep_step_core (hcausal : WCFinalityTargetEarlierStatement
     · exact inv.retrospective j x s B { hr with completed := hj } y hy
     · have heq : j = i := by have := hr.completed; omega
       subst j
-      obtain ⟨C, hC, _, _, _, _, hhead⟩ := gate x s hr.honest hr.event hr.label
+      obtain ⟨C, hC, _, _, _, _, hhead⟩ := gate x s hr.honest
+        (wcg_gate_enabled_of_result hsch hr.event hr.value) hr.label
       have heq : B = C := Option.some.inj (Option.some.inj (hr.value.symm.trans hC))
       exact heq ▸ hhead y hy
   · intro k x W X hlo hkn hx hW hX hn hh

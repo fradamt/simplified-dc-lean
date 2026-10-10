@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Epoch
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepGateBatch
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Safety
 public import AvailableChainFGSAProofs.Proofs.Shared.SameLabel
@@ -98,7 +99,7 @@ theorem wc_gateResult (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
       fp.height = (heightView p B).h_j ∧ fp.target = (heightView p B).J.root ∧
       TargetQCAt p.E B fp.height (heightView p B).J),
   WCSeed p c E rho w iStar → ∀ i x s, iStar ≤ i → i < rho.events.length →
-    WCInv p c E rho w iStar i → IsGateTick p c rho i x s → w.u < s →
+    WCInv p c E rho w iStar i → enabledGateAt p c E rho i x s → w.u < s →
     ∃ B, gateResultAt p c E rho i = some (some B) ∧ gatePassedAt p c E rho i ∧
       Block.Preceq w.QStar B ∧
       (∀ j y r C, WCResult p c E rho w iStar i j y r C → r < s → Block.Preceq C B) ∧
@@ -107,7 +108,8 @@ theorem wc_gateResult (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
   intro hvalid hlinked hcstar hnr hdelta hroots hsync hdeltaF
     hfault hfaultQ hfaultX hpart hstore hcumul hmono hactive hframe hmeta hrec hgeo hcert
     hsrc hlabel hqc hstrat hnoslash hemitted htargets hlease hfast hdeadlines hheldRows
-    hscopeRows hfinalHead hs i x s hi hilen inv ht hslabel
+    hscopeRows hfinalHead hs i x s hi hilen inv hEnabled hslabel
+  have ht := hEnabled.1
   have hsch := hvalid.toScheduleWellFormed
   have hx := hvalid.honest_only _ (List.mem_of_getElem? ht)
   have hhead := wc_gateHeads ΔF w iStar hvalid hlinked hcstar hnr hdelta hroots hsync hdeltaF
@@ -137,6 +139,7 @@ theorem wc_gateResult (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
       (eraseFG (clockPre p (storeAt p c E rho i x) _).fg.F) _ s)
     rw [clockPre_fg]
     exact fgsa_gate_saved_result E rho hsch ht
+      (fgsa_gate_joined_of_enabled E rho hEnabled)
   have hB : gateResultAt p c E rho i = some (some B) := hrawAt.trans (congrArg some hraw)
   have ordered : ∀ j y r C, WCResult p c E rho w iStar i j y r C → r < s →
       Block.Preceq C B := by

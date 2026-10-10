@@ -36,7 +36,8 @@ theorem arming_S_cut {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
   · rw [hg]
     exact block_genesis_preceq D
   · have hmem : (s, S_at p c E rho (timeIdx rho b₀) y) ∈
-        cleanResults p c E rho (timeIdx rho b₀) := ⟨q, hq, y, hqt, hres⟩
+        cleanResults p c E rho (timeIdx rho b₀) :=
+      ⟨q, hq, y, hqt, (arming_enabled_of_result hs hqt hres).2, hres⟩
     obtain ⟨_, _, _, _, _, hsb, _, _⟩ := arming_clean_mem hs le_rfl hmem
     exact hmax s _ hmem (arming_lt_pending p l s (hsb.trans_lt hcut))
   · rw [he]
@@ -85,6 +86,51 @@ theorem arming_S_interval {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
         · exact absurd h hn
         · exact ⟨block_preceq_trans hB h, hFk⟩
     · exact absurd hrs (hnr k y t)
+
+/-- Plan O-ARM §6.2 step 5. Class (iii). DC: INTENTIONAL; between the cut and
+the pending gate, S stays between B and `D`. The only change is the delivery
+normalization to an F below `D`. -/
+theorem arming_S_interval_on {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
+    (hs : V2.D.ScheduleWellFormed E rho)
+    {b₀ : Time} {l : Slot} {B D : Block} (hl : SA.gateTime p.toParams l ≤ b₀)
+    (y : V)
+    (hF : ∀ k, k ≤ V2.D.Run.idxBefore rho (SA.gateTime p.toParams (l + 1)) →
+      Block.Preceq (F_at p c E rho k y) D)
+    (h₀ : Block.Preceq B (S_at p c E rho (timeIdx rho b₀) y) ∧
+      Block.Preceq (S_at p c E rho (timeIdx rho b₀) y) D)
+    {i : Nat} (hi₀ : timeIdx rho b₀ ≤ i)
+    (hi : i ≤ V2.D.Run.idxBefore rho (SA.gateTime p.toParams (l + 1)))
+    (hEpoch : V2.D.restartFree rho y (timeIdx rho b₀) i) :
+    Block.Preceq B (S_at p c E rho i y) ∧ Block.Preceq (S_at p c E rho i y) D := by
+  induction i, hi₀ using Nat.le_induction with
+  | base => exact h₀
+  | succ k hk ih =>
+    have hkd : k < V2.D.Run.idxBefore rho (SA.gateTime p.toParams (l + 1)) :=
+      lt_of_lt_of_le (Nat.lt_succ_self k) hi
+    obtain ⟨hB, hD⟩ := ih hkd.le (hEpoch.mono le_rfl (Nat.le_succ k))
+    have hkl : k < rho.events.length :=
+      lt_of_lt_of_le hkd (arming_idxBefore_le_length rho _)
+    have he : rho.events[k]? = some rho.events[k] := List.getElem?_eq_getElem hkl
+    obtain ⟨hb, hd⟩ := arming_event_window hs he hk hkd
+    rcases fgsaAC_output_step E rho k y with heq | ⟨s, hgs⟩ | ⟨o, t, b, hdel, _, _, hnorm⟩ |
+        ⟨t, hrs, _⟩
+    · change S_at p c E rho (k + 1) y = S_at p c E rho k y at heq
+      rw [heq]
+      exact ⟨hB, hD⟩
+    · exfalso
+      obtain ⟨hb', hd'⟩ := arming_event_window hs hgs hk hkd
+      exact arming_offGate p l hl hb' hd' s rfl
+    · change S_at p c E rho (k + 1) y =
+        Gen.AC.normalizeOutput (F_at p c E rho (k + 1) y) (S_at p c E rho k y) at hnorm
+      rw [hnorm, Gen.AC.normalizeOutput_def]
+      have hFk := hF (k + 1) hi
+      split
+      · exact ⟨hB, hD⟩
+      · next hn =>
+        rcases block_preceq_total_of_common hFk hD with h | h
+        · exact absurd h hn
+        · exact ⟨block_preceq_trans hB h, hFk⟩
+    · exact absurd hrs (hEpoch k t hk (Nat.lt_succ_self k))
 
 /-- Plan O-ARM §4 field 7, §6.2 step 5. Class (iii). DC: INTENTIONAL; B is in
 the honest stable output on [d(l), d(l + 1)), for awake and asleep readers. -/

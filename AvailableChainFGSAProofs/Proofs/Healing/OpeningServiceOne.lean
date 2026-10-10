@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.OpeningServiceBody
+public import AvailableChainFGSAProofs.Proofs.Healing.OpeningTicks
 
 public section
 
@@ -14,21 +15,6 @@ namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG Gen.Pure
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
-
-omit [DecidableEq V] in
-/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
-Schedule. DC: SAME an honest node ticks at every opening inside the horizon. -/
-theorem opening_action_tick (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (hs : V2.D.ScheduleWellFormed E rho) (hDelta : E.Δ = p.Δ) {x : V} (hx : x ∈ rho.honest)
-    (r : Nat) (hh : p.actionTime r ≤ rho.horizon) :
-    ∃ i : Nat, rho.events[i]? = some (.tick x (p.actionTime r)) := by
-  have hktime : ((4 * (r * p.R) + 6 : Nat) : Time) * p.Δ = p.actionTime r := by
-    change ((4 * (r * p.R) + 6 : Nat) : Int) * p.Δ = 4 * p.Δ * ((r * p.R : Nat) : Int) + 6 * p.Δ
-    push_cast
-    ring
-  obtain ⟨i, hi, _⟩ := fgsa_tick_total E rho hs hDelta x hx (4 * (r * p.R) + 6) (hktime ▸ hh)
-  rw [hktime] at hi
-  exact ⟨i, hi⟩
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.9:1131–1144 (OpeningCovered), 22 SO-COV; plan H-GATE §3E.
@@ -83,7 +69,8 @@ theorem later_opening_covered [Fintype V] (E : Generic.Env V)
     change 4 * p.Δ * (q : Int) ≤ 4 * p.Δ * ((r * p.R : Nat) : Int) + 6 * p.Δ
     nlinarith
   intro x hx
-  obtain ⟨i, ht⟩ := opening_action_tick E rho hS hrec.base.delta hx r hvh
+  have hawake := hrec.awake x hx (p.actionTime r) (hgst.trans (hu.trans hpq)) hvh
+  obtain ⟨i, ht⟩ := opening_action_tick E rho hS hrec.base.delta hx r hvh hawake
   let nd := (fgsa p c).clock (V2.D.Run.stateBefore E rho i x) (p.actionTime r)
   have hnd : postClock E rho x (p.actionTime r) = some nd := opening_postClock_of_tick E rho hS ht
   obtain ⟨K, hsrc, hQK⟩ := later_opening_source_extends E rho hrec mono crossing writes hgst hQ
@@ -99,7 +86,6 @@ theorem later_opening_covered [Fintype V] (E : Generic.Env V)
     change (frameR p nd.st).lo ≤ _
     rw [(opening_domain_clock (c := c) (V2.D.Run.stateBefore E rho i x) (p.actionTime r)).2]
     exact hlo.trans ((fgCertificateLaws p).height.h_mono hQK)
-  have hawake := hrec.awake x hx (p.actionTime r) (hgst.trans (hu.trans hpq)) hvh
   obtain ⟨j, rSent, a, hr, hrow, hentry⟩ := rowCoverage x hx r nd hnd K hK hfull hband hawake
   exact ⟨K, nd, j, rSent, a, hnd, hK, hfull, hQfg ▸ eraseFG_preceq hQK, hr, hrow, hentry⟩
 

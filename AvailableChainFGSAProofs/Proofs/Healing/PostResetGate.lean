@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetInvariant
+public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
 public import AvailableChainFGSAProofs.Proofs.Healing.OpeningServiceGate
 
 public section
@@ -140,8 +141,13 @@ theorem healing_postReset_gate_guard_at_cut [Fintype V]
     change 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ = 4 * p.Δ * (s : Int) + 5 * p.Δ
     push_cast
     ring
+  have hawake := hrec.awake x hx (SA.voteTime p.toParams (s + 1)) (by
+    apply hgst.trans
+    change 4 * p.Δ * (s : Int) + p.Δ ≤ 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ
+    push_cast
+    linarith [p.deltaPos]) (hqd.le.trans hGateHorizon)
   obtain ⟨iq, hiq⟩ := healing_support_vote_tick E rho hS hrec.base.delta hx (s + 1)
-    (hqd.le.trans hGateHorizon)
+    (hqd.le.trans hGateHorizon) hawake
   have hqj : iq < j := repair_idx_lt E rho hS hiq ht hqd
   intro C hC lease hl
   have hresult : gateResult p c E rho x s = some (some C) := by
@@ -256,7 +262,10 @@ theorem healing_postReset_h6GateService [Fintype V]
               p.toParams.engine p.n
             (actView pre) w C)
     : H6GateService p c E rho w := by
-  intro s D hs hgst hGateHorizon hne hheads hfloor x hx
+  intro s D hs hready hGateHorizon hne hheads hfloor x hx
+  have hgst : E.t_GST ≤ SA.voteTime p.toParams s := by
+    have hlo := healing_recovery_start_lower (p := p) E
+    linarith [p.deltaPos]
   have hS := hrec.base.valid.toScheduleWellFormed
   have htime : ((4 * s + 6 : Nat) : Time) * p.Δ = SA.gateTime p.toParams s := by
     change ((4 * s + 6 : Nat) : Int) * p.Δ = 4 * p.Δ * (s : Int) + 6 * p.Δ
@@ -264,6 +273,10 @@ theorem healing_postReset_h6GateService [Fintype V]
     ring
   obtain ⟨j, ht, _⟩ := fgsa_tick_total E rho hS hrec.base.delta x hx (4 * s + 6)
     (htime ▸ hGateHorizon)
+    (htime ▸ hrec.awake x hx (SA.gateTime p.toParams s) (by
+      apply hgst.trans
+      change 4 * p.Δ * (s : Int) + p.Δ ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
+      linarith [p.deltaPos]) hGateHorizon)
   rw [htime] at ht
   let pre := clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s)
   have hidx := fgsa_tickIdx_of_event p c E rho hS ht
@@ -304,7 +317,13 @@ theorem healing_postReset_h6GateService [Fintype V]
       SA.Root.prefixSupport p.toParams ((fgsaAC E rho).gateView j x s) s D := by
     have h := opening_gate_support E rho hrec hgst hGateHorizon hcov ht hFD
     exact (congrArg (fun v => SA.Root.prefixSupport p.toParams v s D) hv) ▸ h
-  have hservice := fgsa_gate_of_coveringBatch E rho hS j s x D ht ⟨C, hraw, hDC⟩
+  have hcut : E.t_GST ≤ slotStartZ p (s : Int) := by
+    have hlo := healing_recovery_start_lower (p := p) E
+    change recoveryStart p E ≤ 4 * p.Δ * (s : Int) + p.Δ at hready
+    change E.t_GST ≤ 4 * p.Δ * (s : Int)
+    linarith [p.deltaPos]
+  have hEnabled := healing_gate_enabled_of_recovery hrec hx ht hGateHorizon hcut
+  have hservice := fgsa_gate_of_coveringBatch E rho hS j s x D ht hEnabled ⟨C, hraw, hDC⟩
     (healing_postReset_gate_guard E rho hrec w i hcomplete hrawTransfer writes
       hs hGateHorizon hx ht) hne hmemw hsupport (opening_gate_level E rho j x s D hsupport)
   have hservice' := hservice

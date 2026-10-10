@@ -281,6 +281,7 @@ theorem postReset_moving_domain
   have hhor := (hs.in_horizon _ (List.mem_of_getElem? hiy)).2
   obtain ⟨jy, hjy⟩ := healing_support_vote_tick E rho hs hrec.base.delta hy l
     (hvl.trans (hafter.le.trans hhor))
+    (hrec.awake y hy _ hgst (hvl.trans (hafter.le.trans hhor)))
   have hhead : headAtLabel p c E rho y l = some (headAtIdx p c E rho jy l) := by
     delta headAtLabel
     rw [postClock_def, preTick_def, fgsa_tickIdx_of_event p c E rho hs hjy]

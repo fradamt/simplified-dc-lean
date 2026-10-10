@@ -1,5 +1,6 @@
-# P-ShA round 6; all owned targets GREEN; legacy Regimes inputs explicit.
+# P-ShA round 7; all owned targets GREEN; legacy Regimes inputs explicit.
 [TARGETS]
+AvailableChainFGSAProofs.Proofs.Shared.AnchorService
 AvailableChainFGSAProofs.Proofs.Shared.RegimesService
 AvailableChainFGSAProofs.Tests.RestartEpochs
 AvailableChainFGSAClaims.Tests.Reads
@@ -67,6 +68,7 @@ AvailableChainFGSAProofs.Tests.RetainedScores
 AvailableChainFGSAProofs.Tests.RetainedWalk
 AvailableChainFGSAProofs.Tests.SharedAxioms
 [GREEN]
+AvailableChainFGSAProofs.Proofs.Shared.AnchorService
 AvailableChainFGSAProofs.Proofs.Shared.Regimes
 AvailableChainFGSAProofs.Proofs.Shared.RegimesService
 AvailableChainFGSAProofs.Proofs.Shared.HeadAdmit

@@ -2,6 +2,7 @@ module
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetConeFrame -- shake: keep frame port
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetJoint2 -- shake: keep J6
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetConePool
+public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
 
 public section
 
@@ -175,7 +176,8 @@ theorem postReset_coneInput_at_cut (i : Nat)
       hsucc.symm ▸ hip
     have hf' : (controls p (clock p (storeAt p c E rho ip x)
         (SA.proposalTime p.toParams (s - 1 + 1)))).lo ≤ (heightView p D).h := hsucc.symm ▸ hfloor
-    have h := postReset_priorSupport_at_cut E rho hrec xing mono hHeadHorizon hGST
+    have hjoinCut := healing_reset_vote_cutoff h0r (by omega : w.sStar + 1 ≤ s - 1)
+    have h := postReset_priorSupport_at_cut E rho hrec xing mono hHeadHorizon hGST hjoinCut
       hL hx hip' (by rw [hsucc]; exact hpv) hZHeads D hDHeads hf'
     change RetainedPriorSupport p (clock p (storeAt p c E rho ip x)
       (SA.proposalTime p.toParams (s - 1 + 1))) (s - 1 + 1) L at h
@@ -211,7 +213,8 @@ theorem postReset_coneInput_at_cut (i : Nat)
       exact block_preceq_trans hF (Bool.and_eq_true_iff.mp hstrict).2
     have hih' : rho.events[ih]? = some (.tick y (SA.voteTime p.toParams (s - 1 + 1))) :=
       hsucc.symm ▸ hih
-    have h := postReset_targetScores_at_cut E rho hrec xing mono hHeadHorizon hGST
+    have hjoinCut := healing_reset_vote_cutoff h0r (by omega : w.sStar + 1 ≤ s - 1)
+    have h := postReset_targetScores_at_cut E rho hrec xing mono hHeadHorizon hGST hjoinCut
       hcover hy hih' (by rw [hsucc]) hFL
     simpa only [hsucc] using h
 

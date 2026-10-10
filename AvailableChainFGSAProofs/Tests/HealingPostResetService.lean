@@ -142,7 +142,7 @@ example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
 example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
     (w : HealingWitness)
     (hrawTransfer : PostResetRawTransfer p c E rho w (rho.events.length + 1))
-    (D : Block) (hgst : E.t_GST ≤ SA.voteTime p.toParams w.sStar)
+    (D : Block) (hgst : recoveryStart p E ≤ SA.voteTime p.toParams w.sStar)
     (hGateHorizon : SA.gateTime p.toParams w.sStar ≤ rho.horizon) (hne : D ≠ .genesis)
     (hheads : ∀ x ∈ rho.honest, ∃ H,
       headAtLabel p c E rho x w.sStar = some H ∧ Block.Preceq D H)

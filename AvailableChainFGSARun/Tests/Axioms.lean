@@ -33,6 +33,7 @@ public import AvailableChainFGSARun.Proofs.RowHistory -- shake: keep (#print axi
 public import AvailableChainFGSARun.Proofs.Schedule
 public import AvailableChainFGSARun.Proofs.AC
 public import AvailableChainFGSARun.Proofs.Receipts
+public import AvailableChainFGSARun.Proofs.Spec.Simulation -- shake: keep (#print axioms)
 
 /-! Kernel dependency audit of the FG-SA run library (plan
 `docs/plans/2026-09-29-fgsa-composition-t7-t1.md`, T7.1): one `#print axioms`
@@ -49,8 +50,8 @@ mechanically. -/
 #print axioms AvailableChain.FGSA.Run.propLabel_injective
 #print axioms AvailableChain.FGSA.Run.fgsaClock
 #print axioms AvailableChain.FGSA.Run.fgsa_monoAlong_preceq_F
-#print axioms AvailableChain.FGSA.Run.fgsa_restore_now_retained
-#print axioms AvailableChain.FGSA.Run.fgsa_hrestore_now_retained
+#print axioms AvailableChain.FGSA.Run.fgsa_restore_now
+#print axioms AvailableChain.FGSA.Run.fgsaRestoreTimeLaw
 #print axioms AvailableChain.FGSA.Run.fgsa_hrestore_retained
 #print axioms AvailableChain.FGSA.Run.fgsa_hrestore_field_retained
 
@@ -66,7 +67,7 @@ mechanically. -/
 #print axioms AvailableChain.FGSA.Run.fgsaIso
 
 -- Proofs/Protocol.lean (T7.2)
-#print axioms AvailableChain.FGSA.Run.restore_st_retained
+#print axioms AvailableChain.FGSA.Run.restore_st
 #print axioms AvailableChain.FGSA.Run.restore_rec
 #print axioms AvailableChain.FGSA.Run.clock_rec
 #print axioms AvailableChain.FGSA.Run.process_rec
