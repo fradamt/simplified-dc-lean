@@ -1,4 +1,6 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Outage.ScopedClose
+public import AvailableChainFGSAProofs.Proofs.Outage.ScopedEarly
 public import AvailableChainFGSAProofs.Proofs.Outage.RestoredReceipt
 public import AvailableChainFGSAProofs.Proofs.Outage.GrowthConsumer
 public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationPaths
@@ -330,3 +332,23 @@ public import AvailableChainFGSAProofs.Proofs.Outage.ScopedBridge
 #print axioms AvailableChain.FGSA.Run.outage_continuation_event_state
 #print axioms AvailableChain.FGSA.Run.outage_covered_public_read_after_seed
 #print axioms AvailableChain.FGSA.Run.outage_caught_up_gate_result_history
+
+#print axioms AvailableChain.FGSA.Run.outage_early_event_state
+#print axioms AvailableChain.FGSA.Run.outage_early_finalized_read
+#print axioms AvailableChain.FGSA.Run.outage_early_public_read
+#print axioms AvailableChain.FGSA.Run.outage_early_head_reader_covered
+#print axioms AvailableChain.FGSA.Run.outage_early_scoped_head
+#print axioms AvailableChain.FGSA.Run.outage_early_scoped_duties
+
+#print axioms AvailableChain.FGSA.Run.outage_gateStep_stable_compatible
+#print axioms AvailableChain.FGSA.Run.outage_stable_compatible_suffix
+#print axioms AvailableChain.FGSA.Run.outage_caught_up_public_read_from_seed
+
+#print axioms AvailableChain.FGSA.Run.outage_confirmed_reader_before_restore
+#print axioms AvailableChain.FGSA.Run.outage_joined_provenance
+#print axioms AvailableChain.FGSA.Run.outage_protected_initial_lift
+#print axioms AvailableChain.FGSA.Run.outage_empty_covered_certificate
+#print axioms AvailableChain.FGSA.Run.outage_protected_scoped
+
+#print axioms AvailableChain.FGSA.Run.outage_continuation_public_reads
+#print axioms AvailableChain.FGSA.Run.outage_continuation_public_heads_and_finality
