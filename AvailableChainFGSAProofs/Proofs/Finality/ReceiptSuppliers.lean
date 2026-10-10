@@ -493,5 +493,31 @@ theorem finality_full_vote_at_scoped_read {G ΔF : Time}
   finality_full_vote_of_receipts E rho s nd
     ((finality_scoped_vote_receipts h).receipt s x t nd hx hcut hfreeze hhor hnd)
 
+/-- Recovery supplies both public TVote read shapes with their GST cutoffs. -/
+theorem finality_vote_receipts {G ΔF : Time}
+    (h : Recovery₂ p c E rho G ΔF) : FinalityVoteReceipts E rho := by
+  constructor
+  · intro v nd hv hcut hSync hnd y a hy hem hl
+    obtain ⟨dl, cut, _, _, _, _, _, _, hhor⟩ := hSync
+    have hfreeze : SA.earlyTime p.toParams (v - 1) ≤ SA.proposalTime p.toParams v := by
+      have hv0 : 0 < v := hv.1
+      have hvcast : ((v - 1 : Nat) : Int) + 1 = (v : Int) := by
+        rw [Nat.cast_sub (Nat.succ_le_of_lt hv0)]
+        simp
+      change 4 * p.Δ * ((v - 1 : Nat) : Int) + 2 * p.Δ ≤ 4 * p.Δ * (v : Int)
+      nlinarith [p.deltaPos]
+    exact (List.mem_filter.mp ((finality_full_vote_at_scoped_read h hv.2 hcut
+      hfreeze hhor hnd) y a hy hem hl).1).1
+  · intro r x nd hx hcut hSync hnd y a hy hem hl
+    obtain ⟨dl, cut, _, _, _, _, _, _, hhor⟩ := hSync
+    have hfreeze : SA.earlyTime p.toParams (r * p.R + 1) ≤ p.actionTime r := by
+      change 4 * p.Δ * ((r * p.R + 1 : Nat) : Int) + 2 * p.Δ ≤
+        4 * p.Δ * ((r * p.R : Nat) : Int) + 6 * p.Δ
+      push_cast
+      ring_nf
+      exact le_rfl
+    exact (List.mem_filter.mp ((finality_full_vote_at_scoped_read h hx hcut
+      hfreeze hhor hnd) y a hy hem hl).1).1
+
 end AvailableChain.FGSA.Run
 end

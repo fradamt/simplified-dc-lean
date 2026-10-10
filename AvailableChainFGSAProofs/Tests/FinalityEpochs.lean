@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Finality.CoreServices
+public import AvailableChainFGSAProofs.Proofs.Finality.ReceiptSuppliers
 public import AvailableChainFGSAProofs.Proofs.Shared.CatchUp
 public import Mathlib.Tactic.IntervalCases
 public import Mathlib.Tactic.FinCases
@@ -281,9 +281,27 @@ theorem short_sync : Gen.V2.Duty.LabelSyncOn shortEnv shortRun
   · intro a
     exact (le_max_left a 2).trans_lt (lt_add_of_pos_right _ (by decide))
 
+/-- Legacy unscoped TVote, retained only for the pre-cutoff regression. -/
+def LegacyTVote : Prop :=
+  (∀ v st, Gen.V2.Duty.HonestSlot shortRun (fgsaInterface q unitCodec) v →
+    Gen.V2.Duty.LabelSyncOn shortEnv shortRun (fun o => ¬ isRowObject o)
+      (SA.voteTime q.toParams (v - 1))
+      (SA.proposalTime q.toParams v) →
+    proposalStateAt q unitCodec shortEnv shortRun v = some st →
+    FullVoteService q unitCodec shortEnv shortRun st (v - 1)) ∧
+  (∀ r x nd, x ∈ shortRun.honest →
+    Gen.V2.Duty.LabelSyncOn shortEnv shortRun
+      (fun o => ¬ isRowObject o) (SA.voteTime q.toParams (r * q.R + 1)) (q.actionTime r) →
+    postClock shortEnv shortRun x (q.actionTime r) = some nd →
+    FullVoteService q unitCodec shortEnv shortRun nd.st (r * q.R + 1)) ∧
+  (∀ y s (a : HeadWire q.n), y ∈ shortRun.honest →
+    V2.D.Run.emits shortEnv shortRun y (ofHead q a) (SA.voteTime q.toParams s) →
+    ∃ nd H, postClock shortEnv shortRun y (SA.voteTime q.toParams s) = some nd ∧
+      H ∈ nd.st.base.blocks ∧ H.root = a.payload)
+
 /-- Base₂ and label synchrony do not supply an unjoined proposer's current vote pool. -/
 theorem base_not_tVote : Base₂ q unitCodec shortEnv shortRun ∧
-    ¬ TVote q unitCodec shortEnv shortRun := by
+    ¬ LegacyTVote := by
   refine ⟨short_base, ?_⟩
   intro h
   let st := ((fgsa q unitCodec).clock (V2.D.Run.stateBefore shortEnv shortRun 3 0) 8).st
@@ -302,11 +320,6 @@ theorem base_not_tVote : Base₂ q unitCodec shortEnv shortRun ∧
   rw [hp] at hv
   exact List.not_mem_nil hv
 
-
-/-- The exact public read-shape supplier still fails at the unjoined proposal read. -/
-theorem base_not_vote_receipts : ¬ FinalityVoteReceipts shortEnv shortRun := by
-  intro h
-  exact base_not_tVote.2 (fgsa_tVote shortEnv shortRun short_base h)
 
 theorem short_recovery : Recovery₂ q unitCodec shortEnv shortRun 8 2 := by
   refine {
@@ -345,15 +358,13 @@ theorem short_recovery : Recovery₂ q unitCodec shortEnv shortRun 8 2 := by
     right
     exact ht
 
-/-- Recovery alone cannot produce the compatibility supplier, even at exact read shapes. -/
-theorem recovery_not_vote_receipts :
-    Recovery₂ q unitCodec shortEnv shortRun 8 2 ∧
-      ¬ FinalityVoteReceipts shortEnv shortRun := by
-  refine ⟨short_recovery, ?_⟩
-  intro h
-  have hv := fgsa_tVote shortEnv shortRun short_base h
-  exact base_not_tVote.2 hv
+/-- Recovery supplies the amended receipt record. -/
+theorem recovery_vote_receipts : FinalityVoteReceipts shortEnv shortRun :=
+  finality_vote_receipts short_recovery
 
+/-- Recovery supplies the amended public TVote. -/
+theorem recovery_tVote : TVote q unitCodec shortEnv shortRun :=
+  fgsa_tVote shortEnv shortRun short_base recovery_vote_receipts
 
 /-- The same run has the public Recovery sleep guards; its joined suffix is beyond horizon. -/
 theorem short_recovery_sleep : RecoverySleep₂ q unitCodec shortEnv shortRun 8 2 := by
@@ -370,11 +381,10 @@ theorem short_recovery_sleep : RecoverySleep₂ q unitCodec shortEnv shortRun 8 
     dsimp [Time] at *
     omega
 
-/-- The adapter's exact read shapes still exceed the permitted Recovery sleep scope. -/
-theorem recovery_sleep_not_vote_receipts :
-    RecoverySleep₂ q unitCodec shortEnv shortRun 8 2 ∧
-      ¬ FinalityVoteReceipts shortEnv shortRun :=
-  ⟨short_recovery_sleep, base_not_vote_receipts⟩
+/-- Sleep Recovery and the amended public service hold in the same short run. -/
+theorem recovery_sleep_tVote :
+    RecoverySleep₂ q unitCodec shortEnv shortRun 8 2 ∧ TVote q unitCodec shortEnv shortRun :=
+  ⟨short_recovery_sleep, recovery_tVote⟩
 
 end AvailableChain.FGSA.Run.Tests.FinalityEpochs
 
@@ -391,9 +401,9 @@ end AvailableChain.FGSA.Run.Tests.FinalityEpochs
 
 #print axioms AvailableChain.FGSA.Run.Tests.FinalityEpochs.short_scope_genesis
 
-#print axioms AvailableChain.FGSA.Run.Tests.FinalityEpochs.base_not_vote_receipts
+#print axioms AvailableChain.FGSA.Run.Tests.FinalityEpochs.recovery_vote_receipts
 #print axioms AvailableChain.FGSA.Run.Tests.FinalityEpochs.short_recovery
-#print axioms AvailableChain.FGSA.Run.Tests.FinalityEpochs.recovery_not_vote_receipts
+#print axioms AvailableChain.FGSA.Run.Tests.FinalityEpochs.recovery_tVote
 
 #print axioms AvailableChain.FGSA.Run.Tests.FinalityEpochs.short_recovery_sleep
-#print axioms AvailableChain.FGSA.Run.Tests.FinalityEpochs.recovery_sleep_not_vote_receipts
+#print axioms AvailableChain.FGSA.Run.Tests.FinalityEpochs.recovery_sleep_tVote

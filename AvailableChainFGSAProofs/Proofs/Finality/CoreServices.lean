@@ -208,9 +208,10 @@ theorem finality_emitted_head_form (E : Generic.Env V) (rho : V2.D.Run V (fgsa p
   all_goals cases hw
 
 /-- Current receipts at the two exact read shapes required by public TVote.
-This compatibility contract still includes pre-GST and unjoined reads. -/
+Each read requires its previous-slot start to be at or after GST. -/
 structure FinalityVoteReceipts (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) : Prop where
   proposal : ∀ v nd, Gen.V2.Duty.HonestSlot rho (fgsaInterface p c) v →
+    E.t_GST ≤ slotStartZ p (((v - 1 : Slot) : Int) - 1) →
     Gen.V2.Duty.LabelSyncOn E rho (fun o => ¬ isRowObject o)
       (SA.voteTime p.toParams (v - 1)) (SA.proposalTime p.toParams v) →
     postClock E rho (V2.D.proposerOf rho (fgsaInterface p c) v)
@@ -219,6 +220,7 @@ structure FinalityVoteReceipts (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
       V2.D.Run.emits E rho y (ofHead p a) (SA.voteTime p.toParams (v - 1)) →
       GridCO.headLabel? (baseVote a) = some (v - 1) → baseVote a ∈ nd.st.base.votes
   action : ∀ r x nd, x ∈ rho.honest →
+    E.t_GST ≤ slotStartZ p (((r * p.R + 1 : Slot) : Int) - 1) →
     Gen.V2.Duty.LabelSyncOn E rho (fun o => ¬ isRowObject o)
       (SA.voteTime p.toParams (r * p.R + 1)) (p.actionTime r) →
     postClock E rho x (p.actionTime r) = some nd →
@@ -227,7 +229,7 @@ structure FinalityVoteReceipts (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
       GridCO.headLabel? (baseVote a) = some (r * p.R + 1) → baseVote a ∈ nd.st.base.votes
 
 /-- True internal receipt scope for Recovery reads after the previous-slot cutoff.
-The public TVote compatibility adapter also requests reads outside this scope. -/
+The public TVote read clauses use this scope. -/
 structure FinalityScopedVoteReceipts (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) : Prop where
   receipt : ∀ (s : Slot) (x : V) (t : Time) (nd : Node p), x ∈ rho.honest →
@@ -267,13 +269,13 @@ INTENTIONAL: FG-SA uses non-row delivery and the post-clock active view. -/
 theorem fgsa_tVote (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hb : Base₂ p c E rho) (hR : FinalityVoteReceipts E rho) : TVote p c E rho := by
   refine ⟨?_, ?_, ?_⟩
-  · intro v st hv hSync hst
+  · intro v st hv hcut hSync hst
     change (postClock E rho (V2.D.proposerOf rho (fgsaInterface p c) v)
       (SA.proposalTime p.toParams v)).map (·.st) = some st at hst
     obtain ⟨nd, hnd, rfl⟩ := Option.map_eq_some_iff.mp hst
-    exact finality_full_vote_of_receipts E rho (v - 1) nd (hR.proposal v nd hv hSync hnd)
-  · intro r x nd hx hSync hnd
-    exact finality_full_vote_of_receipts E rho (r * p.R + 1) nd (hR.action r x nd hx hSync hnd)
+    exact finality_full_vote_of_receipts E rho (v - 1) nd (hR.proposal v nd hv hcut hSync hnd)
+  · intro r x nd hx hcut hSync hnd
+    exact finality_full_vote_of_receipts E rho (r * p.R + 1) nd (hR.action r x nd hx hcut hSync hnd)
   · intro y s a hy he
     obtain ⟨k, ha⟩ := finality_emitted_head_form E rho hb.valid y s a hy he
     rw [ha] at he ⊢

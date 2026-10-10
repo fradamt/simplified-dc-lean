@@ -125,7 +125,7 @@ private theorem forward_output_le {ΔF t : Time} {w : HealingWitness} {r : Nat} 
 INTENTIONAL full FE guard and actual opening. K-JOIN is applied once; its Afg/U
 are retained with high-A, exact gate service and each inclusive output bound. -/
 theorem forward_witness_FE_of
-    (hR : FinalityVoteReceipts E rho) (hServices : FinalityActionReceipts p c E rho)
+    (hServices : FinalityActionReceipts p c E rho)
     (G ΔF : Time) (g : Nat) (w : HealingWitness)
     (hδ : p.δt = 2 * p.R) (pt : PtT)
     (h : FinalityLivenessPrem_W p c G ΔF .recFE g w E rho pt)
@@ -183,7 +183,8 @@ theorem forward_witness_FE_of
   have hK : KernelPrem_W p c G ΔF E rho kpt := {
     set := h.set.core.toRecovery₂, bound := h.set.bound, window := hgood
     start := h.start.trans htr, hhor := hhor, input := h.input
-    services := fgsa_coreServices E rho h.set.core.base w hR }
+    services := fgsa_coreServices E rho h.set.core.base w
+      (finality_vote_receipts h.set.core.toRecovery₂) }
   have hs := h.set.core.base.valid.toScheduleWellFormed
   obtain ⟨A, hA⟩ := kmid_window_proposal hK hgood.1 le_rfl
     (Nat.mul_le_mul_right _ (by omega : r ≤ r + 2))
@@ -191,7 +192,7 @@ theorem forward_witness_FE_of
     set := h.set.core.toRecovery₂, bound := h.set.bound, window := hgood
     start := ⟨w, h.input, h.start.trans htr⟩, hhor := hhor }
   obtain ⟨Afg, heA, hcA, _, U, hAU, hne, hU, hacc⟩ :=
-    finality_kernel_joined_W_of p c E rho hR hServices G ΔF hδ ⟨r⟩ hJ
+    finality_kernel_joined_W_of p c E rho hServices G ΔF hδ ⟨r⟩ hJ
       hsel horigin hBatch hQC hXing hI3 hStrat hEmittedSource hcapBefore A hA
   obtain ⟨A₀, he₀, _, hslot, _⟩ := kmid_opening_carrier p c E rho hs hA
   have hsame : A₀ = Afg := kmid_eraseFG_inj p (he₀.trans heA.symm)

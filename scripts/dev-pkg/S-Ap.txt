@@ -127,6 +127,7 @@ AvailableChainFGSARun.Tests.ReceiptAlias
 AvailableChainFGSARun.Tests.ReceiptReady
 AvailableChainFGSARun.Tests.W3Axioms
 [GREEN]
+AvailableChainFGSAProofs.Proofs.Shared.AnchorService
 AvailableChainFGSAClaims.Tests.FinalityGST
 AvailableChainEngineV2
 AvailableChainEngineV2.Conditions.Committees

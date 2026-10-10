@@ -98,7 +98,7 @@ theorem proposal_final_of_forward_W {G ΔF : Time} {g : Nat} {w : HealingWitness
 INTENTIONAL proposal-relative W deadline. The frozen forward producer is called
 once, with its named inline kernel inputs unchanged. -/
 theorem proposal_final_FE_W_of
-    (hR : FinalityVoteReceipts E rho) (hServices : FinalityActionReceipts p c E rho)
+    (hServices : FinalityActionReceipts p c E rho)
     (G ΔF : Time) (g : Nat) (w : HealingWitness)
     (hδ : p.δt = 2 * p.R) (pt : PtSX)
     (h : ProposalFinalPrem_W p c G ΔF .recFE g w E rho pt)
@@ -138,7 +138,7 @@ theorem proposal_final_FE_W_of
       ⟨V2.D.proposalTime (fgsaInterface p c) pt.s⟩ := {
     set := h.set, input := h.input, start := h.start, hhor := h.hhor }
   exact proposal_final_of_forward_W p c E rho h
-    (forward_witness_FE_of p c E rho hR hServices G ΔF g w hδ
+    (forward_witness_FE_of p c E rho hServices G ΔF g w hδ
       ⟨V2.D.proposalTime (fgsaInterface p c) pt.s⟩ hlocal
       hsel horigin hBatch hQC hXing hI3 hStrat hEmittedSource hcapBefore)
 
@@ -146,7 +146,7 @@ theorem proposal_final_FE_W_of
 INTENTIONAL F4 conversion through F4_W_implies_FE_W; the FE proof and its
 proposal-relative deadline are reused. -/
 theorem proposal_final_F4_W_of
-    (hR : FinalityVoteReceipts E rho) (hServices : FinalityActionReceipts p c E rho)
+    (hServices : FinalityActionReceipts p c E rho)
     (G ΔF : Time) (g : Nat) (w : HealingWitness)
     (hδ : p.δt = 2 * p.R) (pt : PtSX)
     (h : ProposalFinalPrem_W p c G ΔF .recF4 g w E rho pt)
@@ -187,7 +187,7 @@ theorem proposal_final_F4_W_of
       core := h.set.core, bound := h.set.bound
       recur := F4_W_implies_FE_W h.set.recur }
     input := h.input, prop := h.prop, start := h.start, hhor := h.hhor }
-  exact proposal_final_FE_W_of p c E rho hR hServices G ΔF g w hδ pt hFE
+  exact proposal_final_FE_W_of p c E rho hServices G ΔF g w hδ pt hFE
     hsel horigin hBatch hQC hXing hI3 hStrat hEmittedSource hcapBefore
 
 end AvailableChain.FGSA.Run

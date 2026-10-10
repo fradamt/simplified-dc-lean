@@ -4919,3 +4919,15 @@ writer also refreshes 28 inherited hashes from the merged base; their source
 is unchanged here. The full auxiliary Claims API still requires compiled
 other-family test and assembly modules; its generator reports missing
 Claims.Tests.OutageAlignment after the Claims audit root compiles.
+
+P-Fi Round 4 internal part: FinalityVoteReceipts has the same two GST
+cutoffs. finality_vote_receipts follows from finality_full_vote_at_scoped_read;
+FullVoteService retains both membership and its resolved-head filter.
+Joined, Forward, Local, Proposal, Above and all eight Export routes no longer
+request a vote supplier. Their Recovery data supplies the record directly.
+fgsa_kernelACSide_W proves KernelACSideClaim_W from its public premises.
+No additional kernel-side premise remains. Other Finality exports still have
+the existing genesis target API and lane supplier inputs; this change does
+not close the whole Finality package or the P-As assembly.
+The old short-run TVote failure uses an explicit LegacyTVote predicate.
+The same short Recovery run now proves the amended receipts and TVote.
