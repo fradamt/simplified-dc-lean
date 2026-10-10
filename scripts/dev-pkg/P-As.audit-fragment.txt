@@ -73,3 +73,13 @@ public import AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuationGrowthSee
 #print axioms AvailableChain.FGSA.Run.assembly_weakContinuationGrowth
 #print axioms AvailableChain.FGSA.Run.assembly_weakContinuationClaims
 #print axioms AvailableChain.FGSA.Run.fgsa_outageContinuationClaim
+
+# Round 7: ready Assembly adapters; production imports only.
+#print axioms AvailableChain.FGSA.Run.assembly_outage_clean_cut_supplier
+#print axioms AvailableChain.FGSA.Run.assembly_healing_proposal_service
+#print axioms AvailableChain.FGSA.Run.assembly_healing_tPerm_of_set
+#print axioms AvailableChain.FGSA.Run.assembly_resetArrivalFull_of_extension
+#print axioms AvailableChain.FGSA.Run.assembly_hTimeClaim_of_statement
+#print axioms AvailableChain.FGSA.Run.assembly_hTimeClaim_of_reset_input
+
+#print axioms AvailableChain.FGSA.Run.assembly_healingInputClaim_of_input

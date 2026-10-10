@@ -13,32 +13,60 @@ namespace AvailableChain.FGSA.Run
 
 variable (p : Params)
 
-/-- ROOT-DIGEST W2b. Blueprint 21:1356–1425. Named producers supply all renewed promotion ports.
-Recovery₂ supplies the execution, fault, and synchrony facts. -/
+/-- An emitted proposal has local service before the next vote in sleep recovery. -/
+theorem assembly_healing_proposal_service {In V : Type} [DecidableEq V] [Fintype V]
+    (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) {s : Slot} {ip : Nat} {x : V}
+    {N : NamedProposal p.n} (hx : x ∈ rho.honest)
+    (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
+    (hem : ofWire p ⟨.proposer s, .proposal N⟩ ∈ rho.emitsAt E ip)
+    (hSync : E.t_GST ≤ SA.proposalTime p.toParams s)
+    (hhor : SA.proposalTime p.toParams s + p.Δ ≤ rho.horizon)
+    (hCompat : Block.Compatible N.erase (eraseFG (rho.stateBeforeTime E
+      (SA.proposalTime p.toParams s + p.Δ) x).st.fg.F)) :
+    Nonempty (ReceiverService E rho (ofWire p ⟨.proposer s, .proposal N⟩)
+      (SA.proposalTime p.toParams s) (SA.proposalTime p.toParams s + p.Δ) x) := by
+  let dl := fun t => max t E.t_GST + p.Δ
+  have he : dl (SA.proposalTime p.toParams s) = SA.proposalTime p.toParams s + p.Δ := by
+    dsimp only [dl]
+    rw [max_eq_left hSync]
+  have hD := Gen.V2.Duty.deliveryWithinOn_of_partialSynchronyBy E rho hrec.sync
+    (fun o => ¬ isRowObject o) p.Δ (fun o hn => by
+      rw [fgsaDelay_nonrow E.Δ ΔF o hn, hrec.base.delta])
+  apply fgsa_proposal_service_of_emission hrec.base.valid hrec.base.delta dl rho.horizon
+    hx hip hem hD
+  · rw [he]
+    exact lt_add_of_pos_right _ p.deltaPos
+  · exact he ▸ hhor
+  · exact he ▸ hhor
+  · exact he.le
+  · intro t hat htd
+    exact hrec.awake x hx t (hSync.trans hat) (htd.le.trans (he ▸ hhor))
+  · exact healing_recovery_restartFree hrec hx hSync hhor
+  · simpa only [he] using hCompat
+
+/-- Blueprint 21:1356–1425. The sleep regime and named Foundations supply promotion.
+P-H2 owns the joined-start promotion body. P-H1 owns the proved permanence producer. -/
 theorem fgsa_renewedPromotionClaim : RenewedPromotionClaim p := by
-  exact healing_renewedPromotionClaim_of p
-    (hmono := fun c E rho => fgsa_rMono p c E rho)
-    (hcrossing := by
-      intro V _ _ In c E rho G ΔF hrec
-      exact fgsa_rXing (hroots := hrec.base.idealization) p c E rho hrec.base.linked
-        (fgsa_faultX_count_rec p hrec.fault) hrec.base.valid.toUnforgeableSignatures)
-    (hperm := by
-      intro V _ _ In c E rho G ΔF hrec
-      exact healing_tPerm E rho hrec (fgsa_rMono p c E rho)
-        (fgsa_rXing (hroots := hrec.base.idealization) p c E rho hrec.base.linked
-          (fgsa_faultX_count_rec p hrec.fault) hrec.base.valid.toUnforgeableSignatures)
-        (fgsa_leaseOrigins_lastWrite p c E rho hrec.base.valid.toScheduleWellFormed))
-    (hrowsReceipt := by
-      intro V _ _ In c E rho G ΔF hrec
-      exact (fgsa_tRows_recovery p c E rho hrec).receipt)
-    (hprogressCoverage := fun ΔF => fgsa_batchCoverage p ΔF .progress)
-    (hfold := fgsa_foldTrichotomy_progress p)
-    (hfaultQ := by
-      intro V _ _ In c E rho G ΔF hrec
-      exact fgsa_faultQ_of_count p hrec.fault)
-    (hhonestQuorum := by
-      intro V _ _ In c E rho G ΔF hrec
-      exact kmid_honest_quorum p c rho hrec.base.linked hrec.fault)
+  intro G ΔF hδ V _ _ In c E rho pt h
+  have hrec := h.set
+  have mono := fgsa_rMonoAll p c E rho
+  have crossing := fgsa_rXing (hroots := hrec.base.idealization) p c E rho hrec.base.linked
+    (fgsa_faultX_count_rec p hrec.fault) hrec.base.valid.toUnforgeableSignatures
+  have perm := healing_tPerm_recovery E rho hrec mono crossing
+    (fgsa_leaseOrigins_lastWrite p c E rho hrec.base.valid.toScheduleWellFormed)
+  have services := fun (s : Slot) (ip : Nat) (x : V) (N : NamedProposal p.n)
+      hx hip hem hSync hhor hCompat =>
+    assembly_healing_proposal_service p c E rho hrec (s := s) (ip := ip) (x := x) (N := N)
+      hx hip hem hSync hhor hCompat
+  intro u m J contested l q Q height hstart hphase hu hq hl hQ hservice hentry hcovered hrepair
+  exact healing_renewedPromotion E rho hrec services hδ h.bound mono crossing perm
+    (fgsa_tRows_recovery p c E rho hrec.toRecovery₂).receipt
+    (fgsa_batchCoverage p ΔF .progress c E rho) (fgsa_foldTrichotomy_progress p)
+    (fgsa_faultQ_of_count p hrec.fault)
+    (kmid_honest_quorum p c rho hrec.base.linked hrec.fault) pt.r h.hhor
+    u m J contested l q Q height (healing_recoveryStart_ge p E |>.trans hstart)
+    hphase hu hq hl hQ hservice hentry hcovered hrepair
 
 /-- Blueprint 21:1120–1137 and SO-COV. The local producer supplies complete
 row coverage at the current action or an earlier action. -/

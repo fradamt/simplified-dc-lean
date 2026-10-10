@@ -1,3 +1,43 @@
+# Round 7 status supplement
+
+Base: da788502; branch sleep-pas7. Full P-As remains PREPARED; full Root is OPEN.
+51/68 targets are GREEN. The complete remaining register and exact requests are
+P-As.remaining.md and P-As.blocker-types.md; they replace the old requests below.
+
+Outage Assembly is GREEN. Root uses the exact P-Ou Round 15 exporter call and
+assembly_outage_clean_cut_supplier. OutageCompat and its two P1 projections use
+the current public suppliers. No W-seed or old hstore/hnamed argument remains.
+Tests/OutageExport proves the actual Assembly claim and amended companion call.
+Tests/OutageContinuationAxioms and P-H1's NonVacuity/HealingRun are GREEN.
+Root's finalizedMonotone field now uses the existing restart-safe producer.
+
+Healing Assembly uses RecoverySleep₂, RMonoAll and the closed P-H1
+healing_tPerm_recovery. The local emitted-proposal service is proved.
+Healing.Export must expose RecoveryPerm through the permitted lane boundary.
+P-H2 must finish the Jst promotion body, HG.5, selected full-H0 extension and input,
+and current post-reset induction APIs. Eleven exact ready Assembly bodies pass.
+The old mixed all-cut chains remain unvalidated through P-H2 imports; the checked
+new conditional adapters do not close them. No service record or NoRestart is assumed.
+
+Seven exact Root bodies pass, including fgsaClaims_of_open and fgsaClaims_of_hTime.
+The actual Root module and Root-importing tests still fail in P-H2 source modules.
+After P-H2 returns, P-As wires the named producers, ports the new explicit HG.5
+argument through actual test callers, and repairs the deferred positive fixtures.
+The unconditional Root endpoints are not accepted by an extracted body check.
+
+The P-Ou audit/coverage fragment is installed under the existing Tests.Axioms key.
+The canonical audit imports production modules only. Its continuation Export is
+reached through Assembly/Outage, so no new EXPORT-USE allowance is needed.
+The independent full P-Ou serial fragment passes all 335 strict commands.
+DCK PASS: 51 strict sources, 4,444 results, 24 controls. Exports: 547 proof modules,
+253 exports, zero unaccepted; Gen zero. Layers: 72 inherited, zero new. Headers PASS.
+Full manifest: FG-SA shallow/deep PASS; script FAILS at inherited KitFG.pins label metadata.
+Separate V2/Gen/Compose PASS. Separate Claims is EXPECTED-FAIL on P-H2 Promotion.olean.
+Snapshot controls were not reached; DCK's 24 controls PASS. No snapshot changes.
+Exact logs and the label-only diagnostic are in .lake/sleep-pas-r7/ and the Round 7 report.
+Public Claims/Statements, Healing/*, Outage/* and protocol sources are unchanged.
+No snapshot baseline, checker or allowance changes. No merge or push.
+
 # Round 5 status supplement
 
 Base: 7a30ce82; branch sleep-pas5. P-As remains OPEN; healing remains OUT OF SCOPE.

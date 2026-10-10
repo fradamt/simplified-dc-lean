@@ -1166,3 +1166,23 @@ Tests/HealingReplayObligations names the exact remaining full-run existential
 goals, including same-prefix extensions to horizons 2070 and 2080. Those goals
 remain OPEN/P-H1. NonVacuity/HealingRun applies both local adapters to the actual
 positive horizon-310 RecoverySleep₂ execution with produced P5 services.
+
+P-As Round 7 Assembly boundary (sleep-pas7):
+Assembly/Outage constructs assembly_outage_clean_cut_supplier from the finite
+healthy sleep prefix and named Foundation and Clean producers. Root uses the
+amended unconditional P-Ou exporter with that supplier. The fast and slow claims
+use the current OutageCompat projections. Root's finalizedMonotone field uses
+fgsa_finalizedMonotonicityRestartClaim, including retained-store restarts.
+
+Assembly/Healing uses RecoverySleep₂, RMonoAll and healing_tPerm_recovery.
+Its local proposal service keeps the actual emission, GST anchor, finite deadline,
+receiver history and restart epoch. Healing.Export must expose RecoveryPerm; P-H2
+must finish the joined-start promotion body and its complete lane export.
+Assembly/ResetArrival keeps HG.5 as an explicit result for the bounded healing run.
+The full-H0 extension changes only u and QStar, so the strict reset bound stays at
+recoveryStart. H-time composition uses that same witness and the Jst horizon.
+P-H2 still owns HG.5, the selected full-H0 extension, local HealingInput and the
+post-reset induction. The checked conditional adapters are consumers of these
+exact inputs. They do not close their producers. Full Root acceptance stays open.
+The canonical P-Ou audit fragment uses production imports only. No public Claims
+or Statements definition, protocol declaration, or family source changes here.
