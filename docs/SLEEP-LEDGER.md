@@ -2342,3 +2342,125 @@ The package remains PREPARED. CLOSED requires the S-Ap claim transfer and
 P-ShA closure. Archived P-ShA round 4 (8384eb34) is NOT CLOSED: Shared.Export,
 Shared.Regimes and Tests.RetainedConsumers remain open. That supplier commit
 is not installed here; this branch keeps its base classifications and interfaces.
+
+## P-Fi prepared core — sleep-pfi at base 1c777e97
+
+The P-Fi prepared set is in scripts/dev-pkg/P-Fi.txt. It has 473 GREEN modules
+and 36 EXPECTED-FAIL modules. No package closure or full gate pass is claimed.
+DCK PASS: --wfail, strict audits, and default negative controls (317.69 s).
+Complete compiled exports: 104 proof modules, 251 exports, 0 unaccepted (15.16 s).
+Layers: 72 accepted findings, 0 new. No heartbeat or baseline value changed.
+
+- P-Fi / P9 / D045-D047, D051: Claims/Finality uses recoveryStart in first/GST
+  deadlines, RecoverySleep₂ for KernelACSideClaim_W, and confirmedReader for
+  record growth. These are the approved packet replacements, not new meanings.
+  Strict checks are at the end of the owning claim module; no foreign audit
+  import or new coverage key is needed.
+- P-Fi / durable finality: Finality/RestoreReads proves strict-before acceptance
+  from an index witness, deadline monotonicity, and ancestor monotonicity through
+  restore. Finality/Accept uses the new index bridge. Consumer: fgsa_acceptBefore_W
+  and fgsa_finalizePending_W. F remains durable; no global NoRestart is inferred.
+- P-Fi / exact receiver scope: Finality/RecoveryScope bounds honest restarts by
+  GST, derives restartFree on the specified event-index interval, and supplies
+  joinedAt only when GST is below the inclusive join cutoff. Consumers: later
+  Finality middle, tail, proposal, and receipt ports. These internal suppliers
+  preserve all receiver, label, time, and horizon conditions.
+
+P-ShA open imports: Shared/HeadAdmit and Shared/Regimes prevent validation of
+Finality rows/frame/receipt consumers. Do not replace their interfaces locally.
+P-Fi still owns the CoreServices, Rows, MiddleSupport, and later family ports.
+S-Ap/Run audit inputs retain the map owners from the P-ShA handoff. The package
+report carries the audit inventory and root-import fragments for lead integration.
+
+
+## P-Fi second prepared group — exact current services and joined reads
+
+The P-Fi map now has 43 TARGETS, 480 GREEN, and 31 EXPECTED-FAIL modules.
+Frozen DCK PASS (170.53 s), default controls; 41 complete audit commands pass.
+Compiled exports: 143 proof modules, 251 exports, 0 unaccepted (10.48 s).
+Layers remain 72 accepted findings and 0 new. CLOSED is not claimed.
+
+Internal false statement: fgsa_tVote previously took Base₂ alone and returned TVote.
+The kernel-checked Tests/FinalityEpochs.base_not_tVote proves Base₂ and not TVote:
+Δ=2, n=1, R=2, δt=4, events tick(0), tick(2), restart(7), tick(8).
+The honest node sleeps on [3,7), emits HEAD-0 at 2, and has an unjoined proposal
+read at 8. The vote pool is empty. LabelSyncOn uses dl(a)=max(a,2)+2 and cut=8;
+its receiver-link premises are false on every demanded window. Receipt root scope
+is only named genesis. This is a Base₂ counterexample, not a full counterexample
+to KernelACSideClaim_W with RecoverySleep₂ and HealingInput.
+
+Exact internal replacement: FinalityVoteReceipts records the current raw vote
+membership at each exact batch and post-clock read. core_full_vote, fgsa_tVote,
+and fgsa_coreServices require it and keep the full service conclusions. The
+resolved-head filter is proved from those receipts. Consumers: Finality/Joined,
+Finality/Export and Finality/Forward (Forward.lean:156 builds CoreServices without the
+new receipt argument; lead note from rev-pfi-astra finding 1). Their supplier obligation remains open; do not infer it from
+historical processing or from Base₂. No public claim was weakened or redefined.
+
+JOINED-VOTER ports: kmid_honest_proposal_exists and kmid_head_held take joinedAt
+for the exact proposer/voter, label, and time. kmid_source_of_exact takes the
+confirmed gate reader. kmid_window_proposal derives its joined proposer from
+Recovery₂, the full witness bounds, and the inclusive cutoff. The current HEAD
+chain and held-target suppliers use that exact read and durable TF, not global
+NoRestart. TickRead proves read equality from no restart at that same node/time;
+the joined HEAD guard supplies this exclusion. Consumers: Middle, Kernel,
+TailOpening, TailMixed, RowsPrem, and TailFrame; their call ports stay P-Fi-owned.
+
+Finality/action source uses recoveryStart, joined HEAD readers, and the exact
+confirmed gate reader. The full source/height/entry conclusion is unchanged.
+The row-action proof now handles the joined branches of HEAD and proposal duties.
+The other valid fixture proves a fresh honest HEAD can be processed, then erased
+at restart while its receiver is awake. It does not use old processed history as
+safe history. Both fixture validity proofs and all changed declarations have
+strict checks with only propext, Classical.choice, and Quot.sound.
+
+Serial audit fragment: claude-files/sleep-pfi-audit-fragment.txt. Add production
+commands to the existing Proofs.Tests.Axioms key at integration; keep fixture
+checks in their own module. Do not create an S1 key or import a test into a test.
+
+
+## P-Fi final prepared handoff — receipt core
+
+P-Fi remains PREPARED, not CLOSED. The final map has 43 TARGETS, 482 GREEN,
+and 29 EXPECTED-FAIL modules: 23 P-Fi, 3 P-ShA, 3 S-Ap. All remaining P-Fi
+import closures reach Shared/HeadAdmit or Shared/Regimes. No supplier file was
+changed. The new current-scope caller obligations remain P-Fi-owned.
+
+Final DCK PASS with --wfail, 39 strict audit sources, 2,866 commands, and
+24 default controls (747.67 s, including global throttle waits). Complete
+compiled exports: 152 proof modules, 251 exports, 0 unaccepted; 56 complete
+coverage commands (63.68 s). Layers: 72 accepted, 0 new (0.50 s).
+Receipt and TailReceipt build with --wfail (16.39 s). Default resource values
+and all allow/baseline entries are unchanged.
+
+Receipt/receipt_ready_of_delivery uses delivery_now_ge_public_atRestart and
+the exported clock equation. It proves admission from the checked delivery,
+public action time, dependency, freshness, parent, row, and finality facts.
+No handler event is treated as acceptance by itself, and no public-wake
+premise or global NoRestart is added.
+
+Receipt/receipt_delivery consumes P23-A: the processed-root alternative gives
+NamedProposalInRun through emitted_proposal_history_in_scope and the receipt
+idealization. Scoped fresh emission excludes prior processing at the action
+cut, so the demand supplies an actual handler strictly before the deadline.
+The receiver's named awake suffix supplies its link window. Both F comparisons
+use durable restore preservation. All receipt conclusion types are unchanged.
+Consumers: receipt_acceptPrem_W and TailReceipt's four compiled suppliers.
+The inherited receipt_stored_block already consumes the retained-content
+stored_proposal_delivered interface; its durable historical origin was kept.
+
+The lead receives 17 new production audit inventory entries in
+claude-files/sleep-pfi-audit-fragment.txt for the existing Proofs.Tests.Axioms
+key. Fixture checks stay in their own test file and package targets. No new
+S1 key or test-to-test import is needed. Final report and declaration census:
+claude-files/sleep-pfi-report.md; claude-files/sleep-pfi-declarations.txt.
+No new public-meaning STOP was established. The Base₂-only TVote STOP and
+exact current-receipt replacement remain recorded in the preceding P-Fi block.
+
+### Lead notes after the P-Fi review (2026-10-10)
+- scripts/dev-pkg/P-Fi.txt keeps AvailableChainFGSARun.Proofs.ReceiptCoverage as EXPECTED-FAIL, but that module
+  now compiles as a retired import path over ReceiptCoverageReady (rev-pfi-astra finding 2; P-ShA round 4 map has
+  it GREEN). The entry is stale, not an open proof. Reclassify it at the next P-Fi/S-Ap map refresh.
+- docs/ARCHITECTURE.md:629 still describes the old restart model (keep last tick, ignore restart time). One docs
+  pass updates ARCHITECTURE.md and MAP.md after the P-ShA supplier surface is final (rev-psha3 finding 8,
+  rev-pfi-astra finding 3): RecoveryScope, RestoreReads, TickRead, CatchUp, CoreServices, joined middle reads.

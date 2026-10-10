@@ -1,6 +1,8 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Shared.FGCompose
 public import AvailableChainFGCompose.Proofs.SourceHead
+public import AvailableChainFGSAProofs.Proofs.Finality.RecoveryScope
+public import AvailableChainFGSAProofs.Proofs.Finality.TickRead
 public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowthProposal
 public import AvailableChainFGSAProofs.Proofs.Shared.ProposalRead
 public import AvailableChainFGSAProofs.Proofs.Shared.BoundsW
@@ -72,16 +74,17 @@ variable (p : Params) {In V : Type} [DecidableEq V]
     (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
-ROOT-DIGEST W2b. FINAL 22:1171–1180. An awake honest proposer at a positive slot emits its
+ROOT-DIGEST W2b. FINAL 22:1171–1180. A joined honest proposer at a positive slot emits its
 block.
 DC: INTENTIONAL: the FG-SA proposer duty always builds a block at a positive slot. -/
 theorem kmid_honest_proposal_exists (hs : V2.D.ScheduleWellFormed E rho) (hΔ : E.Δ = p.Δ)
     (s : Slot) (hslot : Gen.V2.Duty.HonestSlot rho (fgsaInterface p c) s)
-    (hawake : E.awake (V2.D.proposerOf rho (fgsaInterface p c) s)
-      (SA.proposalTime p.toParams s) = true)
+    (hjoined : joinedAt p E rho (V2.D.proposerOf rho (fgsaInterface p c) s) s
+      (SA.proposalTime p.toParams s))
     (hh : SA.proposalTime p.toParams s ≤ rho.horizon) :
     ∃ b, HonestProposal E rho (fgsaInterface p c) s b := by
-  obtain ⟨B, hB, _⟩ := fgsa_honestProposal_exists_of_awake_slot E rho hs hΔ hslot hawake hh
+  obtain ⟨B, hB, _⟩ := fgsa_honestProposal_exists_of_awake_slot E rho hs hΔ hslot
+    hjoined.1 hjoined.2.2 hh
   exact ⟨B, hB⟩
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -173,9 +176,12 @@ DC: INTENTIONAL: the erased H3 source lifts by root identity. -/
 theorem kmid_source_of_exact {v : Slot} {X : FGBlock (Fin p.n)}
     (hex : ExactService p c E rho v (eraseFG X))
     (hh : SA.gateTime p.toParams v ≤ rho.horizon) (r : Nat) (hv : v = r * p.R) :
-    ∀ x ∈ rho.honest, actionSourceFG p c E rho x r = some (some X) := by
-  intro x hx
-  have hs := ((hex.2 hh x hx).2.2.2.2) r hv
+    ∀ x ∈ rho.honest,
+      confirmedReaderAtIdx p c E rho x (afterTicksIdx rho (SA.gateTime p.toParams v))
+        (SA.gateTime p.toParams v) →
+      actionSourceFG p c E rho x r = some (some X) := by
+  intro x hx hreader
+  have hs := ((hex.2 hh x hx hreader).2.2.2.2) r hv
   change (actionSourceFG p c E rho x r).map (Option.map eraseFG) = some (some (eraseFG X)) at hs
   obtain ⟨o, ho, he⟩ := Option.map_eq_some_iff.mp hs
   obtain ⟨C, hC, hCe⟩ := Option.map_eq_some_iff.mp he
@@ -288,7 +294,10 @@ theorem kmid_row_action {j : Nat} {x : V} {r : Nat} {a : RowWire p.n}
     have hp : m = .row a.payload := congrArg V2.Signed.payload ho
     subst m
     cases d with
-    | headAction s => cases hm
+    | headAction s =>
+      change (if joinedNow p _ then some (Msg.head _) else none) =
+        some (Msg.row a.payload) at hm
+      split at hm <;> cases hm
     | fgAction r' =>
       change (attest p _ _ _).1.map Msg.row = some (.row a.payload) at hm
       obtain ⟨payload, hb, he⟩ := Option.map_eq_some_iff.mp hm
@@ -297,10 +306,13 @@ theorem kmid_row_action {j : Nat} {x : V} {r : Nat} {a : RowWire p.n}
       dsimp only [fgsa] at hb ⊢
       exact hb
     | propAction s =>
-      change (propose p _ s).map (withApp p _) = some (.row a.payload) at hm
-      obtain ⟨m, hm, he⟩ := Option.map_eq_some_iff.mp hm
-      obtain ⟨_, _, _, _, heq, _, _⟩ := rowsOk_withApp _ _ _ (by rw [hm]; exact congrArg some he)
-      cases heq
+      change (if joinedNow p _ then (propose p _ s).map (withApp p _) else none) =
+        some (.row a.payload) at hm
+      split at hm
+      · obtain ⟨m, hm, he⟩ := Option.map_eq_some_iff.mp hm
+        obtain ⟨_, _, _, _, heq, _, _⟩ := rowsOk_withApp _ _ _ (by rw [hm]; exact congrArg some he)
+        cases heq
+      · cases hm
   · exact (List.not_mem_nil hem).elim
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -351,10 +363,11 @@ FINAL 22:1226,954–956. The exact HEAD read holds its block at the tick index.
 DC: INTENTIONAL: the stored HEAD target is the admitted FG block. -/
 theorem kmid_head_held {v : Slot}
     {X : FGBlock (Fin p.n)} (hex : ExactService p c E rho v (eraseFG X))
-    (hh : SA.voteTime p.toParams v ≤ rho.horizon) (x : V) (hx : x ∈ rho.honest) :
+    (hh : SA.voteTime p.toParams v ≤ rho.horizon) (x : V) (hx : x ∈ rho.honest)
+    (hjoined : joinedAt p E rho x v (SA.voteTime p.toParams v)) :
     ∃ i, rho.events[i]? = some (.tick x (SA.voteTime p.toParams v)) ∧
       X ∈ (V2.D.Run.stateBefore E rho i x).st.fg.TF := by
-  have hhead := hex.1 hh x hx
+  have hhead := hex.1 hh x hx hjoined
   change (postClock E rho x (SA.voteTime p.toParams v)).map
     (fun nd => FGSA.headVote p nd.st v) = some (eraseFG X) at hhead
   have hhead' : (FGCompose.postClock E rho x (SA.voteTime p.toParams v)).map
@@ -403,45 +416,32 @@ theorem kmid_source_held_at_tick (hs : V2.D.ScheduleWellFormed E rho) {x : V} {r
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 FINAL 22:954–956,1226. The exact HEAD read gives raw chain rows before a later cut.
 DC: INTENTIONAL: an actual honest strict-before read holds every carrier. -/
-theorem kmid_chainRows_of_head (hs : V2.D.ScheduleWellFormed E rho) (hnr : V2.D.NoRestart rho)
+theorem kmid_chainRows_of_head (hs : V2.D.ScheduleWellFormed E rho)
     {v : Slot} {X : FGBlock (Fin p.n)} (hex : ExactService p c E rho v (eraseFG X))
     (hh : SA.voteTime p.toParams v ≤ rho.horizon) (x : V) (hx : x ∈ rho.honest)
+    (hjoined : joinedAt p E rho x v (SA.voteTime p.toParams v))
     (cut : Time) (hcut : SA.voteTime p.toParams v < cut) :
     ChainRowsBefore p c E rho X cut := by
-  have hhead := hex.1 hh x hx
-  change (postClock E rho x (SA.voteTime p.toParams v)).map
-    (fun nd => FGSA.headVote p nd.st v) = some (eraseFG X) at hhead
-  have hhead' : (FGCompose.postClock E rho x (SA.voteTime p.toParams v)).map
-      (fun nd => (fgsaCoreReads p c).headVote nd v) = some ((fgsaCoreReads p c).erase X) := by
-    rw [fgsaCoreReads_def, ← (fgsa_eventReads_eq_compose E rho x _).2.2.2.2.2.1]
-    exact hhead
-  rw [fgsa_chainRows_eq_compose p c E rho X cut]
-  exact FGCompose.chainRows_of_head (fgsaCoreReads p c) E rho (fgsaCoreLaws p c)
-    (fgsaHeadLaws p c E rho) hs hnr hx hhead' cut hcut
+  obtain ⟨i, hi, hX⟩ := kmid_head_held p c E rho hex hh x hx hjoined
+  intro W hW _row _hrow
+  refine ⟨x, SA.voteTime p.toParams v, hx, hcut, ?_⟩
+  have hanc := KitFG.ancestor_closed_of_parent_closed _
+    (cstoreInv_stateBefore E rho i x).fg.closed X hX W hW
+  rw [Gen.V2.Duty.HoldsBefore_def]
+  rw [← finality_joined_tick_read p c E rho hs hi hjoined]
+  exact hanc
 
 omit [Fintype V] in
-/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
-FINAL 22:1226,1265. The exact HEAD block stays held from its read to any later cut.
-DC: INTENTIONAL: the cumulative store keeps every admitted block without restart. -/
-theorem kmid_head_held_from (hs : V2.D.ScheduleWellFormed E rho) (hnr : V2.D.NoRestart rho)
+/-- The joined HEAD target remains in durable storage at each later cut. -/
+theorem kmid_head_held_from (hs : V2.D.ScheduleWellFormed E rho)
     {v : Slot} {X : FGBlock (Fin p.n)} (hex : ExactService p c E rho v (eraseFG X))
     (hh : SA.voteTime p.toParams v ≤ rho.horizon) (x : V) (hx : x ∈ rho.honest)
+    (hjoined : joinedAt p E rho x v (SA.voteTime p.toParams v))
     (k : Nat) (t : Time) (ht : SA.voteTime p.toParams v ≤ t) (hk : afterTicksIdx rho t ≤ k) :
     X ∈ (storeAt p c E rho k x).fg.TF := by
-  have hhead := hex.1 hh x hx
-  change (postClock E rho x (SA.voteTime p.toParams v)).map
-    (fun nd => FGSA.headVote p nd.st v) = some (eraseFG X) at hhead
-  have hhead' : (FGCompose.postClock E rho x (SA.voteTime p.toParams v)).map
-      (fun nd => (fgsaCoreReads p c).headVote nd v) = some ((fgsaCoreReads p c).erase X) := by
-    rw [fgsaCoreReads_def, ← (fgsa_eventReads_eq_compose E rho x _).2.2.2.2.2.1]
-    exact hhead
-  have hk' : FGCompose.afterTicksIdx rho t ≤ k :=
-    (fgsa_eventReads_eq_compose E rho x t).2.1 ▸ hk
-  have h := FGCompose.head_held_from (fgsaCoreReads p c) E rho (fgsaCoreLaws p c)
-    (fgsaHeadLaws p c E rho) hs hnr hhead' k t ht hk'
-  change X ∈ (V2.D.Run.stateBefore E rho k x).st.fg.TF
-  rw [fgsaCoreReads_def] at h
-  exact h
+  obtain ⟨i, hi, hX⟩ := kmid_head_held p c E rho hex hh x hx hjoined
+  exact (fgsa_store_durable p c E rho
+    ((kmid_tick_lt_afterTicks p c E rho hs hi ht).le.trans hk) x).1 hX
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 FINAL 22:948–958. Linked unit-weight seats bound the faulty weight.
@@ -955,9 +955,20 @@ theorem kmid_window_proposal {G ΔF : Time} {pt : KernelPt}
     (hlo : pt.r * p.R ≤ s) (hhi : s ≤ (pt.r + 2) * p.R) :
     ∃ b, HonestProposal E rho (fgsaInterface p c) s b := by
   have hh := (kmid_slot_horizon hK hhi).1
+  have hcut : E.t_GST ≤ slotStartZ p ((s : Int) - 1) := by
+    have hstart := hK.start
+    rw [kmid_period_eq] at hstart
+    have hlow : (pt.w.sStar : Int) + 2 ≤ (pt.w.u : Int) := by
+      exact_mod_cast hK.input.wit.proposal_lower
+    have hsync := hK.input.wit.synchronous
+    have hle := kmid_slot_scale_le p hlo
+    change 4 * p.Δ * (pt.w.u : Int) + 6 * p.Δ ≤ _ at hstart
+    change E.t_GST ≤ 4 * p.Δ * (pt.w.sStar : Int) + p.Δ at hsync
+    change E.t_GST ≤ 4 * p.Δ * ((s : Int) - 1)
+    nlinarith [p.deltaPos]
   exact kmid_honest_proposal_exists p c E rho hK.set.base.valid.toScheduleWellFormed
     hK.set.base.delta s hslot
-    (hK.set.awake _ hslot.2 _ (kmid_slot_gst hK hlo) hh) hh
+    (finality_recovery_joined p c E rho hK.set hslot.2 hcut (kmid_slot_gst hK hlo) hh) hh
 
 variable {p c E rho} in
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]

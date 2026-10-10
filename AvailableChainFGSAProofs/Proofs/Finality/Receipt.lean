@@ -2,6 +2,8 @@ module
 public import AvailableChainFGSAProofs.Proofs.Shared.ReceiptFacts
 public import AvailableChainFGSAProofs.Proofs.Finality.Carry
 public import AvailableChainFGSAProofs.Proofs.Finality.Rows
+public import AvailableChainFGSAProofs.Proofs.Finality.RestoreReads
+public import AvailableChainFGSARun.Proofs.ProposalHistory
 public import AvailableChainFGSAProofs.Proofs.Shared.Channels
 public import AvailableChainFGSAProofs.Proofs.Shared.BoundsW
 public import AvailableChainFGSARun.Proofs.Receipts
@@ -278,21 +280,10 @@ theorem receipt_ready_of_delivery (G ΔF : Time) (hrec : Recovery₂ p c E rho G
     rw [hrec.base.delta]
     push_cast
     ring
-  have hx := hS.honest_only _ (List.mem_of_getElem? he)
-  obtain ⟨j, hj⟩ := List.mem_iff_getElem?.mp (hS.tick_total x hx _ hpub htime
-    (ht.trans (hS.in_horizon _ (List.mem_of_getElem? he)).2))
-  have hij := V2.D.Engine.tick_index_lt_delivery E rho hS hj he ht
-  have ho : o = ofWire p ⟨.proposer X.slot, .proposal N⟩ := by
-    apply toWire_injective
-    rw [toWire_ofWire]
-    exact hw
-  have htimely := Gen.V2.Duty.timely_of_clock E rho (fgsaTimelyClock p c) hS x o
-    (SA.proposalTime p.toParams X.slot) j i (by
-      rw [fgsaTimelyClock_actTime p c o]
-      rw [ho]
-      exact le_rfl) hj hij (hrec.base.noRestart.restartFree x j i)
+  have htimely := V2.D.Engine.delivery_now_ge_public_atRestart (fgsaClock p c)
+    (fgsaRestoreTimeLaw p c) E rho hrec.base.valid he hpub htime ht
+  rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho i x)] at htimely
   have hslot : (eraseFG X).slot ≤ (storeAt p c E rho i x).slot p := by
-    rw [ho] at htimely
     change 4 * p.Δ * (X.slot : Int) ≤ (storeAt p c E rho i x).base.now at htimely
     rw [FGSA.eraseFG_slot]
     exact (fgsa_slot_threshold_iff p _ (htime.trans htimely) X.slot).mpr htimely
@@ -401,7 +392,10 @@ theorem receipt_delivery (G ΔF : Time) (hrec : Recovery₂ p c E rho G ΔF)
         push_cast
         ring
       obtain ⟨j, hj⟩ := List.mem_iff_getElem?.mp
-        (hS.tick_total x hx a hpub hapos ((le_of_lt (lt_add_of_pos_right a p.deltaPos)).trans hhor))
+        (hS.tick_total x hx a hpub hapos
+          ((le_of_lt (lt_add_of_pos_right a p.deltaPos)).trans hhor)
+          (hrec.awake x hx a hgst
+            ((le_of_lt (lt_add_of_pos_right a p.deltaPos)).trans hhor)))
       have hjD := (Gen.V2.Duty.index_lt_idxBefore_iff hS hj D).mpr
         (by change a < a + p.Δ; exact lt_add_of_pos_right _ p.deltaPos)
       have hlen : V2.D.Run.idxBefore rho D ≤ rho.events.length := by
@@ -431,8 +425,39 @@ theorem receipt_delivery (G ΔF : Time) (hrec : Recovery₂ p c E rho G ΔF)
         simp only [blockExcluded, activeCompatible, heN, hc, Bool.not_true, Bool.false_or]
         exact fgsa_trigger_invalid_false E rho o a X.slot N
           htrigger hd _
-      obtain ⟨t, hat, htD, i, envelope, he, hh⟩ := hrec.sync.broadcast_emitted _ hhon o a hem
-        x hx (hdelay ▸ hhor) (hdelay ▸ hNX)
+      have ha : 0 ≤ a := by
+        change 0 ≤ 4 * p.Δ * (X.slot : Int)
+        exact mul_nonneg (mul_nonneg (by decide) p.deltaPos.le) (Int.natCast_nonneg _)
+      have hservice := hrec.sync.broadcast_emitted _ hhon o a hem x hx a le_rfl ha
+        (by dsimp only; rw [hdelay]; exact lt_add_of_pos_right a p.deltaPos)
+        (by dsimp only; rw [hdelay]; exact hhor)
+        (by dsimp only; rw [hdelay]; exact hhor)
+        (fun u hau hud => hrec.awake x hx u (hgst.trans hau)
+          (hud.le.trans (by dsimp only; rw [hdelay]; exact hhor)))
+        (by dsimp only; rw [hdelay]; exact hNX)
+      have hhandled : V2.D.HandledBetween E rho x o a D := by
+        rcases hservice with hpast | hh
+        · have ho : o = ofWire p ⟨.proposer X.slot, .proposal N⟩ := by
+            apply toWire_injective
+            rw [toWire_ofWire]
+            exact decode_eq_block.mp hd
+          have hscope := emitted_proposal_history_in_scope E rho hrec.base.receiptIdealization
+            hhon hx X.slot N (ho ▸ hem) (ho ▸ hpast)
+          obtain ⟨j, hj, hemit⟩ := hem
+          obtain ⟨k, hk, hp⟩ := hpast
+          have hcut : V2.D.Run.actionCut rho a ≤ j := by
+            by_contra hn
+            have h := (V2.D.Engine.index_lt_actionCut_iff hS hj a).mp
+              (Nat.lt_of_not_ge hn)
+            simp [V2.Event.time, V2.Event.phase] at h
+            change a < a at h
+            exact (lt_irrefl a) h
+          have hf := fgsa_emitted_proposal_no_prior_processed E rho hrec.base.valid
+            hrec.base.idealization hj X.slot N (ho ▸ hemit) hscope k (hk.trans hcut) x
+          rw [← ho, hp] at hf
+          cases hf
+        · simpa only [hdelay] using hh
+      obtain ⟨t, hat, htD, i, envelope, he, hh⟩ := hhandled
       have hdirect : envelope = o := by
         rcases hh with h | h
         · exact h
@@ -458,12 +483,14 @@ theorem receipt_delivery (G ΔF : Time) (hrec : Recovery₂ p c E rho G ΔF)
                 | mk auth body =>
                   rcases auth with (⟨(_ | _), _⟩ | _ | _) <;> simp [Wire.decode] at hdw
       subst envelope
-      have htD' : t < D := hdelay ▸ htD
+      have htD' : t < D := htD
       have hiD := (Gen.V2.Duty.index_lt_idxBefore_iff hS he D).mpr htD'
       have hmono := fgsa_monoAlong_preceq_F p c (storeAt p c E rho i x).fg.F
       rw [Gen.V2.Duty.MonoAlong_def] at hmono
-      have hFF := V2.D.Engine.stateBefore_stable _ hmono.1 hmono.2.1 hmono.2.2 E rho
-        (Nat.le_of_lt hiD) x (hrec.base.noRestart.restartFree x i _) (KitFG.preceq_refl _)
+      have hFF := V2.D.Engine.stateBefore_stable_restore _ hmono.1 hmono.2.1
+        hmono.2.2 E rho (Nat.le_of_lt hiD) x
+        (finality_restore_preceq_F p c (storeAt p c E rho i x).fg.F)
+        (KitFG.preceq_refl _)
       have hFiX := KitFG.preceq_trans hFF hFX
       refine ⟨i, t, ?_, htD', Or.inr ⟨hat, ?_⟩⟩
       · rw [eventTime_def, he]

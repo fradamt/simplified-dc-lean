@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Shared.Channels
-public import AvailableChainFGSAProofs.Proofs.Shared.Reads
+public import AvailableChainFGSAProofs.Proofs.Finality.RestoreReads
 public import AvailableChainFGSARun.Proofs.Reachable
 
 public section
@@ -217,7 +217,7 @@ theorem fgsa_acceptBefore_W : AcceptBefore_W p := by
     have hcap := h.guards.cap x hx hr hc
     rw [receiptInsert_W_def] at hcap
     exact hcap
-  apply acceptsFinalBefore_of_idx p c E rho h.base.noRestart h.base.valid.toScheduleWellFormed
+  apply finality_acceptsFinalBefore_of_idx p c E rho h.base.valid.toScheduleWellFormed
   change Option.map V2.Event.time rho.events[w.index]? = some w.time at htime
   obtain ⟨e, he, het⟩ := Option.map_eq_some_iff.mp htime
   obtain ⟨hi, hie⟩ := List.getElem?_eq_some_iff.mp he

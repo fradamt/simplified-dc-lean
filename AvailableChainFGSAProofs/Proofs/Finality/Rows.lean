@@ -204,10 +204,15 @@ theorem finality_action_source (w : HealingWitness) (q y opening : Nat)
     (hproposal : HonestProposal E rho (fgsaInterface p c) opening (eraseFG D))
     (h2 : H2Prime p c E rho w) (h3 : H3 p c E rho w)
     (h6 : H6GateService p c E rho w)
-    (hGST : E.t_GST ≤ SA.voteTime p.toParams (q * p.R))
+    (hGST : recoveryStart p E ≤ SA.voteTime p.toParams (q * p.R))
     (hhor : p.actionTime q ≤ rho.horizon) (hne : eraseFG D ≠ .genesis)
     (hheads : ∀ x ∈ rho.honest, ∃ H,
       headAtLabel p c E rho x (q * p.R) = some H)
+    (hjoined : ∀ x ∈ rho.honest,
+      joinedAt p E rho x (q * p.R) (SA.voteTime p.toParams (q * p.R)))
+    (hconfirmed : confirmedReaderAtIdx p c E rho hx
+      (afterTicksIdx rho (SA.gateTime p.toParams opening))
+      (SA.gateTime p.toParams opening))
     (hFgate : ∀ x st, x ∈ rho.honest → gateIn p c E rho x (q * p.R) = some st →
       Block.Preceq (eraseFG st.fg.F) (eraseFG D))
     (hframe : ∀ nd, postClock E rho hx (p.actionTime q) = some nd →
@@ -225,7 +230,7 @@ theorem finality_action_source (w : HealingWitness) (q y opening : Nat)
     constructor
     · intro heq
       have hexact := ((h3 opening (eraseFG D) hproposal hstart).2
-        (by simpa only [heq, Params.actionTime] using hhor) hx hhonest).2.2.2.2
+        (by simpa only [heq, Params.actionTime] using hhor) hx hhonest hconfirmed).2.2.2.2
         q heq
       change (actionSourceFG p c E rho hx q).map (Option.map eraseFG) =
         some (some (eraseFG D)) at hexact
@@ -243,7 +248,7 @@ theorem finality_action_source (w : HealingWitness) (q y opening : Nat)
           headAtLabel p c E rho x (q * p.R) = some H ∧ Block.Preceq (eraseFG D) H := by
         intro x hx
         obtain ⟨H, hH⟩ := hheads x hx
-        exact ⟨H, hH, h2 opening (eraseFG D) hproposal hstart x (q * p.R) H hx
+        exact ⟨H, hH, h2 opening (eraseFG D) hproposal hstart x (q * p.R) H ⟨hx, hjoined x hx⟩
           (Nat.succ_le_of_lt hlt) hH⟩
       obtain ⟨_hresult, _hpassed, nd, d, hnd, hwrite, hlease, _hdeadline, hlive⟩ :=
         h6 (q * p.R) (eraseFG D) ((Nat.le_add_right w.sStar 2).trans
