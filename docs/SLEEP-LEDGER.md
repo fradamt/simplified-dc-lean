@@ -4733,3 +4733,17 @@ integration remain with their owners; P-Ar must apply the exact saved-row type.
   remain EXPECTED-FAIL. No participation or half-cap input was added.
 - Updated map: 57 targets, 36 GREEN and 21 EXPECTED-FAIL; 506 GREEN entries.
   Remaining local proof errors include StepFacts, Proposal, and Dynamics.
+
+### P-WC Round 2 — final implementation validation (2026-10-10)
+
+- DCK PASS: 506 GREEN modules with --wfail, 39 strict audit roots,
+  3521 axiom results, and all 24 default controls PASS.
+- Local strict audit: 196 commands and 196 results, standard axioms only.
+- Complete local export/coverage check: 152 proof modules, 251 exports,
+  zero unaccepted, and 196 inventory rows. No baseline or allowance changed.
+- Layers: 72 existing findings, zero new. GREEN import closures contain no
+  EXPECTED-FAIL module. Added Lean lines are at most 100 characters.
+- PREPARED. The package has 21 owned expected failures. Complete event induction,
+  Proposal T49, and Empty source-reader adapters remain local proof work.
+  The late P-As assembly audit is a separate bridge; it does not close those files.
+- Full supplier types and serial instructions: scripts/dev-pkg/P-WC.handoff.md.
