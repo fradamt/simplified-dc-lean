@@ -166,11 +166,7 @@ theorem repair_head_one [Fintype V] (E : Generic.Env V)
       rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)) →
       (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈ rho.emitsAt E ip →
       RepairHeadServices E rho s ip x N)
-    {Q : Block} (hp : HonestProposal E rho (fgsaInterface p c) s Q)
-    (hFloors : ∀ y ∈ rho.honest, ∀ (ih : Nat),
-      rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
-      joinedAt p E rho y s (SA.voteTime p.toParams s) →
-      Block.Preceq (eraseFG (rho.stateBeforeTime E (SA.voteTime p.toParams s) y).st.fg.F) Q) :
+    {Q : Block} (hp : HonestProposal E rho (fgsaInterface p c) s Q) :
     ∀ y ∈ rho.honest, joinedAt p E rho y s (SA.voteTime p.toParams s) →
       headAtLabel p c E rho y s = some Q := by
   have hgst : E.t_GST ≤ u := by
@@ -187,7 +183,7 @@ theorem repair_head_one [Fintype V] (E : Generic.Env V)
     (repair_head_after_one hb hls) hvs
     (repair_lease_cover_one E rho hrec mono crossing writes perm
       hready hphase hb hwindow hls hvs)
-    (by simpa only [Nat.add_sub_cancel] using hWindow.prior) hServices hp hFloors
+    (by simpa only [Nat.add_sub_cancel] using hWindow.prior) hServices hp
 
 end AvailableChain.FGSA.Run
 end

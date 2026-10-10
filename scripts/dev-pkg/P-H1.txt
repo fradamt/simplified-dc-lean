@@ -1,6 +1,12 @@
-# P-H1 Round 7 PREPARED. H2 start ports and their imports retain P-H2 ownership.
-# 104 assigned; 556 total GREEN; 18 EXPECTED-FAIL.
+# P-H1 Round 8 PREPARED. Conditional factories do not close object-service obligations.
+# H2 start ports retain P-H2 ownership; full proof facade also needs P-Ou/P-As.
+# 109 TARGETS; 559 GREEN; 19 EXPECTED-FAIL.
 [TARGETS]
+AvailableChainFGSAClaims.Claims.Healing
+AvailableChainFGSAProofs
+AvailableChainFGSAClaims.Tests.HealingW
+AvailableChainFGSAProofs.Proofs.Healing.RecoveryProducers
+AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumers
 AvailableChainFGSAProofs.Proofs.Healing.AdditiveStageBounds
 AvailableChainFGSAProofs.Proofs.Healing.AttemptBudget
 AvailableChainFGSAProofs.Proofs.Healing.AttemptSettle
@@ -107,6 +113,9 @@ AvailableChainFGSAProofs.Tests.HealingJoinedStart
 AvailableChainFGSAProofs.Tests.NonVacuity.HealingRun
 
 [GREEN]
+AvailableChainFGSAClaims.Claims.Healing
+AvailableChainFGSAClaims.Tests.HealingW
+AvailableChainFGSAProofs.Proofs.Healing.RecoveryProducers
 AvailableChainFGSAProofs.Proofs.Healing.DescentLossCause
 AvailableChainFGSAProofs.Proofs.Healing.DescentLossUnanimous
 AvailableChainFGSAProofs.Proofs.Healing.PostResetCompat
@@ -665,6 +674,7 @@ AvailableChainFGSAProofs.Tests.HealingJoinedStart
 AvailableChainFGSAProofs.Tests.NonVacuity.HealingRun
 
 [EXPECTED-FAIL]
+AvailableChainFGSAProofs P-As
 AvailableChainFGSAProofs.Proofs.Healing.AttemptSettle P-H2
 AvailableChainFGSAProofs.Proofs.Healing.AttemptStop P-H2
 AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchAge P-H2

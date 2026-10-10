@@ -26,6 +26,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.SupportOutput
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportProposal
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportSlow
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportPerm
+public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryProducers
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSupportHeads
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSupportTransfer
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSupportProposal
@@ -54,6 +55,9 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetRaw
 public import AvailableChainFGSAProofs.Proofs.Healing.ResetTransfer
 
 public section
+
+#print axioms AvailableChain.FGSA.Run.fgsa_retainedH6_event_floor
+#print axioms AvailableChain.FGSA.Run.fgsa_retainedH6_time_floor
 
 -- Strict audit of the compiled P-H1 joined-start slice.
 #print axioms AvailableChain.FGSA.Run.healing_recovery_start_lower
@@ -435,3 +439,20 @@ public section
 #print axioms AvailableChain.FGSA.Run.healing_joined_tick_of_ready
 
 end
+
+#print axioms AvailableChain.FGSA.Run.healing_recovery_epoch_after_vote
+#print axioms AvailableChain.FGSA.Run.healing_first_transfer_scope_of_services
+#print axioms AvailableChain.FGSA.Run.healing_next_transfer_scope_of_services
+#print axioms AvailableChain.FGSA.Run.healing_proposal_support_scope_of_services
+#print axioms AvailableChain.FGSA.Run.healing_gate_receipt_scope_of_services
+#print axioms AvailableChain.FGSA.Run.healing_support_gate_scope_of_services
+#print axioms AvailableChain.FGSA.Run.healing_support_gate_prefix_count
+#print axioms AvailableChain.FGSA.Run.healing_ready_batch_release_compat
+#print axioms AvailableChain.FGSA.Run.healing_fast_support_scope_of_factories
+#print axioms AvailableChain.FGSA.Run.healing_slow_support_scope_of_factories
+#print axioms AvailableChain.FGSA.Run.healing_support_permanence_of_factories
+#print axioms AvailableChain.FGSA.Run.healing_repair_gate_scope_of_factories
+#print axioms AvailableChain.FGSA.Run.healing_frontier_read_scope_of_factories
+#print axioms AvailableChain.FGSA.Run.healing_repair_head_services_of_factories
+#print axioms AvailableChain.FGSA.Run.healing_raw_service_scope_of_factories
+#print axioms AvailableChain.FGSA.Run.healing_loss_service_scope_of_factories

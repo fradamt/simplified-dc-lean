@@ -47,6 +47,19 @@ theorem split_batch : recoveryStart split envSplit = 2020 ∧
     SA.gateTime split.toParams 256 < recoveryStart split envSplit + ρ₁ split 16 ∧
     SA.gateTime split.toParams 258 ≤ recoveryStart split envSplit + ρΓ split 16 := by decide
 
+-- N4 is an expiry regression only; it does not assign a stored live lease.
+abbrev longK : Params :=
+  ⟨⟨1, 4, 8, 64, by decide, by decide, by decide, by decide⟩,
+    2, 4, by decide, 2, by decide, fun d => ⟨d.slot + 1⟩⟩
+
+theorem pre_gst_expiry_after_ready_releases : 2 * longK.R + 3 < longK.k ∧
+    SA.gateTime longK.toParams 3 < env1.t_GST ∧
+    recoveryStart longK env1 ≤ SA.voteTime longK.toParams 8 ∧
+    SA.releaseTime longK.toParams 8 <
+      SA.gateTime longK.toParams 3 + SA.lifetime longK.toParams ∧
+    SA.releaseTime longK.toParams 9 <
+      SA.gateTime longK.toParams 3 + SA.lifetime longK.toParams := by decide
+
 -- The exact production cut proves prior-batch readiness at the admitted proposal.
 example : envSplit.t_GST ≤ slotStartZ split ((253 : Int) - 2) :=
   healing_ready_proposal_cutoff envSplit (by decide)
@@ -58,3 +71,5 @@ end
 #print axioms AvailableChain.FGSA.Run.Tests.JoinedStart.stale_k4
 #print axioms AvailableChain.FGSA.Run.Tests.JoinedStart.slow_n7
 #print axioms AvailableChain.FGSA.Run.Tests.JoinedStart.split_batch
+
+#print axioms AvailableChain.FGSA.Run.Tests.JoinedStart.pre_gst_expiry_after_ready_releases

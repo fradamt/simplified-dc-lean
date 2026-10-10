@@ -1,5 +1,8 @@
 # P-H1 Round 7 producer obligations
 
+Round 8 update: see P-H1.round8-producers.md. H6-FLOOR is now proved;
+conditional aggregate assemblies do not close the remaining object services.
+
 Status: PREPARED. These are production goals, not proved theorem declarations.
 All aggregate goals stay OPEN/P-H1. No conversion or restriction closes a row.
 The source contract is healing-contract-34d9aa77.md, sections A-F. This file

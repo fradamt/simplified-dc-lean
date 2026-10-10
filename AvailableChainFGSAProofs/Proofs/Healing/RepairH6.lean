@@ -569,12 +569,7 @@ theorem repair_head_exact_legacy [Fintype V] (E : Generic.Env V)
       rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams (r + 1))) →
       (⟨.seat (.prop (r + 1)) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈ rho.emitsAt E ip →
       RepairHeadServices E rho (r + 1) ip x N)
-    {Q : Block} (hp : HonestProposal E rho (fgsaInterface p c) (r + 1) Q)
-    (hFloors : ∀ y ∈ rho.honest, ∀ (ih : Nat),
-      rho.events[ih]? = some (.tick y (SA.voteTime p.toParams (r + 1))) →
-      joinedAt p E rho y (r + 1) (SA.voteTime p.toParams (r + 1)) →
-      Block.Preceq (eraseFG (rho.stateBeforeTime E
-        (SA.voteTime p.toParams (r + 1)) y).st.fg.F) Q) :
+    {Q : Block} (hp : HonestProposal E rho (fgsaInterface p c) (r + 1) Q) :
     ∀ y ∈ rho.honest, joinedAt p E rho y (r + 1) (SA.voteTime p.toParams (r + 1)) →
       headAtLabel p c E rho y (r + 1) = some Q := by
   have hE := hrec.base.valid
@@ -588,13 +583,20 @@ theorem repair_head_exact_legacy [Fintype V] (E : Generic.Env V)
   have hhor : SA.voteTime p.toParams (r + 1) ≤ rho.horizon := hvq.trans hphase.2.1
   have hPrior : ProposalSupportScope E rho ip x r (SA.proposalTime p.toParams (r + 1)) := by
     simpa only [Nat.add_sub_cancel] using (hServices ip x N hx hip hem).prior
+  have hFloors (y : V) (hy : y ∈ rho.honest) (ih : Nat)
+      (hi : rho.events[ih]? = some (.tick y (SA.voteTime p.toParams (r + 1)))) :
+      Block.Preceq (eraseFG (rho.stateBeforeTime E
+        (SA.voteTime p.toParams (r + 1)) y).st.fg.F) Q := by
+    have hinput := repair_h6_input E rho hrec mono crossing hgst hphase hhead hvq
+      hlease hx hip hPrior hCut hy hi
+    simpa only [heN] using fgsa_retainedH6_time_floor E rho hE mono hy hip hi N hem hinput
   have h := repair_head_exact E rho hrec.toRecovery₂ (r + 1) hGST hx hip hseat N hem
     (fun y hy ih hih _ => repair_h6_input E rho hrec mono crossing hgst hphase hhead hvq
       hlease hx hip hPrior hCut hy hih)
     (fun y hy ih hi hj => (hServices ip x N hx hip hem).target hy hi hj
-      (by simpa only [heN] using hFloors y hy ih hi hj))
+      (by simpa only [heN] using hFloors y hy ih hi))
     (fun y hy ih hi hj => (hServices ip x N hx hip hem).scopes y hy ih hi hj
-      (by simpa only [heN] using hFloors y hy ih hi hj)) hhor
+      (by simpa only [heN] using hFloors y hy ih hi)) hhor
   simpa only [heN] using h
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -786,11 +788,7 @@ theorem repair_head_two [Fintype V] (E : Generic.Env V)
       rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)) →
       (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈ rho.emitsAt E ip →
       RepairHeadServices E rho s ip x N)
-    {Q : Block} (hp : HonestProposal E rho (fgsaInterface p c) s Q)
-    (hFloors : ∀ y ∈ rho.honest, ∀ (ih : Nat),
-      rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
-      joinedAt p E rho y s (SA.voteTime p.toParams s) →
-      Block.Preceq (eraseFG (rho.stateBeforeTime E (SA.voteTime p.toParams s) y).st.fg.F) Q) :
+    {Q : Block} (hp : HonestProposal E rho (fgsaInterface p c) s Q) :
     ∀ y ∈ rho.honest, joinedAt p E rho y s (SA.voteTime p.toParams s) →
       headAtLabel p c E rho y s = some Q := by
   have hgst : E.t_GST ≤ u := by
@@ -806,7 +804,7 @@ theorem repair_head_two [Fintype V] (E : Generic.Env V)
   exact repair_head_exact_legacy E rho hrec mono crossing hgst hphase
     (repair_head_after_two hβ hls) hvs
     (repair_lease_cover_two E rho hrec mono crossing writes perm hready hphase hβ hls hvs)
-    (by simpa only [Nat.add_sub_cancel] using hWindow.prior) hServices hp hFloors
+    (by simpa only [Nat.add_sub_cancel] using hWindow.prior) hServices hp
 
 end AvailableChain.FGSA.Run
 end

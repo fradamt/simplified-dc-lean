@@ -843,6 +843,73 @@ theorem fgsa_retainedReads_H17_on
   exact consumer_retainedReads_at_on E rho hE s hx hip hseat N hem D
     hinput hServices hroots y hy ih hih
 
+/-- The H6 geometry proves the receiver floor before proposal receipt is requested. -/
+theorem fgsa_retainedH6_event_floor
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    {s : Slot} {ip ih : Nat} {x y : V}
+    (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
+      rho.emitsAt E ip)
+    (hi : RetainedH6Input p
+      (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
+      (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s) :
+    Block.Preceq (eraseFG (storeAt p c E rho ih y).fg.F) N.erase := by
+  let src := clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s)
+  let dst := clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)
+  have hr : Reachable p src := Reachable.tick _ (reachable_stateBefore E rho ip x)
+  have hs := (storeBundle_of_reachable p src hr).cstore
+  have ht : CStoreInv p dst := cstoreInv_clock p _ (cstoreInv_stateBefore E rho ih y) _
+  have hm := hem
+  rw [(V2.D.Run.step_tick_eq E rho hip).2] at hm
+  have hp := (fgsa_emits_proposal E rho _ x _ s _).mp hm
+  have hparent := fgsa_walkRun_proposal_parent p src s _ N hp.2.2.2.2
+  have hheight := consumer_parent_height p src hr s N.erase.parent hparent.2.2.symm
+    hi.frame.source_witness
+  have hcover := consumer_prior_cover p src hs s (ap p src) hi.proposer_prior
+  have hprefix := walk_best_ancestry_of_cover _ _ _ _ _ hcover
+  have hordinary := (walk_reanchor_of_best_ancestry _ _ _ _ _
+    (erasedList_rootInj p src hs _)
+    (fgsa_Z_preceq_liveRoot p src) hprefix).trans hparent.2.2.symm
+  have hay : Block.Preceq (ay p dst) N.erase.parent := by
+    rcases hi.reader_prior with h | h | h
+    · exact hordinary ▸ consumer_prior_cover p src hs s (ay p dst) (Or.inl h)
+    · exact hordinary ▸ consumer_prior_cover p src hs s (ay p dst) (Or.inr h)
+    · obtain ⟨W, hW, heW, hh⟩ := hheight
+      exact heW ▸ h W hW hh
+  have hh := block_preceq_trans (F_preceq_liveRoot p dst ht)
+    (block_preceq_trans hay (fgsa_parent_preceq N.erase))
+  change Block.Preceq (eraseFG (rho.stateBefore E ih y).st.fg.F) N.erase
+  simpa only [dst, clock_fg] using hh
+
+/-- Monotonicity pulls the H6 floor back to the strict time read. -/
+theorem fgsa_retainedH6_time_floor
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho) (mono : RMonoAll p c E rho)
+    {s : Slot} {ip ih : Nat} {x y : V} (hy : y ∈ rho.honest)
+    (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
+    (hih : rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)))
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
+      rho.emitsAt E ip)
+    (hi : RetainedH6Input p
+      (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
+      (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s) :
+    Block.Preceq (eraseFG (rho.stateBeforeTime E
+      (SA.voteTime p.toParams s) y).st.fg.F) N.erase := by
+  have hidx : V2.D.Run.idxBefore rho (SA.voteTime p.toParams s) ≤ ih := by
+    apply Nat.le_of_not_gt
+    intro hlt
+    have ht := (Gen.V2.Duty.index_lt_idxBefore_iff
+      hE.toScheduleWellFormed hih _).mp hlt
+    exact (lt_irrefl _ ht).elim
+  have hf := (mono _ ih y hy hidx).1
+  change FGBlock.Preceq (rho.stateBefore E (V2.D.Run.idxBefore rho
+    (SA.voteTime p.toParams s)) y).st.fg.F (storeAt p c E rho ih y).fg.F at hf
+  rw [Gen.V2.Duty.stateBefore_idxBefore E rho _ hE.toScheduleWellFormed] at hf
+  exact block_preceq_trans (eraseFG_preceq hf)
+    (fgsa_retainedH6_event_floor E rho hip N hem hi)
+
 /-- Joined reader form; service is required only for that reader. -/
 theorem fgsa_retainedReads_H6_joined
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))

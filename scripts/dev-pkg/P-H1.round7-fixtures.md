@@ -1,5 +1,8 @@
 # P-H1 Round 7 regression fixture obligations
 
+Round 8 status and the N4 expiry regression are in P-H1.round8-fixtures.md.
+The four full ExecutionValid replays below remain required.
+
 Status: clock regressions PROVED; full sleep-run replays OPEN/P-H1.
 HealingJoinedStart.lean checks all four numerical source exclusions and the
 new repair thresholds. It does not prove a protocol execution for those runs.
