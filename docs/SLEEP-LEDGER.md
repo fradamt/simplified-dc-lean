@@ -4556,3 +4556,15 @@ late labels. It excludes conflicting targets from new write keys when
 each enabled late result is compatible. It permits old conflicting rows.
 Deriving that result invariant from E and the joint induction is still OPEN.
 The three kernels build with --wfail; no regime closure is claimed.
+
+### P-Ou Round 3 — joint restart step
+
+outage_joint_restart preserves global source and duty histories across
+a real restart event and preserves protection on the selected receiver
+scope. It supplies the restart case of both joint inductions. It builds
+with --wfail and keeps the G-only protection scope.
+
+Both full inductions and the handover at v(r+k+1) remain OPEN. Their tick
+and delivery cases need P-Ar origins/seeds and the regime-derived good
+targets, receipt service and all-honest result invariant. P-Ar files are
+unchanged; no producer is duplicated in this package.

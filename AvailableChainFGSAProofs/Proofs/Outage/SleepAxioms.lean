@@ -116,3 +116,4 @@ public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceFrame
 #print axioms AvailableChain.FGSA.Run.outage_good_heads_at_gate
 #print axioms AvailableChain.FGSA.Run.outageV_gate_of_good_service
 #print axioms AvailableChain.FGSA.Run.outage_all_honest_late_gate_keys
+#print axioms AvailableChain.FGSA.Run.outage_joint_restart

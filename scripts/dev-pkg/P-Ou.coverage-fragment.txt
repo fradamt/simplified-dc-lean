@@ -118,3 +118,4 @@ AvailableChainFGSAProofs.Proofs.Outage.RestoredReceipt AvailableChain.FGSA.Run.o
 AvailableChainFGSAProofs.Proofs.Outage.GoodVotes AvailableChain.FGSA.Run.outage_good_heads_at_gate AvailableChainFGSAProofs.Proofs.Outage.SleepAxioms
 AvailableChainFGSAProofs.Proofs.Outage.GoodVotes AvailableChain.FGSA.Run.outageV_gate_of_good_service AvailableChainFGSAProofs.Proofs.Outage.SleepAxioms
 AvailableChainFGSAProofs.Proofs.Outage.GoodVotes AvailableChain.FGSA.Run.outage_all_honest_late_gate_keys AvailableChainFGSAProofs.Proofs.Outage.SleepAxioms
+AvailableChainFGSAProofs.Proofs.Outage.PersistenceSleep AvailableChain.FGSA.Run.outage_joint_restart AvailableChainFGSAProofs.Proofs.Outage.SleepAxioms

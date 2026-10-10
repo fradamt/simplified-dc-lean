@@ -75,6 +75,43 @@ theorem outage_restart_protection_at {B : Block} {j : Slot} {i : Nat} {x : V} {w
   simp only [V2.D.World.step, Function.update_self]
   exact outage_restart_protection w h
 
+/-- A restart adds no source or duty. These two histories are global;
+protection is preserved only on the selected receiver scope. This is the
+restart case shared by the pre-expiry and continuation joint inductions. -/
+theorem outage_joint_restart {B : Block} {j : Slot} {i : Nat} {x : V} {w : Time}
+    (he : rho.events[i]? = some (.restart x w)) (R : V → Prop)
+    (hSource : OutageSourceHistory p c E rho B i)
+    (hDuty : OutageDutyHistory p c E rho B j i)
+    (hProtected : ∀ y, R y → OutageProtection p B j (storeAt p c E rho i y)) :
+    OutageSourceHistory p c E rho B (i + 1) ∧
+      OutageDutyHistory p c E rho B j (i + 1) ∧
+      ∀ y, R y → OutageProtection p B j (storeAt p c E rho (i + 1) y) := by
+  refine ⟨⟨?_⟩, ⟨?_⟩, ?_⟩
+  · intro k y r C hk hy ht hC
+    have hki : k < i := by
+      rcases Nat.lt_or_eq_of_le (Nat.le_of_lt_succ hk) with h | rfl
+      · exact h
+      · rw [he] at ht
+        cases ht
+    exact hSource.history k y r C hki hy ht hC
+  · intro k y t o hk hy hj ht ho
+    have hki : k < i := by
+      rcases Nat.lt_or_eq_of_le (Nat.le_of_lt_succ hk) with h | rfl
+      · exact h
+      · rw [he] at ht
+        cases ht
+    exact hDuty.history k y t o hki hy hj ht ho
+  · intro y hy
+    by_cases hxy : x = y
+    · subst y
+      exact outage_restart_protection_at he (hProtected x hy)
+    · have hs : storeAt p c E rho (i + 1) y = storeAt p c E rho i y := by
+        unfold storeAt
+        rw [V2.D.Run.stateBefore_succ E rho he]
+        simp only [V2.D.World.step, Function.update_of_ne (Ne.symm hxy)]
+      rw [hs]
+      exact hProtected y hy
+
 /-- P17: the covering-lock exception is limited to the live deadline. -/
 theorem outage_restart_live_lock {B : Block} {g : Nat} {dl : Time} {st : State p.n}
     {w : Time} (hRow : (B, g, dl) ∈ st.base.obligations) (hLive : w < dl) :
