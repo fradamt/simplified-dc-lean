@@ -344,5 +344,164 @@ theorem fgsa_retained_old_child_reflects_on_run
   · intro C hm hp hold he
     exact reflect N.erase.parent C h.cut_parent (block_preceq_refl _) hm hp hold he
 
+private theorem reflect_witness_on_run_on
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho)
+    (s : Slot)
+    {ip ih : Nat} {x y : V} (hx : x ∈ rho.honest) (_hy : y ∈ rho.honest)
+    (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams (s + 1))))
+    (Kc X C : Block)
+    (hcut : Block.Preceq (z p (clock p (rho.stateBefore E ip x).st
+      (SA.proposalTime p.toParams (s + 1)))) Kc)
+    (hKX : Block.Preceq Kc X) (hp : C.parent? = some X)
+    (hm : C ∈ T p (clock p (rho.stateBefore E ih y).st
+      (SA.voteTime p.toParams (s + 1))) (s + 1))
+    (hw : ReflectedDomainWitness p
+      (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams (s + 1)))
+      (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (s + 1))) (s + 1) C)
+    (hScopes : ∀ D, ScoreRunGeometry
+      (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams (s + 1)))
+      (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (s + 1))) D →
+      ScoreServiceScope E rho ip ih x y (s + 1) D)
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
+    C ∈ S p (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams (s + 1))) := by
+  let src := clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams (s + 1))
+  let dst := clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (s + 1))
+  have hs : CStoreInv p src := cstoreInv_clock p _ (cstoreInv_stateBefore E rho ip x) _
+  have ht : CStoreInv p dst := cstoreInv_clock p _ (cstoreInv_stateBefore E rho ih y) _
+  obtain ⟨B, W, -, heB, hBW, hlo, hW⟩ := hw
+  have hZB : FGBlock.Preceq (controls p src).Z B :=
+    eraseFG_preceq_iff.mp
+      (heB ▸ block_preceq_trans hcut (block_preceq_trans hKX (fgsa_parent_preceq_of_some hp)))
+  have hFB := KitFG.preceq_trans (fgsa_F_preceq_Z p src hs) hZB
+  have hWsrc : W ∈ src.fg.TF := by
+    rcases hW with hW | ⟨hW, hstamp⟩
+    · exact hW
+    · obtain ⟨Q, -, heQ, hFQ, -⟩ := fgsa_tree_domain_witness_of_mem p dst _ C hm
+      have hFdst : Block.Preceq (eraseFG dst.fg.F) (eraseFG B) := by
+        rw [heB, ← heQ]
+        exact eraseFG_preceq hFQ
+      have hmW : eraseFG W ∈ (rho.stateBefore E ih y).st.base.blocks := by
+        have hb := (ht.baseTree _).mpr ⟨W, hW, rfl⟩
+        change eraseFG W ∈ (clock p _ _).base.blocks at hb
+        rwa [clock_base_blocks] at hb
+      rw [fgsa_clock_block_stamp E rho ih y _ (eraseFG W) hmW] at hstamp
+      have hgeom : ScoreRunGeometry src dst (eraseFG B) := ⟨eraseFG_preceq hFB, hFdst⟩
+      have hr := fgsa_scoreRun_block_backward_on (hroots := hroots) E rho hE s hx hip
+        (eraseFG B) (eraseFG W) (hScopes _ hgeom) hgeom.source_floor (eraseFG_preceq hBW) hmW
+        (by simpa only [Nat.add_sub_cancel] using hstamp)
+      have hb := ((actView_blocks src (eraseFG W)).mp hr).1
+      obtain ⟨Q, hQ, heQ⟩ := (hs.baseTree _).mp hb
+      exact (eraseFG_injective heQ) ▸ hQ
+  obtain ⟨Q, hQ, heQ⟩ := eraseFG_ancestor_mem hs.fg.closed hWsrc (eraseFG_preceq hBW)
+  have hBsrc : B ∈ src.fg.TF := (eraseFG_injective heQ) ▸ hQ
+  rw [← heB]
+  exact List.mem_filter.mpr ⟨(hs.baseTree _).mpr ⟨B, hBsrc, rfl⟩,
+    decide_eq_true ⟨B, (KitFG.mem_filteredFromView (heightView p) (controls p src)
+      src.fg.TF B).mpr ⟨hBsrc, hFB, hZB, W, hWsrc, hBW, hlo⟩, rfl⟩⟩
+
+theorem fgsa_walkRun_reflected_old_child_on
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho)
+    (s : Slot)
+    {ip ih : Nat} {x y : V} (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
+    (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams (s + 1))))
+    (_hih : rho.events[ih]? = some (.tick y (SA.voteTime p.toParams (s + 1))))
+    (_hseat : rho.seatOf (.prop (s + 1)) ⟨0, Nat.one_pos⟩ = x)
+    (N : NamedProposal p.n)
+    (_hem : (⟨.seat (.prop (s + 1)) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
+      rho.emitsAt E ip)
+    (Kc X C : Block)
+    (hcut : Block.Preceq (z p (clock p (rho.stateBefore E ip x).st
+      (SA.proposalTime p.toParams (s + 1)))) Kc)
+    (hKX : Block.Preceq Kc X) (_hXA : Block.Preceq X N.erase.parent)
+    (hp : C.parent? = some X) (_hold : C.slot < s + 1)
+    (hm : C ∈ T p (clock p (rho.stateBefore E ih y).st
+      (SA.voteTime p.toParams (s + 1))) (s + 1))
+    (hw : ReflectedDomainWitness p
+      (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams (s + 1)))
+      (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (s + 1))) (s + 1) C)
+    (hScope : RetainedServiceScope E rho ip ih x y (s + 1) N)
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
+    C ∈ S p (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams (s + 1))) :=
+  reflect_witness_on_run_on (hroots := hroots)
+    E rho hE s hx hy hip Kc X C hcut hKX hp hm hw hScope.scores
+
+theorem fgsa_retained_old_child_reflects_on_run_on
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho)
+    (s : Slot)
+    {ip ih : Nat} {x y : V} (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
+    (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams (s + 1))))
+    (hih : rho.events[ih]? = some (.tick y (SA.voteTime p.toParams (s + 1))))
+    (hseat : rho.seatOf (.prop (s + 1)) ⟨0, Nat.one_pos⟩ = x)
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop (s + 1)) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
+      rho.emitsAt E ip)
+    (hadm : N.erase ∈ (rho.stateBefore E ih y).st.base.blocks)
+    (D : FGBlock (Fin p.n)) (Kc : Block)
+    (h : RetainedReadPremises p
+      (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams (s + 1)))
+      (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (s + 1))) (s + 1) D N.erase Kc)
+    (hScope : RetainedServiceScope E rho ip ih x y (s + 1) N)
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
+    let src := clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams (s + 1))
+    let dst := clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (s + 1))
+    SuffixReflects Kc N.erase.parent (S p src) (T p dst (s + 1))
+      (es p src (s + 1)) (et p dst (s + 1)) ∧
+    (∀ C ∈ T p dst (s + 1), C.parent? = some N.erase.parent → C.slot < s + 1 →
+      et p dst (s + 1) C = true → C ∈ S p src ∧ es p src (s + 1) C = true) := by
+  let src := clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams (s + 1))
+  let dst := clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (s + 1))
+  have hs : CStoreInv p src := cstoreInv_clock p _ (cstoreInv_stateBefore E rho ip x) _
+  have ht : CStoreInv p dst := cstoreInv_clock p _ (cstoreInv_stateBefore E rho ih y) _
+  have hK : ScoreRunGeometry src dst Kc :=
+    ⟨block_preceq_trans (eraseFG_preceq (fgsa_F_preceq_Z p src hs)) h.source_cut,
+      block_preceq_trans (F_preceq_liveRoot p dst ht) h.target_cut⟩
+  have hA : ScoreRunGeometry src dst N.erase.parent :=
+    ⟨block_preceq_trans hK.source_floor h.cut_parent,
+      block_preceq_trans hK.target_floor h.cut_parent⟩
+  have scores := fgsa_score_eq_on_candidates_on_run_on (hroots := hroots) E rho hE (s + 1) hx
+    hy hip hih hseat N hem hadm
+    (fun C => C ∈ S p src ∧ C ∈ T p dst (s + 1)) hA
+    (fun C hm => fgsa_score_geometry_of_tree_domains p src dst src.fg.TF
+      (voterBlocks p dst (s + 1)) C hm.1 hm.2) hScope
+  have reflect (X C : Block) (hKX : Block.Preceq Kc X) (hXA : Block.Preceq X N.erase.parent)
+      (hm : C ∈ T p dst (s + 1)) (hp : C.parent? = some X) (hold : C.slot < s + 1)
+      (he : et p dst (s + 1) C = true) : C ∈ S p src ∧ es p src (s + 1) C = true := by
+    have hc := fgsa_walkRun_reflected_old_child_on (hroots := hroots) E rho hE s
+      hx hy hip hih hseat N hem Kc X C h.source_cut hKX hXA hp hold hm
+      (h.reflected_witness X C hKX hXA hm hp hold he) hScope
+    refine ⟨hc, ?_⟩
+    have hel := fgsa_eligible_eq_of_retainedBand_score p src dst
+      (proposerVotes src (s + 1)) (proposerSupport src (s + 1))
+      (headVotes p dst (s + 1)) (headSupport p dst (s + 1)) C
+      (h.band_agrees X C hKX hXA hc hm hp hold) scores.1 (scores.2 C ⟨hc, hm⟩)
+      ((fgsa_proposal_slot (c := c) _ (s + 1)).trans
+        (fgsa_vote_slot (c := c) _ (s + 1)).symm)
+    exact hel.trans he
+  constructor
+  · intro X C hKX hXA hm hp he
+    have hCpre : C ∈ (rho.stateBefore E ih y).st.base.blocks := by
+      simpa only [dst, clock_base_blocks] using (List.mem_filter.mp hm).1
+    have hn := fgsa_preTick_now_le E rho hE.toScheduleWellFormed hih
+    have hslot := Internal.slotOf_mono (p := p) hn
+    have htick : p.slotOf (SA.voteTime p.toParams (s + 1)) = s + 1 := by
+      simpa only [(fgsa_postClock_slot (c := c) (rho.stateBefore E ih y) _).2] using
+        fgsa_vote_slot (c := c) (rho.stateBefore E ih y) (s + 1)
+    have hle := ((fgsa_stateBefore_bounds E rho hE.toScheduleWellFormed ih y).1 C hCpre).trans
+      (htick ▸ hslot)
+    have hold : C.slot < s + 1 := lt_of_le_of_ne hle (by
+      intro he
+      have hCN := fgsa_walkRun_current_block_eq E rho hE (s + 1) (Nat.succ_pos s)
+        hx hip hseat N hem C hCpre he
+      have hX : X = N.erase.parent := by
+        simpa only [hCN] using (fgsa_parent_eq_of_some hp).symm
+      have hn := (Bool.and_eq_true_iff.mp hXA).1
+      simp only [hX, decide_true, Bool.not_true, Bool.false_eq_true] at hn)
+    exact reflect X C hKX (Bool.and_eq_true_iff.mp hXA).2 hm hp hold he
+  · intro C hm hp hold he
+    exact reflect N.erase.parent C h.cut_parent (block_preceq_refl _) hm hp hold he
+
 end AvailableChain.FGSA.Run
 end

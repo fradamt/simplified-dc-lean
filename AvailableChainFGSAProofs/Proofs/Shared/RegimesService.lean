@@ -2,6 +2,7 @@ module
 public import AvailableChainFGSAProofs.Proofs.Shared.ExactService
 public import AvailableChainFGSAClaims.Statements.Regimes
 public import AvailableChainFGSAProofs.Proofs.Shared.ExactHead
+public import AvailableChainFGSAProofs.Proofs.Shared.RetainedEndpoint
 
 public section
 
@@ -236,6 +237,68 @@ theorem fgsa_ghost_transfer_sfx_on_recovery_on
     Block.Preceq N.erase.parent (headVote p dst s) := by
   exact fgsa_ghost_transfer_sfx_on_run_on (hroots := h.base.receiptIdealization)
     E rho h.base.valid s hx hy hip hih hseat N hem hadm D hgeom hScope
+
+/-- Retained HEAD service uses joined reads and per-object replay history. -/
+theorem exactService_head_of_retained_proposal_clean_on
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (b₀ : Time) (h : CleanCut₂ p c E rho b₀ ΔF)
+    (s : Slot) (_hcut : SA.voteTime p.toParams s ≤ b₀)
+    {ip : Nat} {x : V} (hx : x ∈ rho.honest)
+    (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
+    (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
+      V2.D.Run.emitsAt E rho ip)
+    (D : FGBlock (Fin p.n))
+    (hreads : ∀ y ∈ rho.honest, ∀ ih,
+      rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
+      joinedAt p E rho y s (SA.voteTime p.toParams s) →
+      ∃ Kc, RetainedReadPremises p
+        (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
+        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D N.erase Kc)
+    (hScopes : ∀ y ∈ rho.honest, ∀ ih,
+      rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
+      joinedAt p E rho y s (SA.voteTime p.toParams s) →
+      RetainedServiceScope E rho ip ih x y s N) :
+    SA.voteTime p.toParams s ≤ rho.horizon →
+      ∀ y ∈ rho.honest, joinedAt p E rho y s (SA.voteTime p.toParams s) →
+        headAtLabel p c E rho y s = some N.erase := by
+  have hgeom := fgsa_retainedExactHead_geometry_on_run_on
+    (hroots := h.base.receiptIdealization)
+    E rho h.base.valid s hx hip hseat N hem D hreads hScopes
+  exact exactService_head_of_retained_proposal_on E rho h.base.valid h.base.delta s
+    hip N hem D hgeom
+
+/-- Retained HEAD service uses joined reads and per-object replay history. -/
+theorem exactService_head_of_retained_proposal_recovery_on
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (G : Time) (h : Recovery₂ p c E rho G ΔF)
+    (s : Slot) (_hGST : E.t_GST ≤ SA.proposalTime p.toParams s - p.Δ)
+    {ip : Nat} {x : V} (hx : x ∈ rho.honest)
+    (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
+    (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
+      V2.D.Run.emitsAt E rho ip)
+    (D : FGBlock (Fin p.n))
+    (hreads : ∀ y ∈ rho.honest, ∀ ih,
+      rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
+      joinedAt p E rho y s (SA.voteTime p.toParams s) →
+      ∃ Kc, RetainedReadPremises p
+        (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
+        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D N.erase Kc)
+    (hScopes : ∀ y ∈ rho.honest, ∀ ih,
+      rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
+      joinedAt p E rho y s (SA.voteTime p.toParams s) →
+      RetainedServiceScope E rho ip ih x y s N) :
+    SA.voteTime p.toParams s ≤ rho.horizon →
+      ∀ y ∈ rho.honest, joinedAt p E rho y s (SA.voteTime p.toParams s) →
+        headAtLabel p c E rho y s = some N.erase := by
+  have hgeom := fgsa_retainedExactHead_geometry_on_run_on
+    (hroots := h.base.receiptIdealization)
+    E rho h.base.valid s hx hip hseat N hem D hreads hScopes
+  exact exactService_head_of_retained_proposal_on E rho h.base.valid h.base.delta s
+    hip N hem D hgeom
 
 end AvailableChain.FGSA.Run
 end

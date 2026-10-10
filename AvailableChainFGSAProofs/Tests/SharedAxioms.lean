@@ -524,3 +524,33 @@ end
 #print axioms AvailableChain.FGSA.Run.fgsa_releaseStoreClaim
 
 #print axioms AvailableChain.FGSA.Run.fgsa_sameLabelClaim
+
+#print axioms AvailableChain.FGSA.Run.fgsa_score_eq_on_candidates_on_run_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_retained_old_child_reflects_on_run_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_walkRun_reflected_old_child_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_retainedWalk_geometry_on_run_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_retained_path_persists_on_run_on
+
+#print axioms AvailableChain.FGSA.Run.exactService_head_of_retained_proposal_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_retainedExactHead_geometry_on_run_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_retainedReads_H17_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_retainedReads_H6_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_retainedReads_H6S_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_retainedReads_HG1_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_retainedReads_L4R_on
+
+#print axioms AvailableChain.FGSA.Run.fgsa_retainedReads_L2_on
+
+#print axioms AvailableChain.FGSA.Run.exactService_head_of_retained_proposal_clean_on
+
+#print axioms AvailableChain.FGSA.Run.exactService_head_of_retained_proposal_recovery_on

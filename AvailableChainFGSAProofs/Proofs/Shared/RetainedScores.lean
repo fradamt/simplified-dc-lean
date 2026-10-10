@@ -151,5 +151,51 @@ theorem fgsa_retained_scores_of_candidates
   intro X C hK hX hm hp he
   exact (hscore C ⟨X, hK, (Bool.and_eq_true_iff.mp hX).2, hm, hp, he, Or.inl hX⟩).symm
 
+/-- Receiver services for each candidate with valid endpoint floors.
+Each retained object keeps its own ready anchor and history premise. -/
+structure RetainedServiceScope (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (ip ih : Nat) (x y : V) (s : Slot) (N : NamedProposal p.n) : Prop where
+  proposal : Nonempty (ReceiverService E rho
+    (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p)
+    (SA.proposalTime p.toParams s) (SA.voteTime p.toParams s) y)
+  scores : ∀ D, ScoreRunGeometry
+    (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
+    (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) D →
+    ScoreServiceScope E rho ip ih x y s D
+
+theorem fgsa_score_eq_on_candidates_on_run_on
+    (E) (rho)
+    (hE : V2.D.ExecutionValid (V := V) (P := fgsa p c) E rho)
+
+    (s : Slot)
+    {ip ih : Nat} {x y : V} (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
+    (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
+    (hih : rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)))
+    (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
+      rho.emitsAt E ip)
+    (hadm : N.erase ∈ (rho.stateBefore E ih y).st.base.blocks)
+    (Candidates : Block → Prop)
+    (hA : ScoreRunGeometry
+      (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
+      (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) N.erase.parent)
+    (hCandidates : ∀ C, Candidates C → ScoreRunGeometry
+      (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
+      (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) C)
+    (hScope : RetainedServiceScope E rho ip ih x y s N)
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
+    let src := clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s)
+    let dst := clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)
+    GridCO.voterCount (proposerVotes src s) = GridCO.voterCount (headVotes p dst s) ∧
+      ∀ C, Candidates C → RetainedWalk.ss src s C = RetainedWalk.ts p dst s C := by
+  have hFN := block_preceq_trans hA.target_floor (fgsa_parent_preceq N.erase)
+  refine ⟨(fgsa_score_eq_on_run_on (hroots := hroots) E rho hE s hx hy hip hih hseat
+    N hem hadm hFN N.erase.parent hA (hScope.scores _ hA)).2.2.1, ?_⟩
+  intro C hC
+  exact (fgsa_score_eq_on_run_on (hroots := hroots) E rho hE s hx hy hip hih hseat
+    N hem hadm hFN C (hCandidates C hC) (hScope.scores _ (hCandidates C hC))).2.2.2 C
+      (block_preceq_refl C)
+
 end AvailableChain.FGSA.Run
 end

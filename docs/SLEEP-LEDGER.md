@@ -2365,3 +2365,29 @@ Those bounds give awake service at the early anchor, safe HEAD history, and the
 exact epochs through the strict gate read. The receipt deadline uses the same
 LabelSyncOn delivery law. No per-reader scope or history premise was added to
 SameLabelPrem or to the public claim.
+
+### Round 5: retained geometry and read services
+
+`RetainedServiceScope` supplies the named proposal service and candidate-local
+ScoreServiceScope whenever both endpoint floors apply. Candidate services keep
+HistorySafeAt per object; old processing is not used to fill that field.
+`RetainedExactHeadRunGeometryOn` restricts admission, walk and endpoint suppliers
+to joined readers. The new retained geometry theorem constructs those fields;
+it does not accept an exact HEAD or final walk cover as a service premise.
+The old geometry record and all its compiled consumers remain unchanged.
+
+All six read suppliers have additive `_on` forms: H6, H6S, H17, L4R, HG1 and L2.
+They use TargetReceiptService for the proposal and durable block storage to the
+actual HEAD tick. The local service input is separate from elementary lane reads.
+
+Named downstream suppliers (other families, not edited here):
+- Healing `repair_head_exact` and `frontier_seed_qSucc_head`: H6/H6S object service.
+- Healing `frontier_later_head`: HG1 object service and retained candidate services.
+- WeakContinuation `wc_retainedReads` / `wc_exactProposal`: H17 object service,
+  candidate services and safe retained replay history at each ready anchor.
+- Assembly `wcg_exactProposal`: the analogous WCG retained object services.
+- L4R and L2 callers supply the same object scope within their stop intervals;
+  their private type checks in Tests.RetainedConsumers identify the complete input.
+
+The Clean and Recovery retained `_on` adapters pass these inputs for each joined
+reader. No caller may infer retained HistorySafeAt from a past processed result.

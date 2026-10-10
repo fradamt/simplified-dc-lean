@@ -91,5 +91,77 @@ theorem fgsa_retainedReads_HG1
     E rho hE hN hDelta s hSync hx hip hseat N hem Q
     (fun y hy ih hih => hinput y hy ih hih ⟨hafter, hhead⟩)
 
+theorem fgsa_retainedReads_L4R_on
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho)
+    (s : Slot)
+    {ip : Nat} {x : V} (hx : x ∈ rho.honest)
+    (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
+    (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
+      rho.emitsAt E ip)
+    (Q : FGBlock (Fin p.n))
+    (q : Slot) (w_a w_b : Time)
+    (hafter : SA.gateTime p.toParams q ≤ SA.proposalTime p.toParams s)
+    (hstop : SA.gateTime p.toParams s < min w_a w_b)
+    (hinput : ∀ y ∈ rho.honest, ∀ (ih : Nat),
+      rho.events[ih]? = some (V2.Event.tick y (SA.voteTime p.toParams s)) →
+      (SA.gateTime p.toParams q ≤ SA.proposalTime p.toParams s ∧
+        SA.voteTime p.toParams s < min w_a w_b) →
+      RetainedConeInput p
+        (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
+        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s Q)
+    (hServices : ∀ y ∈ rho.honest, ∀ (ih : Nat),
+      rho.events[ih]? = some (V2.Event.tick y (SA.voteTime p.toParams s)) →
+      TargetReceiptService E rho N.erase (SA.voteTime p.toParams s) y)
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
+    ∀ y ∈ rho.honest, ∀ (ih : Nat),
+      rho.events[ih]? = some (V2.Event.tick y (SA.voteTime p.toParams s)) →
+      ∃ Kc, RetainedReadPremises p
+        (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
+        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s Q N.erase Kc := by
+  have hhead := retained_vote_before_stop p s _ hstop
+  exact fgsa_retainedReads_H17_on (hroots := hroots)
+    E rho hE s hx hip hseat N hem Q
+    (hServices := hServices)
+    (fun y hy ih hih => hinput y hy ih hih ⟨hafter, hhead⟩)
+
+theorem fgsa_retainedReads_HG1_on
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho)
+    (s : Slot)
+    {ip : Nat} {x : V} (hx : x ∈ rho.honest)
+    (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
+    (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
+      rho.emitsAt E ip)
+    (Q : FGBlock (Fin p.n))
+    (q : Slot) (stop : Time)
+    (hafter : SA.gateTime p.toParams q ≤ SA.proposalTime p.toParams s)
+    (hstop : SA.gateTime p.toParams s < stop)
+    (hinput : ∀ y ∈ rho.honest, ∀ (ih : Nat),
+      rho.events[ih]? = some (V2.Event.tick y (SA.voteTime p.toParams s)) →
+      (SA.gateTime p.toParams q ≤ SA.proposalTime p.toParams s ∧
+        SA.voteTime p.toParams s < stop) →
+      RetainedConeInput p
+        (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
+        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s Q)
+    (hServices : ∀ y ∈ rho.honest, ∀ (ih : Nat),
+      rho.events[ih]? = some (V2.Event.tick y (SA.voteTime p.toParams s)) →
+      TargetReceiptService E rho N.erase (SA.voteTime p.toParams s) y)
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
+    ∀ y ∈ rho.honest, ∀ (ih : Nat),
+      rho.events[ih]? = some (V2.Event.tick y (SA.voteTime p.toParams s)) →
+      ∃ Kc, RetainedReadPremises p
+        (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
+        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s Q N.erase Kc := by
+  have hhead := retained_vote_before_stop p s _ hstop
+  exact fgsa_retainedReads_H17_on (hroots := hroots)
+    E rho hE s hx hip hseat N hem Q
+    (hServices := hServices)
+    (fun y hy ih hih => hinput y hy ih hih ⟨hafter, hhead⟩)
+
 end AvailableChain.FGSA.Run
 end
