@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSeedDefs
 public import AvailableChainFGSAProofs.Proofs.Healing.RepairH6S
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumersH6S
 
@@ -13,39 +14,6 @@ That producer is used at Assembly; this module imports only the Healing lane. -/
 
 namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
-
-/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
-Blueprint 21 H.6:915–944 and H.6-S:988–1025.
-DC: SAME the two-arm seed premise of the frozen TFrontier. -/
-def FrontierSeedQualification (p : Params) {V : Type} (E : Generic.Env V)
-    (u : Time) (q : Slot) : Prop :=
-  (∃ β : Slot,
-    u < SA.proposalTime p.toParams β ∧
-    (∀ b, u < SA.proposalTime p.toParams b → β ≤ b) ∧
-    SA.proposalTime p.toParams (β + 2 * p.k - 1) < SA.proposalTime p.toParams q) ∨
-  (∃ b : Slot,
-    u ≤ SA.voteTime p.toParams b ∧
-    (∀ i, u ≤ SA.voteTime p.toParams i → b ≤ i) ∧
-    p.k ≤ b + 1 ∧
-    E.t_GST ≤ SA.voteTime p.toParams (b + 1 - p.k) ∧
-    SA.proposalTime p.toParams (b + p.k) < SA.proposalTime p.toParams q)
-
-/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
-Blueprint 21:1333–1350; TF-SEED Q4.
-DC: SAME an explicit equation adapter for the frozen two-arm seed premise. -/
-theorem frontierSeedQualification_iff (p : Params) {V : Type} (E : Generic.Env V)
-    (u : Time) (q : Slot) : FrontierSeedQualification p E u q ↔
-  (∃ β : Slot,
-    u < SA.proposalTime p.toParams β ∧
-    (∀ b, u < SA.proposalTime p.toParams b → β ≤ b) ∧
-    SA.proposalTime p.toParams (β + 2 * p.k - 1) < SA.proposalTime p.toParams q) ∨
-  (∃ b : Slot,
-    u ≤ SA.voteTime p.toParams b ∧
-    (∀ i, u ≤ SA.voteTime p.toParams i → b ≤ i) ∧
-    p.k ≤ b + 1 ∧
-    E.t_GST ≤ SA.voteTime p.toParams (b + 1 - p.k) ∧
-    SA.proposalTime p.toParams (b + p.k) < SA.proposalTime p.toParams q) := Iff.rfl
-
 
 variable (p : Params) {In V : Type} (c : AppCodec In) [DecidableEq V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
@@ -128,7 +96,7 @@ DC: INTENTIONAL the frozen seed premise gives the q+1 lease cover in the initial
 The q+1 gate needs a separate proof under the frontier cap. -/
 theorem tfSeed_qSucc_lease_cover [Fintype V] {G ΔF : Time}
     (hrec : RecoverySleep₂ p c E rho G ΔF) (mono : RMonoAll p c E rho)
-    (crossing : RXing p c E rho) (hPerm : SupportPermanenceServices E rho)
+    (crossing : RXing p c E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -150,6 +118,7 @@ theorem tfSeed_qSucc_lease_cover [Fintype V] {G ΔF : Time}
     {u : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool} {q : Slot}
     (hgst : E.t_GST ≤ u)
     (hphase : PhaseInterval p c E rho u (SA.gateTime p.toParams q) m J contested)
+    (hPerm : SupportPermanenceScope E rho u (SA.gateTime p.toParams q) m J contested)
     (hseed : FrontierSeedQualification p E u q) : RepairLeaseCover E rho (q + 1) := by
   have hd := p.deltaPos
   have hlater : SA.proposalTime p.toParams q < SA.proposalTime p.toParams (q + 1) := by
@@ -161,9 +130,11 @@ theorem tfSeed_qSucc_lease_cover [Fintype V] {G ΔF : Time}
     push_cast
     linarith
   rcases hseed with ⟨β, hβ, _, hlt⟩ | ⟨b, hb, _, _, hwindow, hlt⟩
-  · exact repair_lease_cover_two E rho hrec mono crossing hPerm writes hgst hphase hβ
+  · exact repair_lease_cover_two_at E rho hrec mono crossing writes
+      hgst hphase hPerm hβ
       (hlt.trans hlater) hvs
-  · exact repair_lease_cover_one E rho hrec mono crossing hPerm writes hgst hphase hb hwindow
+  · exact repair_lease_cover_one_at E rho hrec mono crossing writes
+      hgst hphase hPerm hb hwindow
       (hlt.trans hlater) hvs
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -172,7 +143,7 @@ DC: INTENTIONAL the retained H.6 input at both actual q+1 reads in the initial p
 Both seed arms use the checked lease cover. No phase through the q+1 gate is used. -/
 theorem frontier_seed_qSucc_input [Fintype V] {G ΔF : Time}
     (hrec : RecoverySleep₂ p c E rho G ΔF) (mono : RMonoAll p c E rho)
-    (crossing : RXing p c E rho) (hPerm : SupportPermanenceServices E rho)
+    (crossing : RXing p c E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -194,6 +165,7 @@ theorem frontier_seed_qSucc_input [Fintype V] {G ΔF : Time}
     {u : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool} {q : Slot}
     (hgst : E.t_GST ≤ u)
     (hphase : PhaseInterval p c E rho u (SA.gateTime p.toParams q) m J contested)
+    (hPerm : SupportPermanenceScope E rho u (SA.gateTime p.toParams q) m J contested)
     (hseed : FrontierSeedQualification p E u q)
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams (q + 1))))
@@ -217,7 +189,7 @@ theorem frontier_seed_qSucc_input [Fintype V] {G ΔF : Time}
     push_cast
     linarith
   exact repair_h6_input E rho hrec mono crossing hgst hphase hhead hvs
-    (tfSeed_qSucc_lease_cover E rho hrec mono crossing hPerm writes hgst hphase hseed)
+    (tfSeed_qSucc_lease_cover E rho hrec mono crossing writes hgst hphase hPerm hseed)
     hx hip hPrior hy hih
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -226,7 +198,7 @@ DC: INTENTIONAL every honest q+1 HEAD is the honest q+1 proposal.
 The two arms consume `fgsa_retainedReads_H6` and `fgsa_retainedReads_H6S`, respectively. -/
 theorem frontier_seed_qSucc_head [Fintype V] {G ΔF : Time}
     (hrec : RecoverySleep₂ p c E rho G ΔF) (mono : RMonoAll p c E rho)
-    (crossing : RXing p c E rho) (hPerm : SupportPermanenceServices E rho)
+    (crossing : RXing p c E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -248,8 +220,12 @@ theorem frontier_seed_qSucc_head [Fintype V] {G ΔF : Time}
     {u : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool} {q : Slot}
     (hgst : E.t_GST ≤ u)
     (hphase : PhaseInterval p c E rho u (SA.gateTime p.toParams q) m J contested)
+    (hPerm : SupportPermanenceScope E rho u (SA.gateTime p.toParams q) m J contested)
     (hseed : FrontierSeedQualification p E u q)
-    (hServices : RepairHeadServices E rho (q + 1))
+    (hServices : ∀ ip x N, x ∈ rho.honest →
+      rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams (q + 1))) →
+      (ofWire p ⟨.proposer (q + 1), .proposal N⟩) ∈ rho.emitsAt E ip →
+      RepairHeadServices E rho (q + 1) ip x N)
     {B : Block} (hp : HonestProposal E rho (fgsaInterface p c) (q + 1) B) :
     ∀ y ∈ rho.honest, joinedAt p E rho y (q + 1) (SA.voteTime p.toParams (q + 1)) →
       headAtLabel p c E rho y (q + 1) = some B := by
@@ -276,12 +252,13 @@ theorem frontier_seed_qSucc_head [Fintype V] {G ΔF : Time}
     push_cast
     linarith
   have hhor : SA.voteTime p.toParams (q + 1) ≤ rho.horizon := hvs.trans hphase.2.1
+  have hServices := hServices ip x N hx hip hem
   have hPrior : ProposalSupportScope E rho ip x q := by
-    simpa only [Nat.add_sub_cancel] using hServices.prior ip x hx hip
+    simpa only [Nat.add_sub_cancel] using hServices.prior
   exact repair_head_exact E rho hrec.toRecovery₂ (q + 1) hGST hx hip hseat N hem
-    (fun y hy ih hih _ => frontier_seed_qSucc_input E rho hrec mono crossing hPerm writes
+    (fun y hy ih hih _ => frontier_seed_qSucc_input E rho hrec mono crossing writes
       hgst hphase hseed hx hip hPrior hy hih)
-    (hServices.targets ip x N hx hip hem) (hServices.scopes ip x N hx hip hem) hhor
+    hServices.targets hServices.scopes hhor
 
 end AvailableChain.FGSA.Run
 end

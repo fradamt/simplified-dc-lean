@@ -19,9 +19,13 @@ variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
 /-- Bounded local services for repaired proposals and their enabled gates. -/
 structure RepairServiceScopes (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) : Prop where
-  permanence : SupportPermanenceServices E rho
-  heads : ∀ (s : Slot), E.t_GST ≤ slotStartZ p ((s : Int) - 1) →
-    SA.voteTime p.toParams s ≤ rho.horizon → RepairHeadServices E rho s
+  permanence : ∀ u v m J contested, E.t_GST ≤ u →
+    PhaseInterval p c E rho u v m J contested →
+    SupportPermanenceScope E rho u v m J contested
+  heads : ∀ s ip x N, E.t_GST ≤ slotStartZ p ((s : Int) - 2) → x ∈ rho.honest →
+    rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)) →
+    (ofWire p ⟨.proposer s, .proposal N⟩) ∈ rho.emitsAt E ip →
+    SA.voteTime p.toParams s ≤ rho.horizon → RepairHeadServices E rho s ip x N
   gates : ∀ (s : Slot), E.t_GST ≤ slotStartZ p ((s : Int) - 1) →
     SA.gateTime p.toParams s ≤ rho.horizon → RepairGateScope E rho s
 
@@ -84,6 +88,7 @@ theorem repair_exact_service [Fintype V] (E : Generic.Env V)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     (hgst : E.t_GST ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
     {r : Nat} (hhead : u ≤ slotStartZ p (r : Int))
+    (hPriorCut : E.t_GST ≤ slotStartZ p ((r : Int) - 1))
     (hlease : RepairLeaseCover E rho (r + 1))
     (hgate : SA.gateTime p.toParams (r + 1) ≤ v) {Q : Block}
     (hp : HonestProposal E rho (fgsaInterface p c) (r + 1) Q) :
@@ -106,10 +111,11 @@ theorem repair_exact_service [Fintype V] (E : Generic.Env V)
   have hcut : E.t_GST ≤ slotStartZ p (((r + 1 : Nat) : Int) - 1) := by
     simpa only [Nat.cast_add, Nat.cast_one, add_sub_cancel_right] using hgst.trans hhead
   have hhor : SA.voteTime p.toParams (r + 1) ≤ rho.horizon := hvq.trans hphase.2.1
-  have hHeads := services.heads (r + 1) hcut hhor
   obtain ⟨ip, x, N, heN, hx, hip, hseat, hem⟩ := repair_proposal_emission E rho hp
+  have hHeads := services.heads (r + 1) ip x N (by
+    simpa only [Nat.cast_add, Nat.cast_one] using hPriorCut) hx hip hem hhor
   have hPrior : ProposalSupportScope E rho ip x r := by
-    simpa only [Nat.add_sub_cancel] using hHeads.prior ip x hx hip
+    simpa only [Nat.add_sub_cancel] using hHeads.prior
   have hGST : E.t_GST ≤ SA.proposalTime p.toParams (r + 1) - p.Δ := by
     refine hgst.trans (hheadVote.trans ?_)
     change 4 * p.Δ * (r : Int) + p.Δ ≤ 4 * p.Δ * ((r + 1 : Nat) : Int) - p.Δ
@@ -118,7 +124,7 @@ theorem repair_exact_service [Fintype V] (E : Generic.Env V)
   have hheadN := repair_head_exact E rho hrec.toRecovery₂ (r + 1) hGST hx hip hseat N hem
     (fun y hy ih hih _ => repair_h6_input E rho hrec mono crossing hgst hphase hheadVote hvq
       hlease hx hip hPrior hy hih)
-    (hHeads.targets ip x N hx hip hem) (hHeads.scopes ip x N hx hip hem) hhor
+    hHeads.targets hHeads.scopes hhor
   have hheadQ : ∀ y ∈ rho.honest,
       joinedAt p E rho y (r + 1) (SA.voteTime p.toParams (r + 1)) →
       headAtLabel p c E rho y (r + 1) = some Q := by simpa only [heN] using hheadN
@@ -161,6 +167,7 @@ theorem repair_after_of_cover [Fintype V] (E : Generic.Env V)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     (hgst : E.t_GST ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
     {l : Nat} (hlu : u ≤ slotStartZ p (l : Int))
+    (hPriorCut : E.t_GST ≤ slotStartZ p ((l : Int) - 1))
     (hcover : ∀ s, SA.proposalTime p.toParams l < SA.proposalTime p.toParams s →
       SA.voteTime p.toParams s ≤ v → RepairLeaseCover E rho s) :
     RepairAfter p c E rho l v := by
@@ -177,8 +184,12 @@ theorem repair_after_of_cover [Fintype V] (E : Generic.Env V)
     refine le_trans ?_ hgate
     change 4 * p.Δ * ((r + 1 : Nat) : Int) + p.Δ ≤ 4 * p.Δ * ((r + 1 : Nat) : Int) + 6 * p.Δ
     linarith
+  have hPriorR : E.t_GST ≤ slotStartZ p ((r : Int) - 1) := by
+    refine hPriorCut.trans ?_
+    change 4 * p.Δ * ((l : Int) - 1) ≤ 4 * p.Δ * ((r : Int) - 1)
+    nlinarith
   exact repair_exact_service E rho hrec mono crossing qc services writes hgst hphase hhead
-    (hcover _ hls hvs) hgate hp
+    hPriorR (hcover _ hls hvs) hgate hp
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.6:910–986 (two leases); plan H-REPAIR steps 3, 4, 10–12 (R4).
@@ -249,10 +260,16 @@ theorem repair_two_lease [Fintype V] (E : Generic.Env V)
     rw [hcl]
     have hk' : (2 : Int) ≤ p.k := by exact_mod_cast hk
     nlinarith
+  have hPriorCut : E.t_GST ≤ slotStartZ p (((β + 2 * p.k - 1 : Nat) : Int) - 1) := by
+    refine (hgst.trans hβ.le).trans ?_
+    change 4 * p.Δ * (β : Int) ≤ 4 * p.Δ * (((β + 2 * p.k - 1 : Nat) : Int) - 1)
+    rw [hcl]
+    have hk' : (2 : Int) ≤ p.k := by exact_mod_cast hk
+    nlinarith
   have hafter : RepairAfter p c E rho (β + 2 * p.k - 1) v :=
-    repair_after_of_cover E rho hrec mono crossing qc services writes hgst hphase hlu
-      (fun _ hls hvs => repair_lease_cover_two E rho hrec mono crossing services.permanence
-        writes hgst hphase hβ
+    repair_after_of_cover E rho hrec mono crossing qc services writes hgst hphase hlu hPriorCut
+      (fun _ hls hvs => repair_lease_cover_two_at E rho hrec mono crossing
+        writes hgst hphase (services.permanence u v m J contested hgst hphase) hβ
         hls hvs)
   refine ⟨hafter, fun hbud => ?_⟩
   have hβl : SA.proposalTime p.toParams β ≤ SA.proposalTime p.toParams (β + 2 * p.k - 1) := by
@@ -351,10 +368,16 @@ theorem repair_synchronous [Fintype V] (E : Generic.Env V)
     change 4 * p.Δ * (b : Int) + p.Δ ≤ 4 * p.Δ * ((b + p.k : Nat) : Int)
     push_cast
     nlinarith
+  have hPriorCut : E.t_GST ≤ slotStartZ p (((b + p.k : Nat) : Int) - 1) := by
+    refine (hgst.trans hb).trans ?_
+    change 4 * p.Δ * (b : Int) + p.Δ ≤ 4 * p.Δ * (((b + p.k : Nat) : Int) - 1)
+    push_cast
+    have hk' : (2 : Int) ≤ p.k := by exact_mod_cast p.kLarge
+    nlinarith [p.deltaPos]
   have hafter : RepairAfter p c E rho (b + p.k) v :=
-    repair_after_of_cover E rho hrec mono crossing qc services writes hgst hphase hlu
-      (fun _ hls hvs => repair_lease_cover_one E rho hrec mono crossing services.permanence
-        writes hgst hphase hb
+    repair_after_of_cover E rho hrec mono crossing qc services writes hgst hphase hlu hPriorCut
+      (fun _ hls hvs => repair_lease_cover_one_at E rho hrec mono crossing
+        writes hgst hphase (services.permanence u v m J contested hgst hphase) hb
         hwindow hls hvs)
   refine ⟨hafter, fun hbud => ?_⟩
   have htl : SA.proposalTime p.toParams (b + p.k) < u + 4 * p.k * p.Δ + 3 * p.Δ := by

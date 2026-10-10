@@ -21,8 +21,14 @@ variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 structure FrontierServiceScopes (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (q : Slot) (v : Time) : Prop where
   read : FrontierReadScope E rho q v
-  permanence : SupportPermanenceServices E rho
-  heads : ∀ s, q + 1 ≤ s → SA.voteTime p.toParams s ≤ v → RepairHeadServices E rho s
+  permanence : ∀ u t m J contested, E.t_GST ≤ u →
+    PhaseInterval p c E rho u t m J contested → t ≤ v →
+    SupportPermanenceScope E rho u t m J contested
+  heads : ∀ s ip x N, q + 1 ≤ s → SA.voteTime p.toParams s ≤ v →
+    E.t_GST ≤ slotStartZ p ((s : Int) - 2) →
+    x ∈ rho.honest → rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)) →
+    (ofWire p ⟨.proposer s, .proposal N⟩) ∈ rho.emitsAt E ip →
+    RepairHeadServices E rho s ip x N
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21:1551–1574; plan §3.1 step 6.
@@ -131,13 +137,17 @@ theorem frontier_seed_qSucc_exactService [Fintype V] (E : Generic.Env V)
     ExactService p c E rho (q + 1) B := by
   exact frontier_exactService_of_heads E rho hrec mono crossing writes services hgst hErase hHeight
     hService hu hPhase hqv hvh hCap (Nat.lt_succ_self q) hgate hp
-    (frontier_seed_qSucc_head E rho hrec mono crossing services.permanence writes
-      hgst hPhase hseed
-      (services.heads (q + 1) le_rfl (by
+    (frontier_seed_qSucc_head E rho hrec mono crossing writes
+      hgst hPhase
+      (services.permanence u (SA.gateTime p.toParams q) m J contested hgst hPhase hqv)
+      hseed
+      (fun ip x N hx hip hem => services.heads (q + 1) ip x N le_rfl (by
         apply le_trans ?_ hgate
         change 4 * p.Δ * ((q + 1 : Nat) : Int) + p.Δ ≤
           4 * p.Δ * ((q + 1 : Nat) : Int) + 6 * p.Δ
-        linarith [p.deltaPos])) hp)
+        linarith [p.deltaPos]) (by
+        simpa only [Nat.cast_add, Nat.cast_one] using frontier_seed_prior_cut hgst hseed)
+        hx hip hem) hp)
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. Blueprint 21:1500–1574; plan §3.1 step 6.
@@ -200,17 +210,26 @@ theorem frontier_later_head [Fintype V] (E : Generic.Env V)
     have hlt : q < s := by exact_mod_cast (show (q : Int) < (s : Int) by
       nlinarith [p.deltaPos])
     exact Nat.succ_le_of_lt hlt
-  have hHeads := services.heads s hqs hvs
+  have hPriorCut : E.t_GST ≤ slotStartZ p ((s : Int) - 2) := by
+    have hqsI : (q : Int) + 2 ≤ (s : Int) := by
+      change 4 * p.Δ * (q : Int) + 6 * p.Δ ≤ 4 * p.Δ * (s : Int) at hafter
+      by_contra hn
+      have hle : (s : Int) ≤ (q : Int) + 1 := by omega
+      nlinarith [p.deltaPos]
+    change E.t_GST ≤ 4 * p.Δ * ((s : Int) - 2)
+    change u ≤ 4 * p.Δ * (q : Int) at hu
+    nlinarith [p.deltaPos]
+  have hHeads := services.heads s ip x N hqs hvs hPriorCut hx hip hem
   have hinput := retainedHG1Input_through E rho hrec mono crossing writes hgst hQ hErase
     hHeight hService services.read hu hPhase hqv hvh hCap hx hip hseat N hem hafter hgate
   have hreads := fgsa_retainedReads_HG1_joined (hroots := hrec.base.receiptIdealization)
     E rho hE s hx hip hseat N hem Qfg q (v + 1) hafter
     (lt_of_le_of_lt hgate (lt_add_of_pos_right v (show (0 : Int) < 1 by decide)))
     (fun y hy ih hih _ _ => hinput y hy ih hih)
-    (hHeads.targets ip x N hx hip hem)
+    hHeads.targets
   have hgeom : RetainedExactHeadRunGeometryOn E rho ip x s Qfg N.erase :=
     fgsa_retainedExactHead_geometry_on_run_on E rho hE s hx hip hseat N hem Qfg hreads
-      (hHeads.scopes ip x N hx hip hem) hrec.base.receiptIdealization
+      hHeads.scopes hrec.base.receiptIdealization
   exact exactService_head_of_retained_proposal_on E rho hE hDelta s hip N hem
     Qfg hgeom (hvs.trans hvh)
 

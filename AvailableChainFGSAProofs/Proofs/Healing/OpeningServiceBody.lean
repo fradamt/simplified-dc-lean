@@ -226,9 +226,11 @@ theorem next_opening_body_service [Fintype V] (E : Generic.Env V)
     refine hu.trans ?_
     change 4 * p.Δ * (q : Int) ≤ 4 * p.Δ * ((r * p.R : Nat) : Int) + p.Δ
     nlinarith
-  have hcovK := (healing_tPerm E rho hrec mono crossing services.permanence writes
+  have hcovK := (healing_tPerm_at E rho hrec mono crossing writes
     u (p.actionTime (r + 1)) m J
-    contested (r * p.R) (eraseFG K) hgst hphase hurR har hbody).1
+    contested (r * p.R) (eraseFG K) hgst hphase
+    (services.permanence u (p.actionTime (r + 1)) m J contested hgst hphase)
+    hurR har hbody).1
   have hvs : SA.voteTime p.toParams s ≤ p.actionTime (r + 1) := by
     change 4 * p.Δ * ((s : Nat) : Int) + p.Δ ≤ 4 * p.Δ * ((s : Nat) : Int) + 6 * p.Δ
     linarith

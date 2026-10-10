@@ -31,10 +31,10 @@ theorem frontier_repair_gate_scope (E : Generic.Env V)
     change 4 * p.Δ * (s : Int) + p.Δ + p.Δ ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
     linarith [p.deltaPos]
   refine ⟨hcut, ?_, ?_, hRead.carriers s hs hvd⟩
-  · intro i x hx ht
-    exact ((hRead.seed x hx).gates s hs hgate).2 i x hx ht
-  · intro i iq x hx ht hiq
-    exact (hRead.fast s hs hgate x hx).first i iq x hx ht hiq
+  · intro i x hx ht hEnabled
+    exact (hRead.seed x hx).gates s hs hgate i x hx ht hEnabled
+  · intro i iq x hx ht hEnabled hiq hJoined
+    exact (hRead.fast s hs hgate x hx).first i iq x hx ht hEnabled hiq hJoined
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. Blueprint 21:965–970, 1551–1574.
@@ -197,13 +197,47 @@ theorem frontier_gate_geometry [Fintype V] (E : Generic.Env V)
     rw [← List.countP_eq_length_filter, ← List.countP_eq_length_filter]
     exact List.countP_mono_left (fun e _ he =>
       decide_eq_true ((of_decide_eq_true he).le.trans (hvd.trans hgate)))
-  obtain ⟨Kfg, _, hKe, hKm, hrelay⟩ := frontier_head_relay_on
+  obtain ⟨Kfg, hKT, hKe, hKm, hReceipt⟩ := frontier_head_relay_on
     E rho crossing hE hHeight hcap hx hjz (hErase ▸ hcovQ x hx _ hhl) hcut
-    (hRead.carriers s (Nat.succ_le_of_lt hqs) (hvd.trans hgate) jz x hx hjz)
+    (fun Kfg hKfull hKe hKm => by
+      have hKT : Kfg ∈ (storeAt p c E rho jz x).fg.TF := by
+        have h := ((KitFG.mem_filteredFromView _ _ _ _).mp hKfull).1
+        change Kfg ∈ (clock p (storeAt p c E rho jz x)
+          (SA.voteTime p.toParams s)).fg.TF at h
+        rwa [clock_fg] at h
+      have hjzv : jz ≤ timeIdx rho v :=
+        (healing_phase_lt_timeIdx p c E rho hS hjz (hvd.trans hgate)).le
+      exact hRead.carriers s (Nat.succ_le_of_lt hqs) (hvd.trans hgate)
+        jz x Kfg Kfg hx hjz hKfull hKe hKT (KitFG.preceq_refl _)
+        ((KitFG.Controls.lo_le_H _).trans ((hcap jz x hjzv hx).trans_eq hKm.symm)))
     hrec.base.receiptIdealization
+  have hjzd : jz ≤ V2.D.Run.idxBefore rho (SA.voteTime p.toParams s + p.Δ) :=
+    ((Gen.V2.Duty.index_lt_idxBefore_iff hS hjz _).mpr
+      (lt_add_of_pos_right _ p.deltaPos)).le
+  have hFd := frontier_F_below_all E rho crossing hx (hcap _ hcut hx)
+    hx hjzd hKT hKm.ge
+  have hJoined : joinedNow p (clock p (storeAt p c E rho i x)
+      (SA.gateTime p.toParams s)) = true := by
+    have hslot : p.slotOf (SA.gateTime p.toParams s) = s + 1 :=
+      (fgsa_postClock_slot (c := c) (rho.stateBefore E i x) _).2.symm.trans
+        (fgsa_gate_slot (c := c) _ s)
+    apply healing_recovery_joinedNow hrec hx ht (hgate.trans hvh)
+    simp only [hslot, Nat.cast_add, Nat.cast_one, add_sub_cancel_right]
+    have hqsI : (q : Int) ≤ (s : Int) := by exact_mod_cast hqs.le
+    change E.t_GST ≤ 4 * p.Δ * (s : Int)
+    change u ≤ 4 * p.Δ * (q : Int) at hu
+    nlinarith [p.deltaPos]
+  have hHeld := healing_held_block_receipt_on p c E rho hE
+    hrec.base.receiptIdealization Kfg (SA.voteTime p.toParams s + p.Δ) x hx
+    (hReceipt.atRead i x (SA.gateTime p.toParams s) hx ht hJoined hvd (by
+      rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hS]
+      exact eraseFG_preceq hFd))
+  change Kfg ∈ (rho.stateBeforeTime E (SA.voteTime p.toParams s + p.Δ) x).st.fg.TF
+    at hHeld
+  rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hS] at hHeld
   have hKi : Kfg ∈ (storeAt p c E rho i x).fg.TF :=
     (fgsa_store_durable p c E rho
-      (healing_support_idxBefore_le p c E rho hS ht hvd) x).1 (hrelay x hx)
+      (healing_support_idxBefore_le p c E rho hS ht hvd) x).1 hHeld
   have hKeB : eraseFG Kfg = B := hKe.trans hKB
   have hiv : i ≤ timeIdx rho v := (healing_phase_lt_timeIdx p c E rho hS ht hgate).le
   obtain ⟨_, hFK, hZK, hloK⟩ := frontier_self_witness E rho crossing hKm hx

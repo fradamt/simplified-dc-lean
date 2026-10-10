@@ -103,8 +103,8 @@ theorem common_sameLabel_scope
     rw [actionSourceFG_def, hnd]
     exact congrArg some hsrc
   obtain ⟨_, _, _, hfw⟩ := opening_source_body E rho hs ht hK
-  exact (services.permanence.fast u (p.actionTime r) m J contested (r * p.R) x _
-    (eraseFG K) hgst hphase hur le_rfl hx hnd hfw).sameLabel
+  exact ((services.permanence u (p.actionTime r) m J contested hgst hphase).fast
+    (r * p.R) x _ (eraseFG K) hur le_rfl hx hnd hfw).sameLabel
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.9:1100–1144, bp.commonEntry.v1; plan §3F.5.

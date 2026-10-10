@@ -5813,3 +5813,27 @@ zero-error coverage result. The frozen-exports log held the 236-module count.
 The five truncated H1 telescopes and four empty consumer lists are corrected.
 The four Foundations requests now bind p, In/V, DecidableEq V, c, E and rho.
 The refuted reset full-TF and RequestedDescentServices.next proposals are withdrawn.
+
+### P-H2 Round 4 — aggregate scope handoff (2026-10-10)
+
+Opening/Repair permanence is indexed by the actual phase. Frontier permanence
+also has the frontier endpoint bound. Repair and frontier head factories are
+keyed to the original emitted proposal ip/x/N. The old heads factory's sufficient
+cutoff at s-1 is removed; it cannot prove a join at the prior label s-1.
+The requested H1 prior record must use the actual earlier emitted voters and
+handle the genesis/empty-cohort case separately. That obligation remains OPEN.
+
+The H2 projections use requested indexed H1 APIs, not the old global factories.
+Exact complete types, source sites and owners are in
+claude-files/sleep-ph2d/H1-narrow-requests.md. SupportPermanenceScope,
+healing_tPerm_at, repair_lease_cover_one_at/two_at, and
+healing_rise_one_advance_at are requests, not declarations on this base.
+Affected modules are EXPECTED-FAIL. No compilation or producer closure is claimed
+for this handoff. FrontierServiceCover/Support still need the lower H1 shapes.
+
+The repair head factory now requires GST ≤ slotStart(s-2), at the earlier label.
+Repair thresholds and the qualified frontier seed supply this bound. The saved
+Δ=1, GST=4, s=2 review run does not meet the guard. frontier_seed_prior_cut proves
+the seed bound by grid arithmetic. Per-reader joined guards stay in the lower API.
+This corrects the earlier handoff note: the later cutoff is not merely removed;
+it is replaced by the exact earlier cutoff, proved at the actual callers.

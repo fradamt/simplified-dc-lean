@@ -23,7 +23,9 @@ variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 /-- Exact object services used by opening gates and their release readers. -/
 structure OpeningServiceScopes (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) :
     Prop where
-  permanence : SupportPermanenceServices E rho
+  permanence : ∀ u v m J contested, E.t_GST ≤ u →
+    PhaseInterval p c E rho u v m J contested →
+    SupportPermanenceScope E rho u v m J contested
   gates : ∀ i x s, x ∈ rho.honest → IsGateTick p c rho i x s → enabledGateAt p c E rho i x s →
     E.t_GST ≤ slotStartZ p ((s : Int) - 1) →
     SA.gateTime p.toParams s ≤ rho.horizon → GateReceiptScope E rho i x s
@@ -84,8 +86,8 @@ theorem opening_heads_cover [Fintype V] (E : Generic.Env V)
   obtain ⟨_, _, ⟨nd, hnd, hQnd⟩, _, _⟩ := hexact.2 (hqv.trans hphase.2.1) x hx
     (healing_recovery_gate_reader hrec hx (hgst.trans hu) (hqv.trans hphase.2.1))
   have hbody : PhaseBody p c E rho q Q := ⟨x, hx, Or.inl ⟨nd, hnd, hQnd⟩⟩
-  have htr := healing_tPerm E rho hrec mono crossing services.permanence writes
-    u v m J contested q Q hgst hphase
+  have htr := healing_tPerm_at E rho hrec mono crossing writes
+    u v m J contested q Q hgst hphase (services.permanence u v m J contested hgst hphase)
     huq hqv hbody
   intro z hz K hK
   exact htr.1 z s K hz hqs hvs hK
@@ -358,9 +360,9 @@ theorem opening_gate_guard [Fintype V] (E : Generic.Env V)
               subst hCQ
               exact hj
     rcases hbody with hbody | hlQ
-    · have hcovb := (healing_tPerm E rho hrec mono crossing services.permanence writes
+    · have hcovb := (healing_tPerm_at E rho hrec mono crossing writes
         u v m J contested w lease.1
-        hgst hphase huw hwv hbody).1
+        hgst hphase (services.permanence u v m J contested hgst hphase) huw hwv hbody).1
       have hcb : ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z s = some K →
           Block.Preceq lease.1 K :=
         fun z hz K hK => hcovb z s K hz (by exact_mod_cast (show (w : Int) + 1 ≤ (s : Int) by

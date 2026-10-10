@@ -2,6 +2,24 @@
 # Regression commands remain in their test module.
 {
     'AvailableChainFGSAProofs.Tests.Axioms': {
+        'AvailableChainFGSAProofs.Proofs.Healing.RiseOneAccept': (
+            'AvailableChain.FGSA.Run.healing_rise_one_of_effective',
+            'AvailableChain.FGSA.Run.healing_rise_one_of_receipt',
+            'AvailableChain.FGSA.Run.healing_rise_one_receipt_all',
+            'AvailableChain.FGSA.Run.healing_rise_one_accept',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Healing.Reset': (
+            'AvailableChain.FGSA.Run.healing_reset_budget_sum',
+            'AvailableChain.FGSA.Run.healing_reset_budget_choice',
+            'AvailableChain.FGSA.Run.healing_reset_budget_lt',
+            'AvailableChain.FGSA.Run.healing_reset_rowCap',
+            'AvailableChain.FGSA.Run.healing_reset_mu_le',
+            'AvailableChain.FGSA.Run.healing_reset_fresh',
+            'AvailableChain.FGSA.Run.healing_reset_synchronous',
+            'AvailableChain.FGSA.Run.healing_reset_reset_first',
+            'AvailableChain.FGSA.Run.healing_reset_fields',
+            'AvailableChain.FGSA.Run.healing_resetWitness',
+        ),
         'AvailableChainFGSAProofs.Proofs.Healing.OpeningGateRead': (
             'AvailableChain.FGSA.Run.healing_enabledGate_of_fastWrite',
             'AvailableChain.FGSA.Run.healing_fastWrite_joined',
@@ -135,8 +153,11 @@
         'AvailableChainFGSAProofs.Proofs.Healing.FrontierOpenAll': (
             'AvailableChain.FGSA.Run.frontier_openings',
         ),
-        'AvailableChainFGSAProofs.Proofs.Healing.FrontierSeed': (
+        'AvailableChainFGSAProofs.Proofs.Healing.FrontierSeedDefs': (
+            'AvailableChain.FGSA.Run.frontier_seed_prior_cut',
             'AvailableChain.FGSA.Run.frontierSeedQualification_iff',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Healing.FrontierSeed': (
             'AvailableChain.FGSA.Run.tfSeed_two_from_tRepair',
             'AvailableChain.FGSA.Run.tfSeed_one_from_tRepair',
             'AvailableChain.FGSA.Run.tfSeed_later',

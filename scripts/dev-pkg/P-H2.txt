@@ -2,6 +2,7 @@
 # GREEN source is verified; service scope producers remain explicit.
 
 [TARGETS]
+AvailableChainFGSAProofs.Proofs.Healing.FrontierSeedDefs
 AvailableChainFGSAProofs.Tests.HealingH2RecoveryAxioms
 AvailableChainFGSAProofs.Tests.HealingOpeningSupport
 AvailableChainFGSAProofs.Proofs.Healing.RecoveryService
@@ -95,6 +96,7 @@ AvailableChainFGSAProofs.Tests.HealingRiseOne
 AvailableChainFGSAProofs.Tests.HealingH2ServiceAxioms
 
 [GREEN]
+AvailableChainFGSAProofs.Proofs.Healing.FrontierSeedDefs
 AvailableChainEngineV2
 AvailableChainEngineV2.Conditions.Committees
 AvailableChainEngineV2.Conditions.Delivery
@@ -284,8 +286,6 @@ AvailableChainFGSAClaims.Statements.Witness
 AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchDefs
 AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchHG2a
 AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchStop
-AvailableChainFGSAProofs.Proofs.Healing.FrontierSeed
-AvailableChainFGSAProofs.Proofs.Healing.FrontierServiceGate
 AvailableChainFGSAProofs.Proofs.Healing.FrontierServiceSupport
 AvailableChainFGSAProofs.Proofs.Healing.OpeningGateRead
 AvailableChainFGSAProofs.Proofs.Healing.OpeningGateSupport
@@ -293,7 +293,6 @@ AvailableChainFGSAProofs.Proofs.Healing.OpeningTicks
 AvailableChainFGSAProofs.Proofs.Healing.RecoveryScope
 AvailableChainFGSAProofs.Proofs.Healing.RecoveryService
 AvailableChainFGSAProofs.Proofs.Healing.ReleaseScope
-AvailableChainFGSAProofs.Proofs.Healing.Repair
 AvailableChainFGSAProofs.Proofs.Healing.ResetCut
 AvailableChainFGSAProofs.Proofs.Healing.ResetScope
 AvailableChainFGSAProofs.Proofs.Shared.AnchorService
@@ -612,8 +611,6 @@ AvailableChainFGSAProofs.Proofs.Healing.PostResetOpening P-H2
 AvailableChainFGSAProofs.Proofs.Healing.PostResetRawStep P-H2
 AvailableChainFGSAProofs.Proofs.Healing.PostResetService P-H2
 AvailableChainFGSAProofs.Proofs.Healing.PostResetTHigh P-H2
-AvailableChainFGSAProofs.Proofs.Healing.Reset P-H2
-AvailableChainFGSAProofs.Proofs.Healing.RiseOneAccept P-H2
 AvailableChainFGSAProofs.Proofs.Healing.RiseOneRepair P-H2
 AvailableChainFGSAProofs.Proofs.Healing.RiseOneRise P-H2
 AvailableChainFGSAProofs.Tests.HealingAttempt P-H2
@@ -656,5 +653,10 @@ AvailableChainFGSAProofs.Proofs.Healing.OpeningService P-H2
 AvailableChainFGSAProofs.Proofs.Healing.OpeningServiceBody P-H2
 AvailableChainFGSAProofs.Proofs.Healing.OpeningServiceGate P-H2
 AvailableChainFGSAProofs.Proofs.Healing.OpeningServiceOne P-H2
-AvailableChainFGSAProofs.Proofs.Healing.RiseOne P-H2
 AvailableChainFGSAProofs.Tests.HealingH2ServiceAxioms P-H2
+AvailableChainFGSAProofs.Proofs.Healing.FrontierSeed P-H2
+AvailableChainFGSAProofs.Proofs.Healing.FrontierServiceGate P-H2
+AvailableChainFGSAProofs.Proofs.Healing.Repair P-H2
+AvailableChainFGSAProofs.Proofs.Healing.Reset P-H2
+AvailableChainFGSAProofs.Proofs.Healing.RiseOne P-H2
+AvailableChainFGSAProofs.Proofs.Healing.RiseOneAccept P-H2

@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Healing.PhaseRelay
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchDefs
 public import AvailableChainFGSAProofs.Proofs.Shared.BoundsW
 
