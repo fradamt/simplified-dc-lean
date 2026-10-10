@@ -58,7 +58,9 @@ private theorem frame_proposal_read (hs : V2.D.ScheduleWellFormed E rho)
       have he : m = .proposal N := congrArg V2.Signed.payload ho
       subst m
       cases d with
-      | headAction _ => cases hm
+      | headAction _ =>
+        change (if joinedNow p _ then some (Msg.head _) else none) = some (Msg.proposal N) at hm
+        split at hm <;> cases hm
       | fgAction _ =>
         change (attest p _ _ _).1.map Msg.row = some (.proposal N) at hm
         obtain ⟨_, _, he⟩ := Option.map_eq_some_iff.mp hm
@@ -71,7 +73,11 @@ private theorem frame_proposal_read (hs : V2.D.ScheduleWellFormed E rho)
           have he : (s' : Int) = s := by nlinarith
           exact_mod_cast he
         subst s'
-        exact (fgsa_walkRun_proposal_parent p _ s _ N hm).2.2
+        change (if joinedNow p _ then
+          (propose p _ s).map (withApp p _) else none) = some (.proposal N) at hm
+        split at hm
+        · exact (fgsa_walkRun_proposal_parent p _ s _ N hm).2.2
+        · cases hm
     · exact (List.not_mem_nil hem).elim
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]

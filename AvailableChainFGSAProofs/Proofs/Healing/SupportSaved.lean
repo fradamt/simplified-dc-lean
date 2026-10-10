@@ -81,9 +81,7 @@ private theorem saved_clock (st : State p.n) (t : Time) (w : Slot)
       apply hne
       rw [ht, he]
     apply hpre
-    by_cases hk : GridCO.savedGenuine (clockPre p st t).base k = none
-    · rwa [(gateStep_fresh p _ k hk).2.1 w hwk] at h
-    · rwa [gateStep_saved p _ k (Option.isSome_iff_ne_none.mpr hk), normalizeS_fields] at h
+    rwa [gateStep_other p _ k w hwk] at h
   · exact hpre h
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]

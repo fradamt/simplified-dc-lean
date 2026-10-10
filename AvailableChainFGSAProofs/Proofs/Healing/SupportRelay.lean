@@ -75,7 +75,9 @@ theorem healing_support_gate_late (E : Generic.Env V) (rho : V2.D.Run V (fgsa p 
     (hS : V2.D.ScheduleWellFormed E rho) {i : Nat} {x : V} {s : Slot}
     (hi : rho.events[i]? = some (.tick x (SA.gateTime p.toParams s)))
     (o : GridCO.Wire p.n .root) (hm : o ∈ (V2.D.Run.stateBefore E rho i x).st.base.votes)
-    (hl : GridCO.headLabel? o = some s) :
+    (hl : GridCO.headLabel? o = some s)
+    (hj : joinedAtTime p (storeAt p c E rho i x).restartTime
+      (SA.gateTime p.toParams s) = true) :
     o ∈ GridCO.lateVotes p.toParams.engine
       (actView (clockPre p (V2.D.Run.stateBefore E rho i x).st (SA.gateTime p.toParams s))) s := by
   apply List.mem_filter.mpr
@@ -89,7 +91,7 @@ theorem healing_support_gate_late (E : Generic.Env V) (rho : V2.D.Run V (fgsa p 
       change 0 < 4 * p.Δ * (s : Int) + 6 * p.Δ
       have hd := p.deltaPos
       positivity
-    have hn := fgsa_preTick_now_lt E rho hS hi hpos
+    have hn := fgsa_preTick_now_lt_joined E rho hS hi hpos hj
     have hb := (fgsa_stateBefore_bounds E rho hS i x).2
     unfold GridCO.stampVote
     cases hf : (V2.D.Run.stateBefore E rho i x).st.base.voteStamp.find?
@@ -111,8 +113,8 @@ private theorem support_read_window (E : Generic.Env V) (rho : V2.D.Run V (fgsa 
   rw [Gen.V2.Duty.stateBefore_idxBefore E rho d hS,
     Gen.V2.Duty.stateBefore_idxBefore E rho _ hS,
     ← fgsa_preTick_eq_timeRead E rho hS hN hi] at hm
-  have hb := stateBefore_now_le_event_retained (fgsaClock p c)
-    (fgsa_hrestore_now_retained p c)
+  have hb := V2.D.Engine.stateBefore_now_le_event_atRestart (fgsaClock p c)
+    (fgsaRestoreTimeLaw p c)
     E rho hS hi x
   rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho i x)] at hb
   have hs := Internal.slotOf_mono (p := p) (hm.trans hb)
@@ -145,7 +147,7 @@ theorem healing_support_vote_backward (E : Generic.Env V) (rho : V2.D.Run V (fgs
   have hl' : GridCO.headLabel? o = some s := by simpa only [beq_iff_eq] using hl
   obtain ⟨B, rfl⟩ := support_vote_shape o s seat hl' hk
   obtain ⟨j, _, t, ha, ht⟩ :=
-    fgsa_vote_accepted_before_head_read E rho hE.toScheduleWellFormed hN hDelta iy y s hiy seat B hm
+    fgsa_vote_accepted_before_head_read E rho hE hN hDelta iy y s hiy seat B hm
   obtain ⟨dl, cut, hD, _, hlt, hb, _, hcut, _⟩ := hSync
   have hd : dl t < SA.gateTime p.toParams s := by
     have hb := hb t
@@ -161,17 +163,23 @@ theorem healing_support_vote_backward (E : Generic.Env V) (rho : V2.D.Run V (fgs
   have hr := fgsa_head_receipt E rho hDelta hE hN dl cut s seat B t x hD
     (Or.inr ⟨y, hy, j, ha⟩) hx ((le_of_lt hd).trans hcut) (hlt t)
     (support_read_window E rho hE.toScheduleWellFormed hN hix (dl t) (le_of_lt hd))
+    (hd.le.trans (hE.in_horizon _ (List.mem_of_getElem? hix)).2)
+    (fgsa_awakeOn_before_tick_noRestart E rho hE hN hix hx
+      (fgsa_trigger_nonneg E rho hE.toScheduleWellFormed (Or.inr ⟨y, hy, j, ha⟩)) hd.le)
   have hkeep : (V2.D.Run.stateBeforeTime E rho (dl t) x).st.base.votes ⊆
       (V2.D.Run.stateBefore E rho ix x).st.base.votes := by
     rw [fgsa_preTick_eq_timeRead E rho hE.toScheduleWellFormed hN hix,
       ← Gen.V2.Duty.stateBefore_idxBefore E rho (dl t) hE.toScheduleWellFormed,
       ← Gen.V2.Duty.stateBefore_idxBefore E rho _ hE.toScheduleWellFormed]
     exact support_votes_mono E rho hN x (support_idx_mono rho (le_of_lt hd))
+  have hjoin := fgsa_gate_joined_of_enabled E rho
+    (fgsa_enabledGate_noRestart E rho hN hix)
   rcases hr with hr | ⟨u, hu, v, hv, hne, hlu, hlv, hku, hkv, _, _⟩
-  · exact Or.inl (healing_support_gate_late E rho hE.toScheduleWellFormed hix _ (hkeep hr.1) rfl)
+  · exact Or.inl (healing_support_gate_late E rho hE.toScheduleWellFormed hix
+      _ (hkeep hr.1) rfl hjoin)
   · exact Or.inr ((cap_pair _ seat).mpr ⟨u,
-      healing_support_gate_late E rho hE.toScheduleWellFormed hix u (hkeep hu) hlu, v,
-      healing_support_gate_late E rho hE.toScheduleWellFormed hix v (hkeep hv) hlv,
+      healing_support_gate_late E rho hE.toScheduleWellFormed hix u (hkeep hu) hlu hjoin, v,
+      healing_support_gate_late E rho hE.toScheduleWellFormed hix v (hkeep hv) hlv hjoin,
       hne, hku, hkv⟩)
 
 private theorem support_stamp_kept {α : Type} [BEq α] [LawfulBEq α]
@@ -189,7 +197,7 @@ private theorem support_stamp_kept {α : Type} [BEq α] [LawfulBEq α]
   | some row => rfl
 
 private theorem support_read_block_stamp (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (hsch : V2.D.ScheduleWellFormed E rho)
+    (hsch : V2.D.ScheduleWellFormed E rho) (hN : V2.D.NoRestart rho)
     (y : V) (D : Time) (hD : 0 < D) (b : Block)
     (hb : b ∈ (V2.D.Run.stateBeforeTime E rho D y).st.base.blocks) :
     GridCO.stampBlock (V2.D.Run.stateBeforeTime E rho D y).st.base b < D := by
@@ -210,13 +218,13 @@ private theorem support_read_block_stamp (E : Generic.Env V) (rho : V2.D.Run V (
     contradiction
   | some row =>
     change row.2 < D
-    rcases fgsa_block_stamp_source E rho _ y row.1 row.2 (List.mem_of_find?_eq_some he) with
+    rcases fgsa_block_stamp_source E rho hN _ y row.1 row.2 (List.mem_of_find?_eq_some he) with
       hg | ⟨l, hl, t, o, _, ha, hs⟩
     · rw [hg.2]; exact hD
     · obtain ⟨parent, hd, _⟩ := ha.1
       have ht := (Gen.V2.Duty.index_lt_idxBefore_iff hsch hd D).mp hl
-      have hc := stateBefore_now_le_event_retained (fgsaClock p c)
-        (fgsa_hrestore_now_retained p c) E rho hsch hd y
+      have hc := V2.D.Engine.stateBefore_now_le_event_atRestart (fgsaClock p c)
+        (fgsaRestoreTimeLaw p c) E rho hsch hd y
       rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho l y)] at hc
       rw [hs]
       exact hc.trans_lt ht
@@ -255,7 +263,7 @@ theorem healing_support_prefreeze_path (E : Generic.Env V) (rho : V2.D.Run V (fg
     (storeBundle_stateBeforeTime E rho D y).cstore.fg.closed K hK A hA
   have hAb := ((storeBundle_stateBeforeTime E rho D y).cstore.baseTree (eraseFG A)).mpr
     ⟨A, hAm, rfl⟩
-  have hAstamp := support_read_block_stamp E rho hsch y D (by
+  have hAstamp := support_read_block_stamp E rho hsch hN y D (by
     change 0 < 4 * p.Δ * (s : Int) + 3 * p.Δ
     have hd := p.deltaPos
     positivity) (eraseFG A) hAb
@@ -313,7 +321,7 @@ theorem healing_support_target_path (E : Generic.Env V) (rho : V2.D.Run V (fgsa 
     (hstamp : GridCO.stampBlock (storeAt p c E rho ix x).base K < SA.earlyTime p.toParams s)
     (hF : Block.Preceq (eraseFG (((fgsa p c).clock (V2.D.Run.stateBefore E rho iy y)
       (SA.voteTime p.toParams (s + 1))).st).fg.F) K)
-    (hroots : NamedRootCollisionFree p c E rho) :
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
     let st := ((fgsa p c).clock (V2.D.Run.stateBefore E rho iy y)
       (SA.voteTime p.toParams (s + 1))).st
     ∃ Kfg : FGBlock (Fin p.n), eraseFG Kfg = K ∧
@@ -350,7 +358,7 @@ theorem healing_support_target_path (E : Generic.Env V) (rho : V2.D.Run V (fgsa 
     have hd := p.deltaPos
     positivity
   obtain ⟨j, _, t, o, ho, ha, ht⟩ :=
-    fgsa_block_accepted_before E rho hsch ix x K _ hg hpub hz hK hstamp
+    fgsa_block_accepted_before E rho hE ix x K _ hg hpub hz hK hstamp
   obtain ⟨u, N, rfl, heN⟩ := support_decode ho
   obtain ⟨dl, cut, hD, hmono, hlt, hb, _, hcut, _⟩ := hSync
   have hdz : dl t < D := by
@@ -377,10 +385,21 @@ theorem healing_support_target_path (E : Generic.Env V) (rho : V2.D.Run V (fgsa 
     rw [Gen.V2.Duty.MonoAlong_def] at h
     exact V2.D.Engine.stateBefore_stable _ h.1 h.2.1 h.2.2 E rho hidx y
       (hN.restartFree y _ iy) (KitFG.preceq_refl _)
+  have hfreezeVote : D ≤ SA.voteTime p.toParams (s + 1) := by
+    change 4 * p.Δ * (s : Int) + 3 * p.Δ ≤ 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ
+    push_cast
+    linarith [p.deltaPos]
   obtain ⟨Y, hY, hYK⟩ := fgsa_proposal_receipt (hRoots := hroots) E rho hDelta hE hN dl cut u N t y
     hD (Or.inr ⟨x, hx, j, ha⟩) hy hdcut (hlt t)
     (by simpa only [heN] using
       Gen.Pure.block_compatible_of_common (Gen.Pure.block_preceq_refl K) hFd)
+    (hdz.le.trans (hfreezeVote.trans (hE.in_horizon _ (List.mem_of_getElem? hiy)).2))
+    (fgsa_awakeOn_before_tick_noRestart E rho hE hN hiy hy
+      (fgsa_trigger_nonneg E rho hsch (Or.inr ⟨x, hx, j, ha⟩)) (by
+        change dl t ≤ 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ
+        change dl t < 4 * p.Δ * (s : Int) + 3 * p.Δ at hdz
+        push_cast
+        linarith [p.deltaPos]))
   refine ⟨Y, hYK.trans heN, ?_⟩
   have hYD : Y ∈ (V2.D.Run.stateBeforeTime E rho D y).st.fg.TF := by
     have hc := (fgsa_store_cumulative p c E rho hN (support_idx_mono rho (le_of_lt hdz)) y).1

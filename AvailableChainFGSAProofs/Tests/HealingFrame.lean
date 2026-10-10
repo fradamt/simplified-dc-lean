@@ -16,7 +16,7 @@ open AvailableChain.SimplexFG
 
 variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (hroots : NamedRootCollisionFree p c E rho)
+    (hroots : NamedReceiptRootCollisionFree p c E rho)
 
 -- This is the exact frozen conjunction. It has no source or phase hypothesis.
 example (hs : V2.D.ScheduleWellFormed E rho) : TGeom p c E rho :=
@@ -43,10 +43,11 @@ example (mono : RMono p c E rho) (hv : V2.D.ExecutionValid E rho)
     (hW : W ∈ (storeAt p c E rho i x).fg.TF) (hgst : E.t_GST ≤ t)
     (hhor : t + p.Δ ≤ rho.horizon)
     (hF : FGBlock.Preceq
-      (storeAt p c E rho (V2.D.Run.idxBefore rho (t + p.Δ)) y).fg.F W) :
+      (storeAt p c E rho (V2.D.Run.idxBefore rho (t + p.Δ)) y).fg.F W)
+    (hAwake : E.awake y (t + p.Δ) = true) :
     Gen.V2.Duty.HoldsBefore E rho (fun nd => W ∈ nd.st.fg.TF) (t + p.Δ) y :=
   healing_held_block_receipt (hroots := hroots) p c E rho mono hv hnr hdelta hsync hi hx hy hW
-      hgst hhor hF
+      hgst hhor hF hAwake
 
 -- The HEAD can be outside its frozen domain. The height bound is on W.
 example (crossing : RXing p c E rho) {i : Nat} {x : V} {s : Slot}
@@ -71,7 +72,8 @@ example (mono : RMono p c E rho) (crossing : RXing p c E rho)
     (hsrc : SettledPhaseFrame p (storeAt p c E rho i x) m J contested)
     (hZW : FGBlock.Preceq (R_at p c E rho i x).Z W)
     (hlo : (R_at p c E rho i x).lo ≤ (heightView p W).h) :
-    ∀ y ∈ rho.honest, Gen.V2.Duty.HoldsBefore E rho
+    ∀ y ∈ rho.honest, E.awake y (SA.voteTime p.toParams s + p.Δ) = true →
+      Gen.V2.Duty.HoldsBefore E rho
       (fun nd => ∀ B, FGBlock.Preceq B W → B ∈ nd.st.fg.TF)
       (SA.voteTime p.toParams s + p.Δ) y :=
   healing_witness_relay_phase (hroots := hroots) p c E rho mono crossing hv hnr hdelta hsync

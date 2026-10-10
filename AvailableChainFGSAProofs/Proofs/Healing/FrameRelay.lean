@@ -34,15 +34,16 @@ theorem healing_witness_relay (mono : RMono p c E rho) (crossing : RXing p c E r
     (hdst : ∀ y ∈ rho.honest, SettledPhaseFrame p
       (storeAt p c E rho (V2.D.Run.idxBefore rho (SA.voteTime p.toParams s + p.Δ)) y)
       m J contested)
-    (hroots : NamedRootCollisionFree p c E rho) :
-    ∀ y ∈ rho.honest, Gen.V2.Duty.HoldsBefore E rho
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
+    ∀ y ∈ rho.honest, E.awake y (SA.voteTime p.toParams s + p.Δ) = true →
+      Gen.V2.Duty.HoldsBefore E rho
       (fun nd => ∀ B, FGBlock.Preceq B W → B ∈ nd.st.fg.TF)
       (SA.voteTime p.toParams s + p.Δ) y := by
   let j := V2.D.Run.idxBefore rho (SA.voteTime p.toParams s + p.Δ)
   have hij : i < j := (Gen.V2.Duty.index_lt_idxBefore_iff hvalid.toScheduleWellFormed hi _).mpr
     (lt_add_of_pos_right _ p.deltaPos)
   have hWj := (fgsa_store_cumulative p c E rho hnr hij.le x).1 hW
-  intro y hy
+  intro y hy hAwake
   have hd := hdst y hy
   have hF : FGBlock.Preceq (storeAt p c E rho j y).fg.F W := by
     cases J with
@@ -57,7 +58,7 @@ theorem healing_witness_relay (mono : RMono p c E rho) (crossing : RXing p c E r
         (hKh.trans_le (hfloor ▸ hlo))
   have hreceipt := healing_held_block_receipt (hroots := hroots)
     p c E rho mono hvalid hnr hdelta hsync
-    hi hx hy hW hgst hhor hF
+    hi hx hy hW hgst hhor hF hAwake
   change W ∈ (V2.D.Run.stateBeforeTime E rho _ y).st.fg.TF at hreceipt
   change ∀ B, FGBlock.Preceq B W → B ∈ (V2.D.Run.stateBeforeTime E rho _ y).st.fg.TF
   intro B hBW
@@ -85,8 +86,9 @@ theorem healing_witness_relay_phase (mono : RMono p c E rho) (crossing : RXing p
     (hsrc : SettledPhaseFrame p (storeAt p c E rho i x) m J contested)
     (hZW : FGBlock.Preceq (R_at p c E rho i x).Z W)
     (hlo : (R_at p c E rho i x).lo ≤ (heightView p W).h)
-    (hroots : NamedRootCollisionFree p c E rho) :
-    ∀ y ∈ rho.honest, Gen.V2.Duty.HoldsBefore E rho
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
+    ∀ y ∈ rho.honest, E.awake y (SA.voteTime p.toParams s + p.Δ) = true →
+      Gen.V2.Duty.HoldsBefore E rho
       (fun nd => ∀ B, FGBlock.Preceq B W → B ∈ nd.st.fg.TF)
       (SA.voteTime p.toParams s + p.Δ) y := by
   have hstrict : u < SA.voteTime p.toParams s + p.Δ :=
@@ -103,11 +105,12 @@ theorem healing_witness_relay_phase (mono : RMono p c E rho) (crossing : RXing p
     rw [← List.countP_eq_length_filter, ← List.countP_eq_length_filter]
     exact List.countP_mono_left (fun e _ he =>
       decide_eq_true ((of_decide_eq_true he).le.trans hreceipt))
+  intro y hy hAwake
   apply healing_witness_relay (hroots := hroots)
     p c E rho mono crossing hvalid hnr hdelta hsync hx hi
-    (hgst.trans hhead) hhor W hW hsrc hZW hlo
-  intro y hy
-  exact healing_settled_frame p c E rho crossing u v m J contested hgst hphase _ y hlow hhigh hy
+    (hgst.trans hhead) hhor W hW hsrc hZW hlo ?_ y hy hAwake
+  intro z hz
+  exact healing_settled_frame p c E rho crossing u v m J contested hgst hphase _ z hlow hhigh hz
 
 end AvailableChain.FGSA.Run
 end

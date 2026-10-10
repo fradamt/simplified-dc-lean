@@ -61,7 +61,9 @@ Blueprint 21:628–650; plan H-SUPPORT §7 step 3.
 DC: SAME a fresh scheduled gate saves its fast set at its own label; the post-clock
 read finds exactly that row. -/
 theorem healing_support_fastWrite (hs : V2.D.ScheduleWellFormed E rho)
-    {j : Nat} {x : V} {w : Slot} (ht : IsGateTick p c rho j x w) :
+    {j : Nat} {x : V} {w : Slot} (ht : IsGateTick p c rho j x w)
+    (hj : joinedAtTime p (storeAt p c E rho j x).restartTime
+      (SA.gateTime p.toParams w) = true) :
     (fastWriteAt ((fgsa p c).clock (V2.D.Run.stateBefore E rho j x)
         (SA.gateTime p.toParams w)).st w).getD [] =
       fastSet p (eraseFG (storeAt p c E rho j x).fg.F)
@@ -72,7 +74,7 @@ theorem healing_support_fastWrite (hs : V2.D.ScheduleWellFormed E rho)
     (actView (clockPre p nd.st (SA.gateTime p.toParams w))) w
   have hinv := (storeBundle_postClock E rho j x (SA.gateTime p.toParams w)).cstore
   have hfw : st.fastWrite = nd.st.fastWrite ++ [(w, fs)] := by
-    have hb := congrArg State.fastWrite (fgsa_gate_clock_bridge E rho hs ht)
+    have hb := congrArg State.fastWrite (fgsa_gate_clock_bridge E rho hs ht hj)
     rw [normalizeS_fields] at hb
     exact hb
   have hrow : (w, fs) ∈ st.fastWrite := by
@@ -107,17 +109,17 @@ theorem healing_support_phaseBody_of_write (hs : V2.D.ScheduleWellFormed E rho)
   obtain ⟨hin, hpost⟩ := healing_support_gate_reads p c E rho hs ht
   have hgr : gateResult p c E rho x w = some (some C) :=
     (gateResultAt_eq_gateResult p c E rho hs ht).symm.trans hres
+  obtain ⟨hjoined, hraw⟩ := fgsa_gate_raw_of_nonempty p c E rho hs ht hgr
   have hconf : SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C := by
-    rw [gateResult_def, hin] at hgr
-    exact Option.some.inj hgr
+    exact hraw
   refine ⟨x, hx, ?_⟩
   rcases hcase with hfast | hslow
   · left
     refine ⟨_, hpost, ?_⟩
-    rw [healing_support_fastWrite p c E rho hs ht]
+    rw [healing_support_fastWrite p c E rho hs ht hjoined]
     have hF : eraseFG (storeAt p c E rho j x).fg.F = eraseFG pre.fg.F := by
       rw [clockPre_fg]
-    obtain ⟨x', w', ht', _, h, hh, hguard⟩ := hpass
+    obtain ⟨x', w', ⟨ht', _⟩, _, h, hh, hguard⟩ := hpass
     obtain ⟨hxx, hw⟩ : x' = x ∧ SA.gateTime p.toParams w' = SA.gateTime p.toParams w := by
       have he := ht'.symm.trans ht
       simp only [Option.some.injEq, V2.Event.tick.injEq] at he

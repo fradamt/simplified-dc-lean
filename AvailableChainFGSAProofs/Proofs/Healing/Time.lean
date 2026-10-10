@@ -49,17 +49,39 @@ theorem healing_time_strict_of_reset (p : Params) (G ΔF GST t : Time)
     t + Γ p G + 4 * p.Δ < GST + B_HF p ΔF G := by
   linarith [healing_resetF_budget_eq p G ΔF]
 
+/-- The recovery start is at or after GST, including a negative GST. -/
+private theorem recoveryStart_ge (p : Params) {V : Type} (E : Generic.Env V) :
+    E.t_GST ≤ recoveryStart p E := by
+  let a := max 0 E.t_GST + 4 * p.Δ - 1
+  have hd : 0 < 4 * p.Δ := by linarith [p.deltaPos]
+  have hdelta : 1 ≤ p.Δ := by
+    have hp := p.deltaPos
+    change (0 : Int) < p.Δ at hp
+    change (1 : Int) ≤ p.Δ
+    omega
+  have ha : 0 ≤ a := by dsimp [a]; linarith [le_max_left 0 E.t_GST]
+  have hq := Int.ediv_nonneg ha hd.le
+  have hm := Int.emod_lt_of_pos a hd
+  have he := Int.mul_ediv_add_emod a (4 * p.Δ)
+  change E.t_GST ≤ 4 * p.Δ * ((a / (4 * p.Δ)).toNat : Int) + 6 * p.Δ
+  rw [Int.toNat_of_nonneg hq]
+  dsimp [a] at he hm
+  nlinarith [le_max_right 0 E.t_GST]
+
 /-- Compose full reset arrival with the J7 / J10 H.18 producer.
 The witness supplied by full reset arrival is used in both time bounds. -/
 theorem healing_hTime_of (p : Params) (G ΔF : Time)
     (hReset : ResetArrivalFullStatement p G ΔF)
     (hInput : HealingInputOfH0Statement p G ΔF) : HTimeStatement p G ΔF := by
   intro hClock V _ _ In c E rho hSet hLive hHorizon
-  have hFull := healing_resetFull_horizon p G ΔF E.t_GST rho.horizon hHorizon
+  have hstart := recoveryStart_ge p E
+  have hOldHorizon : E.t_GST + B_HF p ΔF G ≤ rho.horizon := by linarith
+  have hFull := healing_resetFull_horizon p G ΔF E.t_GST rho.horizon hOldHorizon
   obtain ⟨w, h0, hResetTime⟩ := hReset hClock c E rho hSet hLive hFull
   obtain ⟨hHealing, hTime⟩ := hInput hClock c E rho hSet hLive hFull w h0
   exact ⟨w, hHealing, hTime,
-    healing_time_strict_of_reset p G ΔF E.t_GST (p.actionTime w.rStar) hResetTime⟩
+    (healing_time_strict_of_reset p G ΔF E.t_GST
+      (p.actionTime w.rStar) hResetTime).trans_le (by linarith)⟩
 
 end AvailableChain.FGSA.Run
 end

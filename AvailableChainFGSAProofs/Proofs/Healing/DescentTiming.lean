@@ -111,18 +111,20 @@ theorem healing_action_period {r r' : Nat}
 
 /-- Route 6: the saved delivery gives the stored local clock bound.
 This includes sleeping readers and reads after the event list ends. -/
-theorem healing_delivery_clock (hs : V2.D.ScheduleWellFormed E rho)
+theorem healing_delivery_clock (hv : V2.D.ExecutionValid E rho)
     (hnr : V2.D.NoRestart rho) {i k j r : Nat} {x z : V} {o : Obj p} {t : Time}
     (hki : k < i) (hk : rho.events[k]? = some (.deliver x o t))
     (hj : rho.events[j]? = some (.tick z (p.actionTime r)))
     (ht : p.actionTime r ≤ t) :
     p.actionTime r ≤ (storeAt p c E rho i x).base.now := by
+  have hs := hv.toScheduleWellFormed
   have hpub := hs.tick_public z _ (List.mem_of_getElem? hj)
   have hzero : 0 ≤ p.actionTime r := by
     change 0 ≤ 4 * p.Δ * ((r * p.R : Nat) : Int) + 6 * p.Δ
     have := p.deltaPos
     positivity
-  have hclock := V2.D.Engine.delivery_now_ge_public (fgsaClock p c) E rho hs hnr
+  have hclock := V2.D.Engine.delivery_now_ge_public_atRestart (fgsaClock p c)
+    (fgsaRestoreTimeLaw p c) E rho hv
     hk hpub hzero ht
   have hmono := V2.D.Engine.stateBefore_now_mono_noRestart (fgsaClock p c)
     E rho hs hnr (Nat.le_of_lt hki) x
@@ -227,7 +229,7 @@ theorem healing_finality_source_clock (hroots : NamedRootCollisionFree p c E rho
       (by rw [← hh]; exact Nat.ne_of_gt hpos) hqc'
   have hlt := healing_receipt_before_tick p c E rho hv.toScheduleWellFormed hktjf hkt hjf.2.1
   have hperiod := healing_action_period p (htt.trans_lt hlt)
-  have hclock := healing_delivery_clock p c E rho hv.toScheduleWellFormed hnr
+  have hclock := healing_delivery_clock p c E rho hv hnr
     hkfi hkf hjf.2.1 hft
   have htime : SA.gateTime p.toParams (rt * p.R) + P p ≤
       (storeAt p c E rho i x).base.now := by
@@ -264,7 +266,7 @@ theorem healing_justified_source_clock (hv : V2.D.ExecutionValid E rho)
   obtain ⟨K, r, j, z, a, hji, ha, hK, hh, hT, k, o, t, hki, hk, ht⟩ :=
     healing_justification_timed (hroots := hroots) p c E rho hv origin heldRows hx hW hnz hqc
   exact ⟨K, r * p.R, ⟨j, z, r, a, hji, ha, hK, rfl⟩, hh.trans hjW.symm,
-    hT.trans hJW.symm, healing_delivery_clock p c E rho hv.toScheduleWellFormed hnr
+    hT.trans hJW.symm, healing_delivery_clock p c E rho hv hnr
       hki hk ha.2.1 ht⟩
 
 end AvailableChain.FGSA.Run

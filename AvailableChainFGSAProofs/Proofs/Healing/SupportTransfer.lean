@@ -3,6 +3,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.FramePaths
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportFrame
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportRelay
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportWrite
+public import AvailableChainFGSAProofs.Proofs.Healing.SupportRelease
 
 public section
 
@@ -55,25 +56,6 @@ private theorem transfer_vote_clock' (st : State p.n) (s : Slot) :
       nlinarith
   change (if isGateTime p _ then _ else _) = _
   rw [ite_eq_right hn]
-
-/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
-Blueprint 21:689–692 (H.1 release); plan H-SUPPORT §4 step 5 (G5).
-DC: SAME the HEAD tick at q_s = v_(s+1) runs only expiry and the label-s release
-on the active view, so every surviving lease passed the release count test. -/
-theorem healing_support_release_rows (st : State p.n) (s : Slot)
-    (row : Block × Nat × Time)
-    (hrow : row ∈ (FGSA.clock p st (SA.voteTime p.toParams (s + 1))).base.obligations) :
-    let st1 : State p.n := { st with
-      base := GridCO.expire { st.base with now := SA.releaseTime p.toParams s }
-        (SA.releaseTime p.toParams s) }
-    row ∈ (actView st1).obligations ∧
-      GridCO.releaseCount p.toParams.engine (actView st1) s row.1 < row.2.1 := by
-  intro st1
-  rw [transfer_vote_clock', transfer_vote_release, fgsa_release_clockPre] at hrow
-  change row ∈ (actView st1).obligations.filter
-    (fun (b, g, _) => GridCO.releaseCount p.toParams.engine (actView st1) s b < g) at hrow
-  obtain ⟨hm, hc⟩ := List.mem_filter.mp hrow
-  exact ⟨hm, of_decide_eq_true hc⟩
 
 private def transferReleaseSeats {n : Nat} (q : GridCO.Params) (v : GridCO.State n .root)
     (s : Slot) (B : Block) : Finset (Fin n) :=

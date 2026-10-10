@@ -1,0 +1,95 @@
+# P-H1 serial integration fragment; merge into the existing full audit key.
+{
+    'AvailableChainFGSAProofs.Tests.Axioms': {
+        'AvailableChainFGSAProofs.Proofs.Healing.DescentTiming': (
+            'AvailableChain.FGSA.Run.healing_action_period',
+            'AvailableChain.FGSA.Run.healing_delivery_clock',
+            'AvailableChain.FGSA.Run.healing_finality_source_clock',
+            'AvailableChain.FGSA.Run.healing_justification_timed',
+            'AvailableChain.FGSA.Run.healing_justified_source_clock',
+            'AvailableChain.FGSA.Run.healing_receipt_before_tick',
+            'AvailableChain.FGSA.Run.healing_row_delivery',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Healing.Frame': (
+            'AvailableChain.FGSA.Run.healing_full_witness',
+            'AvailableChain.FGSA.Run.healing_proposal_full_witness',
+            'AvailableChain.FGSA.Run.healing_proposer_floor',
+            'AvailableChain.FGSA.Run.healing_tGeom',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Healing.FramePaths': (
+            'AvailableChain.FGSA.Run.healing_carried_path',
+            'AvailableChain.FGSA.Run.healing_frozen_path',
+            'AvailableChain.FGSA.Run.healing_retained_path',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Healing.FrameRelay': (
+            'AvailableChain.FGSA.Run.healing_witness_relay',
+            'AvailableChain.FGSA.Run.healing_witness_relay_phase',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Healing.FrameSource': (
+            'AvailableChain.FGSA.Run.healing_source_slot',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Healing.FrameZero': (
+            'AvailableChain.FGSA.Run.healing_full_witness_all',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Healing.PostResetRead': (
+            'AvailableChain.FGSA.Run.PostResetConeAt_def',
+            'AvailableChain.FGSA.Run.healing_postReset_retainedReads',
+            'AvailableChain.FGSA.Run.healing_postReset_retainedReads_at',
+            'AvailableChain.FGSA.Run.postResetRetainedCone_iff',
+            'AvailableChain.FGSA.Run.postResetRetainedCone_iff_at',
+            'AvailableChain.FGSA.Run.postResetRetainedCone_of_horizon_lt',
+            'AvailableChain.FGSA.Run.postReset_head_horizon',
+            'AvailableChain.FGSA.Run.postReset_proposal_horizon',
+            'AvailableChain.FGSA.Run.postReset_release_before_proposal',
+            'AvailableChain.FGSA.Run.postReset_source_label_le_sub_two',
+            'AvailableChain.FGSA.Run.postReset_synchronous_window',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Healing.PromotionArithmetic': (
+            'AvailableChain.FGSA.Run.healing_promotion_age_gap',
+            'AvailableChain.FGSA.Run.healing_promotion_gap',
+            'AvailableChain.FGSA.Run.healing_promotion_gap_remainder',
+            'AvailableChain.FGSA.Run.healing_promotion_held_mono',
+            'AvailableChain.FGSA.Run.healing_promotion_maturity',
+            'AvailableChain.FGSA.Run.healing_promotion_maturity_of_action',
+            'AvailableChain.FGSA.Run.healing_promotion_row_deadline',
+            'AvailableChain.FGSA.Run.healing_promotion_row_deadline_strict',
+            'AvailableChain.FGSA.Run.healing_promotion_row_receipt',
+            'AvailableChain.FGSA.Run.healing_promotion_row_receipt_strict',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Healing.SupportRelay': (
+            'AvailableChain.FGSA.Run.healing_support_gate_late',
+            'AvailableChain.FGSA.Run.healing_support_prefreeze_path',
+            'AvailableChain.FGSA.Run.healing_support_target_path',
+            'AvailableChain.FGSA.Run.healing_support_vote_backward',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Healing.SupportRelease': (
+            'AvailableChain.FGSA.Run.healing_support_release_rows',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Healing.SupportSaved': (
+            'AvailableChain.FGSA.Run.healing_clockPre_live',
+            'AvailableChain.FGSA.Run.healing_saved_origin',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Healing.SupportTicks': (
+            'AvailableChain.FGSA.Run.healing_support_honest_emits',
+            'AvailableChain.FGSA.Run.healing_support_vote_tick',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Healing.SupportWrite': (
+            'AvailableChain.FGSA.Run.healing_last_write_one_lease',
+            'AvailableChain.FGSA.Run.healing_last_write_support',
+            'AvailableChain.FGSA.Run.healing_last_write_two_lease',
+            'AvailableChain.FGSA.Run.healing_support_deadline_le_vote',
+            'AvailableChain.FGSA.Run.healing_support_fastWrite',
+            'AvailableChain.FGSA.Run.healing_support_gate_reads',
+            'AvailableChain.FGSA.Run.healing_support_key_cases',
+            'AvailableChain.FGSA.Run.healing_support_phaseBody_of_write',
+            'AvailableChain.FGSA.Run.healing_support_vote_before_proposal',
+        ),
+        'AvailableChainFGSAProofs.Proofs.Healing.Time': (
+            'AvailableChain.FGSA.Run.HealingInputOfH0Statement_def',
+            'AvailableChain.FGSA.Run.healing_hTime_of',
+            'AvailableChain.FGSA.Run.healing_resetF_budget_eq',
+            'AvailableChain.FGSA.Run.healing_resetFull_horizon',
+            'AvailableChain.FGSA.Run.healing_time_strict_of_reset',
+        ),
+    },
+}

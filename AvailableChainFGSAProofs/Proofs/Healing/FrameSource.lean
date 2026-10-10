@@ -226,12 +226,14 @@ private theorem frame_slots_clock (st : State p.n) (t : Time)
     cases hs : GridCO.savedGenuine (clockPre p st t).base
         (((t - 6 * p.Δ) / (4 * p.Δ)).toNat) with
     | none =>
-      rw [(gateStep_fresh p _ _ hs).2.2] at hr
+      rw [(gateStep_fresh_cases p _ _ hs).2] at hr
       rcases List.mem_append.mp hr with hr | hr
       · exact hp row hr B hb
       · have he := List.mem_singleton.mp hr
         subst row
-        exact frame_fastSet_slot p _ _ hop B hb
+        split at hb
+        · exact frame_fastSet_slot p _ _ hop B hb
+        · exact (List.not_mem_nil hb).elim
     | some result =>
       rw [gateStep_saved p _ _ (by rw [hs]; rfl), normalizeS_fields] at hr
       exact hp row hr B hb
@@ -255,15 +257,9 @@ private theorem frame_slots_reachable (st : State p.n) (hr : Reachable p st) :
       rfl
     · intro row hr
       exact (List.not_mem_nil hr).elim
-  | reset t =>
+  | restart t _ ih =>
     constructor
-    · intro B hb
-      have he : B = .genesis := List.mem_singleton.mp hb
-      subst B
-      intro A ha
-      have he : A = .genesis := by simpa [Block.Preceq, Block.preceq] using ha
-      subst A
-      rfl
+    · exact ih.1
     · intro row hr
       exact (List.not_mem_nil hr).elim
   | tick t _ ih => exact frame_slots_clock p _ t ih.1 ih.2

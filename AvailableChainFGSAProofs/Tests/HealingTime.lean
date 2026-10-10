@@ -12,16 +12,16 @@ example (hReset : ResetArrivalFullStatement p G ΔF)
     (hInput : HealingInputOfH0Statement p G ΔF) : HTimeStatement p G ΔF :=
   healing_hTime_of p G ΔF hReset hInput
 
--- Apply the statement on a run, with the original healing horizon.
+-- Apply the statement on a run, with the approved recovery-start horizon.
 example (hReset : ResetArrivalFullStatement p G ΔF)
     (hInput : HealingInputOfH0Statement p G ΔF) (hClock : p.δt = 2 * p.R)
     {V In : Type} [DecidableEq V] [Fintype V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hSet : HealingSet p c E rho G ΔF) (hLive : LivenessBoundW p ΔF)
-    (hHorizon : E.t_GST + B_HF p ΔF G ≤ rho.horizon) :
+    (hHorizon : recoveryStart p E + B_HF p ΔF G ≤ rho.horizon) :
     ∃ w, HealingInput p c E rho w ΔF ∧
       tstar p w ≤ p.actionTime w.rStar + Γ p G + 4 * p.Δ ∧
-      p.actionTime w.rStar + Γ p G + 4 * p.Δ < E.t_GST + B_HF p ΔF G :=
+      p.actionTime w.rStar + Γ p G + 4 * p.Δ < recoveryStart p E + B_HF p ΔF G :=
   healing_hTime_of p G ΔF hReset hInput hClock c E rho hSet hLive hHorizon
 
 -- The horizon bound includes equality; the reset arrival remains strict.

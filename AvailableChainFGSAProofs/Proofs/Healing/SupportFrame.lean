@@ -51,8 +51,9 @@ theorem healing_witness_relay_settled (mono : RMono p c E rho) (crossing : RXing
     (W : FGBlock (Fin p.n)) (hW : W ∈ (storeAt p c E rho i x).fg.TF)
     (hZW : FGBlock.Preceq (R_at p c E rho i x).Z W)
     (hlo : (R_at p c E rho i x).lo ≤ (heightView p W).h)
-    (hroots : NamedRootCollisionFree p c E rho) :
-    ∀ y ∈ rho.honest, Gen.V2.Duty.HoldsBefore E rho
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
+    ∀ y ∈ rho.honest, E.awake y (SA.voteTime p.toParams s + p.Δ) = true →
+          Gen.V2.Duty.HoldsBefore E rho
       (fun nd => ∀ B, FGBlock.Preceq B W → B ∈ nd.st.fg.TF)
       (SA.voteTime p.toParams s + p.Δ) y := by
   have hs := hvalid.toScheduleWellFormed
@@ -79,11 +80,12 @@ theorem healing_head_witness_relay (mono : RMono p c E rho) (crossing : RXing p 
     (hi : rho.events[i]? = some (.tick x (SA.voteTime p.toParams s)))
     (hhead : u ≤ SA.voteTime p.toParams s)
     (hreceipt : SA.voteTime p.toParams s + p.Δ ≤ v)
-    (hroots : NamedRootCollisionFree p c E rho) :
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
     let st := ((fgsa p c).clock (rho.stateBefore E i x) (SA.voteTime p.toParams s)).st
     ∃ K ∈ fullTree p st, eraseFG K = headVote p st s ∧
       ∃ W ∈ st.fg.TF, FGBlock.Preceq K W ∧ (controls p st).lo ≤ (heightView p W).h ∧
-        ∀ y ∈ rho.honest, Gen.V2.Duty.HoldsBefore E rho
+        ∀ y ∈ rho.honest, E.awake y (SA.voteTime p.toParams s + p.Δ) = true →
+          Gen.V2.Duty.HoldsBefore E rho
           (fun nd => ∀ B, FGBlock.Preceq B W → B ∈ nd.st.fg.TF)
           (SA.voteTime p.toParams s + p.Δ) y := by
   intro st

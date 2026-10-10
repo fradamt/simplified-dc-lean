@@ -104,13 +104,13 @@ private theorem frame_frozen_mem (hs : V2.D.ScheduleWellFormed E rho)
         exact ⟨row.2, by simp only [← he]⟩
     obtain ⟨stamp, hf⟩ := hfind
     have hstamp : stamp < d := by
-      rcases fgsa_block_stamp_source E rho _ y (eraseFG W) stamp
+      rcases fgsa_block_stamp_source E rho hnr _ y (eraseFG W) stamp
           (List.mem_of_find?_eq_some hf) with hg | ⟨l, hl, t, o, _, ha, hstamp⟩
       · exact hg.2 ▸ hdpos
       · obtain ⟨parent, he, _⟩ := ha.1
         have ht := (Gen.V2.Duty.index_lt_idxBefore_iff hs he d).mp hl
-        have hn := stateBefore_now_le_event_retained (fgsaClock p c)
-          (fgsa_hrestore_now_retained p c) E rho hs he y
+        have hn := V2.D.Engine.stateBefore_now_le_event_atRestart (fgsaClock p c)
+          (fgsaRestoreTimeLaw p c) E rho hs he y
         rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho l y)] at hn
         exact hstamp ▸ hn.trans_lt ht
     have hkept : st'.base.blockStamp.find? (fun row => row.1 == eraseFG W) =

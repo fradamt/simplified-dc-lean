@@ -45,7 +45,7 @@ theorem healing_promotion_held_mono (E : Generic.Env V)
     rw [← List.countP_eq_length_filter, ← List.countP_eq_length_filter]
     exact List.countP_mono_left (fun e _ he => decide_eq_true
       (lt_of_lt_of_le (of_decide_eq_true he) hdd))
-  obtain ⟨_, _, _, _, hprops, hpool⟩ := fgsa_store_cumulative p c E rho hrec.base.noRestart hi x
+  obtain ⟨_, _, hprops, hpool⟩ := fgsa_store_durable p c E rho hi x
   change a ∈ (storeAt p c E rho (V2.D.Run.idxBefore rho d) x).rowPool ∨
     a ∈ FGSA.blockWireRows (storeAt p c E rho (V2.D.Run.idxBefore rho d) x) at ha
   change a ∈ (storeAt p c E rho (V2.D.Run.idxBefore rho d') x).rowPool ∨

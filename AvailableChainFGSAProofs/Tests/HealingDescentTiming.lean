@@ -91,14 +91,14 @@ example (p : Params) (r : Nat) :
 -- The clock adapter accepts any read index after the saved receipt,
 -- including a read past the final event. No awake premise is present.
 example {In V : Type} [DecidableEq V] (c : AppCodec In) (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa params c)) (hs : V2.D.ScheduleWellFormed E rho)
+    (rho : V2.D.Run V (fgsa params c)) (hv : V2.D.ExecutionValid E rho)
     (hnr : V2.D.NoRestart rho) {k j r : Nat} {x z : V} {o : Obj params} {t : Time}
     (hk : rho.events[k]? = some (.deliver x o t))
     (hj : rho.events[j]? = some (.tick z (params.actionTime r)))
     (ht : params.actionTime r ≤ t) :
     params.actionTime r ≤ (storeAt params c E rho (rho.events.length + 7) x).base.now := by
   have hkl := (List.getElem?_eq_some_iff.mp hk).1
-  exact healing_delivery_clock params c E rho hs hnr (by omega) hk hj ht
+  exact healing_delivery_clock params c E rho hv hnr (by omega) hk hj ht
 
 -- The receipt round must agree with the honest row's actual round,
 -- even when the INLINE witness starts with a different round variable.
@@ -236,17 +236,17 @@ private theorem restartSchedule : V2.D.ScheduleWellFormed restartEnv restartRun 
     have hk7 : k ≤ 7 := by exact_mod_cast hh
     interval_cases k <;> decide
 
-private theorem healing_restart_retained_clock_fixture :
+private theorem healing_restart_wake_clock_fixture :
     V2.D.ScheduleWellFormed restartEnv restartRun ∧
     restartRun.events[7]? = some (.deliver () restartObj 6) ∧
     restartRun.events[6]? = some (.tick () (params.actionTime 0)) ∧
     ¬ V2.D.NoRestart restartRun ∧
-    (storeAt params unitCodec restartEnv restartRun 9 ()).base.now = params.actionTime 0 := by
+    (storeAt params unitCodec restartEnv restartRun 9 ()).base.now = 7 := by
   refine ⟨restartSchedule, rfl, rfl, ?_, ?_⟩
   · intro hnr
     exact hnr 8 () 7 rfl
   · decide +kernel
 
-#print axioms healing_restart_retained_clock_fixture
+#print axioms healing_restart_wake_clock_fixture
 
 end AvailableChain.FGSA.Run.Tests.HealingDescentTiming

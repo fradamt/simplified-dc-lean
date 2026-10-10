@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseOrder
+public import AvailableChainFGSAProofs.Proofs.Shared.CatchUp
 public import AvailableChainFGSAProofs.Proofs.Healing.Base
 public import AvailableChainFGSARun.Proofs.Receipts
 
@@ -58,7 +59,7 @@ private theorem phase_new_accept (hnr : V2.D.NoRestart rho)
   obtain ⟨⟨b, stamp⟩, hm, he⟩ := List.mem_map.mp hm
   dsimp only at he
   subst b
-  rcases fgsa_block_stamp_source E rho (i + 1) x (eraseFG W) stamp hm with
+  rcases fgsa_block_stamp_source E rho hnr (i + 1) x (eraseFG W) stamp hm with
     hg | ⟨j, hj, t, o, hb, ha, _⟩
   · exact (hgen (eraseFG_eq_genesis.mp hg.1)).elim
   · have hji : j = i := by
@@ -99,7 +100,8 @@ theorem healing_phase_block_receipt (crossing : RXing p c E rho)
     (hafter : W ∈ (storeAt p c E rho (i + 1) x).fg.TF)
     (hheight : (heightView p W).h = m) (hhor : ev.time + p.Δ ≤ rho.horizon)
     {y : V} (hy : y ∈ rho.honest)
-    (hroots : NamedRootCollisionFree p c E rho) :
+    (hAwake : E.awake y (ev.time + p.Δ) = true)
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
     let j := V2.D.Run.idxBefore rho (ev.time + p.Δ)
     i < j ∧ j ≤ rho.events.length ∧
       (∀ l e, l < j → rho.events[l]? = some e → e.time < ev.time + p.Δ) ∧
@@ -145,7 +147,12 @@ theorem healing_phase_block_receipt (crossing : RXing p c E rho)
     obtain ⟨Y, hY, he⟩ := fgsa_proposal_receipt (hRoots := hroots) E rho hdelta hvalid hnr
       (fun t => max t E.t_GST + p.Δ) rho.horizon s N ev.time y
       hD hT hy (hdline ▸ hhor) (hdline ▸ (lt_add_of_pos_right _ p.deltaPos))
-      (by simpa only [heN, hdline] using hcompat)
+      (by simpa only [heN, hdline] using hcompat) (hdline ▸ hhor)
+      (by
+        rw [hdline]
+        intro u hu hud
+        exact fgsa_awake_before_noRestart E rho hvalid hnr y hy _ hhor hAwake u
+          ((hvalid.in_horizon _ (List.mem_of_getElem? hi)).1.trans hu) hud.le)
     have heq : Y = W := eraseFG_injective (he.trans heN)
     rw [hdline, ← Gen.V2.Duty.stateBefore_idxBefore E rho _ hs, heq] at hY
     exact hY
@@ -196,13 +203,13 @@ private theorem phase_frozen_mem_of_crossing (crossing : RXing p c E rho)
         exact ⟨row.2, by simp only [← he]⟩
     obtain ⟨stamp, hf⟩ := hfind
     have hstamp : stamp < d := by
-      rcases fgsa_block_stamp_source E rho _ y (eraseFG W) stamp
+      rcases fgsa_block_stamp_source E rho hnr _ y (eraseFG W) stamp
           (List.mem_of_find?_eq_some hf) with hg | ⟨l, hl, t, o, _, ha, hstamp⟩
       · exact hg.2 ▸ hdpos
       · obtain ⟨parent, he, _⟩ := ha.1
         have ht := (Gen.V2.Duty.index_lt_idxBefore_iff hs he d).mp hl
-        have hn := stateBefore_now_le_event_retained (fgsaClock p c)
-          (fgsa_hrestore_now_retained p c) E rho hs he y
+        have hn := V2.D.Engine.stateBefore_now_le_event_atRestart (fgsaClock p c)
+          (fgsaRestoreTimeLaw p c) E rho hs he y
         rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho l y)] at hn
         exact hstamp ▸ hn.trans_lt ht
     have hkept : st'.base.blockStamp.find? (fun row => row.1 == eraseFG W) =
@@ -255,9 +262,9 @@ theorem healing_evidence_spread (crossing : RXing p c E rho)
     (_hm : 1 ≤ m) (_hfront : frontierAtIdx p c E rho (i + 1) = m)
     (hbefore : W ∉ (storeAt p c E rho i x).fg.TF)
     (hafter : W ∈ (storeAt p c E rho (i + 1) x).fg.TF) (hh : (heightView p W).h = m)
-    (hroots : NamedRootCollisionFree p c E rho) :
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
     (ev.time + p.Δ ≤ rho.horizon → ∀ y ∈ rho.honest,
-      ∃ j, i < j ∧ j ≤ rho.events.length ∧
+      E.awake y (ev.time + p.Δ) = true → ∃ j, i < j ∧ j ≤ rho.events.length ∧
         (∀ l e, l < j → rho.events[l]? = some e → e.time < ev.time + p.Δ) ∧
         (W ∈ (storeAt p c E rho j y).fg.TF ∨ m < frontierAtIdx p c E rho j)) ∧
     (∀ y s nd, y ∈ rho.honest → ev.time + 3 * p.Δ ≤ SA.voteTime p.toParams s →
@@ -269,14 +276,25 @@ theorem healing_evidence_spread (crossing : RXing p c E rho)
     p c E rho crossing hvalid hnr hdelta hsync
     hi hx hgst hbefore hafter hh
   constructor
-  · intro hhor y hy
-    exact ⟨_, receipt y hhor hy⟩
+  · intro hhor y hy hAwake
+    exact ⟨_, receipt y hhor hy hAwake⟩
   · intro y s nd hy htime hhor hpost
     have hdt : ev.time + p.Δ ≤ SA.voteTime p.toParams s := by
       have := p.deltaPos
       simp only [Time] at *
       omega
-    obtain ⟨hij, _, _, hw⟩ := receipt y (hdt.trans hhor) hy
+    have hAwake : E.awake y (ev.time + p.Δ) = true := by
+      have hpost' := hpost
+      rw [postClock_def, preTick_def] at hpost'
+      cases hk : V2.D.Run.tickIdx? rho y (SA.voteTime p.toParams s) with
+      | none => simp only [hk, Option.map_none, reduceCtorEq] at hpost'
+      | some k =>
+        have htick := V2.D.Run.tickIdx?_spec hk
+        exact fgsa_awake_before_noRestart E rho hvalid hnr y hy _ hhor
+          (hvalid.tick_awake y _ (List.mem_of_getElem? htick)) _
+          ((hvalid.in_horizon _ (List.mem_of_getElem? hi)).1.trans
+            (le_add_of_nonneg_right p.deltaPos.le)) hdt
+    obtain ⟨hij, _, _, hw⟩ := receipt y (hdt.trans hhor) hy hAwake
     rcases hw with hw | hrise
     · by_cases hrise : m < frontierAtIdx p c E rho (timeIdx rho (SA.voteTime p.toParams s))
       · exact Or.inl ⟨_, hij.trans_le (healing_phase_idx_le_time p c rho hdt),
@@ -379,7 +397,8 @@ theorem healing_phase_held_receipt (crossing : RXing p c E rho)
     (hcap : frontierAtIdx p c E rho (V2.D.Run.idxBefore rho (ev.time + p.Δ)) ≤
       (heightView p W).h)
     {y : V} (hy : y ∈ rho.honest)
-    (hroots : NamedRootCollisionFree p c E rho) :
+    (hAwake : E.awake y (ev.time + p.Δ) = true)
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
     W ∈ (storeAt p c E rho (V2.D.Run.idxBefore rho (ev.time + p.Δ)) y).fg.TF := by
   let j := V2.D.Run.idxBefore rho (ev.time + p.Δ)
   have hs := hvalid.toScheduleWellFormed
@@ -391,7 +410,7 @@ theorem healing_phase_held_receipt (crossing : RXing p c E rho)
   obtain ⟨⟨b, stamp⟩, hm, he⟩ := List.mem_map.mp hm
   dsimp only at he
   subst b
-  rcases fgsa_block_stamp_source E rho (i + 1) x (eraseFG W) stamp hm with
+  rcases fgsa_block_stamp_source E rho hnr (i + 1) x (eraseFG W) stamp hm with
     hg | ⟨l, hl, t, o, hb, ha, _⟩
   · exact (hgen (eraseFG_eq_genesis.mp hg.1)).elim
   obtain ⟨o', hd, _⟩ := ha.1
@@ -435,6 +454,10 @@ theorem healing_phase_held_receipt (crossing : RXing p c E rho)
   obtain ⟨Y, hY, he⟩ := fgsa_proposal_receipt (hRoots := hroots) E rho hdelta hvalid hnr
     (fun t => max t E.t_GST + p.Δ) rho.horizon s N t y
     hD hT hy (hdl.trans hhor) hlt (by simpa only [heN] using hcompat)
+    (hdl.trans hhor) (by
+      intro u hu hud
+      exact fgsa_awake_before_noRestart E rho hvalid hnr y hy _ hhor hAwake u
+        ((fgsa_trigger_nonneg E rho hs hT).trans hu) (hud.le.trans hdl))
   have heq : Y = W := eraseFG_injective (he.trans heN)
   rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hs, heq] at hY
   exact (fgsa_store_cumulative p c E rho hnr hj' y).1 hY

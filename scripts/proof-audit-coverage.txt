@@ -6757,3 +6757,10 @@
         ),
     },
 }
+
+# P-H1 prepared audit block (2026-10-10).
+# Local strict root: AvailableChainFGSAProofs.Tests.HealingSleepAxioms.
+# Complete coverage was checked with a private 62-row inventory.
+# Serial integration fragment: scripts/dev-pkg/P-H1.coverage-fragment.txt.
+# Merge under AvailableChainFGSAProofs.Tests.Axioms; do not add a coverage key.
+# SupportTicks and SupportRelease now own the moved tick/emission/release helpers.

@@ -2129,3 +2129,82 @@ its proposed status change. The P-ShA map adds the required merged P23 audit inp
 
 Validation and exact source locations are in claude-files/sleep-psha-report.md,
 Round 3. Only compiled green modules are covered by the successful checks.
+
+## P-H1 — internal helper repairs (2026-10-10)
+
+Base: 1c777e973b07b6824debbe8e775401dabc6feb08, branch sleep-ph1.
+The writer brief assigns FrameRelay and the other depth 0–12 Healing proof
+modules to P-H1. FGSAClaims statements remain with S-Ap and are unchanged.
+The job explicitly permits an internal statement that is false under sleep to
+be replaced by its exact true form, with this ledger row. Lean `public` visibility
+of a proof helper does not make it an approved FGSAClaims public statement.
+
+- FrameSource/FrameZero: restart keeps the block store and clears fast writes.
+  The induction uses the predecessor invariant, not an initial-store invariant.
+  A fresh gate appends an empty fast row when its join guard is false.
+- SupportSaved: gateStep_other preserves each other saved label in both branches.
+- SupportWrite: healing_support_fastWrite needs the exact joinedAtTime guard at
+  the gate. healing_support_phaseBody_of_write derives it from its executed
+  nonempty gate result. A same-time wake can suppress an otherwise nonempty raw
+  fast set, so the old unconditional equality is false (GF).
+- SupportTicks: healing_support_vote_tick needs awake at its exact node and vote
+  time. healing_support_honest_emits also needs joinedNow at that tick. A wake
+  at the vote tick supplies awake but suppresses the HEAD duty (T23/JOINED-VOTER).
+  The declarations move from SupportHeads into an independent owned helper.
+- SupportRelease: healing_support_release_rows needs joinedAtTime at the release.
+  The old strict count is false when a wake suppresses release. The declaration
+  moves from SupportTransfer into an independent owned helper (RR).
+- SupportRelay: healing_support_gate_late needs the gate epoch/join guard for
+  strict stamps. Receipt suppliers use NamedReceiptRootCollisionFree (P23-A).
+  Retained receipt paths keep explicit NoRestart; no retained history is inferred
+  from earlier processing. No family sleep receipt closure is claimed.
+- FrameRelay, proposed exact internal form: receiver awake at the receipt
+  deadline guards healing_witness_relay and healing_witness_relay_phase.
+  Counterexample to the old form: an honest receiver stays asleep throughout a
+  no-restart prefix while a different honest source holds a non-genesis witness.
+  Its initial finality is below the witness, but no delivery to that receiver is
+  required. The unchanged source and frame premises cannot give receipt.
+  Consumers: SupportFrame.healing_witness_relay_settled and
+  SupportFrame.healing_head_witness_relay supply recovery awake at that deadline.
+  No FGSAClaims statement or approved public meaning changes. This internal
+  correction is within the job's explicit replacement rule; it is not a new
+  premise on the approved public recovery claim.
+
+### P-H1 prepared audit and exact forms
+
+- PhaseRelay and SupportFrame: retained receipt consumers keep receiver awake at
+  the exact deadline. The second evidence-spread arm derives earlier awake from
+  its actual later receiver tick only with valid execution and explicit NoRestart.
+- DescentTiming.healing_delivery_clock: valid execution supplies the public-action
+  clock bound with exact wake-time restore. Mere ScheduleWellFormed does not
+  require sleeping ticks to execute. The callers already provide valid execution.
+- Tests/HealingDescentTiming: the restart at time 7 has clock 7, not the earlier
+  action time 6. The fixture retains its event list and schedule/non-NoRestart checks.
+- Time: the recovery-start horizon is used by HTimeStatement. Its composition
+  retains the old stronger producer statements and proves GST ≤ recoveryStart.
+  The proof has no exported generated equation and changes no FGSAClaims text.
+- Strict prepared audit: 62 exported theorems from 14 owned core modules.
+  Complete export check: 147 proof modules, 252 exports, 0 unaccepted.
+  Global inventory and facade edits are serial lead work. The owned fragment is
+  scripts/dev-pkg/P-H1.coverage-fragment.txt, under the existing full audit key.
+
+### P-H1 PREPARED on sleep-ph1 (2026-10-10)
+
+The prepared map has 98 targets: 75 assigned proof modules, 20 assigned tests,
+two independent helpers, and one local strict audit. Its S1 REQUIRED union TARGETS
+classification has 494 GREEN and 72 EXPECTED-FAIL entries. Later targets retain
+P-H1 ownership; inherited REQUIRED failures retain P-ShA or S-Ap ownership.
+
+- Final GREEN lake build --wfail: PASS, 5.03 s.
+- DCK PASS (package P-H1), default controls: 433.59 s; 24 controls passed.
+- Strict audits: 39 roots, 2,859 results; only the three permitted axioms.
+- Complete prepared exports and coverage: 147 proof modules, 252 exports,
+  0 unaccepted; 8.93 s. Local Healing audit: 62 results.
+- Layers: 72 findings, 0 new; 0.35 s. git diff --check: PASS.
+
+This status covers the checked prepared set on this branch. It does not assert
+integration, review, family closure, or a full gate. P-ShA round 4, S-Ap roots,
+P-Fd lease/service inputs, P-Fi MiddleSupport, later H1 epoch ports, and the lead's
+serial audit integration remain open. No requested external or public-claim edit
+was made. No protocol declaration, default heartbeat, checker, baseline, or
+allowance changed. Evidence is under .lake/sleep-ph1/.

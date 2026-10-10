@@ -64,7 +64,7 @@ private theorem frame_zero_reachable (st : State p.n) (hr : Reachable p st) :
     ∀ B ∈ st.base.blocks, B.slot = 0 → B = .genesis := by
   induction hr with
   | init => intro B hB _; exact List.mem_singleton.mp hB
-  | reset t => intro B hB _; exact List.mem_singleton.mp hB
+  | restart t _ ih => exact ih
   | tick t _ ih => rw [clock_base_blocks]; exact ih
   | deliver o hr ih =>
     exact frame_zero_process p _ (storeBundle_of_reachable p _ hr).cstore o ih
@@ -90,8 +90,8 @@ theorem healing_full_witness_all (hs : V2.D.ScheduleWellFormed E rho)
     have hr := reachable_stateBefore E rho i x
     have hinv : CStoreInv p st :=
       (storeBundle_postClock E rho i x (SA.voteTime p.toParams 0)).cstore
-    have ht := stateBefore_now_le_event_retained (fgsaClock p c)
-      (fgsa_hrestore_now_retained p c)
+    have ht := V2.D.Engine.stateBefore_now_le_event_atRestart (fgsaClock p c)
+      (fgsaRestoreTimeLaw p c)
       E rho hs hi x
     rw [fgsa_clock_now p c (rho.stateBefore E i x)] at ht
     have hslot : old.slot p ≤ 0 := by
