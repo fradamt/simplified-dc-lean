@@ -1,5 +1,7 @@
-# P-As round 5: joined WC assembly prepared; non-healing closure remains OPEN.
+# P-As Round 7: outage Assembly closed; full Root remains OPEN/P-H2 and P-As.
 [TARGETS]
+AvailableChainFGSAProofs.Proofs.Assembly.OutagePublicInputs
+AvailableChainFGSAProofs.Proofs.Assembly.OutagePublicAxioms
 AvailableChainFGSAProofs.Tests.OutageAssemblyAxioms
 
 AvailableChainFGSA.Model.Store
@@ -68,6 +70,8 @@ AvailableChainFGSAProofs.Tests.Zero
 AvailableChainFGSARun.Proofs.AncestorDeadlinesStore
 AvailableChainFGSARun.Statements.ReceiptCoverage
 [GREEN]
+AvailableChainFGSAProofs.Proofs.Assembly.OutagePublicInputs
+AvailableChainFGSAProofs.Proofs.Assembly.OutagePublicAxioms
 AvailableChainFGSAProofs.Tests.Zero
 AvailableChainFGSAProofs.Proofs.Assembly.Clean
 AvailableChainFGSAProofs.Tests.OutageAssemblyAxioms
@@ -575,10 +579,13 @@ AvailableChainFGSAInhabit.WeakContinuationW1
 AvailableChainFGSAInhabit.WitnessPositive
 AvailableChainFGSAProofs.Tests.OutageContinuationInhabit
 
+AvailableChainFGSAProofs.Proofs.Assembly.Outage
+AvailableChainFGSAProofs.Tests.OutageExport
+AvailableChainFGSAProofs.Tests.OutageContinuationAxioms
+AvailableChainFGSAProofs.Tests.NonVacuity.HealingRun
 [EXPECTED-FAIL]
 AvailableChainFGSAProofs P-As
 AvailableChainFGSAProofs.Proofs.Assembly.Healing P-As
-AvailableChainFGSAProofs.Proofs.Assembly.Outage P-As
 AvailableChainFGSAProofs.Proofs.Assembly.ResetArrival P-As
 AvailableChainFGSAProofs.Proofs.Assembly.Root P-As
 AvailableChainFGSAProofs.Tests.Axioms P-As
@@ -593,9 +600,6 @@ AvailableChainFGSAProofs.Tests.NonVacuity.HealingClaims P-As
 AvailableChainFGSAProofs.Tests.NonVacuity.HealingFirst P-As
 AvailableChainFGSAProofs.Tests.NonVacuity.HealingPackages P-As
 AvailableChainFGSAProofs.Tests.NonVacuity.HealingReset P-As
-AvailableChainFGSAProofs.Tests.NonVacuity.HealingRun P-As
-AvailableChainFGSAProofs.Tests.OutageContinuationAxioms P-As
-AvailableChainFGSAProofs.Tests.OutageExport P-As
 AvailableChainFGSAProofs.Tests.WeakContinuationGrowthAssemblyAxioms P-As
 AvailableChainFGSARun S-Ap
 AvailableChainFGSARun.Tests.Axioms S-Ap

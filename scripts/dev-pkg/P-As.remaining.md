@@ -1,55 +1,54 @@
-# P-As Round 6 — remaining targets
+# P-As Round 7 — remaining targets
 
-Base: ef1b0e43. Full P-As remains OPEN; healing is OUT OF SCOPE.
-45/66 targets are GREEN; 21 remain OPEN.
-The full map has 505 GREEN and 23 EXPECTED-FAIL entries,
-including two inherited S-Ap roots outside TARGETS.
-Exact endpoints and owners: [P-As.blocker-types.md](P-As.blocker-types.md).
+Base: da788502. Full P-As and Root acceptance remain OPEN.
+51/68 targets are GREEN; 17 remain OPEN. The map has 511 GREEN and
+19 EXPECTED-FAIL entries, including two inherited S-Ap roots outside TARGETS.
+Exact types, source locations and owners: [P-As.blocker-types.md](P-As.blocker-types.md).
+Evidence: .lake/sleep-pas-r7/.
 
-FAST is CLOSED: every WC/WCG assembly caller uses the current receiver-epoch producer
-with the actual source or continuation schedule. HTimeClaim remains explicit.
-The positive outage fixture is GREEN and proves the full sleep premise in both modes.
-P-Ou Round 8 closes inclusion records, enabled gate scopes, Clean growth callbacks and
-post-E joined counts. Exact Root/Clean exporter body audits pass; their mixed modules
-remain OPEN through separate P-Ou and healing imports. No body audit replaces a build.
+Outage Assembly, both claim projections, the amended companion caller and the
+continuation audit now build. P-H1's positive HealingRun fixture also builds.
+P-H1 production is CLOSED; no P1-P10 or universal permanence proof is requested.
+The Export route for RecoveryPerm remains an exact P-H2 boundary request.
 
-The complete open target list follows. HEAL is deferred P-H1/P-H2 closure or a healing
-fixture. ROOT is OU-CONT + OU-CLOSE + healing imports. ROOT-TESTS adds local fixture ports.
+Eleven ready healing Assembly bodies pass through lower production imports.
+They use RecoverySleep₂, RMonoAll, actual source facts and Jst horizons.
+HG.5, the selected full-H0 extension, local/full-H0 input and the current all-cut
+post-reset APIs remain exact P-H2 obligations. No assumed service record is added.
+The conditional Root is checked with HTimeClaim explicit. Full Root and its
+actual importers remain open through P-H2 and their later P-As caller/fixture ports.
 
-- `AvailableChainFGSAProofs`: ROOT.
-- `AvailableChainFGSAProofs.Proofs.Assembly.Healing`: HEAL.
-- `AvailableChainFGSAProofs.Proofs.Assembly.Outage`: OU-CONT, OU-CLOSE.
-- `AvailableChainFGSAProofs.Proofs.Assembly.ResetArrival`: HEAL.
-- `AvailableChainFGSAProofs.Proofs.Assembly.Root`: ROOT.
-- `AvailableChainFGSAProofs.Tests.Axioms`: ROOT.
-- `AvailableChainFGSAProofs.Tests.FGCompose`: ROOT.
-- `AvailableChainFGSAProofs.Tests.HealingAttempt`: HEAL.
-- `AvailableChainFGSAProofs.Tests.HealingHTime`: HEAL.
-- `AvailableChainFGSAProofs.Tests.HealingReset`: HEAL.
-- `AvailableChainFGSAProofs.Tests.LiveDC`: ROOT.
-- `AvailableChainFGSAProofs.Tests.NonVacuity.Adversarial`: ROOT, ROOT-TESTS.
-- `AvailableChainFGSAProofs.Tests.NonVacuity.FinalityClaims`: ROOT, ROOT-TESTS.
-- `AvailableChainFGSAProofs.Tests.NonVacuity.HealingClaims`: HEAL.
-- `AvailableChainFGSAProofs.Tests.NonVacuity.HealingFirst`: HEAL.
-- `AvailableChainFGSAProofs.Tests.NonVacuity.HealingPackages`: HEAL.
-- `AvailableChainFGSAProofs.Tests.NonVacuity.HealingReset`: HEAL.
-- `AvailableChainFGSAProofs.Tests.NonVacuity.HealingRun`: HEAL.
-- `AvailableChainFGSAProofs.Tests.OutageContinuationAxioms`: ROOT.
-- `AvailableChainFGSAProofs.Tests.OutageExport`: OU-CONT, OU-CLOSE.
-- `AvailableChainFGSAProofs.Tests.WeakContinuationGrowthAssemblyAxioms`: ROOT.
+The complete open target list follows:
 
-Remaining owner work:
+- `AvailableChainFGSAProofs`.
+- `AvailableChainFGSAProofs.Proofs.Assembly.Healing`.
+- `AvailableChainFGSAProofs.Proofs.Assembly.ResetArrival`.
+- `AvailableChainFGSAProofs.Proofs.Assembly.Root`.
+- `AvailableChainFGSAProofs.Tests.Axioms`.
+- `AvailableChainFGSAProofs.Tests.FGCompose`.
+- `AvailableChainFGSAProofs.Tests.HealingAttempt`.
+- `AvailableChainFGSAProofs.Tests.HealingHTime`.
+- `AvailableChainFGSAProofs.Tests.HealingReset`.
+- `AvailableChainFGSAProofs.Tests.LiveDC`.
+- `AvailableChainFGSAProofs.Tests.NonVacuity.Adversarial`.
+- `AvailableChainFGSAProofs.Tests.NonVacuity.FinalityClaims`.
+- `AvailableChainFGSAProofs.Tests.NonVacuity.HealingClaims`.
+- `AvailableChainFGSAProofs.Tests.NonVacuity.HealingFirst`.
+- `AvailableChainFGSAProofs.Tests.NonVacuity.HealingPackages`.
+- `AvailableChainFGSAProofs.Tests.NonVacuity.HealingReset`.
+- `AvailableChainFGSAProofs.Tests.WeakContinuationGrowthAssemblyAxioms`.
 
-- P-Ou: restored good-HEAD compatibility and conditional target history, continuation
-  induction, expiry handover, healthy suffix, Close and both complete exporters.
-  Export the existing GrowthSuppliers producer through the lane Export.
-- P-H1/P-H2: a valid HTimeClaim producer under the unchanged sleep regime. Legacy
-  universal scopes are not assumed. SCOPE-NARROW rules 1–5 remain mandatory.
-- P-As: finish Root and its actual consumers after the owner closures; retain positive
-  fixtures, repair the known Adversarial Base/sleep/receipt and restart-step uses.
-- Serial integration: canonical facade/audit fragments, bare P23, G-S2, deferred
-  initialAt cleanup and final data regeneration. No final freeze is claimed here.
+P-As must wire the returned named P-H2 producers, restore an unconditional
+healing_hTimeClaim call, and port the actual Root importers. Preserve the positive
+fixtures. The known Adversarial Base₂/sleep/receipt and wake-time restart ports,
+HealingPackages/HealingReset adapters, bare P23, G-S2 and final regeneration stay open.
 
-The unchanged FGSAClaims structure builds. No public Claims/Statements or protocol
-file changes. Full Root acceptance stays OPEN; a conversion or restriction lemma does
-not count as a producer. Current evidence is in .lake/sleep-pas-r6/.
+The deferred initialAt order is unchanged: repair the Adversarial restart branches
+at 1889-1891 and 2981-2983, then remove obsolete StoreInv/Metadata/LeaseOutput and
+AncestorDeadlinesStore helpers, then remove the Model/Store definition last.
+No protocol helper or fixture is removed in this round.
+
+The public FGSAClaims structure builds. Public Claims/Statements and all
+Healing/* and Outage/* sources are unchanged here. Body audits do not close mixed
+modules or unproduced family results. The required full manifest check must pass
+with its controls after P-H2 integration; an inherited failure is reported separately.

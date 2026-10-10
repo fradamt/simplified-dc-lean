@@ -442,7 +442,8 @@ omit stepCone in
 DC: SAME HTimeClaim with the cone step supplied by HealingSet.
 The three inputs keep the exact types from healing_hTimeClaim_of_open₂. -/
 theorem healing_hTimeClaim_of_steps : HTimeClaim p :=
-  healing_hTimeClaim_of_open₂ search p stepRL stepLease stepRaw (healing_postReset_coneStep_of_set p)
+  healing_hTimeClaim_of_open₂ search p stepRL stepLease stepRaw
+    (healing_postReset_coneStep_of_set p)
 
 end HTime₂
 
