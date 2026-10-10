@@ -3644,6 +3644,7 @@
     'AvailableChain.FGSA.Run.Tests.OutageArming.Finite.origin',
     'AvailableChain.FGSA.Run.Tests.OutageArming.Finite.originIdx',
     'AvailableChain.FGSA.Run.Tests.OutageArming.Finite.originTime',
+    'AvailableChain.FGSA.Run.Tests.OutageArming.Finite.origin_check',
     'AvailableChain.FGSA.Run.Tests.OutageArming.Finite.origin_checks',
     'AvailableChain.FGSA.Run.Tests.OutageArming.Finite.p',
     'AvailableChain.FGSA.Run.Tests.OutageArming.Finite.pending',
