@@ -6966,3 +6966,22 @@ Outage/Export now publicly imports Outage/GrowthSuppliers. Assembly/Outage keeps
 its existing Outage/Export route to clean_growth_suppliers. This closes the P-As
 round 6 visibility request and rev-pou10 item 2 without a new lane import or proof.
 GrowthSuppliers compiles. The complete Export still waits on the P-Ou legacy ports.
+
+### P-Ou Round 11 — exact remaining contracts and validation
+
+P-Ou.round11-handoff.md gives the complete non-regression common context, the
+regression-only selection guard, exact earlier public read/HEAD/F types, exact
+W seed at j+1 and its continuation to timeIdx(t), and Close's separate OutagePrem
+context. Every failed P-Ou consumer is mapped. The global hHeads and max-gate
+finite prefix are proved declaration links. Later general covering-target callbacks
+are removed from the active route, which uses actual target compatibility instead.
+This resolves the exact-type findings in rev-pou9 and rev-pou10 item 1.
+
+DCK PASS: 44 strict sources, 3,297 results, all 24 default controls PASS.
+Map: 60 TARGETS, 521 GREEN, eight EXPECTED-FAIL. Headers PASS; layers zero new.
+Complete GREEN exports: 340 proof modules, 253 exports, zero unaccepted.
+Local coverage: 333 commands; serial production audit: 297 standard-axiom results.
+The joinedHonest equation export was repaired by a local type conversion; no
+checker, baseline or allowance changed. Public consumers were built and still
+fail at legacy ports. P-Ou is PREPARED; the complete Round 11 task is incomplete.
+No public claim, protocol declaration or healing file changed. No public STOP.
