@@ -1211,42 +1211,45 @@ goals, including same-prefix extensions to horizons 2070 and 2080. Those goals
 remain OPEN/P-H1. NonVacuity/HealingRun applies both local adapters to the actual
 positive horizon-310 RecoverySleep₂ execution with produced P5 services.
 
-P-As Round 8 Assembly boundary (sleep-pas8):
-Assembly/Outage constructs assembly_outage_clean_cut_supplier from the finite
-healthy sleep prefix and named Foundation and Clean producers. Root uses the
-P-Ou exporter and that supplier. Its finalizedMonotone field uses the producer
-fgsa_finalizedMonotonicityRestartClaim, which permits retained-store restarts.
+P-As Round 9 Assembly boundary (sleep-pas9):
+Assembly/Outage supplies the finite healthy sleep prefix. Root uses the P-Ou
+exporter and that supplier. Finality monotonicity permits retained-store restarts.
 
-Assembly/Healing consumes healing_renewedPromotion at Jst. The former GST
-conversion is removed. RecoveryPerm is reached through Healing.Export.
-Assembly/ResetArrival consumes healing_frontierSearch_recovery with RMonoAll,
-RXing, RCap, RQCOrigin, joined last writes, row coverage, row receipt, progress
-coverage and fold, FaultQ, and honest quorum from their named producers.
-The returned producer constructs repair, opening and frontier scopes. Neither
-healing_resetArrivalStatement nor healing_hTimeClaim has a search-factory input.
-Both independent finite HG.5 horizon guards remain in the returned statement.
+Assembly/Healing uses joined-start promotion and the named finite proposal
+receipt producer. Assembly/ResetArrival supplies every Foundation input for
+healing_postReset_inv_recovery, healing_h0_extension_recovery,
+healing_localInput_recovery and healing_fullInput_recovery. The suppliers are
+RMonoAll, emitted names, joined last writes, RXing, RQCOrigin, RCap, TSrc,
+held-row origins, finality cap and head, row coverage and receipt, progress batch
+coverage and fold, FaultQ, and honest quorum. No successor step is assumed by
+these four Assembly adapters.
 
-Post-reset adapters use RMonoAll and the returned opening, service, cone, H2-prime,
-H6 and healed signatures. assembly_healing_suffix_reader proves the selected
-reader guard from the actual gate tick, applied wakes and the finite recovery
-epoch. It does not infer whole-run NoRestart from RecoverySleep₂.
+The selected Assembly lemmas have no explicit extension, localInput, fullInput
+or inv argument. Full reset arrival and HTimeClaim use the returned extension
+and full input. HealingInputClaim uses the local input at tstar <= horizon.
+Extension changes only u and QStar. The complete recoveryStart budget and both
+independent finite HG.5 guards remain. The older conditional composition APIs
+remain available; the final claims and fgsaClaims use the closed producers.
+There is no all-TF receipt or whole-run NoRestart premise.
 
-The remaining H2 results are explicit arguments of per-run Assembly lemmas:
-assembly_resetArrivalFull_at takes extension; assembly_healingInput_at takes
-localInput; assembly_hTime_at takes extension and fullInput; and
-assembly_healingInput_of_inv takes the selected all-cut invariant. They add no
-service field or public claim premise. Extension changes only u and QStar.
-Local input keeps tstar <= horizon. Full input keeps the complete Jst horizon.
-The older conditional joint-step adapters remain useful consumers, not producers.
+HealingPackages and HealingFirst use horizon 310. HealingReset uses horizon 304.
+Their restore calls already pass the exact restart time in the merged base.
+All three source checks pass. FinalityClaims uses horizon 411 and Jst budget 309;
+Adversarial uses horizon 300 and Jst budget 261. Their actual proposal tests use
+slots 78 and 66. The prior prefixes and delayed pre-GST messages stay unchanged.
+Public Claims/Statements, budgets, protocol sources and Proofs/Healing stay unchanged.
 
-HealingPackages and HealingFirst extend their actual prefixes to horizon 310.
-HealingReset keeps horizon 304. FinalityClaims uses horizon 411 and its actual
-Jst budget 309; Adversarial uses horizon 300 and its actual Jst budget 261.
-The previous prefixes and delayed pre-GST messages remain. The concrete finality
-proposal tests select slot 78 and slot 66, after their respective Jst budgets.
-No protocol source, public Claims/Statements definition, or budget constant changes.
-Full Healing.Export, HTimeClaim, and Root remain OPEN through P-H2. The source
-checks under explicit H2 results establish caller compatibility only.
+All 68 assigned P-As targets are GREEN. Full Healing.Export, HTimeClaim and
+Root build with --wfail. The complete eight FG-SA libraries and test libraries
+also pass --wfail. The canonical audit removes eight references to removed
+Outage declarations and corrects 14 moved proof owners. It adds four existing
+witness and Root rows and the four new Assembly producers. The 36 misplaced test rows
+stay in six local strict audits. Canonical coverage uses the actual audit commands.
+Canonical coverage passes for all 12 audits. DCK and compiled export checks pass.
+The full manifest passes FG-SA, legacy, V2, Generic and Compose snapshots, then
+stops on its PC-SA imports: Model/Protocol:449 has the old restore arity.
+This inherited PC-SA port remains with the lead. The full manifest is not PASS.
+Final evidence and exact public premises are in P-As.round9-handoff.md.
 
 P-H2 Round 8 (sleep-ph2i): RecoveryProducers now constructs FrontierReadScope
 with its seven current fields. Only its body changes. RepairCover imports the
@@ -1300,6 +1303,6 @@ there is no new test-to-Export or Healing-to-Foundations import.
 Round 9 validation: all original 114 P-H2 targets are GREEN; the map also includes
 one bounded support target. DCK strict audits and export checks pass. The full
 manifest passes the FG-SA, legacy, V2, generic and Compose snapshots. Its claim
-snapshot still needs the existing H1 test callers and P-As Assembly/NonVacuity
-ports. The exact files and arguments are in P-H2.round9-handoff.md. Full Root and
-full manifest acceptance are not claimed on this tree.
+snapshot needed H1 test callers and P-As Assembly/NonVacuity ports at that
+checkpoint. P-H2 Round 10 and P-As Round 9 close those ports. The final P-As
+handoff records full Root closure and the inherited PC-SA manifest blocker.
