@@ -4720,6 +4720,7 @@ Round 2 validation on the final proof sources:
 Run on the NUC (tree wt-impl2, systemd scope MemoryMax=16G, lane-1 lock). Log nuc:/tmp/gs1-8e12a02.out.
 Later merges (P-H1 r2, P-Ou r2) are not covered by this run; G-S2 checks the integrated tree.
 
+
 ## P-Cl1 Round 2 — CLOSED Clean core and ANCHOR-DL callers (2026-10-10)
 
 Base: d2b00d72 on sleep-pcl1b. This block belongs to P-Cl1.
@@ -4896,3 +4897,81 @@ The stable full Tests.Axioms build fails in 18 other-family/assembly producers
 (26.45 s), with no Finality-family proof failure. It retains P-As ownership.
 See .lake/sleep-pfi3/final-axioms.log and the final Round 3 report for exact names.
 Added Lean lines are at most 100 characters; git diff --check passes.
+
+### P-WC Round 2 — frame and occurrence replay ports (2026-10-10)
+
+- Verified base 318c74a3 on sleep-pwc2, with P-Cl1 r2 and P-ShA r7 suppliers.
+- Removed six stale Shared/Run EXPECTED-FAIL rows after their --wfail builds passed.
+- WC and WCG Frame use the receipt-root premise's safety projection.
+- StepInputs keeps all-time joined participation until it selects an enabled
+  earlier gate actor. The retrospective read uses the original joined voter.
+  The all-time input is an internal supplier requirement for its callers.
+- WCG EventReplay matches local tick occurrences at each run's action cut.
+  Same-time wake restarts are included. No NoRestart input is required.
+- Confirmed-reader replay carries its current enabled gate and restart interval.
+  Empty output replay uses confirmed readers and needs no participation or half cap.
+- Four owned targets pass --wfail. The other 28 owned failures remain PREPARED.
+  Count callers, full service, and event induction remain open at this checkpoint.
+
+### P-WC Round 2 — anchor callers and current-epoch service (2026-10-10)
+
+- WC and WCG gate Count callers use ReceiptCoverageAnchorPremises and
+  fgsa_active_path_of_coverage_anchor with anchor v_s and deadline e_s.
+  The exact receiver supplies enabledGateAt. Joined selected voters supply HEADs.
+- WC and WCG transfer Count callers use anchor e_s and deadline f_s.
+  prefreeze_path takes joinedAt for receiver y at v_(s+1). The separate receiver
+  epoch continues through that vote action, beyond Count's strict read.
+- RStoreDurable keeps TF and blocks across restart. RStoreEpoch keeps stamps
+  on the exact receiver interval. RMonoAll replaces the old NoRestart FG bounds.
+- The internal common telescope retains joined participation at all times from
+  v_(u+1), inclusive. A vote-only count cannot select the earlier gate actor.
+  The first vote must be included because it precedes the seed's completed gate cut.
+  Public Claims/Statements remain unchanged. P-As must keep this all-time input.
+- T53 and T57 now select a joined actor at the earlier gate and transfer to the
+  original joined voter. T49's Proposal caller remains open.
+- Full wc_service4 and wcg_service4 compile with their complete statement types.
+  An early-marker reader gets its own next covered enabled gate. A late-marker
+  reader gets a current-epoch enabled gate, whose result is ordered above B.
+- wc_output_mono_of_inv and wcg_output_mono_of_inv preserve the kept output
+  through delivery, ordinary ticks, enabled gates, suppressed gates, and restart.
+  They use the complete finite history; they do not assume every intermediate
+  reader is confirmed. Both original-gate and later-reader getter suppliers compile.
+- T54/T56 service and the getter supplier needed by T48 are supplied. The
+  Inclusion/StepOutput event callers remain open. Epoch helpers alone are not
+  the service handoff. Full supplier types: scripts/dev-pkg/P-WC.handoff.md.
+- WCG Dynamics now imports family-local input, gate, transfer, safety, and
+  service suppliers. Its remaining finite facts and event-induction body are open.
+- PREPARED: 57 targets, 35 GREEN and 22 EXPECTED-FAIL. The map has 505 GREEN
+  entries and 22 owned expected failures. No owned failure is marked CLOSED.
+
+### P-WC Round 2 — retained seed replay (2026-10-10)
+
+- wcg_tickSourceReplay keeps the original equality direction and now reads
+  after same-time restarts. Seed consumers use occurrence indices in each run.
+- WCG Seed preserves enabled gate guards in gatePassedAt and in the exact
+  gateResultAt matcher. Pre-tick, signed-row, and action reads need no NoRestart.
+- WCG Empty consumes the new tick replay. Its source-reader safety adapters
+  remain EXPECTED-FAIL. No participation or half-cap input was added.
+- Updated map: 57 targets, 36 GREEN and 21 EXPECTED-FAIL; 506 GREEN entries.
+  Remaining local proof errors include StepFacts, Proposal, and Dynamics.
+
+### P-WC Round 2 — final implementation validation (2026-10-10)
+
+- DCK PASS: 506 GREEN modules with --wfail, 39 strict audit roots,
+  3521 axiom results, and all 24 default controls PASS.
+- Local strict audit: 196 commands and 196 results, standard axioms only.
+- Complete local export/coverage check: 152 proof modules, 251 exports,
+  zero unaccepted, and 196 inventory rows. No baseline or allowance changed.
+- Layers: 72 existing findings, zero new. GREEN import closures contain no
+  EXPECTED-FAIL module. Added Lean lines are at most 100 characters.
+- PREPARED. The package has 21 owned expected failures. Complete event induction,
+  Proposal T49, and Empty source-reader adapters remain local proof work.
+  The late P-As assembly audit is a separate bridge; it does not close those files.
+- Full supplier types and serial instructions: scripts/dev-pkg/P-WC.handoff.md.
+
+### Lead note after the P-WC round 2 review (2026-10-10 10:27)
+
+rev-pwc2-astra: production changes support PREPARED (four Count callers on ANCHOR-DL, current-epoch WC/WCG service; 21 owned
+targets open). Item 1: claude-files/sleep-pwc-round2-audit-fragment.txt:2 and scripts/dev-pkg/P-WC.handoff.md:286 import
+Tests.WeakContinuationSleepAxioms into Tests.Axioms (forbidden TEST-USE). Apply RULING AUDIT-FRAGMENT
+(codex/jobs/sleep-join-port-notes.md): import the production modules directly; the 196 coverage rows keep the existing key.

@@ -1,5 +1,14 @@
-# P-WC: PREPARED guard/epoch/replay core; caller closure remains open.
+# P-WC r2: PREPARED; anchors and full service pass; event/assembly closure remains open.
 [TARGETS]
+AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepTransferReceipts
+AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepTransferFrame
+AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepService
+AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepGateHistory
+AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepGateBatch
+AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepInputs
+AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Safety
+AvailableChainFGSAProofs.Proofs.WeakContinuation.AnchorCoverage
+AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.AnchorCoverage
 AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Epoch
 AvailableChainFGSAClaims.Claims.WeakContinuation
 AvailableChainFGSAClaims.Claims.WeakContinuationGrowth
@@ -49,6 +58,18 @@ AvailableChainFGSAProofs.Tests.WeakContinuationInclusion
 AvailableChainFGSAProofs.Tests.WeakContinuationProposal
 AvailableChainFGSAProofs.Tests.WeakContinuationSleepAxioms
 [GREEN]
+AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Seed
+AvailableChainFGSAProofs.Proofs.Shared.AnchorService
+AvailableChainFGSAProofs.Proofs.Shared.RegimesService
+AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepTransferReceipts
+AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepTransferFrame
+AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepService
+AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepGateHistory
+AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepGateBatch
+AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepInputs
+AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Safety
+AvailableChainFGSAProofs.Proofs.WeakContinuation.AnchorCoverage
+AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.AnchorCoverage
 AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Epoch
 AvailableChainEngineV2
 AvailableChainEngineV2.Conditions.Committees
@@ -527,42 +548,41 @@ AvailableChainKitV2.Tests.Counterexamples
 AvailableChainKitV2.Tests.Duties
 AvailableChainKitV2.Tests.Sleep
 AvailableChainKitV2.Tests.Toy
+AvailableChainFGSAProofs.Proofs.WeakContinuation.Frame
+AvailableChainFGSAProofs.Proofs.WeakContinuation.StepInputs
+AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Frame
+AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.EventReplay
+AvailableChainFGSAProofs.Proofs.Shared.Export
+AvailableChainFGSAProofs.Proofs.Shared.HeadAdmit
+AvailableChainFGSAProofs.Proofs.Shared.Regimes
+AvailableChainFGSARun
+AvailableChainFGSARun.Proofs.ReceiptCoverage
+AvailableChainFGSARun.Tests.Axioms
+AvailableChainFGSAProofs.Proofs.WeakContinuation.Safety
+AvailableChainFGSAProofs.Proofs.WeakContinuation.StepService
+AvailableChainFGSAProofs.Proofs.WeakContinuation.StepGateBatch
+AvailableChainFGSAProofs.Proofs.WeakContinuation.StepGateHistory
+AvailableChainFGSAProofs.Proofs.WeakContinuation.StepTransferFrame
+AvailableChainFGSAProofs.Proofs.WeakContinuation.StepTransferReceipts
 [EXPECTED-FAIL]
-AvailableChainFGSAProofs.Proofs.Shared.Export P-ShA
-AvailableChainFGSAProofs.Proofs.Shared.HeadAdmit P-ShA
-AvailableChainFGSAProofs.Proofs.Shared.Regimes P-ShA
 AvailableChainFGSAProofs.Proofs.WeakContinuation.ExactProposal P-WC
 AvailableChainFGSAProofs.Proofs.WeakContinuation.Export P-WC
 AvailableChainFGSAProofs.Proofs.WeakContinuation.FinalBelow P-WC
-AvailableChainFGSAProofs.Proofs.WeakContinuation.Frame P-WC
 AvailableChainFGSAProofs.Proofs.WeakContinuation.Growth P-WC
 AvailableChainFGSAProofs.Proofs.WeakContinuation.Inclusion P-WC
 AvailableChainFGSAProofs.Proofs.WeakContinuation.Induction P-WC
 AvailableChainFGSAProofs.Proofs.WeakContinuation.Live P-WC
 AvailableChainFGSAProofs.Proofs.WeakContinuation.Proposal P-WC
-AvailableChainFGSAProofs.Proofs.WeakContinuation.Safety P-WC
 AvailableChainFGSAProofs.Proofs.WeakContinuation.Step P-WC
 AvailableChainFGSAProofs.Proofs.WeakContinuation.StepFacts P-WC
-AvailableChainFGSAProofs.Proofs.WeakContinuation.StepGateBatch P-WC
-AvailableChainFGSAProofs.Proofs.WeakContinuation.StepGateHistory P-WC
-AvailableChainFGSAProofs.Proofs.WeakContinuation.StepInputs P-WC
 AvailableChainFGSAProofs.Proofs.WeakContinuation.StepOutput P-WC
 AvailableChainFGSAProofs.Proofs.WeakContinuation.StepReconcile P-WC
-AvailableChainFGSAProofs.Proofs.WeakContinuation.StepService P-WC
 AvailableChainFGSAProofs.Proofs.WeakContinuation.StepTransfer P-WC
-AvailableChainFGSAProofs.Proofs.WeakContinuation.StepTransferFrame P-WC
-AvailableChainFGSAProofs.Proofs.WeakContinuation.StepTransferReceipts P-WC
 AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Dynamics P-WC
 AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Empty P-WC
-AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.EventReplay P-WC
 AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Export P-WC
-AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Frame P-WC
-AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Seed P-WC
 AvailableChainFGSAProofs.Tests.WeakContinuationExactProposal P-WC
 AvailableChainFGSAProofs.Tests.WeakContinuationGrowth P-WC
 AvailableChainFGSAProofs.Tests.WeakContinuationGrowthEmptyAxioms P-WC
 AvailableChainFGSAProofs.Tests.WeakContinuationInclusion P-WC
 AvailableChainFGSAProofs.Tests.WeakContinuationProposal P-WC
-AvailableChainFGSARun S-Ap
-AvailableChainFGSARun.Proofs.ReceiptCoverage S-Ap
-AvailableChainFGSARun.Tests.Axioms S-Ap

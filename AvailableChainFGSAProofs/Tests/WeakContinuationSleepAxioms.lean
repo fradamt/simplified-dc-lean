@@ -9,6 +9,46 @@ public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Counts
 public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Replay
 public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepInit
 
+public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Frame
+
+public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepInputs
+
+public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Frame
+
+public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.EventReplay
+
+public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.AnchorCoverage
+
+public import AvailableChainFGSAProofs.Proofs.WeakContinuation.AnchorCoverage
+
+public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Safety
+
+public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepInputs
+
+public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepGateBatch
+
+public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepGateHistory
+
+public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepService
+
+public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepTransferFrame
+
+public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepTransferReceipts
+
+public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Safety
+
+public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepService
+
+public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepGateBatch
+
+public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepGateHistory
+
+public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepTransferFrame
+
+public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepTransferReceipts
+
+public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Seed
+
 public section
 
 open AvailableChain.FGSA.Run
@@ -133,3 +173,81 @@ open AvailableChain.FGSA.Run
 
 #print axioms AvailableChain.FGSA.Run.wcg_gate_enabled_of_result
 #print axioms AvailableChain.FGSA.Run.wcg_gate_pre_joined
+
+#print axioms AvailableChain.FGSA.Run.wc_seededFrame
+#print axioms AvailableChain.FGSA.Run.wc_seededFrameLive
+#print axioms AvailableChain.FGSA.Run.wc_seededFramePath
+#print axioms AvailableChain.FGSA.Run.wc_gateHeads
+#print axioms AvailableChain.FGSA.Run.wc_gateFinalOrigin
+#print axioms AvailableChain.FGSA.Run.wcg_seededFrame
+#print axioms AvailableChain.FGSA.Run.wcg_seededFrameLive
+#print axioms AvailableChain.FGSA.Run.wcg_seededFramePath
+#print axioms AvailableChain.FGSA.Run.wcg_eventReplay
+#print axioms AvailableChain.FGSA.Run.wcg_beforeReplay
+#print axioms AvailableChain.FGSA.Run.wcg_tickEventReplay
+#print axioms AvailableChain.FGSA.Run.wcg_tickSourceReplay
+#print axioms AvailableChain.FGSA.Run.wcg_confirmedReaderSourceReplay
+#print axioms AvailableChain.FGSA.Run.wcg_outputReplay
+#print axioms AvailableChain.FGSA.Run.wcg_empty_outputs
+#print axioms AvailableChain.FGSA.Run.wcg_gate_path_coverage
+#print axioms AvailableChain.FGSA.Run.wcg_transfer_path_coverage
+#print axioms AvailableChain.FGSA.Run.wcg_head_handlers
+#print axioms AvailableChain.FGSA.Run.wcg_gate_restart_bound
+#print axioms AvailableChain.FGSA.Run.wcg_gate_read_epoch
+#print axioms AvailableChain.FGSA.Run.wcg_gate_head_receipt
+#print axioms AvailableChain.FGSA.Run.wcg_vote_restart_bound
+#print axioms AvailableChain.FGSA.Run.wcg_vote_read_epoch
+#print axioms AvailableChain.FGSA.Run.wc_gate_path_coverage
+#print axioms AvailableChain.FGSA.Run.wc_transfer_path_coverage
+#print axioms AvailableChain.FGSA.Run.wc_head_handlers
+#print axioms AvailableChain.FGSA.Run.wc_gate_restart_bound
+#print axioms AvailableChain.FGSA.Run.wc_gate_read_epoch
+#print axioms AvailableChain.FGSA.Run.wc_gate_head_receipt
+#print axioms AvailableChain.FGSA.Run.wc_vote_restart_bound
+#print axioms AvailableChain.FGSA.Run.wc_vote_read_epoch
+#print axioms AvailableChain.FGSA.Run.wcg_finalHistoryAt
+#print axioms AvailableChain.FGSA.Run.wcg_outputHistoryAt
+#print axioms AvailableChain.FGSA.Run.wcg_result_output_compatible
+#print axioms AvailableChain.FGSA.Run.wcg_output_mono_of_inv
+#print axioms AvailableChain.FGSA.Run.wcg_seededSafety
+#print axioms AvailableChain.FGSA.Run.wcg_gateHeads
+#print axioms AvailableChain.FGSA.Run.wcg_gateFinalOrigin
+#print axioms AvailableChain.FGSA.Run.wcg_gateBatch
+#print axioms AvailableChain.FGSA.Run.wcg_gateResult
+#print axioms AvailableChain.FGSA.Run.wcg_gate_result_served
+#print axioms AvailableChain.FGSA.Run.wcg_gate_result_outputs
+#print axioms AvailableChain.FGSA.Run.wcg_service_result_outputs
+#print axioms AvailableChain.FGSA.Run.wcg_service4_prefix
+#print axioms AvailableChain.FGSA.Run.wcg_retrospectiveFrame
+#print axioms AvailableChain.FGSA.Run.wcg_retrospectivePaths
+#print axioms AvailableChain.FGSA.Run.wc_finalHistoryAt
+#print axioms AvailableChain.FGSA.Run.wc_outputHistoryAt
+#print axioms AvailableChain.FGSA.Run.wc_result_output_compatible
+#print axioms AvailableChain.FGSA.Run.wc_output_mono_of_inv
+#print axioms AvailableChain.FGSA.Run.wc_seededSafety
+#print axioms AvailableChain.FGSA.Run.wc_gate_result_served
+#print axioms AvailableChain.FGSA.Run.wc_gate_result_outputs
+#print axioms AvailableChain.FGSA.Run.wc_service_result_outputs
+#print axioms AvailableChain.FGSA.Run.wc_service4_prefix
+#print axioms AvailableChain.FGSA.Run.wc_gateBatch
+#print axioms AvailableChain.FGSA.Run.wc_gateResult
+#print axioms AvailableChain.FGSA.Run.wc_retrospectiveFrame
+#print axioms AvailableChain.FGSA.Run.wc_retrospectivePaths
+#print axioms AvailableChain.FGSA.Run.wc_event_before_prefixTime
+#print axioms AvailableChain.FGSA.Run.wc_confirmedReader_early_gate
+#print axioms AvailableChain.FGSA.Run.wcg_gate_raw_enabled
+#print axioms AvailableChain.FGSA.Run.wcg_gate_cut_iff
+#print axioms AvailableChain.FGSA.Run.wcg_event_before_prefixTime
+#print axioms AvailableChain.FGSA.Run.wcg_confirmedReader_early_gate
+#print axioms AvailableChain.FGSA.Run.wcg_result_enabled
+#print axioms AvailableChain.FGSA.Run.wcg_enabledGate_of_joinedAt
+#print axioms AvailableChain.FGSA.Run.wcg_joined_gate_witness
+#print axioms AvailableChain.FGSA.Run.wcg_cut_storeReplay
+#print axioms AvailableChain.FGSA.Run.wcg_seed_state
+#print axioms AvailableChain.FGSA.Run.wcg_tick_before_cut
+#print axioms AvailableChain.FGSA.Run.wcg_time_before_cut
+#print axioms AvailableChain.FGSA.Run.wcg_preTickReplay
+#print axioms AvailableChain.FGSA.Run.wcg_tickReads
+#print axioms AvailableChain.FGSA.Run.wcg_tickPassed
+#print axioms AvailableChain.FGSA.Run.wcg_rowSourceReplay
+#print axioms AvailableChain.FGSA.Run.wcg_actionReads
