@@ -2324,3 +2324,13 @@ modules / 253 exports / zero unaccepted. SharedAxioms coverage: 364 entries PASS
 Layers: 72 inherited / zero new. Expose and sleep scopes PASS. Two inherited W3
 transparency findings remain. The open-target check confirms the ten Regimes
 projections, Export's legacy call and the five missing S-Ap Run audit names.
+
+## P-ShA round 5: exact gate service
+
+The old Regimes declarations remain unchanged. Additive forms are in
+`Proofs/Shared/RegimesService.lean`. `exactService_of_head_clean_on` and
+`exactService_of_head_recovery_on` use joined HEAD readers, joined Batch and
+release counts, and `GateReceiptScope` for each confirmed receiver at the same gate.
+The Clean and Recovery consumer must supply these local scopes. Their old awake
+counts do not prove a joined count. Recovery needs its join window after GST.
+No `NoRestart` premise or restored Base field is used by these forms.

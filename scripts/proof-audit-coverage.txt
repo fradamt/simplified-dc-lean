@@ -5114,6 +5114,10 @@
             'AvailableChain.FGSA.Run.fgsa_restricted_of_unrestricted',
             'AvailableChain.FGSA.Run.fgsa_strongW_recF',
         ),
+        'AvailableChainFGSAProofs.Proofs.Shared.RegimesService': (
+            'AvailableChain.FGSA.Run.exactService_of_head_clean_on',
+            'AvailableChain.FGSA.Run.exactService_of_head_recovery_on',
+        ),
         'AvailableChainFGSAProofs.Proofs.Shared.Relay': (
             'AvailableChain.FGSA.Run.fgsa_cleanSupport_forward_relay',
             'AvailableChain.FGSA.Run.fgsa_cleanSupport_seat_clean_late',

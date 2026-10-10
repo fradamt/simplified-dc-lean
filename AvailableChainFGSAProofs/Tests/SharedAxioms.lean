@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Shared.RegimesService -- shake: keep (audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.StoreRun -- shake: keep (#print axioms)
 public import AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient -- shake: keep (#print axioms)
 public import AvailableChainFGSAProofs.Proofs.Shared.FGSafetyStore -- shake: keep (#print axioms)
@@ -471,3 +472,6 @@ end
 #print axioms AvailableChain.FGSA.Run.fgsa_scoreRun_raw_subset_restart
 
 #print axioms AvailableChain.FGSA.Run.fgsa_votes_cumulative_on
+
+#print axioms AvailableChain.FGSA.Run.exactService_of_head_clean_on
+#print axioms AvailableChain.FGSA.Run.exactService_of_head_recovery_on

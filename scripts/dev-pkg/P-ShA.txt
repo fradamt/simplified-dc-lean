@@ -1,5 +1,6 @@
 # P-ShA round 4 at 1c777e97; three owned targets remain open.
 [TARGETS]
+AvailableChainFGSAProofs.Proofs.Shared.RegimesService
 AvailableChainFGSAProofs.Tests.RestartEpochs
 AvailableChainFGSAClaims.Tests.Reads
 AvailableChainFGSAProofs.Proofs.Shared.BoundsW
@@ -66,6 +67,7 @@ AvailableChainFGSAProofs.Tests.RetainedScores
 AvailableChainFGSAProofs.Tests.RetainedWalk
 AvailableChainFGSAProofs.Tests.SharedAxioms
 [GREEN]
+AvailableChainFGSAProofs.Proofs.Shared.RegimesService
 AvailableChainFGSAProofs.Proofs.Shared.HeadAdmit
 AvailableChainFGSARun.Proofs.ReceiptCoverage
 AvailableChainFGSARun.Tests.P23Axioms
