@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Assembly.Foundations -- shake: keep (export audit)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Store -- shake: keep (audit)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Accountable -- shake: keep (audit)
 public import AvailableChainFGSAProofs.Proofs.Foundations.FGSafetyBridge -- shake: keep (audit)
@@ -129,6 +130,45 @@ namespace AvailableChain.FGSA.Run
 #print axioms fgsa_tRows_sleep
 #print axioms rowService_epoch_of_recovery
 #print axioms fgsa_tRows_recovery
+
+-- P-Fd Round 2: public Foundations exports.
+#print axioms fgsa_storeAt
+#print axioms fgsa_storeClaim
+#print axioms fgsa_activeViewAt
+#print axioms fgsa_activeViewClaim
+#print axioms fgsa_frameAt
+#print axioms fgsa_frameClaim
+#print axioms fgsa_chainCertificatesAt
+#print axioms fgsa_chainCertificatesClaim
+#print axioms fgsa_reconcileAt
+#print axioms fgsa_reconcileClaim
+#print axioms fgsa_carrierAt
+#print axioms fgsa_carrierClaim
+#print axioms fgsa_clientSafetyClaim
+#print axioms fgsa_clientSafetyBaseClaim
+#print axioms fgsa_leaseOriginsAt
+#print axioms fgsa_leaseOriginsClaim
+#print axioms sourceDiscipline_base
+#print axioms sourceDiscipline_at
+#print axioms fgsa_sourceDisciplineBaseClaim
+#print axioms fgsa_sourceDisciplineClaim
+#print axioms fgsa_srcFrameAboveClaim
+#print axioms fgsa_fgFoundationClaim
+#print axioms fgsa_outputNestingAt
+#print axioms fgsa_outputNestingClaim
+#print axioms fgsa_rowServiceBaseClaim
+#print axioms fgsa_rowServiceClaim
+#print axioms fgsa_pureAccountableClaim
+#print axioms fgsa_pureAgreementClaim
+#print axioms fgsa_wholeRunAccountableClaim
+#print axioms fgsa_wholeRunAgreementClaim
+#print axioms fgsa_eventPrefixAgreementClaim
+#print axioms fgsa_faultCountSlashableBoundClaim
+#print axioms fgsa_finalizedMonotonicityClaim
+#print axioms fgsa_finalizedMonotonicityRestartClaim
+#print axioms fgsa_honestNeverSlashedClaim
+#print axioms fgsa_finalizedSafetyClaim
+#print axioms fgsa_finalLockClaim
 
 end AvailableChain.FGSA.Run
 end

@@ -214,9 +214,3 @@ theorem fgsa_finalLockClaim : FinalLockClaim p :=
 
 end AvailableChain.FGSA.Run
 end
-
--- Serial S-Ap/P-Fd wrappers; checked here while the full family audit is deferred.
-#print axioms AvailableChain.FGSA.Run.fgsa_fgFoundationClaim
-#print axioms AvailableChain.FGSA.Run.fgsa_rowServiceBaseClaim
-#print axioms AvailableChain.FGSA.Run.fgsa_rowServiceClaim
-#print axioms AvailableChain.FGSA.Run.fgsa_finalizedMonotonicityRestartClaim
