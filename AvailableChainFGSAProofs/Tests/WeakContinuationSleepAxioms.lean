@@ -9,6 +9,14 @@ public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Counts
 public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Replay
 public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepInit
 
+public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Frame
+
+public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepInputs
+
+public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Frame
+
+public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.EventReplay
+
 public section
 
 open AvailableChain.FGSA.Run
@@ -133,3 +141,19 @@ open AvailableChain.FGSA.Run
 
 #print axioms AvailableChain.FGSA.Run.wcg_gate_enabled_of_result
 #print axioms AvailableChain.FGSA.Run.wcg_gate_pre_joined
+
+#print axioms AvailableChain.FGSA.Run.wc_seededFrame
+#print axioms AvailableChain.FGSA.Run.wc_seededFrameLive
+#print axioms AvailableChain.FGSA.Run.wc_seededFramePath
+#print axioms AvailableChain.FGSA.Run.wc_gateHeads
+#print axioms AvailableChain.FGSA.Run.wc_gateFinalOrigin
+#print axioms AvailableChain.FGSA.Run.wcg_seededFrame
+#print axioms AvailableChain.FGSA.Run.wcg_seededFrameLive
+#print axioms AvailableChain.FGSA.Run.wcg_seededFramePath
+#print axioms AvailableChain.FGSA.Run.wcg_eventReplay
+#print axioms AvailableChain.FGSA.Run.wcg_beforeReplay
+#print axioms AvailableChain.FGSA.Run.wcg_tickEventReplay
+#print axioms AvailableChain.FGSA.Run.wcg_tickSourceReplay
+#print axioms AvailableChain.FGSA.Run.wcg_confirmedReaderSourceReplay
+#print axioms AvailableChain.FGSA.Run.wcg_outputReplay
+#print axioms AvailableChain.FGSA.Run.wcg_empty_outputs

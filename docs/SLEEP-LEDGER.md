@@ -4676,3 +4676,18 @@ under scripts/dev-pkg. No audit key, baseline or allowance is added.
 Public STOPs: none. P-ShA Round 7 defect found: none. P-Cl1 has no owned
 EXPECTED-FAIL target. P-Cl2 public wrapper compilation and canonical serial
 integration remain with their owners; P-Ar must apply the exact saved-row type.
+
+### P-WC Round 2 — frame and occurrence replay ports (2026-10-10)
+
+- Verified base 318c74a3 on sleep-pwc2, with P-Cl1 r2 and P-ShA r7 suppliers.
+- Removed six stale Shared/Run EXPECTED-FAIL rows after their --wfail builds passed.
+- WC and WCG Frame use the receipt-root premise's safety projection.
+- StepInputs keeps all-time joined participation until it selects an enabled
+  earlier gate actor. The retrospective read uses the original joined voter.
+  The all-time input is an internal supplier requirement for its callers.
+- WCG EventReplay matches local tick occurrences at each run's action cut.
+  Same-time wake restarts are included. No NoRestart input is required.
+- Confirmed-reader replay carries its current enabled gate and restart interval.
+  Empty output replay uses confirmed readers and needs no participation or half cap.
+- Four owned targets pass --wfail. The other 28 owned failures remain PREPARED.
+  Count callers, full service, and event induction remain open at this checkpoint.
