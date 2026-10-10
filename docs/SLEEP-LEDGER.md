@@ -5662,3 +5662,167 @@ stable read, protected receivers, fast equal-cut branch, slow instance).
 hRows (ArmingConstruction:270) stays an OPEN P-Ou source-history obligation,
 including actions at the pending time; do not project the old all-honest
 pending_input.
+## P-WC Round 4 — event induction, 2026-10-10
+
+Status: PREPARED. Base e4fafd7b, branch sleep-pwc3.
+The joint WC and WCG event proofs now preserve WCInv for delivery, off-gate
+ticks, enabled gates, suppressed gates, and restart. Next-event finality has
+an earlier target-action origin in the prior bounded history. This proves
+compatibility before the local output update. All three output origins are
+handled: retained output, gate result, and received finality.
+
+Retrospective transfer uses joined next-slot readers and local HEAD service.
+New family HeadRelay modules prove fresh or original accepted HEAD service,
+strict receipt stamps, receiver epochs, and carried-pool provenance. No
+global NoRestart premise is inferred. Saved and fast origins retain their
+exact epochs. The full WC safety adapter now has the sleep telescope.
+Internal adapter repair under the lead ruling of 2026-10-10; public claims
+and Statements are unchanged. Consumers: StepTransfer, Step, Induction,
+and WCG Dynamics.
+
+New GREEN original targets: StepTransfer, Step, Induction, WCG Dynamics.
+The two new HeadRelay modules are GREEN. Thirteen original targets remain
+EXPECTED-FAIL with owner P-WC. Strict local audit passes; only propext,
+Classical.choice, and Quot.sound. Complete export check: 173 proof modules,
+251 exports, zero unaccepted. Layers: 72 inherited findings, zero new.
+Serial audit and coverage fragments: claude-files/sleep-pwc-round4-*.txt.
+Evidence: .lake/sleep-pwc-r4/event-*.log and induction.log.
+
+### P-WC Round 4 — Proposal current-duty service
+
+Proposal and its first eligible-slot test now compile. The current proposer
+or HEAD reader can have no previous HEAD of its own. A joined earlier
+source supplies the comparison path through the current receiver's duty
+epoch. Count uses joined seats and exact original HEAD emissions. Receipt
+stamps are before the previous early and freeze times.
+
+The old retained path/stamp helpers now state NoRestart explicitly. They
+are legacy helpers; no repaired sleep consumer uses them. The current
+Proposal pivot uses the new current-duty path. Assembly callers are P-As
+port items. No public Claims/Statements declaration changed.
+
+Local strict audit passes. Complete export check: 189 proof modules,
+252 exports, zero unaccepted. Layers: 72 inherited, zero new. Eleven
+original targets remain EXPECTED-FAIL P-WC. Exact adoption and Empty are
+still local work. Evidence: proposal-audit2.log, proposal-exports2.log.
+
+### P-WC Round 4 — exact adoption and enabled gate suppliers
+
+ExactProposal and its contract test now compile. ExactReceipts supplies
+proposal service at a public receiver anchor, accepted-target service,
+both retained score directions, and fresh emitted proposal service.
+The retained score proof carries the source epoch, original frozen HEAD
+acceptances, and forward/backward block service. Admission keeps the exact
+named body and its strict original delivery, then retains it through the
+joined consuming read. No global NoRestart is supplied.
+
+StepGateBatch now exposes wc_gate_active_heads. InclusionGate proves the
+raw exact gate result from joined receipt evidence. This supplier is
+GREEN; the full Inclusion consumer remains EXPECTED-FAIL. The existing
+public exact-adoption and admission Statements are unchanged.
+
+Eight of the 17 original open targets are now GREEN. Nine remain
+EXPECTED-FAIL, all owner P-WC: WC Inclusion, Growth, Live, Export; WCG
+Empty and Export; the Inclusion, Growth, and GrowthEmptyAxioms tests.
+The remaining failures are local P-WC work. None is only a P-As bridge.
+Empty was not changed; no participation or half-cap premise was added.
+
+Map: 71 targets, 62 GREEN / 9 EXPECTED-FAIL. Required union targets:
+532 GREEN / 9 EXPECTED-FAIL. Strict audit: 285 local commands/results,
+plus three Proposal test commands. Only propext, Classical.choice, and
+Quot.sound. Exports: 200 proof modules, 252 exports, zero unaccepted.
+Layers: 72 inherited, zero new. Final package DCK is running.
+Evidence: .lake/sleep-pwc-r4/. Round 4 fragments are in claude-files/.
+
+P-WC Round 4 final validation: DCK PASS. 532 GREEN modules, 40 strict
+roots, 3,613 results, and 24 controls PASS. Exports: 200 proof modules,
+252 exports, zero unaccepted. All 214 prior inventory rows remain in
+the 285-row local inventory. Source scopes PASS: 1,361 active / 337
+deferred PC-SA modules. Layers: 72 inherited / zero new. Nine targets
+remain EXPECTED-FAIL P-WC. Public claims unchanged; no public meaning STOP.
+Implementation head: 16e578fb. Tracked implementation tree is clean.
+
+## P-WC Round 5 — exact inclusion and cached safety, 2026-10-10
+
+- T47: Inclusion uses enabled gates and joined selected HEAD receipts. The old
+  admission-at-vote and global NoRestart adapters are removed from this route.
+- T48: A confirmed reader uses its own original gate when its current epoch
+  covers that gate. A later wake uses the caught-up enabled gate and result order.
+  Both output getters retain the exact public reader scopes.
+- Inclusion's prior-result reader is joined at the next vote. Participation stays
+  all-time joined until the required voter and enabled gate actor are selected.
+- Internal additive evidence: WCInclusion6ResultStatement also returns the exact
+  enabled original WCResult. WCInclusion6Statement and public claims are unchanged.
+- Internal cached safety: WCCachedSafety, wc_cachedSafety, and wcg_cachedSafety
+  expose compatibility, monotonicity, and seed preservation for stored outputs.
+  The existing scoped safety statements are projections. This supplies the
+  comparisons needed when a trigger reader sleeps before a growth deadline.
+- Round-3 P3 evidence repair: both reconcile supplier entries are regenerated
+  from their full source types, including all premises and conclusions.
+- Inclusion and its two contract tests pass --wfail. The cached safety suppliers
+  pass --wfail. Strict and full package checks follow in the final Round 5 block.
+
+### P-WC Round 5 — Empty, Growth, Live, and tests
+
+- Empty's finalBelow reader is confirmedReaderIdx. Local-prefix replay keeps its
+  exact enabled source gate, awake interval, restart interval, and applied wakes.
+  The least matching source occurrence has no later prefix time. Its source
+  service call keeps the confirmed-reader guard instead of an honest-only guard.
+- Empty's cached source safety supplies event and public output order, including
+  terminal reads. Source cached coverage supplies the future proposal comparison.
+  Retained honest identities can shrink; the source comparison witness is used
+  in the source, and is not assumed honest in the continuation.
+- The empty route has no continuation participation or half-cap premise. Its new
+  internal component inputs are cached source safety and cached source proposal
+  coverage. The source induction and exact original-gate result prove them.
+- Growth's old honest-only deadline comparison did not fit scoped public readers.
+  The internal implementation takes cached output safety and an original-result
+  coverage witness. WC checkpoint proves both from its finite induction and
+  wc_inclusion6_result. WCGrowthStatement and public JointGrowthAt are unchanged.
+- Live and checkpoint consume RestartsAtWakes, receipt-root idealization,
+  all-time joined participation, durable/epoch stores, RMonoAll, RFrameNextEpoch,
+  and enabled lease/fast origins. No sleep regime supplies global NoRestart.
+- All nine original EXPECTED-FAIL targets and all three remaining tests pass
+  --wfail. The full local audit passes with only the three permitted axioms.
+  No owned expected failure remains. P-As must port its unowned callers to the
+  precise component types in the Round 5 handoff. Final package checks follow.
+
+P-WC Round 5 final validation: DCK PASS. 541 GREEN modules, 43 strict
+roots, 3,662 axiom results, and 24 controls PASS. Complete local exports and
+coverage PASS: 207 proof modules, 252 exports, zero unaccepted, 313 inventory
+rows. Layers: 72 inherited findings, zero new. Source scopes PASS. All nine
+original failures are GREEN; no owned EXPECTED-FAIL target remains. PREPARED
+for serial integration; the exact P-As caller ports remain in the handoff.
+
+## P-WC Round 6 — authorized import repair (2026-10-10)
+
+WC/ExactReceipts uses a public import of Shared.CatchUp. The private
+TargetReceiptService adapter is removed. Accepted targets use the existing
+fgsa_target_service_of_proposal. Genesis uses fgsa_target_service_genesis,
+the one Shared addition authorized by sleep-pwc-pending-fixes.md item 1.
+No public claim or existing statement changes. The module-header check passes.
+The standalone sleep audit and serial fragments include the new theorem.
+
+## P-WC Round 6 — SCOPE-NARROW audit (2026-10-10)
+
+Audited 265 exported family theorem signatures and their full interfaces.
+The report and handoff contain 79 grouped rows with producer anchors, open
+owners, and finite-sleep truth. The exact 2,065 explicit binder entries are
+in claude-files/sleep-pwc-round6-input-inventory.json. No false universal
+receipt/gate/join/time-cut shape was found in the repaired owned service
+routes. No public statement or claim changes. The recovered source snapshot
+and four conditional NoRestart legacy helpers are not arbitrary-run facts.
+The P-As source/epoch/cached-coverage caller ports remain open. PREPARED.
+Headers PASS; layers zero new; exports zero unaccepted; DCK PASS (43 strict
+roots, 3,663 results, 24 controls); strict local production audit 314 results.
+
+### Lead note after the P-WC round 5 closure review (2026-10-10 13:06)
+
+rev-pwc5-astra: MERGE-AS-PREPARED after the import fix; c914737e removes
+`import all` at WC/ExactReceipts.lean:2 exactly as rev-pwc4 item 1 asked.
+All 71 P-WC targets are GREEN. WCCachedSafety is proved by both seeded
+inductions; every service record has a local producer; no SCOPE-NARROW
+universal field. Open: P-As caller ports (Assembly/WeakContinuationGrowth
+:543/:565/:578, Growth:35-38, Empty:608/609/686), the source seed and the
+combined source-and-suffix joined count. Merge note: sleep-int already had
+an identical fgsa_target_service_genesis (99ad1f9d); that copy is kept.

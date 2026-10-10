@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Proposal
+public import AvailableChainFGSAProofs.Proofs.WeakContinuation.ExactReceipts
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedEndpoint
 
 public section
@@ -37,13 +38,13 @@ private theorem wc_proposalWindows (hseed : WCSeed p c E rho w iStar)
 /-- WC J3, plan §6.10; DC score suffix: produce the retained cone from the pivot.
 Both support counts come from the previous honest HEAD batch. -/
 theorem wc_retainedReads
-    (hvalid : V2.D.ExecutionValid E rho) (hnr : V2.D.NoRestart rho)
+    (hvalid : V2.D.ExecutionValid E rho) (hnr : V2.D.RestartsAtWakes E rho)
     (hdelta : E.Δ = p.Δ) (hcstar : V2.D.CStar (fgsaFamilies p c).fresh rho)
-    (hroots : NamedRootCollisionFree p c E rho) (hmono : RMono p c E rho)
+    (hroots : NamedReceiptRootCollisionFree p c E rho) (hmono : RMonoAll p c E rho)
+    (hcumul : RStoreDurable p c E rho ∧ RStoreEpoch p c E rho)
     (ΔF : Time) (hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
-    (hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
-      (Gen.V2.Duty.faulty rho).card <
-        (Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams s)).card)
+    (hpart : ∀ t, SA.voteTime p.toParams (w.u + 1) ≤ t → t ≤ rho.horizon →
+      (Gen.V2.Duty.faulty rho).card < (joinedHonest p E rho t).card)
     (hseed : WCSeed p c E rho w iStar) (pt : PtSP) (D0 : Block)
     (hstart : w.u + 2 ≤ pt.s)
     (hprop : HonestProposal E rho (fgsaInterface p c) pt.s pt.P)
@@ -55,6 +56,7 @@ theorem wc_retainedReads
       (⟨.seat (.prop pt.s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈ rho.emitsAt E ip ∧
       ∀ y ∈ rho.honest, ∀ ih,
         rho.events[ih]? = some (.tick y (SA.voteTime p.toParams pt.s)) →
+        joinedAt p E rho y pt.s (SA.voteTime p.toParams pt.s) →
         ∃ Kc, RetainedReadPremises p
           (clock p (rho.stateBefore E ip
             (V2.D.proposerOf rho (fgsaInterface p c) pt.s)).st
@@ -66,7 +68,11 @@ theorem wc_retainedReads
   let x := V2.D.proposerOf rho (fgsaInterface p c) pt.s
   let src := clock p (storeAt p c E rho ip x) (SA.proposalTime p.toParams pt.s)
   have hduty : WCDutyInput p c E rho ip x (.proposal pt.s) src :=
-    ⟨(List.getElem?_eq_some_iff.mp hip).1, ⟨_, hip, Or.inl ⟨pt.s, rfl, rfl, rfl⟩⟩⟩
+    ⟨(List.getElem?_eq_some_iff.mp hip).1, (by
+      have hm := hem
+      rw [(rho.step_tick_eq E hip).2] at hm
+      exact ((fgsa_emits_proposal E rho _ _ _ pt.s _).mp hm).2.2.2.1), ⟨_, hip, Or.inl
+        ⟨pt.s, rfl, rfl, rfl⟩⟩⟩
   obtain ⟨hf, hap⟩ := hpivot.proposalFrame ip x src hduty rfl
   obtain ⟨D, hDsrc, hD, _⟩ := hpivot.proposalPath ip x src hduty rfl
   have hs2 : 2 ≤ pt.s := by simp only [Slot] at hstart ⊢; omega
@@ -83,17 +89,26 @@ theorem wc_retainedReads
     nlinarith [p.deltaPos]
   obtain ⟨hGSTp, hhor⟩ := wc_proposalWindows hseed pt.s hstart hgate
   have hhorQ : SA.voteTime p.toParams (q + 2) ≤ rho.horizon := hsq ▸ hhor
-  have hpartPrev := hpart (q + 1) (by simp only [Slot] at huq ⊢; omega) (by
+  have hpartPrev := hpart (SA.voteTime p.toParams (q + 1)) (by
+    change 4 * p.Δ * ((w.u + 1 : Nat) : Int) + p.Δ ≤
+      4 * p.Δ * ((q + 1 : Nat) : Int) + p.Δ
+    have hh := Int.ofNat_le.mpr huq
+    push_cast
+    nlinarith [p.deltaPos]) (by
     refine le_trans ?_ hhorQ
     change 4 * p.Δ * ((q + 1 : Nat) : Time) + p.Δ ≤
       4 * p.Δ * ((q + 2 : Nat) : Time) + p.Δ
     push_cast
     nlinarith [p.deltaPos])
-  have hprev : ∀ y ∈ rho.honest, ∃ k, WCHeadRead p c E rho k y (q + 1) D0 := by
+  have hprev : ∀ y ∈ rho.honest,
+      joinedAt p E rho y (q + 1) (SA.voteTime p.toParams (q + 1)) → ∃ k, WCHeadRead p c E
+        rho k y (q + 1) D0 := by
     simpa only [hprevLabel] using hpivot.previousHeads
-  have hcounts := wc_proposalCounts hvalid hnr hdelta hcstar hroots hmono ΔF hsync q D0
+  have hcounts := wc_proposalCounts hvalid hnr hdelta hcstar hroots hmono hcumul ΔF hsync q D0
     hGST hpartPrev hhorQ hprev hprop.1.2
-    (by simpa only [← hsq] using hip) (by simpa only [← hsq] using hf)
+    (by simpa only [← hsq] using hip)
+    (by simpa only [hsq] using wc_duty_joinedAt hvalid hip rfl (Or.inl rfl) hduty.joined)
+    (by simpa only [← hsq] using hf)
   have hcountsS : ∀ L, Block.Preceq L D0 →
       GridCO.voterCount (proposerVotes src pt.s) < 2 * RetainedWalk.ss src pt.s L ∧
       ∀ B, Block.compatible L B = false →
@@ -116,30 +131,50 @@ theorem wc_retainedReads
         4 * p.Δ * (pt.s : Time) + p.Δ
       nlinarith [p.deltaPos]) hhor
   refine ⟨ip, N, D, hN, hip, hem, ?_⟩
-  apply fgsa_retainedReads_H17 E rho hvalid hnr hdelta pt.s hSync hprop.1.2 hip rfl
-    N hem D _ hroots
-  intro y hy ih hih
-  let dst := clock p (storeAt p c E rho ih y) (SA.voteTime p.toParams pt.s)
-  have hdy : WCDutyInput p c E rho ih y (.head pt.s) dst :=
-    ⟨(List.getElem?_eq_some_iff.mp hih).1,
-      ⟨_, hih, Or.inr (Or.inl ⟨pt.s, rfl, rfl, rfl⟩)⟩⟩
-  obtain ⟨hfy, hay⟩ := hpivot.headFrame ih y dst hy hdy
-  obtain ⟨D', hDy, hD', _⟩ := hpivot.headPath ih y dst hy hdy
-  have heD : D' = D := eraseFG_injective (hD'.trans hD.symm)
-  have hfloorY : (controls p dst).lo ≤ (heightView p D).h := by
-    obtain ⟨Dy, hDy', hlo⟩ := hfy.floor
-    exact eraseFG_injective (hDy'.trans hD.symm) ▸ hlo
-  have hcs := wc_headCounts hvalid hnr hdelta hcstar hroots hmono ΔF hsync q D0
-    hGST hpartPrev hhorQ hprev hy (hsq ▸ hih) (by simpa only [← hsq] using hfy)
-  have hcsS : ∀ L, Block.Preceq L D0 → RetainedTargetScores p dst pt.s L := by
-    intro L hL
-    simpa only [← hsq] using (hcs L hL).1
-  refine ⟨Or.inr (hprior _ hap), Or.inr (Or.inl (hprior _ hay)),
-    Or.inr (hprior _ (hD ▸ block_preceq_refl D0)), hfloor, hfloorY, ?_⟩
-  intro L hL _
-  rcases hL with rfl | rfl
-  · exact hcsS _ hf.rootBelow
-  · exact hcsS _ (hD ▸ block_preceq_refl D0)
+  apply fgsa_retainedReads_H17_joined E rho hvalid pt.s hprop.1.2 hip rfl N hem D
+    ?_ ?_ hroots
+  · intro y hy ih hih hJ
+    let dst := clock p (storeAt p c E rho ih y) (SA.voteTime p.toParams pt.s)
+    have hdy : WCDutyInput p c E rho ih y (.head pt.s) dst :=
+      ⟨(List.getElem?_eq_some_iff.mp hih).1,
+        fgsa_head_joined_of_joinedAt E rho hs hih hJ, ⟨_, hih, Or.inr (Or.inl ⟨pt.s, rfl,
+        rfl, rfl⟩)⟩⟩
+    obtain ⟨hfy, hay⟩ := hpivot.headFrame ih y dst hy hdy
+    obtain ⟨D', hDy, hD', _⟩ := hpivot.headPath ih y dst hy hdy
+    have heD : D' = D := eraseFG_injective (hD'.trans hD.symm)
+    have hfloorY : (controls p dst).lo ≤ (heightView p D).h := by
+      obtain ⟨Dy, hDy', hlo⟩ := hfy.floor
+      exact eraseFG_injective (hDy'.trans hD.symm) ▸ hlo
+    have hcs := wc_headCounts hvalid hnr hdelta hcstar hroots hmono hcumul ΔF hsync q D0
+      hGST hpartPrev hhorQ hprev hy (by simpa only [hsq] using hih)
+      (by simpa only [hsq] using hJ) (by simpa only [← hsq] using hfy)
+    have hcsS : ∀ L, Block.Preceq L D0 → RetainedTargetScores p dst pt.s L := by
+      intro L hL
+      simpa only [← hsq] using (hcs L hL).1
+    refine ⟨Or.inr (hprior _ hap), Or.inr (Or.inl (hprior _ hay)),
+      Or.inr (hprior _ (hD ▸ block_preceq_refl D0)), hfloor, hfloorY, ?_⟩
+    intro L hL _
+    rcases hL with rfl | rfl
+    · exact hcsS _ hf.rootBelow
+    · exact hcsS _ (hD ▸ block_preceq_refl D0)
+  · intro y hy ih hih hJ
+    let dst := clock p (storeAt p c E rho ih y) (SA.voteTime p.toParams pt.s)
+    have hdy : WCDutyInput p c E rho ih y (.head pt.s) dst :=
+      ⟨(List.getElem?_eq_some_iff.mp hih).1,
+        fgsa_head_joined_of_joinedAt E rho hs hih hJ,
+        ⟨_, hih, Or.inr (Or.inl ⟨pt.s, rfl, rfl, rfl⟩)⟩⟩
+    have hfd := (hpivot.headFrame ih y dst hy hdy).1
+    have hFN : Block.Preceq (F_at p c E rho ih y) N.erase := by
+      have hpar : Block.Preceq pt.P.parent pt.P := by
+        cases pt.P <;> first | exact block_preceq_refl _ |
+          exact Bool.or_eq_true_iff.mpr (Or.inr (block_preceq_refl _))
+      have hb := block_preceq_trans hfd.finalRoot
+        (block_preceq_trans hfd.rootBelow (block_preceq_trans hpivot.parent hpar))
+      change Block.Preceq (eraseFG (storeAt p c E rho ih y).fg.F) N.erase
+      simpa only [dst, clock_fg, hN] using hb
+    exact fgsa_target_service_of_proposal E rho pt.s N _ _ y
+      (wc_emitted_proposal_service hvalid hdelta hsync hmono hprop.1.2 hy hip hih hem hJ
+        (hGSTp.trans (sub_le_self _ p.deltaPos.le)) hFN)
 
 /-- WC J3, plan §6.10; DC exact proposal: the retained suffix and endpoint give P.
 The proof matches the reviewed exact-adoption Statement. -/
@@ -150,7 +185,7 @@ theorem wc_exactProposal (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
     hnoslash hemitted htargets hlease hfast hdeadlines hheldRows hscopeRows hfinalHead
     hseed pt D hstart hprop hgate hpivot hadmission
   obtain ⟨ip, N, Dfg, hN, hip, hem, hreads⟩ := wc_retainedReads hvalid hnr hdelta
-    hcstar hroots hmono ΔF hsync hpart hseed pt D hstart hprop hgate hpivot
+    hcstar hroots hmono hcumul ΔF hsync hpart hseed pt D hstart hprop hgate hpivot
   obtain ⟨hGST, hhor⟩ := wc_proposalWindows hseed pt.s hstart hgate
   have htime : SA.proposalTime p.toParams pt.s - p.Δ + E.Δ ≤
       SA.proposalTime p.toParams pt.s := by rw [hdelta]; exact le_of_eq (sub_add_cancel _ _)
@@ -163,10 +198,47 @@ theorem wc_exactProposal (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
   have hscore := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o)
     (SA.proposalTime p.toParams pt.s - p.Δ) (SA.voteTime p.toParams pt.s)
     hsync (fgsaDelay_nonrow E.Δ ΔF) hGST (htime.trans hpv) hhor
-  have hg := fgsa_retainedExactHead_geometry_on_run E rho hvalid hnr hdelta pt.s
-    hwalk hscore hprop.1.2 hip rfl N hem Dfg hreads hroots
+  have hScopes : ∀ y ∈ rho.honest, ∀ ih,
+      rho.events[ih]? = some (.tick y (SA.voteTime p.toParams pt.s)) →
+      joinedAt p E rho y pt.s (SA.voteTime p.toParams pt.s) →
+      RetainedServiceScope E rho ip ih (V2.D.proposerOf rho (fgsaInterface p c) pt.s) y pt.s N := by
+    intro y hy ih hih hJ
+    have hm := hem
+    rw [(rho.step_tick_eq E hip).2] at hm
+    have hp := (fgsa_emits_proposal E rho _ _ _ pt.s _).mp hm
+    have hX := wc_duty_joinedAt hvalid hip rfl (Or.inl rfl) hp.2.2.2.1
+    obtain ⟨Kc, hr⟩ := hreads y hy ih hih hJ
+    have hFN : Block.Preceq (F_at p c E rho ih y) N.erase := by
+      have ht := cstoreInv_clock p _ (cstoreInv_stateBefore E rho ih y)
+        (SA.voteTime p.toParams pt.s)
+      have hb := block_preceq_trans (F_preceq_liveRoot p _ ht) hr.target_parent
+      have hpar : Block.Preceq N.erase.parent N.erase := by
+        cases N.erase <;> first | exact block_preceq_refl _ |
+          exact Bool.or_eq_true_iff.mpr (Or.inr (block_preceq_refl _))
+      change Block.Preceq (eraseFG (storeAt p c E rho ih y).fg.F) N.erase
+      simpa only [clock_fg, storeAt] using block_preceq_trans hb hpar
+    refine ⟨wc_emitted_proposal_service hvalid hdelta hsync hmono hprop.1.2 hy hip hih hem hJ
+      (hGST.trans (sub_le_self _ p.deltaPos.le)) hFN, ?_⟩
+    intro C hgeom
+    have hspos : 0 < pt.s := hprop.1.1
+    have hsucc : pt.s - 1 + 1 = pt.s := by simp only [Slot] at hspos ⊢; omega
+    have hGSTprev : E.t_GST ≤ SA.voteTime p.toParams (pt.s - 1) := by
+      apply hseed.firstVoteAfterGST.trans
+      have hc : w.u + 1 ≤ pt.s - 1 := by simp only [Slot] at hstart ⊢; omega
+      change 4 * p.Δ * ((w.u + 1 : Nat) : Int) + p.Δ ≤
+        4 * p.Δ * ((pt.s - 1 : Nat) : Int) + p.Δ
+      have hh := Int.ofNat_le.mpr hc
+      nlinarith [p.deltaPos]
+    have hScope := wc_retained_score_scope hvalid hnr hdelta hsync hmono
+      (ip := ip) (ih := ih) (r := pt.s - 1) hprop.1.2 hy
+      (by simpa only [hsucc] using hip) (by simpa only [hsucc] using hih)
+      (by simpa only [hsucc] using hX) (by simpa only [hsucc] using hJ)
+      hGSTprev C (by simpa only [storeAt, hsucc] using hgeom)
+    simpa only [hsucc] using hScope
+  have hg := fgsa_retainedExactHead_geometry_on_run_on E rho hvalid pt.s
+    hprop.1.2 hip rfl N hem Dfg hreads hScopes hroots
   simpa only [hN] using
-    exactService_head_of_retained_proposal E rho hvalid hdelta pt.s hip N hem Dfg hg hhor
+    exactService_head_of_retained_proposal_on E rho hvalid hdelta pt.s hip N hem Dfg hg hhor
 
 omit [Fintype V] in
 /-- WC J3, plan §6.10; DC named receipt: decode preserves the complete signed body. -/
@@ -190,88 +262,56 @@ theorem wc_proposalAdmission (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
   intro hvalid hlinked hcstar hnr hdelta hroots hsync hdeltaF hfault hfaultQ hfaultX
     hpart hstore hcumul hmono hactive hframe hmeta hrec hgeo hcert hsrc hlabel hqc hstrat
     hnoslash hemitted htargets hlease hfast hdeadlines hheldRows hscopeRows hfinalHead
-    hseed pt D hstart hprop hgate hpivot x hx
+    hseed pt D hstart hprop hgate hpivot x hx hJ
   have hs := hvalid.toScheduleWellFormed
   obtain ⟨ip, N, hN, hip, hem, _⟩ := proposal_read_named p c E rho hs hprop
   obtain ⟨hGST, hhor⟩ := wc_proposalWindows hseed pt.s hstart hgate
   have hGSTp : E.t_GST ≤ SA.proposalTime p.toParams pt.s :=
     hGST.trans (sub_le_self _ p.deltaPos.le)
-  let o : Obj p := ofWire p ⟨.proposer pt.s, .proposal N⟩
-  have htrigger : Gen.V2.Duty.Trigger E rho o (SA.proposalTime p.toParams pt.s) :=
-    Or.inl ⟨_, hprop.1.2, ip, hip, hem⟩
-  let dl := fun t => max t E.t_GST + E.Δ
-  have hD := Gen.V2.Duty.deliveryWithinOn_of_partialSynchronyBy E rho hsync
-    (fun o => ¬ isRowObject o) E.Δ (fgsaDelay_nonrow E.Δ ΔF)
-  have hdeadline : dl (SA.proposalTime p.toParams pt.s) =
-      SA.voteTime p.toParams pt.s := by
-    dsimp only [dl]
-    rw [max_eq_left hGSTp, hdelta]
-    rfl
   have hvt : ((4 * pt.s + 1 : Nat) : Time) * p.Δ = SA.voteTime p.toParams pt.s := by
     push_cast
     change (4 * (pt.s : Time) + 1) * p.Δ = 4 * p.Δ * (pt.s : Time) + p.Δ
     ring
   obtain ⟨ih, hih, _⟩ := fgsa_tick_total E rho hs hdelta x hx (4 * pt.s + 1)
-    (hvt ▸ hhor)
+    (hvt ▸ hhor) (hvt ▸ hJ.1)
   rw [hvt] at hih
   let st := clock p (storeAt p c E rho ih x) (SA.voteTime p.toParams pt.s)
   have hduty : WCDutyInput p c E rho ih x (.head pt.s) st :=
     ⟨(List.getElem?_eq_some_iff.mp hih).1,
-      ⟨_, hih, Or.inr (Or.inl ⟨pt.s, rfl, rfl, rfl⟩)⟩⟩
+      fgsa_head_joined_of_joinedAt E rho hs hih hJ, ⟨_, hih, Or.inr (Or.inl ⟨pt.s, rfl, rfl, rfl⟩)⟩⟩
   have hF := block_preceq_trans (hpivot.headFrame ih x st hx hduty).1.finalRoot
     (block_preceq_trans (hpivot.headFrame ih x st hx hduty).1.rootBelow hpivot.parent)
   have hpar : Block.Preceq pt.P.parent pt.P := by
     cases pt.P <;> first | exact block_preceq_refl _ |
       exact Bool.or_eq_true_iff.mpr (Or.inr (block_preceq_refl _))
-  have hcompat : Block.Compatible N.erase
-      (eraseFG (V2.D.Run.stateBeforeTime E rho (SA.voteTime p.toParams pt.s) x).st.fg.F) := by
-    have hb : Block.Preceq (eraseFG (rho.stateBefore E ih x).st.fg.F) pt.P := by
-      simpa only [st, clock_fg, storeAt] using block_preceq_trans hF hpar
-    rw [fgsa_preTick_eq_timeRead E rho hs hnr hih] at hb
-    rw [hN]
-    exact block_compatible_of_common (block_preceq_refl _) hb
-  obtain ⟨Y, hY, hYB⟩ := fgsa_proposal_receipt E rho hroots hdelta hvalid hnr dl
-    rho.horizon pt.s N (SA.proposalTime p.toParams pt.s) x hD htrigger hx
-    (hdeadline.symm ▸ hhor) (by rw [hdeadline]; exact lt_add_of_pos_right _ p.deltaPos)
-    (hdeadline.symm ▸ hcompat)
-  rw [hdeadline] at hY
+  have hFN : Block.Preceq (F_at p c E rho ih x) N.erase := by
+    change Block.Preceq (eraseFG (storeAt p c E rho ih x).fg.F) N.erase
+    simpa only [st, clock_fg, hN] using block_preceq_trans hF hpar
+  obtain ⟨hService⟩ := wc_emitted_proposal_service hvalid hdelta hsync hmono hprop.1.2 hx
+    hip hih hem hJ hGSTp hFN
+  obtain ⟨Y, hY, hYB⟩ := hService.proposal hs hx hroots
   let k := V2.D.Run.idxBefore rho (SA.voteTime p.toParams pt.s)
   have hstored : N.erase ∈ (storeAt p c E rho k x).base.blocks := by
     apply ((cstoreInv_stateBefore E rho k x).baseTree _).mpr
     rw [Gen.V2.Duty.stateBefore_idxBefore E rho _ hs]
     exact ⟨Y, hY, hYB⟩
-  have hNX : (fgsa p c).excludes (V2.D.Run.stateBeforeTime E rho
-      (SA.voteTime p.toParams pt.s) x) o = false := by
-    change excludesS p _ o = false
-    dsimp only [excludesS, o]
-    rw [toWire_ofWire]
-    change (blockExcluded _ N.erase || invalidForParent p _ N) = false
-    have hc : activeCompatible (V2.D.Run.stateBeforeTime E rho
-        (SA.voteTime p.toParams pt.s) x).st N.erase = true := by
-      exact hcompat
-    rw [blockExcluded, hc, Bool.not_true, Bool.false_or]
-    exact fgsa_trigger_invalid_false E rho o _ pt.s N htrigger rfl _
-  have hscope := proposal_trigger_in_scope E rho o pt.s N rfl dl rho.horizon
-    (SA.proposalTime p.toParams pt.s) x hD htrigger hx
-    (hdeadline.symm ▸ hhor) (hdeadline.symm ▸ hNX)
-  have hm := hstored
-  change _ ∈ (rho.stateBefore E k x).st.base.blocks at hm
-  rw [← (metaInv_stateBefore E rho k x).stampKeys] at hm
-  obtain ⟨⟨B, stamp⟩, hm, hB⟩ := List.mem_map.mp hm
-  dsimp only at hB
-  subst B
+  have hscope : NamedProposalInRun p c E rho N := by
+    apply proposal_processed_in_scope E rho hroots hx k pt.s N
+      (namedReceiptScope_emitted E rho hprop.1.2 ⟨ip, hip, hem⟩ rfl (named_preceq_refl N))
+    have hh := hService.processed hs hx (by change ¬ False; exact not_false)
+    rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hs] at hh
+    exact hh
   have hmEmit := hem
   rw [(V2.D.Run.step_tick_eq E rho hip).2] at hmEmit
   have hp := (fgsa_emits_proposal E rho _ _ _ pt.s _).mp hmEmit
-  have hslot := (fgsa_scoreRun_proposal_pools p _ pt.s _ N hp.2.2.2).1
+  have hslot := (fgsa_scoreRun_proposal_pools p _ pt.s _ N hp.2.2.2.2).1
   have hne : N.erase ≠ .genesis := by
     intro he
     have hzero : N.erase.slot = 0 := he ▸ rfl
     simp only [Slot] at hslot hstart hzero
     omega
-  rcases fgsa_block_stamp_source E rho k x N.erase stamp hm with hg |
-    ⟨j, hj, t, o', ho', ha, _⟩
-  · exact (hne hg.1).elim
+  obtain ⟨j, hj, t, o', ho', ha⟩ :=
+    fgsa_block_accepted_origin E rho k x N.erase hne hstored
   obtain ⟨s', M, rfl, hM⟩ := wc_blockObject ho'
   have hdecode : (toWire p (ofWire p ⟨.proposer s', .proposal M⟩)).decode =
       some (.block s' M) := by rw [toWire_ofWire]; rfl
@@ -279,7 +319,8 @@ theorem wc_proposalAdmission (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
   have heparent := proposal_handlesS_direct _ parent _ s' M hdecode hh
   subst parent
   have hMscope := proposal_handle_in_scope E rho _ s' M rfl j x t ha.1
-  have hMN := namedScope_erase_injective E rho hroots hMscope hscope hM
+  have hMN := namedScope_erase_injective E rho (hroots.toNamedRootCollisionFree E rho)
+        hMscope hscope hM
   subst M
   have hwf := hvalid.wire j x _ t he
   change wellFormed p (toWire p (ofWire p ⟨.proposer s', .proposal N⟩)) = true at hwf
@@ -302,11 +343,26 @@ theorem wc_proposalAdmission (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
     by_contra hn
     have hc := (Gen.V2.Duty.index_lt_idxBefore_iff hs hi _).mp (Nat.lt_of_not_ge hn)
     exact lt_irrefl _ hc
-  have hc := fgsa_store_cumulative p c E rho hnr hki x
+  have hJ' := wc_duty_joinedAt hvalid hi rfl (Or.inr rfl) hd.joined
+  have hspos : 0 < pt.s := hprop.1.1
+  have hsucc : pt.s - 1 + 1 = pt.s := by simp only [Slot] at hspos ⊢; omega
+  obtain ⟨hBound, _⟩ := wc_duty_receiver hvalid (r := pt.s - 1) hi (by simpa only [hsucc] using hJ')
+  have hRF : V2.D.restartFree rho x k i := by
+    intro l w hkl hli hl
+    have hb := hBound l w hli hl
+    have hpv : SA.proposalTime p.toParams (pt.s - 1) < SA.voteTime p.toParams pt.s := by
+      rw [← hsucc]
+      change 4 * p.Δ * ((pt.s - 1 : Nat) : Int) <
+        4 * p.Δ * ((pt.s - 1 + 1 : Nat) : Int) + p.Δ
+      push_cast
+      linarith [p.deltaPos]
+    have hlk := (Gen.V2.Duty.index_lt_idxBefore_iff hs hl _).mpr (hb.trans_lt hpv)
+    omega
+  have hc := fgsa_store_cumulative_on p c E rho hki x hRF
   have hmem := hc.2.1.subset hstored
   obtain ⟨M, hM, hMB⟩ := (namedBodies_erase_domain p _ (cstoreInv_stateBefore E rho i x)
     (metaInv_stateBefore E rho i x) N.erase).mp hmem
-  have hMN := namedScope_erase_injective E rho hroots
+  have hMN := namedScope_erase_injective E rho (hroots.toNamedRootCollisionFree E rho)
     (namedScope_held E rho hx i hM) hscope hMB
   have hpath : ∀ A, Block.Preceq A pt.P → A ∈ (storeAt p c E rho i x).base.blocks := by
     intro A hA
@@ -324,13 +380,24 @@ theorem wc_proposalAdmission (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
       change 0 < 4 * p.Δ * (pt.s : Time) + p.Δ
       nlinarith [p.deltaPos, Nat.cast_nonneg (α := Int) pt.s]
     rw [← hN]
-    have hstamp := fgsa_gateReceipt_block_stamp_lt E rho hs hnr hi ht N.erase hmem
+    have hstamp := fgsa_block_stamp_before_read E rho hs x (SA.voteTime p.toParams pt.s)
+      ht N.erase (by
+        rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hs]
+        exact hstored)
+    rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hs] at hstamp
+    have hkeysK : N.erase ∈ (storeAt p c E rho k x).base.blockStamp.map Prod.fst := by
+      change _ ∈ (rho.stateBefore E k x).st.base.blockStamp.map Prod.fst
+      rw [(metaInv_stateBefore E rho k x).stampKeys]
+      exact hstored
+    have hsaved := inclusion_stampBlock_of_prefix hc.2.2.1 hkeysK
+    change GridCO.stampBlock (storeAt p c E rho i x).base N.erase =
+      GridCO.stampBlock (storeAt p c E rho k x).base N.erase at hsaved
     have hkeys : N.erase ∈ (storeAt p c E rho i x).base.blockStamp.map Prod.fst := by
       change N.erase ∈ (rho.stateBefore E i x).st.base.blockStamp.map Prod.fst
       rw [(metaInv_stateBefore E rho i x).stampKeys]
       exact hmem
     rw [inclusion_stampBlock_of_prefix (by rw [(clock_cumulative p _ _).2.2.1]) hkeys]
-    exact hstamp
+    exact hsaved ▸ hstamp
 
 end AvailableChain.FGSA.Run
 end
