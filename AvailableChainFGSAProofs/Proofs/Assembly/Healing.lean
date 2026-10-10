@@ -26,24 +26,7 @@ theorem assembly_healing_proposal_service {In V : Type} [DecidableEq V] [Fintype
       (SA.proposalTime p.toParams s + p.Δ) x).st.fg.F)) :
     Nonempty (ReceiverService E rho (ofWire p ⟨.proposer s, .proposal N⟩)
       (SA.proposalTime p.toParams s) (SA.proposalTime p.toParams s + p.Δ) x) := by
-  let dl := fun t => max t E.t_GST + p.Δ
-  have he : dl (SA.proposalTime p.toParams s) = SA.proposalTime p.toParams s + p.Δ := by
-    dsimp only [dl]
-    rw [max_eq_left hSync]
-  have hD := Gen.V2.Duty.deliveryWithinOn_of_partialSynchronyBy E rho hrec.sync
-    (fun o => ¬ isRowObject o) p.Δ (fun o hn => by
-      rw [fgsaDelay_nonrow E.Δ ΔF o hn, hrec.base.delta])
-  apply fgsa_proposal_service_of_emission hrec.base.valid hrec.base.delta dl rho.horizon
-    hx hip hem hD
-  · rw [he]
-    exact lt_add_of_pos_right _ p.deltaPos
-  · exact he ▸ hhor
-  · exact he ▸ hhor
-  · exact he.le
-  · intro t hat htd
-    exact hrec.awake x hx t (hSync.trans hat) (htd.le.trans (he ▸ hhor))
-  · exact healing_recovery_restartFree hrec hx hSync hhor
-  · simpa only [he] using hCompat
+  exact healing_proposal_receipt_recovery p c E rho hrec hx hx hip hem hSync hhor hCompat
 
 /-- Blueprint 21:1356–1425. The sleep regime and named Foundations supply promotion.
 P-H2 supplies joined-start promotion. P-H1 supplies the proved permanence producer. -/

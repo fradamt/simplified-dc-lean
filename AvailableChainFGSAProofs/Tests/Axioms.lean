@@ -2680,3 +2680,9 @@ public import AvailableChainFGSAProofs.Proofs.Outage.ScopedCatchUp
 #print axioms AvailableChain.FGSA.Run.assembly_resetArrivalFull_at
 #print axioms AvailableChain.FGSA.Run.assembly_healingInput_at
 #print axioms AvailableChain.FGSA.Run.assembly_hTime_at
+
+-- Round 9: named recovery producers with all Foundation inputs supplied.
+#print axioms AvailableChain.FGSA.Run.assembly_healing_inv_of_set
+#print axioms AvailableChain.FGSA.Run.assembly_healing_extension_of_set
+#print axioms AvailableChain.FGSA.Run.assembly_healing_localInput_of_set
+#print axioms AvailableChain.FGSA.Run.assembly_healing_fullInput_of_set

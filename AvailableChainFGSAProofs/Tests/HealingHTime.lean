@@ -4,7 +4,7 @@ public import AvailableChainFGSAProofs.Proofs.Assembly.ResetArrival -- shake: ke
 public section
 
 /-! Blueprint 21 H.18–H.22:3049–3176; plan S5 HTIME-WIRE T/W2–W4.
-DC: SAME HTimeClaim and its original run package, with four exact open inputs. -/
+DC: SAME HTimeClaim and its original run package, with named recovery producers. -/
 
 namespace AvailableChain.FGSA.Run.Tests.HealingHTime
 
@@ -220,41 +220,32 @@ end AvailableChain.FGSA.Run.Tests.HealingHTime
 
 namespace AvailableChain.FGSA.Run.Tests.HealingHTime
 
-/-- The two remaining time results apply to this run and its selected witness. -/
-private theorem selectedTime (p : Params) {V In : Type}
+/-- The named time producers apply to this run and its selected witness. -/
+public theorem selectedTime (p : Params) {V In : Type}
     [DecidableEq V] [Fintype V] (c : AppCodec In) (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
     (hset : HealingSet p c E rho G ΔF) (hbound : LivenessBoundW p ΔF)
-    (extension : p.δt = 2 * p.R → ∀ w, H0Reset p c E rho w →
-      p.actionTime w.rStar + Γ p G + 4 * p.Δ ≤ rho.horizon →
-      ∃ u Q, H0 p c E rho {w with u := u, QStar := Q})
-    (fullInput : p.δt = 2 * p.R →
-      recoveryStart p E + B'_resetF p ΔF G + Γ p G + 4 * p.Δ ≤ rho.horizon →
-      ∀ w, H0 p c E rho w → HealingInput p c E rho w ΔF ∧
-        tstar p w ≤ p.actionTime w.rStar + Γ p G + 4 * p.Δ)
     (hClock : p.δt = 2 * p.R)
     (hhor : recoveryStart p E + B_HF p ΔF G ≤ rho.horizon) :
     HTimeConcl p c E rho G ΔF :=
-  assembly_hTime_at p c E rho hset hbound extension fullInput hClock hhor
+  assembly_hTime_at p c E rho hset hbound hClock hhor
 
 /-- The local input result keeps the selected witness's own horizon. -/
 private theorem selectedInput (p : Params) {V In : Type}
-    [DecidableEq V] (c : AppCodec In) (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {ΔF : Time}
-    (localInput : p.δt = 2 * p.R → ∀ w, H0 p c E rho w →
-      tstar p w ≤ rho.horizon → HealingInput p c E rho w ΔF)
+    [DecidableEq V] [Fintype V] (c : AppCodec In) (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hset : HealingSet p c E rho G ΔF)
     (hClock : p.δt = 2 * p.R) (w : HealingWitness) (h0 : H0 p c E rho w)
     (hhor : tstar p w ≤ rho.horizon) : HealingInput p c E rho w ΔF :=
-  assembly_healingInput_at p c E rho localInput hClock w h0 hhor
+  assembly_healingInput_at p c E rho hset hClock w h0 hhor
 
-/-- Only the exact joint invariant remains an input to the selected input proof. -/
+/-- The named recovery producer supplies the selected joint invariant. -/
 private theorem selectedInv (p : Params) {V In : Type}
     [DecidableEq V] [Fintype V] (c : AppCodec In) (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
     (hset : HealingSet p c E rho G ΔF) {w : HealingWitness}
-    (h0 : H0 p c E rho w) (hhor : tstar p w ≤ rho.horizon)
-    (inv : ∀ i, PostResetInv p c E rho w i) : HealingInput p c E rho w ΔF :=
-  assembly_healingInput_of_inv p c E rho hset h0 hhor inv
+    (h0 : H0 p c E rho w) (hhor : tstar p w ≤ rho.horizon) : HealingInput p c E rho w ΔF :=
+  assembly_healingInput_of_inv p c E rho hset h0 hhor
 
 #print axioms selectedTime
 #print axioms selectedInput

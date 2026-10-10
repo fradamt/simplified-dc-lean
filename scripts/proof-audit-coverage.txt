@@ -2553,6 +2553,10 @@
             'AvailableChain.FGSA.Run.assembly_resetArrivalFull_at',
             'AvailableChain.FGSA.Run.assembly_healingInput_at',
             'AvailableChain.FGSA.Run.assembly_hTime_at',
+            'AvailableChain.FGSA.Run.assembly_healing_inv_of_set',
+            'AvailableChain.FGSA.Run.assembly_healing_extension_of_set',
+            'AvailableChain.FGSA.Run.assembly_healing_localInput_of_set',
+            'AvailableChain.FGSA.Run.assembly_healing_fullInput_of_set',
         ),
         'AvailableChainFGSAProofs.Proofs.Assembly.Root': (
             'AvailableChain.FGSA.Run.assembly_weakContinuationGrowth',
