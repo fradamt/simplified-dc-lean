@@ -72,19 +72,22 @@ theorem healing_promotion_carrier [Fintype V] (E : Generic.Env V)
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. Blueprint 21:1356–1370; plan §3.2 step 2.
 DC: SAME an honest slot after GST emits an actual proposal within the horizon.
-Recovery supplies the awake proposer; the scheduled tick supplies emission. -/
+Recovery supplies awake; the exact joined duty guard permits emission. -/
 theorem healing_promotion_slot_proposal [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
     {s : Slot} (hslot : Gen.V2.Duty.HonestSlot rho (fgsaInterface p c) s)
     (hgst : E.t_GST ≤ SA.proposalTime p.toParams s)
-    (hhor : SA.proposalTime p.toParams s ≤ rho.horizon) :
+    (hhor : SA.proposalTime p.toParams s ≤ rho.horizon)
+    (hjoin : ∀ w, 0 ≤ w → w ≤ SA.proposalTime p.toParams s →
+      V2.Event.restart (V2.D.proposerOf rho (fgsaInterface p c) s) w ∈ rho.events →
+      w ≤ slotStartZ p ((s : Int) - 1)) :
     ∃ X : FGBlock (Fin p.n), HonestProposal E rho (fgsaInterface p c) s (eraseFG X) ∧
       X.slot = s ∧
       ∃ rows, HonestCarrier p c E rho s (eraseFG X) rows ∧
         X.rows = rows.filterMap RowWire.toRow? := by
   obtain ⟨Q, hQ, _⟩ := fgsa_honestProposal_exists_of_awake_slot E rho
     hrec.base.valid.toScheduleWellFormed hrec.base.delta hslot
-    (hrec.awake _ hslot.2 _ hgst hhor) hhor
+    (hrec.awake _ hslot.2 _ hgst hhor) hjoin hhor
   obtain ⟨X, he, hs, hc, _⟩ := healing_promotion_carrier E rho hrec hQ
   exact ⟨X, he ▸ hQ, hs, he ▸ hc⟩
 
@@ -93,7 +96,7 @@ Blueprint 21:1356–1370; plan §3.2 step 2.
 DC: SAME the gap slot carries an actual FG proposal on the same time grid.
 The full gap window and the gate deadline are retained. -/
 theorem healing_promotion_gap_proposal [Fintype V] (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (r : Nat) (hgst : E.t_GST ≤ p.actionTime r)
     (hhor : p.actionTime r + 2 * P p + Γ p G - 4 * p.Δ ≤ rho.horizon) :
     (r : Time) * P p + 2 * P p - 4 * p.Δ + G ≤ rho.horizon ∧
@@ -104,7 +107,8 @@ theorem healing_promotion_gap_proposal [Fintype V] (E : Generic.Env V)
       SA.gateTime p.toParams s ≤ p.actionTime r + 2 * P p + Γ p G - 4 * p.Δ ∧
       ∃ rows, HonestCarrier p c E rho s (eraseFG X) rows ∧
         X.rows = rows.filterMap RowWire.toRow? := by
-  obtain ⟨hwindow, s, hlo, hhi, hslot, hgate⟩ := healing_promotion_gap E rho hrec r hgst hhor
+  obtain ⟨hwindow, s, hlo, hhi, hslot, hgate⟩ :=
+    healing_promotion_gap E rho hrec.toRecovery₂ r hgst hhor
   have hbefore : SA.proposalTime p.toParams s ≤ rho.horizon := by
     change SA.proposalTime p.toParams s + 6 * p.Δ ≤ _ at hgate
     linarith [p.deltaPos]
@@ -115,7 +119,27 @@ theorem healing_promotion_gap_proposal [Fintype V] (E : Generic.Env V)
       change 8 * p.Δ ≤ 4 * (p.R : Time) * p.Δ
       nlinarith [p.deltaPos]
     linarith [p.deltaPos]
-  obtain ⟨X, hQ, hs, hc⟩ := healing_promotion_slot_proposal E rho hrec hslot hstart hbefore
+  have hcut : E.t_GST ≤ slotStartZ p ((s : Int) - 1) := by
+    have ha := actionTime_periodW p r
+    have hR : (2 : Time) ≤ p.R := by exact_mod_cast p.RLarge
+    have hP : 8 * p.Δ ≤ P p := by
+      change 8 * p.Δ ≤ 4 * (p.R : Time) * p.Δ
+      nlinarith [p.deltaPos]
+    change E.t_GST ≤ 4 * p.Δ * ((s : Int) - 1)
+    change (r : Time) * P p + 2 * P p ≤ 4 * p.Δ * (s : Int) at hlo
+    nlinarith [p.deltaPos]
+  have hjoin : ∀ w, 0 ≤ w → w ≤ SA.proposalTime p.toParams s →
+      V2.Event.restart (V2.D.proposerOf rho (fgsaInterface p c) s) w ∈ rho.events →
+      w ≤ slotStartZ p ((s : Int) - 1) := by
+    intro w _ hws he
+    obtain ⟨j, hj⟩ := List.mem_iff_getElem?.mp he
+    have hwgst : w ≤ E.t_GST := by
+      by_contra hn
+      exact hrec.suffixNoRestart _ hslot.2 j w hj (lt_of_not_ge hn)
+        ((hws.trans hbefore).trans_lt (lt_add_of_pos_right _ (by decide)))
+    exact hwgst.trans hcut
+  obtain ⟨X, hQ, hs, hc⟩ := healing_promotion_slot_proposal E rho hrec.toRecovery₂
+    hslot hstart hbefore hjoin
   exact ⟨hwindow, s, X, hQ, hs, hlo, hhi, hgate, hc⟩
 
 end AvailableChain.FGSA.Run

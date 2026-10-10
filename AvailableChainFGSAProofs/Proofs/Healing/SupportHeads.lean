@@ -136,7 +136,7 @@ theorem healing_support_honest_batch_seat [Fintype V] (E : Generic.Env V)
   have hgsti : E.t_GST ≤ SA.voteTime p.toParams i := hgst.trans hhead
   have hhori : SA.voteTime p.toParams i ≤ rho.horizon := hvv.trans hphase.2.1
   have hawake := hrec.awake z hk _ hgsti hhori
-  obtain ⟨jz, hjz⟩ := healing_support_vote_tick E rho hS hDelta hk i hhori
+  obtain ⟨jz, hjz⟩ := healing_support_vote_tick E rho hS hDelta hk i hhori hawake
   obtain ⟨hem, hhl⟩ := healing_support_honest_emits (c := c) E rho hS hjz hawake
   let K := headVote p (FGSA.clock p (V2.D.Run.stateBefore E rho jz z).st
     (SA.voteTime p.toParams i)) i

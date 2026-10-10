@@ -6764,3 +6764,5 @@
 # Serial integration fragment: scripts/dev-pkg/P-H1.coverage-fragment.txt.
 # Merge under AvailableChainFGSAProofs.Tests.Axioms; do not add a coverage key.
 # SupportTicks and SupportRelease now own the moved tick/emission/release helpers.
+# P-H1 consumer extension: local strict root now has 81 commands.
+# The same P-H1.coverage-fragment.txt contains the expanded serial fragment.

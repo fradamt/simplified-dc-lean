@@ -162,7 +162,7 @@ local branch input. The producer uses the frozen progress fold and full G window
 INLINE rowsReceipt: fgsa_tRowsReceipt; progressCoverage: fgsa_batchCoverage.
 The caller must prove the window and gate bound from its own deadline. -/
 theorem frontierSearch_age_service (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
     (hδ : p.δt = 2 * p.R) (hbound : LivenessBoundW p ΔF)
     (perm : TPerm p c E rho)
     (rowsReceipt : ∀ j y r (a : RowWire p.n), HonestRowAt p c E rho j y r a →
@@ -190,7 +190,7 @@ theorem frontierSearch_age_service (E : Generic.Env V)
       p.actionTime r < SA.proposalTime p.toParams s ∧
       SA.gateTime p.toParams s ≤ D ∧ height + 1 ≤ (heightView p X).h := by
   obtain ⟨_, s, hlo, hhi, hslot, _, hgate⟩ :=
-    healing_promotion_age_gap E rho hrec r U.slot hstart hwin
+    healing_promotion_age_gap E rho hrec.toRecovery₂ r U.slot hstart hwin
   have hgateD : SA.gateTime p.toParams s ≤ D := hgate.trans hbudget
   have hhor : SA.proposalTime p.toParams s ≤ rho.horizon := by
     change SA.proposalTime p.toParams s + 6 * p.Δ ≤ D at hgateD
@@ -215,9 +215,26 @@ theorem frontierSearch_age_service (E : Generic.Env V)
   have hpT := frontierSearch_age_phase_cut E rho hp hut (by
     change SA.proposalTime p.toParams s + 6 * p.Δ ≤ D at hgateD
     linarith [p.deltaPos])
-  obtain ⟨X, hnew, hXslot, _⟩ :=
-    healing_promotion_slot_proposal E rho hrec hslot (hgst.trans hut) hhor
-  have hh := frontierSearch_age_advance E rho hrec hδ hbound perm rowsReceipt
+  have hcut : E.t_GST ≤ slotStartZ p ((s : Int) - 1) := by
+    change E.t_GST ≤ 4 * p.Δ * ((s : Int) - 1)
+    have hcs := hc
+    rw [carrierTimeW_def, betaF_def] at hcs
+    change (r : Time) * P p + 4 * (kappaF p ΔF : Time) * p.Δ ≤
+      4 * p.Δ * (s : Int) at hcs
+    nlinarith [p.deltaPos]
+  have hjoin : ∀ w, 0 ≤ w → w ≤ SA.proposalTime p.toParams s →
+      V2.Event.restart (V2.D.proposerOf rho (fgsaInterface p c) s) w ∈ rho.events →
+      w ≤ slotStartZ p ((s : Int) - 1) := by
+    intro w _ hws he
+    obtain ⟨j, hj⟩ := List.mem_iff_getElem?.mp he
+    have hwgst : w ≤ E.t_GST := by
+      by_contra hn
+      exact hrec.suffixNoRestart _ hslot.2 j w hj (lt_of_not_ge hn)
+        ((hws.trans hhor).trans_lt (lt_add_of_pos_right _ (by decide)))
+    exact hwgst.trans hcut
+  obtain ⟨X, hnew, hXslot, _⟩ := healing_promotion_slot_proposal E rho hrec.toRecovery₂
+    hslot (hgst.trans hut) hhor hjoin
+  have hh := frontierSearch_age_advance E rho hrec.toRecovery₂ hδ hbound perm rowsReceipt
     progressCoverage hfold faultQ honestQuorum hentry hcovered hgst hpT hu hsource
     hc hat.le hage hnew hXslot
   exact ⟨s, X, hnew, hXslot, hat, hgateD, hh⟩

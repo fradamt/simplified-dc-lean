@@ -185,7 +185,7 @@ theorem healing_support_honest_late [Fintype V] (E : Generic.Env V)
   have hvh : SA.voteTime p.toParams s ≤ rho.horizon :=
     ((le_add_of_nonneg_right hd.le).trans hvg).trans hhor
   have hawake := hrec.awake z hk _ hgst hvh
-  obtain ⟨jz, hjz⟩ := healing_support_vote_tick E rho hS hDelta hk s hvh
+  obtain ⟨jz, hjz⟩ := healing_support_vote_tick E rho hS hDelta hk s hvh hawake
   obtain ⟨hem, _⟩ := healing_support_honest_emits (c := c) E rho hS hjz hawake
   let K := headVote p (FGSA.clock p (V2.D.Run.stateBefore E rho jz z).st
     (SA.voteTime p.toParams s)) s

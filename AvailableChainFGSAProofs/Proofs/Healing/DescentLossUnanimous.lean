@@ -112,7 +112,7 @@ private theorem unanimous_seat_release [Fintype V] {G ΔF : Time}
   have hhori : SA.voteTime p.toParams i ≤ rho.horizon :=
     ((le_add_of_nonneg_right hd.le).trans hvi).trans hvh
   have hawake := hrec.awake z hk _ hgsti hhori
-  obtain ⟨jz, hjz⟩ := healing_support_vote_tick E rho hS hDelta hk i hhori
+  obtain ⟨jz, hjz⟩ := healing_support_vote_tick E rho hS hDelta hk i hhori hawake
   obtain ⟨hem, hhl⟩ := healing_support_honest_emits (c := c) E rho hS hjz hawake
   let K := headVote p (FGSA.clock p (V2.D.Run.stateBefore E rho jz z).st
     (SA.voteTime p.toParams i)) i

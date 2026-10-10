@@ -110,7 +110,7 @@ theorem healing_proposal_batch_seat [Fintype V] (E : Generic.Env V)
   have hgstr : E.t_GST ≤ SA.voteTime p.toParams r := hgst.trans hhead
   have hhorr : SA.voteTime p.toParams r ≤ rho.horizon := hvv.trans hphase.2.1
   have hawake := hrec.awake z hk _ hgstr hhorr
-  obtain ⟨jz, hjz⟩ := healing_support_vote_tick E rho hS hDelta hk r hhorr
+  obtain ⟨jz, hjz⟩ := healing_support_vote_tick E rho hS hDelta hk r hhorr hawake
   obtain ⟨hem, hhl⟩ := healing_support_honest_emits (c := c) E rho hS hjz hawake
   let K := headVote p (FGSA.clock p (V2.D.Run.stateBefore E rho jz z).st
     (SA.voteTime p.toParams r)) r

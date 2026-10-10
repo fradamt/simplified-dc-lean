@@ -2208,3 +2208,48 @@ P-Fd lease/service inputs, P-Fi MiddleSupport, later H1 epoch ports, and the lea
 serial audit integration remain open. No requested external or public-claim edit
 was made. No protocol declaration, default heartbeat, checker, baseline, or
 allowance changed. Evidence is under .lake/sleep-ph1/.
+
+### P-H1 — prepared consumer extension (2026-10-10)
+
+- PromotionCarrier.healing_promotion_slot_proposal needs the exact proposer
+  restart/join bound. Awake alone is false: a proposer can wake at its proposal
+  tick and have its duty suppressed. No proposal exists to carry its rows.
+  The internal gap producer now takes RecoverySleep₂; it derives the selected
+  proposer's join bound from suffixNoRestart and the existing lower proposal bound.
+- FrontierSearchAge.frontierSearch_age_service uses the same approved sleep
+  companion. Its carrier lower bound places the previous slot start after GST.
+  It derives the exact join bound without a global NoRestart premise.
+- LiveDC.healing_liveDCFromWindows proves the existing approved statement.
+  It selects through joinedGap, restricts stable comparisons to confirmedReader,
+  and preserves finality and strict-before acceptance through durable restore.
+  It does not construct a new RMonoAll companion or change a public claim.
+- PhaseRelay, SupportFrame, PromotionCarrier, PromotionRows, LiveDC, and
+  FrontierSearchAge passed --wfail and move from P-H1 EXPECTED-FAIL to GREEN.
+- Eight existing named awake witnesses are threaded through owned T23 callers.
+  These later modules remain EXPECTED-FAIL. Joined duty and receiver epoch ports
+  still need the P-ShA round 4 interfaces and the P-Fd producers.
+- The expanded local strict audit has 81 commands. The serial integration
+  fragment stays under the existing full audit key. No key or allowance is added.
+
+### P-H1 final prepared extension — validation (2026-10-10)
+
+Status: PREPARED on sleep-ph1; not CLOSED. The map still has all 98 TARGETS.
+The final classification has 500 GREEN and 66 EXPECTED-FAIL entries: 37 assigned
+GREEN targets, 61 assigned P-H1 targets still open, and 5 REQUIRED supplier failures.
+No REQUIRED entry moved to DEFERRED or to a different repair owner.
+
+- Final GREEN lake build --wfail: PASS, 2.49 s.
+- Final DCK PASS (package P-H1): 179.93 s; all 24 default controls passed.
+- Strict audits: 39 roots, 2,878 results; only the three permitted axioms.
+- Expanded local strict audit and complete coverage: 81 declarations.
+- Complete exports: 160 proof modules, 252 exports, 0 unaccepted; 7.30 s.
+- Layers: 72 findings, 0 new; 0.60 s. git diff --check: PASS.
+
+Closure still needs the P-ShA round 4 interfaces, S-Ap roots, P-Fd companion
+producers, P-Fi MiddleSupport, remaining H1 epoch/caller ports, and serial audit
+integration. The report lists each GREEN and EXPECTED-FAIL target, the changed
+files and declarations, all internal replacements, and the exact caller audit.
+The optional SupportRecovery module is not present: automatic approval review
+rejected it as outside the prepared scope, and the text approval request is pending.
+No FGSAClaims statement, protocol declaration, checker, baseline, allowance, or
+heartbeat changed. Report: claude-files/sleep-ph1-report.md.
