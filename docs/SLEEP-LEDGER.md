@@ -8286,3 +8286,20 @@ Statements.Join (Claims); Shared.AnchorService, CatchUp and RegimesService
 (Proofs); Tests.P23Axioms (Run). Add these to GREEN, keeping all existing targets
 and checks. The full build passes; the package rerun checks these exact modules
 and every strict audit. No module is marked EXPECTED-FAIL to bypass coverage.
+
+## P-Da Round 3 — V2 coverage and current Catalog lock (2026-10-11)
+
+The complete active build exposes 29 unanchored sleep engine entries. Add the
+exact V2Manifest --anchor references to the existing Unit-valued dutyAnchor.
+This coverage definition changes no proof or theorem statement. Framework builds
+with --wfail. Refresh the current Catalog lock: only V2.anchor and V2.dutyAnchor
+change; all 252 locked names remain. Run the complete API writer again after the
+build: every active product completes, PC-SA is skipped, and every API file stays
+byte-identical to the first Round 3 write. Only the approved Claims API file and
+the two current Catalog lock digests differ from the Round 3 base.
+
+Old-read audit data loses only seven obsolete height rows: wc_finiteFacts,
+wc_heightSeed, wc_outputStep, wc_proposal_gates, wcg_heightSeed, wcg_outputStep
+and wcg_retainedSeed (all in AvailableChain.FGSA.Run). Eleven new height-only
+readers stay unlisted for lead review. No new old-read exemption is added.
+All frozen API baselines and GLY allowance/baseline files are unchanged.

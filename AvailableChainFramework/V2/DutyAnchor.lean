@@ -272,6 +272,43 @@ def dutyAnchor : Unit :=
   let _ := @AvailableChain.V2.D.Run.emits_snoc
   let _ := @AvailableChain.V2.D.EmitOk.snoc
   let _ := @AvailableChain.V2.D.ExecutionValid.snoc_selfDelivery
+  -- Sleep migration: retain complete engine API anchor coverage.
+  -- AvailableChainEngineV2.Engine.Duty.Run
+  let _ := @AvailableChain.V2.D.Run.stateAfterRestartsAt
+  -- AvailableChainEngineV2.Engine.Run
+  let _ := @AvailableChain.V2.Run.stateAfterRestartsAt
+  -- AvailableChainEngineV2.Conditions.Duty.Lift
+  let _ := @AvailableChain.V2.D.sleepWellFormed_toD_iff
+  let _ := @AvailableChain.V2.D.restartsAtWakes_toD_iff
+  let _ := @AvailableChain.V2.D.noRestartOn_toD_iff
+  let _ := @AvailableChain.V2.D.noRestartAfter_toD_iff
+  let _ := @AvailableChain.V2.D.linkReadyOn_toD_iff
+  let _ := @AvailableChain.V2.D.processedByActionCut_toD_iff
+  let _ := @AvailableChain.V2.D.handledBetween_toD_iff
+  let _ := @AvailableChain.V2.D.deliveryService_toD_iff
+  let _ := @AvailableChain.V2.D.deliveryDemand_toD_iff
+  -- AvailableChainEngineV2.Conditions.Duty.Schedule
+  let _ := @AvailableChain.V2.D.ExecutionValid.toSleepWellFormed
+  -- AvailableChainEngineV2.Conditions.Duty.Sleep
+  let _ := @AvailableChain.V2.D.AwakeOnClosed
+  let _ := @AvailableChain.V2.D.SleepWellFormed.tick_awake
+  let _ := @AvailableChain.V2.D.SleepWellFormed.deliver_awake
+  let _ := @AvailableChain.V2.D.SleepWellFormed.restart_awake
+  let _ := @AvailableChain.V2.D.SleepWellFormed.wake_restart
+  let _ := @AvailableChain.V2.D.RestartsAtWakes
+  let _ := @AvailableChain.V2.D.NoRestartOn
+  let _ := @AvailableChain.V2.D.NoRestartAfter
+  -- AvailableChainEngineV2.Conditions.Schedule
+  let _ := @AvailableChain.V2.ExecutionValid.toSleepWellFormed
+  -- AvailableChainEngineV2.Conditions.Sleep
+  let _ := @AvailableChain.V2.AwakeOnClosed
+  let _ := @AvailableChain.V2.SleepWellFormed.tick_awake
+  let _ := @AvailableChain.V2.SleepWellFormed.deliver_awake
+  let _ := @AvailableChain.V2.SleepWellFormed.restart_awake
+  let _ := @AvailableChain.V2.SleepWellFormed.wake_restart
+  let _ := @AvailableChain.V2.RestartsAtWakes
+  let _ := @AvailableChain.V2.NoRestartOn
+  let _ := @AvailableChain.V2.NoRestartAfter
   ()
 
 end AvailableChain.Framework.V2
