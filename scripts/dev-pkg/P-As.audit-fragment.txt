@@ -40,3 +40,22 @@ public import AvailableChainFGSAProofs.Proofs.Assembly.ResetSource -- shake: kee
 # Pending P-WC import closure; do not classify this module GREEN yet.
 public import AvailableChainFGSAProofs.Proofs.Assembly.ContinuationReplay
 #print axioms AvailableChain.FGSA.Run.assembly_tickReplay_atWake
+
+# Round 2: import production modules only (AUDIT-FRAGMENT).
+public import AvailableChainFGSAProofs.Proofs.Assembly.Clean
+public import AvailableChainFGSAProofs.Proofs.Assembly.ContinuationService
+public import AvailableChainFGSAProofs.Proofs.Assembly.Outage
+public import AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuationGrowthSeed
+#print axioms AvailableChain.FGSA.Run.fgsa_recovery_gate_readers
+#print axioms AvailableChain.FGSA.Run.assembly_joinedReplay
+#print axioms AvailableChain.FGSA.Run.assembly_wcg_dischargeL
+#print axioms AvailableChain.FGSA.Run.wcg_service4OfSeed
+#print axioms AvailableChain.FGSA.Run.wcg_service_outputs
+#print axioms AvailableChain.FGSA.Run.wcg_sourceJoinCut
+#print axioms AvailableChain.FGSA.Run.wcg_heightSeed_of_finite
+#print axioms AvailableChain.FGSA.Run.wcg_retainedSeed_of_finite
+#print axioms AvailableChain.FGSA.Run.fgsa_cleanGrowthClaim_of_clean
+#print axioms AvailableChain.FGSA.Run.fgsa_outagePrefixReceiptClaim
+#print axioms AvailableChain.FGSA.Run.fgsa_cleanSafetyClaim
+#print axioms AvailableChain.FGSA.Run.fgsa_cleanSafety_outputs
+#print axioms AvailableChain.FGSA.Run.wcg_sourceWitness_joined

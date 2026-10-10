@@ -1,6 +1,6 @@
-# P-As Round 1 handoff
+# P-As Round 2 handoff
 
-Base: a395a69d. Branch: sleep-pas1. Full assembly is OPEN.
+Base: 888f6c5e. Branch: sleep-pas2. Full assembly is OPEN.
 A GREEN module is a build result. It does not close a conditional family supplier.
 
 ## Ready bridges
@@ -69,22 +69,75 @@ Shared/Claims.outageContinuation_of_body at :499. Pass the exact public Clean pr
 There is no unguarded saved-row or all-node output projection in this callback.
 The continuation body proof remains P-Ou-owned.
 
-P-WC, WeakContinuation/ExactProposal:39 and Inclusion:131: return joined read forms with
-`RestartsAtWakes`, receipt roots, durable store, local stamps, and all-run FG bounds.
-Current forms still require `NoRestart` and awake vote cardinality. P-As does not edit them.
+P-WC: full Export closures remain OPEN. T02 still needs the sleep producers at
+WeakContinuation/ExactProposal:39 (`wc_retainedReads`) and Inclusion:131
+(`wc_proposal_gates`). Their current types require NoRestart and all-honest reads.
+The desired inputs are the current WCGExactProposalStatement and
+WCGProposalAdmissionStatement in WeakContinuationGrowth/Interfaces:1073/:983.
+The latter keeps the actual joined receiver. NoRestart cannot come from Base₂.
 
-P-WC/P-As, Assembly/WeakContinuationGrowth:351/:519/:572: T02 now takes the actual joined
-reader and supplies its awake tick. The remaining admission receipt port is OPEN.
-T03 still needs the full current-epoch service producer. Its old original-gate tick route
-is OPEN and must be replaced; it is not GREEN evidence. Keep all-time joined participation
-until the intermediate gate actor is selected. Keep independent later confirmed readers.
+P-WC: Dynamics:337 (`wcg_finiteFacts`) must return `∀ i, WCFiniteFacts p c E rho i`
+from the current durable/epoch and enabled-gate origins. Its legacy lease telescope
+omits the later gate's join guard. The exact current signature is recorded under
+WCFIN in P-As.blocker-types.md. The two new `_of_finite` assembly proofs take the
+literal `∀ i, WCFiniteFacts p c E rho i` input. The source and retained wrappers
+still need its concrete family producer. No family induction is proved at assembly.
 
-P-WC/P-As, Assembly/WeakContinuationGrowthSeed:306/:313/:328/:332: consume restart-aware
-occurrence replay. Assembly/ContinuationReplay has a checked tick proof at phase-zero
-wakes. Its actual Export import is blocked by P-WC, so the module remains EXPECTED-FAIL.
-The proof was checked against the prepared Replay module, with a strict axiom command.
-Row/action replay and the empty-suffix consumer still need P-WC's returned export types.
-Do not add a continuation participation premise to the empty-suffix route.
+P-WC: Dynamics:1649 (`wcg_seededInduction`) must supply
+`WCGSeededInductionStatement p c E rho ΔF w iStar`. Empty:481
+(`wcg_empty_live_of_finalBelow`) still needs its sleep receiver port. The current
+empty consumer also asks for NoRestart. Keep the empty route without continuation
+participation or a half-cap premise. WCIND/WCEMPTY give the current exact declarations.
+
+P-Fd: Foundations/Leases:541 (`fgsa_leaseOrigins_fastWrites`) lacks the current-epoch
+interval that WC/WCG require. Return a companion with this exact conclusion:
+
+```lean
+∀ i x s X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho i x) s).getD [] →
+  ∃ j < i, V2.D.restartFree rho x j i ∧ enabledGateAt p c E rho j x s ∧
+    gatePassedAt p c E rho j ∧ ∃ B, gateResultAt p c E rho j = some (some B) ∧
+      Block.Preceq X B ∧ fastAt p c E rho x s X
+```
+
+P-As keeps this input explicit at ContinuationService:148 (`wcg_service4OfSeed`).
+The helper consumes P-WC's actual `wcg_service4`, durable store and epoch stamps,
+RMonoAll, RFrameNextEpoch, RestartsAtWakes, and the full all-time joined count.
+It returns service at `gateTime(s) + 4*Δ` for independent confirmed index readers.
+ContinuationService:185 carries that service to both output getters at a later read.
+The original gate-time public inclusion proof still needs P-WC's joined proposal
+and enabled-gate producers. The service deadline is not a replacement for gateTime.
+Assembly/WeakContinuationGrowth:572 remains an OPEN original-tick consumer.
+
+P-As: ContinuationReplay:14 now uses the returned `wcg_tickEventReplay` without
+NoRestart. `assembly_joinedReplay` transfers the exact join guard through the
+inclusive source endpoint. GrowthSeed:89 (`wcg_participation`) uses
+CleanGrowthContinuationSleep₂ and keeps every time from the first vote through
+witness selection. H0 supplies its source join cutoff at GrowthSeed:146.
+GrowthSeed gives checked source and retained seed bodies with finite facts explicit.
+`wcg_sourceWitness_joined` keeps the chosen source join cutoff with that same seed.
+Tick, row, and action replay calls no longer pass Base₂.noRestart.
+Their full imports remain EXPECTED-FAIL until P-WC's Export compiles.
+
+P-Ou: Assembly/Outage:103 now requires exactly `hWitness` and `hInclusion` from
+CleanSet. The full types are in that declaration. The witness is one confirmed
+reader at g(s) with B below S. The inclusion input covers every later confirmed
+reader and both getters. CleanTruncAt supplies scoped output compatibility;
+`clean_growth_compatible_of_outputs` permits independent trigger/deadline readers.
+P-Ou still must derive these two inputs from CleanSet. Root's cleanGrowth field
+remains OPEN until they have concrete producers.
+
+P-Ar: ArmingKernel:785 proves
+`arming_prefix_batch_receipt p : OutagePrefixReceiptDerivedClaim p`.
+Assembly/Outage:128 consumes it without a receipt supplier. Keep P15-CUT's
+`SA.earlyTime p.toParams q ≤ b₀` guard for each label. No public text changes here.
+The legacy full arming certificate still requires NoRestart; P-Ar round 4 owns it.
+
+P-Cl2: Clean/Export:107/:111 (`cleanSafetyAt_of_trunc`) does not compile: its scoped
+CleanTruncAt input cannot fill cleanSafety_of_trunc_body's all-node input pair.
+The exact declaration and required input are B02 and P-Cl1.handoff.md. Return a
+compiled Clean.Export. Assembly/Clean:58 now uses P-Cl1's `cleanSafety_body` with
+concrete Foundations channels before restricting readers. The public result is
+still `CleanSafetyClaim p`. The exact body passes; the Export import remains blocked.
 
 P-Fx/P-As, Inhabit/WeakContinuationWitness:131 and WeakContinuationW1:1860:
 the old source has horizon 247, but the current sleep endpoint is 253.
@@ -122,4 +175,21 @@ Keep initialAt until the live restart consumers are repaired.
    all consumers above build.
 4. FGSA/Model/Store:56: remove initialAt last. Update its existing audit rows at serial join.
 
-No initialAt definition or helper is deleted in this round.
+No initialAt definition or helper is deleted in Round 2. The W1 build still fails at
+:106–108/:1185–1187. Adversarial imports the unfinished Root and retains both old
+restart branches. The complete literal-use list is in P-As.remaining.md.
+
+## Complete remaining target register
+
+P-As.txt has 65 targets: 26 GREEN and 39 EXPECTED-FAIL. Its whole map has
+486 GREEN and 41 EXPECTED-FAIL, including two inherited S-Ap entries.
+Every remaining target has a current declaration, file:line, type, and owner in
+[P-As.remaining.md](P-As.remaining.md) and
+[P-As.blocker-types.md](P-As.blocker-types.md). Local fixture failures are marked
+P-As; they are not missing family proofs.
+
+The actual Finality module and consumers build. Shared/Claims and its strict audit
+build. Exact conditional service, participation, source/retained seed, Outage and
+Clean bodies pass with the returned lower production imports. Their full mixed
+Export closures still fail. Do not turn that body evidence into a GREEN module.
+Public Claims/Statements, P23, G-S2 and final data regeneration remain unchanged.
