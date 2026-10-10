@@ -45,6 +45,9 @@ for text in ('()', "('__import__(\"os\")',)", "('valid', 2)", "['valid']"):
     refused('inventory data', 'inventory' if text == '()' else 'inventory',
             lambda: parse_names(text, 'inventory'))
 assert parse_names("('AvailableChain.FGSA.Run.Base₂',)", 'unicode')
+assert parse_names("('AvailableChain.FGSA.Run.blockOf?', 'lookup!')", 'Lean identifiers')
+refused('inventory executable punctuation', 'inventory',
+        lambda: parse_names("('lookup!()',)", 'inventory'))
 refused('duplicate inventory', 'duplicate inventory',
         lambda: parse_names("('valid', 'valid')", 'inventory'))
 for name in guards.LISTS:
@@ -53,6 +56,23 @@ for name in guards.LISTS:
                       for key in guards.LISTS) + '\nPY\n'
     refused('duplicate guard ' + name, 'duplicate ' + name,
             lambda: guards.read_guard(body, 'control'))
+# Generated inventories still require independent source coverage and exact
+# compiled equality. Removing an audit target is not a guard-list waiver.
+inventories = load('write-check-inventories')
+current = load('current-inventory')
+for expected, actual in [(('a',), ('a', 'b')), (('a', 'b'), ('a',))]:
+    refused('current compiled inventory', 'INVENTORY DIFF',
+            lambda: inventories.compare(expected, actual, 'control'))
+from unittest.mock import patch
+with patch.object(current, 'source_names', return_value={'Source.present', 'Source.new'}):
+    refused('source inventory deletion/addition', 'SOURCE INVENTORY UNLISTED',
+            lambda: current.check_source('control', ('Source.present',)))
+assert current.public_lines('module\nnamespace A\npublic section\ndef visible := 1\n'
+                            'end\ndef hidden := 1\nend A\n') == [False, False, True,
+                                                                              True, True,
+                                                                              False, False]
+print('CONTROL module public/private section scope: PASS')
+print('CONTROL source and compiled inventory completeness: PASS')
 refused('duplicate import entries', 'duplicate import-policy entry',
         lambda: P.expand(['Init.**', 'Init.**']))
 refused('duplicate JSON keys', 'duplicate import-policy key',
@@ -83,6 +103,50 @@ def call(args, cwd=None):
     assert result.returncode == 0, result.stdout.decode()
     return result.stdout
 
+
+with tempfile.TemporaryDirectory(prefix='guard-order-') as tmp:
+    base, target = Path(tmp) / 'base.sh', Path(tmp) / 'target.sh'
+    body = "#!/bin/bash\npython3 - <<'PY'\nEXPECTED = ('a', 'b')\nORDER = {}\nPY\n"
+    base.write_text(body.format("('a', 'b')"))
+    target.write_text(body.format("('b', 'a')"))
+    output = call(['python3', '-B', 'scripts/guard-lists.py', 'diff',
+                   '--main', str(base), '--target', str(target)]).decode()
+    assert 'GUARD ORDER MOVED: a: 0 -> 1' in output
+    assert 'GUARD ORDER MOVED: b: 1 -> 0' in output
+    assert 'ADDED' not in output and 'REMOVED' not in output
+    print('CONTROL ORDER move without membership change: PASS')
+
+
+with tempfile.TemporaryDirectory(prefix='inventory-shell-') as tmp:
+    root = Path(tmp)
+    (root / 'scripts').mkdir()
+    shutil.copy2(REPO / 'scripts/check_inventory.py', root / 'scripts/check_inventory.py')
+    shutil.copy2(REPO / 'scripts/gate-common.sh', root / 'scripts/gate-common.sh')
+    # Run the real driver setup, before its first filesystem/build operation.
+    setup = (REPO / 'scripts/check-fg.sh').read_text().split('targets=$(python3', 1)[0]
+    driver = root / 'scripts/check-fg.sh'
+    driver.write_text(setup + 'gate_inventory_args names.txt\n')
+    (root / 'names.txt').write_text("('lookup?', 'lookup!',)\n")
+    call(['bash', str(driver)])
+    driver.write_text(setup.replace('source scripts/gate-common.sh\n', '') +
+                      'gate_inventory_args names.txt\n')
+    result = subprocess.run(['bash', str(driver)], capture_output=True)
+    assert result.returncode == 127 and b'gate_inventory_args: command not found' in result.stderr
+    print('CONTROL FG driver setup without shared helper: PASS (source only)')
+    (root / 'names.txt').write_text("('lookup?', 'lookup!',)\n")
+    (root / 'lookupX').touch()
+    script = ('source "$1"; gate_inventory_args names.txt; '
+              'test "${#GATE_INVENTORY[@]}" = 2; '
+              'test "${GATE_INVENTORY[0]}" = "lookup?"; '
+              'test "${GATE_INVENTORY[1]}" = "lookup!"')
+    result = subprocess.run(['bash', '-ec', script, 'inventory-control',
+                             str(REPO / 'scripts/gate-common.sh')], cwd=root)
+    assert result.returncode == 0
+    (root / 'names.txt').write_text("('lookup?', 'lookup?',)\n")
+    result = subprocess.run(['bash', '-ec', script, 'inventory-control',
+                             str(REPO / 'scripts/gate-common.sh')], cwd=root, capture_output=True)
+    assert result.returncode != 0 and b'duplicate inventory' in result.stderr
+    print('CONTROL shell inventory glob collision and malformed data: PASS')
 
 with tempfile.TemporaryDirectory(prefix='policy-controls-') as tmp:
     root = Path(tmp).resolve()

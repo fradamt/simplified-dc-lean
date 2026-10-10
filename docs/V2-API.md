@@ -1,177 +1,18 @@
 # V2 API manifest
 
-_Frozen at the Phase 2a gate (plan `docs/plans/2026-09-29-phase2a-engine-v2-core.md`,
-Task 7), 2026-09-29._
+_Current compiled snapshot. Policy: 2026-10-09._
 
-This file lists the frozen v2 API: every public declaration of engine v2
-(`AvailableChainEngineV2`: `Engine`, `Conditions` and `Laws`) and of
-Kit v2 (`AvailableChainKitV2`, without `Tests`), by fully qualified name
-and grouped by module.
+Run the writer after a source change and review the complete diff.
+The check requires all current names, modules, kinds and hashes.
+Theorem proof values are excluded. Snapshot updates do not approve claims.
 
-ROOT-DIGEST W1 exception: user option 3, 2026-10-04 (plan r2 §2 M1).
-Remove only `AvailableChain.V2.rootInjective_all` and
-`AvailableChain.V2.D.rootInjective_all`. Keep both scope predicates. Remove each
-proof reference from its existing Framework anchor body; keep both anchors.
-This exception does not permit other engine claims or checker changes.
-W3 owns the final generated entries after the interface checkpoint.
+Entries: 683; modules: 43.
 
-ROOT-DIGEST W1c, option-3 class addition (plan r2.1 and r2.2):
-the [Gen exception list](GEN-API.md#root-digest-option-3-exception) names the no-eligible-child
-and retained-transport statement/equation pairs, their exact tree premises, and kernel evidence.
-No v2 walk entry changes. The v2 generated delta remains the two named M1 removals above.
-The tool output is `.lake/rdw1c-v2-manifest.md`; its exact delta is
-`.lake/rdw1c-v2-manifest-delta.json`. Both Framework anchors remain declared.
+`lake env lean --run scripts/V2Manifest.lean --scope v2 --write` updates this file; `--check` checks it.
 
-ROOT-DIGEST-2 option 3 permits the 64 mode-indexed generic entries and measured
-representation dependencies. See the [full exception](FGSA-API.md#root-digest-2-option-3-exception).
-Keep the frozen baselines and SHAs. Exact old/new hashes and causes follow at integration.
+Engine entries require anchor coverage. Existing anchors can be updated.
 
-## Freeze rule
-
-After the gate, no declaration in this file changes its name, type or body
-(DC N6). A 2a structure never gains a field, a 2a inductive never gains a
-constructor, and a 2a definition never gains a parameter. Later stages (2b,
-2c) only ADD declarations or separate structures.
-
-- **The module blocks are append-only.** A changed or removed line in a
-  module block below is a freeze break, unless a named user decision allows
-  it. A new line is an ADD. The Counts table and the date line change with
-  every ADD.
-- **Engine v2 entries are locked.** The values of the anchor defs
-  (`AvailableChain.Framework.V2.anchor` in
-  `AvailableChainFramework/V2/Anchor.lean` for the 2a entries, and one new
-  anchor def per later stage; see "Anchors") reference each engine entry.
-  `scripts/CatalogLock.lean` locks the module prefix
-  `AvailableChainFramework.V2`, so the lock lines of the anchor defs hash
-  the closure of every engine entry. A change to an engine entry gives a
-  `CHANGED` anchor line. As everywhere in the lock, a theorem contributes its
-  statement only: a new proof keeps the hash. A change to a model module in
-  the closure (for example `AvailableChainModel.Objects.Time`) also changes
-  the anchor line.
-- **Every entry has its own hash.** Each line of the blocks below ends with
-  an entry hash, and `V2Manifest --check` fails when it differs. Thus a
-  change to one engine entry is found even in a commit that also has a
-  `CHANGED` anchor line, and a change to a Kit entry is found although the
-  lock does not see the Kit (L5; the Framework does not import it). The
-  entry hash mixes: the own hash of the entry and of every generated or
-  private constant in its closure (`deps` rules of the lock) that is in a v2
-  module or in the module of the entry (matchers, equation lemmas,
-  `_proof_` constants, private helpers), in `Name.lt` order; the binder
-  names (without macro scopes, which depend on earlier declarations of the
-  module) and binder infos of its type; its reducibility status; and whether
-  it is an instance. The own hash is the `ownHash` of the lock (kind, name
-  and type; for a definition also the value; for an inductive also the
-  constructor names; for a theorem not the proof), after the universe
-  parameters are renamed `u0`, `u1`, …. A new proof keeps the hash.
-- **Frozen by rule, not checked.** The lock hash does not see binder names,
-  binder infos, reducibility or attributes. The entry hash sees binder names
-  and binder infos of the type, reducibility and the instance attribute, but
-  not other attributes (for example `@[simp]` on
-  `LabelFamilies.apObject_seat`) or an instance priority. All of them are
-  frozen by rule.
-- **Outside v2.** The entry hash does not see a change to a declaration
-  outside the v2 libraries that the entry uses (Model, Mathlib). For an
-  engine entry the lock line of its anchor sees it; a `CHANGED` anchor line
-  with no `CHANGED` entry means such a change. A Model declaration that
-  only Kit entries use is seen by neither the lock nor the manifest; it is
-  frozen by rule only.
-
-## Anchors
-
-Never edit `anchor`. A later stage adds its engine entries to this file
-and one new anchor def in a new module under `AvailableChainFramework/V2/`
-(for example `anchor_2b` in `Anchor2b.lean`, imported by the Framework
-root); `V2Manifest --anchor` prints its body (the engine entries that no
-anchor covers yet). The lock change is then ADDED only. An engine entry is
-anchored if it is in the closure of some non-generated declaration of a
-module under `AvailableChainFramework.V2`.
-
-Put new declarations AFTER the existing declarations of a 2a module, or in a
-new module. Lean reuses a matcher of the same shape within a module, first
-come first served: a declaration inserted above a 2a declaration can take
-over its matcher, and the ADD then gives `CHANGED` lines.
-
-## Scope
-
-An entry is a declaration of a scope module that Lean did not generate, by
-the rule of `scripts/CatalogLock.lean` (`generated`). Thus the list
-includes structure constructors and fields (projections) and derived
-instances, and excludes recursors, `casesOn`, `noConfusion`, matchers,
-equation lemmas, `injEq`, `sizeOf_spec` and private declarations.
-
-- Scope modules: `AvailableChainEngineV2.Engine.*`,
-  `AvailableChainEngineV2.Conditions.*`, `AvailableChainEngineV2.Laws.*`,
-  and every module `AvailableChainKitV2.*` outside `AvailableChainKitV2.Tests`.
-- Not in scope: the modules `AvailableChainEngineV2.Tests.*` (namespace
-  `AvailableChain.V2.Tests`) and `AvailableChainKitV2.Tests.*` (the Kit
-  counterexamples, namespace `AvailableChain.V2.Engine.Tests`, and the toy
-  run, namespace `AvailableChain.V2.Tests.Toy`); the library roots (imports
-  only). The exclusion is by module, not by namespace.
-- `AvailableChainEngineV2.Sketch` was deleted at the gate; it is not API.
-- Rulings: the Task 5 helpers (`propSeat`, `eq_propSeat`,
-  `holder_propLabel`, `Output`, the `OutputsFactor` lemmas) are listed
-  and frozen; `Interface.propLabel_injective` is a frozen field; the run
-  checks of `AvailableChainKitV2.RunCheck` (`allTicks`, `allDeliveries`,
-  `emittedBy` and their `_spec` lemmas) are Kit entries. Every Kit entry is
-  frozen; no group is "helpers, not frozen".
-
-## How to check
-
-`scripts/V2Manifest.lean` generates and checks this list.
-
-- `lake env lean --run scripts/V2Manifest.lean --list` prints the module
-  blocks below from the environment, in source order, with the hashes.
-- `lake env lean --run scripts/V2Manifest.lean --anchor` prints the body of
-  a new anchor def over the engine entries that no anchor covers yet.
-- `lake env lean --run scripts/V2Manifest.lean --check` exits 1 if the
-  anchor `AvailableChain.Framework.V2.anchor` is missing, if an entry does
-  not exist or is not in the module of its heading, if a kind word differs,
-  if a hash is missing or differs, if an engine entry is not anchored, if a
-  public declaration of a scope module is not listed, or if a scope module
-  has no heading. It exits 2 if the declaration ranges (`.olean.server`
-  data) are missing.
-- `V2Manifest --check` enforces completeness, so 2b adds a manifest line
-  for each new public declaration in a 2a scope module.
-- `generated`, `deps`, the closure traversal, `kindTag` and `ownHash` in
-  `V2Manifest` are copies of `scripts/CatalogLock.lean`, except that
-  `ownHash` renames the universe parameters first. A change to one needs
-  the same change in the other.
-
-Each block line is `<kind> <name> <hash>`. The kinds are `structure`,
-`inductive`, `ctor`, `def` (fields that are data included) and
-`theorem` (fields that are proofs included).
-
-## Counts
-
-```text
-┌──────────────────────────────────────────────┬─────────┬────────────────────┐
-│ Module                                       │ Entries │ Status             │
-├──────────────────────────────────────────────┼─────────┼────────────────────┤
-│ AvailableChainEngineV2.Engine.Objects        │      15 │ locked (anchor)    │
-│ AvailableChainEngineV2.Engine.Run            │      42 │ locked (anchor)    │
-│ AvailableChainEngineV2.Engine.Spec           │      28 │ locked (anchor)    │
-│ AvailableChainEngineV2.Conditions.Committees │      10 │ locked (anchor)    │
-│ AvailableChainEngineV2.Conditions.Delivery   │       8 │ locked (anchor)    │
-│ AvailableChainEngineV2.Conditions.Interface  │      19 │ locked (anchor)    │
-│ AvailableChainEngineV2.Conditions.Schedule   │      33 │ locked (anchor)    │
-│ AvailableChainEngineV2.Laws.Hooks            │      16 │ locked (anchor)    │
-│ AvailableChainEngineV2.Laws.Isolation        │      26 │ locked (anchor)    │
-│ AvailableChainEngineV2.Laws.Outputs          │      10 │ locked (anchor)    │
-│ AvailableChainEngineV2.Laws.SelfDelivery     │      17 │ locked (anchor)    │
-│ AvailableChainKitV2.ClockLaws                │       9 │ frozen, not locked │
-│ AvailableChainKitV2.Emission                 │      10 │ frozen, not locked │
-│ AvailableChainKitV2.EngineClock              │      16 │ frozen, not locked │
-│ AvailableChainKitV2.Execution                │      10 │ frozen, not locked │
-│ AvailableChainKitV2.RunCheck                 │       6 │ frozen, not locked │
-│ AvailableChainKitV2.Stable                   │       5 │ frozen, not locked │
-├──────────────────────────────────────────────┼─────────┼────────────────────┤
-│ Engine v2 total                              │     224 │ locked (anchor)    │
-│ Kit v2 total                                 │      56 │ frozen, not locked │
-│ Total                                        │     280 │                    │
-└──────────────────────────────────────────────┴─────────┴────────────────────┘
-```
-
-## Engine v2 (locked through the anchor)
+## Entries
 
 ### `AvailableChainEngineV2.Engine.Duty.Lift`
 
@@ -214,8 +55,10 @@ def AvailableChain.V2.D.Run.seatOf 455edf6096f945ed
 def AvailableChain.V2.D.Run.input 5ccc8c02da80bfe7
 def AvailableChain.V2.D.Run.ownSeats 6a0b5de4b969977a
 def AvailableChain.V2.D.tick 08b3d867be4fbbf7
-def AvailableChain.V2.D.World.step a0870cb3e90ff30c
+def AvailableChain.V2.D.World.step 00c223376e103eca
 def AvailableChain.V2.D.Run.stateBefore 59ea9481456eed4b
+def AvailableChain.V2.D.Run.actionCut c64d168381284426
+def AvailableChain.V2.D.Run.stateAfterRestartsAt 85308c9643202b91
 def AvailableChain.V2.D.Run.stateBeforeTime 8a12dc09f5181b70
 def AvailableChain.V2.D.Run.readAt e5117228e20bf97b
 def AvailableChain.V2.D.Run.final f650e873373a3260
@@ -240,7 +83,7 @@ theorem AvailableChain.V2.D.Run.mem_emittedAt_iff_emits 3bc4f56865194ebe
 
 ```text
 structure AvailableChain.V2.ProtocolSpecD 0b3fc7d950fa5797
-ctor AvailableChain.V2.ProtocolSpecD.mk 12247911796e5abb
+ctor AvailableChain.V2.ProtocolSpecD.mk c00a042d9223180a
 def AvailableChain.V2.ProtocolSpecD.State b1f065d22d7c0ffd
 def AvailableChain.V2.ProtocolSpecD.Label 7701b3e170ef83f9
 def AvailableChain.V2.ProtocolSpecD.Duty 48cc2f91dab5053f
@@ -260,7 +103,7 @@ def AvailableChain.V2.ProtocolSpecD.process 9983a74c2b501a76
 def AvailableChain.V2.ProtocolSpecD.selfVisible 2458522c9533290a
 def AvailableChain.V2.ProtocolSpecD.recordOwn 7128ac1e268c9ffc
 def AvailableChain.V2.ProtocolSpecD.durable 5ce1f7962ba0448d
-def AvailableChain.V2.ProtocolSpecD.restore 0b2fb7e7753f40b4
+def AvailableChain.V2.ProtocolSpecD.restore a51eadbbac1960ad
 def AvailableChain.V2.ProtocolSpecD.wellFormed 9cb4c05c7ceabf7f
 def AvailableChain.V2.ProtocolSpecD.depsPresent 9c174dc2fa4b24d9
 def AvailableChain.V2.ProtocolSpecD.processed 7756723aa5d63b8f
@@ -316,8 +159,10 @@ def AvailableChain.V2.Run.seatOf e59f8db73483d969
 def AvailableChain.V2.Run.input fc25a5b207e3182e
 def AvailableChain.V2.Run.ownSeats d5ffb9d7ac08af47
 def AvailableChain.V2.tick b74a0ff2bc5eeda8
-def AvailableChain.V2.World.step 61c3888991c3c786
+def AvailableChain.V2.World.step a444f10f847d25d8
 def AvailableChain.V2.Run.stateBefore e69ee50b1945f7c2
+def AvailableChain.V2.Run.actionCut 6c11f1195b3b4917
+def AvailableChain.V2.Run.stateAfterRestartsAt fbd80dff5c05ddc8
 def AvailableChain.V2.Run.stateBeforeTime bd9ac288e06e8b73
 def AvailableChain.V2.Run.readAt 53a7e52b5bd60b7a
 def AvailableChain.V2.Run.final 9f4cdb4ca6e8a088
@@ -342,7 +187,7 @@ theorem AvailableChain.V2.Run.mem_emittedAt_iff_emits dcef2fd0150686c0
 
 ```text
 structure AvailableChain.V2.ProtocolSpec 391a0211a41fb997
-ctor AvailableChain.V2.ProtocolSpec.mk 4a1a2fcce486f463
+ctor AvailableChain.V2.ProtocolSpec.mk ef50ff2ae3f641be
 def AvailableChain.V2.ProtocolSpec.State 5d0832010f8f405c
 def AvailableChain.V2.ProtocolSpec.Label ba2efb1ee38fd904
 def AvailableChain.V2.ProtocolSpec.seats d65b172f946af29a
@@ -360,7 +205,7 @@ def AvailableChain.V2.ProtocolSpec.process 73833b971950db9b
 def AvailableChain.V2.ProtocolSpec.selfVisible 851a2e4a6486e12a
 def AvailableChain.V2.ProtocolSpec.recordOwn f230b0937fa2942b
 def AvailableChain.V2.ProtocolSpec.durable 4e9f5cee68bbbeea
-def AvailableChain.V2.ProtocolSpec.restore 05fdecc7025c21c1
+def AvailableChain.V2.ProtocolSpec.restore 60fc606712461494
 def AvailableChain.V2.ProtocolSpec.wellFormed 3710e54b9cc5e293
 def AvailableChain.V2.ProtocolSpec.depsPresent eea4ea41129c2e94
 def AvailableChain.V2.ProtocolSpec.processed aa7908941dec9f5d
@@ -390,13 +235,22 @@ theorem AvailableChain.V2.CStar.seats_eq 94c06fc0f2ef8ba8
 
 ```text
 structure AvailableChain.V2.PartialSynchrony 6c5f8faee5991ae5
-ctor AvailableChain.V2.PartialSynchrony.mk 2c07f39edb4a1390
-theorem AvailableChain.V2.PartialSynchrony.broadcast 3fbbbc22d26f72d8
-theorem AvailableChain.V2.PartialSynchrony.relay abeb664554bf897a
+ctor AvailableChain.V2.PartialSynchrony.mk c67ee69a98695704
+theorem AvailableChain.V2.PartialSynchrony.broadcast e0b91f00736bb24c
+theorem AvailableChain.V2.PartialSynchrony.relay ddee98b638df3c20
 structure AvailableChain.V2.HealthyPrefixDelivery d42df44c8517b350
-ctor AvailableChain.V2.HealthyPrefixDelivery.mk 181ebddcc213902b
-theorem AvailableChain.V2.HealthyPrefixDelivery.broadcast 3f6657be25dfb184
-theorem AvailableChain.V2.HealthyPrefixDelivery.relay 4ddef8327cc34828
+ctor AvailableChain.V2.HealthyPrefixDelivery.mk ac244959bc114b91
+theorem AvailableChain.V2.HealthyPrefixDelivery.broadcast cadebae12ba49d66
+theorem AvailableChain.V2.HealthyPrefixDelivery.relay 67974af9aa33e679
+```
+
+### `AvailableChainEngineV2.Conditions.DeliveryWindow`
+
+```text
+def AvailableChain.V2.ProcessedByActionCut ae0f585974d6e4ca
+def AvailableChain.V2.HandledBetween cec6f8c2e5633324
+def AvailableChain.V2.DeliveryService ba4e6897960320db
+def AvailableChain.V2.DeliveryDemand 85aef6f836f58786
 ```
 
 ### `AvailableChainEngineV2.Conditions.Duty.Committees`
@@ -418,13 +272,22 @@ theorem AvailableChain.V2.D.CStar.seats_eq ffc5ffde96979911
 
 ```text
 structure AvailableChain.V2.D.PartialSynchrony 562154f06bfd5a81
-ctor AvailableChain.V2.D.PartialSynchrony.mk 9c95a605578c9866
-theorem AvailableChain.V2.D.PartialSynchrony.broadcast_emitted 69ab8c729152fa93
-theorem AvailableChain.V2.D.PartialSynchrony.relay_accepted c8f0be2754928322
+ctor AvailableChain.V2.D.PartialSynchrony.mk 327d7d77c24d28f0
+theorem AvailableChain.V2.D.PartialSynchrony.broadcast_emitted 535c8aee753ad0ee
+theorem AvailableChain.V2.D.PartialSynchrony.relay_accepted 374f8e3f2f15100a
 structure AvailableChain.V2.D.HealthyPrefixDelivery 34a8e54fc21811db
-ctor AvailableChain.V2.D.HealthyPrefixDelivery.mk b7cfa6cb778ed7fe
-theorem AvailableChain.V2.D.HealthyPrefixDelivery.broadcast_emitted 717a4a6d13ab4cc2
-theorem AvailableChain.V2.D.HealthyPrefixDelivery.relay_accepted 7611ac184656be5a
+ctor AvailableChain.V2.D.HealthyPrefixDelivery.mk b94b349cd46b5ff2
+theorem AvailableChain.V2.D.HealthyPrefixDelivery.broadcast_emitted d944570edea25c66
+theorem AvailableChain.V2.D.HealthyPrefixDelivery.relay_accepted 19d67e51683c6a11
+```
+
+### `AvailableChainEngineV2.Conditions.Duty.DeliveryWindow`
+
+```text
+def AvailableChain.V2.D.ProcessedByActionCut d374023b3dc216c1
+def AvailableChain.V2.D.HandledBetween 6510f2f6b90e8766
+def AvailableChain.V2.D.DeliveryService 29389266b086b66c
+def AvailableChain.V2.D.DeliveryDemand 4706a5db423e0611
 ```
 
 ### `AvailableChainEngineV2.Conditions.Duty.Duties`
@@ -476,6 +339,15 @@ theorem AvailableChain.V2.D.noRestart_toD_iff 952c9bb0bd120985
 theorem AvailableChain.V2.D.restartFree_toD_iff c5848bbff976cd01
 theorem AvailableChain.V2.D.proposalTime_toD 97949804aedbf370
 theorem AvailableChain.V2.D.proposerOf_toD b7bf6cf8d89dbc6c
+theorem AvailableChain.V2.D.sleepWellFormed_toD_iff 3f2dcdd807fbec54
+theorem AvailableChain.V2.D.restartsAtWakes_toD_iff 87f9c1b7f8921228
+theorem AvailableChain.V2.D.noRestartOn_toD_iff aac17a099b797bba
+theorem AvailableChain.V2.D.noRestartAfter_toD_iff 11fa822bf3cf2b92
+theorem AvailableChain.V2.D.linkReadyOn_toD_iff 5432d4477694c02d
+theorem AvailableChain.V2.D.processedByActionCut_toD_iff 6445c13b06dd0e3d
+theorem AvailableChain.V2.D.handledBetween_toD_iff 0ffb310590864b91
+theorem AvailableChain.V2.D.deliveryService_toD_iff 1d18342ed602e93d
+theorem AvailableChain.V2.D.deliveryDemand_toD_iff c8a85707a06b1efa
 theorem AvailableChain.V2.D.scheduleWellFormed_toD_iff c9815e97e507997c
 theorem AvailableChain.V2.D.deliveryWellFormed_toD_iff 3dd7e4e0998303f2
 theorem AvailableChain.V2.D.unforgeableSignatures_toD_iff 5cdece89f0969000
@@ -496,14 +368,14 @@ theorem AvailableChain.V2.D.hooksSound_toD_iff 2f478e71da887ff1
 
 ```text
 structure AvailableChain.V2.D.ScheduleWellFormed b90d15cb454511f3
-ctor AvailableChain.V2.D.ScheduleWellFormed.mk 473d7c7e914c0543
+ctor AvailableChain.V2.D.ScheduleWellFormed.mk 4cf5ed3329242e7b
 theorem AvailableChain.V2.D.ScheduleWellFormed.horizon_nonneg 5962e520716b7f92
 theorem AvailableChain.V2.D.ScheduleWellFormed.sorted 2941e88b3b8e0e83
 theorem AvailableChain.V2.D.ScheduleWellFormed.nodup 3a1bad1684871892
 theorem AvailableChain.V2.D.ScheduleWellFormed.in_horizon fac776db477b4b06
 theorem AvailableChain.V2.D.ScheduleWellFormed.honest_only db8d98c9e1ca3d2b
 theorem AvailableChain.V2.D.ScheduleWellFormed.tick_public ab24ba38cdb33c4b
-theorem AvailableChain.V2.D.ScheduleWellFormed.tick_total 53d0c34d0eb422df
+theorem AvailableChain.V2.D.ScheduleWellFormed.tick_total 8285fae847df06b4
 def AvailableChain.V2.D.NoRestart 61c81d868e8af761
 def AvailableChain.V2.D.restartFree 2598def124be1266
 structure AvailableChain.V2.D.DeliveryWellFormed 1a816c94344afd36
@@ -518,8 +390,9 @@ theorem AvailableChain.V2.D.UnforgeableSignatures.carried 55928e738ae265d4
 structure AvailableChain.V2.D.ExecutionValid 432ec3d6038f2a0f
 theorem AvailableChain.V2.D.ExecutionValid.toDeliveryWellFormed 9987ca9419a815b6
 theorem AvailableChain.V2.D.ExecutionValid.toScheduleWellFormed 46a8c5120a5df421
+theorem AvailableChain.V2.D.ExecutionValid.toSleepWellFormed b77efd0f45530ce1
 theorem AvailableChain.V2.D.ExecutionValid.toUnforgeableSignatures 40163ea5c0215498
-ctor AvailableChain.V2.D.ExecutionValid.mk 95292f15315b961c
+ctor AvailableChain.V2.D.ExecutionValid.mk 845ce49f3f31513f
 def AvailableChain.V2.D.SelfDelivery 9a7f85b02c0e60d6
 theorem AvailableChain.V2.D.ScheduleWellFormed.mem_emittedAt_iff_emits cceaa82c7bc6a8c3
 theorem AvailableChain.V2.D.restartFree_refl dbf7c26d4fdd11ce
@@ -527,6 +400,24 @@ theorem AvailableChain.V2.D.not_restartFree_succ_iff c73ac265c06bf2d8
 theorem AvailableChain.V2.D.restartFree.mono 54e5488e3550e47c
 theorem AvailableChain.V2.D.restartFree.append 1d178b4a1886c2af
 theorem AvailableChain.V2.D.NoRestart.restartFree 5934146744b22c47
+```
+
+### `AvailableChainEngineV2.Conditions.Duty.Sleep`
+
+```text
+def AvailableChain.V2.D.Wakes 1340e04bca7e1414
+def AvailableChain.V2.D.AwakeOn a1bd14555392a138
+def AvailableChain.V2.D.AwakeOnClosed e16b1ae1cda458f7
+structure AvailableChain.V2.D.SleepWellFormed 924fcf7dcb44ab50
+ctor AvailableChain.V2.D.SleepWellFormed.mk b654b44949d6785a
+theorem AvailableChain.V2.D.SleepWellFormed.tick_awake adb729baf0e9867d
+theorem AvailableChain.V2.D.SleepWellFormed.deliver_awake 1f5ee2960a513dbf
+theorem AvailableChain.V2.D.SleepWellFormed.restart_awake 12ca4b79508aea31
+theorem AvailableChain.V2.D.SleepWellFormed.wake_restart a38def40de703aa6
+def AvailableChain.V2.D.RestartsAtWakes b8d15c442a14ae0d
+def AvailableChain.V2.D.NoRestartOn 6cf5276ec4d75aab
+def AvailableChain.V2.D.NoRestartAfter 9cf0be7cd93f2014
+def AvailableChain.V2.D.LinkReadyOn 0d60aa595f2c92a7
 ```
 
 ### `AvailableChainEngineV2.Conditions.Interface`
@@ -557,14 +448,14 @@ def AvailableChain.V2.RootInjective ec4fa66dac4b0c45
 ```text
 def AvailableChain.V2.PublicTime b66e00481417d389
 structure AvailableChain.V2.ScheduleWellFormed 5e6d43e8916f59d8
-ctor AvailableChain.V2.ScheduleWellFormed.mk 380c4d099589e15e
+ctor AvailableChain.V2.ScheduleWellFormed.mk 49418f5c5815bb53
 theorem AvailableChain.V2.ScheduleWellFormed.horizon_nonneg 1f9b37d96351c9ec
 theorem AvailableChain.V2.ScheduleWellFormed.sorted 03dc3022a0048124
 theorem AvailableChain.V2.ScheduleWellFormed.nodup cdf58bfc7678e96a
 theorem AvailableChain.V2.ScheduleWellFormed.in_horizon b3aa25056fa74d23
 theorem AvailableChain.V2.ScheduleWellFormed.honest_only 848b51ee5a34aba0
 theorem AvailableChain.V2.ScheduleWellFormed.tick_public a89081f33df54e60
-theorem AvailableChain.V2.ScheduleWellFormed.tick_total 31a8369576e45f31
+theorem AvailableChain.V2.ScheduleWellFormed.tick_total a352b5c165ab8783
 def AvailableChain.V2.NoRestart e61d0ed64ee146fb
 def AvailableChain.V2.restartFree 54d237306430298a
 structure AvailableChain.V2.DeliveryWellFormed 159f5dbfb73d1586
@@ -579,8 +470,9 @@ theorem AvailableChain.V2.UnforgeableSignatures.carried b8e0c69bb1bf8864
 structure AvailableChain.V2.ExecutionValid b07e3ffaa028d151
 theorem AvailableChain.V2.ExecutionValid.toDeliveryWellFormed 066dd49ec3db9df7
 theorem AvailableChain.V2.ExecutionValid.toScheduleWellFormed 7bde498b7f2ec00b
+theorem AvailableChain.V2.ExecutionValid.toSleepWellFormed e8d793d2d34577ca
 theorem AvailableChain.V2.ExecutionValid.toUnforgeableSignatures dd22d8e9c9245021
-ctor AvailableChain.V2.ExecutionValid.mk 1132fa011975a4fd
+ctor AvailableChain.V2.ExecutionValid.mk e88807ab722979b0
 def AvailableChain.V2.SelfDelivery 79998bf4ec94005c
 theorem AvailableChain.V2.ScheduleWellFormed.mem_emittedAt_iff_emits d923a39d892bd5a1
 theorem AvailableChain.V2.restartFree_refl 5f03854e731d9a71
@@ -588,6 +480,24 @@ theorem AvailableChain.V2.not_restartFree_succ_iff b8a5c09d141b0597
 theorem AvailableChain.V2.restartFree.mono 293ff6bbd0b42da4
 theorem AvailableChain.V2.restartFree.append 13e8f02bf1446ac3
 theorem AvailableChain.V2.NoRestart.restartFree a600ca784a52ed6c
+```
+
+### `AvailableChainEngineV2.Conditions.Sleep`
+
+```text
+def AvailableChain.V2.Wakes f574c0bc8d88571f
+def AvailableChain.V2.AwakeOn 1ca460fbb80d28c2
+def AvailableChain.V2.AwakeOnClosed 47b18ed26bf3a823
+structure AvailableChain.V2.SleepWellFormed b684e7c16ad7ef5f
+ctor AvailableChain.V2.SleepWellFormed.mk 512c5510a75a4c38
+theorem AvailableChain.V2.SleepWellFormed.tick_awake 4c47c3b1301eaf87
+theorem AvailableChain.V2.SleepWellFormed.deliver_awake 5cd3714efc9528fa
+theorem AvailableChain.V2.SleepWellFormed.restart_awake c6bc3ee2bddb35d2
+theorem AvailableChain.V2.SleepWellFormed.wake_restart 9ba7c1f7de168fac
+def AvailableChain.V2.RestartsAtWakes fd2dc8630c2f0df4
+def AvailableChain.V2.NoRestartOn 7fcd6956db9af86b
+def AvailableChain.V2.NoRestartAfter 826f39dfa787d924
+def AvailableChain.V2.LinkReadyOn 8539f0d94688be05
 ```
 
 ### `AvailableChainEngineV2.Laws.Duty.Hooks`
@@ -778,6 +688,9 @@ theorem AvailableChain.V2.Engine.ClockLaws.init 80af1315944ce1da
 theorem AvailableChain.V2.Engine.ClockLaws.clock 0107374e4bd3e6b4
 theorem AvailableChain.V2.Engine.ClockLaws.process 6449c5c328f3416a
 theorem AvailableChain.V2.Engine.ClockLaws.recordOwn_now c2e8ee0b50782b7f
+structure AvailableChain.V2.Engine.RestoreTimeLaw 08fe8e66cbd78593
+ctor AvailableChain.V2.Engine.RestoreTimeLaw.mk 8f6e6df43d47f160
+theorem AvailableChain.V2.Engine.RestoreTimeLaw.restore_now e9d1047257614d96
 theorem AvailableChain.V2.Engine.ClockLaws.now_foldl_recordOwn 2d2bdcf845eb0000
 theorem AvailableChain.V2.Engine.ClockLaws.now_tick 6b175aea52fe4ac4
 ```
@@ -792,6 +705,9 @@ theorem AvailableChain.V2.D.Engine.ClockLaws.init 2c2088fee6c5a366
 theorem AvailableChain.V2.D.Engine.ClockLaws.clock 6b91b32c96dd0e82
 theorem AvailableChain.V2.D.Engine.ClockLaws.process 5e798afc5f517de5
 theorem AvailableChain.V2.D.Engine.ClockLaws.recordOwn_now ca4ffdb214ba7fc0
+structure AvailableChain.V2.D.Engine.RestoreTimeLaw afcc946b68d122d0
+ctor AvailableChain.V2.D.Engine.RestoreTimeLaw.mk 01a7bce3233aef02
+theorem AvailableChain.V2.D.Engine.RestoreTimeLaw.restore_now 4f3472dd7b4c904c
 theorem AvailableChain.V2.D.Engine.ClockLaws.now_foldl_recordOwn 4d5387560b0522ec
 theorem AvailableChain.V2.D.Engine.ClockLaws.now_tick e7a56d81a0698f79
 ```
@@ -810,23 +726,30 @@ theorem AvailableChain.V2.D.Engine.mem_tick_seat_toD_iff 19757f871d80f96d
 ### `AvailableChainKitV2.DutyEngineClock`
 
 ```text
-theorem AvailableChain.V2.D.Engine.stateBefore_now_source c556b3f9270ce80b
+theorem AvailableChain.V2.D.Engine.stateBefore_now_source 2756e85190d0d137
 theorem AvailableChain.V2.D.Engine.stateBefore_now_source_noRestart 8188969742b87617
-theorem AvailableChain.V2.D.Engine.stateBefore_now_le_event 757c29148b6d8dfd
+theorem AvailableChain.V2.D.Engine.stateBefore_now_le_event 552eab5b6a1a66c3
 theorem AvailableChain.V2.D.Engine.stateBefore_now_le_event_noRestart 21ee6c9c426ec1c6
-theorem AvailableChain.V2.D.Engine.stateBefore_now_mono d96c8dbcb0ab144f
+theorem AvailableChain.V2.D.Engine.stateBefore_now_mono a97b31315cf5625d
 theorem AvailableChain.V2.D.Engine.stateBefore_now_mono_noRestart 222cb09d8eda0171
-theorem AvailableChain.V2.D.Engine.delivery_now_ge_public 3895dc5ba9e2acd8
-theorem AvailableChain.V2.D.Engine.stateBefore_invariant 49347bd5e864b50c
+theorem AvailableChain.V2.D.Engine.delivery_now_ge_public 6b6c6e664a2f0951
+theorem AvailableChain.V2.D.Engine.stateBefore_now_source_atRestart b13ee93d6beaf756
+theorem AvailableChain.V2.D.Engine.stateBefore_now_le_event_atRestart 3e56a28074e0fb17
+theorem AvailableChain.V2.D.Engine.stateBefore_now_mono_atRestart ad5075ddf179fd61
+theorem AvailableChain.V2.D.Engine.delivery_now_ge_public_atRestart b9200fdf90f0263c
+theorem AvailableChain.V2.D.Engine.stateBefore_stable_clock_atRestart 37954ffd38c8376c
+theorem AvailableChain.V2.D.Engine.stateBefore_stable_clock_restartFree db4375ac9a2c29e9
+theorem AvailableChain.V2.D.Engine.stateBefore_invariant_atRestart 598e1098dd251aa1
+theorem AvailableChain.V2.D.Engine.stateBefore_invariant 99ff5dbf4a33cc4c
 theorem AvailableChain.V2.D.Engine.stateBefore_invariant_noRestart e14bbf6f3ae27ac4
-theorem AvailableChain.V2.D.Engine.stateBefore_stable_clock a0b180e2ecb15b44
-theorem AvailableChain.V2.D.Engine.stateBefore_stable_clock_restore 04533de1d30dc850
+theorem AvailableChain.V2.D.Engine.stateBefore_stable_clock 38f472c2f1ef5705
+theorem AvailableChain.V2.D.Engine.stateBefore_stable_clock_restore f5bae8117a58780c
 theorem AvailableChain.V2.D.Engine.stateBefore_stable_clock_noRestart 254a33070ace0644
-theorem AvailableChain.V2.D.Engine.clock_field_origin 0cabaf9537c0dfa6
+theorem AvailableChain.V2.D.Engine.clock_field_origin d93eb6abbba7c06e
 theorem AvailableChain.V2.D.Engine.clock_field_origin_noRestart f1e8577e8ded84c5
-theorem AvailableChain.V2.D.Engine.clock_field_origin_of_subset 637db826493dbec0
+theorem AvailableChain.V2.D.Engine.clock_field_origin_of_subset 92cf5ce2904c65b4
 theorem AvailableChain.V2.D.Engine.stateBefore_field_prefix 23183fffebc81698
-theorem AvailableChain.V2.D.Engine.stateBefore_field_prefix_restore aded7526377edc5e
+theorem AvailableChain.V2.D.Engine.stateBefore_field_prefix_restore 9e71fdf28cbf9822
 ```
 
 ### `AvailableChainKitV2.DutyExecution`
@@ -842,6 +765,8 @@ theorem AvailableChain.V2.D.Engine.tick_index_lt_delivery 01b9e8e5bf9d1a70
 theorem AvailableChain.V2.D.Engine.readAt_eq_stateBefore cc225b2ecbbd7d32
 theorem AvailableChain.V2.D.Engine.stateBefore_other_node 695952512d88999d
 theorem AvailableChain.V2.D.Engine.stateBefore_tick_eq_stateBeforeTime e6356bea44258b6e
+theorem AvailableChain.V2.D.Engine.index_lt_actionCut_iff 4e7aa7d13d0dc8ff
+theorem AvailableChain.V2.D.Engine.stateBefore_tick_eq_stateAfterRestartsAt cac517bd08b40ebd
 ```
 
 ### `AvailableChainKitV2.DutyLinked`
@@ -863,8 +788,20 @@ theorem AvailableChain.V2.D.Engine.ownReleased_self fc8f525878bdcd3e
 theorem AvailableChain.V2.D.Engine.ownReleased_succ dbb5de8b607d64fb
 theorem AvailableChain.V2.D.Engine.ownRecord_fold_interval bdedbac7de227b1b
 theorem AvailableChain.V2.D.Engine.ownRecord_fold 4c18d9267d374c45
-theorem AvailableChain.V2.D.Engine.ownRecord_fold_interval_restart ebb485d92d680fcd
-theorem AvailableChain.V2.D.Engine.ownRecord_fold_restore 9b736ddd6b040914
+theorem AvailableChain.V2.D.Engine.ownRecord_fold_interval_restart db556b9c0d8d21b5
+theorem AvailableChain.V2.D.Engine.ownRecord_fold_restore 74aba50544de8e1a
+```
+
+### `AvailableChainKitV2.DutySleep`
+
+```text
+theorem AvailableChain.V2.D.Engine.restart_index_lt_event d9a42d2dc26e4268
+theorem AvailableChain.V2.D.Engine.wake_restart_before_event 5b5fa84977694336
+theorem AvailableChain.V2.D.Engine.state_after_restart c693c3610ca788af
+theorem AvailableChain.V2.D.Engine.asleep_state_frozen 82c23fc17e98574a
+theorem AvailableChain.V2.D.Engine.noRestartOn_of_awakeOn 35c2d2204665be68
+theorem AvailableChain.V2.D.Engine.noRestartAfter_of_awakeOnClosed 94865cb6a02d9c19
+theorem AvailableChain.V2.D.Engine.wake_between 0ce0d3ea95b747c5
 ```
 
 ### `AvailableChainKitV2.DutyStable`
@@ -875,6 +812,7 @@ theorem AvailableChain.V2.D.Engine.tick_preserve 79780cb52f307185
 theorem AvailableChain.V2.D.Engine.recordOwn_preserve_of_base 8b0c114ce5e936a6
 theorem AvailableChain.V2.D.Engine.stateBefore_step_induction 0f5f32435b17620c
 theorem AvailableChain.V2.D.Engine.stateBefore_stable 74359fd20ef2eec6
+theorem AvailableChain.V2.D.Engine.stateBefore_stable_restore e41d5fd5c6758428
 ```
 
 ### `AvailableChainKitV2.Emission`
@@ -890,28 +828,37 @@ theorem AvailableChain.V2.Engine.ownReleased_self ef1e2c61d686e391
 theorem AvailableChain.V2.Engine.ownReleased_succ 2131433d10647550
 theorem AvailableChain.V2.Engine.ownRecord_fold_interval a7556a63265d3602
 theorem AvailableChain.V2.Engine.ownRecord_fold 0934842b570241ff
+theorem AvailableChain.V2.Engine.ownRecord_fold_interval_restart 2ed7fbb26e9d87b4
+theorem AvailableChain.V2.Engine.ownRecord_fold_restore 5e946e7c07456342
 ```
 
 ### `AvailableChainKitV2.EngineClock`
 
 ```text
-theorem AvailableChain.V2.Engine.stateBefore_now_source 9c80fcceff232fd8
+theorem AvailableChain.V2.Engine.stateBefore_now_source 7f93d89181ce6483
 theorem AvailableChain.V2.Engine.stateBefore_now_source_noRestart 52661bea6807182e
-theorem AvailableChain.V2.Engine.stateBefore_now_le_event 3b49b87b9abe02b9
+theorem AvailableChain.V2.Engine.stateBefore_now_le_event 7c01e5b6f2466357
 theorem AvailableChain.V2.Engine.stateBefore_now_le_event_noRestart 72244c16c0ce21b4
-theorem AvailableChain.V2.Engine.stateBefore_now_mono a5113e8e573379f2
+theorem AvailableChain.V2.Engine.stateBefore_now_mono d8ccd449ea88e059
 theorem AvailableChain.V2.Engine.stateBefore_now_mono_noRestart 94ba60b4f7a08758
-theorem AvailableChain.V2.Engine.delivery_now_ge_public 21b4b2a18edf7c8d
-theorem AvailableChain.V2.Engine.stateBefore_invariant 7c1e2e0a8066a4d7
+theorem AvailableChain.V2.Engine.delivery_now_ge_public c517d644d636576c
+theorem AvailableChain.V2.Engine.stateBefore_now_source_atRestart 991f460d698e41f8
+theorem AvailableChain.V2.Engine.stateBefore_now_le_event_atRestart d40a750df0a27d6e
+theorem AvailableChain.V2.Engine.stateBefore_now_mono_atRestart 6c93ce6262f9d929
+theorem AvailableChain.V2.Engine.delivery_now_ge_public_atRestart bcc73c86ba477073
+theorem AvailableChain.V2.Engine.stateBefore_stable_clock_atRestart 7def93be7ee8c8d5
+theorem AvailableChain.V2.Engine.stateBefore_stable_clock_restartFree 92a02f9378dd8b07
+theorem AvailableChain.V2.Engine.stateBefore_invariant_atRestart b06195ac5aa8404d
+theorem AvailableChain.V2.Engine.stateBefore_invariant 5fe84353ecad6eff
 theorem AvailableChain.V2.Engine.stateBefore_invariant_noRestart a2040e41514c5b5b
-theorem AvailableChain.V2.Engine.stateBefore_stable_clock 96d0b18a4cffe72d
-theorem AvailableChain.V2.Engine.stateBefore_stable_clock_restore 2dc657a0a55cd699
+theorem AvailableChain.V2.Engine.stateBefore_stable_clock 0065948ab1795cd3
+theorem AvailableChain.V2.Engine.stateBefore_stable_clock_restore 339bb6d1ccb57528
 theorem AvailableChain.V2.Engine.stateBefore_stable_clock_noRestart 0f5d3314fc7c1d7b
-theorem AvailableChain.V2.Engine.clock_field_origin 990437b00296ba4f
+theorem AvailableChain.V2.Engine.clock_field_origin fad71c1249ad1212
 theorem AvailableChain.V2.Engine.clock_field_origin_noRestart ca95c0f2f9d37f7f
-theorem AvailableChain.V2.Engine.clock_field_origin_of_subset c8458d33c65921ae
+theorem AvailableChain.V2.Engine.clock_field_origin_of_subset 55226ec2c51ef058
 theorem AvailableChain.V2.Engine.stateBefore_field_prefix 7b725593ef3e900a
-theorem AvailableChain.V2.Engine.stateBefore_field_prefix_restore 11b0e702792d7c40
+theorem AvailableChain.V2.Engine.stateBefore_field_prefix_restore 0430c21cbe46eccd
 ```
 
 ### `AvailableChainKitV2.Execution`
@@ -927,6 +874,8 @@ theorem AvailableChain.V2.Engine.tick_index_lt_delivery 61c606503439616e
 theorem AvailableChain.V2.Engine.readAt_eq_stateBefore a94a03f005a5e010
 theorem AvailableChain.V2.Engine.stateBefore_other_node eabe2539f63fff91
 theorem AvailableChain.V2.Engine.stateBefore_tick_eq_stateBeforeTime e61c627380ab3c46
+theorem AvailableChain.V2.Engine.index_lt_actionCut_iff 5bfde9514f80a8d7
+theorem AvailableChain.V2.Engine.stateBefore_tick_eq_stateAfterRestartsAt 54314d9e21155d10
 ```
 
 ### `AvailableChainKitV2.RunCheck`
@@ -940,6 +889,18 @@ def AvailableChain.V2.Engine.emittedBy 51a84fca0f935606
 theorem AvailableChain.V2.Engine.emittedBy_spec f0f5eb5ccdc7c0ad
 ```
 
+### `AvailableChainKitV2.Sleep`
+
+```text
+theorem AvailableChain.V2.Engine.restart_index_lt_event e4e1da8b60a63013
+theorem AvailableChain.V2.Engine.wake_restart_before_event 42dcd4543e3b98a9
+theorem AvailableChain.V2.Engine.state_after_restart f41daaa26a1eb1fb
+theorem AvailableChain.V2.Engine.asleep_state_frozen 2075567d5d7a7626
+theorem AvailableChain.V2.Engine.noRestartOn_of_awakeOn 0291727de59c2815
+theorem AvailableChain.V2.Engine.noRestartAfter_of_awakeOnClosed eb50f5d166af33fb
+theorem AvailableChain.V2.Engine.wake_between 4dfde67d90ed11c9
+```
+
 ### `AvailableChainKitV2.Stable`
 
 ```text
@@ -948,4 +909,5 @@ theorem AvailableChain.V2.Engine.tick_preserve 25dd1cd1f8575d64
 theorem AvailableChain.V2.Engine.recordOwn_preserve_of_base 32bb8b30a9a25510
 theorem AvailableChain.V2.Engine.stateBefore_step_induction f3b1b9fd91dc85ac
 theorem AvailableChain.V2.Engine.stateBefore_stable cbda5e2adf3c1d8a
+theorem AvailableChain.V2.Engine.stateBefore_stable_restore 0a49e3eccbdb9cd7
 ```

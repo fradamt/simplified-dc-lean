@@ -42,6 +42,13 @@ with tempfile.TemporaryDirectory(prefix='compose-controls.', dir=REPO / '.lake')
             '[[lean_lib]]\nname = "AvailableChainFGCompose"\n'
             'globs = ["AvailableChainFGCompose.*"]\n')
         (tree / 'AvailableChainFGCompose').mkdir()
+        # The pure audit scans its source scope before the Compose audit.
+        built = REPO / '.lake/build/lib/lean'
+        for lib in ('AvailableChainSimplexFG', 'AvailableChainKitFG'):
+            shutil.copytree(REPO / lib, tree / lib)
+            shutil.copytree(built / lib, tree / lib, dirs_exist_ok=True)
+            for part in built.glob(lib + '.olean*'):
+                shutil.copy2(part, tree / part.name)
         env = dict(os.environ, LEAN_PATH=str(tree) + os.pathsep + base.stdout.strip())
         return tree, env
 
@@ -124,7 +131,8 @@ with tempfile.TemporaryDirectory(prefix='compose-controls.', dir=REPO / '.lake')
         # Lean resolves a library prefix in the first search directory.
         # Preserve the built pure library when adding its orphan control.
         built = REPO / '.lake/build/lib/lean'
-        shutil.copytree(built / 'AvailableChainKitFG', tree / 'AvailableChainKitFG')
+        shutil.copytree(built / 'AvailableChainKitFG', tree / 'AvailableChainKitFG',
+                        dirs_exist_ok=True)
         for part in built.glob('AvailableChainKitFG.olean*'):
             shutil.copy2(part, tree / part.name)
         shutil.copytree(built / 'AvailableChainFGCompose', tree / 'AvailableChainFGCompose',
@@ -178,7 +186,7 @@ with tempfile.TemporaryDirectory(prefix='compose-controls.', dir=REPO / '.lake')
 
     # Run the syntax scan itself. An axiom-audit refusal cannot replace it.
     for lib in ('AvailableChainSimplexFG', 'AvailableChainKitFG'):
-        (tree / lib).mkdir()
+        (tree / lib).mkdir(exist_ok=True)
         (tree / (lib + '.lean')).write_text('module\n')
     (tree / 'AvailableChainFGCompose.lean').write_text('module\n')
     source.write_text(positive + 'end Control\n')
@@ -377,10 +385,10 @@ with tempfile.TemporaryDirectory(prefix='compose-controls.', dir=REPO / '.lake')
          "example : safetyHolder swapReads seatRun 0 = 0 := by decide\n",
          'safetyHolder swapReads seatRun 0 = 0\nis false'),
         ('lost durable record',
-         "example : ∀ nd, keptReads.record (kept.restore (kept.durable nd)) =\n"
-         "    keptReads.record nd := fun _ => rfl\n",
-         "example : ∀ nd, lossyReads.record (lossy.restore (lossy.durable nd)) =\n"
-         "    lossyReads.record nd := fun _ => rfl\n",
+         "example : ∀ nd t, keptReads.record (kept.restore (kept.durable nd) t) =\n"
+         "    keptReads.record nd := fun _ _ => rfl\n",
+         "example : ∀ nd t, lossyReads.record (lossy.restore (lossy.durable nd) t) =\n"
+         "    lossyReads.record nd := fun _ _ => rfl\n",
          'lossyReads.record (lossy.restore (lossy.durable'),
         ('emitted-only tip scope',
          scope.replace('BLOCK', 'tip.parent'), scope.replace('BLOCK', 'tip'),

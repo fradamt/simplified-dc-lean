@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Test shell failure paths with a fake Lake. Real Lean checks run separately."""
 
-import hashlib
 import os
 from pathlib import Path
 import shutil
@@ -17,14 +16,19 @@ with tempfile.TemporaryDirectory(prefix="gate-shell-controls-") as scratch:
     scripts = root / "scripts"
     scripts.mkdir()
     (root / ".lake").mkdir()
-    for name in ("fgsa-freeze.sh", "check-fgsa-manifest.sh", "check-fg.sh", "gate-common.sh"):
+    for name in ("check-fgsa-manifest.sh", "check-fg.sh", "gate-common.sh"):
         shutil.copy2(REPO / "scripts" / name, scripts / name)
-    # This test checks shell propagation, not real baseline contents.
-    (scripts / "fgsa-deep.py").write_text("""import os,sys
-from pathlib import Path
-Path('calls').open('a').write('frame ' + ' '.join(sys.argv[1:]) + '\\n')
-sys.exit(18 if os.environ['CONTROL_MODE'] == 'frame-fail' else 0)
-""")
+    for name in ('api-snapshot.py', 'api-snapshot-controls.py', 'fgsa-deep-controls.py'):
+        (scripts / name).write_text("import os,sys\n"
+            "mode = os.environ['CONTROL_MODE']\n"
+            "sys.exit(20 if mode == 'legacy-fail' and __file__.endswith('api-snapshot.py') "
+            "else 17 if mode == 'setup-fail' and 'controls' in __file__ else 0)\n")
+    # check-fg.sh reads its FG module list from the inventory writer.
+    (scripts / "write-check-inventories.py").write_text(
+        "import types\n"
+        "snapshot = types.SimpleNamespace(SCOPES={'fg': 'fg'},\n"
+        "    source_modules=lambda scope: ['Control.FG'])\n")
+    (scripts / "current-inventory.py").write_text("")
     bindir = root / "bin"
     bindir.mkdir()
     lake = bindir / "lake"
@@ -57,16 +61,8 @@ elif mode == 'fail' or (mode == 'setup-fail' and '--write' in sys.argv):
         )
         return result
 
-    result = run("fgsa-freeze.sh", "freeze", "--manifest", "current.md",
-                 "--frozen", "frozen.md", "--frozen-sha", "frozen.sha256")
-    assert result.returncode == 0, result
-    assert (root / "current.md").read_bytes() == b"entry\n"
-    assert (root / "frozen.md").read_bytes() == b"entry\n"
-    assert (root / "frozen.sha256").read_text() == hashlib.sha256(b"entry\n").hexdigest() + "\n"
-    print("CONTROL freeze normalizes before copy/hash: PASS")
-
     for mode, neg, rc in (("pass", "0", 0), ("fail", "0", 17),
-                          ("frame-fail", "0", 18), ("deep-fail", "0", 19),
+                          ("deep-fail", "0", 19), ("legacy-fail", "0", 20),
                           ("setup-fail", "1", 17)):
         result = run("check-fgsa-manifest.sh", mode, NEG=neg, AUDIT_TIMING="1")
         assert result.returncode == rc, result

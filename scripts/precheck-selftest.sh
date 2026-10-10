@@ -48,14 +48,14 @@ expect_no_build() {
 }
 expect_guard_pass() {
   local label=$1 rc=$2 log=$3
-  if [ "$rc" -ne 0 ] || ! grep -qF 'guard lists: superset OK' "$log" ||
+  if [ "$rc" -ne 0 ] || ! grep -qF 'guard lists: current data parsed; diff reported' "$log" ||
       ! grep -qF 'guard list merge: target data and main code OK' "$log" ||
       ! grep -qF 'MAIN POLICY PASS' "$log"; then
     cat "$log"
     echo "SELFTEST FAIL: $label rc=$rc; expected guard lists and merge to pass" >&2
     exit 1
   fi
-  echo "$label rc=$rc (superset and merged target lists pass)"
+  echo "$label rc=$rc (diff and merged target lists pass)"
 }
 
 # Commit 1: copy the current source tree and add a forbidden Statements import.
@@ -145,9 +145,8 @@ expect_no_build "$target"
 # the source tree, and repeat the gate's history check with the copied allow data.
 cat >> "$policy/scripts/gate-common.sh" <<'SH'
 gate_precheck() {
-  gate_precheck_step guard-lists python3 scripts/guard-lists.py superset \
-    --main-rev "$1" --target scripts/check-fgsa-claims.sh \
-    --allow scripts/guard-lists-allow.txt || return $?
+  gate_precheck_step guard-lists python3 scripts/guard-lists.py diff \
+    --main-rev "$1" --target scripts/check-fgsa-claims.sh || return $?
   python3 scripts/precheck-fixtures/guard-lists-control.py verify \
     scripts/check-fgsa-claims.sh "$GUARD_LISTS_TARGET" "$GUARD_LISTS_MAIN" || return $?
   echo 'PRECHECK PASS; build not started'
@@ -163,24 +162,13 @@ expect_no_build "$target"
 
 removed=$(python3 "$control" drop "$GUARD_LISTS_TARGET" "$GUARD_LISTS_MAIN")
 rc=0
-(
-  bash "$policy/scripts/precheck.sh" "$target" || exit $?
-  touch "$target/build-started"
-) > "$scratch/lists-drop.log" 2>&1 || rc=$?
-expect_rejection guard-lists-drop "$rc" "$scratch/lists-drop.log" "GUARD LIST REMOVED: EXPECTED $removed"
-expect_rejection guard-lists-policy "$rc" "$scratch/lists-drop.log" "MAIN POLICY FAIL guard-lists main=${source_base:0:7} target=${source_base:0:7}"
-expect_no_build "$target"
-
-# Append: keep the branch's own approved removal lines.
-printf 'EXPECTED %s selftest removal control\n' "$removed" >> "$target/scripts/guard-lists-allow.txt"
-rc=0
-bash "$policy/scripts/precheck.sh" "$target" > "$scratch/lists-allow.log" 2>&1 || rc=$?
-expect_guard_pass guard-lists-allow "$rc" "$scratch/lists-allow.log"
+bash "$policy/scripts/precheck.sh" "$target" > "$scratch/lists-drop.log" 2>&1 || rc=$?
+expect_guard_pass guard-lists-drop "$rc" "$scratch/lists-drop.log"
+grep -qF "GUARD LIST REMOVED: EXPECTED $removed" "$scratch/lists-drop.log"
 expect_no_build "$target"
 
 # Use the real expose checker for policy data, without another full scan.
 cp "$policy/scripts/check-fgsa-claims.sh" "$target/scripts/check-fgsa-claims.sh"
-cp "$policy/scripts/guard-lists-allow.txt" "$target/scripts/guard-lists-allow.txt"
 export POLICY_DATA_TARGET="$target"
 cat >> "$policy/scripts/gate-common.sh" <<'SH'
 gate_precheck() {

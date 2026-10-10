@@ -1,5 +1,13 @@
 Use **Route A, with an early SWITCH on the integration branch and one atomic landing on main**. Stage 0 contains additive work only. WP13 and WP14 follow the core landing.
 
+**Historical record — superseded 2026-10-09.** This document records its
+original source basis. Freeze rules, port totals, ownership paths, and exact
+exception rows are not current acceptance data. Future changes use generated
+current snapshots and reviewed diffs. Open proof obligations remain open.
+The old API data remains in Git at
+`6c36d4810cb070655f2f4aadb3346db6c76aa0a3`. No checker reads this record.
+
+
 This r2 applies both reviews. The later derisks replace r1’s global resolution change with the minimum change to `proposerSupport`. They also close the combined-rule paper check. Lean validation remains required.
 
 I verified main `7acdc143d87eb6f5b259ed253aa63c496e8c7581` and both archive hashes:

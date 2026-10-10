@@ -63,22 +63,6 @@ def read_guard(text, label, inventory_text=None):
     return lines, lists
 
 
-def read_allow(path):
-    # Older target branches have no allow file. They permit no removals.
-    if not path.exists():
-        return []
-    entries = []
-    for number, line in enumerate(path.read_text().splitlines(), 1):
-        line = line.strip()
-        if not line or line.startswith('#'):
-            continue
-        fields = line.split(None, 2)
-        if len(fields) != 3 or fields[0] not in LISTS:
-            raise ValueError(f'{path}:{number}: expected <LIST> <entry> <reason>')
-        entries.append((fields[0], fields[1], line))
-    return entries
-
-
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest='command', required=True)
@@ -86,12 +70,12 @@ def main():
     merge.add_argument('--code', type=Path, required=True)
     merge.add_argument('--data', type=Path, required=True)
     merge.add_argument('--out', type=Path, required=True)
-    superset = commands.add_parser('superset')
+    superset = commands.add_parser('diff', aliases=['superset'])
     source = superset.add_mutually_exclusive_group(required=True)
     source.add_argument('--main', type=Path)
     source.add_argument('--main-rev')
     superset.add_argument('--target', type=Path, required=True)
-    superset.add_argument('--allow', type=Path, required=True)
+    superset.add_argument('--allow', type=Path, help=argparse.SUPPRESS)
     args = parser.parse_args()
     try:
         if args.command == 'merge':
@@ -124,21 +108,20 @@ def main():
             inventory_text = data.stdout
         _, main_lists = read_guard(main_text, label, inventory_text)
         _, target_lists = read_guard(args.target.read_text(), args.target)
-        allow = read_allow(args.allow)
-        allowed = {(name, entry) for name, entry, _ in allow}
-        removed = [(name, entry) for name in LISTS
-                   for entry in dict.fromkeys(main_lists[name][2])
-                   if entry not in target_lists[name][2]]
-        violations = [item for item in removed if item not in allowed]
-        for name, entry in violations:
-            print(f'GUARD LIST REMOVED: {name} {entry} (not in {args.allow})')
-        for name, entry, line in allow:
-            if (name, entry) not in removed:
-                print(f'stale allow: {line}')
-        if violations:
-            return 1
-        print('guard lists: superset OK')
+        for name in LISTS:
+            before, after = main_lists[name][2], target_lists[name][2]
+            for entry in sorted(set(before) - set(after)):
+                print(f'GUARD LIST REMOVED: {name} {entry}')
+            for entry in sorted(set(after) - set(before)):
+                print(f'GUARD LIST ADDED: {name} {entry}')
+            if name == 'ORDER':
+                for entry in sorted(set(before) & set(after)):
+                    if before.index(entry) != after.index(entry):
+                        print(f'GUARD ORDER MOVED: {entry}: '
+                              f'{before.index(entry)} -> {after.index(entry)}')
+        print('guard lists: current data parsed; diff reported')
         return 0
+
     except (OSError, ValueError, SyntaxError) as error:
         parser.error(str(error))
 

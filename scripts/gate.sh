@@ -8,7 +8,7 @@
 # NUC 2026-10-08..09: FULL 7025-8097 s (2 slots/12G), 10316 s (1 slot/7G);
 # MERGE 1573-1993 s (2 slots). At 318074ba/1 slot: build 22, check-build 1938,
 # FGSA 2154, run 1834, manifest 1497, claims 3321, compose 2830, coverage 116 s;
-# axioms ~2 s each, freeze/coverage 0 s, blueprint 84 s. Freeze failed LAST at 10553 s.
+# Historical timing: axioms ~2 s each, coverage 0 s, blueprint 84 s.
 # Old-read failures took ~300-500 s. Check them before heavy checks; keep controls later.
 # Defaults: Mac 3, Linux 3 (scripts/gate-common.sh); env wins. JOBS is only a per-script pool bound.
 # Linux requires a user scope with GATE_MEM (default 16G) and no swap; without it the gate refuses to run.
@@ -112,7 +112,8 @@ failed=0
 # run before a commit. Use NUL delimiters for names and disable external diffs.
 tier_path() {
   case "$1" in
-    scripts/*|*allow*.txt|lakefile.toml|lean-toolchain|lake-manifest.json|Statements/*|*/Statements/*|docs/FGSA-API.md|docs/FGSA-API-frozen.md|docs/PCSA-API.md)
+    scripts/*|*allow*.txt|lakefile.toml|lean-toolchain|lake-manifest.json|\
+    Statements/*|*/Statements/*|docs/FGSA-API.md|docs/PCSA-API.md|docs/api/*)
       reason="gate input changed: $1"; return 0 ;;
   esac
   return 1
@@ -320,7 +321,7 @@ if [ "$NEG" = 1 ]; then
   summary checker-self-tests
   stop_if_failed
 fi
-# Longest measured FULL steps first.
+# Longest measured FULL steps first; PC-SA has no separate wall measurement.
 # No control writes the real source/build tree. Shared slots bound every child;
 # Linux's existing memory scope bounds the whole group, including private builds.
 run_group fgsa-claims check-fg-compose check-fgsa check-build check-fgsa-run \

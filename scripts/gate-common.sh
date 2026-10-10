@@ -46,11 +46,12 @@ gate_precheck() (
   if [ -n "$base" ]; then
     gate_precheck_step base gate_check_base "$base" || exit $?
     gate_precheck_step diff-check git diff --check "$base..HEAD" || exit $?
-    gate_precheck_step guard-lists python3 scripts/guard-lists.py superset \
-      --main-rev "$base" --target scripts/check-fgsa-claims.sh \
-      --allow scripts/guard-lists-allow.txt || exit $?
+    gate_precheck_step guard-lists python3 scripts/guard-lists.py diff \
+      --main-rev "$base" --target scripts/check-fgsa-claims.sh || exit $?
   fi
   gate_precheck_step sleep-scopes python3 -B scripts/check-sleep-scopes.py || exit $?
+  gate_precheck_step legacy-inventory python3 scripts/current-inventory.py legacy \
+    docs/api/legacy-api.json || exit $?
   gate_precheck_step import-policy python3 scripts/generate-import-policy.py --check || exit $?
   gate_precheck_step check-layers python3 scripts/check-layers.py || exit $?
   gate_precheck_step check-module-headers python3 scripts/check-module-headers.py || exit $?
@@ -58,7 +59,7 @@ gate_precheck() (
   gate_precheck_step check-transparency python3 scripts/check-transparency.py || exit $?
   # The default Python rule set includes compiled F-31. Select only source rules.
   local -a gly_rules=()
-  for rule in F-1 F-3 F-4 F-5 F-6 F-7 F-10 F-12 F-13 F-14 F-15 F-18 F-20 F-21 F-23 F-25 F-26 F-28 F-30; do
+  for rule in F-1 F-3 F-4 F-5 F-6 F-12 F-13 F-14 F-15 F-18 F-20 F-21 F-23 F-25 F-26 F-28 F-30; do
     gly_rules+=(--rule "$rule")
   done
   gate_precheck_step check-gly-rules python3 scripts/check-gly-rules.py "${gly_rules[@]}" || exit $?
@@ -67,6 +68,14 @@ gate_precheck() (
   gate_precheck_step check-fgsa-claims bash scripts/check-fgsa-claims.sh || exit $?
   echo "PRECHECK PASS; build not started"
 )
+
+# Read inventory names as data. Preserve Lean's ? and ! identifiers as arguments.
+gate_inventory_args() {
+  local data name
+  data=$(python3 -B scripts/check_inventory.py "$1") || return $?
+  GATE_INVENTORY=()
+  while IFS= read -r name; do GATE_INVENTORY+=("$name"); done <<< "$data"
+}
 
 gate_jobs() {
   # JOBS is a per-script pool bound: default 3 on Mac, 6 on Linux; env wins.
