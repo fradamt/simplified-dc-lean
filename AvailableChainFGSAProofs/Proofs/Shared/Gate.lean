@@ -4,6 +4,7 @@ public import AvailableChainFGSARun.Proofs.Schedule
 public import AvailableChainGeneric.Proofs.AC.Duty.Transfer
 public import AvailableChainGeneric.Proofs.Pure.BlockOrder
 public import AvailableChainFGSAProofs.Proofs.Shared.Channels
+public import AvailableChainFGSAProofs.Proofs.Shared.CatchUp
 
 public section
 
@@ -23,6 +24,7 @@ G32 covering service, with the atomic count and walk premises of Gen. -/
 theorem fgsa_gate_of_coveringBatch (hs : V2.D.ScheduleWellFormed E rho)
     (i : Nat) (s : Slot) (x : V) (D : Block)
     (ht : rho.events[i]? = some (.tick x (SA.gateTime p.toParams s)))
+    (hEnabled : enabledGateAt p c E rho i x s)
     (hcover : ∃ C, (fgsaAC E rho).raw i s x = some C ∧ Block.Preceq D C)
     (hguard : ∀ C, (fgsaAC E rho).raw i s x = some C →
       ∀ lease ∈ ((fgsaAC E rho).gateView i x s).obligations,
@@ -33,7 +35,9 @@ theorem fgsa_gate_of_coveringBatch (hs : V2.D.ScheduleWellFormed E rho)
     (hlevel : SA.releaseThreshold p.toParams ∈ (fgsaAC E rho).gateLevels i x s D) :
     Gen.AC.Duty.GateService (fgsaAC E rho) i s x D := by
   have hf : (fgsaAC E rho).saved i x s = none := fgsa_gate_fresh E rho hs ht
-  rcases (fgsaAC_gate_write E rho i s x ht).effects with hskip | hrun
+  rcases (fgsaAC_gate_write E rho i s x
+    (by rw [clockPre_joined]
+        exact fgsa_gate_joined_of_enabled E rho hEnabled) ht).effects with hskip | hrun
   · obtain ⟨⟨result, hr⟩, _⟩ := hskip
     rw [hf] at hr
     cases hr
@@ -45,6 +49,7 @@ G32 exact service. The old output has no strict extension of X. -/
 theorem fgsa_S_eq_of_exact (hs : V2.D.ScheduleWellFormed E rho)
     (i : Nat) (s : Slot) (x : V) (X : Block) (hx : x ∈ rho.honest)
     (ht : rho.events[i]? = some (.tick x (SA.gateTime p.toParams s)))
+    (hEnabled : enabledGateAt p c E rho i x s)
     (hraw : (fgsaAC E rho).raw i s x = some X)
     (hguard : ∀ lease ∈ ((fgsaAC E rho).gateView i x s).obligations,
       Block.Compatible (Gen.AC.Lease.target lease) X)
@@ -55,7 +60,9 @@ theorem fgsa_S_eq_of_exact (hs : V2.D.ScheduleWellFormed E rho)
         (fgsaAC E rho).now (i + 1) x < Gen.AC.Lease.deadline lease →
           Block.Preceq (Gen.AC.Lease.target lease) X := by
   have hf : (fgsaAC E rho).saved i x s = none := fgsa_gate_fresh E rho hs ht
-  rcases (fgsaAC_gate_write E rho i s x ht).effects with hskip | hrun
+  rcases (fgsaAC_gate_write E rho i s x
+    (by rw [clockPre_joined]
+        exact fgsa_gate_joined_of_enabled E rho hEnabled) ht).effects with hskip | hrun
   · obtain ⟨⟨result, hr⟩, _⟩ := hskip
     rw [hf] at hr
     cases hr

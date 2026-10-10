@@ -109,7 +109,7 @@ ROOT-DIGEST W2b. Blueprint 03:293–312, 21 H.22:3100–3120; spec 1240–1243, 
 plan I-EXACT, G1 step 4. Class (iii). DC: INTENTIONAL; the gate-receipt
 argument of fgsa_gateReceipt, read at the early tick e_r of any honest
 reader instead of at the gate d_r. The emitted HEAD is the scheduled read.
-The reader floor bound is an explicit input. Asleep readers are included. -/
+The reader floor bound is an explicit input. The receiver has the scheduled early tick. -/
 theorem inclusion_head_receipt_early
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)

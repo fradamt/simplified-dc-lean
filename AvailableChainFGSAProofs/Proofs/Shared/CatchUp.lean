@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Shared.StoreRun
+public import AvailableChainFGSAClaims.Statements.Join
 public import AvailableChainFGSARun.Proofs.Acceptance
 public import AvailableChainFGSARun.Proofs.ReadyAcceptance
 public import AvailableChainFGSARun.Proofs.Join
@@ -95,6 +96,43 @@ theorem fgsa_gate_joined_of_joinedEnv (E : Generic.Env V)
   unfold joinedNow at hj
   rw [fgsa_clock_restartTime, (clock_vn _ _).2] at hj
   exact hj
+
+/-- A NoRestart run enables each existing gate tick. -/
+theorem fgsa_enabledGate_noRestart (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) (hN : V2.D.NoRestart rho)
+    {i : Nat} {x : V} {s : Slot} (hi : IsGateTick p c rho i x s) :
+    enabledGateAt p c E rho i x s := by
+  refine ⟨hi, ?_⟩
+  have hb := fgsa_restartTime_bound E rho i x (4 * p.Δ * (s : Int)) (by
+    intro j w _ hj
+    exact (hN j x w hj).elim)
+  change (match (V2.D.Run.stateBefore E rho i x).st.restartTime with
+    | none => True
+    | some w => w ≤ 4 * p.Δ * (s : Int))
+  cases hr : (V2.D.Run.stateBefore E rho i x).st.restartTime with
+  | none => trivial
+  | some w => exact hb w hr
+
+/-- The enabled gate supplies the exact join test used by the gate law. -/
+theorem fgsa_gate_joined_of_enabled (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {i : Nat} {x : V} {s : Slot}
+    (hEnabled : enabledGateAt p c E rho i x s) :
+    joinedAtTime p (V2.D.Run.stateBefore E rho i x).st.restartTime
+      (SA.gateTime p.toParams s) = true := by
+  have hs : p.slotOf (SA.gateTime p.toParams s) = s + 1 :=
+    (fgsa_postClock_slot (c := c) (V2.D.Run.stateBefore E rho i x) _).2.symm.trans
+      (fgsa_gate_slot (c := c) (V2.D.Run.stateBefore E rho i x) s)
+  have hg := hEnabled.2
+  change (match (V2.D.Run.stateBefore E rho i x).st.restartTime with
+    | none => True
+    | some w => w ≤ 4 * p.Δ * (s : Int)) at hg
+  cases hr : (V2.D.Run.stateBefore E rho i x).st.restartTime with
+  | none => rfl
+  | some w =>
+    rw [hr] at hg
+    change decide (w ≤ 4 * p.Δ * ((p.slotOf (SA.gateTime p.toParams s) : Int) - 1)) = true
+    simpa only [hs, Nat.cast_add, Nat.cast_one, add_sub_cancel_right,
+      decide_eq_true_eq] using hg
 
 /-- P11: a scheduled gate saves the executed result in both join branches. -/
 theorem fgsa_gate_saved_guarded (E : Generic.Env V)

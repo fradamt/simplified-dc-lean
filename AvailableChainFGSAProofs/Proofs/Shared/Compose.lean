@@ -76,7 +76,8 @@ theorem H0.tstar_eq {w : HealingWitness} (h : H0 p c E rho w) :
 /-- T-SMONO is the H4 projection (01:141–142; 21:3116–3123), P3 A.7.
 Consumers: F6, F8, FF5 and FF6. -/
 theorem HealAC.tsMono {w : HealingWitness} (h : HealAC p c E rho w) :
-    Gen.Pure.MonoOn (· ∈ rho.honest) (S_at p c E rho) (HealSuffix p c rho (tstar p w)) :=
+    ScopedMono (confirmedReaderIdx p c E rho)
+      (S_at p c E rho) (HealSuffix p c rho (tstar p w)) :=
   h.h4.2.2.1
 
 /-- T-EXACT is the H3 projection (01:143–149; 21:3109–3114), P3 A.7.
@@ -84,10 +85,12 @@ Consumers: FF1, F1, F3 and F6. The gate is within the finite horizon. -/
 theorem HealAC.tExact {w : HealingWitness} (h : HealAC p c E rho w)
     {v : Slot} {Q : Block} (hp : HonestProposal E rho (fgsaInterface p c) v Q)
     (hs : w.sStar + 2 ≤ v) (hh : SA.gateTime p.toParams v ≤ rho.horizon)
-    {x : V} (hx : x ∈ rho.honest) :
+    {x : V} (hx : x ∈ rho.honest)
+    (hreader : confirmedReaderAtIdx p c E rho x
+      (afterTicksIdx rho (SA.gateTime p.toParams v)) (SA.gateTime p.toParams v)) :
     (fgsaInterface p c).stable (afterTicks E rho (SA.gateTime p.toParams v) x) = Q ∧
       (∀ r, v = r * p.R → actionSource p c E rho x r = some (some Q)) :=
-  ((h.h3 v Q hp hs).2 hh x hx).2.2.2
+  ((h.h3 v Q hp hs).2 hh x hx hreader).2.2.2
 
 end AvailableChain.FGSA.Run
 end

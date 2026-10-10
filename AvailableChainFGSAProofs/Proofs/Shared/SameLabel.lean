@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Shared.Reads
 public import AvailableChainFGSARun.Proofs.Receipts
 public import AvailableChainFGSARun.Proofs.RootResolution
 public import AvailableChainFGSAClaims.Statements.Reads
@@ -311,18 +312,23 @@ private theorem sl_relay (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
         (fun j w _ he => False.elim (hN j _ w he)) v (hkeep hv) hlv, hne, hku, hkv⟩)
 
 private theorem sl_gate_input (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hS : V2.D.ScheduleWellFormed E rho)
     (x : V) (s : Slot) (B : Block) (h : gateResult p c E rho x s = some (some B)) :
     ∃ i, rho.events[i]? = some (.tick x (SA.gateTime p.toParams s)) ∧
       SA.Root.confirmationFrom p.toParams
         (eraseFG (clockPre p (V2.D.Run.stateBefore E rho i x).st (SA.gateTime p.toParams s)).fg.F)
         (actView (clockPre p (V2.D.Run.stateBefore E rho i x).st
           (SA.gateTime p.toParams s))) s = some B := by
-  rw [gateResult_def, gateIn_def, preTick_def] at h
-  cases hi : V2.D.Run.tickIdx? rho x (SA.gateTime p.toParams s) with
-  | none => simp only [hi, Option.map_none] at h; contradiction
-  | some i =>
-    simp only [hi, Option.map_some, Option.some.injEq] at h
-    exact ⟨i, V2.D.Run.tickIdx?_spec hi, h⟩
+  have hex : ∃ i, IsGateTick p c rho i x s := by
+    rw [gateResult_def] at h
+    obtain ⟨st, hgate, _⟩ := Option.map_eq_some_iff.mp h
+    rw [gateIn_def, preTick_def] at hgate
+    obtain ⟨nd, hpre, _⟩ := Option.map_eq_some_iff.mp hgate
+    obtain ⟨i, hi, _⟩ := Option.map_eq_some_iff.mp hpre
+    exact ⟨i, V2.D.Run.tickIdx?_spec hi⟩
+  obtain ⟨i, hi⟩ := hex
+  exact ⟨i, hi, (fgsa_gate_raw_of_nonempty p c E rho hS hi h).2⟩
+
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 P3 F1b.2, blueprint 02 §2.2 and 21 IF.6: two honest raw gate results
@@ -344,8 +350,8 @@ theorem fgsa_sameLabel (p : Params) {In V : Type} [DecidableEq V]
       gateResult p c E rho x s = some (some B) →
       gateResult p c E rho y s = some (some C) → Block.Compatible B C := by
   intro x y B C hx hy hB hC
-  obtain ⟨ix, hix, hB⟩ := sl_gate_input E rho x s B hB
-  obtain ⟨iy, hiy, hC⟩ := sl_gate_input E rho y s C hC
+  obtain ⟨ix, hix, hB⟩ := sl_gate_input E rho hE.toScheduleWellFormed x s B hB
+  obtain ⟨iy, hiy, hC⟩ := sl_gate_input E rho hE.toScheduleWellFormed y s C hC
   let vx := actView (clockPre p (V2.D.Run.stateBefore E rho ix x).st (SA.gateTime p.toParams s))
   let vy := actView (clockPre p (V2.D.Run.stateBefore E rho iy y).st (SA.gateTime p.toParams s))
   let Lx := (GridCO.seats p.n (GridCO.lateVotes p.toParams.engine vx s)).toFinset

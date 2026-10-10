@@ -1888,3 +1888,75 @@ Counts cover the 170 direct uses; M overlaps F. Audit commands and guard splits 
   OutageAlignment to P-Ou (unchanged equality examples; failure confirmed in 7.25 s).
 - Manifest generation: 58-module slice 84.64 s; 59-module companion surface 104.32 s.
   No package-full or G-S3 claim is made; P23 and family work remain with their owners.
+
+### P-ShA round 2 — guarded reads and compiled consumer ports
+
+Base: da94c7c2, with the S-Ap part 1 slice at 7538ca0f. No Claims statement changed.
+Base₂ stays with S-Ap. The receiptIdealization field is not in this tree yet.
+
+- Reads.gateResult_eq_saved now equates the executed result in both join branches.
+  The empty result is saved when the gate is disabled. gateResultAt_eq_gateResult
+  keeps the same guard at the event index. SameLabel and Roots extract the raw
+  branch only through Reads.fgsa_gate_raw_of_nonempty, which derives the raw branch
+  and joined test from the executed saved result. It avoids exports of the home
+  module's local Decidable matcher equations. No baseline is changed.
+- N7: CatchUp.fgsa_gate_joined_of_enabled uses enabledGateAt at the exact gate tick.
+  fgsa_enabledGate_noRestart supplies the same gate scope for legacy NoRestart callers.
+  Gate.fgsa_gate_of_coveringBatch and fgsa_S_eq_of_exact require that enabled gate.
+  Every OpeningSource gateService adapter passes it to fgsa_gate_clock_bridge.
+  The source actor, event index, and gate label stay the same through each call.
+- P23-A: Count.fgsa_active_path_of_coverage now calls fgsa_receiptCoverage_ready.
+  Its added hAwake supplies the receiver's entire required-object service window.
+  Its conclusion is unchanged. The old wrapper is no longer in Count's imports.
+  Clean/StepGate, Clean/TransferFrame, WC/StepGateBatch, WC/StepTransferReceipts,
+  and WCG/Dynamics must supply hAwake when they port their callers. Their owners
+  already own the old ReceiptCoverage-to-ready migration. No sleep closure is claimed.
+- Count's honest HEAD identity and awake facts now follow network or replay provenance.
+  A replay is traced to the retained proposal's earlier delivery and carried signature;
+  it is not called a fresh HEAD acceptance. No new NoRestart premise was added there.
+- Compose.HealAC.tsMono uses ScopedMono at the event-prefix reader scope.
+  HealAC.tExact takes confirmedReaderAtIdx at afterTicksIdx of the exact gate time.
+  Healed.same_time uses confirmedReaderIdx for both readers at the same event index.
+  OutputGrowthReads.fgsa_healed_output_mono takes that scope at both inclusive reads.
+  These are the approved S-Ap scopes. Caller owners must retain them in their ports.
+- ProposalRead and RowReads extract proposal content after the joined duty guard.
+  RetainedConsumers passes the guarded proposal's payload projection to geometry.
+  RetainedScores and its consumer families use NamedReceiptRootCollisionFree.
+  The RetainedEndpoint test now keeps joinedAt at voteTime s and the receipt root form.
+- ExactService passes enabled gates through Gate and OpeningSource; it returns the
+  enabled event witness and gatePassedAt. The general gate reader uses the awake
+  projection of confirmedReaderAtIdx at gateTime v (T40). Its retained NoRestart
+  premise supplies the existing enabled gate. HeadTargetAtEmission's safety equality
+  uses toNamedRootCollisionFree. Its public ExactService result keeps the joined HEAD
+  and confirmed gate-reader scopes. This legacy route is compiled, not a new epoch port.
+- SelfDelivery preserves restartsAtWakes through row append and prefix cut.
+  Its current constructor still uses the old idealization field. After S-Ap part 2,
+  it needs receiptIdealization and receipt-scope preservation through append and cut.
+- Regimes.fgsa_clean_delivery_iff compares deadlines at every nonnegative ready anchor,
+  not only at the send time. Prefix cuts pass their event-derived horizon bound.
+  These source repairs compile up to the remaining regime adapter failures.
+
+### P-ShA round 2 — exact remaining obligations
+
+- HeadAdmit.fgsa_action_walk_batch still calls inclusion_head_receipt_early with
+  hb.noRestart (line 406) and hb.receiptIdealization (line 404). The latter waits for
+  S-Ap part 2. Base₂ permits restarts: the former needs the N4 service/epoch port,
+  joined selected HEAD voters, and the receiver's exact early-read service scope.
+  Awake at voteTime alone does not supply the joined duty guard.
+- Shared.Export.fgsa_sameLabelClaim and fgsa_releaseClaim still request
+  h.set.noRestart (lines 18, 37). Their core producers need the approved local epoch
+  scopes from the restarted regime; restoring a global NoRestart field is invalid.
+- Shared.Regimes has twelve open adapters: gate receipts, retained scores,
+  suffix ghost transfer, proposal HEADs, retained HEADs, and exact service,
+  each for clean and recovery. Their calls still request h.base.noRestart and
+  h.base.receiptIdealization. The receipt field waits for S-Ap part 2. The other
+  premise needs local receiver epochs, ready service, safe retained history, and N4.
+  Keep T39/T45 joined HEAD scopes; pass T42's enabled source gate and T40's exact
+  confirmed receiver scope. No blanket honesty-to-awake inference is authorized.
+- Tests.RetainedConsumers is blocked by its import of Shared.Regimes. Its three
+  production consumer imports compile. No test exception or baseline was added.
+- The external ReceiptCoverage wrapper, FGSARun root, and Run.Tests.Axioms remain
+  S-Ap-owned EXPECTED-FAIL. No P-ShA green target imports that wrapper now.
+- No approved public statement was found false by this run. No new public STOP was
+  asserted. N4's generic bridge is compiled, but threading it through restarted
+  Count, HeadAdmit and retained proposal families is not closed.

@@ -21,6 +21,7 @@ reconcile, or release step occurs between them. No new run premise is used. -/
 theorem openingSource_candidate_of_gateService (hs : V2.D.ScheduleWellFormed E rho)
     (i : Nat) (x : V) (r : Nat) (D : Block)
     (ht : rho.events[i]? = some (.tick x (p.actionTime r)))
+    (hEnabled : enabledGateAt p c E rho i x (r * p.R))
     (hservice : Gen.AC.Duty.GateService (fgsaAC E rho) i (r * p.R) x D) :
     D ∈ sourceCandidates p (((fgsa p c).clock
       (V2.D.Run.stateBefore E rho i x) (p.actionTime r)).st) := by
@@ -46,7 +47,8 @@ theorem openingSource_candidate_of_gateService (hs : V2.D.ScheduleWellFormed E r
   rw [hpost] at hlease
   have hfastEq : st.fastWrite =
       nd.st.fastWrite ++ [(r * p.R, (fgsaAC E rho).fast i (r * p.R) x)] := by
-    have hb := congrArg State.fastWrite (fgsa_gate_clock_bridge E rho hs ht)
+    have hb := congrArg State.fastWrite (fgsa_gate_clock_bridge E rho hs ht
+      (fgsa_gate_joined_of_enabled E rho hEnabled))
     rw [normalizeS_fields] at hb
     change st.fastWrite = nd.st.fastWrite ++ [(r * p.R,
       fastSet p (eraseFG nd.st.fg.F)
@@ -191,6 +193,7 @@ suppress the row, so no emission is claimed (permission ≠ emission). -/
 theorem openingSource_firstOpening (hs : V2.D.ScheduleWellFormed E rho)
     (i : Nat) (x : V) (q r m : Nat) (D : FGBlock (Fin p.n))
     (ht : rho.events[i]? = some (.tick x (p.actionTime r)))
+    (hEnabled : enabledGateAt p c E rho i x (r * p.R))
     (hle : q ≤ r * p.R) (hfirst : ∀ r', q ≤ r' * p.R → r ≤ r')
     (hservice : Gen.AC.Duty.GateService (fgsaAC E rho) i (r * p.R) x (eraseFG D)) :
     let nd : Node p := V2.D.Run.stateBefore E rho i x
@@ -217,7 +220,8 @@ theorem openingSource_firstOpening (hs : V2.D.ScheduleWellFormed E rho)
         (finality_pair nd.record.toRecord (fgInputs p st).2)) =
         some (hOf p.E p.cfg C, (derive p.E p.cfg C).T_h.root) := by
   intro nd st hkept hgap hcap hpermit
-  have hserved := openingSource_candidate_of_gateService E rho hs i x r (eraseFG D) ht hservice
+  have hserved := openingSource_candidate_of_gateService E rho hs i x r
+    (eraseFG D) ht hEnabled hservice
   obtain ⟨C, hC, hDC⟩ := openingSource_extends_served E rho i x r D hkept hserved
   have hm := hC
   rw [fgSource_eq_jointSource] at hm
@@ -244,6 +248,7 @@ no-strict-extension supplier is precisely the selector condition from
 theorem openingSource_exact_of_gateService (hs : V2.D.ScheduleWellFormed E rho)
     (i : Nat) (x : V) (r : Nat) (Q : FGBlock (Fin p.n))
     (ht : rho.events[i]? = some (.tick x (p.actionTime r)))
+    (hEnabled : enabledGateAt p c E rho i x (r * p.R))
     (hservice : Gen.AC.Duty.GateService (fgsaAC E rho) i (r * p.R) x (eraseFG Q)) :
     let st := ((fgsa p c).clock (V2.D.Run.stateBefore E rho i x) (p.actionTime r)).st
     Q ∈ domainR p st (treeT p st) →
@@ -252,7 +257,7 @@ theorem openingSource_exact_of_gateService (hs : V2.D.ScheduleWellFormed E rho)
     FGSA.fgSource p st = some Q := by
   intro st hkept hmax
   exact openingSource_eq_of_no_strict_extension E rho i x r Q hkept
-    (openingSource_candidate_of_gateService E rho hs i x r (eraseFG Q) ht hservice) hmax
+    (openingSource_candidate_of_gateService E rho hs i x r (eraseFG Q) ht hEnabled hservice) hmax
 
 /-- The exact R15 composed form. DC: no direct FG-SA first-opening
 counterpart. INTENTIONAL: 21 H.17 / H.9-Q and 22 FF1 use the exact
@@ -266,6 +271,7 @@ suppress the row, so no emission is claimed (permission ≠ emission). -/
 theorem openingSource_firstOpening_exact (hs : V2.D.ScheduleWellFormed E rho)
     (i : Nat) (x : V) (q r : Nat) (Q : FGBlock (Fin p.n))
     (ht : rho.events[i]? = some (.tick x (p.actionTime r)))
+    (hEnabled : enabledGateAt p c E rho i x (r * p.R))
     (hle : q ≤ r * p.R) (hfirst : ∀ r', q ≤ r' * p.R → r ≤ r')
     (hservice : Gen.AC.Duty.GateService (fgsaAC E rho) i (r * p.R) x (eraseFG Q)) :
     let nd : Node p := V2.D.Run.stateBefore E rho i x
@@ -287,7 +293,7 @@ theorem openingSource_firstOpening_exact (hs : V2.D.ScheduleWellFormed E rho)
         (finality_pair nd.record.toRecord (fgInputs p st).2)) =
       some (hOf p.E p.cfg Q, (derive p.E p.cfg Q).T_h.root) := by
   intro nd st hkept hmax hpermit
-  have hQ := openingSource_exact_of_gateService E rho hs i x r Q ht hservice hkept hmax
+  have hQ := openingSource_exact_of_gateService E rho hs i x r Q ht hEnabled hservice hkept hmax
   refine ⟨(opening_time_bound q r hle hfirst).1, (opening_time_bound q r hle hfirst).2, hQ, ?_⟩
   rw [hQ]
   exact opening_pair nd.record.toRecord _ _ _ hpermit

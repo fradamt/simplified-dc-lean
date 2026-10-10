@@ -1,7 +1,6 @@
-# P-ShA map from W3 at e3f3853c; S-Ap slice pending.
+# P-ShA round 2 at da94c7c2; remaining failures have exact owners.
 [TARGETS]
 AvailableChainFGSAClaims.Tests.Reads
-AvailableChainFGSAProofs.Tests.FGSafety
 AvailableChainFGSAProofs.Proofs.Shared.BoundsW
 AvailableChainFGSAProofs.Proofs.Shared.CatchUp
 AvailableChainFGSAProofs.Proofs.Shared.Channels
@@ -55,6 +54,7 @@ AvailableChainFGSAProofs.Proofs.Shared.StoreRun
 AvailableChainFGSAProofs.Proofs.Shared.WindowTerminal
 AvailableChainFGSAProofs.Tests.BoundsW
 AvailableChainFGSAProofs.Tests.Channels
+AvailableChainFGSAProofs.Tests.FGSafety
 AvailableChainFGSAProofs.Tests.FinalityW
 AvailableChainFGSAProofs.Tests.KeepExact
 AvailableChainFGSAProofs.Tests.RetainedConsumers
@@ -232,37 +232,87 @@ AvailableChainFGSA.Tests.WindowRetention
 AvailableChainFGSA.Tests.WindowSelection
 AvailableChainFGSA.Tests.WindowStore
 AvailableChainFGSA.Tests.WindowViews
+AvailableChainFGSAClaims.Claims.Shared
 AvailableChainFGSAClaims.Statements.Bounds
 AvailableChainFGSAClaims.Statements.BoundsW
+AvailableChainFGSAClaims.Statements.ChannelProps
+AvailableChainFGSAClaims.Statements.Channels
+AvailableChainFGSAClaims.Statements.ComposeStmt
 AvailableChainFGSAClaims.Statements.Counts
+AvailableChainFGSAClaims.Statements.Fold
+AvailableChainFGSAClaims.Statements.FrameNext
+AvailableChainFGSAClaims.Statements.Healed
+AvailableChainFGSAClaims.Statements.Join
+AvailableChainFGSAClaims.Statements.Packages.Safety
+AvailableChainFGSAClaims.Statements.Phases
 AvailableChainFGSAClaims.Statements.Reads
 AvailableChainFGSAClaims.Statements.Recurrence
+AvailableChainFGSAClaims.Statements.Regimes
+AvailableChainFGSAClaims.Statements.Windows
+AvailableChainFGSAClaims.Statements.Witness
 AvailableChainFGSAClaims.Tests.Reads
 AvailableChainFGSAProofs.Proofs.Shared.BoundsW
 AvailableChainFGSAProofs.Proofs.Shared.CatchUp
+AvailableChainFGSAProofs.Proofs.Shared.Channels
+AvailableChainFGSAProofs.Proofs.Shared.Compose
+AvailableChainFGSAProofs.Proofs.Shared.Count
+AvailableChainFGSAProofs.Proofs.Shared.ExactHead
+AvailableChainFGSAProofs.Proofs.Shared.ExactService
 AvailableChainFGSAProofs.Proofs.Shared.FGCompose
 AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient
 AvailableChainFGSAProofs.Proofs.Shared.FGSafetyScope
 AvailableChainFGSAProofs.Proofs.Shared.FGSafetyStore
+AvailableChainFGSAProofs.Proofs.Shared.Gate
 AvailableChainFGSAProofs.Proofs.Shared.GateReceipt
 AvailableChainFGSAProofs.Proofs.Shared.GridSchedule
 AvailableChainFGSAProofs.Proofs.Shared.HeadAfterSettlement
+AvailableChainFGSAProofs.Proofs.Shared.HeadCover
 AvailableChainFGSAProofs.Proofs.Shared.HeadGeometry
+AvailableChainFGSAProofs.Proofs.Shared.Healed
 AvailableChainFGSAProofs.Proofs.Shared.HealingFixture
+AvailableChainFGSAProofs.Proofs.Shared.HeldReceipt
+AvailableChainFGSAProofs.Proofs.Shared.HonestQuorum
+AvailableChainFGSAProofs.Proofs.Shared.KeepExact
 AvailableChainFGSAProofs.Proofs.Shared.OpeningAfterGate
+AvailableChainFGSAProofs.Proofs.Shared.OpeningSource
 AvailableChainFGSAProofs.Proofs.Shared.OutputGrowth
 AvailableChainFGSAProofs.Proofs.Shared.OutputGrowthCausal
 AvailableChainFGSAProofs.Proofs.Shared.OutputGrowthProposal
+AvailableChainFGSAProofs.Proofs.Shared.OutputGrowthReads
+AvailableChainFGSAProofs.Proofs.Shared.ProposalRead
+AvailableChainFGSAProofs.Proofs.Shared.Reads
 AvailableChainFGSAProofs.Proofs.Shared.ReceiptFacts
 AvailableChainFGSAProofs.Proofs.Shared.Recurrence
 AvailableChainFGSAProofs.Proofs.Shared.Relay
 AvailableChainFGSAProofs.Proofs.Shared.Release
+AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumers
+AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumersH6S
+AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumersL2
+AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumersQ
+AvailableChainFGSAProofs.Proofs.Shared.RetainedEndpoint
+AvailableChainFGSAProofs.Proofs.Shared.RetainedPersist
+AvailableChainFGSAProofs.Proofs.Shared.RetainedReflect
+AvailableChainFGSAProofs.Proofs.Shared.RetainedScores
+AvailableChainFGSAProofs.Proofs.Shared.RetainedWalk
 AvailableChainFGSAProofs.Proofs.Shared.RetainedWalkStore
+AvailableChainFGSAProofs.Proofs.Shared.Roots
 AvailableChainFGSAProofs.Proofs.Shared.RowAuth
+AvailableChainFGSAProofs.Proofs.Shared.RowReads
 AvailableChainFGSAProofs.Proofs.Shared.SameLabel
 AvailableChainFGSAProofs.Proofs.Shared.ScoreRun
+AvailableChainFGSAProofs.Proofs.Shared.SelfDelivery
 AvailableChainFGSAProofs.Proofs.Shared.StoreRun
+AvailableChainFGSAProofs.Proofs.Shared.WindowTerminal
 AvailableChainFGSAProofs.Tests.BoundsW
+AvailableChainFGSAProofs.Tests.Channels
+AvailableChainFGSAProofs.Tests.FGSafety
+AvailableChainFGSAProofs.Tests.FinalityW
+AvailableChainFGSAProofs.Tests.KeepExact
+AvailableChainFGSAProofs.Tests.RetainedEndpoint
+AvailableChainFGSAProofs.Tests.RetainedPersist
+AvailableChainFGSAProofs.Tests.RetainedReflect
+AvailableChainFGSAProofs.Tests.RetainedScores
+AvailableChainFGSAProofs.Tests.RetainedWalk
 AvailableChainFGSAProofs.Tests.SharedAxioms
 AvailableChainFGSARun.Model.Families
 AvailableChainFGSARun.Model.HealingFixture
@@ -488,59 +538,10 @@ AvailableChainKitV2.Tests.Duties
 AvailableChainKitV2.Tests.Sleep
 AvailableChainKitV2.Tests.Toy
 [EXPECTED-FAIL]
-AvailableChainFGSAProofs.Tests.FGSafety P-Sa
-AvailableChainFGSAClaims.Claims.Shared S-Ap
-AvailableChainFGSAClaims.Statements.ChannelProps S-Ap
-AvailableChainFGSAClaims.Statements.Channels S-Ap
-AvailableChainFGSAClaims.Statements.ComposeStmt S-Ap
-AvailableChainFGSAClaims.Statements.Fold S-Ap
-AvailableChainFGSAClaims.Statements.FrameNext S-Ap
-AvailableChainFGSAClaims.Statements.Healed S-Ap
-AvailableChainFGSAClaims.Statements.Packages.Safety S-Ap
-AvailableChainFGSAClaims.Statements.Phases S-Ap
-AvailableChainFGSAClaims.Statements.Regimes S-Ap
-AvailableChainFGSAClaims.Statements.Windows S-Ap
-AvailableChainFGSAClaims.Statements.Witness S-Ap
-AvailableChainFGSAProofs.Proofs.Shared.Channels P-ShA
-AvailableChainFGSAProofs.Proofs.Shared.Compose P-ShA
-AvailableChainFGSAProofs.Proofs.Shared.Count P-ShA
-AvailableChainFGSAProofs.Proofs.Shared.ExactHead P-ShA
-AvailableChainFGSAProofs.Proofs.Shared.ExactService P-ShA
 AvailableChainFGSAProofs.Proofs.Shared.Export P-ShA
-AvailableChainFGSAProofs.Proofs.Shared.Gate P-ShA
 AvailableChainFGSAProofs.Proofs.Shared.HeadAdmit P-ShA
-AvailableChainFGSAProofs.Proofs.Shared.HeadCover P-ShA
-AvailableChainFGSAProofs.Proofs.Shared.Healed P-ShA
-AvailableChainFGSAProofs.Proofs.Shared.HeldReceipt P-ShA
-AvailableChainFGSAProofs.Proofs.Shared.HonestQuorum P-ShA
-AvailableChainFGSAProofs.Proofs.Shared.KeepExact P-ShA
-AvailableChainFGSAProofs.Proofs.Shared.OpeningSource P-ShA
-AvailableChainFGSAProofs.Proofs.Shared.OutputGrowthReads P-ShA
-AvailableChainFGSAProofs.Proofs.Shared.ProposalRead P-ShA
-AvailableChainFGSAProofs.Proofs.Shared.Reads P-ShA
 AvailableChainFGSAProofs.Proofs.Shared.Regimes P-ShA
-AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumers P-ShA
-AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumersH6S P-ShA
-AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumersL2 P-ShA
-AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumersQ P-ShA
-AvailableChainFGSAProofs.Proofs.Shared.RetainedEndpoint P-ShA
-AvailableChainFGSAProofs.Proofs.Shared.RetainedPersist P-ShA
-AvailableChainFGSAProofs.Proofs.Shared.RetainedReflect P-ShA
-AvailableChainFGSAProofs.Proofs.Shared.RetainedScores P-ShA
-AvailableChainFGSAProofs.Proofs.Shared.RetainedWalk P-ShA
-AvailableChainFGSAProofs.Proofs.Shared.Roots P-ShA
-AvailableChainFGSAProofs.Proofs.Shared.RowReads P-ShA
-AvailableChainFGSAProofs.Proofs.Shared.SelfDelivery P-ShA
-AvailableChainFGSAProofs.Proofs.Shared.WindowTerminal P-ShA
+AvailableChainFGSAProofs.Tests.RetainedConsumers P-ShA
 AvailableChainFGSARun S-Ap
 AvailableChainFGSARun.Proofs.ReceiptCoverage S-Ap
 AvailableChainFGSARun.Tests.Axioms S-Ap
-AvailableChainFGSAProofs.Tests.Channels P-ShA
-AvailableChainFGSAProofs.Tests.FinalityW P-ShA
-AvailableChainFGSAProofs.Tests.KeepExact P-ShA
-AvailableChainFGSAProofs.Tests.RetainedConsumers P-ShA
-AvailableChainFGSAProofs.Tests.RetainedEndpoint P-ShA
-AvailableChainFGSAProofs.Tests.RetainedPersist P-ShA
-AvailableChainFGSAProofs.Tests.RetainedReflect P-ShA
-AvailableChainFGSAProofs.Tests.RetainedScores P-ShA
-AvailableChainFGSAProofs.Tests.RetainedWalk P-ShA

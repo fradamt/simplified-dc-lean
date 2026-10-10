@@ -2,6 +2,7 @@ module
 public import AvailableChainFGSAClaims.Statements.Reads
 public import AvailableChainFGSARun.Statements.Interface
 public import AvailableChainFGSARun.Proofs.Schedule
+public import AvailableChainFGSAProofs.Proofs.Shared.CatchUp
 
 public section
 
@@ -127,6 +128,10 @@ namespace AvailableChain.FGSA.Run
 
 open AvailableChain.SimplexFG
 
+local instance (w : Option Time) (cut : Time) :
+    Decidable (match w with | none => True | some t => t ≤ cut) := by
+  cases w <;> dsimp <;> infer_instance
+
 variable (p : Params) {In : Type} (c : AppCodec In)
     {V : Type} [DecidableEq V] (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
@@ -154,11 +159,68 @@ theorem gateResult_eq_saved (hs : V2.D.ScheduleWellFormed E rho)
       GridCO.savedGenuine
         (((fgsa p c).clock (V2.D.Run.stateBefore E rho i x)
           (SA.gateTime p.toParams s)).st.base) s := by
+  classical
   have ht := fgsa_tickIdx_of_event p c E rho hs hi
   rw [gateResult_def, gateIn_def, preTick_def, ht]
   dsimp only [Option.map_some]
-  rw [clockPre_fg]
-  exact (fgsa_gate_saved_result E rho hs hi).symm
+  have hrtime : (clockPre p (V2.D.Run.stateBefore E rho i x).st
+      (SA.gateTime p.toParams s)).restartTime =
+      (V2.D.Run.stateBefore E rho i x).st.restartTime := by
+    unfold clockPre
+    dsimp only
+    split_ifs <;> rfl
+  rw [clockPre_fg, hrtime]
+  have hslot : p.slotOf (SA.gateTime p.toParams s) = s + 1 :=
+    (fgsa_postClock_slot (c := c) (V2.D.Run.stateBefore E rho i x) _).2.symm.trans
+      (fgsa_gate_slot (c := c) (V2.D.Run.stateBefore E rho i x) s)
+  have hg := fgsa_gate_saved_guarded E rho hs hi
+  change GridCO.savedGenuine
+    (((fgsa p c).clock (V2.D.Run.stateBefore E rho i x)
+      (SA.gateTime p.toParams s)).st.base) s = _ at hg
+  cases hr : (V2.D.Run.stateBefore E rho i x).st.restartTime with
+  | none =>
+    rw [hr] at hg
+    change GridCO.savedGenuine _ _ = some (SA.Root.confirmationFrom p.toParams
+      (eraseFG (V2.D.Run.stateBefore E rho i x).st.fg.F)
+      (actView (clockPre p (V2.D.Run.stateBefore E rho i x).st
+        (SA.gateTime p.toParams s))) s) at hg
+    simpa only [hr, decide_true, ite_true] using hg.symm
+  | some w =>
+    rw [hr] at hg
+    change GridCO.savedGenuine _ _ = some (if
+      decide (w ≤ 4 * p.Δ * ((p.slotOf (SA.gateTime p.toParams s) : Int) - 1)) then
+        _ else none) at hg
+    simp only [hslot, Nat.cast_add, Nat.cast_one, add_sub_cancel_right] at hg
+    by_cases hw : w ≤ 4 * p.Δ * (s : Int)
+    · simpa only [hr, hw, decide_true, ite_true] using hg.symm
+    · simpa only [hr, hw, decide_false, Bool.false_eq_true, ite_false] using hg.symm
+
+
+
+
+/-- An executed nonempty result supplies the joined raw branch at the same tick. -/
+theorem fgsa_gate_raw_of_nonempty (hs : V2.D.ScheduleWellFormed E rho)
+    {i : Nat} {x : V} {s : Slot} {B : Block} (hi : IsGateTick p c rho i x s)
+    (h : gateResult p c E rho x s = some (some B)) :
+    joinedAtTime p (V2.D.Run.stateBefore E rho i x).st.restartTime
+      (SA.gateTime p.toParams s) = true ∧
+    SA.Root.confirmationFrom p.toParams
+      (eraseFG (clockPre p (V2.D.Run.stateBefore E rho i x).st
+        (SA.gateTime p.toParams s)).fg.F)
+      (actView (clockPre p (V2.D.Run.stateBefore E rho i x).st
+        (SA.gateTime p.toParams s))) s = some B := by
+  have hg := fgsa_gate_saved_guarded E rho hs hi
+  have hsave := (gateResult_eq_saved p c E rho hs hi).symm.trans h
+  change GridCO.savedGenuine (FGSA.clock p (V2.D.Run.stateBefore E rho i x).st
+    (SA.gateTime p.toParams s)).base s = some (some B) at hsave
+  dsimp only at hg
+  rw [hsave] at hg
+  cases hj : joinedAtTime p (V2.D.Run.stateBefore E rho i x).st.restartTime
+      (SA.gateTime p.toParams s) with
+  | false => simp only [hj, Bool.false_eq_true, ite_false, Option.some.injEq] at hg; cases hg
+  | true =>
+    simp only [hj, ite_true, Option.some.injEq] at hg
+    exact ⟨rfl, by simpa only [clockPre_fg] using hg.symm⟩
 
 private theorem fgsa_read_gate_label (s : Slot) :
     ((SA.gateTime p.toParams s - 6 * p.Δ) / (4 * p.Δ)).toNat = s := by
@@ -197,10 +259,14 @@ theorem gateResultAt_eq_gateResult (hs : V2.D.ScheduleWellFormed E rho)
   -- Reduce the index match without exporting its equation lemmas.
   change (match rho.events[j]? with
     | some (.tick y t) => if isGateTime p t then
-        some (SA.Root.confirmationFrom p.toParams
+        some (if (match (FGSA.clockPre p (V2.D.Run.stateBefore E rho j y).st t).restartTime
+          with
+          | none => True
+          | some w => w ≤ 4 * p.Δ * (((t - 6 * p.Δ) / (4 * p.Δ)).toNat : Int)) then
+          SA.Root.confirmationFrom p.toParams
           (eraseFG (FGSA.clockPre p (V2.D.Run.stateBefore E rho j y).st t).fg.F)
           (FGSA.actView (FGSA.clockPre p (V2.D.Run.stateBefore E rho j y).st t))
-          ((t - 6 * p.Δ) / (4 * p.Δ)).toNat)
+          ((t - 6 * p.Δ) / (4 * p.Δ)).toNat else none)
       else none
     | _ => none) = _
   rw [show rho.events[j]? = some (.tick x (SA.gateTime p.toParams s)) from hj]

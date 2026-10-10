@@ -39,12 +39,14 @@ theorem fgsa_healed_output_mono (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)
     (healed : Healed p c E rho a) (hat : a ≤ t) (htD : t ≤ D)
     (g : V2.D.Output (fgsa p c))
     (hg : g ∈ [(fgsaInterface p c).stable, (fgsaInterface p c).confirmed])
-    (x : V) (hx : x ∈ rho.honest) :
+    (x : V)
+    (hreadT : confirmedReaderIdx p c E rho x (timeIdx rho t))
+    (hreadD : confirmedReaderIdx p c E rho x (timeIdx rho D)) :
     Block.Preceq (V2.D.outputAt E rho g x t) (V2.D.outputAt E rho g x D) := by
   rw [fgsa_outputAt_eq_S_at E rho hs g hg x t, fgsa_outputAt_eq_S_at E rho hs g hg x D]
   exact healed.2.1 _ _ x (fgsa_healSuffix_timeIdx E rho hs hat)
     (fgsa_healSuffix_timeIdx E rho hs (hat.trans htD))
-    (V2.D.Engine.read_length_mono _ _ htD) hx
+    (V2.D.Engine.read_length_mono _ _ htD) hreadT hreadD
 
 end AvailableChain.FGSA.Run
 end

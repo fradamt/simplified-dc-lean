@@ -39,7 +39,9 @@ private theorem healed_start_le {t u : Time} (htu : t ≤ u) :
 /-- Same-time compatibility (21 H.22:2996–2997; 22 §1:178–179),
 by taking equal event indices in the Gen cross-time property. -/
 theorem healed_same_time {t : Time} (h : Healed p c E rho t) :
-    Gen.Pure.CompatAt (· ∈ rho.honest) (S_at p c E rho) (HealSuffix p c rho t) := by
+    ∀ i x y, HealSuffix p c rho t i → confirmedReaderIdx p c E rho x i →
+      confirmedReaderIdx p c E rho y i →
+      Block.Compatible (S_at p c E rho i x) (S_at p c E rho i y) := by
   intro i x y hi hx hy
   exact h.1 i i x y hi hi hx hy
 
@@ -54,8 +56,8 @@ theorem healed_mono_start {t u : Time} (htu : t ≤ u) (h : Healed p c E rho t) 
     exact h.1 i j x y (hs i hi) (hs j hj) hx hy
   · intro i j x hi hj hij hx
     exact h.2.1 i j x (hs i hi) (hs j hj) hij hx
-  · intro i x hi hx
-    exact h.2.2.1 i x (hs i hi) hx
+  · intro i x y hi hx hy
+    exact h.2.2.1 i x y (hs i hi) hx hy
   · intro s B hu hh hp
     exact h.2.2.2 s B (htu.trans hu) hh hp
 

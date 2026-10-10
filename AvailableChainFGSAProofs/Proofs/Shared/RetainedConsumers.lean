@@ -347,7 +347,7 @@ theorem fgsa_retainedReads_H6
       RetainedH6Input p
         (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
         (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s)
-    (hroots : NamedRootCollisionFree p c E rho) :
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
     ∀ y ∈ rho.honest, ∀ ih,
       rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
       ∃ Kc, RetainedReadPremises p
@@ -365,8 +365,8 @@ theorem fgsa_retainedReads_H6
   have hm := hem
   rw [(V2.D.Run.step_tick_eq E rho hip).2] at hm
   have hp := (fgsa_emits_proposal E rho _ x _ s _).mp hm
-  have hparent := fgsa_walkRun_proposal_parent p src s _ N hp.2.2.2
-  have hslot := (fgsa_scoreRun_proposal_pools p src s _ N hp.2.2.2).1
+  have hparent := fgsa_walkRun_proposal_parent p src s _ N hp.2.2.2.2
+  have hslot := (fgsa_scoreRun_proposal_pools p src s _ N hp.2.2.2.2).1
   have hheight := consumer_parent_height p src hr s N.erase.parent hparent.2.2.symm
     hi.frame.source_witness
   have hcover := consumer_prior_cover p src hs s (ap p src) hi.proposer_prior
@@ -621,7 +621,7 @@ private theorem consumer_retainedReads_at
       RetainedConeInput p
         (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
         (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D)
-    (hroots : NamedRootCollisionFree p c E rho)
+    (hroots : NamedReceiptRootCollisionFree p c E rho)
     (y : V) (hy : y ∈ rho.honest) (ih : Nat)
     (hih : rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s))) :
       ∃ Kc, RetainedReadPremises p
@@ -636,8 +636,8 @@ private theorem consumer_retainedReads_at
   have hm := hem
   rw [(V2.D.Run.step_tick_eq E rho hip).2] at hm
   have hp := (fgsa_emits_proposal E rho _ x _ s _).mp hm
-  have hparent := fgsa_walkRun_proposal_parent p src s _ N hp.2.2.2
-  have hslot := (fgsa_scoreRun_proposal_pools p src s _ N hp.2.2.2).1
+  have hparent := fgsa_walkRun_proposal_parent p src s _ N hp.2.2.2.2
+  have hslot := (fgsa_scoreRun_proposal_pools p src s _ N hp.2.2.2.2).1
   have hstarts := consumer_cone_starts p src dst hs s D N.erase hparent.2.2.symm hi
   have hay := hstarts.2.2.1
   obtain ⟨dl, cut, hD, _, hlt, hb, _, hc, _⟩ := hSync
@@ -691,7 +691,7 @@ theorem fgsa_retainedReads_H17
       RetainedConeInput p
         (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
         (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D)
-    (hroots : NamedRootCollisionFree p c E rho) :
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
     ∀ y ∈ rho.honest, ∀ ih,
       rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
       ∃ Kc, RetainedReadPremises p

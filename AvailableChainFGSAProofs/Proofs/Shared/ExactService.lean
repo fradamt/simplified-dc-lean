@@ -76,7 +76,8 @@ theorem exactService_gate_receipts_of_head
     have hm := (List.mem_filter.mp hK).1
     change K ∈ (clockPre p _ _).base.blocks at hm
     rwa [(clockPre_fields p _ _).2.1] at hm
-  have hObserver := headTargetAtEmission_of_stored E rho hroots he rfl i x hKm
+  have hObserver := headTargetAtEmission_of_stored E rho
+    (hroots.toNamedRootCollisionFree E rho) he rfl i x hKm
   have heq := exactService_emitted_head E rho hE.toScheduleWellFormed s Q hhead q hh K t hObserver
   subst K
   exact ⟨t, he, hv, hK, hslot, hvs, hbs, hF⟩
@@ -206,6 +207,7 @@ theorem exactService_fastWrite_of_gateService
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hs : V2.D.ScheduleWellFormed E rho) (i : Nat) (x : V) (s : Slot) (Q : Block)
     (ht : IsGateTick p c rho i x s)
+    (hEnabled : enabledGateAt p c E rho i x s)
     (hservice : Gen.AC.Duty.GateService (fgsaAC E rho) i s x Q) :
     Q ∈ (fastWriteAt (((fgsa p c).clock (V2.D.Run.stateBefore E rho i x)
       (SA.gateTime p.toParams s)).st) s).getD [] := by
@@ -215,7 +217,8 @@ theorem exactService_fastWrite_of_gateService
   have hinv := (storeBundle_postClock E rho i x (SA.gateTime p.toParams s)).cstore
   obtain ⟨_, _, _, _, hfast, _⟩ := hservice
   have hfastEq : st.fastWrite = nd.st.fastWrite ++ [(s, (fgsaAC E rho).fast i s x)] := by
-    have hb := congrArg State.fastWrite (fgsa_gate_clock_bridge E rho hs ht)
+    have hb := congrArg State.fastWrite (fgsa_gate_clock_bridge E rho hs ht
+      (fgsa_gate_joined_of_enabled E rho hEnabled))
     rw [normalizeS_fields] at hb
     change st.fastWrite = nd.st.fastWrite ++ [(s, fastSet p (eraseFG nd.st.fg.F)
       (actView (clockPre p nd.st (SA.gateTime p.toParams s))) s)] at hb
@@ -274,6 +277,7 @@ theorem exactService_opening_of_gateService
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hs : V2.D.ScheduleWellFormed E rho) (i : Nat) (x : V) (r : Nat) (Q : Block)
     (ht : rho.events[i]? = some (.tick x (p.actionTime r)))
+    (hEnabled : enabledGateAt p c E rho i x (r * p.R))
     (hservice : Gen.AC.Duty.GateService (fgsaAC E rho) i (r * p.R) x Q)
     (hout : (fgsaAC E rho).output (i + 1) x = Q)
     (hdom : ∃ D, eraseFG D = Q ∧
@@ -292,7 +296,7 @@ theorem exactService_opening_of_gateService
   obtain ⟨D, hD, hkept⟩ := hdom
   have hserved : eraseFG D ∈ sourceCandidates p st := by
     rw [hD]
-    exact openingSource_candidate_of_gateService E rho hs i x r Q ht hservice
+    exact openingSource_candidate_of_gateService E rho hs i x r Q ht hEnabled hservice
   obtain ⟨C, hC, hDC⟩ := openingSource_extends_served E rho i x r D hkept hserved
   have hm := hC
   rw [fgSource_eq_jointSource] at hm
@@ -348,7 +352,7 @@ theorem exactService_gate_at_of_head [Fintype V]
     (hfast : SA.releaseThreshold p.toParams ≤ H.card)
     (hroots : NamedReceiptRootCollisionFree p c E rho) :
     gateResult p c E rho x s = some (some Q) ∧
-    (∃ j, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j) ∧
+    (∃ j, enabledGateAt p c E rho j x s ∧ gatePassedAt p c E rho j) ∧
     (∃ nd, postClock E rho x (SA.gateTime p.toParams s) = some nd ∧
       Q ∈ (fastWriteAt nd.st s).getD []) ∧
     (fgsaInterface p c).stable (afterTicks E rho (SA.gateTime p.toParams s) x) = Q ∧
@@ -358,6 +362,7 @@ theorem exactService_gate_at_of_head [Fintype V]
   let v := actView pre
   let w := (fgsaAC E rho).gateView i x s
   have hs := hE.toScheduleWellFormed
+  have hEnabled := fgsa_enabledGate_noRestart E rho hN ht
   obtain ⟨hr, hcount, hmem, hanchor⟩ := exactService_gate_raw_of_head (hroots := hroots)
     E rho hE hN hDelta hC
     s Q hhead hSync ht hgeom.toGateReceiptGeometry H hH hbatch
@@ -379,7 +384,7 @@ theorem exactService_gate_at_of_head [Fintype V]
       (if decide (SA.releaseThreshold p.toParams ≤ SA.Root.prefixSupport p.toParams w s Q) ||
         GridCO.slowEligible p.toParams.engine w s Q then [SA.releaseThreshold p.toParams] else [])
     simp only [hsupport, decide_true, Bool.true_or, ite_true, List.mem_singleton]
-  have hservice := fgsa_gate_of_coveringBatch E rho hs i s x Q ht
+  have hservice := fgsa_gate_of_coveringBatch E rho hs i s x Q ht hEnabled
     ⟨Q, hraw, block_preceq_refl Q⟩ (by
       intro C hC
       have he := Option.some.inj (hraw.symm.trans hC)
@@ -388,13 +393,21 @@ theorem exactService_gate_at_of_head [Fintype V]
   have hanchor' : Block.Preceq ((fgsaAC E rho).anchor i x) Q := by
     change Block.Preceq (eraseFG (storeAt p c E rho i x).fg.F) Q
     simpa only [clockPre_fg] using hanchor
-  have hout := (fgsa_S_eq_of_exact E rho hs i s x Q hx ht hraw
+  have hout := (fgsa_S_eq_of_exact E rho hs i s x Q hx ht hEnabled hraw
     hgeom.guard hgeom.old_output hanchor').1
   have hidx := fgsa_tickIdx_of_event p c E rho hs ht
-  refine ⟨?_, ⟨i, ht, ?_⟩, ?_, ?_, ?_⟩
-  · rw [gateResult_def, gateIn_def, preTick_def, hidx]
-    exact congrArg some hr
-  · refine ⟨x, s, ht, ?_, Q, hr, ?_⟩
+  refine ⟨?_, ⟨i, hEnabled, ?_⟩, ?_, ?_, ?_⟩
+  · rw [gateResult_eq_saved p c E rho hs ht]
+    have hg := fgsa_gate_saved_result E rho hs ht
+      (fgsa_gate_joined_of_enabled E rho hEnabled)
+    change SA.Root.confirmationFrom p.toParams
+      (eraseFG (clockPre p (V2.D.Run.stateBefore E rho i x).st
+        (SA.gateTime p.toParams s)).fg.F)
+      (actView (clockPre p (V2.D.Run.stateBefore E rho i x).st
+        (SA.gateTime p.toParams s))) s = some Q at hr
+    rw [clockPre_fg] at hr
+    exact hg.trans (congrArg some hr)
+  · refine ⟨x, s, hEnabled, ?_, Q, hr, ?_⟩
     · unfold GridCO.savedGenuine
       rw [clockPre_genuine]
       exact fgsa_gate_fresh E rho hs ht
@@ -404,7 +417,7 @@ theorem exactService_gate_at_of_head [Fintype V]
       have hg : Block.compatible lease.1 Q = true := hgeom.guard lease hlw
       simp only [hg, Bool.not_true, Bool.false_eq_true, not_false_eq_true]
   · refine ⟨(fgsa p c).clock (V2.D.Run.stateBefore E rho i x) (SA.gateTime p.toParams s), ?_,
-      exactService_fastWrite_of_gateService E rho hs i x s Q ht hservice⟩
+      exactService_fastWrite_of_gateService E rho hs i x s Q ht hEnabled hservice⟩
     rw [postClock_def, preTick_def, hidx]
     rfl
   · rw [afterTicks_node E rho hs ht]
@@ -414,7 +427,7 @@ theorem exactService_gate_at_of_head [Fintype V]
     rwa [(V2.D.Run.step_tick_eq E rho ht).1] at hout
   · intro r he
     subst s
-    exact exactService_opening_of_gateService E rho hs i x r Q ht hservice hout
+    exact exactService_opening_of_gateService E rho hs i x r Q ht hEnabled hservice hout
       (hgeom.opening_domain r rfl)
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -445,13 +458,15 @@ theorem exactService_gate_of_head [Fintype V]
       ExactServiceGateGeometry E rho i x v Q)
     (hroots : NamedReceiptRootCollisionFree p c E rho) :
     SA.gateTime p.toParams v ≤ rho.horizon → ∀ x ∈ rho.honest,
+      confirmedReaderAtIdx p c E rho x
+        (afterTicksIdx rho (SA.gateTime p.toParams v)) (SA.gateTime p.toParams v) →
       gateResult p c E rho x v = some (some Q) ∧
-      (∃ j, IsGateTick p c rho j x v ∧ gatePassedAt p c E rho j) ∧
+      (∃ j, enabledGateAt p c E rho j x v ∧ gatePassedAt p c E rho j) ∧
       (∃ nd, postClock E rho x (SA.gateTime p.toParams v) = some nd ∧
         Q ∈ (fastWriteAt nd.st v).getD []) ∧
       (fgsaInterface p c).stable (afterTicks E rho (SA.gateTime p.toParams v) x) = Q ∧
       (∀ r, v = r * p.R → actionSource p c E rho x r = some (some Q)) := by
-  intro hh x hx
+  intro hh x hx hreader
   have hvg : SA.voteTime p.toParams v ≤ SA.gateTime p.toParams v := by
     change 4 * p.Δ * (v : Int) + p.Δ ≤ 4 * p.Δ * (v : Int) + 6 * p.Δ
     linarith [p.deltaPos]
@@ -461,6 +476,7 @@ theorem exactService_gate_of_head [Fintype V]
     ring
   obtain ⟨i, hi, _⟩ := fgsa_tick_total E rho hE.toScheduleWellFormed hDelta x hx
     (4 * v + 6) (htime ▸ hh)
+    (by simpa only [htime] using hreader.2.1)
   rw [htime] at hi
   obtain ⟨H, hH, hbatch, hfast⟩ := hparticipation hh
   exact exactService_gate_at_of_head (hroots := hroots) E rho hE hN hDelta hC v Q hne
@@ -493,7 +509,8 @@ theorem exactService_of_head_and_gate [Fintype V]
       ExactServiceGateGeometry E rho i x v Q)
     (hroots : NamedReceiptRootCollisionFree p c E rho) :
     ExactService p c E rho v Q :=
-  ⟨hhead, exactService_gate_of_head (hroots := hroots) E rho hE hN hDelta hC v Q hne hhead hSync
+  ⟨(fun hh x hx _ => hhead hh x hx), exactService_gate_of_head (hroots := hroots)
+    E rho hE hN hDelta hC v Q hne hhead hSync
     hparticipation hgeometry⟩
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]

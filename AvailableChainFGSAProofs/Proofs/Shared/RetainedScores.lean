@@ -122,7 +122,7 @@ theorem fgsa_score_eq_on_candidates_on_run
     (hCandidates : ∀ C, Candidates C → ScoreRunGeometry
       (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
       (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) C)
-    (hroots : NamedRootCollisionFree p c E rho) :
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
     let src := clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s)
     let dst := clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)
     GridCO.voterCount (proposerVotes src s) = GridCO.voterCount (headVotes p dst s) ∧

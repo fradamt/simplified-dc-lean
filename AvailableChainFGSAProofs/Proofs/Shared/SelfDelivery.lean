@@ -32,7 +32,10 @@ theorem Base₂.snoc_ownRow (h : Base₂ p c E rho) {i : Nat} {v : V} {t : Time}
   valid := executionValid_snoc_selfDelivery h.valid hkey hi hlast ho
   linked := h.linked
   cstar := h.cstar
-  noRestart := noRestart_snoc_deliver h.noRestart
+  restartsAtWakes := by
+    intro x u hu
+    apply h.restartsAtWakes x u
+    simpa only [List.mem_append, List.mem_singleton, reduceCtorEq, or_false] using hu
   delta := h.delta
   idealization := namedRootCollisionFree_snoc_row h.idealization
 
@@ -48,7 +51,9 @@ theorem Base₂.cutAt (h : Base₂ p c E rho) {n i : Nat} {v : V} {t : Time}
     exact executionValid_cut h.valid hcut ht0 hth
   linked := h.linked
   cstar := h.cstar
-  noRestart := noRestart_cut h.noRestart
+  restartsAtWakes := by
+    intro x u hu
+    exact h.restartsAtWakes x u ((List.take_sublist n _).subset hu)
   delta := h.delta
   idealization := namedRootCollisionFree_cut h.idealization
 

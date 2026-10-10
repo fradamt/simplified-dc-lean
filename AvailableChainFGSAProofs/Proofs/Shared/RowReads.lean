@@ -46,7 +46,9 @@ theorem rowService_carrier_read {s : Slot} {Q : Block} {rows : List (RowWire p.n
     obtain ⟨_, _, d, _, ht, hm⟩ :=
       (V2.D.Engine.mem_tick_seat_iff E rho _ _ _ l seat _).mp hem
     cases d with
-    | headAction v => cases hm
+    | headAction v =>
+      change (if joinedNow p _ then some (Msg.head _) else none) = some (Msg.proposal N) at hm
+      split_ifs at hm; cases hm
     | fgAction r =>
       change (attest p _ _ _).1.map Msg.row = some (.proposal N) at hm
       obtain ⟨body, _, he⟩ := Option.map_eq_some_iff.mp hm
@@ -78,7 +80,9 @@ theorem rowService_carrier_read {s : Slot} {Q : Block} {rows : List (RowWire p.n
           (fun nd : Node p => nd.st) = some st
         rw [htick]
         rfl
-      · change (propose p st s).map (withApp p _) = some (.proposal N) at hm
+      · change (if joinedNow p st then
+          (propose p st s).map (withApp p _) else none) = some (.proposal N) at hm
+        split_ifs at hm with hjoin
         rw [propose_head p st s (Nat.ne_of_gt hs0)] at hm
         simp only [Option.map_map] at hm
         obtain ⟨P, hP, he⟩ := Option.map_eq_some_iff.mp hm

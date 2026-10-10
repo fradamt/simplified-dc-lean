@@ -1,6 +1,7 @@
 module
 public import AvailableChainFGSAClaims.Statements.ChannelProps
 public import AvailableChainFGSARun.Proofs.Roots
+public import AvailableChainFGSAProofs.Proofs.Shared.Reads
 
 public section
 
@@ -136,19 +137,16 @@ theorem rootScope_result (hv : V2.D.ExecutionValid E rho) {i r : Nat} {B : Block
   obtain ⟨j, _, x, hgt, hres⟩ := hB
   have ht : rho.events[j]? = some (.tick x (SA.gateTime p.toParams r)) := hgt
   have hx := hv.honest_only _ (List.mem_of_getElem? ht)
-  unfold gateResultAt at hres
-  rw [ht] at hres
-  dsimp only at hres
-  split at hres
-  · have hc := Option.some.inj hres
-    have hinv := cstoreInv_clockPre p _ (cstoreInv_stateBefore E rho j x)
-      (SA.gateTime p.toParams r)
-    have hm := (compat_of_confirmation p _ hinv hc).2
-    rw [(clockPre_fields p _ _).2.1] at hm
-    by_cases hg : B = .genesis
-    · exact rootBlockInRun_held E rho hx j hm
-    · exact rootBlockInRun_stored E rho j x hm hg
-  · cases hres
+  rcases hres with ⟨_, hres⟩
+  rw [gateResultAt_eq_gateResult p c E rho hv.toScheduleWellFormed hgt] at hres
+  have hraw := (fgsa_gate_raw_of_nonempty p c E rho hv.toScheduleWellFormed hgt hres).2
+  have hinv := cstoreInv_clockPre p _ (cstoreInv_stateBefore E rho j x)
+    (SA.gateTime p.toParams r)
+  have hm := (compat_of_confirmation p _ hinv hraw).2
+  rw [(clockPre_fields p _ _).2.1] at hm
+  by_cases hgen : B = .genesis
+  · exact rootBlockInRun_held E rho hx j hm
+  · exact rootBlockInRun_stored E rho j x hm hgen
 
 /-- ROOT-DIGEST W2b. A labelled result ancestor has body scope. -/
 theorem rootScope_belowLabel (hv : V2.D.ExecutionValid E rho) {x : V}

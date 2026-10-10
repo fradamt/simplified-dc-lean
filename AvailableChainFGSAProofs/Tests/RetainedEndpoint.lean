@@ -254,7 +254,7 @@ DC: INTENTIONAL; compile the full supplier-to-schedule application.
 This is a conditional run instance; the fixture has no certified heights. -/
 private theorem scheduled_instance
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (hroots : NamedRootCollisionFree p c E rho)
+    (hroots : NamedReceiptRootCollisionFree p c E rho)
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
     (s : Slot)
     (hWalkSync : Gen.V2.Duty.LabelSyncOn E rho (fun o => ¬ isRowObject o)
@@ -274,7 +274,8 @@ private theorem scheduled_instance
         (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
         (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D N.erase Kc) :
     SA.voteTime p.toParams s ≤ rho.horizon →
-      ∀ y ∈ rho.honest, headAtLabel p c E rho y s = some N.erase := by
+      ∀ y ∈ rho.honest, joinedAt p E rho y s (SA.voteTime p.toParams s) →
+      headAtLabel p c E rho y s = some N.erase := by
   exact exactService_head_of_retained_proposal E rho hE hDelta s hip N hem D
     (fgsa_retainedExactHead_geometry_on_run (hroots := hroots) E rho hE hN hDelta s hWalkSync
         hScoreSync

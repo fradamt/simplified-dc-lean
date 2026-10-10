@@ -159,37 +159,21 @@ theorem Recovery₂.batch {G t : Time} (h : Recovery₂ p c E rho G ΔF)
 
 /- With the schedule already in Base, the two horizon delivery conditions agree. -/
 omit [Fintype V] in
-theorem fgsa_clean_delivery_iff (hS : V2.D.ScheduleWellFormed E rho) (hG : E.t_GST = 0) :
+theorem fgsa_clean_delivery_iff (_hS : V2.D.ScheduleWellFormed E rho) (hG : E.t_GST = 0) :
     V2.D.HealthyPrefixDelivery E rho rho.horizon ↔ V2.D.PartialSynchrony E rho := by
-  have emitTime : ∀ v o t, V2.D.Run.emits E rho v o t → max t E.t_GST = t := by
-    intro v o t h
-    obtain ⟨i, hi, _⟩ := h
-    have ht : 0 ≤ t := (hS.in_horizon _ (List.mem_of_getElem? hi)).1
-    rw [hG, max_eq_left ht]
-  have acceptTime : ∀ i v o t, V2.D.Run.acceptsAt E rho i v o t → max t E.t_GST = t := by
-    intro i v o t h
-    obtain ⟨⟨o', hi, _⟩, _⟩ := h
-    have ht : 0 ≤ t := (hS.in_horizon _ (List.mem_of_getElem? hi)).1
-    rw [hG, max_eq_left ht]
   constructor
   · intro h
     constructor
-    · intro v hv o t he w hw
-      rw [emitTime v o t he]
-      exact h.broadcast_emitted v hv o t he w hw
-    · intro v hv i o t ha w hw
-      rw [acceptTime i v o t ha]
-      exact h.relay_accepted v hv i o t ha w hw
+    · intro v hv o t he w hw a hta ha
+      simpa only [hG, max_eq_left ha] using h.broadcast_emitted v hv o t he w hw a hta ha
+    · intro v hv i o t he w hw a hta ha
+      simpa only [hG, max_eq_left ha] using h.relay_accepted v hv i o t he w hw a hta ha
   · intro h
     constructor
-    · intro v hv o t he w hw
-      have hb := h.broadcast_emitted v hv o t he w hw
-      rw [emitTime v o t he] at hb
-      exact hb
-    · intro v hv i o t ha w hw
-      have hr := h.relay_accepted v hv i o t ha w hw
-      rw [acceptTime i v o t ha] at hr
-      exact hr
+    · intro v hv o t he w hw a hta ha
+      simpa only [hG, max_eq_left ha] using h.broadcast_emitted v hv o t he w hw a hta ha
+    · intro v hv i o t he w hw a hta ha
+      simpa only [hG, max_eq_left ha] using h.relay_accepted v hv i o t he w hw a hta ha
 
 /- T7.5 supplies the fixed reachable-state predicate at any explicit event cut. -/
 omit [Fintype V] in
@@ -803,7 +787,8 @@ theorem HealthyPrefix₂.cutAt {b₀ : Time} (h : HealthyPrefix₂ p c E rho b�
     HealthyPrefix₂ p c E ({ rho with events := rho.events.take n, horizon := t }) b₀ ΔF where
   base := h.base.cutAt hcut hi
   cut := ⟨h.cut.1, hb⟩
-  healthy := healthyPrefixDeliveryBy_cut hcut hb h.healthy
+  healthy := healthyPrefixDeliveryBy_cut hcut hb
+    (h.base.valid.in_horizon _ (List.mem_of_getElem? hi)).2 h.healthy
   deltaF := h.deltaF
   partBefore := h.partBefore
 
@@ -864,7 +849,9 @@ theorem HealthyPrefix₂.cutAt_le {b₀ : Time} (h : HealthyPrefix₂ p c E rho 
     HealthyPrefix₂ p c E ({ rho with events := rho.events.take n, horizon := t }) t ΔF where
   base := h.base.cutAt hcut hi
   cut := ⟨(h.base.valid.in_horizon _ (List.mem_of_getElem? hi)).1, le_rfl⟩
-  healthy := healthyPrefixDeliveryBy_cut hcut le_rfl (healthyPrefixDeliveryBy_of_le hb h.healthy)
+  healthy := healthyPrefixDeliveryBy_cut hcut le_rfl
+    (h.base.valid.in_horizon _ (List.mem_of_getElem? hi)).2
+    (healthyPrefixDeliveryBy_of_le hb h.healthy)
   deltaF := h.deltaF
   partBefore := fun t' h0 hlt => h.partBefore t' h0 (lt_of_lt_of_le hlt hb)
 

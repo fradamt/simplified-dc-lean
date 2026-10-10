@@ -1,6 +1,7 @@
 module
-public import AvailableChainFGSARun.Proofs.ReceiptCoverage
+public import AvailableChainFGSARun.Proofs.ReceiptCoverageReady
 public import AvailableChainFGSARun.Proofs.RootResolution
+public import AvailableChainFGSARun.Proofs.HeadHistory
 public import AvailableChainFGSAClaims.Statements.Reads
 public import AvailableChainGeneric.Statements.V2.Duty.Counts
 
@@ -27,6 +28,34 @@ private theorem count_head_keys (o : GridCO.Wire p.n .root) (s : Slot) (k : Fin 
       subst r; subst j
       exact ⟨K, rfl⟩
 
+private theorem count_head_signed_origin (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) (hE : V2.D.ExecutionValid E rho)
+    (idx : Nat) (x : V) (s : Slot) (k : Fin p.n) (K : BlockId) (stamp : Time)
+    (hv : ((⟨.seat s k, .head K⟩ : GridCO.Wire p.n .root), stamp) ∈
+      (V2.D.Run.stateBefore E rho idx x).st.base.voteStamp)
+    (hh : rho.seatOf (.base (.head s)) k ∈ rho.honest) :
+    ∃ t, V2.D.Run.emits E rho (rho.seatOf (.base (.head s)) k)
+      (ofHead p ⟨.seat (.head s) k, K⟩) t := by
+  have horigin : ∃ (j : Nat) (parent : Obj p) (u : Time),
+      rho.events[j]? = some (.deliver x parent u) ∧
+      (parent = ofHead p ⟨.seat (.head s) k, K⟩ ∨
+        (fgsa p c).carries parent (ofHead p ⟨.seat (.head s) k, K⟩)) := by
+    rcases fgsa_vote_stamp_source_or_restart E rho idx x s k K stamp hv with
+      ⟨j, _, u, ha, _⟩ | ⟨j, _, wake, _, _, hr⟩
+    · obtain ⟨parent, he, hhandles⟩ := ha.1
+      exact ⟨j, parent, u, he, (fgsaHooks p c).handles_carries _ _ _ hhandles⟩
+    · obtain ⟨q, _, parent, u, he, hc⟩ :=
+        fgsa_replayed_head_delivery_origin E rho j x wake s k K hr
+      exact ⟨q, parent, u, he, Or.inr hc⟩
+  obtain ⟨j, parent, u, he, hc⟩ := horigin
+  have hem : ∃ t, t ≤ u ∧ V2.D.Run.emits E rho (rho.seatOf (.base (.head s)) k)
+      (ofHead p ⟨.seat (.head s) k, K⟩) t := by
+    rcases hc with rfl | hc
+    · exact hE.unforgeable x _ u ⟨j, he⟩ _ hh rfl
+    · exact hE.carried x parent u ⟨j, he⟩ _ hc _ hh rfl
+  obtain ⟨t, _, ht⟩ := hem
+  exact ⟨t, ht⟩
+
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 P3 F1b.1, blueprint 02 §2.1. Class (ii), receipt/authenticity instance.
 DC: Protocol/Handlers/GoldfishVotePool.lean:320 (unique honest vote per label).
@@ -45,12 +74,12 @@ theorem fgsa_honest_head_eq_of_stored (E : Generic.Env V) (rho : V2.D.Run V (fgs
   obtain ⟨⟨v, stamp⟩, hv, hvEq⟩ := List.mem_map.mp ho
   dsimp only at hvEq
   subst v
-  obtain ⟨j, _, u, ha, _⟩ := fgsa_vote_stamp_source E rho i x s k C stamp hv
+  obtain ⟨u, hu⟩ := count_head_signed_origin E rho hE i x s k C stamp hv hh
   have heq := Gen.V2.Duty.honest_unique_singleDuty_statement (P := fgsa p c) E rho
     hE.nodup hE.toUnforgeableSignatures (fgsaHooks p c).handles_carries
     (.base (.head s)) (fgsa_head_singleDuty s) k hh (ofHead p ⟨.seat (.head s) k, C⟩)
     (ofHead p ⟨.seat (.head s) k, K⟩) rfl rfl
-    (Or.inr ⟨j, x, u, ha.1⟩) (Or.inl ⟨t, he⟩)
+    (Or.inl ⟨u, hu⟩) (Or.inl ⟨t, he⟩)
   have hCK : C = K := congrArg (fun o : Obj p => o.payload) heq |> Msg.head.inj
   subst C
   rfl
@@ -163,11 +192,12 @@ theorem fgsa_active_path_of_coverage (E : Generic.Env V)
     (hcov : ReceiptCoveragePremises E rho dl cut D first x K required paths)
     (hpath : paths K D)
     (hFK : Block.Preceq (eraseFG (V2.D.Run.stateBeforeTime E rho D x).st.fg.F) K)
-    (hroots : NamedReceiptRootCollisionFree p c E rho) :
+    (hroots : NamedReceiptRootCollisionFree p c E rho)
+    (hAwake : ∀ o t, required o t → V2.D.AwakeOn E x t (dl t)) :
     ∀ X, Block.Preceq X K → X ∈ (actView (V2.D.Run.stateBeforeTime E rho D x).st).blocks := by
   let st := (V2.D.Run.stateBeforeTime E rho D x).st
-  have hc := (fgsa_receiptCoverage E rho dl cut D first x K required paths
-    hroots hDelta hE hN hx hcov).1
+  have hc := (fgsa_receiptCoverage_ready E rho dl cut D first x K required paths
+    hroots hDelta hE hN hx hAwake hcov).1
   have hb := (storeBundle_stateBeforeTime E rho D x).cstore
   have hK : K ∈ (actView st).blocks := by
     rcases hc with ⟨hKF, _⟩ | ⟨_, _, hpaths⟩
@@ -198,15 +228,7 @@ theorem fgsa_stored_honest_head_awake (E : Generic.Env V)
   obtain ⟨⟨v, stamp⟩, hv, hvEq⟩ := List.mem_map.mp ho
   dsimp only at hvEq
   subst v
-  obtain ⟨j, _, u, ha, _⟩ := fgsa_vote_stamp_source E rho i x s k K stamp hv
-  obtain ⟨parent, hd, hhandles⟩ := ha.1
-  have horigin : ∃ t, t ≤ u ∧ V2.D.Run.emits E rho (rho.seatOf (.base (.head s)) k)
-      (ofHead p ⟨.seat (.head s) k, K⟩) t := by
-    rcases (fgsaHooks p c).handles_carries _ parent _ hhandles with hp | hc
-    · subst parent
-      exact hE.unforgeable x _ u ⟨j, hd⟩ _ hh rfl
-    · exact hE.carried x parent u ⟨j, hd⟩ _ hc _ hh rfl
-  obtain ⟨t, _, j', ht, he⟩ := horigin
+  obtain ⟨t, j', ht, he⟩ := count_head_signed_origin E rho hE i x s k K stamp hv hh
   rw [(V2.D.Run.step_tick_eq E rho ht).2] at he
   have hem := (fgsa_emits_head E rho _ _ t s k K).mp he
   rw [hem.2.1]
