@@ -5876,3 +5876,23 @@ WitnessHeldScope is the guarded ancestor receipt result of a consumer. It is not
 an object-service producer. FrontierServiceGate retains Kfg's source membership
 and height, proves its receiver floor before receipt, and applies the scope only
 at the actual joined gate. The exact H1 handoff has these final types.
+
+### P-H2 Round 4 — final validation and open inventory (2026-10-10)
+
+Status is PARTIAL / OPEN. The compiled reset/recovery/independent RiseOne slice
+is PREPARED. The complete H2 critical path and all service producers are not closed.
+The map has 93 assigned targets: 22 GREEN and 71 EXPECTED-FAIL, all with owner P-H2.
+There are 492 GREEN roots. The 30 remaining NoRestart projections are open H2 work.
+The local report has every open target and exact H1/P-As requested telescope.
+
+DCK P-H2 passes: 42 strict sources, 3,429 permitted results, 24 controls.
+All GREEN roots plus the three e9536241 H1 suppliers have 335 proof modules,
+253 exports and zero unaccepted. The suppliers compile without source edits.
+Layers have 72 inherited findings and zero new. Headers still fail on the same
+four Outage import-all findings as c9e71fa5; there are zero H2 header failures.
+No other owner's file, checker, baseline or allowance was changed.
+
+The final canonical fragment has 205 unique commands and 205 coverage rows.
+The six HealingOpeningSupport regression audits remain separate. Production-only
+imports are preserved; serial integration remains with its assigned editor.
+Public claims are unchanged. No complete production closure is claimed.
