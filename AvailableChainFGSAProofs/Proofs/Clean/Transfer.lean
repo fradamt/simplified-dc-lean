@@ -1,6 +1,7 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Shared.Channels
 public import AvailableChainFGSAProofs.Proofs.Clean.TransferFrame
+public import AvailableChainFGSAProofs.Proofs.Clean.Service
 public import AvailableChainFGSAProofs.Proofs.Shared.Relay
 public import AvailableChainFGSA.Proofs.Head.Transfer -- shake: keep (fgsa_headInTree_covers_of_transfer proof reference)
 
@@ -30,6 +31,7 @@ private theorem clean_transfer_counts_of_forward (b₀ : Time) :
   ∀ i k x y s B, i < timeIdx rho b₀ → k < i →
     IsGateTick p c rho i x s →
     rho.events[k]? = some (.tick y (SA.voteTime p.toParams (s + 1))) →
+    joinedAt p E rho y (s + 1) (SA.voteTime p.toParams (s + 1)) →
     CleanHist p c E rho i → (∀ j, j ≤ i → CleanState p c E rho j) →
     gateResultAt p c E rho i = some (some B) →
     (∀ r C, (r, C) ∈ cleanResults p c E rho i → r < s → Block.Preceq C B) →
@@ -47,20 +49,12 @@ private theorem clean_transfer_counts_of_forward (b₀ : Time) :
         GridCO.equivocates U seat = true),
     Gen.AC.Root.TransferBounds (Gen.AC.Root.plainSupporters src.blocks P P B)
       L dst.base.blocks U Vsup B := by
-  intro h _ _ _ i k x y s B hi _ ht hk _ _ hB _ src dst P L U Vsup hC5
+  intro h _ _ _ i k x y s B hi _ ht hk hJ _ _ hB _ src dst P L U Vsup hC5
   have hsch := h.base.valid.toScheduleWellFormed
   have hx := hsch.honest_only _ (List.mem_of_getElem? ht)
   have hy := hsch.honest_only _ (List.mem_of_getElem? hk)
   have hcut := (V2.D.Engine.index_lt_read_length_iff hsch b₀ ht).mp hi
-  have hvd : SA.voteTime p.toParams s + E.Δ ≤ SA.gateTime p.toParams s := by
-    rw [h.base.delta]
-    change 4 * p.Δ * (s : Int) + p.Δ + p.Δ ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
-    have hd := p.deltaPos
-    linarith
-  have hsync := Gen.V2.Duty.LabelSyncOn.of_cleanCutBy E rho
-      (fun o => ¬ isRowObject o) b₀ _ _ h.healthy
-    (fgsaDelay_nonrow E.Δ _) hvd hcut h.cut.2
-  have hraw := Option.some.inj ((clean_gate_raw hsch ht).symm.trans hB)
+  have hraw := (clean_gate_nonempty_raw hsch ht hB).2
   have hscore (C : Block) := actView_score p
     (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s))
     (cstoreInv_clockPre p _ (cstoreInv_stateBefore E rho i x) _)
@@ -78,8 +72,7 @@ private theorem clean_transfer_counts_of_forward (b₀ : Time) :
     (fun _ ho => fgsa_early_subset_late p src s (List.mem_filter.mp ho).1)
     (fgsa_cleanSupport_seat_clean_late p src s)
     hC5
-    (fgsa_headVotes_backward_relay E rho h.base.valid h.base.noRestart h.base.delta
-      s hsync hx hy ht hk)
+    (clean_headVotes_backward h hx hy (clean_gate_enabled_of_result hsch ht hB) hk hJ hcut)
     (fgsa_headSupport_subset_headVotes E rho h.base.valid k y s) hmajority
 
 set_option linter.unusedVariables false in
@@ -99,6 +92,7 @@ private theorem cleanTransfer_of_forward (b₀ : Time) :
   ∀ i k x y s B, i < timeIdx rho b₀ → k < i →
     IsGateTick p c rho i x s →
     rho.events[k]? = some (.tick y (SA.voteTime p.toParams (s + 1))) →
+    joinedAt p E rho y (s + 1) (SA.voteTime p.toParams (s + 1)) →
     CleanHist p c E rho i → (∀ j, j ≤ i → CleanState p c E rho j) →
     gateResultAt p c E rho i = some (some B) →
     (∀ r C, (r, C) ∈ cleanResults p c E rho i → r < s → Block.Preceq C B) →
@@ -115,13 +109,13 @@ private theorem cleanTransfer_of_forward (b₀ : Time) :
       (o ∈ Vsup ∧ Gen.AC.Root.voteSupports dst.base.blocks B o = true) ∨
         GridCO.equivocates U seat = true),
     Block.Preceq B (headAtIdx p c E rho k (s + 1)) := by
-  intro h hq hf hsrc i k x y s B hi hki ht hk hh hall hB hord src dst P L U Vsup hC5
+  intro h hq hf hsrc i k x y s B hi hki ht hk hJ hh hall hB hord src dst P L U Vsup hC5
   have hc := clean_transfer_counts_of_forward p c E rho b₀ h hq hf hsrc
-    i k x y s B hi hki ht hk hh hall hB hord hC5
+    i k x y s B hi hki ht hk hJ hh hall hB hord hC5
   rw [Gen.AC.Root.TransferBounds_def] at hc
   obtain ⟨Bfg, he, _, _, _, _, _, hroot, hV, hdom⟩ :=
     clean_transfer_frame p c E rho b₀ h hq hf hsrc
-      i k x y s B hi hki ht hk hh hall hB hord
+      i k x y s B hi hki ht hk hJ hh hall hB hord
   have hinv : CStoreInv p dst :=
     cstoreInv_clock p _ (cstoreInv_stateBefore E rho k y) _
   have hstored : Bfg ∈ dst.fg.TF := by
@@ -162,6 +156,7 @@ private theorem clean_transfer_forward (b₀ : Time) :
   ∀ i k x y s B, i < timeIdx rho b₀ → k < i →
     IsGateTick p c rho i x s →
     rho.events[k]? = some (.tick y (SA.voteTime p.toParams (s + 1))) →
+    joinedAt p E rho y (s + 1) (SA.voteTime p.toParams (s + 1)) →
     CleanHist p c E rho i → (∀ j, j ≤ i → CleanState p c E rho j) →
     gateResultAt p c E rho i = some (some B) →
     (∀ r C, (r, C) ∈ cleanResults p c E rho i → r < s → Block.Preceq C B) →
@@ -177,20 +172,12 @@ private theorem clean_transfer_forward (b₀ : Time) :
       Gen.AC.Root.voteSupports src.blocks B o = true →
       (o ∈ Vsup ∧ Gen.AC.Root.voteSupports dst.base.blocks B o = true) ∨
         GridCO.equivocates U seat = true := by
-  intro h hq hf hsrc i k x y s B hi hki ht hk hh hall hB hord src dst P L U Vsup
+  intro h hq hf hsrc i k x y s B hi hki ht hk hJ hh hall hB hord src dst P L U Vsup
     o ho seat hs hsupp
   have hsch := h.base.valid.toScheduleWellFormed
   have hx := hsch.honest_only _ (List.mem_of_getElem? ht)
   have hy := hsch.honest_only _ (List.mem_of_getElem? hk)
   have hcut := (V2.D.Engine.index_lt_read_length_iff hsch b₀ ht).mp hi
-  have hvd : SA.voteTime p.toParams s + E.Δ ≤ SA.gateTime p.toParams s := by
-    rw [h.base.delta]
-    change 4 * p.Δ * (s : Int) + p.Δ + p.Δ ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
-    have hd := p.deltaPos
-    linarith
-  have hsync := Gen.V2.Duty.LabelSyncOn.of_cleanCutBy E rho
-      (fun o => ¬ isRowObject o) b₀ _ _ h.healthy
-    (fgsaDelay_nonrow E.Δ _) hvd hcut h.cut.2
   obtain ⟨K, hlookup, hKm, _, hBK⟩ := (Gen.AC.Root.vote_support_body _ _ _).mp hsupp
   have hhead := actView_resolve_target p
     (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s))
@@ -198,11 +185,15 @@ private theorem clean_transfer_forward (b₀ : Time) :
     (by rw [clockPre_headDomain]; exact base_headDomain_none p (reachable_stateBefore E rho i x))
     o hKm (resolvedTarget_root _ o hlookup)
   obtain ⟨Kfg, he, hpath⟩ := clean_transfer_prefreeze_path_of_head p c E rho b₀ h hq hf hsrc
-    i k x y s B K o hi hki ht hk hh hall hB hord ho hhead hBK
+    i k x y s B K o hi hki ht hk hJ hh hall hB hord ho hhead hBK
   obtain ⟨Bfg', he', hF, _⟩ := clean_transfer_frame p c E rho b₀ h hq hf hsrc
-    i k x y s B hi hki ht hk hh hall hB hord
-  exact fgsa_cleanSupport_forward_relay E rho h.base.valid h.base.noRestart h.base.delta
-    s hsync (ix := i) (iy := k) hx hy ht hk o ho seat hs Kfg (he ▸ hhead) B
+    i k x y s B hi hki ht hk hJ hh hall hB hord
+  exact fgsa_cleanSupport_forward_relay_on E rho h.base.valid
+    s (ix := i) (iy := k) hx hy ht hk o ho seat hs (by
+      intro b he
+      subst o
+      exact clean_transfer_head_scope h hx hy (clean_gate_enabled_of_result hsch ht hB)
+        hk hJ hcut seat b ho) Kfg (he ▸ hhead) B
     (he ▸ hBK) hpath (he' ▸ eraseFG_preceq hF)
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -222,14 +213,15 @@ theorem cleanTransfer (b₀ : Time) :
   ∀ i k x y s B, i < timeIdx rho b₀ → k < i →
     IsGateTick p c rho i x s →
     rho.events[k]? = some (.tick y (SA.voteTime p.toParams (s + 1))) →
+    joinedAt p E rho y (s + 1) (SA.voteTime p.toParams (s + 1)) →
     CleanHist p c E rho i → (∀ j, j ≤ i → CleanState p c E rho j) →
     gateResultAt p c E rho i = some (some B) →
     (∀ r C, (r, C) ∈ cleanResults p c E rho i → r < s → Block.Preceq C B) →
     Block.Preceq B (headAtIdx p c E rho k (s + 1)) := by
-  intro h hq hf hsrc i k x y s B hi hki ht hk hh hall hB hord
+  intro h hq hf hsrc i k x y s B hi hki ht hk hJ hh hall hB hord
   exact cleanTransfer_of_forward p c E rho b₀ h hq hf hsrc
-    i k x y s B hi hki ht hk hh hall hB hord
+    i k x y s B hi hki ht hk hJ hh hall hB hord
     (clean_transfer_forward p c E rho b₀ h hq hf hsrc
-      i k x y s B hi hki ht hk hh hall hB hord)
+      i k x y s B hi hki ht hk hJ hh hall hB hord)
 
 end AvailableChain.FGSA.Run
