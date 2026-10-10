@@ -26,10 +26,9 @@ private theorem restoreClock_fold {α β : Type} (f : α → β → α)
 private theorem restoreClock_vote (st : GridCO.State p.n .root)
     (o : GridCO.Wire p.n .root) :
     (GridCO.admitVote p.toParams.engine st o).now = st.now := by
-  unfold GridCO.admitVote
-  split
-  · dsimp only; split <;> rfl
-  · rfl
+  dsimp only [GridCO.admitVote]
+  cases o.auth <;> cases o.payload <;> dsimp only
+  split <;> rfl
 
 private theorem restoreClock_proposal (st : GridCO.State p.n .root)
     (o : GridCO.Wire p.n .root) (b : Block) (raw : List (GridCO.HeadWire p.n .root)) :
@@ -43,10 +42,7 @@ private theorem restoreClock_proposal (st : GridCO.State p.n .root)
 
 private theorem restoreClock_row (st : State p.n) (a : RowWire p.n) :
     (admitRow p st a).base = st.base := by
-  unfold admitRow
-  split
-  · split <;> rfl
-  · rfl
+  rcases admitRow_eq p st a with h | h <;> rw [h]
 
 private theorem restoreClock_rows (rows : List (RowWire p.n)) (st : State p.n) :
     (rows.foldl (admitRow p) st).base = st.base := by
@@ -56,36 +52,33 @@ private theorem restoreClock_rows (rows : List (RowWire p.n)) (st : State p.n) :
 
 private theorem restoreClock_process (st : State p.n) (o : Wire p.n) :
     (FGSA.process p st o).base.now = st.base.now := by
-  unfold FGSA.process
-  split
+  dsimp only [FGSA.process]
+  rcases h : o.decode with _ | (⟨s, i, b⟩ | ⟨i, body⟩ | ⟨s, N⟩)
+  · rfl
   · exact restoreClock_vote p _ _
   · rw [restoreClock_row]
-  · unfold admitBlock
+  · dsimp only [admitBlock]
     split
     · rfl
-    · split
+    · cases parentFG st N.erase <;> dsimp only
+      split
+      · rw [restoreClock_rows]
+        split_ifs
+        · exact restoreClock_proposal p _ _ _ _
+        · rw [(reconcile_frame _).2.2.2.2.2.2.2.2.1]
+          exact restoreClock_proposal p _ _ _ _
       · rfl
-      · split_ifs
-        · rw [restoreClock_rows]
-          split_ifs
-          · exact restoreClock_proposal p _ _ _ _
-          · rw [(reconcile_frame _).2.2.2.2.2.2.2.2.1]
-            exact restoreClock_proposal p _ _ _ _
-        · rfl
-  · rfl
 
 private theorem restoreClock_gate (st : State p.n) (s : Slot) :
     (gateStep p st s).base.now = st.base.now := by
   have hg (v : GridCO.State p.n .root) (a : Block) :
       (SA.Root.gateFrom p.toParams a v s).now = v.now := by
-    unfold SA.Root.gateFrom GridCO.gateFrom
+    dsimp only [SA.Root.gateFrom, GridCO.gateFrom]
+    cases GridCO.confirmationFrom p.engine a v s <;> dsimp only
     split
     · rfl
-    · dsimp only
-      split_ifs
-      · rfl
-      · exact restoreClock_fold _ GridCO.State.now _ _ (fun acc _ =>
-          restoreClock_fold _ GridCO.State.now _ _ (fun _ _ => rfl))
+    · exact restoreClock_fold _ GridCO.State.now _ _ (fun acc _ =>
+        restoreClock_fold _ GridCO.State.now _ _ (fun _ _ => rfl))
   unfold gateStep normalizeS
   dsimp only
   split_ifs <;> first | rfl | exact hg _ _
