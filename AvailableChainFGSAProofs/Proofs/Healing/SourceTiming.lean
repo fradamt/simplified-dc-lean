@@ -3,6 +3,8 @@ public import AvailableChainFGSAProofs.Proofs.Healing.FrameRelay -- shake: keep 
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportTransfer
 public import AvailableChainFGSAProofs.Proofs.Shared.HeldReceipt
 
+public import AvailableChainFGSAProofs.Proofs.Healing.ReceiptProducers
+
 public section
 
 namespace AvailableChain.FGSA.Run
@@ -288,6 +290,32 @@ theorem healing_source_old_body [Fintype V] (E : Generic.Env V) (rho : V2.D.Run 
   intro B hBK
   exact KitFG.ancestor_closed_of_parent_closed _
     (storeBundle_stateBeforeTime E rho D x).cstore.fg.closed K hY B hBK
+
+/-- Recovery produces delivery for the selected source body at its actual vote tick. -/
+theorem healing_source_delivery_service [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hrec : RecoverySleep₂ p c E rho G ΔF) {j : Nat} {z x : V} {s : Slot}
+    {W : FGBlock (Fin p.n)} (hz : z ∈ rho.honest) (hx : x ∈ rho.honest)
+    (hj : rho.events[j]? = some (.tick z (SA.voteTime p.toParams s)))
+    (hW : W ∈ (storeAt p c E rho j z).fg.TF)
+    (hSync : E.t_GST ≤ SA.voteTime p.toParams s)
+    (hhor : SA.earlyTime p.toParams s ≤ rho.horizon)
+    (hFloor : FGBlock.Preceq (rho.stateBeforeTime E
+      (SA.earlyTime p.toParams s) x).st.fg.F W) :
+    TargetReceiptService E rho (eraseFG W) (SA.earlyTime p.toParams s) x := by
+  have he : SA.voteTime p.toParams s + p.Δ = SA.earlyTime p.toParams s := by
+    change 4 * p.Δ * (s : Int) + p.Δ + p.Δ = 4 * p.Δ * (s : Int) + 2 * p.Δ
+    ring
+  have hpub : V2.PublicTime E (SA.voteTime p.toParams s) := by
+    refine ⟨4 * s + 1, ?_⟩
+    rw [hrec.base.delta]
+    change 4 * p.Δ * (s : Int) + p.Δ = ((4 * s + 1 : Nat) : Int) * p.Δ
+    push_cast
+    ring
+  rw [← he] at hhor hFloor ⊢
+  exact healing_target_service_of_tick E rho hrec hz hx hj
+    (((storeBundle_stateBefore E rho j z).cstore.baseTree _).mpr ⟨W, hW, rfl⟩)
+    hpub hSync hhor (Bool.or_eq_true_iff.mpr (Or.inr (eraseFG_preceq hFloor)))
 
 end AvailableChain.FGSA.Run
 end
