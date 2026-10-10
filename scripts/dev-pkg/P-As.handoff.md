@@ -1,3 +1,20 @@
+# Round 4 status supplement
+
+Base: 3a538409; branch sleep-pas4. Full P-As remains OPEN.
+WC assembly, source/retained seed adapters and the full W1 fixture now build.
+Growth and empty suffix service use cached safety and exact original gate evidence.
+Source/suffix joined counts retain the selected H0 cutoff at the inclusive source endpoint.
+The exact fast-write receiver-epoch producer remains explicit, owner P-Fd (FAST).
+Root and GrowthAssemblyAxioms remain OPEN; WCROOT gives the required caller wiring.
+No public Claims/Statements or healing target changed. No healing scope record is passed.
+The W1 source ends at 253; its 16-step sleeping suffix ends at 269.
+The sleeping batch, receipt and cached delivery paths have exact receiver guards.
+ArmingScores collides with ExactProposalReceipts, visible through ArmingSleep imports.
+The exact names and build evidence are B19 in P-As.blocker-types.md.
+P-As.remaining.md and P-As.blocker-types.md supersede every older request below.
+Apply the audit/coverage fragments under the existing canonical audit keys at serial join.
+No test module is added as an import to a production audit.
+
 # Round 3 status supplement
 
 Base: f5c77257; branch sleep-pas3b. The current non-healing requests are in

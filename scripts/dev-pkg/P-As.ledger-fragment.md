@@ -55,3 +55,12 @@ Base 888f6c5e; branch sleep-pas2. Full P-As OPEN.
   P-As.blocker-types.md. The map has 26 GREEN targets and 39 EXPECTED-FAIL targets.
 - initialAt stays. W1 and Adversarial consumers are still OPEN. No public claim, checker,
   baseline, allowance, or layer exception changes. No Root/G-S2 closure is claimed.
+
+## Round 4 — prepared non-healing ports
+
+WC assembly and the full W1 fixture build. Source/suffix joined counts keep the
+selected H0 cutoff. Cached safety and exact proposal coverage are produced at the
+WC checkpoint and feed growth and the empty route. No public claim changed.
+FAST remains P-Fd-owned and explicit. Root/GrowthAssemblyAxioms remain OPEN with
+WCROOT and inherited family imports. Healing is excluded. W1 now uses 253/269;
+SleepPositive keeps its actual wake-restart evidence. Full P-As is not CLOSED.

@@ -59,3 +59,10 @@ public import AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuationGrowthSee
 #print axioms AvailableChain.FGSA.Run.fgsa_cleanSafetyClaim
 #print axioms AvailableChain.FGSA.Run.fgsa_cleanSafety_outputs
 #print axioms AvailableChain.FGSA.Run.wcg_sourceWitness_joined
+
+# Round 4: production WC checkpoint and selected source scope.
+#print axioms AvailableChain.FGSA.Run.wc_sourceJoinCut
+#print axioms AvailableChain.FGSA.Run.wc_sourceParticipation
+#print axioms AvailableChain.FGSA.Run.wc_heightSeed_of_finite
+#print axioms AvailableChain.FGSA.Run.wcg_inclusion6_result
+#print axioms AvailableChain.FGSA.Run.wcg_sourceParticipation
