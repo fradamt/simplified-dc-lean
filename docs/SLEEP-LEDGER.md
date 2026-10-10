@@ -5114,3 +5114,23 @@ the 285-row local inventory. Source scopes PASS: 1,361 active / 337
 deferred PC-SA modules. Layers: 72 inherited / zero new. Nine targets
 remain EXPECTED-FAIL P-WC. Public claims unchanged; no public meaning STOP.
 Implementation head: 16e578fb. Tracked implementation tree is clean.
+
+## P-WC Round 5 — exact inclusion and cached safety, 2026-10-10
+
+- T47: Inclusion uses enabled gates and joined selected HEAD receipts. The old
+  admission-at-vote and global NoRestart adapters are removed from this route.
+- T48: A confirmed reader uses its own original gate when its current epoch
+  covers that gate. A later wake uses the caught-up enabled gate and result order.
+  Both output getters retain the exact public reader scopes.
+- Inclusion's prior-result reader is joined at the next vote. Participation stays
+  all-time joined until the required voter and enabled gate actor are selected.
+- Internal additive evidence: WCInclusion6ResultStatement also returns the exact
+  enabled original WCResult. WCInclusion6Statement and public claims are unchanged.
+- Internal cached safety: WCCachedSafety, wc_cachedSafety, and wcg_cachedSafety
+  expose compatibility, monotonicity, and seed preservation for stored outputs.
+  The existing scoped safety statements are projections. This supplies the
+  comparisons needed when a trigger reader sleeps before a growth deadline.
+- Round-3 P3 evidence repair: both reconcile supplier entries are regenerated
+  from their full source types, including all premises and conclusions.
+- Inclusion and its two contract tests pass --wfail. The cached safety suppliers
+  pass --wfail. Strict and full package checks follow in the final Round 5 block.

@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Inclusion
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.InclusionGate
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.ExactReceipts
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.ExactProposal
@@ -398,3 +399,21 @@ open AvailableChain.FGSA.Run
 #print axioms AvailableChain.FGSA.Run.wc_gate_active_heads
 
 #print axioms AvailableChain.FGSA.Run.wc_exact_gate_raw
+
+#print axioms AvailableChain.FGSA.Run.wc_confirmedReader_public_gate
+
+#print axioms AvailableChain.FGSA.Run.wc_cachedSafety
+
+#print axioms AvailableChain.FGSA.Run.wc_prior_below_proposal
+
+#print axioms AvailableChain.FGSA.Run.wc_proposal_gates
+
+#print axioms AvailableChain.FGSA.Run.wc_suffix_mono
+
+#print axioms AvailableChain.FGSA.Run.wc_inclusion6_result
+
+#print axioms AvailableChain.FGSA.Run.wcg_cachedSafety
+
+#print axioms AvailableChain.FGSA.Run.WCCachedSafety
+
+#print axioms AvailableChain.FGSA.Run.WCInclusion6ResultStatement

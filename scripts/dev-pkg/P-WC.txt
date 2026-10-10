@@ -1,4 +1,4 @@
-# P-WC r4: PREPARED; event induction, Proposal and exact adoption pass; nine targets open.
+# P-WC r5: PREPARED; Inclusion and cached-output safety pass; seven targets open.
 [TARGETS]
 AvailableChainFGSAProofs.Proofs.WeakContinuation.ProposalHistory
 AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepOutput
@@ -604,13 +604,13 @@ AvailableChainFGSAProofs.Proofs.WeakContinuation.ExactReceipts
 AvailableChainFGSAProofs.Proofs.WeakContinuation.ExactProposal
 AvailableChainFGSAProofs.Tests.WeakContinuationExactProposal
 AvailableChainFGSAProofs.Proofs.WeakContinuation.InclusionGate
+AvailableChainFGSAProofs.Proofs.WeakContinuation.Inclusion
+AvailableChainFGSAProofs.Tests.WeakContinuationInclusion
 [EXPECTED-FAIL]
 AvailableChainFGSAProofs.Proofs.WeakContinuation.Export P-WC
 AvailableChainFGSAProofs.Proofs.WeakContinuation.Growth P-WC
-AvailableChainFGSAProofs.Proofs.WeakContinuation.Inclusion P-WC
 AvailableChainFGSAProofs.Proofs.WeakContinuation.Live P-WC
 AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Empty P-WC
 AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Export P-WC
 AvailableChainFGSAProofs.Tests.WeakContinuationGrowth P-WC
 AvailableChainFGSAProofs.Tests.WeakContinuationGrowthEmptyAxioms P-WC
-AvailableChainFGSAProofs.Tests.WeakContinuationInclusion P-WC
