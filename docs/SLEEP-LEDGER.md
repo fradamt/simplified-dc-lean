@@ -8325,3 +8325,19 @@ runs strict axioms and all default controls. Every added module is active and
 was in the complete successful build. No module or check is excluded.
 The exact per-package module list is saved in package-map-dependency-delta.json
 under the Round 3 logs. Complete package validation follows these map updates.
+
+## P-Da Round 3 — Run facade and final build (2026-10-11)
+
+The independent FG-SA Run check finds two production modules missing from its
+root closure: TestSupport.EmissionFreshness and TestSupport.Sleep. Add only
+these public imports to AvailableChainFGSARun.lean. The facade builds; every
+one of the 19 package maps still passes the exact source closure check.
+The complete active build is repeated after all final facade/anchor changes:
+4,569 jobs PASS. This refreshes downstream Registry oleans for cone and shake.
+No theorem statement or proof body is changed. Coverage checks retain their rules.
+
+The serialized check driver is stopped with only its verified same-user child
+processes. Completed results and the interrupted FG-SA log are retained. The
+remaining independent checks run with one shared gate-slot directory and the
+normal wrapper. Initial cone/shake results with stale downstream oleans are
+retained; their final checks follow the successful full rebuild.
