@@ -46,6 +46,11 @@ public import AvailableChainFGSAProofs.Proofs.Healing.SupportLease
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportOutput
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportProposal
 
+public import AvailableChainFGSAProofs.Proofs.Healing.SupportSlow
+public import AvailableChainFGSAProofs.Proofs.Healing.SupportPerm
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSupportHeads
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSupportTransfer
+
 set_option linter.privateModule false
 
 #print axioms AvailableChain.FGSA.Run.healing_row_delivery
@@ -222,3 +227,30 @@ set_option linter.privateModule false
 #print axioms AvailableChain.FGSA.Run.healing_proposal_core
 #print axioms AvailableChain.FGSA.Run.healing_proposals_cover
 #print axioms AvailableChain.FGSA.Run.healing_fast_proposals
+
+#print axioms AvailableChain.FGSA.Run.healing_saved_origin_on
+#print axioms AvailableChain.FGSA.Run.SlowSupportScope.mono
+#print axioms AvailableChain.FGSA.Run.healing_clock_nongate
+#print axioms AvailableChain.FGSA.Run.healing_slow_window
+#print axioms AvailableChain.FGSA.Run.healing_slow_majority
+#print axioms AvailableChain.FGSA.Run.healing_support_honest_late
+#print axioms AvailableChain.FGSA.Run.healing_slow_honest_seat
+#print axioms AvailableChain.FGSA.Run.healing_slow_lease_window
+#print axioms AvailableChain.FGSA.Run.healing_slow_lease_at
+#print axioms AvailableChain.FGSA.Run.healing_slow_lease
+#print axioms AvailableChain.FGSA.Run.healing_slow_first_transfer
+#print axioms AvailableChain.FGSA.Run.healing_slow_heads
+#print axioms AvailableChain.FGSA.Run.healing_slow_proposals
+#print axioms AvailableChain.FGSA.Run.healing_slow_output
+#print axioms AvailableChain.FGSA.Run.healing_phase_transfers
+#print axioms AvailableChain.FGSA.Run.healing_tPerm
+#print axioms AvailableChain.FGSA.Run.frontier_head_relay_on
+#print axioms AvailableChain.FGSA.Run.frontier_head_batch_seat
+#print axioms AvailableChain.FGSA.Run.frontier_next_transfer_core
+#print axioms AvailableChain.FGSA.Run.frontier_first_transfer_core
+#print axioms AvailableChain.FGSA.Run.frontier_first_transfer_fast
+#print axioms AvailableChain.FGSA.Run.frontier_first_transfer_slow
+#print axioms AvailableChain.FGSA.Run.frontier_heads_transfer
+#print axioms AvailableChain.FGSA.Run.frontier_Q_heads
+#print axioms AvailableChain.FGSA.Run.frontier_fast_heads
+#print axioms AvailableChain.FGSA.Run.frontier_slow_heads

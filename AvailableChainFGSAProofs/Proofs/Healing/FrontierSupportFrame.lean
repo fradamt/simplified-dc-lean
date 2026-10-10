@@ -1,6 +1,7 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseRelay
 public import AvailableChainFGSAProofs.Proofs.Healing.FrameZero
+public import AvailableChainFGSAProofs.Proofs.Shared.HeldReceipt
 
 public section
 
@@ -177,6 +178,49 @@ theorem frontier_head_relay (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   intro y hy hAwake
   exact frontier_relay (hroots := hroots) E rho crossing hE hN hDelta hsync hQm hcap hjz hz hgst
     ((fgsa_store_cumulative p c E rho hN (Nat.le_succ jz) z).1 hKT) hQK' hhor hcut hy hAwake
+
+/-- Capped HEAD relay uses exact per-object services and durable receiver membership. -/
+theorem frontier_head_relay_on (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (crossing : RXing p c E rho) (hE : V2.D.ExecutionValid E rho)
+    {m : Nat} {Qfg : FGBlock (Fin p.n)} (hQm : (heightView p Qfg).h = m)
+    {v : Time}
+    (hcap : ∀ i x, i ≤ timeIdx rho v → x ∈ rho.honest → (storeAt p c E rho i x).fg.h_max ≤ m)
+    {jz : Nat} {z : V} {i : Slot} (hz : z ∈ rho.honest)
+    (hjz : rho.events[jz]? = some (.tick z (SA.voteTime p.toParams i)))
+    (hQK : Block.Preceq (eraseFG Qfg) (headVote p (FGSA.clock p
+      (V2.D.Run.stateBefore E rho jz z).st (SA.voteTime p.toParams i)) i))
+    (hcut : V2.D.Run.idxBefore rho (SA.voteTime p.toParams i + p.Δ) ≤ timeIdx rho v)
+    (hServices : ∀ W ∈ (storeAt p c E rho jz z).fg.TF, ∀ y ∈ rho.honest,
+      TargetReceiptService E rho (eraseFG W) (SA.voteTime p.toParams i + p.Δ) y)
+    (hroots : NamedReceiptRootCollisionFree p c E rho) :
+    ∃ Kfg, Kfg ∈ (storeAt p c E rho jz z).fg.TF ∧
+      eraseFG Kfg = headVote p (FGSA.clock p (V2.D.Run.stateBefore E rho jz z).st
+        (SA.voteTime p.toParams i)) i ∧ (heightView p Kfg).h = m ∧
+      ∀ y ∈ rho.honest,
+        Kfg ∈ (storeAt p c E rho (V2.D.Run.idxBefore rho (SA.voteTime p.toParams i + p.Δ))
+          y).fg.TF := by
+  have hS := hE.toScheduleWellFormed
+  obtain ⟨Kfg, hKfull, hKe, _⟩ := healing_full_witness_all p c E rho hS crossing hz hjz
+  have hKT : Kfg ∈ (storeAt p c E rho jz z).fg.TF := by
+    have h := ((KitFG.mem_filteredFromView _ _ _ _).mp hKfull).1
+    change Kfg ∈ (FGSA.clock p (V2.D.Run.stateBefore E rho jz z).st _).fg.TF at h
+    rwa [clock_fg] at h
+  have hKe' : eraseFG Kfg = headVote p (FGSA.clock p
+      (V2.D.Run.stateBefore E rho jz z).st (SA.voteTime p.toParams i)) i := hKe
+  have hQK' : Block.Preceq (eraseFG Qfg) (eraseFG Kfg) := hKe' ▸ hQK
+  have hjzv : jz ≤ timeIdx rho v := by
+    have h1 : jz < V2.D.Run.idxBefore rho (SA.voteTime p.toParams i + p.Δ) :=
+      (Gen.V2.Duty.index_lt_idxBefore_iff hS hjz _).mpr (lt_add_of_pos_right _ p.deltaPos)
+    exact h1.le.trans hcut
+  have hKm := (frontier_height_eq E rho hQm (hcap jz z hjzv hz) hKT hQK').1
+  refine ⟨Kfg, hKT, hKe', hKm, ?_⟩
+  intro y hy
+  have held := healing_held_block_receipt_on p c E rho hE hroots Kfg
+    (SA.voteTime p.toParams i + p.Δ) y hy (hServices Kfg hKT y hy)
+  change Kfg ∈ (rho.stateBeforeTime E (SA.voteTime p.toParams i + p.Δ) y).st.fg.TF at held
+  change Kfg ∈ (rho.stateBefore E (V2.D.Run.idxBefore rho _) y).st.fg.TF
+  rw [Gen.V2.Duty.stateBefore_idxBefore E rho _ hS]
+  exact held
 
 end AvailableChain.FGSA.Run
 end

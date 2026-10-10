@@ -6996,3 +6996,6 @@
 
 # P-H1 Round 3 fast lease/output/proposal: 15 further strict commands (162 total).
 # Bounded FastSupportScope and per-read ProposalSupportScope remain explicit inputs.
+
+# P-H1 Round 3 slow/permanence/frontier: 26 further strict commands (188 total).
+# The serial fragment records saved-window provenance and bounded capped service consumers.

@@ -101,6 +101,14 @@ AvailableChainFGSAProofs.Tests.HealingSupport
 AvailableChainFGSAProofs.Tests.HealingTime
 
 [GREEN]
+AvailableChainFGSARun
+AvailableChainFGSARun.Tests.Axioms
+AvailableChainFGSAProofs.Proofs.Healing.SupportSlow
+AvailableChainFGSAProofs.Proofs.Healing.SupportPerm
+AvailableChainFGSAProofs.Proofs.Healing.FrontierSupportHeads
+AvailableChainFGSAProofs.Proofs.Healing.FrontierSupportTransfer
+AvailableChainFGSAProofs.Tests.HealingPromotion
+AvailableChainFGSAProofs.Tests.HealingSupport
 AvailableChainFGSAProofs.Proofs.Healing.SupportLease
 AvailableChainFGSAProofs.Proofs.Healing.SupportOutput
 AvailableChainFGSAProofs.Proofs.Healing.SupportProposal
@@ -640,9 +648,7 @@ AvailableChainFGSAProofs.Proofs.Healing.DescentLossLease P-H1
 AvailableChainFGSAProofs.Proofs.Healing.DescentLossNext P-H1
 AvailableChainFGSAProofs.Proofs.Healing.DescentLossUnanimous P-H1
 AvailableChainFGSAProofs.Proofs.Healing.FrontierRead P-H1
-AvailableChainFGSAProofs.Proofs.Healing.FrontierSupportHeads P-H1
 AvailableChainFGSAProofs.Proofs.Healing.FrontierSupportProposal P-H1
-AvailableChainFGSAProofs.Proofs.Healing.FrontierSupportTransfer P-H1
 AvailableChainFGSAProofs.Proofs.Healing.PostResetCompat P-H1
 AvailableChainFGSAProofs.Proofs.Healing.PostResetHigh P-H1
 AvailableChainFGSAProofs.Proofs.Healing.PostResetKeep P-H1
@@ -655,8 +661,6 @@ AvailableChainFGSAProofs.Proofs.Healing.RepairH6S P-H1
 AvailableChainFGSAProofs.Proofs.Healing.ResetTransfer P-H1
 AvailableChainFGSAProofs.Proofs.Healing.RiseOneAdvance P-H1
 AvailableChainFGSAProofs.Proofs.Healing.SourceTiming P-H1
-AvailableChainFGSAProofs.Proofs.Healing.SupportPerm P-H1
-AvailableChainFGSAProofs.Proofs.Healing.SupportSlow P-H1
 AvailableChainFGSAProofs.Tests.HealingDelivery P-H1
 AvailableChainFGSAProofs.Tests.HealingDescent P-H1
 AvailableChainFGSAProofs.Tests.HealingDescentLoss P-H1
@@ -667,8 +671,4 @@ AvailableChainFGSAProofs.Tests.HealingPostResetKeep P-H1
 AvailableChainFGSAProofs.Tests.HealingPostResetLease P-H1
 AvailableChainFGSAProofs.Tests.HealingPostResetProject P-H1
 AvailableChainFGSAProofs.Tests.HealingPostResetRaw P-H1
-AvailableChainFGSAProofs.Tests.HealingPromotion P-H1
 AvailableChainFGSAProofs.Tests.HealingResetTransfer P-H1
-AvailableChainFGSAProofs.Tests.HealingSupport P-H1
-AvailableChainFGSARun S-Ap
-AvailableChainFGSARun.Tests.Axioms S-Ap

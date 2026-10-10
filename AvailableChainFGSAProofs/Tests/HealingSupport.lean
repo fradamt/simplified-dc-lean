@@ -21,7 +21,7 @@ section Signatures
 
 variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (hroots : NamedRootCollisionFree p c E rho)
+    (hroots : NamedReceiptRootCollisionFree p c E rho)
 
 -- S0: the settled frame at the strict cut needs no GST premise.
 example (crossing : RXing p c E rho) (u v : Time) (m : Nat)
@@ -32,14 +32,16 @@ example (crossing : RXing p c E rho) (u v : Time) (m : Nat)
   healing_settled_frame_strict p c E rho crossing u v m J contested hp i x hui hiv hx
 
 -- S0: the HEAD at u = v_s and the receipt at the phase end, with no hsrc or hhor.
-example (mono : RMono p c E rho) (crossing : RXing p c E rho)
-    (hv : V2.D.ExecutionValid E rho) (hnr : V2.D.NoRestart rho) (hdelta : E.Δ = p.Δ)
-    {ΔF : Time} (hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
+example (_mono : RMono p c E rho) (crossing : RXing p c E rho)
+    (hv : V2.D.ExecutionValid E rho) (_hnr : V2.D.NoRestart rho) (_hdelta : E.Δ = p.Δ)
+    {ΔF : Time} (_hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
     (m : Nat) (J : Option (FGBlock (Fin p.n))) (contested : Bool)
     {i : Nat} {x : V} {s : Slot} (hx : x ∈ rho.honest)
     (hi : rho.events[i]? = some (.tick x (SA.voteTime p.toParams s)))
-    (hgst : E.t_GST ≤ SA.voteTime p.toParams s)
-    (hphase : PhaseInterval p c E rho (SA.voteTime p.toParams s)
+    (hServices : ∀ W ∈ (storeAt p c E rho i x).fg.TF, ∀ y ∈ rho.honest,
+      TargetReceiptService E rho (eraseFG W) (SA.voteTime p.toParams s + p.Δ) y)
+    (_hgst : E.t_GST ≤ SA.voteTime p.toParams s)
+    (_hphase : PhaseInterval p c E rho (SA.voteTime p.toParams s)
       (SA.voteTime p.toParams s + p.Δ) m J contested) :
     let st := ((fgsa p c).clock (rho.stateBefore E i x) (SA.voteTime p.toParams s)).st
     ∃ K ∈ fullTree p st, eraseFG K = headVote p st s ∧
@@ -47,9 +49,7 @@ example (mono : RMono p c E rho) (crossing : RXing p c E rho)
         ∀ y ∈ rho.honest, Gen.V2.Duty.HoldsBefore E rho
           (fun nd => ∀ B, FGBlock.Preceq B W → B ∈ nd.st.fg.TF)
           (SA.voteTime p.toParams s + p.Δ) y :=
-  healing_head_witness_relay (hroots := hroots) p c E rho mono crossing hv hnr hdelta hsync _ _
-      m J contested
-    hgst hphase hx hi le_rfl le_rfl
+  healing_head_witness_relay_on (hroots := hroots) p c E rho crossing hv hx hi hServices
 
 -- S3: a written key has the release level and the slow or fast admission test.
 example (hs : V2.D.ExecutionValid E rho) {j : Nat} {x : V} {w : Slot} {B : Block}
@@ -78,8 +78,13 @@ example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
     (hnd : postClock E rho x (SA.gateTime p.toParams s) = some nd)
     (hB : B ∈ (fastWriteAt nd.st s).getD []) {y : V} (hy : y ∈ rho.honest)
     (hv : SA.voteTime p.toParams (s + 1) ≤ v) {H : Block}
+    (hScopes : ∀ ix iy,
+      rho.events[ix]? = some (.tick x (SA.gateTime p.toParams s)) →
+      rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (s + 1))) →
+      FirstTransferScope E rho ix iy x y s)
     (hH : headAtLabel p c E rho y (s + 1) = some H) : Block.Preceq B H :=
-  healing_first_transfer_fast E rho hrec mono crossing hgst hphase hhead hgate hx hnd hB hy hv hH
+  healing_first_transfer_fast E rho hrec mono crossing hgst hphase hhead hgate hx hnd hB
+    hy hv hScopes hH
 
 -- H.2 fast: with the lease premise after s+1, every later honest HEAD inside v covers B.
 example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
@@ -90,6 +95,7 @@ example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
     (hgate : SA.gateTime p.toParams s ≤ v) {x : V} (hx : x ∈ rho.honest) {nd : Node p}
     (hnd : postClock E rho x (SA.gateTime p.toParams s) = some nd)
     (hB : B ∈ (fastWriteAt nd.st s).getD [])
+    (hFast : FastSupportScope E rho s v x)
     (hlease : ∀ i, s + 1 ≤ i → SA.voteTime p.toParams (i + 1) ≤ v →
       ∀ iy y, y ∈ rho.honest →
       rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (i + 1))) →
@@ -99,27 +105,30 @@ example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
     {i : Slot} (hi : s + 2 ≤ i) (hv : SA.voteTime p.toParams i ≤ v)
     {y : V} (hy : y ∈ rho.honest) {H : Block}
     (hH : headAtLabel p c E rho y i = some H) : Block.Preceq B H :=
-  healing_fast_heads_transfer E rho hrec mono crossing hgst hphase hhead hgate hx hnd hB hlease
+  healing_fast_heads_transfer E rho hrec mono crossing hgst hphase hhead hgate hx hnd hB
+    hFast.first hFast.next hlease
     i ((Nat.le_succ _).trans hi) hv y hy H hH
 
 -- G5: the release is a lower bound; a fast-supported block forces every conflicting
 -- lease out at the next HEAD tick once finality is at or below the block.
-example (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
+example (hE : V2.D.ExecutionValid E rho) (hDelta : E.Δ = p.Δ)
     (s : Slot) (hSync : Gen.V2.Duty.LabelSyncOn E rho
       (fun o => ¬ isRowObject o) (SA.voteTime p.toParams s) (SA.gateTime p.toParams s))
     {ix iy : Nat} {x y : V} (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (hix : rho.events[ix]? = some (.tick x (SA.gateTime p.toParams s)))
-    (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (s + 1)))) {B : Block}
+    (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (s + 1))))
+    (hScope : FirstTransferScope E rho ix iy x y s) {B : Block}
     (hτ : SA.releaseThreshold p.toParams ≤ SA.Root.prefixSupport p.toParams
       (actView (clockPre p (storeAt p c E rho ix x) (SA.gateTime p.toParams s))) s B)
     (hFB : Block.Preceq (eraseFG (storeAt p c E rho iy y).fg.F) B) :
     ∀ row ∈ (FGSA.clock p (storeAt p c E rho iy y)
       (SA.voteTime p.toParams (s + 1))).base.obligations, Block.Compatible row.1 B :=
-  healing_support_release_compat (hroots := hroots) E rho hE hN hDelta s hSync hx hy hix hiy hτ hFB
+  healing_support_release_compat (hroots := hroots) E rho hE hDelta s hSync hx hy hix hiy
+    hScope hτ hFB
 
 -- S2: a synchronous-window slow body covers every honest HEAD at s+1 inside v.
-example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho)
+example [Fintype V] {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -130,6 +139,7 @@ example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -144,15 +154,17 @@ example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
     (hst : gateIn p c E rho x s = some st) {C : Block}
     (hres : gateResult p c E rho x s = some (some C)) (hBC : Block.Preceq B C)
     (hel : GridCO.slowEligible p.toParams.engine (actView st) s B = true)
-    {jx : Nat} (hjx : IsGateTick p c rho jx x s) {y : V} (hy : y ∈ rho.honest)
+    {jx : Nat} (hjx : IsGateTick p c rho jx x s)
+    (hScopes : SlowSupportScope E rho s v x) {y : V} (hy : y ∈ rho.honest)
     (hv : SA.voteTime p.toParams (s + 1) ≤ v) {H : Block}
     (hH : headAtLabel p c E rho y (s + 1) = some H) : Block.Preceq B H :=
   healing_slow_first_transfer E rho hrec mono crossing writes hgst hphase hhead hgate hx hgw
-    hst hres hBC hel hjx hy hv hH
+    hst hres hBC hel hjx hScopes hy hv hH
 
 -- S4 (B31): each PhaseBody arm gives the three Transfers clauses; S3 is guarded.
-example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho)
+example [Fintype V] {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
+    (hServices : SupportPermanenceServices E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -163,6 +175,7 @@ example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -176,12 +189,14 @@ example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
     {x : V} (hx : x ∈ rho.honest) (hguard : SA.gateTime p.toParams s + 4 * p.Δ ≤ v)
     {i : Nat} (hai : afterTicksIdx rho (SA.gateTime p.toParams s + 4 * p.Δ) ≤ i)
     (hiv : i ≤ timeIdx rho v) : Block.Preceq B (S_at p c E rho i x) :=
-  (healing_phase_transfers E rho hrec mono crossing writes hgst hphase hhead hgate hbody).2.2
+  (healing_phase_transfers E rho hrec mono crossing hServices writes
+    hgst hphase hhead hgate hbody).2.2
     i x hx hguard hai hiv
 
 -- S4: the frozen TPerm (B31-guarded Transfers) holds under the run hypotheses.
-example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (mono : RMono p c E rho) (crossing : RXing p c E rho)
+example [Fintype V] {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho) (crossing : RXing p c E rho)
+    (hServices : SupportPermanenceServices E rho)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
@@ -192,6 +207,7 @@ example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
           GridCO.savedGenuine pre.base w = none →
           SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
@@ -199,7 +215,7 @@ example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
           @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
             (actView pre) w C) :
     TPerm p c E rho :=
-  healing_tPerm E rho hrec mono crossing writes
+  healing_tPerm E rho hrec mono crossing hServices writes
 
 /- B31 sketch (comment only). Without the guard the old S3 clause failed at the horizon edge.
 Take v = horizon with d_s ≤ v < d_s + 4Δ = d_(s+1), two honest nodes x and y, and a fast
@@ -210,8 +226,8 @@ not cover B, but every premise of the old TPerm holds. -/
 
 end Signatures
 
-/-! Satisfiability. One validator is honest and asleep. It ticks at 0, 1 and 2,
-so it emits and receives nothing, and its FG store stays at genesis. The relay
+/-! Negative fixture. One validator is honest and asleep. The trace has ticks at 0, 1 and 2,
+so it emits and receives nothing, and its FG store stays at genesis. The source
 HEAD is at v_0 = 1 and the receipt deadline is the horizon 2. -/
 
 private abbrev p1 : Params :=
@@ -278,13 +294,13 @@ private theorem noRestart1 : V2.D.NoRestart rho1 := by
   have he := mem1 (List.mem_of_getElem? h)
   rcases he with he | he | he <;> cases he
 
-private theorem valid1 : V2.D.ExecutionValid env1 rho1 where
-  toScheduleWellFormed := schedule1
-  wire := by intro i v o t h; exact (noDelivery1 i v o t h).elim
-  deps := by intro i v o t h; exact (noDelivery1 i v o t h).elim
-  fresh := by intro i v o t h; exact (noDelivery1 i v o t h).elim
-  unforgeable := by rintro v o t ⟨i, hi⟩; exact (noDelivery1 i v o t hi).elim
-  carried := by rintro v o t ⟨i, hi⟩; exact (noDelivery1 i v o t hi).elim
+-- The all-asleep tick trace is a negative fixture under the sleep model.
+private theorem invalid1 : ¬ V2.D.ExecutionValid env1 rho1 := by
+  intro h
+  have ht := h.tick_awake 0 1
+    (List.mem_cons_of_mem _ (List.mem_cons_self ..))
+  change false = true at ht
+  cases ht
 
 private theorem noEmit1 (v : Fin 1) (o : (fgsa p1 unitCodec).Object) (t : Time) :
     ¬ V2.D.Run.emits env1 rho1 v o t := by
@@ -383,20 +399,10 @@ example : RXing p1 unitCodec env1 rho1 ∧
       (V2.D.Run.idxBefore rho1 (SA.voteTime p1.toParams 0 + p1.Δ)) y) 1 (some .genesis) false :=
   ⟨crossing1, frame1 1 0, fun y _ => frame1 _ y⟩
 
--- The full relay applies on this run, with genesis as the witness W.
-example : ∀ y ∈ rho1.honest, Gen.V2.Duty.HoldsBefore env1 rho1
-    (fun nd => ∀ B, FGBlock.Preceq B .genesis → B ∈ nd.st.fg.TF)
-    (SA.voteTime p1.toParams 0 + p1.Δ) y := by
-  have hW : FGBlock.genesis ∈ (storeAt p1 unitCodec env1 rho1 1 0).fg.TF := by
-    rw [fg1]
-    decide
-  exact healing_witness_relay (hroots := roots1) (s := 0) p1 unitCodec env1 rho1 mono1 crossing1
-      valid1 noRestart1 rfl
-    (sync1 0) (Finset.mem_singleton_self 0) (rfl : rho1.events[1]? = _) (by decide)
-    (by decide) .genesis hW (frame1 1 0) (by rw [R1]; decide) (by rw [R1]; decide)
-    (fun y _ => frame1 _ y)
+-- The structural frame facts do not make the asleep tick trace a valid execution.
+example : ¬ V2.D.ExecutionValid env1 rho1 := invalid1
 
--- The S0 relay applies on the same run, with the phase [v_0, v_0 + Δ] at m = 1.
+-- The structural phase predicate holds on the invalid trace at m = 1.
 example : PhaseInterval p1 unitCodec env1 rho1 1 2 1 (some .genesis) false := by
   refine ⟨by decide, le_rfl, le_rfl, ?_⟩
   intro i x _ _ _

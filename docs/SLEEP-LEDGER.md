@@ -4570,3 +4570,24 @@ It keeps joined source votes, fresh receipt and the exact receiver epoch explici
 An emitted proposal supplies its duty guard through the executable guarded branch.
 The public Transfers/TPerm definitions and all public claim text stay unchanged.
 Fifteen further strict commands and their serial coverage rows cover these ports.
+
+P-H1 Round 3 slow, permanence and frontier consumers:
+SupportSaved adds wake-safe saved-result origin: restart clears the cache, so a
+surviving nonempty result has the actual gate origin. SlowSupportScope preserves
+per-label same-label service over its saved window. Its later services are bounded
+by the same interval as FastSupportScope. SupportPermanenceServices supplies the
+exact object scopes only for active PhaseBody arms and their proposal reads.
+The Transfers/TPerm conclusions remain unchanged; services are explicit internal inputs.
+
+The inline last-write input now includes joinedNow at each candidate renewal gate,
+matching P-Fd's actual last-write producer. Suppressed gates cannot renew a lock.
+Capped frontier HEAD relay uses TargetReceiptService and durable membership.
+The capped first/later transfer induction consumes FirstTransferScope/NextTransferScope.
+ExactService callers keep the confirmed-reader guard at the actual gate cut.
+
+HealingPromotion ports the renewed/age tests to RecoverySleep₂, RMonoAll,
+SupportPermanenceServices, and per-emitted-proposal ReceiverService. Row receipt uses
+P-Fd's fgsa_tRows_recovery producer. HealingSupport uses the same exact local inputs.
+Its all-asleep tick trace was an invalid positive execution fixture under the new
+ExecutionValid awake laws. It is now a negative execution test; structural frame
+facts stay as structural facts. No public claim text or protocol rule changed.
