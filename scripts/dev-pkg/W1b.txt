@@ -444,6 +444,41 @@ AvailableChainKitV2.Tests.Duties
 AvailableChainKitV2.Tests.Sleep
 AvailableChainKitV2.Tests.Toy
 
+AvailableChainEngineV2.TestSupport.Engine
+AvailableChainEngineV2.TestSupport.Sleep
+AvailableChainFGSA.Model.Restart
+AvailableChainFGSA.Proofs.Join
+AvailableChainFGSA.Proofs.Restart
+AvailableChainFGSA.Tests.Join
+AvailableChainFGSA.Tests.Restart
+AvailableChainFGSAClaims.Statements.Join
+AvailableChainFGSAProofs.Proofs.Shared.AnchorService
+AvailableChainFGSAProofs.Proofs.Shared.CatchUp
+AvailableChainFGSAProofs.Proofs.Shared.RegimesService
+AvailableChainFGSARun.Proofs.FGSource
+AvailableChainFGSARun.Proofs.HeadHistory
+AvailableChainFGSARun.Proofs.Join
+AvailableChainFGSARun.Proofs.NamedHistory
+AvailableChainFGSARun.Proofs.ProposalHistory
+AvailableChainFGSARun.Proofs.ReadyAcceptance
+AvailableChainFGSARun.Proofs.ReceiptCoverageReady
+AvailableChainFGSARun.Proofs.Restore
+AvailableChainFGSARun.Proofs.RowHistory
+AvailableChainFGSARun.Proofs.StampOrigins
+AvailableChainFGSARun.TestSupport.EmissionFreshness
+AvailableChainFGSARun.TestSupport.Sleep
+AvailableChainFGSARun.Tests.EmissionFreshness
+AvailableChainFGSARun.Tests.FGSource
+AvailableChainFGSARun.Tests.History
+AvailableChainFGSARun.Tests.P23Axioms
+AvailableChainFGSARun.Tests.ReceiptAlias
+AvailableChainFGSARun.Tests.ReceiptReady
+AvailableChainFGSARun.Tests.RestoreAxioms
+AvailableChainFGSARun.Tests.Sleep
+AvailableChainFGSARun.Tests.SleepContinuation
+AvailableChainFGSARun.Tests.SleepContinuationAxioms
+AvailableChainFGSARun.Tests.W3Axioms
+AvailableChainKitV2.TestSupport.Sleep
 [EXPECTED-FAIL]
 # Final repair owners follow r9 §3.3 and §8.2.
 # Schedule: W2b resets first; W3 repairs gate callers and the gate bridge last.

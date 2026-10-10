@@ -354,6 +354,28 @@ AvailableChainKitV2.Tests.Counterexamples
 AvailableChainKitV2.Tests.Duties
 AvailableChainKitV2.Tests.Sleep
 AvailableChainKitV2.Tests.Toy
+AvailableChainFGSAClaims.Statements.Join
+AvailableChainFGSAProofs.Proofs.Shared.AnchorService
+AvailableChainFGSAProofs.Proofs.Shared.CatchUp
+AvailableChainFGSAProofs.Proofs.Shared.RegimesService
+AvailableChainFGSARun.Proofs.FGSource
+AvailableChainFGSARun.Proofs.HeadHistory
+AvailableChainFGSARun.Proofs.Join
+AvailableChainFGSARun.Proofs.NamedHistory
+AvailableChainFGSARun.Proofs.ProposalHistory
+AvailableChainFGSARun.Proofs.ReadyAcceptance
+AvailableChainFGSARun.Proofs.ReceiptCoverageReady
+AvailableChainFGSARun.Proofs.RowHistory
+AvailableChainFGSARun.Proofs.StampOrigins
+AvailableChainFGSARun.TestSupport.EmissionFreshness
+AvailableChainFGSARun.TestSupport.Sleep
+AvailableChainFGSARun.Tests.EmissionFreshness
+AvailableChainFGSARun.Tests.FGSource
+AvailableChainFGSARun.Tests.History
+AvailableChainFGSARun.Tests.P23Axioms
+AvailableChainFGSARun.Tests.ReceiptAlias
+AvailableChainFGSARun.Tests.ReceiptReady
+AvailableChainFGSARun.Tests.W3Axioms
 [EXPECTED-FAIL]
 AvailableChainFGCompose W3
 AvailableChainFGCompose.Proofs.SafetyAccountable W3

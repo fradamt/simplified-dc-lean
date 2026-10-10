@@ -462,6 +462,11 @@ AvailableChainKitV2.Tests.Counterexamples
 AvailableChainKitV2.Tests.Duties
 AvailableChainKitV2.Tests.Sleep
 AvailableChainKitV2.Tests.Toy
+AvailableChainFGSAClaims.Statements.Join
+AvailableChainFGSAProofs.Proofs.Shared.AnchorService
+AvailableChainFGSAProofs.Proofs.Shared.CatchUp
+AvailableChainFGSAProofs.Proofs.Shared.RegimesService
+AvailableChainFGSARun.Tests.P23Axioms
 [EXPECTED-FAIL]
 AvailableChainFGSAProofs.Tests.FGSafety P-Sa
 AvailableChainFGSAClaims.Claims.Shared S-Ap

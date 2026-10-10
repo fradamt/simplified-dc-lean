@@ -312,6 +312,41 @@ AvailableChainKitV2.Execution
 AvailableChainKitV2.RunCheck
 AvailableChainKitV2.Stable
 
+AvailableChainEngineV2.TestSupport.Engine
+AvailableChainEngineV2.TestSupport.Sleep
+AvailableChainFGSAClaims.Statements.Join
+AvailableChainFGSAProofs.Proofs.Shared.AnchorService
+AvailableChainFGSAProofs.Proofs.Shared.CatchUp
+AvailableChainFGSAProofs.Proofs.Shared.RegimesService
+AvailableChainFGSARun.Proofs.FGSource
+AvailableChainFGSARun.Proofs.HeadHistory
+AvailableChainFGSARun.Proofs.Join
+AvailableChainFGSARun.Proofs.NamedHistory
+AvailableChainFGSARun.Proofs.ProposalHistory
+AvailableChainFGSARun.Proofs.ReadyAcceptance
+AvailableChainFGSARun.Proofs.ReceiptCoverageReady
+AvailableChainFGSARun.Proofs.Restore
+AvailableChainFGSARun.Proofs.RowHistory
+AvailableChainFGSARun.Proofs.StampOrigins
+AvailableChainFGSARun.TestSupport.EmissionFreshness
+AvailableChainFGSARun.TestSupport.Sleep
+AvailableChainFGSARun.Tests.EmissionFreshness
+AvailableChainFGSARun.Tests.FGSource
+AvailableChainFGSARun.Tests.History
+AvailableChainFGSARun.Tests.P23Axioms
+AvailableChainFGSARun.Tests.ReceiptAlias
+AvailableChainFGSARun.Tests.ReceiptReady
+AvailableChainFGSARun.Tests.RestoreAxioms
+AvailableChainFGSARun.Tests.Sleep
+AvailableChainFGSARun.Tests.SleepContinuation
+AvailableChainFGSARun.Tests.SleepContinuationAxioms
+AvailableChainFGSARun.Tests.W3Axioms
+AvailableChainGeneric.Proofs.V2.Duty.Sleep
+AvailableChainGeneric.Proofs.V2.Sleep
+AvailableChainKitV2.DutySleep
+AvailableChainKitV2.Sleep
+AvailableChainKitV2.TestSupport.Sleep
+AvailableChainKitV2.Tests.Sleep
 [EXPECTED-FAIL]
 AvailableChainFGCompose W3
 AvailableChainFGCompose.Proofs.SafetyAccountable W3

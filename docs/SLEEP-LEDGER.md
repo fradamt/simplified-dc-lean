@@ -8313,3 +8313,15 @@ Unrelated production GLY findings remain in the real full gate. Only the test
 fixture's scope changes. Both planted rejections, every guard-list/data case,
 and the no-Lean/no-build sentinel pass. The independent precheck self-test passes.
 No production precheck, GLY rule, baseline or allowance is changed by this repair.
+
+## P-Da Round 3 — remaining package dependency maps (2026-10-11)
+
+A source-graph check of all 19 maps finds the same missing migration dependencies
+in six later packages. Add only omitted current dependency modules to GREEN:
+W1a 40, W1b 35, W2a 35, W2b 22, W3 5 and sleep-ppc 45. Keep every original
+TARGETS and EXPECTED-FAIL row. The existing validator still checks the exact
+source closure and the full package run still builds GREEN with --wfail and
+runs strict axioms and all default controls. Every added module is active and
+was in the complete successful build. No module or check is excluded.
+The exact per-package module list is saved in package-map-dependency-delta.json
+under the Round 3 logs. Complete package validation follows these map updates.
