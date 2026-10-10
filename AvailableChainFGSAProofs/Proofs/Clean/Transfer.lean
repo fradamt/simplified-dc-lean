@@ -25,7 +25,7 @@ F2.3 split ruling; like G24 and DC it covers only source supporters of B.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
 private theorem clean_transfer_counts_of_forward (b₀ : Time) :
-  CleanCut₂ p c E rho b₀ ΔF → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
+  CleanCutSet p c E rho b₀ ΔF → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
   FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
   ∀ i k x y s B, i < timeIdx rho b₀ → k < i →
     IsGateTick p c rho i x s →
@@ -94,7 +94,7 @@ this conditional lemma does not export the later public cleanTransfer.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
 private theorem cleanTransfer_of_forward (b₀ : Time) :
-  CleanCut₂ p c E rho b₀ ΔF → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
+  CleanCutSet p c E rho b₀ ΔF → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
   FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
   ∀ i k x y s B, i < timeIdx rho b₀ → k < i →
     IsGateTick p c rho i x s →
@@ -157,7 +157,7 @@ history at the source gate, with strict freeze stamps at the target read.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
 private theorem clean_transfer_forward (b₀ : Time) :
-  CleanCut₂ p c E rho b₀ ΔF → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
+  CleanCutSet p c E rho b₀ ΔF → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
   FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
   ∀ i k x y s B, i < timeIdx rho b₀ → k < i →
     IsGateTick p c rho i x s →
@@ -217,7 +217,7 @@ OSN (review-00-02:234–236; lead Q2). No UNMOTIVATED or UNCLEAR divergence.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
 theorem cleanTransfer (b₀ : Time) :
-  CleanCut₂ p c E rho b₀ ΔF → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
+  CleanCutSet p c E rho b₀ ΔF → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
   FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
   ∀ i k x y s B, i < timeIdx rho b₀ → k < i →
     IsGateTick p c rho i x s →

@@ -333,7 +333,7 @@ K8 branch is handled by `fgsa_active_path_of_coverage`.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
 theorem clean_transfer_receipt_path [Fintype V] (b₀ : Time)
-    (h : CleanCut₂ p c E rho b₀ ΔF)
+    (h : CleanCutSet p c E rho b₀ ΔF)
     (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho)
     {i k : Nat} {x y : V} {s : Slot} {B : Block}
     (hi : i < timeIdx rho b₀) (hki : k < i)
@@ -395,7 +395,7 @@ using each proposal's acceptance and strict freeze read
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
 theorem clean_transfer_receipt_path_of_head [Fintype V] (b₀ : Time)
-    (h : CleanCut₂ p c E rho b₀ ΔF)
+    (h : CleanCutSet p c E rho b₀ ΔF)
     (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho)
     {i k : Nat} {x y : V} {s : Slot} {B K : Block} {o : GridCO.Wire p.n .root}
     (hi : i < timeIdx rho b₀) (hki : k < i)
@@ -536,7 +536,7 @@ The original freeze stamps survive both cumulative storage and the full clock.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
 theorem clean_transfer_prefreeze_path [Fintype V] (b₀ : Time) :
-  CleanCut₂ p c E rho b₀ ΔF → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
+  CleanCutSet p c E rho b₀ ΔF → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
   FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
   ∀ i k x y s B, i < timeIdx rho b₀ → k < i →
     IsGateTick p c rho i x s →
@@ -614,7 +614,7 @@ that the consumer can select it; eraseFG injectivity identifies any other lift.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
 theorem clean_transfer_prefreeze_path_of_head [Fintype V] (b₀ : Time) :
-  CleanCut₂ p c E rho b₀ ΔF → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
+  CleanCutSet p c E rho b₀ ΔF → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
   FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
   ∀ i k x y s B K (o : GridCO.Wire p.n .root), i < timeIdx rho b₀ → k < i →
     IsGateTick p c rho i x s →
@@ -741,7 +741,7 @@ The local height witness is Bfg itself. Ordered is an explicit input.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
 theorem clean_transfer_frame [Fintype V] (b₀ : Time) :
-  CleanCut₂ p c E rho b₀ ΔF → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
+  CleanCutSet p c E rho b₀ ΔF → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
   FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
   ∀ i k x y s B, i < timeIdx rho b₀ → k < i →
     IsGateTick p c rho i x s →

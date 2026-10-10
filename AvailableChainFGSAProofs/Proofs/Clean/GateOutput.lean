@@ -25,17 +25,16 @@ below S, and NestOK makes normalization inert. No history closure is used.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
 theorem clean_gateOutput_body (b₀ : Time) :
-    CleanCut₂ p c E rho b₀ ΔF → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
+    CleanCutSet p c E rho b₀ ΔF → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
     FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
     ∀ i, i ≤ timeIdx rho b₀ → CleanHist p c E rho i →
-      ∀ j v s, j < i → v ∈ rho.honest → IsGateTick p c rho j v s →
+      ∀ j v s, j < i → v ∈ rho.honest → enabledGateAt p c E rho j v s →
         ∃ B, gateResultAt p c E rho j = some (some B) ∧
           gatePassedAt p c E rho j ∧ Block.Preceq B (S_at p c E rho (j + 1) v) := by
   intro h hq hf hsrc i hi hh j v s hji _ ht
   have hs := cleanState_of_hist h hq hf hsrc (clean_actionStep p c E rho)
     (Nat.le_trans (Nat.le_of_lt hji) hi) (cleanHist_restrict (Nat.le_of_lt hji) hh)
   have hsch := h.base.valid.toScheduleWellFormed
-  have hnr := h.base.noRestart
   obtain ⟨B, hB, _⟩ := hh.nonempty j v s hji ht
   refine ⟨B, hB, clean_gate_passed hsch hji hh hs ht, ?_⟩
   have hc := Option.some.inj ((clean_gate_raw hsch ht).symm.trans hB)
@@ -53,10 +52,10 @@ theorem clean_gateOutput_body (b₀ : Time) :
       have he' := congrArg GridCO.State.obligations hview
       exact he'
     rw [← he] at hm
-    have hg := List.any_eq_false.mp (clean_state_gate_guard hji hh hs ht hB) lease hm
+    have hg := List.any_eq_false.mp (clean_state_gate_guard hsch hji hh hs ht.1 hB) lease hm
     simpa only [Gen.AC.Lease.target, Block.Compatible, Bool.not_eq_true',
       Bool.not_eq_false] using hg
-  have hcompat := clean_gate_output_compatible hnr hji hh hs ht hB
+  have hcompat := clean_gate_output_compatible hsch hji hh hs ht.1 hB
   have hadv : Block.Preceq (S_at p c E rho j v)
       (GridCO.advance (S_at p c E rho j v) B) := by
     unfold GridCO.advance
@@ -71,9 +70,13 @@ theorem clean_gateOutput_body (b₀ : Time) :
     split
     · assumption
     · exact block_preceq_refl _
-  rcases (fgsaAC_gate_write E rho j s v ht).effects with hskip | hrun
+  have hj : joinedNow p (clockPre p (storeAt p c E rho j v)
+      (SA.gateTime p.toParams s)) = true := by
+    rw [clockPre_joined]
+    exact fgsa_gate_joined_of_enabled E rho ht
+  rcases (fgsaAC_gate_write E rho j s v hj ht.1).effects with hskip | hrun
   · obtain ⟨result, hsaved⟩ := hskip.1
-    have hfresh := fgsa_gate_fresh E rho hsch ht
+    have hfresh := fgsa_gate_fresh E rho hsch ht.1
     change GridCO.savedGenuine (storeAt p c E rho j v).base s = some result at hsaved
     change GridCO.savedGenuine (storeAt p c E rho j v).base s = none at hfresh
     rw [hfresh] at hsaved

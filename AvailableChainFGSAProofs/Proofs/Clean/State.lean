@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Clean.Chain
+public import AvailableChainFGSAProofs.Proofs.Clean.StateEpoch
 public import AvailableChainFGSAProofs.Proofs.Clean.StateGate
 public import AvailableChainFGSAProofs.Proofs.Shared.Reads
 public import AvailableChainFGSARun.Proofs.ClientTrace
@@ -27,7 +28,7 @@ theorem cleanResults_eq_of_noGate {i : Nat}
   constructor
   · rintro (h | ⟨x, hx, _⟩)
     · exact h
-    · exact (hn x s hx).elim
+    · exact (hn x s hx.1).elim
   · exact Or.inl
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -43,14 +44,14 @@ theorem cleanHist_step_of_noGate {i : Nat}
     have hji : j < i := by
       rcases Nat.lt_or_eq_of_le (Nat.le_of_lt_succ hj) with h | rfl
       · exact h
-      · exact (hn x s hx).elim
+      · exact (hn x s hx.1).elim
     exact hh.nonempty j x s hji hx
-  · intro j k x y s B hj hk hx hy hB
+  · intro j k x y s B hj hk hx hy hJ hB
     have hji : j < i := by
       rcases Nat.lt_or_eq_of_le (Nat.le_of_lt_succ hj) with h | rfl
       · exact h
       · exact (hn x s hx).elim
-    exact hh.continues j k x y s B hji hk hx hy hB
+    exact hh.continues j k x y s B hji hk hx hy hJ hB
 
 omit [DecidableEq V] in
 private theorem delivery_noGate {i : Nat} {v : V} {o} {t : Time}
@@ -210,7 +211,7 @@ variable [Fintype V]
 These state fields hold at every index, independently of Clean history.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
-theorem cleanState_index_facts {b₀ : Time} (h : CleanCut₂ p c E rho b₀ ΔF)
+theorem cleanState_index_facts {b₀ : Time} (h : CleanCutSet p c E rho b₀ ΔF)
     (hf : FGFoundation p c E rho) (i : Nat) :
     (∀ v, v ∈ rho.honest → FGSA.NestOK (storeAt p c E rho i v)) ∧
     (∀ v, v ∈ rho.honest → FGSA.CStoreInv p (storeAt p c E rho i v)) ∧
@@ -220,7 +221,7 @@ theorem cleanState_index_facts {b₀ : Time} (h : CleanCut₂ p c E rho b₀ ΔF
     (∀ v, v ∈ rho.honest → EmittedRowsNoSlash p c E rho v) := by
   exact ⟨fun v _ => nestOK_stateBefore E rho i v,
     fun v hv => (hf.store i v hv).1,
-    fun v hv => (hf.frame i v hv).1,
+    fun v hv => (hf.frame.1 i v hv).1,
     emittedRowsNoSlash E rho h.base.linked⟩
 
 
@@ -350,7 +351,7 @@ omit [Fintype V] in
 ROOT-DIGEST W2b. bp02 §5.4: gate inputs use only rows before the gate time.
 DC GSTZeroSafety has no FG-SA labelled gate-input field. -/
 theorem clean_gateInputs_from_rows (hf : FGFoundation p c E rho) {i : Nat}
-    (hsch : V2.D.ScheduleWellFormed E rho) (hnr : V2.D.NoRestart rho)
+    (hsch : V2.D.ScheduleWellFormed E rho)
     (_hsrc : SrcFrameAboveStmt p c E rho) (hr : CleanRowSources p c E rho i)
     (hroots : NamedRootCollisionFree p c E rho) :
     ∀ v s, IsGateTick p c rho i v s →
@@ -387,10 +388,10 @@ theorem clean_gateInputs_from_rows (hf : FGFoundation p c E rho) {i : Nat}
     · exact Or.inl hg
     · exact Or.inr ⟨r', B, hB, Nat.lt_of_le_of_lt hrr hlabel, hCB⟩
   have hh := clean_frame_from_rows (hroots := hroots) hf hki hr Φ (Or.inl rfl) hp hrow v hv
-  have he : storeAt p c E rho i v = storeAt p c E rho k v := by
-    change (V2.D.Run.stateBefore E rho i v).st = (V2.D.Run.stateBefore E rho k v).st
-    rw [V2.D.Engine.stateBefore_tick_eq_stateBeforeTime hsch hnr ht,
-      Gen.V2.Duty.stateBefore_idxBefore E rho _ hsch]
+  have he : (storeAt p c E rho i v).fg = (storeAt p c E rho k v).fg := by
+    have hb := clean_gate_fg_before_time hsch ht
+    rw [← Gen.V2.Duty.stateBefore_idxBefore E rho (SA.gateTime p.toParams s) hsch] at hb
+    exact hb
   change Φ (eraseFG (storeAt p c E rho i v).fg.F) ∧
     Φ (eraseFG (storeAt p c E rho i v).fg.J)
   rw [he]
@@ -449,7 +450,7 @@ DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-
 non-row traffic keeps Δ. -/
 theorem clean_block_reconcile_state {b₀ : Time} {i j : Nat} {v : V} {o} {t : Time}
     {s : Slot} {N : NamedProposal p.n} {P : FGBlock (Fin p.n)}
-    (h : CleanCut₂ p c E rho b₀ ΔF) (hf : FGFoundation p c E rho)
+    (h : CleanCutSet p c E rho b₀ ΔF) (hf : FGFoundation p c E rho)
     (_hsrc : SrcFrameAboveStmt p c E rho)
     (hji : j < i) (hh : CleanHist p c E rho i) (hs : CleanState p c E rho j)
     (he : rho.events[j]? = some (.deliver v o t))
@@ -476,30 +477,34 @@ theorem clean_block_reconcile_state {b₀ : Time} {i j : Nat} {v : V} {o} {t : T
     obtain ⟨k, hk, r, C, hkt, _, hC, hpre⟩ := hs.leases v row hrow
     exact Gen.Pure.block_compatible_of_preceq_compatible hpre
       (cleanHist_belowLabel_compatible hh
-        (belowLabel_of_gateResultAt (Nat.lt_trans hk hji) hkt hC (Nat.le_refl r)) hFi)
+        (belowLabel_of_gateResultAt h.base.valid.toScheduleWellFormed
+          (Nat.lt_trans hk hji) hkt hC (Nat.le_refl r)) hFi)
   · intro r C hC
-    obtain ⟨k, hk, hkt, hresult⟩ := hs.savedOnly v r C
+    obtain ⟨k, hk, hRF, hkt, hresult⟩ := hs.savedOnly v r C
       (clean_saved_of_member (cstoreInv_stateBefore E rho j v) hC)
     exact cleanHist_belowLabel_compatible hh
-      (belowLabel_of_gateResultAt (Nat.lt_trans hk hji) hkt hresult (Nat.le_refl r)) hFi
+      (belowLabel_of_gateResultAt h.base.valid.toScheduleWellFormed
+        (Nat.lt_trans hk hji) hkt.1 hresult (Nat.le_refl r)) hFi
   · rcases hs.sOrigin v with hg | ⟨k, hk, r, hkt, hC⟩ | ⟨k, hk, hSF⟩
     · rw [hg]
       exact Gen.Pure.block_compatible_of_common
         (Gen.Pure.block_genesis_preceq _) (Gen.Pure.block_preceq_refl _)
     · exact cleanHist_belowLabel_compatible hh
-        (belowLabel_of_gateResultAt (Nat.lt_trans hk hji) hkt hC (Nat.le_refl r)) hFi
+        (belowLabel_of_gateResultAt h.base.valid.toScheduleWellFormed
+          (Nat.lt_trans hk hji) hkt hC (Nat.le_refl r)) hFi
     · rw [hSF]
-      have hmono := eraseFG_preceq (hf.mono h.base.noRestart k j v hv hk).1
+      have hmono := eraseFG_preceq (hf.mono k j v hv hk).1
       exact cleanHist_belowLabel_compatible hh
         (belowLabel_mono_index (Nat.le_of_lt hji)
           (belowLabel_of_preceq hmono (hs.fOrigin v).1)) hFi
 
 
 private theorem clean_state_unchanged {b₀ : Time} {j : Nat}
-    (h : CleanCut₂ p c E rho b₀ ΔF) (hf : FGFoundation p c E rho)
+    (h : CleanCutSet p c E rho b₀ ΔF) (hf : FGFoundation p c E rho)
     (hsrc : SrcFrameAboveStmt p c E rho) (hs : CleanState p c E rho j)
     (hr : CleanRowSources p c E rho (j + 1))
     (hn : ∀ v s, ¬ IsGateTick p c rho j v s)
+    (hN : ∀ v t, rho.events[j]? ≠ some (.restart v t))
     (he : ∀ v, let a := storeAt p c E rho j v
       let b := storeAt p c E rho (j + 1) v
       b.fg = a.fg ∧ b.base.stableRecord = a.base.stableRecord ∧
@@ -511,29 +516,35 @@ private theorem clean_state_unchanged {b₀ : Time} {j : Nat}
     clean_fOrigin_from_rows (hroots := h.base.idealization) hf h.base.valid.toScheduleWellFormed
       hsrc hr,
     clean_gateInputs_from_rows (hroots := h.base.idealization) hf
-      h.base.valid.toScheduleWellFormed h.base.noRestart hsrc hr,
+      h.base.valid.toScheduleWellFormed hsrc hr,
     ?_, ?_, ?_, ?_, ?_, ?_, hnest, hstore, hframe, hclient, ?_⟩
   · intro v row hrow
     obtain ⟨k, hk, r, C, hkt, hp, hC, hpre⟩ := hs.leases v row ((he v).2.2.1.subset hrow)
     exact ⟨k, Nat.lt_trans hk (Nat.lt_succ_self j), r, C, hkt, hp, hC, hpre⟩
-  · intro v k r C hk hkt hC
+  · intro v k r C hk hkt hRF hActive hC
     have hkj : k < j := by
       rcases Nat.lt_or_eq_of_le (Nat.le_of_lt_succ hk) with hk | rfl
       · exact hk
-      · exact (hn v r hkt).elim
+      · exact (hn v r hkt.1).elim
     change ((storeAt p c E rho (j + 1) v).base.genuine.find? _).map _ = _
     rw [(he v).2.2.2.1]
-    exact hs.saved v k r C hkj hkt hC
+    have hA : activeCompatible (storeAt p c E rho j v) C = true := by
+      change Block.compatible C (eraseFG (storeAt p c E rho (j + 1) v).fg.F) = true at hActive
+      rw [(he v).1] at hActive
+      exact hActive
+    exact hs.saved v k r C hkj hkt (hRF.mono le_rfl (Nat.le_succ j)) hA hC
   · intro v r C hC
     change ((storeAt p c E rho (j + 1) v).base.genuine.find? _).map _ = _ at hC
     rw [(he v).2.2.2.1] at hC
-    obtain ⟨k, hk, hkt, hresult⟩ := hs.savedOnly v r C hC
-    exact ⟨k, Nat.lt_trans hk (Nat.lt_succ_self j), hkt, hresult⟩
+    obtain ⟨k, hk, hRF, hkt, hresult⟩ := hs.savedOnly v r C hC
+    have hRF' := clean_restartFree_succ hRF (hN v)
+    exact ⟨k, Nat.lt_trans hk (Nat.lt_succ_self j), hRF', hkt, hresult⟩
   · intro v r X hX
     change X ∈ (((storeAt p c E rho (j + 1) v).fastWrite.find? _).map _).getD [] at hX
     rw [(he v).2.2.2.2] at hX
-    obtain ⟨k, hk, hkt, hp, C, hC, hpre, hfast⟩ := hs.fastWrite v r X hX
-    exact ⟨k, Nat.lt_trans hk (Nat.lt_succ_self j), hkt, hp, C, hC, hpre, hfast⟩
+    obtain ⟨k, hk, hRF, hkt, hp, C, hC, hpre, hfast⟩ := hs.fastWrite v r X hX
+    have hRF' := clean_restartFree_succ hRF (hN v)
+    exact ⟨k, Nat.lt_trans hk (Nat.lt_succ_self j), hRF', hkt, hp, C, hC, hpre, hfast⟩
   · intro v
     rw [hS]
     rcases hs.sOrigin v with hg | ⟨k, hk, r, hkt, hC⟩ | ⟨k, hk, hF⟩
@@ -564,7 +575,7 @@ theorem clean_deliveryStateStep {b₀ : Time} : CleanDeliveryStateStep (ΔF := �
   rw [CleanOrdinaryDelivery_def] at he
   obtain ⟨v, o, t, he, href⟩ := he
   apply clean_state_unchanged h hf hsrc hs (clean_delivery_rowSources he hs.sources.1)
-    (delivery_noGate he)
+    (delivery_noGate he) (by intro w t hn; rw [he] at hn; cases hn)
   intro w
   by_cases hw : w = v
   · subst w
@@ -589,7 +600,8 @@ theorem clean_noGateStateStep {b₀ : Time} : CleanNoGateStateStep (ΔF := ΔF) 
   intro h _ hf hsrc i _ _ j _ he hs
   rw [CleanNoGateTick_def] at he
   obtain ⟨v, t, he, hn⟩ := he
-  refine clean_state_unchanged h hf hsrc hs (clean_noGate_rowSources he hn hs.sources.1) ?_ ?_
+  refine clean_state_unchanged h hf hsrc hs (clean_noGate_rowSources he hn hs.sources.1)
+    ?_ (by intro w t hn; rw [he] at hn; cases hn) ?_
   · intro w s hgate
     change rho.events[j]? = some (.tick w _) at hgate
     have htime := (V2.Event.tick.inj (Option.some.inj (he.symm.trans hgate))).2
@@ -643,30 +655,37 @@ theorem clean_blockStateStep {b₀ : Time} : CleanBlockStateStep (ΔF := ΔF) p 
     clean_fOrigin_from_rows (hroots := h.base.idealization) hf h.base.valid.toScheduleWellFormed
       hsrc hr,
     clean_gateInputs_from_rows (hroots := h.base.idealization) hf
-      h.base.valid.toScheduleWellFormed h.base.noRestart hsrc hr,
+      h.base.valid.toScheduleWellFormed hsrc hr,
     ?_, ?_, ?_, ?_, ?_, ?_, hnest, hstore, hframe, hclient, ?_⟩
   · intro w row hrow
     rw [(hkeep w).1] at hrow
     obtain ⟨k, hk, r, C, hkt, hp, hC, hpre⟩ := hs.leases w row hrow
     exact ⟨k, Nat.lt_trans hk (Nat.lt_succ_self j), r, C, hkt, hp, hC, hpre⟩
-  · intro w k r C hk hkt hC
+  · intro w k r C hk hkt hRF hActive hC
     have hkj : k < j := by
       rcases Nat.lt_or_eq_of_le (Nat.le_of_lt_succ hk) with hk | rfl
       · exact hk
-      · exact (delivery_noGate he w r hkt).elim
+      · exact (delivery_noGate he w r hkt.1).elim
     change ((storeAt p c E rho (j + 1) w).base.genuine.find? _).map _ = _
     rw [(hkeep w).2.1]
-    exact hs.saved w k r C hkj hkt hC
+    have hA : activeCompatible (storeAt p c E rho j w) C = true := by
+      exact cleanHist_belowLabel_compatible hh
+        (belowLabel_of_gateResultAt h.base.valid.toScheduleWellFormed
+          (Nat.lt_trans hkj hji) hkt.1 hC le_rfl)
+        (belowLabel_mono_index (Nat.le_of_lt hji) (hs.fOrigin w).1)
+    exact hs.saved w k r C hkj hkt (hRF.mono le_rfl (Nat.le_succ j)) hA hC
   · intro w r C hC
     change ((storeAt p c E rho (j + 1) w).base.genuine.find? _).map _ = _ at hC
     rw [(hkeep w).2.1] at hC
-    obtain ⟨k, hk, hkt, hresult⟩ := hs.savedOnly w r C hC
-    exact ⟨k, Nat.lt_trans hk (Nat.lt_succ_self j), hkt, hresult⟩
+    obtain ⟨k, hk, hRF, hkt, hresult⟩ := hs.savedOnly w r C hC
+    have hRF' := clean_restartFree_succ hRF (by intro t hn; rw [he] at hn; cases hn)
+    exact ⟨k, Nat.lt_trans hk (Nat.lt_succ_self j), hRF', hkt, hresult⟩
   · intro w r X hX
     change X ∈ (((storeAt p c E rho (j + 1) w).fastWrite.find? _).map _).getD [] at hX
     rw [(hkeep w).2.2.1] at hX
-    obtain ⟨k, hk, hkt, hp, C, hC, hpre, hfast⟩ := hs.fastWrite w r X hX
-    exact ⟨k, Nat.lt_trans hk (Nat.lt_succ_self j), hkt, hp, C, hC, hpre, hfast⟩
+    obtain ⟨k, hk, hRF, hkt, hp, C, hC, hpre, hfast⟩ := hs.fastWrite w r X hX
+    have hRF' := clean_restartFree_succ hRF (by intro t hn; rw [he] at hn; cases hn)
+    exact ⟨k, Nat.lt_trans hk (Nat.lt_succ_self j), hRF', hkt, hp, C, hC, hpre, hfast⟩
   · intro w
     have horigin : S_at p c E rho (j + 1) w = S_at p c E rho j w ∨
         S_at p c E rho (j + 1) w = F_at p c E rho (j + 1) w := by
@@ -714,19 +733,19 @@ substep remains separate as required by S3. DC has no FG-SA action rows.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
 theorem clean_gate_state_of_rows {b₀ : Time} {i j : Nat} {v : V} {s : Slot}
-    (h : CleanCut₂ p c E rho b₀ ΔF) (hf : FGFoundation p c E rho)
+    (h : CleanCutSet p c E rho b₀ ΔF) (hf : FGFoundation p c E rho)
     (hsrc : SrcFrameAboveStmt p c E rho) (hji : j < i)
     (hh : CleanHist p c E rho i) (hs : CleanState p c E rho j)
     (ht : IsGateTick p c rho j v s) (hr : CleanRowSources p c E rho (j + 1)) :
     CleanState p c E rho (j + 1) := by
   obtain ⟨hL, hG, hOnly, hFast, hOrigin, hS⟩ :=
-    clean_gate_fields_all h.base.valid.toScheduleWellFormed h.base.noRestart hji hh hs ht
+    clean_gate_fields_all h.base.valid.toScheduleWellFormed hji hh hs ht
   obtain ⟨hnest, hstore, hframe, hclient⟩ := cleanState_index_facts h hf (j + 1)
   refine ⟨⟨hr, clean_certSources_of_rows (hroots := h.base.idealization) hf hr⟩,
     clean_fOrigin_from_rows (hroots := h.base.idealization) hf h.base.valid.toScheduleWellFormed
       hsrc hr,
     clean_gateInputs_from_rows (hroots := h.base.idealization) hf
-      h.base.valid.toScheduleWellFormed h.base.noRestart hsrc hr,
+      h.base.valid.toScheduleWellFormed hsrc hr,
     hL, hG, hOnly, hFast, hOrigin, ?_, hnest, hstore, hframe, hclient, hS⟩
   intro k w o t hk hw he hmov
   rcases Nat.lt_or_eq_of_le (Nat.le_of_lt_succ hk) with hk | rfl
@@ -774,7 +793,7 @@ bp02 §5.2: the initial state has no sources or saved gate writes.
 DC GSTZeroSafety uses a genesis execution; this is the FG-SA initial state.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
-theorem cleanState_zero {b₀ : Time} (h : CleanCut₂ p c E rho b₀ ΔF)
+theorem cleanState_zero {b₀ : Time} (h : CleanCutSet p c E rho b₀ ΔF)
     (hf : FGFoundation p c E rho) : CleanState p c E rho 0 := by
   obtain ⟨hnest, hstore, hframe, hclient⟩ := cleanState_index_facts h hf 0
   refine ⟨⟨?_, ?_⟩, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_,
@@ -839,6 +858,100 @@ theorem clean_gateStateStep_of_action {b₀ : Time}
       (cleanHist_restrict (Nat.succ_le_of_lt hji) hh) hs
   · exact clean_rows_step hs.sources.1 (fun x r he => ha ⟨x, r, he⟩)
 
+/-- A wake restart keeps durable origins and starts new local saved histories. -/
+theorem clean_restartStateStep {b₀ : Time} {j : Nat} {v : V} {t : Time}
+    (h : CleanCutSet p c E rho b₀ ΔF) (hf : FGFoundation p c E rho)
+    (hsrc : SrcFrameAboveStmt p c E rho) (hs : CleanState p c E rho j)
+    (he : rho.events[j]? = some (.restart v t)) : CleanState p c E rho (j + 1) := by
+  have other (w : V) (hw : w ≠ v) :
+      storeAt p c E rho (j + 1) w = storeAt p c E rho j w := by
+    change (V2.D.Run.stateBefore E rho (j + 1) w).st = _
+    rw [V2.D.Run.stateBefore_succ E rho he]
+    simp only [V2.D.World.step, Function.update_of_ne hw]
+    rfl
+  have hkeep (w : V) :
+      (storeAt p c E rho (j + 1) w).fg = (storeAt p c E rho j w).fg ∧
+      S_at p c E rho (j + 1) w = S_at p c E rho j w ∧
+      (storeAt p c E rho (j + 1) w).base.obligations =
+        (storeAt p c E rho j w).base.obligations := by
+    by_cases hw : w = v
+    · subst w
+      have hb := clean_restart_fields (E := E) he
+      exact ⟨hb.1, hb.2.2.2.1, hb.2.2.1⟩
+    · rw [S_at_def, S_at_def, other w hw]
+      exact ⟨rfl, rfl, rfl⟩
+  have hN (w : V) (hw : w ≠ v) : ∀ u, rho.events[j]? ≠ some (.restart w u) := by
+    intro u hu
+    rw [he] at hu
+    exact hw (V2.Event.restart.inj (Option.some.inj hu)).1.symm
+  have hr : CleanRowSources p c E rho (j + 1) := by
+    apply clean_rows_step hs.sources.1
+    intro x r hx
+    rw [he] at hx
+    cases hx
+  obtain ⟨hnest, hstore, hframe, hclient⟩ := cleanState_index_facts h hf (j + 1)
+  refine ⟨⟨hr, clean_certSources_of_rows (hroots := h.base.idealization) hf hr⟩,
+    clean_fOrigin_from_rows (hroots := h.base.idealization) hf h.base.valid.toScheduleWellFormed
+      hsrc hr,
+    clean_gateInputs_from_rows (hroots := h.base.idealization) hf
+      h.base.valid.toScheduleWellFormed hsrc hr,
+    ?_, ?_, ?_, ?_, ?_, ?_, hnest, hstore, hframe, hclient, ?_⟩
+  · intro w row hrow
+    rw [(hkeep w).2.2] at hrow
+    obtain ⟨k, hk, r, C, hkt, hp, hC, hpre⟩ := hs.leases w row hrow
+    exact ⟨k, hk.trans (Nat.lt_succ_self j), r, C, hkt, hp, hC, hpre⟩
+  · intro w k r C hk hkt hRF hA hC
+    by_cases hw : w = v
+    · subst w
+      exact (hRF j t (Nat.le_of_lt_succ hk) (Nat.lt_succ_self j) he).elim
+    · rw [other w hw]
+      rw [other w hw] at hA
+      have hkj : k < j := by
+        rcases Nat.lt_or_eq_of_le (Nat.le_of_lt_succ hk) with hk | rfl
+        · exact hk
+        · have ht := hkt.1
+          change rho.events[k]? = some (.tick w (SA.gateTime p.toParams r)) at ht
+          rw [he] at ht
+          cases ht
+      exact hs.saved w k r C hkj hkt (hRF.mono le_rfl (Nat.le_succ j)) hA hC
+  · intro w r C hC
+    by_cases hw : w = v
+    · subst w
+      change ((storeAt p c E rho (j + 1) v).base.genuine.find? _).map _ = _ at hC
+      rw [(clean_restart_fields (E := E) he).2.2.2.2.1] at hC
+      cases hC
+    · rw [other w hw] at hC
+      obtain ⟨k, hk, hRF, hkt, hC⟩ := hs.savedOnly w r C hC
+      exact ⟨k, hk.trans (Nat.lt_succ_self j), clean_restartFree_succ hRF (hN w hw), hkt, hC⟩
+  · intro w r X hX
+    by_cases hw : w = v
+    · subst w
+      change X ∈ (((storeAt p c E rho (j + 1) v).fastWrite.find? _).map _).getD [] at hX
+      rw [(clean_restart_fields (E := E) he).2.2.2.2.2.1] at hX
+      exact (List.not_mem_nil hX).elim
+    · rw [other w hw] at hX
+      obtain ⟨k, hk, hRF, hkt, hp, C, hC, hpre, hfast⟩ := hs.fastWrite w r X hX
+      exact ⟨k, hk.trans (Nat.lt_succ_self j), clean_restartFree_succ hRF (hN w hw),
+        hkt, hp, C, hC, hpre, hfast⟩
+  · intro w
+    rw [(hkeep w).2.1]
+    rcases hs.sOrigin w with hg | ⟨k, hk, r, hkt, hC⟩ | ⟨k, hk, hF⟩
+    · exact Or.inl hg
+    · exact Or.inr (Or.inl ⟨k, hk.trans (Nat.lt_succ_self j), r, hkt, hC⟩)
+    · exact Or.inr (Or.inr ⟨k, hk.trans (Nat.le_succ j), hF⟩)
+  · intro k w o u hk hw hd hm
+    rcases Nat.lt_or_eq_of_le (Nat.le_of_lt_succ hk) with hk | rfl
+    · exact hs.harmless k w o u hk hw hd hm
+    · rw [he] at hd
+      cases hd
+  · intro w k l hkl hlj
+    rcases Nat.lt_or_eq_of_le hlj with hl | rfl
+    · exact hs.sExtends w k l hkl (Nat.le_of_lt_succ hl)
+    · rcases Nat.lt_or_eq_of_le hkl with hk | rfl
+      · rw [(hkeep w).2.1]
+        exact hs.sExtends w k j (Nat.le_of_lt_succ hk) le_rfl
+      · exact Gen.Pure.block_preceq_refl _
+
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. P3 §§8.2–8.4, 8.7; bp02 §5; lead R2(c), S2 and S3.
 DC counterpart: none for this fixed-history state predicate. DC's
@@ -848,7 +961,7 @@ and the separate action step.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
 theorem cleanState_of_hist {b₀ : Time} {i : Nat}
-    (h : CleanCut₂ p c E rho b₀ ΔF) (hq : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
+    (h : CleanCutSet p c E rho b₀ ΔF) (hq : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
     (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho)
     (hact : CleanActionStep (ΔF := ΔF) p c E rho b₀)
     (hi : i ≤ timeIdx rho b₀) (hh : CleanHist p c E rho i) : CleanState p c E rho i := by
@@ -876,7 +989,7 @@ theorem cleanState_of_hist {b₀ : Time} {i : Nat}
       obtain ⟨e, he⟩ : ∃ e, rho.events[j]? = some e :=
         ⟨rho.events[j], List.getElem?_eq_some_iff.mpr ⟨hjlen, rfl⟩⟩
       cases e with
-      | restart v t => exact (h.base.noRestart j v t he).elim
+      | restart v t => exact clean_restartStateStep h hf hsrc hs he
       | tick v t =>
         cases ht : isGateTime p t with
         | false =>
@@ -918,7 +1031,7 @@ discharges before the whole-run monotonicity result.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
 theorem sExtends_upTo_of_action {b₀ : Time} {i : Nat}
-    (h : CleanCut₂ p c E rho b₀ ΔF) (hq : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
+    (h : CleanCutSet p c E rho b₀ ΔF) (hq : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
     (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho)
     (hact : CleanActionStep (ΔF := ΔF) p c E rho b₀)
     (hi : i ≤ timeIdx rho b₀) (hh : CleanHist p c E rho i) :
