@@ -1,6 +1,11 @@
 module
 public import AvailableChainFGCompose.Statements.CoreReads
 public import AvailableChainFGCompose.Statements.Selection
+public import AvailableChainFGCompose.Statements.ChannelLaws
+public import AvailableChainFGCompose.Proofs.ObservationTransport
+public import AvailableChainFGSAClaims.Statements.ChannelProps
+public import AvailableChainFGSARun.Statements.Client
+public import AvailableChainKitV2.DutyStable
 public import AvailableChainFGSARun.Proofs.FGSource
 public import AvailableChainGeneric.Proofs.Pure.BlockOrder
 public import AvailableChainFGSAClaims.Statements.Fold
@@ -256,6 +261,332 @@ private theorem p0c1_action_selection_laws (p : Params) {In V : Type} [Decidable
 #print axioms p0c1_source_head
 #print axioms p0c1_selection_laws
 #print axioms p0c1_action_selection_laws
+
+private def p0c1_timing (p : Params) : FGCompose.FGTiming where
+  delta := p.Δ
+  roundSlots := p.R
+  proposal := SA.proposalTime p.toParams
+  vote := SA.voteTime p.toParams
+  early := SA.earlyTime p.toParams
+  freeze := SA.freezeTime p.toParams
+  release := SA.releaseTime p.toParams
+  gate := SA.gateTime p.toParams
+  action := p.actionTime
+
+private theorem p0c1_timing_laws (p : Params) :
+    FGCompose.FGTimingLaws (p0c1_timing p) where
+  delta_pos := p.deltaPos
+  rounds := p.RLarge
+  proposal_eq s := by
+    change 4 * p.Δ * (s : Time) = 4 * (s : Time) * p.Δ
+    ring
+  vote_eq _ := rfl
+  early_eq _ := rfl
+  freeze_eq _ := rfl
+  release_eq _ := rfl
+  gate_eq _ := rfl
+  action_eq _ := rfl
+
+private def p0c1_safety (p : Params) {In : Type} (c : AppCodec In) :
+    FGCompose.FGSafetyReads (fgsa p c) p.n (RowWire p.n) where
+  proposalErase := safetyProposalErase p
+  proposalRows := safetyProposalRows p
+  encode := ofRow p
+  decode := RowWire.toRow?
+  decodeObject := decodeRowObject p
+  fgLabel := .base .fg
+  fgSeats := Equiv.refl _
+  record := Node.record
+  inputs := fun nd => fgInputs p nd.st
+  enabled := fun t => decide (p.actionTime ((p.slotOf t - 1) / p.R) = t)
+  finalizedOut := finalizedOut
+private theorem p0c1_order_laws (p : Params) {In V : Type} [DecidableEq V]
+    (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) :
+    FGCompose.FGRunOrderLaws E rho (fgsaCoreReads p c) := by
+  constructor
+  change RMonoAll p c E rho
+  intro i j x _ hij
+  let a := storeAt p c E rho i x
+  apply V2.D.Engine.stateBefore_stable_restore (P := fgsa p c)
+    (fun nd => FGBlock.Preceq a.fg.F nd.st.fg.F ∧
+      lexKey (a.fg.h_j, a.fg.J) ≤ lexKey (nd.st.fg.h_j, nd.st.fg.J) ∧
+      a.fg.h_max ≤ nd.st.fg.h_max)
+    ?_ ?_ (fun _ _ h => h) E rho hij x ?_
+    ⟨KitFG.preceq_refl _, le_rfl, le_rfl⟩
+  · intro nd t h
+    change FGBlock.Preceq a.fg.F (clock p nd.st t).fg.F ∧
+      lexKey (a.fg.h_j, a.fg.J) ≤ lexKey ((clock p nd.st t).fg.h_j, (clock p nd.st t).fg.J) ∧
+      a.fg.h_max ≤ (clock p nd.st t).fg.h_max
+    rw [clock_fg]
+    exact h
+  · intro nd o h
+    exact ⟨KitFG.preceq_trans h.1 (process_F_mono p nd.st (toWire p o)),
+      le_trans h.2.1 (process_pair_mono p nd.st (toWire p o)),
+      le_trans h.2.2 (process_hmax_mono p nd.st (toWire p o))⟩
+  · intro nd t h
+    change FGBlock.Preceq a.fg.F (acRestart p nd.st t).fg.F ∧
+      lexKey (a.fg.h_j, a.fg.J) ≤
+        lexKey ((acRestart p nd.st t).fg.h_j, (acRestart p nd.st t).fg.J) ∧
+      a.fg.h_max ≤ (acRestart p nd.st t).fg.h_max
+    rwa [acRestart_fg]
+
+
+private theorem p0c1_observation_laws (p : Params) {In : Type} (c : AppCodec In) :
+    FGCompose.FGObservationLaws (fgsaCoreReads p c) (p0c1_observations p c) where
+  controls_eq _ := rfl
+  viable_eq _ _ := rfl
+
+private theorem p0c1_client_laws (p : Params) {In : Type} (c : AppCodec In) :
+    FGCompose.FGSelectionClientLaws (p0c1_selection p c) (p0c1_safety p c) :=
+  ⟨fun _ => rfl⟩
+
+private def p0c1_signer {n : Nat} (a : RowWire n) : Option (Fin n) :=
+  match a.auth with
+  | .seat .fg i => some i
+  | _ => none
+
+private def p0c1_carrier (p : Params) (o : Obj p) (_ : Slot) (Q : Block)
+    (rows : List (RowWire p.n)) : Prop :=
+  ∃ N, o.payload = .proposal N ∧ N.erase = Q ∧ N.rows = rows
+
+private def p0c1_stored_carrier (p : Params) (nd : Node p) (B : FGBlock (Fin p.n))
+    (wire : RowWire p.n) : Prop :=
+  ∃ s N, N.erase = eraseFG B ∧
+    (⟨.proposer s, .proposal N⟩ : Wire p.n) ∈ nd.st.proposals ∧ wire ∈ N.rows
+
+private def p0c1_source_service (p : Params) {In V : Type} [DecidableEq V]
+    (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (y : V) (r : Nat) (C : FGBlock (Fin p.n)) : Prop :=
+  ∃ G, gateResult p c E rho y (r * p.R) = some (some G) ∧
+    Block.Preceq (eraseFG C) G ∧ fastAt p c E rho y (r * p.R) (eraseFG C)
+
+section P0c1Channels
+variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
+variable (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+
+private theorem p0c1_certified_eq (W : FGBlock (Fin p.n)) :
+    FGCompose.certified (fgsaCoreReads p c) (p0c1_observations p c) W = certified p W := rfl
+
+private theorem p0c1_entry_below_eq (e : Height × BlockId) (W : FGBlock (Fin p.n)) :
+    FGCompose.EntryBelow (fgsaCoreReads p c) (p0c1_observations p c) e W =
+      EntryBelow p e W := rfl
+
+private theorem p0c1_named_entry_eq (e : NamedHeightPair) :
+    FGCompose.namedEntry e = namedEntry e := by cases e <;> rfl
+
+omit [DecidableEq V] in
+private theorem p0c1_row_signer_eq (a : RowWire p.n) (x : V) :
+    FGCompose.RowSigner (p0c1_safety p c) rho p0c1_signer a x = RowSigner p c rho a x := by
+  rcases a with ⟨auth, payload⟩
+  cases auth with
+  | none => simp [FGCompose.RowSigner, p0c1_signer, RowSigner]
+  | proposer s => simp [FGCompose.RowSigner, p0c1_signer, RowSigner]
+  | seat label i =>
+    cases label <;> simp [FGCompose.RowSigner, p0c1_signer, RowSigner,
+      FGCompose.safetyHolder, p0c1_safety]
+    rfl
+
+private theorem p0c1_honest_row_eq (j : Nat) (y : V) (r : Nat) (a : RowWire p.n) :
+    FGCompose.HonestRowAt (p0c1_safety p c) E rho (p0c1_timing p) j y r a =
+      HonestRowAt p c E rho j y r a := rfl
+
+private theorem p0c1_honest_row_before_eq (j : Nat) (y : V) (r : Nat)
+    (a : RowWire p.n) :
+    FGCompose.HonestRowBefore (p0c1_safety p c) E rho (p0c1_timing p) j y r a =
+      HonestRowBefore p c E rho j y r a := rfl
+
+omit [DecidableEq V] in
+private theorem p0c1_row_complete_eq (x : V) (a : RowWire p.n) :
+    FGCompose.RowComplete (p0c1_safety p c) rho p0c1_signer RowWire.valid x a =
+      RowComplete p c rho x a := by
+  change (_ ∧ _) = (_ ∧ _)
+  rw [p0c1_row_signer_eq]
+
+private theorem p0c1_held_eq (i : Nat) (x : V) (W : FGBlock (Fin p.n)) :
+    FGCompose.HeldAt (fgsaCoreReads p c) E rho i x W = HeldAt p c E rho i x W := rfl
+
+private theorem p0c1_block_before_eq (i : Nat) (W : FGBlock (Fin p.n)) :
+    FGCompose.BlockInRunBefore (fgsaCoreReads p c) E rho i W =
+      BlockInRunBefore p c E rho i W := rfl
+
+private theorem p0c1_honest_proposal_eq (s : Slot) (Q : Block) :
+    FGCompose.HonestProposal E rho (fgsaInterface p c) s Q =
+      HonestProposal E rho (fgsaInterface p c) s Q := rfl
+
+private theorem p0c1_honest_carrier_eq (s : Slot) (Q : Block) (rows : List (RowWire p.n)) :
+    FGCompose.HonestCarrier E rho (fgsaInterface p c) (p0c1_carrier p) s Q rows =
+      HonestCarrier p c E rho s Q rows := by
+  simp only [FGCompose.HonestCarrier, HonestCarrier, p0c1_carrier,
+    FGCompose.HonestProposal, HonestProposal, exists_and_left]
+  rfl
+
+private theorem p0c1_action_source_eq (x : V) (r : Nat) :
+    FGCompose.actionSourceFG (fgsaCoreReads p c) E rho (p0c1_timing p) x r =
+      actionSourceFG p c E rho x r := rfl
+
+private theorem p0c1_action_triple_eq (x : V) (r : Nat) :
+    FGCompose.actionTriple E rho (p0c1_timing p) (p0c1_selection p c) x r =
+      actionTriple p c E rho x r := rfl
+
+private theorem p0c1_head_label_eq (x : V) (s : Slot) :
+    FGCompose.headAtLabel (fgsaCoreReads p c) E rho (p0c1_timing p) x s =
+      headAtLabel p c E rho x s := rfl
+
+private theorem p0c1_proposal_state_eq (s : Slot) :
+    (FGCompose.proposalStateAt E rho (fgsaInterface p c) s).map Node.st =
+      proposalStateAt p c E rho s := rfl
+
+private theorem p0c1_proposal_head_eq (s : Slot) :
+    FGCompose.proposalHeadAt E rho (fgsaInterface p c)
+      (fun nd s => proposerHead p nd.st s) s = proposalHeadAt p c E rho s := rfl
+
+private theorem p0c1_row_held_eq (nd : Node p) (a : RowWire p.n) :
+    FGCompose.rowHeld (fgsaCoreReads p c) (fun nd => FGSA.blockWireRows nd.st) nd a =
+      rowHeld p nd.st a := rfl
+
+private theorem p0c1_held_before_eq (x : V) (a : RowWire p.n) (d : Time) :
+    FGCompose.HeldBefore (fgsaCoreReads p c) E rho
+      (fun nd => FGSA.blockWireRows nd.st) x a d = HeldBefore p c E rho x a d := rfl
+
+private theorem p0c1_held_proposal_eq (s : Slot) (a : RowWire p.n) :
+    FGCompose.heldAtProposal (fgsaCoreReads p c) E rho (fgsaInterface p c)
+      (fun nd => FGSA.blockWireRows nd.st) s a = heldAtProposal p c E rho s a := by
+  apply propext
+  constructor
+  · rintro ⟨nd, hread, hrow⟩
+    exact ⟨nd.st, Option.map_eq_some_iff.mpr ⟨nd, hread, rfl⟩, hrow⟩
+  · rintro ⟨st, hread, hrow⟩
+    obtain ⟨nd, hnd, rfl⟩ := Option.map_eq_some_iff.mp hread
+    exact ⟨nd, hnd, hrow⟩
+
+private theorem p0c1_parent_chain_eq (s : Slot) (Q : Block) (a : RowWire p.n) :
+    FGCompose.onParentChain E rho (fgsaInterface p c)
+      (fun nd => FGSA.chainWireRows nd.st) s Q a = onParentChain p c E rho s Q a := by
+  apply propext
+  constructor
+  · rintro ⟨nd, hread, hrow⟩
+    exact ⟨nd.st, Option.map_eq_some_iff.mpr ⟨nd, hread, rfl⟩, hrow⟩
+  · rintro ⟨st, hread, hrow⟩
+    obtain ⟨nd, hnd, rfl⟩ := Option.map_eq_some_iff.mp hread
+    exact ⟨nd, hnd, hrow⟩
+
+private theorem p0c1_valid_parent_eq (s : Slot) (Q : Block) (a : RowWire p.n) :
+    FGCompose.ValidForParent E rho (fgsaInterface p c) (fun nd => FGSA.fgBlockOf nd.st)
+      (fun _ s H => Window.rowValidW (parentFoldState p s H)) s Q a =
+      ValidForParent p c E rho s Q a := by
+  apply propext
+  constructor
+  · rintro ⟨nd, H, hread, hparent, hrow⟩
+    exact ⟨nd.st, H, Option.map_eq_some_iff.mpr ⟨nd, hread, rfl⟩, hparent, hrow⟩
+  · rintro ⟨st, H, hread, hparent, hrow⟩
+    obtain ⟨nd, hnd, rfl⟩ := Option.map_eq_some_iff.mp hread
+    exact ⟨nd, H, hnd, hparent, hrow⟩
+
+private theorem p0c1_height_match_eq (s : Slot) (Q : Block) (a : RowWire p.n) :
+    FGCompose.HeightMatch E rho (fgsaInterface p c)
+      (fun a : RowWire p.n => namedEntry a.payload.height_pair)
+      (fun nd => FGSA.fgBlockOf nd.st)
+      (fun _ s H => ((parentFoldState p s H).h, (parentFoldState p s H).T_h.root)) s Q a =
+      HeightMatch p c E rho s Q a := by
+  apply propext
+  constructor
+  · rintro ⟨nd, H, hread, hparent, hrow⟩
+    exact ⟨nd.st, H, Option.map_eq_some_iff.mpr ⟨nd, hread, rfl⟩, hparent, hrow⟩
+  · rintro ⟨st, H, hread, hparent, hrow⟩
+    obtain ⟨nd, hnd, rfl⟩ := Option.map_eq_some_iff.mp hread
+    exact ⟨nd, H, hnd, hparent, hrow⟩
+
+private theorem p0c1_crossing_eq :
+    FGCompose.RXing (fgsaCoreReads p c) E rho (p0c1_observations p c) =
+      RXing p c E rho := rfl
+
+private theorem p0c1_cap_eq :
+    FGCompose.RCap (fgsaCoreReads p c) (p0c1_safety p c) E rho (p0c1_observations p c)
+      (p0c1_timing p) (fun a : RowWire p.n => namedEntry a.payload.height_pair)
+      (fun nd => FGSA.chainWireRows nd.st) = RCap p c E rho := rfl
+
+private theorem p0c1_strat_eq :
+    FGCompose.RStrat (fgsaCoreReads p c) (p0c1_safety p c) E rho (p0c1_observations p c)
+      (p0c1_timing p) (fun a : RowWire p.n => namedEntry a.payload.height_pair) =
+      RStrat p c E rho := rfl
+
+private theorem p0c1_qc_origin_eq :
+    FGCompose.RQCOrigin (fgsaCoreReads p c) (p0c1_safety p c) E rho
+      (p0c1_observations p c) (p0c1_timing p) (p0c1_stored_carrier p)
+      (p0c1_source_service p c E rho) p.E = RQCOrigin p c E rho := by
+  simp only [FGCompose.RQCOrigin, RQCOrigin, p0c1_stored_carrier,
+    p0c1_source_service, exists_and_left]
+  rfl
+
+
+private theorem p0c1_action_head_erasure (x : V) (r : Nat) :
+    (FGCompose.actionHead (fgsaCoreReads p c) E rho (p0c1_timing p) x r).bind
+      (fun h => h.map eraseFG) = actionHead p c E rho x r := by
+  cases hr : postClock E rho x (p.actionTime r) with
+  | none =>
+    change ((postClock E rho x (p.actionTime r)).map _).bind _ =
+      (postClock E rho x (p.actionTime r)).map _
+    rw [hr]
+    rfl
+  | some nd =>
+    obtain ⟨i, _, he⟩ := FGCompose.postClock_tick E rho hr
+    have hReach : Reachable p nd.st := he ▸ reachable_postClock E rho i x (p.actionTime r)
+    obtain ⟨H, hH, _⟩ := (p0c1_selection_laws p c).head_held nd hReach
+    have hblock := ((fgBlockOf_spec p nd.st
+      (storeBundle_of_reachable p nd.st hReach).cstore _ H).mp hH).2
+    change ((postClock E rho x (p.actionTime r)).map
+      (fun nd => fgBlockOf nd.st (fgHead p nd.st))).bind (fun h => h.map eraseFG) =
+        (postClock E rho x (p.actionTime r)).map (fun nd => fgHead p nd.st)
+    rw [hr]
+    change (fgBlockOf nd.st (fgHead p nd.st)).map eraseFG = some (fgHead p nd.st)
+    change fgBlockOf nd.st (fgHead p nd.st) = some H at hH
+    rw [hH, Option.map_some, hblock]
+
+private theorem p0c1_slot_start_eq (z : Int) :
+    FGCompose.slotStartZ (p0c1_timing p) z = slotStartZ p z := rfl
+
+private theorem p0c1_slot_at_eq (t : Time) :
+    FGCompose.slotAt (p0c1_timing p) t = slotAt p t := rfl
+
+end P0c1Channels
+
+#print axioms p0c1_deeper_depth
+#print axioms p0c1_fold_depth
+#print axioms p0c1_fold_covers
+#print axioms p0c1_liveRoot_of_lease
+#print axioms p0c1_timing_laws
+#print axioms p0c1_order_laws
+#print axioms p0c1_observation_laws
+#print axioms p0c1_client_laws
+#print axioms p0c1_certified_eq
+#print axioms p0c1_entry_below_eq
+#print axioms p0c1_named_entry_eq
+#print axioms p0c1_row_signer_eq
+#print axioms p0c1_honest_row_eq
+#print axioms p0c1_honest_row_before_eq
+#print axioms p0c1_row_complete_eq
+#print axioms p0c1_held_eq
+#print axioms p0c1_block_before_eq
+#print axioms p0c1_honest_proposal_eq
+#print axioms p0c1_honest_carrier_eq
+#print axioms p0c1_action_source_eq
+#print axioms p0c1_action_triple_eq
+#print axioms p0c1_head_label_eq
+#print axioms p0c1_proposal_state_eq
+#print axioms p0c1_proposal_head_eq
+#print axioms p0c1_row_held_eq
+#print axioms p0c1_held_before_eq
+#print axioms p0c1_held_proposal_eq
+#print axioms p0c1_parent_chain_eq
+#print axioms p0c1_valid_parent_eq
+#print axioms p0c1_height_match_eq
+#print axioms p0c1_crossing_eq
+#print axioms p0c1_cap_eq
+#print axioms p0c1_strat_eq
+#print axioms p0c1_qc_origin_eq
+#print axioms p0c1_action_head_erasure
+#print axioms p0c1_slot_start_eq
+#print axioms p0c1_slot_at_eq
 
 end AvailableChain.FGSA.Run
 
