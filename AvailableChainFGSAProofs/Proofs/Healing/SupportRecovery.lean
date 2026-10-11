@@ -1,11 +1,9 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
-public import AvailableChainFGSAClaims.Statements.Regimes
 public import AvailableChainFGSAClaims.Statements.FrameNext
 public import AvailableChainFGSARun.Proofs.Join
 public import AvailableChainFGSAProofs.Proofs.Shared.RegimesService
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumers
-public import AvailableChainGeneric.Proofs.V2.Duty.Sleep
 
 public section
 

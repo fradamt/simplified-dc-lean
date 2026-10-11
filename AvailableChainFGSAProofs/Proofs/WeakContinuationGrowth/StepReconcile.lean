@@ -1,6 +1,5 @@
 module
 public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepService
-public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Interfaces
 public section
 
 namespace AvailableChain.FGSA.Run

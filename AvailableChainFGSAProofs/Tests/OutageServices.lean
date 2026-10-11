@@ -1,10 +1,8 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Outage.RestoredBatch
-public import AvailableChainFGSAProofs.Proofs.Outage.GoodVotes
-public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationTiming
 public import AvailableChainFGSAProofs.Proofs.Outage.ReceiverInputs
 public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceDeadlines
-public import AvailableChainFGSAProofs.Proofs.Outage.Induction
+public import AvailableChainFGSAProofs.Proofs.Outage.Induction -- shake: keep (source declarations)
 public import AvailableChainFGSAProofs.Proofs.Clean.Closure
 public import AvailableChainFGSAProofs.Proofs.Foundations.Sources
 

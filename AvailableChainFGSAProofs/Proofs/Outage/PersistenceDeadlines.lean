@@ -3,7 +3,6 @@ public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalRetained
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingGate
 public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationTiming
 public import AvailableChainFGSARun.Proofs.AncestorDeadlinesStore
-public import AvailableChainFGSARun.Proofs.AC
 
 public section
 

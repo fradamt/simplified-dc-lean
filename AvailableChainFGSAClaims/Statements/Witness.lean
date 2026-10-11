@@ -1,10 +1,7 @@
 module
-public import AvailableChainFGSAClaims.Statements.Join
 -- shake: keep-all (F0.5 imports must remain unchanged in this append-only job)
 public import Mathlib.Order.Lattice.Nat
-public import AvailableChainFGSAClaims.Statements.Bounds
 public import AvailableChainFGSAClaims.Statements.Channels
-public import AvailableChainFGSA.Model.Objects
 
 @[expose] public section
 

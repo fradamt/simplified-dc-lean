@@ -1,9 +1,7 @@
 module
-public import AvailableChainFGSAClaims.Statements.Bounds
 public import AvailableChainFGSAClaims.Statements.Channels
 
 public import AvailableChainFGSARun.Statements.Roots
-public import AvailableChainFGSARun.Statements.Emission
 
 public section
 

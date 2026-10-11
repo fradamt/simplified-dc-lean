@@ -1,5 +1,6 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryService
+-- shake keep reason: source declarations
+public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryService -- shake: keep
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseSettle
 
 public section

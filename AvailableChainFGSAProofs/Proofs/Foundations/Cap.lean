@@ -4,7 +4,6 @@ public import AvailableChainKitFG.ProvenanceCore
 public import AvailableChainKitFG.CausalCapCore
 public import AvailableChainFGSAProofs.Proofs.Foundations.Carrier
 public import AvailableChainFGSARun.Proofs.Reachable
-public import AvailableChainGeneric.Statements.V2.Duty.Counts
 public import AvailableChainKitFG.CausalCap
 
 public section

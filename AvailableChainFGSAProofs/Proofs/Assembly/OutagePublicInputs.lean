@@ -2,7 +2,7 @@ module
 public import AvailableChainFGSAProofs.Proofs.Outage.Export
 public import AvailableChainFGSAProofs.Proofs.OutageContinuation.Export
 public import AvailableChainFGSAProofs.Proofs.Foundations.Export
-public import AvailableChainFGSAProofs.Proofs.Clean.Export
+public import AvailableChainFGSAProofs.Proofs.Clean.Export -- shake: keep (source declarations)
 
 public section
 

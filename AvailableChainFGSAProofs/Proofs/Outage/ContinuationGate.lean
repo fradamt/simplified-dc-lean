@@ -1,6 +1,5 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceStep
-public import AvailableChainFGSAProofs.Proofs.Outage.GoodVotes
 public import AvailableChainFGSAProofs.Proofs.Outage.ReceiverInputs
 
 public section

@@ -1,8 +1,5 @@
 module
 public import AvailableChainFGSAClaims.Statements.Reads
-public import AvailableChainFGSA.Proofs.Metadata
-public import AvailableChainKitV2.DutyStable
-public import AvailableChainFGSARun.Proofs.Restore
 public import AvailableChainFGSARun.Proofs.Excludes
 
 public section

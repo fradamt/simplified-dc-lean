@@ -9,7 +9,6 @@ public import AvailableChainFGSAProofs.Proofs.Shared.Healed
 public import AvailableChainFGSAClaims.Claims.Foundations
 public import AvailableChainFGSAClaims.Claims.Clean
 public import AvailableChainFGSAProofs.Proofs.Shared.Regimes
-public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowth
 public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowthCausal
 public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowthProposal
 public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowthReads

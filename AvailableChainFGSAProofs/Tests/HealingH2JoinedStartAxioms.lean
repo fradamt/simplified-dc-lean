@@ -1,10 +1,10 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryService
-public import AvailableChainFGSAProofs.Proofs.Healing.PhaseSettle
-public import AvailableChainFGSAProofs.Proofs.Healing.AttemptSettle
-public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchHG2a
-public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchAge
-public import AvailableChainFGSAProofs.Proofs.Healing.PromotionTerminal
+-- shake keep reason: #print axioms targets
+public import AvailableChainFGSAProofs.Proofs.Healing.AttemptSettle -- shake: keep
+-- shake keep reason: #print axioms targets
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchHG2a -- shake: keep
+-- shake keep reason: #print axioms targets
+public import AvailableChainFGSAProofs.Proofs.Healing.PromotionTerminal -- shake: keep
 
 public section
 

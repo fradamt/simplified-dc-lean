@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Shared.Count
+public import AvailableChainFGSAProofs.Proofs.Shared.Count -- shake: keep (source declarations)
 
 public section
 

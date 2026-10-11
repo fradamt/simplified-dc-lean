@@ -1,6 +1,6 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryScope
-public import AvailableChainFGSAClaims.Statements.Witness
+-- shake keep reason: source declarations
+public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryScope -- shake: keep
 
 public section
 

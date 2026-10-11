@@ -1,5 +1,4 @@
 module
-public import AvailableChainFGSAClaims.Statements.ChannelProps
 public import AvailableChainFGSA.Model.Restart
 
 public section

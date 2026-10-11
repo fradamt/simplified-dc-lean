@@ -3,7 +3,8 @@ public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceDefs
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingSleep
 public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceHistory
 public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceRelease
-public import AvailableChainFGSAProofs.Proofs.Shared.HonestQuorum
+-- shake keep reason: source declarations
+public import AvailableChainFGSAProofs.Proofs.Shared.HonestQuorum -- shake: keep
 public import AvailableChainFGSAClaims.Statements.OutageSleep
 
 public section

@@ -1,5 +1,6 @@
 module
-public import AvailableChainFGSAProofs.Proofs.OutageContinuation.Export
+-- shake keep reason: source declarations
+public import AvailableChainFGSAProofs.Proofs.OutageContinuation.Export -- shake: keep
 public import AvailableChainFGSAProofs.Proofs.Outage.Export -- shake: keep (Outage claim boundary)
 public import AvailableChainFGSAProofs.Proofs.Clean.Export -- shake: keep (Clean supplier boundary)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Export

@@ -1,5 +1,4 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.PhaseService
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchCompose
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchRise
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchBudget

@@ -2,7 +2,6 @@ module
 public import AvailableChainFGSAProofs.Proofs.Finality.MiddleSupport
 public import AvailableChainFGSAProofs.Proofs.Finality.History
 public import AvailableChainFGSAProofs.Proofs.Shared.Regimes
-public import AvailableChainFGSAProofs.Proofs.Shared.RegimesService
 
 public section
 

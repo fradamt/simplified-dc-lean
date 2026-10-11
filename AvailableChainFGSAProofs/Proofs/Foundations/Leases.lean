@@ -2,9 +2,7 @@ module
 public import AvailableChainFGSA.Proofs.LeaseOutput
 
 public import AvailableChainFGSARun.Proofs.AncestorDeadlines
-public import AvailableChainGeneric.Proofs.V2.Duty.BaseTransport
 public import AvailableChainFGSAProofs.Proofs.Shared.Reads
-public import AvailableChainFGSAProofs.Proofs.Shared.CatchUp
 
 -- ROOT-DIGEST-2: private matcher copy; equality is checked by the kernel (BUILD B3).
 namespace AvailableChain.FGSA

@@ -1,6 +1,8 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Outage.ScopedPaths
-public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationPaths
+-- shake keep reason: source declarations
+public import AvailableChainFGSAProofs.Proofs.Outage.ScopedPaths -- shake: keep
+-- shake keep reason: source declarations
+public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationPaths -- shake: keep
 
 /-! ScopedPaths supplies actual joined read paths, source witnesses and marker receipt.
 The superseded no-restart helpers have no current production callers. Their exact

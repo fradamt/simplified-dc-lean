@@ -1,7 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSeed
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierServiceCover
-public import AvailableChainFGSAProofs.Proofs.Healing.FrontierServiceGate
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierServiceSupport
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierOpenAll
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumersQ

@@ -1,6 +1,7 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingGate
-public import AvailableChainFGSAProofs.Proofs.Outage.ArmingInput
+-- shake keep reason: source declarations
+public import AvailableChainFGSAProofs.Proofs.Outage.ArmingInput -- shake: keep
 
 public section
 

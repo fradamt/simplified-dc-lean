@@ -9,8 +9,6 @@ public import AvailableChainFGSAProofs.Proofs.Shared.BoundsW
 public import AvailableChainFGSAProofs.Proofs.Shared.HonestQuorum
 public import AvailableChainFGSAClaims.Statements.ComposeStmt
 public import AvailableChainFGSAClaims.Statements.Phases
-public import AvailableChainFGSARun.Proofs.Schedule
-public import AvailableChainFGSA.Proofs.Head
 public import AvailableChainFGSA.Proofs.WindowAdmissionInvariant
 public import AvailableChainKitFG.CausalCapCore
 

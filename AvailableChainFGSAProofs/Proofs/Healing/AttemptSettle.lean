@@ -1,6 +1,5 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseSettle
-public import AvailableChainFGSAProofs.Proofs.Healing.SupportRecovery
 
 public section
 

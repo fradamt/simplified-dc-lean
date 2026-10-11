@@ -1,6 +1,5 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Shared.Reads
-public import AvailableChainFGSAClaims.Statements.Channels
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportRecovery
 
 public section

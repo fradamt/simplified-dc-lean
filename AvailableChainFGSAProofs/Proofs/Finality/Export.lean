@@ -1,7 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Finality.Suppliers
 public import AvailableChainFGSAClaims.Claims.Finality
-public import AvailableChainFGSAProofs.Proofs.Finality.CoreServices
 public import AvailableChainFGSAProofs.Proofs.Finality.ReceiptSuppliers
 public import AvailableChainFGSAProofs.Proofs.Finality.Kernel
 public import AvailableChainFGSAProofs.Proofs.Finality.Joined

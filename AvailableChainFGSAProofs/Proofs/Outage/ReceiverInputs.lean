@@ -1,6 +1,5 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingConstruction
-public import AvailableChainFGSAProofs.Proofs.Shared.CatchUp
 public import AvailableChainFGSAProofs.Proofs.Outage.RestoredBatch
 public import AvailableChainFGSAProofs.Proofs.Outage.GoodVotes
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalReceipts

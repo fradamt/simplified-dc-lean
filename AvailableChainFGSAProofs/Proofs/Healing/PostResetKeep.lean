@@ -2,7 +2,6 @@ module
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetInvariant
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCompat
 public import AvailableChainFGSAProofs.Proofs.Healing.Delivery
-public import AvailableChainGeneric.Proofs.Pure.BlockOrder
 
 public section
 

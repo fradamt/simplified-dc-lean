@@ -1,6 +1,5 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Shared.Relay
-public import AvailableChainFGSAProofs.Proofs.Shared.StoreRun
 public import AvailableChainFGSAProofs.Proofs.Shared.AnchorService
 
 public section

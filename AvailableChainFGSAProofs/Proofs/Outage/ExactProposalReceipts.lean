@@ -1,9 +1,7 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Shared.HeadAdmit
 public import AvailableChainFGSAProofs.Proofs.Shared.Count
-public import AvailableChainFGSAProofs.Proofs.Shared.Relay
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumers
-public import AvailableChainFGSAProofs.Proofs.Shared.AnchorService
 public import AvailableChainFGSAProofs.Proofs.Outage.RelayKernel
 
 public section

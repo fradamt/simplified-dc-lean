@@ -1,6 +1,5 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Shared.CatchUp
-public import AvailableChainFGSAProofs.Proofs.Shared.Release
+public import AvailableChainFGSAProofs.Proofs.Shared.CatchUp -- shake: keep (source test uses)
 
 set_option linter.privateModule false
 

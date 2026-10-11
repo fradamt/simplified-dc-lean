@@ -1,9 +1,6 @@
 module
 public import AvailableChainFGSAClaims.Statements.Join
 public import AvailableChainFGSA.Statements.WindowEntries
-public import AvailableChainFGSAClaims.Statements.Counts
-public import AvailableChainFGSAClaims.Statements.Bounds
-public import AvailableChainFGSARun.Statements.Interface
 
 @[expose] public section
 

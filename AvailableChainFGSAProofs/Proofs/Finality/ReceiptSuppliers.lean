@@ -3,7 +3,6 @@ public import AvailableChainFGSAProofs.Proofs.Finality.RecoveryScope
 public import AvailableChainFGSAProofs.Proofs.Finality.CoreServices
 public import AvailableChainFGSAProofs.Proofs.Shared.AnchorService
 public import AvailableChainFGSAProofs.Proofs.Finality.RestoreReads
-public import AvailableChainFGSAProofs.Proofs.Shared.HeadAdmit
 public import AvailableChainFGSAProofs.Proofs.Finality.TailMixed
 
 public section

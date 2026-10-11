@@ -1,6 +1,7 @@
 module
 public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Epoch
-public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepInit
+-- shake keep reason: source declarations
+public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepInit -- shake: keep
 public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Safety
 public import AvailableChainFGSARun.Proofs.AC
 

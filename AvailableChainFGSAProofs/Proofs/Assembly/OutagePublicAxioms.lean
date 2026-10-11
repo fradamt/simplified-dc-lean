@@ -1,6 +1,7 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Outage.Export
-public import AvailableChainFGSAProofs.Proofs.OutageContinuation.Export
+public import AvailableChainFGSAProofs.Proofs.Outage.Export -- shake: keep (#print axioms targets)
+-- shake keep reason: #print axioms targets
+public import AvailableChainFGSAProofs.Proofs.OutageContinuation.Export -- shake: keep
 
 public section
 

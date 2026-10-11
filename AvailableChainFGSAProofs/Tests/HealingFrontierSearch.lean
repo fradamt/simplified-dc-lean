@@ -8,7 +8,6 @@ public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchBudget
 
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchHG2a -- shake: keep (examples)
 
-public import AvailableChainFGSAProofs.Proofs.Shared.Regimes
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchFull -- shake: keep (S5 tests)
 
 set_option linter.privateModule false

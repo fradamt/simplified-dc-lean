@@ -1,8 +1,6 @@
 module
 public import AvailableChainFGSARun.Proofs.AC
-public import AvailableChainFGSARun.Proofs.Schedule
 public import AvailableChainGeneric.Proofs.AC.Duty.Transfer
-public import AvailableChainGeneric.Proofs.Pure.BlockOrder
 public import AvailableChainFGSAProofs.Proofs.Shared.Channels
 public import AvailableChainFGSAProofs.Proofs.Shared.CatchUp
 

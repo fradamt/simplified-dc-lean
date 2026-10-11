@@ -1,7 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.AnchorCoverage
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepInputs
-public import AvailableChainFGSAProofs.Proofs.Shared.Count
 
 public section
 

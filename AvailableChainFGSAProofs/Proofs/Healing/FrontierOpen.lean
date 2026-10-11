@@ -1,6 +1,7 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.CommonEntryFacts
-public import AvailableChainFGSAProofs.Proofs.Healing.OpeningServiceOne
+-- shake keep reason: source declarations
+public import AvailableChainFGSAProofs.Proofs.Healing.OpeningServiceOne -- shake: keep
 
 -- Export named declarations; keep generated proof matchers private.
 section

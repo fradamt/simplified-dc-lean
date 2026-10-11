@@ -1,6 +1,5 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Clean.Chain
-public import AvailableChainGeneric.Proofs.V2.Duty.Sleep
 
 public section
 

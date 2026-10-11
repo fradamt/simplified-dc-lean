@@ -1,6 +1,5 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Shared.ExactService
-public import AvailableChainFGSAClaims.Statements.Regimes
 public import AvailableChainFGSAProofs.Proofs.Shared.ExactHead
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedEndpoint
 

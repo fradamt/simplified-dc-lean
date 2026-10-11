@@ -1,6 +1,5 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.OpeningGateSupport
-public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
+public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope -- shake: keep (test environment)
 
 set_option linter.privateModule false
 

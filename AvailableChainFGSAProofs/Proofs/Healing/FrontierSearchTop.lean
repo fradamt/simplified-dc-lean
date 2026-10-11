@@ -1,7 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseService
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchGap
-public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryScope
 public import AvailableChainFGSAProofs.Proofs.Healing.Descent
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSupportFrame
 

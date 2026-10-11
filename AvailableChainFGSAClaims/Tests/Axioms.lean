@@ -1,6 +1,7 @@
 module
-public import AvailableChainFGSAClaims.Statements.WeakContinuationGrowth
-public import AvailableChainFGSAClaims.Statements.OutageSleep
+-- shake keep reason: #print axioms targets
+public import AvailableChainFGSAClaims.Statements.WeakContinuationGrowth -- shake: keep
+public import AvailableChainFGSAClaims.Statements.OutageSleep -- shake: keep (#print axioms targets)
 public import AvailableChainFGSAClaims.Statements.FinalityApi -- shake: keep (S4.5b axiom audit)
 public import AvailableChainFGSAClaims.Statements.Packages.Inclusion -- shake: keep (S4.5b axiom audit)
 public import AvailableChainFGSAClaims.Claims.Outage -- shake: keep (S4.5b axiom audit)

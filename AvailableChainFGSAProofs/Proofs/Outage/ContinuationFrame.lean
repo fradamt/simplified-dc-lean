@@ -1,7 +1,5 @@
 module
 public import AvailableChainKitFG.StoreBounds
-public import AvailableChainFGSA.Proofs.Head
-public import AvailableChainFGSA.Proofs.Head.Walk
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalReceipts
 
 public section

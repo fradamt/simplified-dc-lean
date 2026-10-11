@@ -1,11 +1,8 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Clean.StateGate
+public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (source declarations)
 public import AvailableChainFGSAProofs.Proofs.Shared.Count
 public import AvailableChainFGSAProofs.Proofs.Shared.AnchorService
 public import AvailableChainFGSAProofs.Proofs.Shared.Reads
-public import AvailableChainFGSARun.Proofs.Receipts
-public import AvailableChainFGSAProofs.Statements.CleanInvariant
-public import Mathlib.CategoryTheory.Category.Basic
 
 public import AvailableChainFGSAProofs.Proofs.Shared.Roots
 

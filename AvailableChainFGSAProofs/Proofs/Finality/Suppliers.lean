@@ -1,5 +1,4 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Shared.Regimes
 public import AvailableChainFGSAProofs.Proofs.Shared.RegimesService -- shake: keep (cut bridge)
 public import AvailableChainFGSAProofs.Proofs.Shared.Reads -- shake: keep (read API)
 public import AvailableChainFGSAClaims.Statements.Packages.Finality -- shake: keep (W types)

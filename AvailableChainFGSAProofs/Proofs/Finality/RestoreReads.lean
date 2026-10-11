@@ -1,6 +1,5 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Shared.Reads
-public import AvailableChainFGSAProofs.Proofs.Shared.RowReads
+public import AvailableChainFGSAProofs.Proofs.Shared.RowReads -- shake: keep (source declarations)
 
 public section
 

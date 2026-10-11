@@ -1,16 +1,10 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetLease -- shake: keep (J4-A input)
-public import AvailableChainFGSAProofs.Proofs.Healing.OpeningTicks
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetKeep -- shake: keep (J4-A input)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCompat -- shake: keep (J4-A input)
-public import AvailableChainFGSAProofs.Proofs.Healing.SupportSlow
-public import AvailableChainFGSAProofs.Proofs.Healing.SupportTransfer
 
-public import AvailableChainFGSAProofs.Proofs.Healing.DescentLossCause
 public import AvailableChainFGSAProofs.Proofs.Healing.DescentLossNext
-public import AvailableChainFGSAProofs.Proofs.Healing.SupportGate
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetLeaseMove
-public import AvailableChainFGSAProofs.Proofs.Healing.PostResetRaw
 
 public section
 

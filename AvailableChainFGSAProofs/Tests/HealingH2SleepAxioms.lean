@@ -1,11 +1,14 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.OpeningTicks
-public import AvailableChainFGSAProofs.Proofs.Healing.OpeningGateRead
-public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryScope
-public import AvailableChainFGSAProofs.Proofs.Healing.ReleaseScope
-public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
-public import AvailableChainFGSAProofs.Proofs.Healing.OpeningGateSupport
-public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryService
+-- shake keep reason: #print axioms targets
+public import AvailableChainFGSAProofs.Proofs.Healing.OpeningTicks -- shake: keep
+-- shake keep reason: #print axioms targets
+public import AvailableChainFGSAProofs.Proofs.Healing.OpeningGateRead -- shake: keep
+-- shake keep reason: #print axioms targets
+public import AvailableChainFGSAProofs.Proofs.Healing.ReleaseScope -- shake: keep
+-- shake keep reason: #print axioms targets
+public import AvailableChainFGSAProofs.Proofs.Healing.OpeningGateSupport -- shake: keep
+-- shake keep reason: #print axioms targets
+public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryService -- shake: keep
 
 set_option linter.privateModule false
 

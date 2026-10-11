@@ -1,7 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Shared.Count
 public import AvailableChainFGSAProofs.Proofs.Shared.HeadCover
-public import AvailableChainFGSAProofs.Proofs.Shared.RegimesService
 public import AvailableChainFGSAProofs.Proofs.Healing.FramePaths
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportTransfer
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportTicks

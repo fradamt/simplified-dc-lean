@@ -1,7 +1,7 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Shared.CatchUp
 public import AvailableChainFGSAProofs.Proofs.Outage.RelayKernel
-public import AvailableChainFGSAProofs.Proofs.Shared.RetainedEndpoint
+-- shake keep reason: source declarations
+public import AvailableChainFGSAProofs.Proofs.Shared.RetainedEndpoint -- shake: keep
 
 public section
 namespace AvailableChain.FGSA.Run

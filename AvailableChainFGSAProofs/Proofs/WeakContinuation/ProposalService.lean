@@ -1,7 +1,7 @@
 module
-public import AvailableChainFGSAProofs.Proofs.WeakContinuation.HeadRelay
+-- shake keep reason: source declarations
+public import AvailableChainFGSAProofs.Proofs.WeakContinuation.HeadRelay -- shake: keep
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.AnchorCoverage
-public import AvailableChainFGSAProofs.Proofs.WeakContinuation.ProposalHistory
 public import AvailableChainFGSAProofs.Proofs.Shared.HeadAdmit
 
 public section

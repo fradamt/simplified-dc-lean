@@ -1,6 +1,5 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetRead
-public import AvailableChainFGSAProofs.Proofs.Healing.RepairH6
 public import AvailableChainFGSAProofs.Proofs.Healing.OpeningService
 public import AvailableChainFGSAProofs.Proofs.Healing.CommonEntryFacts
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetInvariant

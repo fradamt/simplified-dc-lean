@@ -1,5 +1,4 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Outage.ScopedBridge
 public import AvailableChainFGSAProofs.Proofs.Outage.ScopedEarly
 
 public section

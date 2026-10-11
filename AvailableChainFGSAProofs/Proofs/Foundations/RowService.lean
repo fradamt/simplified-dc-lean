@@ -4,7 +4,6 @@ public import AvailableChainFGSAProofs.Proofs.Foundations.Carrier -- shake: keep
 public import AvailableChainFGSAProofs.Proofs.Shared.Channels
 public import AvailableChainFGSAProofs.Proofs.Shared.StoreRun -- shake: keep (store API)
 public import AvailableChainFGSARun.Proofs.Receipts -- shake: keep (receipt API)
-public import AvailableChainFGSARun.Proofs.ReadyAcceptance
 public import AvailableChainFGSA.Model.RowValidity -- shake: keep (R6 data)
 public import AvailableChainFGSAClaims.Statements.Fold
 

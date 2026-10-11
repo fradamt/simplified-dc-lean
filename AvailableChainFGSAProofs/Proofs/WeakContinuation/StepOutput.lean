@@ -1,7 +1,7 @@
 module
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Epoch
-public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepGateHistory
-public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepFacts
+-- shake keep reason: source declarations
+public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepGateHistory -- shake: keep
 
 public section
 

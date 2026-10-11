@@ -1,6 +1,7 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationFrame
-public import AvailableChainFGSAProofs.Proofs.Outage.ReceiverInputs
+-- shake keep reason: source declarations
+public import AvailableChainFGSAProofs.Proofs.Outage.ReceiverInputs -- shake: keep
 public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceFrame
 
 public section

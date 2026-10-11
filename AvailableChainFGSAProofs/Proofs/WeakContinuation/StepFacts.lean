@@ -3,7 +3,6 @@ public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Epoch
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Origins -- shake: keep (WC interface)
 public import AvailableChainFGSAProofs.Proofs.Shared.Roots
 public import AvailableChainFGSAProofs.Proofs.Shared.Reads
-public import AvailableChainFGSARun.Proofs.Receipts
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.ReceiptOrigins
 
 namespace AvailableChain.FGSA

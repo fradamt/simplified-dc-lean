@@ -1,18 +1,12 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Finality.Local
-public import AvailableChainFGSAProofs.Proofs.Finality.Proposal
-public import AvailableChainFGSAProofs.Proofs.Finality.Suppliers
-public import AvailableChainFGSAProofs.Proofs.Finality.Above
-public import AvailableChainFGSAProofs.Proofs.Finality.TailBatch
-public import AvailableChainFGSAProofs.Proofs.Finality.RestoreReads
-public import AvailableChainFGSAProofs.Proofs.Finality.RecoveryScope
-public import AvailableChainFGSAProofs.Proofs.Finality.Accept
-public import AvailableChainFGSAProofs.Proofs.Finality.ReceiptSuppliers
-public import AvailableChainFGSAProofs.Proofs.Finality.CoreServices
-public import AvailableChainFGSAProofs.Proofs.Finality.MiddleSupport
-public import AvailableChainFGSAProofs.Proofs.Finality.Rows
-public import AvailableChainFGSAProofs.Proofs.Finality.Receipt
-public import AvailableChainFGSAProofs.Proofs.Finality.TailReceipt
+public import AvailableChainFGSAProofs.Proofs.Finality.Local -- shake: keep (#print axioms targets)
+-- shake keep reason: #print axioms targets
+public import AvailableChainFGSAProofs.Proofs.Finality.Proposal -- shake: keep
+-- shake keep reason: #print axioms targets
+public import AvailableChainFGSAProofs.Proofs.Finality.Suppliers -- shake: keep
+public import AvailableChainFGSAProofs.Proofs.Finality.Above -- shake: keep (#print axioms targets)
+-- shake keep reason: #print axioms targets
+public import AvailableChainFGSAProofs.Proofs.Finality.TailBatch -- shake: keep
 
 #print axioms AvailableChain.FGSA.Run.finality_restore_preceq_F
 #print axioms AvailableChain.FGSA.Run.finality_acceptsFinalBefore_of_idx

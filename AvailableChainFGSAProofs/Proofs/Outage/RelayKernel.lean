@@ -1,10 +1,7 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Shared.Reads
-public import AvailableChainGeneric.Proofs.V2.Duty.Sleep
-public import AvailableChainFGSAProofs.Proofs.Shared.AnchorService
-public import AvailableChainFGSAProofs.Proofs.Shared.SameLabel
+-- shake keep reason: source declarations
+public import AvailableChainFGSAProofs.Proofs.Shared.AnchorService -- shake: keep
 public import AvailableChainFGSAProofs.Proofs.Shared.Relay
-public import AvailableChainFGSAProofs.Proofs.Shared.Count
 
 namespace AvailableChain.FGSA.Run
 private theorem inclusionRelay_slotStartZ_unfold (p : Params) (s : Int) :

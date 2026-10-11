@@ -1,7 +1,8 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Finality.ReceiptSuppliers
-public import Mathlib.Tactic.FinCases
-public import Mathlib.Tactic.IntervalCases
+-- shake keep reason: source declarations
+public import AvailableChainFGSAProofs.Proofs.Finality.ReceiptSuppliers -- shake: keep
+public import Mathlib.Tactic.FinCases -- shake: keep (fin_cases tests)
+public import Mathlib.Tactic.IntervalCases -- shake: keep (interval_cases tests)
 
 set_option linter.privateModule false
 

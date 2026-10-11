@@ -2,7 +2,6 @@ module
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseOrder
 public import AvailableChainFGSAProofs.Proofs.Shared.CatchUp
 public import AvailableChainFGSAProofs.Proofs.Healing.Base
-public import AvailableChainFGSARun.Proofs.Receipts
 
 public section
 

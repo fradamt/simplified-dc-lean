@@ -1,23 +1,15 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingArith
-public import AvailableChainFGSAProofs.Proofs.Outage.Arming
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingKernel
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingBatch
-public import AvailableChainFGSAProofs.Proofs.Outage.ArmingPrefix
-public import AvailableChainFGSAProofs.Proofs.Outage.ArmingOutput
-public import AvailableChainFGSAProofs.Proofs.Outage.ArmingDuty
-public import AvailableChainFGSAProofs.Proofs.Outage.ArmingGate
-public import Mathlib.Tactic.IntervalCases
-public import Mathlib.Tactic.FinCases
+public import Mathlib.Tactic.IntervalCases -- shake: keep (interval_cases tests)
+public import Mathlib.Tactic.FinCases -- shake: keep (fin_cases tests)
 
-public import AvailableChainFGSAProofs.Proofs.Outage.ArmingCover
 
-public import AvailableChainFGSAProofs.Proofs.Outage.ArmingInput
 
-public import AvailableChainFGSAProofs.Proofs.Outage.ArmingMain
+-- shake keep reason: #print axioms targets
+public import AvailableChainFGSAProofs.Proofs.Outage.ArmingMain -- shake: keep
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingDutySleep
-public import AvailableChainFGSAProofs.Proofs.Outage.ArmingConstruction
-public import AvailableChainFGSAProofs.Proofs.Outage.ArmingSleep
 public import AvailableChainFGSAProofs.Proofs.Clean.EpochSaved
 public import AvailableChainFGSAProofs.Proofs.Clean.GateOutput
 

@@ -1,6 +1,7 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierRead
-public import AvailableChainFGSAProofs.Proofs.Healing.OpeningServiceGate
+-- shake keep reason: source declarations
+public import AvailableChainFGSAProofs.Proofs.Healing.OpeningServiceGate -- shake: keep
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierServiceGate
 
 public section

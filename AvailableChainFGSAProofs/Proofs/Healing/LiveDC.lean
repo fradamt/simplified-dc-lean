@@ -2,7 +2,6 @@ module
 public import AvailableChainFGSAClaims.Statements.LiveDC
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionCarrier
 public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowthProposal
-public import AvailableChainFGSAProofs.Proofs.Shared.Reads
 
 public section
 

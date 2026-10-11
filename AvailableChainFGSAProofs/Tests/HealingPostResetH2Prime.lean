@@ -1,7 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetH2Prime -- shake: keep (H2P fixtures)
 
-public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryProducers
 
 set_option linter.privateModule false
 

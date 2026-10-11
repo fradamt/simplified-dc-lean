@@ -2,7 +2,6 @@ module
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingHistory
 public import AvailableChainFGSAProofs.Proofs.Shared.HeadAdmit
 public import AvailableChainFGSAProofs.Proofs.Shared.GateReceipt
-public import AvailableChainFGSARun.Proofs.Receipts
 
 public section
 

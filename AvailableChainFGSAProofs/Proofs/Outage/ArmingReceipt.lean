@@ -1,7 +1,7 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingArith
-public import AvailableChainFGSAProofs.Proofs.Shared.HeadAdmit
-public import AvailableChainFGSAClaims.Statements.OutageSleep
+public import AvailableChainFGSAProofs.Proofs.Shared.HeadAdmit -- shake: keep (source declarations)
+public import AvailableChainFGSAClaims.Statements.OutageSleep -- shake: keep (source declarations)
 
 public section
 

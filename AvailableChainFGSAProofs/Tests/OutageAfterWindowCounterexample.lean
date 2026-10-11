@@ -1,5 +1,6 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationTiming
+-- shake keep reason: source declarations
+public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationTiming -- shake: keep
 public meta import AvailableChainFGSAProofs.Proofs.Outage.Arming -- shake: keep (fixture evaluation)
 
 @[expose] public section

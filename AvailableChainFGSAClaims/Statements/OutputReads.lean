@@ -1,7 +1,6 @@
 module
-public import AvailableChainFGSAClaims.Statements.Join
+public import AvailableChainGeneric.Statements.Pure.Props -- shake: keep (open ServedOn)
 public import AvailableChainFGSAClaims.Statements.Packages.Safety
-public import AvailableChainGeneric.Statements.Pure.Props
 
 @[expose] public section
 

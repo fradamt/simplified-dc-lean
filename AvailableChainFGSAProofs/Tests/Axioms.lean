@@ -51,7 +51,6 @@ public import AvailableChainFGSAProofs.Proofs.Outage.Close -- shake: keep (O-IND
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingGate -- shake: keep (O-ARM audit)
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingMain -- shake: keep (O-ARM audit)
 public import AvailableChainFGSAProofs.Proofs.Outage.InclusionGateBody -- shake: keep (I-GATE/I-READ axiom audit)
-public import AvailableChainFGSAProofs.Proofs.Finality.ReceiptSuppliers
 public import AvailableChainFGSAProofs.Proofs.Finality.CoreServices -- shake: keep (C-CORE audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.History -- shake: keep (K-HISTORY audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Height -- shake: keep (K-HEIGHT audit)
@@ -194,42 +193,12 @@ public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchFull -- shak
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetJointStep2 -- shake: keep (D5 tests)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCone -- shake: keep (S5 CONE audit)
 
-public import AvailableChainFGSAProofs.Proofs.Assembly.OutagePublicInputs
-public import AvailableChainFGSAProofs.Proofs.Outage.ScopedClose
-public import AvailableChainFGSAProofs.Proofs.Outage.ScopedEarly
-public import AvailableChainFGSAProofs.Proofs.Outage.ScopedBridge
-public import AvailableChainFGSAProofs.Proofs.Outage.ScopedScores
-public import AvailableChainFGSAProofs.Proofs.Outage.ScopedRoots
-public import AvailableChainFGSAProofs.Proofs.Outage.ScopedPaths
-public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationPaths
-public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationTiming
-public import AvailableChainFGSAProofs.Proofs.Outage.GateCount
-public import AvailableChainFGSAProofs.Proofs.Outage.GoodVotes
-public import AvailableChainFGSAProofs.Proofs.Outage.GrowthConsumer
-public import AvailableChainFGSAProofs.Proofs.Outage.GrowthSuppliers
-public import AvailableChainFGSAProofs.Proofs.Outage.InclusionGate
-public import AvailableChainFGSAProofs.Proofs.Outage.InclusionGateBounds
-public import AvailableChainFGSAProofs.Proofs.Outage.InclusionGateService
-public import AvailableChainFGSAProofs.Proofs.Outage.InclusionOrigins
-public import AvailableChainFGSAProofs.Proofs.Outage.InclusionServices
-public import AvailableChainFGSAProofs.Proofs.Outage.Induction
-public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceDeadlines
-public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceFrame
-public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceHistory
-public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceRelease
-public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceSleep
-public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceStep
-public import AvailableChainFGSAProofs.Proofs.Outage.ReceiverInputs
-public import AvailableChainFGSAProofs.Proofs.Outage.RelayKernel
-public import AvailableChainFGSAProofs.Proofs.Outage.RestoredBatch
-public import AvailableChainFGSAProofs.Proofs.Outage.RestoredReceipt
-public import AvailableChainFGSAProofs.Proofs.Outage.ScopedInduction
-public import AvailableChainFGSAProofs.Proofs.Outage.Suppliers
-public import AvailableChainFGSAProofs.Proofs.Outage.LaterHeads
-public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationGate
-public import AvailableChainFGSAProofs.Proofs.Outage.ScopedContinuation
-public import AvailableChainFGSAProofs.Proofs.Outage.ScopedPrefix
-public import AvailableChainFGSAProofs.Proofs.Outage.ScopedCatchUp
+-- shake keep reason: #print axioms targets
+public import AvailableChainFGSAProofs.Proofs.Assembly.OutagePublicInputs -- shake: keep
+-- shake keep reason: #print axioms targets
+public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationPaths -- shake: keep
+-- shake keep reason: #print axioms targets
+public import AvailableChainFGSAProofs.Proofs.Outage.Induction -- shake: keep
 #print axioms AvailableChain.FGSA.Run.kmid_honestSeats_mem
 #print axioms AvailableChain.FGSA.Run.kmid_honest_quorum
 

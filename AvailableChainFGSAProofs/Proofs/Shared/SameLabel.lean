@@ -1,8 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Shared.Reads
-public import AvailableChainFGSARun.Proofs.Receipts
 public import AvailableChainFGSARun.Proofs.RootResolution
-public import AvailableChainFGSAClaims.Statements.Reads
 
 public import AvailableChainFGSAProofs.Proofs.Shared.CatchUp
 

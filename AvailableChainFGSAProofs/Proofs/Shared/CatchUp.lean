@@ -1,13 +1,10 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Shared.StoreRun
+public import AvailableChainFGSAProofs.Proofs.Shared.StoreRun -- shake: keep (source declarations)
 public import AvailableChainFGSAClaims.Statements.Join
-public import AvailableChainFGSARun.Proofs.Acceptance
-public import AvailableChainFGSARun.Proofs.ReadyAcceptance
-public import AvailableChainFGSARun.Proofs.Receipts
+public import AvailableChainFGSARun.Proofs.Receipts -- shake: keep (source declarations)
 public import AvailableChainFGSARun.Proofs.Join
 public import AvailableChainFGSARun.Proofs.HeadHistory
 public import AvailableChainFGSARun.Proofs.ReadFacts
-public import AvailableChainGeneric.Proofs.V2.Duty.Receipt
 
 public section
 

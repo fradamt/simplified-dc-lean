@@ -1,6 +1,5 @@
 module
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Inclusion
-public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowth
 public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowthProposal
 public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowthCausal
 public import AvailableChainFGSAProofs.Proofs.Shared.Reads

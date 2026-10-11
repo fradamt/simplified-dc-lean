@@ -1,7 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Statements.WeakContinuation
 public import AvailableChainFGSAProofs.Proofs.Shared.Reads
-public import AvailableChainGeneric.Proofs.V2.Duty.Sleep
 
 public section
 

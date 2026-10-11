@@ -1,6 +1,5 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Shared.Claims
-public import AvailableChainFGSAProofs.Proofs.Finality.Export
+public import AvailableChainFGSAProofs.Proofs.Finality.Export -- shake: keep (source declarations)
 public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Export -- shake: keep (companion components)
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Export -- shake: keep (permitted WC reuse route)
 

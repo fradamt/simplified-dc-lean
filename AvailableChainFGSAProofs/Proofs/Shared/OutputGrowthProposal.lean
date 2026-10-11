@@ -1,9 +1,5 @@
 module
-public import AvailableChainFGSARun.Proofs.Schedule
-public import AvailableChainFGSARun.Proofs.Emission
-public import AvailableChainFGSA.Proofs.NamedReachable
-public import AvailableChainFGSAClaims.Statements.Counts
-public import AvailableChainFGSAProofs.Proofs.Shared.CatchUp
+public import AvailableChainFGSAProofs.Proofs.Shared.CatchUp -- shake: keep (source declarations)
 
 public section
 

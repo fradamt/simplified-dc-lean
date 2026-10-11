@@ -1,10 +1,7 @@
 module
-public import AvailableChainFGSAClaims.Statements.Regimes
-public import AvailableChainFGSAClaims.Statements.ChannelProps
-public import AvailableChainFGSAClaims.Statements.FrameNext
 public import AvailableChainFGSARun.Proofs.Join
-public import AvailableChainFGSAProofs.Proofs.Shared.Reads
-public import AvailableChainFGSAProofs.Proofs.Shared.HeldReceipt
+-- shake keep reason: source declarations
+public import AvailableChainFGSAProofs.Proofs.Shared.HeldReceipt -- shake: keep
 
 public section
 

@@ -1,5 +1,4 @@
 module
-public import AvailableChainFGSAClaims.Statements.Join
 public import AvailableChainFGSAClaims.Statements.WeakContinuationLive
 public import AvailableChainFGSAClaims.Statements.FinalityApi
 

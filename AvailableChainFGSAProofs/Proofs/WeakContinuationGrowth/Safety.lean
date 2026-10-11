@@ -2,7 +2,6 @@ module
 public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Epoch
 public import AvailableChainFGSARun.Proofs.AC
 public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowthReads
-public import AvailableChainFGSA.Proofs.StoreLaws
 
 public section
 

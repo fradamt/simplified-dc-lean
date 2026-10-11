@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Outage.Growth
+public import AvailableChainFGSAProofs.Proofs.Outage.Growth -- shake: keep (#print axioms targets)
 
 public section
 

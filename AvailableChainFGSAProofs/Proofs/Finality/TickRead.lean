@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Shared.CatchUp
+public import AvailableChainFGSAProofs.Proofs.Shared.CatchUp -- shake: keep (source declarations)
 
 public section
 

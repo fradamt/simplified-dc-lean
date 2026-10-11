@@ -1,6 +1,5 @@
 module
 public import AvailableChainFGSAClaims.Statements.WeakContinuationGrowth
-public import AvailableChainFGSAProofs.Proofs.Shared.Reads
 
 public section
 

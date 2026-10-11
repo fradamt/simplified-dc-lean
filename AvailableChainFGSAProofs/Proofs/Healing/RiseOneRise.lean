@@ -1,6 +1,5 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.RiseOneRepair
-public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryScope
 public import AvailableChainFGSAProofs.Proofs.Healing.RiseOneAdvance
 public import AvailableChainFGSAProofs.Proofs.Healing.RiseOneAccept
 

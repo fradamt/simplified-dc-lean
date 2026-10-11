@@ -1,6 +1,4 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.FrontierRead
-public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryScope
 public import AvailableChainFGSAProofs.Proofs.Healing.OpeningGateRead
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierServiceGate
 

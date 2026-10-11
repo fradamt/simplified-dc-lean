@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Clean.StateEpoch
+public import AvailableChainFGSAProofs.Proofs.Clean.StateEpoch -- shake: keep (source declarations)
 public import AvailableChainFGSAProofs.Proofs.Shared.AnchorService
 public import AvailableChainFGSAProofs.Proofs.Shared.SameLabel
 public import AvailableChainFGSAProofs.Proofs.Shared.Relay

@@ -3,7 +3,8 @@ public import AvailableChainFGSAProofs.Proofs.Shared.ProposalRead
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposal
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalHistory
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalReceipts
-public import AvailableChainFGSAProofs.Proofs.Shared.RegimesService
+-- shake keep reason: source declarations
+public import AvailableChainFGSAProofs.Proofs.Shared.RegimesService -- shake: keep
 
 public section
 

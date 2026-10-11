@@ -1,6 +1,6 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Outage.ArmingSleep
-public import AvailableChainGeneric.Proofs.V2.Duty.Sleep
+-- shake keep reason: source declarations
+public import AvailableChainFGSAProofs.Proofs.Outage.ArmingSleep -- shake: keep
 public import AvailableChainFGSAProofs.Proofs.Shared.AnchorService
 
 public section

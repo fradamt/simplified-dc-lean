@@ -1,7 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseService
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchAge
-public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryScope
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchRepair
 public import AvailableChainFGSAProofs.Proofs.Healing.CommonEntryFacts
 

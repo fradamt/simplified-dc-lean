@@ -1,7 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.Phase
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseRelay
-public import AvailableChainFGSAProofs.Proofs.Shared.HeldReceipt
 
 public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
 

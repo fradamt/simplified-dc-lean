@@ -1,6 +1,5 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetProject
-public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryService
 
 public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryProducers
 

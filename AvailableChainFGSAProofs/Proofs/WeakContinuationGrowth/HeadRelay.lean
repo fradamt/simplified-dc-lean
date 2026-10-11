@@ -1,9 +1,7 @@
 module
-public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Epoch
 public import AvailableChainFGSAProofs.Proofs.Shared.AnchorService
 public import AvailableChainFGSAProofs.Proofs.Shared.SameLabel
 public import AvailableChainFGSAProofs.Proofs.Shared.Relay
-public import AvailableChainFGSAProofs.Proofs.Shared.Count
 
 namespace AvailableChain.FGSA.Run
 private theorem wcgRelay_slotStartZ_unfold (p : Params) (s : Int) :

@@ -1,5 +1,6 @@
 module
-public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Interfaces
+-- shake keep reason: source declarations
+public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Interfaces -- shake: keep
 public import AvailableChainFGSAProofs.Proofs.Shared.AnchorService
 public import AvailableChainFGSAProofs.Proofs.Shared.Reads
 
