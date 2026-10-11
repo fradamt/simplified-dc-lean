@@ -162,3 +162,5 @@ F-13 dup justifyFresh_W AvailableChainFGCompose AvailableChainFGSAProofs # P0: g
 F-13 dup raw_causal_cap_before AvailableChainFGCompose AvailableChainFGSAProofs # P0: generic home; FG-SA copy frozen (plan v3 §1)
 F-13 dup raw_causal_cap_at_tick AvailableChainFGCompose AvailableChainFGSAProofs # P0: generic home; FG-SA copy frozen (plan v3 §1)
 F-13 dup raw_causal_cap_through_action AvailableChainFGCompose AvailableChainFGSAProofs # P0: generic home; FG-SA copy frozen (plan v3 §1)
+F-13 dup rowPermission_pair AvailableChainFGCompose AvailableChainFGSAProofs # P0: generic home; FG-SA copy frozen (plan v3 §1)
+F-13 dup rowPermission_covered AvailableChainFGCompose AvailableChainFGSAProofs # P0: generic home; FG-SA copy frozen (plan v3 §1)

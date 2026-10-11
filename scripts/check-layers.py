@@ -821,6 +821,15 @@ COMPOSE_PROOF_IMPORTS |= frozenset({
 COMPOSE_PROOF_IMPORTS |= frozenset({
     (COMPOSE + ".Proofs.Finality.History", KITFG + ".WindowSelection"),
 })
+# P0d2: exact row permission homes and wrapper imports.
+COMPOSE_MODULES += (COMPOSE + ".Statements.RowPermission", COMPOSE + ".Proofs.RowPermission")
+COMPOSE_PROOF_IMPORTS |= frozenset({
+    (COMPOSE + ".Proofs.RowPermission", KITFG + ".ClientOnceSafety"),
+})
+COMPOSE_EDGES |= frozenset({
+    (PROOFS + ".Proofs.Foundations.RowPermission", COMPOSE + ".Proofs.RowPermission"),
+})
+
 
 def compose_base(dep: str) -> bool:
     return (foundation(dep) or under(dep, "AvailableChainModel.Objects")

@@ -26,6 +26,8 @@ public import AvailableChainFGCompose.Proofs.HistoricalReads -- shake: keep (#pr
 public import AvailableChainFGCompose.Statements.ResetCut -- shake: keep (#print axioms)
 
 public import AvailableChainFGCompose.Proofs.Healing.ResetCut -- shake: keep (#print axioms)
+public import AvailableChainFGCompose.Statements.RowPermission -- shake: keep (#print axioms)
+public import AvailableChainFGCompose.Proofs.RowPermission -- shake: keep (#print axioms)
 
 #print axioms AvailableChain.FGCompose.ChainRowsBefore
 #print axioms AvailableChain.FGCompose.ChainRowsBefore_def
@@ -441,3 +443,15 @@ public import AvailableChainFGCompose.Proofs.Healing.ResetCut -- shake: keep (#p
 #print axioms AvailableChain.FGCompose.historyFaulty
 #print axioms AvailableChain.FGCompose.historyFinHeight
 #print axioms AvailableChain.FGCompose.historyRowHeight
+#print axioms AvailableChain.FGCompose.FGRowPermissionInputs
+#print axioms AvailableChain.FGCompose.FGRowPermissionInputs.permitted_lock
+#print axioms AvailableChain.FGCompose.FGRowPermissionInputs.source_eq
+#print axioms AvailableChain.FGCompose.FGRowPermissionWireLaws
+#print axioms AvailableChain.FGCompose.FGRowPermissionWireLaws.decoded_wire
+#print axioms AvailableChain.FGCompose.FGRowRecordHistory
+#print axioms AvailableChain.FGCompose.FGRowRecordHistory.invariant
+#print axioms AvailableChain.FGCompose.FGRowRecordHistory.sent_history
+#print axioms AvailableChain.FGCompose.p0d2_once_coverage
+#print axioms AvailableChain.FGCompose.p0d2_pair_of_lock
+#print axioms AvailableChain.FGCompose.rowPermission_covered
+#print axioms AvailableChain.FGCompose.rowPermission_pair

@@ -149,6 +149,8 @@ def composeImportAllowed (m dep : Name) : Bool :=
      `AvailableChainFGCompose.Proofs.ServiceTransport,
      `AvailableChainFGCompose.Statements.HistoricalReads,
      `AvailableChainFGCompose.Proofs.HistoricalReads,
+     `AvailableChainFGCompose.Statements.RowPermission,
+     `AvailableChainFGCompose.Proofs.RowPermission,
      `AvailableChainFGCompose.Statements.Observations,
      `AvailableChainFGCompose.Statements.Selection,
      `AvailableChainFGCompose.Statements.Timing,
@@ -185,6 +187,7 @@ def composeImportAllowed (m dep : Name) : Bool :=
        (`AvailableChainFGCompose.Proofs.Healing.ResetCut, `AvailableChainKitFG.StoreBounds),
        (`AvailableChainFGCompose.Proofs.HistoricalReads,
         `AvailableChainGeneric.Proofs.Pure.CommonAncestor),
+       (`AvailableChainFGCompose.Proofs.RowPermission, `AvailableChainKitFG.ClientOnceSafety),
        (`AvailableChainFGCompose.Proofs.SafetyClient, `AvailableChainKitFG.ClientOnceSafety),
        (`AvailableChainFGCompose.Proofs.SafetyClient,
         `AvailableChainGeneric.Proofs.V2.Duty.Fields)].contains (m, dep)

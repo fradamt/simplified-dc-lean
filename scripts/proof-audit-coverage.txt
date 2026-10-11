@@ -291,6 +291,22 @@
             'AvailableChain.FGCompose.historical_read_sound',
             'AvailableChain.FGCompose.historical_read_step',
         ),
+        'AvailableChainFGCompose.Statements.RowPermission': (
+            'AvailableChain.FGCompose.FGRowPermissionInputs',
+            'AvailableChain.FGCompose.FGRowPermissionInputs.permitted_lock',
+            'AvailableChain.FGCompose.FGRowPermissionInputs.source_eq',
+            'AvailableChain.FGCompose.FGRowPermissionWireLaws',
+            'AvailableChain.FGCompose.FGRowPermissionWireLaws.decoded_wire',
+            'AvailableChain.FGCompose.FGRowRecordHistory',
+            'AvailableChain.FGCompose.FGRowRecordHistory.invariant',
+            'AvailableChain.FGCompose.FGRowRecordHistory.sent_history',
+        ),
+        'AvailableChainFGCompose.Proofs.RowPermission': (
+            'AvailableChain.FGCompose.p0d2_once_coverage',
+            'AvailableChain.FGCompose.p0d2_pair_of_lock',
+            'AvailableChain.FGCompose.rowPermission_covered',
+            'AvailableChain.FGCompose.rowPermission_pair',
+        ),
         'AvailableChainFGCompose.Proofs.ObservationTransport': (
             'AvailableChain.FGCompose.action_source_at_read',
             'AvailableChain.FGCompose.selection_at_read',
