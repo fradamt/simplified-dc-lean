@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGCompose.Proofs.ServiceTransport
+public import AvailableChainFGCompose.Proofs.SourceHead
 public import Mathlib.Tactic.NormNum
 
 set_option linter.privateModule false
@@ -211,17 +212,20 @@ private noncomputable def c2HistoryInterface : V2.D.Interface c2HistoryProtocol 
   stable _ := .genesis
   block B := some B
   opening _ := True
-  propLabel s := s
-  propDuty s := s
+  propLabel s := 4 * s
+  propDuty s := 4 * s
   propDuty_label _ := rfl
   propLabel_single _ := rfl
-  propLabel_injective := Function.injective_id
+  propLabel_injective := by
+    intro a b h
+    change 4 * a = 4 * b at h
+    exact Nat.eq_of_mul_eq_mul_left (by decide : 0 < 4) h
 
 private def c2HistoryEnv : Generic.Env Unit := ⟨1, by decide, 0, by decide, fun _ _ => true⟩
 private noncomputable def c2HistoryRun : V2.D.Run Unit c2HistoryProtocol where
   honest := {()}
   horizon := 100
-  events := [.tick () 0, .tick () 6]
+  events := [.tick () 6, .tick () 14, .tick () 24]
   seatOf _ _ := ()
   input _ _ := ()
 private def c2BadFG : FGBlock (Fin 1) := .node .genesis 1 ⟨8⟩ 0 []
@@ -230,7 +234,7 @@ private noncomputable def c2HistoryCore :
     FGCoreReads c2HistoryProtocol 1 Unit Unit Unit where
   core _ := ⟨(), ⟨{.genesis, c2BadFG, c2GoodFG}, .genesis, .genesis, 0, 3⟩, [], []⟩
   erase B := if B = c2BadFG then c2Other else c2Q
-  source t := some (if t = 0 then c2BadFG else c2GoodFG)
+  source t := some (if t = 6 then c2BadFG else c2GoodFG)
   headVote _ _ := c2Q
   finalityHead _ := some c2GoodFG
   proposalFG _ _ := some c2GoodFG
@@ -239,19 +243,18 @@ private noncomputable def c2HistoryObs : FGObservationReads c2HistoryCore where
   finality _ := ⟨.genesis, 0⟩
   controls _ := ⟨.genesis, 0, 0, .genesis, false⟩
   viable _ X := X
-private def c2HistoryClock : FGTiming := { c2Clock with
-  proposal := fun s => (s : Time), action := fun r => (r : Time) }
+private def c2HistoryClock : FGTiming := c2Clock
 
 private theorem c2HistoryProposal :
     HonestProposal c2HistoryEnv c2HistoryRun c2HistoryInterface 6 c2Opening := by
   constructor
   · change 0 < (6 : Nat) ∧ () ∈ ({()} : Finset Unit)
     simp
-  · refine ⟨⟨.seat 6 0, c2Opening⟩, ?_, rfl⟩
-    change ∃ i, c2HistoryRun.events[i]? = some (.tick () 6) ∧
-      (⟨.seat 6 0, c2Opening⟩ : c2HistoryProtocol.Object) ∈
+  · refine ⟨⟨.seat 24 0, c2Opening⟩, ?_, rfl⟩
+    change ∃ i, c2HistoryRun.events[i]? = some (.tick () 24) ∧
+      (⟨.seat 24 0, c2Opening⟩ : c2HistoryProtocol.Object) ∈
         V2.D.Run.emitsAt c2HistoryEnv c2HistoryRun i
-    exact ⟨1, rfl, by decide +kernel⟩
+    exact ⟨2, rfl, by decide +kernel⟩
 
 private theorem c2HistoryRejectsTransfer :
     ¬ FGHistoricalHighTransfer c2HistoryCore c2HistoryObs c2HistoryClock
@@ -270,6 +273,56 @@ private theorem c2HistoryHeightWitness :
     ¬ (c2HistoryObs.height c2BadFG).h ≤ (c2HistoryObs.height c2GoodFG).h := by
   exact ⟨rfl, by decide, by decide +kernel⟩
 
+-- The suffix laws use the same actual source, reset, timing, and horizon as history.
+private theorem c2ActualSuffixSource (r : Nat) (C : FGBlock (Fin 1))
+    (ht : InSuffix c2Late 100 (c2HistoryClock.action r))
+    (hs : (postClock c2HistoryEnv c2HistoryRun () (c2HistoryClock.action r)).map
+      c2HistoryCore.source = some (some C)) : C = c2GoodFG := by
+  obtain ⟨nd, hnd, hs⟩ := Option.map_eq_some_iff.mp hs
+  obtain ⟨i, _, hc⟩ := postClock_tick c2HistoryEnv c2HistoryRun hnd
+  have hn : nd ≠ 6 := by
+    intro hn
+    have ht' : (12 : Time) ≤ c2HistoryClock.action r := ht.1
+    have he : c2HistoryClock.action r = 6 := hc.trans hn
+    rw [he] at ht'
+    contradiction
+  change some (if nd = 6 then c2BadFG else c2GoodFG) = some C at hs
+  simp only [hn, ↓reduceIte] at hs
+  exact (Option.some.inj hs).symm
+
+private theorem c2ActualSuffixChain (r q : Nat) (C D : FGBlock (Fin 1))
+    (hr : InSuffix c2Late 100 (c2HistoryClock.action r))
+    (hq : InSuffix c2Late 100 (c2HistoryClock.action q))
+    (hc : (postClock c2HistoryEnv c2HistoryRun () (c2HistoryClock.action r)).map
+      c2HistoryCore.source = some (some C))
+    (hd : (postClock c2HistoryEnv c2HistoryRun () (c2HistoryClock.action q)).map
+      c2HistoryCore.source = some (some D)) :
+    Block.Compatible (c2HistoryCore.erase C) (c2HistoryCore.erase D) := by
+  rw [c2ActualSuffixSource r C hr hc, c2ActualSuffixSource q D hq hd]
+  change (c2Q.preceq c2Q || c2Q.preceq c2Q) = true
+  decide
+
+private theorem c2ActualSuffixParent (r : Nat) (C : FGBlock (Fin 1))
+    (hr : InSuffix c2Late 100 (c2HistoryClock.action r))
+    (hc : (postClock c2HistoryEnv c2HistoryRun () (c2HistoryClock.action r)).map
+      c2HistoryCore.source = some (some C)) :
+    Block.Preceq (c2HistoryCore.erase C) c2Opening.parent := by
+  rw [c2ActualSuffixSource r C hr hc]
+  decide +kernel
+
+private theorem c2ActualSuffixInhabited :
+    (postClock c2HistoryEnv c2HistoryRun () (c2HistoryClock.action 1)).map
+      c2HistoryCore.source = some (some c2GoodFG) ∧
+    InSuffix c2Late 100 (c2HistoryClock.action 1) ∧
+    HonestProposal c2HistoryEnv c2HistoryRun c2HistoryInterface 6 c2Opening ∧
+    1 * c2HistoryClock.roundSlots + 2 ≤ 6 := by
+  exact ⟨rfl, by constructor <;> decide, c2HistoryProposal, by decide⟩
+
+private def c2HistoricalRow : Nat × FGBlock (Fin 1) := (3, c2BadFG)
+private theorem c2ActualRowCapFailure :
+    c2HistoricalRow.1 = (c2HistoryObs.height c2HistoricalRow.2).h ∧
+    ¬ c2HistoricalRow.1 ≤ (c2HistoryObs.height c2GoodFG).h := by decide +kernel
+
 -- The PC leaf split has no gap: old shield rows, rows in [d_s,R_s), and suffix rows.
 private theorem c2ShieldSplit (shield start t : Time) (_hs : shield ≤ start)
     (old gap suffix : Prop) (hOld : t < shield → old)
@@ -280,6 +333,33 @@ private theorem c2ShieldSplit (shield start t : Time) (_hs : shield ≤ start)
   · by_cases hu : t < start
     · exact Or.inr (Or.inl (hGap (le_of_not_gt ht) hu))
     · exact Or.inr (Or.inr (hSuffix (le_of_not_gt hu)))
+
+-- Shield bounds and transfer-to-parent bounds imply the opening cap in all three intervals.
+private theorem c2ShieldCap (shield start t : Time) (row seed parent opening : Nat)
+    (hseed : seed ≤ opening) (hparent : parent ≤ opening)
+    (old : t < shield → row ≤ seed)
+    (gap : shield ≤ t → t < start → row ≤ parent)
+    (suffix : start ≤ t → row ≤ parent) : row ≤ opening := by
+  by_cases ht : t < shield
+  · exact (old ht).trans hseed
+  · by_cases hu : t < start
+    · exact (gap (le_of_not_gt ht) hu).trans hparent
+    · exact (suffix (le_of_not_gt hu)).trans hparent
+
+private theorem c2GapRowCap : (3 : Nat) ≤ 4 :=
+  c2ShieldCap 10 20 15 3 2 4 4 (by decide) (by decide)
+    (fun h => (by decide : ¬ (15 : Time) < 10) h |>.elim)
+    (fun _ _ => by decide)
+    (fun h => (by decide : ¬ (20 : Time) ≤ 15) h |>.elim)
+
+private theorem c2OldShieldRowCap : (2 : Nat) ≤ 4 :=
+  c2ShieldCap 10 20 9 2 2 4 4 (by decide) (by decide)
+    (fun _ => by decide) (fun _ _ => by decide) (fun _ => by decide)
+
+private theorem c2SuffixRowCap : (4 : Nat) ≤ 4 :=
+  c2ShieldCap 10 20 25 4 2 4 4 (by decide) (by decide)
+    (fun h => (by decide : ¬ (25 : Time) < 10) h |>.elim)
+    (fun _ _ => by decide) (fun _ => by decide)
 
 #print axioms c2TwoSeeds
 #print axioms c2EarlyStart
@@ -297,6 +377,13 @@ private theorem c2ShieldSplit (shield start t : Time) (_hs : shield ≤ start)
 #print axioms c2HistoryRejectsTransfer
 #print axioms c2HistoryHeightWitness
 #print axioms c2ShieldSplit
+#print axioms c2GapRowCap
+#print axioms c2OldShieldRowCap
+#print axioms c2SuffixRowCap
+#print axioms c2ActualSuffixChain
+#print axioms c2ActualSuffixParent
+#print axioms c2ActualSuffixInhabited
+#print axioms c2ActualRowCapFailure
 
 end AvailableChain.FGCompose.Tests.P0Service
 end

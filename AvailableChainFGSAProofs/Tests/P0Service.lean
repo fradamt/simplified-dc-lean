@@ -2,7 +2,6 @@ module
 public import AvailableChainFGSAProofs.Proofs.Finality.RowsBatch
 public import AvailableChainFGSAProofs.Proofs.Finality.ReceiptSuppliers
 public import AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient
-public import AvailableChainFGSAInhabit.WitnessPositive
 
 set_option linter.privateModule false
 
