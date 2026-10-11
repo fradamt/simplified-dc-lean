@@ -15,6 +15,7 @@ variable (E : Generic.Env V) (rho : V2.D.Run V Prot)
 variable (H : FGHeightView (Fin n)) (T : FGTiming)
 variable (Ef : Electorate (Fin n)) (laws : FGHeightLaws Ef H)
 
+include laws in
 /-- SAME: a prefix at equal height fixes the entry root of every selected source. -/
 theorem common_entry_of_plateau (r m : Nat) (Qfg : FGBlock (Fin n)) (hh : (H Qfg).h = m)
     (hsources : ∀ x K, x ∈ rho.honest → actionSourceFG R E rho T x r = some (some K) →
@@ -25,6 +26,7 @@ theorem common_entry_of_plateau (r m : Nat) (Qfg : FGBlock (Fin n)) (hh : (H Qfg
   have he : (H K).h = m := le_antisymm hcap (hh ▸ laws.h_mono hQK)
   exact ⟨he, by rw [laws.entry_plateau hQK (hh.trans he.symm)]⟩
 
+include laws in
 /-- SAME: the low branch or an actual honest source at the cap. -/
 theorem common_low_or_high (r m : Nat) (Qfg : FGBlock (Fin n))
     (hh : (H Qfg).h = m - 1)
@@ -61,6 +63,7 @@ theorem common_sources_extend_and_cap {r m : Nat} {Qfg : FGBlock (Fin n)}
   have he : L = K := Option.some.inj (hL.symm.trans hsrc)
   exact ⟨he ▸ hQL, cap x K hx hK⟩
 
+include laws in
 /-- SAME: the first-opening source result supplies the plateau consumer. -/
 theorem common_entry_at_high {r m : Nat} {Qfg : FGBlock (Fin n)}
     (hsources : ∀ x K, x ∈ rho.honest → actionSourceFG R E rho T x r = some (some K) →
@@ -81,6 +84,7 @@ theorem common_next_sources_extend_and_cap {r m : Nat} {K : FGBlock (Fin n)}
   obtain ⟨D, L, hL, hKD, hDL⟩ := transfer x nd hx hnd
   exact ⟨L, hL, KitFG.preceq_trans hKD hDL⟩
 
+include laws in
 /-- SAME: an actual high source fixes the next entry under its own phase cap. -/
 theorem common_next_entry {r m : Nat} {K : FGBlock (Fin n)} (hh : (H K).h = m)
     (hsources : ∀ x L, x ∈ rho.honest →
@@ -88,6 +92,7 @@ theorem common_next_entry {r m : Nat} {K : FGBlock (Fin n)} (hh : (H K).h = m)
       FGBlock.Preceq K L ∧ (H L).h ≤ m) : OpeningEntry R E rho H T (r + 1) m := by
   exact common_entry_of_plateau R E rho H T Ef laws (r + 1) m K hh hsources
 
+include laws in
 /-- SAME: the high witness is chosen before applying the next-phase service leaf. -/
 theorem common_entry_at_low (O : FGObservationReads R) {u : Time}
     {J : Option (FGBlock (Fin n))} {contested : Bool} {r m : Nat} {Qfg : FGBlock (Fin n)}

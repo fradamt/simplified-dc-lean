@@ -14,6 +14,7 @@ variable (E : Generic.Env V) (rho : V2.D.Run V Prot)
 variable (H : FGHeightView (Fin n)) (T : FGTiming) (pair : Wire → NamedHeightPair)
 variable (Ef : Electorate (Fin n)) (laws : FGHeightLaws Ef H)
 
+include laws in
 /-- SAME: choose the opening's coverage witnesses once, before any terminal carrier. -/
 theorem healing_promotion_fixed_rows {r height : Nat} {Q : Block}
     (hne : rho.honest.Nonempty)
@@ -49,6 +50,7 @@ theorem healing_promotion_fixed_rows {r height : Nat} {Q : Block}
     cases heq
     exact ⟨timeout, rfl⟩
 
+include laws in
 /-- SAME: the selected source supplies a stored path and its actual slot cap. -/
 theorem healing_promotion_entry_slot {x : V} {r : Nat} {K U : FGBlock (Fin n)}
     (hx : x ∈ rho.honest) (hK : actionSourceFG R E rho T x r = some (some K))

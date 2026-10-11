@@ -19,6 +19,7 @@ variable (validFor : Prot.State → Slot → FGBlock (Fin n) → Wire → Bool)
 variable (fold : Prot.State → Slot → FGBlock (Fin n) → Window.State (Fin n))
 variable (Ef : Electorate (Fin n)) (laws : FGHeightLaws Ef H)
 
+include laws in
 /-- SAME: decode the fixed wire and prove R6-window from its matching height pair.
 The finality field is retained and can have any value. -/
 theorem p0d3_same_row {s : Slot} {X U : FGBlock (Fin n)} {height : Nat} {nd : Prot.State}
@@ -48,12 +49,14 @@ theorem p0d3_same_row {s : Slot} {X U : FGBlock (Fin n)} {height : Nat} {nd : Pr
     change decide (height = height ∧ U.root = U.root) = true
     exact decide_eq_true ⟨rfl, rfl⟩
   have hv : validFor nd s X.parent a = true := by
-    rw [hvalid, hb, Window.r6w_def, hm, Bool.true_or]
+    simp only [hvalid, hb, Window.r6w_def, hm, Bool.true_or]
   rw [hslot]
   refine ⟨⟨nd, X.parent, hread, hparent, hv⟩, nd, X.parent, hread, hparent, ?_⟩
+  dsimp only
   rw [hparentHeight, hn, hh, ht]
   rfl
 
+include laws in
 /-- SAME: preserve a given fixed batch while transferring its entry to the actual parent. -/
 theorem healing_promotion_same_rows_on {r height : Nat} {s : Slot}
     {Q : Block} {X U : FGBlock (Fin n)}
@@ -96,6 +99,7 @@ theorem healing_promotion_same_rows_on {r height : Nat} {s : Slot}
     hslot hentry hUP hheight hread hparent ⟨hfh, hft⟩ hph
     (decodeRows j x rSent a ha) hn (hv a)
 
+include laws in
 /-- SAME: select the opening batch before using the new proposal's parent read. -/
 theorem healing_promotion_same_rows {r height : Nat} {s : Slot} {Q : Block}
     {X : FGBlock (Fin n)} (hne : rho.honest.Nonempty)

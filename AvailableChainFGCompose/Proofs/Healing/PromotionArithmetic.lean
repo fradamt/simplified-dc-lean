@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGCompose.Statements.Promotion
-public import AvailableChainFGCompose.Proofs.SourceHead
+public import AvailableChainGeneric.Proofs.V2.Duty.Reads
 public import Mathlib.Tactic.Linarith
 public import Mathlib.Tactic.Ring
 
@@ -101,6 +101,7 @@ theorem healing_promotion_held_mono
   exact List.countP_mono_left (fun e _ he => decide_eq_true
     (lt_of_lt_of_le (of_decide_eq_true he) hdd))
 
+omit [DecidableEq V] in
 /-- Blueprint 21:1356–1370; plan §3.2 step 2.
 DC: INTENTIONAL the full G window fits inside the supplied gate horizon.
 The result retains the honest slot; it does not assert proposal emission. -/
@@ -154,6 +155,7 @@ theorem healing_promotion_gap (T : FGTiming) (hT : FGTimingLaws T) (I : V2.D.Int
   rw [hT.gate_eq]
   linarith
 
+omit [DecidableEq V] in
 /-- Blueprint 21:1371–1384; plan §3.2 step 3.
 DC: SAME the earlier row's deadline is bounded without a later row selection. -/
 theorem healing_promotion_row_deadline (T : FGTiming) (hT : FGTimingLaws T) (E : Generic.Env V)
@@ -187,6 +189,7 @@ theorem healing_promotion_row_deadline (T : FGTiming) (hT : FGTimingLaws T) (E :
   exact ⟨h1, hb.2.1, hb.2.2, h1.trans hdeadline,
     by rw [max_eq_left hgst]; exact hdeadline, by exact_mod_cast hcast⟩
 
+omit [DecidableEq V] in
 /-- The H.9(b) trigger keeps the earlier strict deadline chain. -/
 theorem healing_promotion_row_deadline_strict (T : FGTiming) (hT : FGTimingLaws T)
     (E : Generic.Env V)
@@ -302,8 +305,10 @@ theorem healing_promotion_maturity_of_action (T : FGTiming) (hT : FGTimingLaws T
   change (r : Time) * (4 * (T.roundSlots : Time) * T.delta) +
     2 * (4 * (T.roundSlots : Time) * T.delta) ≤ _ at hs
   change _ + 2 * (4 * (T.roundSlots : Time) * T.delta) ≤ _
+  rw [p0d3_proposal T hT]
   nlinarith [hT.delta_pos]
 
+omit [DecidableEq V] in
 /-- Blueprint 21:1592–1638; plan §3.2 step 7.
 DC: INTENTIONAL the age-sensitive trigger is on the proposal grid.
 This is the deadline component, not an acceptance or service producer. -/
