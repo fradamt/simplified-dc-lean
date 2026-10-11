@@ -1,4 +1,9 @@
 module
+public import AvailableChainFGCompose.Statements.Promotion -- shake: keep (#print axioms)
+public import AvailableChainFGCompose.Proofs.Healing.PromotionArithmetic -- shake: keep (#print axioms)
+public import AvailableChainFGCompose.Proofs.Healing.CommonEntry -- shake: keep (#print axioms)
+public import AvailableChainFGCompose.Proofs.Healing.Promotion -- shake: keep (#print axioms)
+public import AvailableChainFGCompose.Proofs.Healing.PromotionRows -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Proofs.ObservationTransport -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Proofs.Timing -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Statements.Observations -- shake: keep (#print axioms)
@@ -13,8 +18,16 @@ public import AvailableChainFGCompose.Proofs.SourceHead -- shake: keep (#print a
 public import AvailableChainFGCompose.Statements.Restart -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Proofs.Restart -- shake: keep (#print axioms)
 
+public import AvailableChainFGCompose.Statements.ResetHistory -- shake: keep (#print axioms)
+public import AvailableChainFGCompose.Statements.Service -- shake: keep (#print axioms)
+public import AvailableChainFGCompose.Statements.Bounds -- shake: keep (#print axioms)
+public import AvailableChainFGCompose.Statements.Finality -- shake: keep (#print axioms)
+public import AvailableChainFGCompose.Statements.FinalityReceipts -- shake: keep (#print axioms)
+public import AvailableChainFGCompose.Proofs.ServiceTransport -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Statements.HistoricalReads -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Proofs.HistoricalReads -- shake: keep (#print axioms)
+public import AvailableChainFGCompose.Statements.RowPermission -- shake: keep (#print axioms)
+public import AvailableChainFGCompose.Proofs.RowPermission -- shake: keep (#print axioms)
 
 #print axioms AvailableChain.FGCompose.ChainRowsBefore
 #print axioms AvailableChain.FGCompose.ChainRowsBefore_def
@@ -81,6 +94,173 @@ public import AvailableChainFGCompose.Proofs.HistoricalReads -- shake: keep (#pr
 #print axioms AvailableChain.FGCompose.tf_before_tick_eq_beforeTime
 #print axioms AvailableChain.FGCompose.chainRows_of_head_all
 
+#print axioms AvailableChain.FGCompose.FGResetHistory
+#print axioms AvailableChain.FGCompose.FGResetHistory.M
+#print axioms AvailableChain.FGCompose.FGResetHistory.rG
+#print axioms AvailableChain.FGCompose.FGResetHistory.rStar
+#print axioms AvailableChain.FGCompose.FGResetHistory.sStar
+#print axioms AvailableChain.FGCompose.FGResetHistory.source
+#print axioms AvailableChain.FGCompose.FGResetHistory.u0
+#print axioms AvailableChain.FGCompose.FGServicePoint
+#print axioms AvailableChain.FGCompose.FGServicePoint.reset
+#print axioms AvailableChain.FGCompose.FGServicePoint.seed
+#print axioms AvailableChain.FGCompose.FGServicePoint.seedSlot
+#print axioms AvailableChain.FGCompose.FGServicePoint.serviceStart
+#print axioms AvailableChain.FGCompose.FGServiceStartLaws
+#print axioms AvailableChain.FGCompose.FGServiceStartLaws.after_recovery
+#print axioms AvailableChain.FGCompose.FGServiceStartLaws.bounded
+#print axioms AvailableChain.FGCompose.FGServiceStartLaws.horizon
+#print axioms AvailableChain.FGCompose.FGServiceStartLaws.reset_ok
+#print axioms AvailableChain.FGCompose.FGServiceStartLaws.seed_before
+#print axioms AvailableChain.FGCompose.FGServiceStartLaws.seed_ok
+#print axioms AvailableChain.FGCompose.FGServiceStartLaws.source_prefix
+#print axioms AvailableChain.FGCompose.H0Reset
+#print axioms AvailableChain.FGCompose.H0Reset.cut
+#print axioms AvailableChain.FGCompose.H0Reset.cut_lower
+#print axioms AvailableChain.FGCompose.H0Reset.cut_upper
+#print axioms AvailableChain.FGCompose.H0Reset.fresh
+#print axioms AvailableChain.FGCompose.H0Reset.frontier
+#print axioms AvailableChain.FGCompose.H0Reset.label
+#print axioms AvailableChain.FGCompose.H0Reset.mu_le
+#print axioms AvailableChain.FGCompose.H0Reset.rG_after
+#print axioms AvailableChain.FGCompose.H0Reset.rG_first
+#print axioms AvailableChain.FGCompose.H0Reset.reset_first
+#print axioms AvailableChain.FGCompose.H0Reset.reset_row
+#print axioms AvailableChain.FGCompose.H0Reset.rowCap
+#print axioms AvailableChain.FGCompose.H0Reset.synchronous
+#print axioms AvailableChain.FGCompose.HeightRow
+#print axioms AvailableChain.FGCompose.high
+#print axioms AvailableChain.FGCompose.honestFrontier
+#print axioms AvailableChain.FGCompose.muOf
+#print axioms AvailableChain.FGCompose.oldRowHeights
+#print axioms AvailableChain.FGCompose.FGACServiceLaws
+#print axioms AvailableChain.FGCompose.FGACServiceLaws.covered_source
+#print axioms AvailableChain.FGCompose.FGACServiceLaws.exact_gate
+#print axioms AvailableChain.FGCompose.FGACServiceLaws.exact_head
+#print axioms AvailableChain.FGCompose.FGACServiceLaws.opening_source
+#print axioms AvailableChain.FGCompose.FGACServiceLaws.parent_transfer
+#print axioms AvailableChain.FGCompose.FGACServiceLaws.proposal_later_head
+#print axioms AvailableChain.FGCompose.FGACServiceLaws.source_chain
+#print axioms AvailableChain.FGCompose.FGACServiceLaws.source_next_head
+#print axioms AvailableChain.FGCompose.FGACServiceObservationLaws
+#print axioms AvailableChain.FGCompose.FGACServiceObservationLaws.action_head_eq
+#print axioms AvailableChain.FGCompose.FGACServiceObservationLaws.action_head_label
+#print axioms AvailableChain.FGCompose.FGACServiceObservationLaws.action_scope
+#print axioms AvailableChain.FGCompose.FGACServiceObservationLaws.action_time
+#print axioms AvailableChain.FGCompose.FGACServiceObservationLaws.below_eq
+#print axioms AvailableChain.FGCompose.FGACServiceObservationLaws.duty_time
+#print axioms AvailableChain.FGCompose.FGACServiceObservationLaws.floor_eq
+#print axioms AvailableChain.FGCompose.FGACServiceObservationLaws.frame_eq
+#print axioms AvailableChain.FGCompose.FGACServiceObservationLaws.gate_eq
+#print axioms AvailableChain.FGCompose.FGACServiceObservationLaws.gate_label
+#print axioms AvailableChain.FGCompose.FGACServiceObservationLaws.gate_scope
+#print axioms AvailableChain.FGCompose.FGACServiceObservationLaws.gate_time
+#print axioms AvailableChain.FGCompose.FGACServiceObservationLaws.head_eq
+#print axioms AvailableChain.FGCompose.FGACServiceObservationLaws.head_scope
+#print axioms AvailableChain.FGCompose.FGACServiceObservationLaws.honest_eq
+#print axioms AvailableChain.FGCompose.FGACServiceObservationLaws.parent_eq
+#print axioms AvailableChain.FGCompose.FGACServiceObservationLaws.proposal_eq
+#print axioms AvailableChain.FGCompose.FGACServiceObservationLaws.proposal_scope
+#print axioms AvailableChain.FGCompose.FGACServiceObservationLaws.proposal_time
+#print axioms AvailableChain.FGCompose.FGACServiceObservationLaws.source_eq
+#print axioms AvailableChain.FGCompose.FGACServiceObservationLaws.source_scope
+#print axioms AvailableChain.FGCompose.FGACServiceObservationLaws.vote_time
+#print axioms AvailableChain.FGCompose.FGACServiceReads
+#print axioms AvailableChain.FGCompose.FGACServiceReads.actionHead
+#print axioms AvailableChain.FGCompose.FGACServiceReads.actionHeadLabel
+#print axioms AvailableChain.FGCompose.FGACServiceReads.actionScope
+#print axioms AvailableChain.FGCompose.FGACServiceReads.actionTime
+#print axioms AvailableChain.FGCompose.FGACServiceReads.below
+#print axioms AvailableChain.FGCompose.FGACServiceReads.frame
+#print axioms AvailableChain.FGCompose.FGACServiceReads.gate
+#print axioms AvailableChain.FGCompose.FGACServiceReads.gateFloor
+#print axioms AvailableChain.FGCompose.FGACServiceReads.gateLabel
+#print axioms AvailableChain.FGCompose.FGACServiceReads.gateScope
+#print axioms AvailableChain.FGCompose.FGACServiceReads.gateTime
+#print axioms AvailableChain.FGCompose.FGACServiceReads.headAtLabel
+#print axioms AvailableChain.FGCompose.FGACServiceReads.headScope
+#print axioms AvailableChain.FGCompose.FGACServiceReads.honest
+#print axioms AvailableChain.FGCompose.FGACServiceReads.parent
+#print axioms AvailableChain.FGCompose.FGACServiceReads.proposal
+#print axioms AvailableChain.FGCompose.FGACServiceReads.proposalScope
+#print axioms AvailableChain.FGCompose.FGACServiceReads.proposalTime
+#print axioms AvailableChain.FGCompose.FGACServiceReads.source
+#print axioms AvailableChain.FGCompose.FGACServiceReads.sourceScope
+#print axioms AvailableChain.FGCompose.FGACServiceReads.voteTime
+#print axioms AvailableChain.FGCompose.FGHistoricalHighChain
+#print axioms AvailableChain.FGCompose.FGHistoricalHighTransfer
+#print axioms AvailableChain.FGCompose.InSuffix
+#print axioms AvailableChain.FGCompose.TRowsReceipt
+#print axioms AvailableChain.FGCompose.TRowsSelect
+#print axioms AvailableChain.FGCompose.TRowsSync
+#print axioms AvailableChain.FGCompose.ActionDeliveryBoundsW
+#print axioms AvailableChain.FGCompose.B_cF
+#print axioms AvailableChain.FGCompose.B_resetF
+#print axioms AvailableChain.FGCompose.D_cF
+#print axioms AvailableChain.FGCompose.E_gF
+#print axioms AvailableChain.FGCompose.E_jF
+#print axioms AvailableChain.FGCompose.KernelBeforeNextActionW
+#print axioms AvailableChain.FGCompose.LivenessBoundW
+#print axioms AvailableChain.FGCompose.LivenessBoundW.kappa_le_R
+#print axioms AvailableChain.FGCompose.P
+#print axioms AvailableChain.FGCompose.betaF
+#print axioms AvailableChain.FGCompose.carrierTimeW
+#print axioms AvailableChain.FGCompose.epsF
+#print axioms AvailableChain.FGCompose.kappaF
+#print axioms AvailableChain.FGCompose.kernelDeadlineW
+#print axioms AvailableChain.FGCompose.Γ
+#print axioms AvailableChain.FGCompose.AcceptsFinalBefore
+#print axioms AvailableChain.FGCompose.KernelConclusion_W
+#print axioms AvailableChain.FGCompose.KernelPrem_W
+#print axioms AvailableChain.FGCompose.KernelPrem_W.bound
+#print axioms AvailableChain.FGCompose.KernelPrem_W.capacity_ge
+#print axioms AvailableChain.FGCompose.KernelPrem_W.hhor
+#print axioms AvailableChain.FGCompose.KernelPrem_W.honest_quorum
+#print axioms AvailableChain.FGCompose.KernelPrem_W.start
+#print axioms AvailableChain.FGCompose.KernelPrem_W.timeout_eq
+#print axioms AvailableChain.FGCompose.KernelPrem_W.window
+#print axioms AvailableChain.FGCompose.KernelPt
+#print axioms AvailableChain.FGCompose.KernelPt.r
+#print axioms AvailableChain.FGCompose.OpeningCarrier_W
+#print axioms AvailableChain.FGCompose.FinalityActionReceipts
+#print axioms AvailableChain.FGCompose.FinalityActionReceipts.service
+#print axioms AvailableChain.FGCompose.FreshHeadService
+#print axioms AvailableChain.FGCompose.FreshHeadService.cut
+#print axioms AvailableChain.FGCompose.FreshHeadService.cut_le
+#print axioms AvailableChain.FGCompose.FreshHeadService.dl
+#print axioms AvailableChain.FGCompose.FreshHeadService.epoch
+#print axioms AvailableChain.FGCompose.FreshHeadService.freeze_le
+#print axioms AvailableChain.FGCompose.FreshHeadService.handlers
+#print axioms AvailableChain.FGCompose.FreshHeadService.horizon
+#print axioms AvailableChain.FGCompose.FreshHeadService.later
+#print axioms AvailableChain.FGCompose.FreshHeadService.not_excluded
+#print axioms AvailableChain.FGCompose.FreshHeadService.ready
+#print axioms AvailableChain.FGCompose.FreshHeadService.within
+#print axioms AvailableChain.FGCompose.ReceiverService
+#print axioms AvailableChain.FGCompose.ReceiverService.anchor
+#print axioms AvailableChain.FGCompose.ReceiverService.cut
+#print axioms AvailableChain.FGCompose.ReceiverService.cut_le
+#print axioms AvailableChain.FGCompose.ReceiverService.dl
+#print axioms AvailableChain.FGCompose.ReceiverService.epoch
+#print axioms AvailableChain.FGCompose.ReceiverService.freeze_le
+#print axioms AvailableChain.FGCompose.ReceiverService.handlers
+#print axioms AvailableChain.FGCompose.ReceiverService.history
+#print axioms AvailableChain.FGCompose.ReceiverService.horizon
+#print axioms AvailableChain.FGCompose.ReceiverService.later
+#print axioms AvailableChain.FGCompose.ReceiverService.nonneg
+#print axioms AvailableChain.FGCompose.ReceiverService.not_excluded
+#print axioms AvailableChain.FGCompose.ReceiverService.ready
+#print axioms AvailableChain.FGCompose.ReceiverService.send_le
+#print axioms AvailableChain.FGCompose.ReceiverService.within
+#print axioms AvailableChain.FGCompose.TargetReceiptService
+#print axioms AvailableChain.FGCompose.historical_chain_horizon
+#print axioms AvailableChain.FGCompose.historical_chain_reseed
+#print axioms AvailableChain.FGCompose.historical_transfer_horizon
+#print axioms AvailableChain.FGCompose.historical_transfer_reseed
+#print axioms AvailableChain.FGCompose.service_head_coverage
+#print axioms AvailableChain.FGCompose.service_proposal_coverage
+#print axioms AvailableChain.FGCompose.service_source_next
+#print axioms AvailableChain.FGCompose.service_start_before_opening
 #print axioms AvailableChain.FGCompose.FGObservationReads
 #print axioms AvailableChain.FGCompose.FGObservationLaws
 #print axioms AvailableChain.FGCompose.FGRunOrderLaws
@@ -198,3 +378,52 @@ public import AvailableChainFGCompose.Proofs.HistoricalReads -- shake: keep (#pr
 #print axioms AvailableChain.FGCompose.historical_read_restore_eq
 #print axioms AvailableChain.FGCompose.historical_read_sound
 #print axioms AvailableChain.FGCompose.historical_read_step
+#print axioms AvailableChain.FGCompose.FGRowPermissionInputs
+#print axioms AvailableChain.FGCompose.FGRowPermissionInputs.permitted_lock
+#print axioms AvailableChain.FGCompose.FGRowPermissionInputs.source_eq
+#print axioms AvailableChain.FGCompose.FGRowPermissionWireLaws
+#print axioms AvailableChain.FGCompose.FGRowPermissionWireLaws.decoded_wire
+#print axioms AvailableChain.FGCompose.FGRowRecordHistory
+#print axioms AvailableChain.FGCompose.FGRowRecordHistory.invariant
+#print axioms AvailableChain.FGCompose.FGRowRecordHistory.sent_history
+#print axioms AvailableChain.FGCompose.p0d2_once_coverage
+#print axioms AvailableChain.FGCompose.p0d2_pair_of_lock
+#print axioms AvailableChain.FGCompose.rowPermission_covered
+#print axioms AvailableChain.FGCompose.rowPermission_pair
+#print axioms AvailableChain.FGCompose.common_entry_of_plateau
+#print axioms AvailableChain.FGCompose.common_low_or_high
+#print axioms AvailableChain.FGCompose.common_sources_extend_and_cap
+#print axioms AvailableChain.FGCompose.common_entry_at_high
+#print axioms AvailableChain.FGCompose.common_next_sources_extend_and_cap
+#print axioms AvailableChain.FGCompose.common_next_entry
+#print axioms AvailableChain.FGCompose.common_entry_at_low
+#print axioms AvailableChain.FGCompose.healing_promotion_fixed_rows
+#print axioms AvailableChain.FGCompose.healing_promotion_entry_slot
+#print axioms AvailableChain.FGCompose.healing_promotion_bounded_rows
+#print axioms AvailableChain.FGCompose.healing_promotion_gap_remainder
+#print axioms AvailableChain.FGCompose.healing_promotion_held_mono
+#print axioms AvailableChain.FGCompose.healing_promotion_gap
+#print axioms AvailableChain.FGCompose.healing_promotion_row_deadline
+#print axioms AvailableChain.FGCompose.healing_promotion_row_deadline_strict
+#print axioms AvailableChain.FGCompose.healing_promotion_row_receipt
+#print axioms AvailableChain.FGCompose.healing_promotion_row_receipt_strict
+#print axioms AvailableChain.FGCompose.healing_promotion_maturity
+#print axioms AvailableChain.FGCompose.healing_promotion_maturity_of_action
+#print axioms AvailableChain.FGCompose.healing_promotion_age_gap
+#print axioms AvailableChain.FGCompose.p0d3_same_row
+#print axioms AvailableChain.FGCompose.healing_promotion_same_rows_on
+#print axioms AvailableChain.FGCompose.healing_promotion_same_rows
+#print axioms AvailableChain.FGCompose.RowKind
+#print axioms AvailableChain.FGCompose.EntryAt
+#print axioms AvailableChain.FGCompose.NamesEntry
+#print axioms AvailableChain.FGCompose.OpeningEntry
+#print axioms AvailableChain.FGCompose.OpeningCovered
+#print axioms AvailableChain.FGCompose.FixedRows
+#print axioms AvailableChain.FGCompose.PromotionGap
+#print axioms AvailableChain.FGCompose.PromotionRowDeadline
+#print axioms AvailableChain.FGCompose.PromotionRowDeadlineStrict
+#print axioms AvailableChain.FGCompose.PromotionAgeGap
+
+#print axioms AvailableChain.FGCompose.p0d3_bound_batch
+#print axioms AvailableChain.FGCompose.p0d3_same_batch_on
+#print axioms AvailableChain.FGCompose.p0d3_same_batch

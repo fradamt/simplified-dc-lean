@@ -84,8 +84,17 @@
       "AvailableChainGeneric.Statements.**"
     ],
     "laneUpstream": [
-      "AvailableChainFGCompose.Statements.HistoricalReads",
-      "AvailableChainFGCompose.Proofs.HistoricalReads",
+      "AvailableChainFGCompose.Statements.Promotion",
+      "AvailableChainFGCompose.Proofs.Healing.PromotionArithmetic",
+      "AvailableChainFGCompose.Proofs.Healing.CommonEntry",
+      "AvailableChainFGCompose.Proofs.Healing.Promotion",
+      "AvailableChainFGCompose.Proofs.Healing.PromotionRows",
+      "AvailableChainFGCompose.Statements.ResetHistory",
+      "AvailableChainFGCompose.Statements.Service",
+      "AvailableChainFGCompose.Statements.Bounds",
+      "AvailableChainFGCompose.Statements.Finality",
+      "AvailableChainFGCompose.Statements.FinalityReceipts",
+      "AvailableChainFGCompose.Proofs.ServiceTransport",
       "AvailableChainFGCompose.Proofs.ObservationTransport",
       "AvailableChainFGCompose.Proofs.Timing",
       "AvailableChainFGCompose.Statements.ChannelLaws",
@@ -105,7 +114,10 @@
       "AvailableChainFGCompose.Proofs.SafetyAccountable",
       "AvailableChainFGCompose.Proofs.SafetyCount",
       "AvailableChainFGCompose.Proofs.SafetyMonotone",
-      "AvailableChainFGCompose.Proofs.SafetySlashing"
+      "AvailableChainFGCompose.Proofs.SafetySlashing",
+      "AvailableChainFGCompose.Statements.HistoricalReads",
+      "AvailableChainFGCompose.Proofs.HistoricalReads",
+      "AvailableChainFGCompose.Proofs.RowPermission"
     ]
   },
   "profiles": {

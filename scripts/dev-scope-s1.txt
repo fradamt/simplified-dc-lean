@@ -1,6 +1,24 @@
 # Fixed G-S1 scope. Entries are module names, not Lake library targets.
 # REQUIRED compiles; DEFERRED has an owner; STABLE lists unchanged library prefixes.
 [REQUIRED]
+AvailableChainFGCompose.Tests.P0d3
+AvailableChainFGCompose.Statements.Phase
+AvailableChainFGCompose.Statements.PhaseReceipts
+AvailableChainFGCompose.Proofs.Healing.PhaseFrame
+AvailableChainFGCompose.Proofs.Healing.PhaseOrder
+AvailableChainFGCompose.Proofs.Healing.PhaseSettle
+AvailableChainFGCompose.Proofs.Healing.CommonEntry
+AvailableChainFGCompose.Proofs.Healing.Promotion
+AvailableChainFGCompose.Proofs.Healing.PromotionRows
+AvailableChainFGCompose.Statements.Promotion
+AvailableChainFGCompose.Proofs.Healing.PromotionArithmetic
+AvailableChainFGCompose.Statements.ResetHistory
+AvailableChainFGCompose.Statements.Service
+AvailableChainFGCompose.Statements.Bounds
+AvailableChainFGCompose.Statements.Finality
+AvailableChainFGCompose.Statements.FinalityReceipts
+AvailableChainFGCompose.Proofs.ServiceTransport
+AvailableChainFGCompose.Tests.P0Service
 AvailableChainFGCompose.Statements.HistoricalReads
 AvailableChainFGCompose.Proofs.HistoricalReads
 AvailableChainFGCompose.Tests.HistoricalReads
@@ -487,6 +505,9 @@ AvailableChainKitV2.Tests.Counterexamples
 AvailableChainKitV2.Tests.Duties
 AvailableChainKitV2.Tests.Toy
 
+AvailableChainFGCompose.Statements.RowPermission
+AvailableChainFGCompose.Proofs.RowPermission
+AvailableChainFGCompose.Tests.P0d2
 [DEFERRED]
 AvailableChainFGSAProofs.Proofs.Shared.Claims P-ShA
 

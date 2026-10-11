@@ -1,4 +1,10 @@
 module
+public import AvailableChainFGCompose.Statements.ResetHistory
+public import AvailableChainFGCompose.Statements.Service
+public import AvailableChainFGCompose.Statements.Bounds
+public import AvailableChainFGCompose.Statements.Finality
+public import AvailableChainFGCompose.Statements.FinalityReceipts
+public import AvailableChainFGCompose.Proofs.ServiceTransport
 public import AvailableChainFGCompose.Proofs.ObservationTransport
 public import AvailableChainFGCompose.Proofs.Timing
 public import AvailableChainFGCompose.Statements.Observations
@@ -24,3 +30,10 @@ public import AvailableChainFGCompose.Proofs.SafetySlashing
 
 public import AvailableChainFGCompose.Statements.HistoricalReads
 public import AvailableChainFGCompose.Proofs.HistoricalReads
+public import AvailableChainFGCompose.Statements.RowPermission
+public import AvailableChainFGCompose.Proofs.RowPermission
+public import AvailableChainFGCompose.Statements.Promotion
+public import AvailableChainFGCompose.Proofs.Healing.PromotionArithmetic
+public import AvailableChainFGCompose.Proofs.Healing.CommonEntry
+public import AvailableChainFGCompose.Proofs.Healing.Promotion
+public import AvailableChainFGCompose.Proofs.Healing.PromotionRows

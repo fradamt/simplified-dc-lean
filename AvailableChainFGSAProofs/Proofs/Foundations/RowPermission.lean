@@ -3,6 +3,8 @@ public import AvailableChainFGSAProofs.Proofs.Foundations.Accountable
 public import AvailableChainFGSAProofs.Proofs.Foundations.Counts
 public import AvailableChainFGSAProofs.Proofs.Shared.StoreRun
 public import AvailableChainKitFG.ProvenanceCore
+public import AvailableChainFGCompose.Proofs.RowPermission
+public import AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient
 public import AvailableChainFGSAClaims.Statements.Packages.Healing
 
 public section
@@ -366,28 +368,32 @@ theorem rowPermission_own_lock [Fintype V]
     | none => exact Or.inl rfl
     | some T => exact Or.inr (congrArg some (hmatch T hl))
 
+private def p0d2_safety (p : Params) {In : Type} (c : AppCodec In) :
+    FGCompose.FGSafetyReads (fgsa p c) p.n (RowWire p.n) where
+  proposalErase := safetyProposalErase p
+  proposalRows := safetyProposalRows p
+  encode := ofRow p
+  decode := RowWire.toRow?
+  decodeObject := decodeRowObject p
+  fgLabel := .base .fg
+  fgSeats := Equiv.refl _
+  record := Node.record
+  inputs := fun nd => fgInputs p nd.st
+  enabled := fun t => decide (p.actionTime ((p.slotOf t - 1) / p.R) = t)
+  finalizedOut := finalizedOut
+
+private theorem p0d2_safety_eq : p0d2_safety p c = fgsaSafetyReads p c :=
+  (fgsaSafetyReads_def p c).symm
+
+private theorem p0d2_client_laws :
+    FGCompose.FGSafetyClientLaws (p0d2_safety p c) p.E p.cfg := by
+  rw [p0d2_safety_eq]
+  exact fgsaSafetyClientLaws p c
+
 private theorem rowPermission_pair_of_lock (Λ : Record) (h : Height) (T : BlockId)
     (fp : Option FinalityPair) (hl : own_lock Λ h fp = none ∨ own_lock Λ h fp = some T) :
     namedEntry (height_pair Λ (some (h, T)) fp) = some (h, T) := by
-  change namedEntry (if Λ.timeout h then .vote h T true else
-    match own_lock Λ h fp with
-    | some locked => if locked = T then .vote h T false else .empty
-    | none => match Λ.target h with
-      | some recorded => if recorded = T then .vote h T false else .vote h T true
-      | none => .vote h T false) = _
-  by_cases ht : Λ.timeout h = true
-  · rw [ht, ite_eq_left (rfl : true = true), namedEntry_def]
-  · have ht' : Λ.timeout h = false := Bool.eq_false_of_not_eq_true ht
-    rw [ht', ite_eq_right Bool.false_ne_true]
-    rcases hl with hn | he
-    · rw [hn]
-      cases Λ.target h with
-      | none => rw [namedEntry_def]
-      | some recorded => by_cases he : recorded = T <;>
-          simp only [he, ite_true, ite_false] <;> rw [namedEntry_def]
-    · rw [he]
-      simp only [ite_true]
-      rw [namedEntry_def]
+  exact FGCompose.p0d2_pair_of_lock Λ h T fp hl
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 The IF.3(b) permission conclusion for the selected action source.
@@ -408,8 +414,7 @@ theorem rowPermission_pair [Fintype V]
   have hl := rowPermission_own_lock E rho hb hf x hx _ nd hnd C hC hband
   rw [actionSourceFG_def, hnd] at hsource
   have hc : FGSA.fgSource p nd.st = some C := Option.some.inj hsource
-  rw [hc]
-  exact rowPermission_pair_of_lock nd.record.toRecord _ _ _ hl
+  exact FGCompose.rowPermission_pair (p0d2_safety p c) (heightView p) nd C ⟨hc, hl⟩
 
 private theorem rowPermission_decode_write (Λ : RecordOnce) (o : Obj p) :
     recordRow? p Λ o = ((decodeRowObject p o).map (record_row_once Λ)).getD Λ := by
@@ -503,74 +508,22 @@ private theorem rowPermission_once_coverage (st : State p.n) (Λ : RecordOnce)
     (∃ body, (attest p st Λ seat).1 = some body ∧
       namedEntry body.height_pair = some (h, T)) ∨
     ∃ b ∈ Λ.sent, namedEntry b.1 = some (h, T) := by
-  cases hpair : height_pair Λ.toRecord
-      ((fgInputs p st).1.map (fun C => ((heightView p C).h, (heightView p C).T_h.root)))
-      (finality_pair Λ.toRecord (fgInputs p st).2) with
-  | empty => rw [hpair] at hp; cases hp
-  | vote g U timeout =>
-    rw [hpair] at hp
-    rw [namedEntry_def] at hp
-    have he := Option.some.inj hp
-    have hg : g = h := congrArg Prod.fst he
-    have hU : U = T := congrArg Prod.snd he
-    subst h
-    subst T
-    by_cases hs : sameHeightOnce Λ g U timeout = true
-    · right
-      obtain ⟨⟨pair, fp⟩, hm, hg⟩ := List.any_eq_true.mp hs
-      cases pair with
-      | empty => cases hg
-      | vote k W oldTimeout =>
-        change (decide (k = g) && (!timeout || decide (W = U))) = true at hg
-        obtain ⟨hk, he⟩ := Bool.and_eq_true_iff.mp hg
-        have hk : k = g := of_decide_eq_true hk
-        subst k
-        have hWU : W = U := by
-          cases timeout with
-          | true => simpa using he
-          | false =>
-            have old := hHist g W oldTimeout fp hm
-            cases oldTimeout with
-            | true =>
-              have ht := old.2 rfl
-              have fields := KitFG.height_pair_vote_fields hpair
-              rw [fields] at hpair
-              change (if Λ.timeout g then NamedHeightPair.vote g U true else _) = _ at hpair
-              rw [ht] at hpair
-              cases hpair
-            | false =>
-              have ht := old.1 rfl
-              rcases KitFG.height_pair_target_compat hInv hpair with hn | he
-              · rw [ht] at hn; cases hn
-              · exact Option.some.inj (ht.symm.trans he)
-        subst W
-        exact ⟨(.vote g U oldTimeout, fp), hm, rfl⟩
-    · let a : Row (Fin p.n) := ⟨seat, .vote g U timeout,
-        (finality_pair Λ.toRecord (fgInputs p st).2).filter (fun fp => decide (fp.height < g))⟩
-      by_cases hm : a.onceKey ∈ Λ.sent
-      · exact Or.inr ⟨a.onceKey, hm, rfl⟩
-      · left
-        refine ⟨RowPayload.vote (RowBody.ofRow a), ?_, rfl⟩
-        have ha : (createRowOnce p.E p.cfg Λ seat (fgInputs p st).1
-            (fgInputs p st).2).1 = some a := by
-          rw [createRowOnce_def]
-          dsimp only
-          have hsrc : (fgInputs p st).1.map
-              (fun C => ((derive p.E p.cfg C).h, (derive p.E p.cfg C).T_h.root)) =
-              (fgInputs p st).1.map
-                (fun C => ((heightView p C).h, (heightView p C).T_h.root)) := by
-            congr 1
-            funext C
-            rw [heightView_bridge p C]
-            rfl
-          rw [hsrc, hpair]
-          simp only [hs, Bool.false_eq_true, ite_false]
-          change (if a.onceKey ∈ Λ.sent then (none, Λ) else
-            (some a, record_row_once Λ a)).1 = some a
-          rw [ite_eq_right hm]
-        change Option.map (fun a => RowPayload.vote (RowBody.ofRow a))
-          (createRowOnce p.E p.cfg Λ seat (fgInputs p st).1 (fgInputs p st).2).1 = _
-        rw [ha]; rfl
+  have hsrc : (fgInputs p st).1.map
+      (fun C => ((derive p.E p.cfg C).h, (derive p.E p.cfg C).T_h.root)) =
+      (fgInputs p st).1.map (fun C => ((heightView p C).h, (heightView p C).T_h.root)) := by
+    congr 1
+    funext C
+    rw [heightView_bridge p C]
+    rfl
+  rw [← hsrc] at hp
+  rcases FGCompose.p0d2_once_coverage p.E p.cfg Λ seat
+      (fgInputs p st).1 (fgInputs p st).2 h T hInv hHist hp with
+      ⟨a, ha, hn⟩ | hold
+  · exact Or.inl ⟨RowPayload.vote (RowBody.ofRow a), by
+      change Option.map (fun a => RowPayload.vote (RowBody.ofRow a))
+        (createRowOnce p.E p.cfg Λ seat (fgInputs p st).1 (fgInputs p st).2).1 = _
+      rw [ha]; rfl, hn⟩
+  · exact Or.inr hold
 
 private theorem rowPermission_sent_origin (ls : List (Obj p)) (Λ : RecordOnce)
     (b : NamedHeightPair × Option FinalityPair)
@@ -600,6 +553,56 @@ private theorem rowPermission_sent_origin (ls : List (Obj p)) (Λ : RecordOnce)
               · exact Or.inl hm
     · exact Or.inr ⟨seat, body, List.mem_cons_of_mem _ hm, hb⟩
 
+private def p0d2_timing (p : Params) : FGCompose.FGTiming where
+  delta := p.Δ
+  roundSlots := p.R
+  proposal := SA.proposalTime p.toParams
+  vote := SA.voteTime p.toParams
+  early := SA.earlyTime p.toParams
+  freeze := SA.freezeTime p.toParams
+  release := SA.releaseTime p.toParams
+  gate := SA.gateTime p.toParams
+  action := p.actionTime
+
+private theorem p0d2_timing_laws : FGCompose.FGTimingLaws (p0d2_timing p) where
+  delta_pos := p.deltaPos
+  rounds := p.RLarge
+  proposal_eq s := by
+    change 4 * p.Δ * (s : Time) = 4 * (s : Time) * p.Δ
+    ring
+  vote_eq _ := rfl
+  early_eq _ := rfl
+  freeze_eq _ := rfl
+  release_eq _ := rfl
+  gate_eq _ := rfl
+  action_eq _ := rfl
+
+private theorem p0d2_wire_laws :
+    FGCompose.FGRowPermissionWireLaws (p0d2_safety p c)
+      (fun a => namedEntry a.payload.height_pair) where
+  decoded_wire := by
+    intro o u hd
+    rcases o with ⟨auth, msg⟩
+    cases msg with
+    | head b => cases hd
+    | proposal N => cases hd
+    | row body =>
+      cases auth with
+      | none => cases hd
+      | seat l i =>
+        cases l with
+        | prop s => cases hd
+        | base l =>
+          cases l with
+          | head s => cases hd
+          | fg =>
+            refine ⟨⟨.seat .fg i, body⟩, rfl, hd, ?_⟩
+            cases body with
+            | vote b =>
+              have hu := Option.some.inj hd
+              subst u
+              cases b.height_pair <;> rfl
+
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 SO-COV at one awake action: the in-band source has a complete matching
 emission at this action or an earlier one. The permission is derived from
@@ -616,7 +619,9 @@ theorem rowPermission_covered [Fintype V]
     ∃ j rSent a, rSent ≤ r ∧ HonestRowAt p c E rho j x rSent a ∧
       namedEntry a.payload.height_pair =
           some ((heightView p C).h, (heightView p C).T_h.root) := by
-  have hp := rowPermission_pair E rho hb hf x hx r nd hnd C hsource hC hband
+  have hl := rowPermission_own_lock E rho hb hf x hx _ nd hnd C hC hband
+  rw [actionSourceFG_def, hnd] at hsource
+  have hc : FGSA.fgSource p nd.st = some C := Option.some.inj hsource
   rw [postClock_def, preTick_def] at hnd
   cases hi : V2.D.Run.tickIdx? rho x (p.actionTime r) with
   | none => simp only [hi, Option.map_none] at hnd; contradiction
@@ -625,33 +630,37 @@ theorem rowPermission_covered [Fintype V]
     have hnd := Option.some.inj hnd
     subst nd
     have ht := V2.D.Run.tickIdx?_spec hi
-    let st := FGSA.clock p (V2.D.Run.stateBefore E rho i x).st (p.actionTime r)
-    let Λ := (V2.D.Run.stateBefore E rho i x).record
+    obtain ⟨e, he⟩ := fgsa_linked_seats rho hb.linked
     have hist := rowPermission_record_history E rho hb.linked i x
-    have cov := rowPermission_once_coverage st Λ ⟨0, p.nPos⟩
-      (heightView p C).h (heightView p C).T_h.root hist.1 hist.2
-    rcases cov hp with ⟨body, hattest, hn⟩ | ⟨b, hbSent, hn⟩
-    · obtain ⟨seat, hs⟩ := (hb.linked.toCStar (.base .fg) trivial).2 x
-      let wire : RowWire p.n := ⟨.seat .fg seat, body⟩
-      refine ⟨i, r, wire, le_rfl, ⟨hx, ht, ?_⟩, hn⟩
-      exact (fgsa_emitsAt_row E rho i x _ ht seat body).mpr ⟨hawake, hs, r, rfl, hattest⟩
-    · change b ∈ (V2.D.Run.stateBefore E rho i x).record.sent at hbSent
+    have hheight : ∀ D, ((derive p.E p.cfg D).h, (derive p.E p.cfg D).T_h.root) =
+        ((heightView p D).h, (heightView p D).T_h.root) := by
+      intro D
+      rw [heightView_bridge p D]
+      rfl
+    have horigin : ∀ b ∈ (V2.D.Run.stateBefore E rho i x).record.sent,
+        ∃ j rSent a, j < i ∧
+          FGCompose.HonestRowAt (p0d2_safety p c) E rho (p0d2_timing p) j x rSent a ∧
+          namedEntry a.payload.height_pair = FGCompose.namedEntry b.1 := by
+      intro b hbSent
       rw [ownRecord_fold_run] at hbSent
-      rcases rowPermission_sent_origin _ RecordOnce.initial b hbSent with hn | ⟨seat, body, hm, he⟩
+      rcases rowPermission_sent_origin _ RecordOnce.initial b hbSent with hn |
+          ⟨seat, body, hm, heq⟩
       · cases hn
       obtain ⟨j, rSent, hji, hj, hem⟩ := rowPermission_released_origin E rho i x seat body hm
-      have htime := fgsa_tick_time_strict E rho hb.valid.toScheduleWellFormed hj ht hji
-      have hr : rSent ≤ r := by
-        by_contra h
-        have hcast : ((r * p.R : Nat) : Time) < ((rSent * p.R : Nat) : Time) := by
-          exact_mod_cast (Nat.mul_lt_mul_of_pos_right (show r < rSent by omega)
-            (show 0 < p.R by have := p.RLarge; omega))
-        change 4 * p.Δ * ((rSent * p.R : Nat) : Time) + 6 * p.Δ <
-          4 * p.Δ * ((r * p.R : Nat) : Time) + 6 * p.Δ at htime
-        have := p.deltaPos
-        nlinarith
-      refine ⟨j, rSent, ⟨.seat .fg seat, body⟩, hr, ⟨hx, hj, hem⟩, ?_⟩
-      exact (congrArg (fun b => namedEntry b.1) he).trans hn
+      refine ⟨j, rSent, ⟨.seat .fg seat, body⟩, hji, ⟨hx, hj, hem⟩, ?_⟩
+      have hn := congrArg (fun b => namedEntry b.1) heq
+      exact hn.trans (by cases b.1 <;> rfl)
+    exact FGCompose.rowPermission_covered (p0d2_safety p c) (heightView p) p.E p.cfg
+      (p0d2_timing p) p0d2_timing_laws E rho p0d2_client_laws
+      (fun a => namedEntry a.payload.height_pair) p0d2_wire_laws e he
+      hb.valid.toScheduleWellFormed hheight x hx r i _ ht rfl C ⟨hc, hl⟩
+      ⟨hist.1, hist.2⟩ horigin hawake (by
+        change decide (p.actionTime ((p.slotOf (p.actionTime r) - 1) / p.R) = p.actionTime r) = true
+        have hslot : p.slotOf (p.actionTime r) = r * p.R + 1 :=
+          (fgsa_postClock_slot (c := c) (V2.D.Run.stateBefore E rho i x) _).2.symm.trans
+            (fgsa_gate_slot (c := c) _ (r * p.R))
+        rw [hslot]
+        simp [Nat.mul_div_cancel r (show 0 < p.R by have := p.RLarge; omega)])
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 RowPermissionAt in heightView form under HealingPrem. No client permission

@@ -136,8 +136,21 @@ def composeImportAllowed (m dep : Name) : Bool :=
   if dep == `Init then true
   else if m == `AvailableChainFGCompose then
     [`AvailableChainFGCompose.Statements.EventReads, `AvailableChainFGCompose.Statements.CoreReads,
+     `AvailableChainFGCompose.Statements.ResetHistory,
+     `AvailableChainFGCompose.Statements.Service,
+     `AvailableChainFGCompose.Statements.Bounds,
+     `AvailableChainFGCompose.Statements.Finality,
+     `AvailableChainFGCompose.Statements.FinalityReceipts,
+     `AvailableChainFGCompose.Proofs.ServiceTransport,
      `AvailableChainFGCompose.Statements.HistoricalReads,
      `AvailableChainFGCompose.Proofs.HistoricalReads,
+     `AvailableChainFGCompose.Statements.Promotion,
+     `AvailableChainFGCompose.Proofs.Healing.PromotionArithmetic,
+     `AvailableChainFGCompose.Proofs.Healing.CommonEntry,
+     `AvailableChainFGCompose.Proofs.Healing.Promotion,
+     `AvailableChainFGCompose.Proofs.Healing.PromotionRows,
+     `AvailableChainFGCompose.Statements.RowPermission,
+     `AvailableChainFGCompose.Proofs.RowPermission,
      `AvailableChainFGCompose.Statements.Observations,
      `AvailableChainFGCompose.Statements.Selection,
      `AvailableChainFGCompose.Statements.Timing,
@@ -155,6 +168,8 @@ def composeImportAllowed (m dep : Name) : Bool :=
      `AvailableChainFGCompose.Proofs.SafetyMonotone,
      `AvailableChainFGCompose.Proofs.SafetySlashing].contains dep
   else if composeStatements m then base || ownStatements || safety
+  else if [(`AvailableChainFGCompose.Tests.P0d3,
+      `AvailableChainKitFG.WindowHeightBridge)].contains (m, dep) then true
   else if (`AvailableChainFGCompose.Tests).isPrefixOf m then
     foundation || ownStatements || ownProofs
   else if (`AvailableChainFGCompose.Proofs).isPrefixOf m then
@@ -164,8 +179,23 @@ def composeImportAllowed (m dep : Name) : Bool :=
       -- Lead ruling 2026-10-07 (P2, S3a): the two exact SafetyClient pairs.
       [(`AvailableChainFGCompose.Proofs.SafetyAccountable,
         `AvailableChainKitFG.AccountableCore),
+       (`AvailableChainFGCompose.Proofs.Healing.CommonEntry,
+        `AvailableChainKitFG.Ancestry),
+       (`AvailableChainFGCompose.Proofs.Healing.PromotionRows,
+        `AvailableChainKitFG.Ancestry),
+       (`AvailableChainFGCompose.Proofs.Healing.PhaseFrame,
+        `AvailableChainKitFG.FrameGeometry),
+       (`AvailableChainFGCompose.Proofs.Healing.PhaseFrame,
+        `AvailableChainKitFG.StoreBounds),
+       (`AvailableChainFGCompose.Proofs.Healing.PhaseSettle,
+        `AvailableChainGeneric.Proofs.V2.Duty.Reads),
+       (`AvailableChainFGCompose.Proofs.Healing.PromotionArithmetic,
+        `AvailableChainGeneric.Proofs.V2.Duty.Reads),
        (`AvailableChainFGCompose.Proofs.HistoricalReads,
         `AvailableChainGeneric.Proofs.Pure.CommonAncestor),
+       (`AvailableChainFGCompose.Proofs.Healing.PromotionRows,
+        `AvailableChainSimplexFG.Window),
+       (`AvailableChainFGCompose.Proofs.RowPermission, `AvailableChainKitFG.ClientOnceSafety),
        (`AvailableChainFGCompose.Proofs.SafetyClient, `AvailableChainKitFG.ClientOnceSafety),
        (`AvailableChainFGCompose.Proofs.SafetyClient,
         `AvailableChainGeneric.Proofs.V2.Duty.Fields)].contains (m, dep)
