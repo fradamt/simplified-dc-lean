@@ -7335,6 +7335,11 @@
       "kind": "theorem",
       "module": "AvailableChainKitFG.WindowEntriesDef"
     },
+    "AvailableChain.KitFG.Window.acceptViable_eq": {
+      "digest": "c71ad0e3030fce502f616910d3e151236d780269fd3b5daa2a0989297507aa52",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowStore"
+    },
     "AvailableChain.KitFG.Window.certificateFinality": {
       "digest": "b3ea4da02444ecd8a8f0fa1b20a25fcf6e30d14debff67cd62f2110836ba631b",
       "kind": "def",
@@ -7395,6 +7400,11 @@
       "kind": "theorem",
       "module": "AvailableChainKitFG.WindowViewsDef"
     },
+    "AvailableChain.KitFG.Window.headFields_eq_certificateHeadFields": {
+      "digest": "948eade742d46b85e4940216dfd796de499d24f11749f870e0f204f54a0d2548",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowReaders"
+    },
     "AvailableChain.KitFG.Window.heightRefinement": {
       "digest": "5e7caca4b1435a06aff5163c07bf12d3cfc958e312029650e374ea303dfc6474",
       "kind": "theorem",
@@ -7409,6 +7419,16 @@
       "digest": "1d26b6414067edd5f2265f1ff9961447f96a6a5994e3c288cacbf8cd204b0fd3",
       "kind": "theorem",
       "module": "AvailableChainKitFG.WindowViewsDef"
+    },
+    "AvailableChain.KitFG.Window.justificationBirth_window_iff_simplex": {
+      "digest": "1bd0225ce63fd64989219319d3ede4027d597fab56f870e976e14bc3ae071257",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowCertificates"
+    },
+    "AvailableChain.KitFG.Window.on_block_TF_eq": {
+      "digest": "a7c42fdfff338fa52538cb2fc899408690e6d33ac76f67537dfbe0811bc64d2f",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowStore"
     },
     "AvailableChain.KitFG.Window.parentState": {
       "digest": "31013d9c5456cd9d01ef0fee3db256944eb9d6278094f51cd9ccc1f2497810f4",
@@ -7450,6 +7470,31 @@
       "kind": "theorem",
       "module": "AvailableChainKitFG.WindowViewsDef"
     },
+    "AvailableChain.KitFG.Window.update_finality_J_eq": {
+      "digest": "37baa451ad097cd00badfa621432ed690462012e79eea740f920b7f403ac80f6",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowStore"
+    },
+    "AvailableChain.KitFG.Window.update_finality_h_j_eq": {
+      "digest": "1463e06f984491dd47714c143c61f81e14a69a69a28194fe4565201a3d475971",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowStore"
+    },
+    "AvailableChain.KitFG.Window.update_finality_h_max_eq": {
+      "digest": "dab6e7860dbc803ccf7cc1abfcc1d3c280ed3ace22f33c990fdd3b5027711fe9",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowStore"
+    },
+    "AvailableChain.KitFG.Window.windowCertificateLaws": {
+      "digest": "c1cbaac4c8bafb7b43e88eecef10c2037e6e7e9c2cf29bfcd09e27a4607a3539",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowSelection"
+    },
+    "AvailableChain.KitFG.Window.windowChainCertificate": {
+      "digest": "e90f5a700c2fc253080fc2860c471658fdabe14b8b55e5a7e72043c52415416a",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowSelection"
+    },
     "AvailableChain.KitFG.Window.windowHeightBridge": {
       "digest": "f5ddaacb5aab26b8978d71e85b6300da32ce6321029855ee53e04158fcd3cb3e",
       "kind": "theorem",
@@ -7459,6 +7504,31 @@
       "digest": "b55b809706bcc14160aa38c08efcc432fec9262b1c7b946a3a36530e8aec594b",
       "kind": "theorem",
       "module": "AvailableChainKitFG.WindowHeightBridge"
+    },
+    "AvailableChain.KitFG.Window.windowSelectionLaws": {
+      "digest": "84574347125d912e10ae34a763647e25fa49691cc935e9bce2c3028476f87a8d",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowSelection"
+    },
+    "AvailableChain.KitFG.Window.windowStoreInvariant_accept": {
+      "digest": "a4f2fdd5f80e407ff7959380612e31d903e2b25792eb33ee39d5d8bd29e3109e",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowStore"
+    },
+    "AvailableChain.KitFG.Window.windowStoreInvariant_init": {
+      "digest": "b9935e2f69545653c2cb72b9168dbfd8678752e35318503a0f5514a77c5fe832",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowStore"
+    },
+    "AvailableChain.KitFG.Window.windowStoreInvariant_on_block": {
+      "digest": "a35c15ea60e1c564275847c0b0ac61e075cac07f9eceed3548e5e727538ad83f",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowStore"
+    },
+    "AvailableChain.KitFG.Window.windowStoreSafety": {
+      "digest": "76cfff02c4dbd6f64b0b65ed17827673456af84a4af601f0ec4b162ba4edc9ed",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowStore"
     },
     "AvailableChain.KitFG.Window.window_F_mono": {
       "digest": "7c4d0f8e397aa7849ff6921e250973dc84e3856860ccf6d1e348195c3bea4617",
@@ -7505,6 +7575,26 @@
       "kind": "theorem",
       "module": "AvailableChainKitFG.WindowInvariant"
     },
+    "AvailableChain.KitFG.Window.window_entry_origin": {
+      "digest": "530443c922fb9a8a6475308ab945e1a27c6a671853be575b506113487b1fdf8c",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowCertificates"
+    },
+    "AvailableChain.KitFG.Window.window_exists_crossing_quorum_ne_justified": {
+      "digest": "ce00adc1150bac580795773e0bd5b54ddbc72ba3d9f3587aeb1c0133e4a85ae3",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowProvenance"
+    },
+    "AvailableChain.KitFG.Window.window_exists_honest_timeout_of_crossing": {
+      "digest": "1a8b6c2c31c26cd241d734f01328df941f8eb29d5a847eac37cc12640b6bb7ba",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowProvenance"
+    },
+    "AvailableChain.KitFG.Window.window_filteredFrom_eq": {
+      "digest": "09e3602a95a0f8dc7deba22ad69e985531ac4e68241348d31b2ec013a320e560",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowReaders"
+    },
     "AvailableChain.KitFG.Window.window_finality_of_cover": {
       "digest": "561ab86f442ae376cf355633c96060152847d26e6b3ca0637f91c16470b742c9",
       "kind": "theorem",
@@ -7514,6 +7604,16 @@
       "digest": "01b21b0e3b833bf191347da9ba4b39085bd0075a6ad79d7b907b07a4efab7c11",
       "kind": "theorem",
       "module": "AvailableChainKitFG.WindowInvariant"
+    },
+    "AvailableChain.KitFG.Window.window_fjControls_eq": {
+      "digest": "17af9a640972b4c6dd4cb8e1cfa279bc1643939a0e8f96685a5463257d4057e9",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowReaders"
+    },
+    "AvailableChain.KitFG.Window.window_fjFrame_eq": {
+      "digest": "10b1ca974bec7ee3a7ef757019011d698d36b960eda9f093f3edaa0542c0533a",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowReaders"
     },
     "AvailableChain.KitFG.Window.window_fold_entry": {
       "digest": "64f54fafc09c9677d82959c122a1b4dd514aade5444368e58b8169a4cbb4cb44",
@@ -7530,6 +7630,11 @@
       "kind": "theorem",
       "module": "AvailableChainKitFG.WindowSteps"
     },
+    "AvailableChain.KitFG.Window.window_frontier_eq": {
+      "digest": "c8201593bd1a0f28cf94c315b57c33e9f4b9056722eb4a8b863c5cac9e10167a",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowReaders"
+    },
     "AvailableChain.KitFG.Window.window_greatest_spec": {
       "digest": "6fcf11e4663ee591cba17670129cac0d9547f052f6fa35cf61d1564a8d3fc3a3",
       "kind": "theorem",
@@ -7545,10 +7650,45 @@
       "kind": "theorem",
       "module": "AvailableChainKitFG.WindowInvariant"
     },
+    "AvailableChain.KitFG.Window.window_hOf_eq": {
+      "digest": "70adf92b9bb110920aca103173b1aa2d724e11bb26be1230cd8bb3946f7506c7",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowReaders"
+    },
+    "AvailableChain.KitFG.Window.window_headFields_latest": {
+      "digest": "a8125dc6aa5a70b4efb5945d73857b6850de4c57d628aff11094f0432c0e7e73",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowProvenance"
+    },
+    "AvailableChain.KitFG.Window.window_lexMax_eq": {
+      "digest": "50029389a73b1baa02324bb5f2f9239a9cdfd2db2fba99d5859edaf4fae11d02",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowReaders"
+    },
     "AvailableChain.KitFG.Window.window_no_reentry": {
       "digest": "98f0c7317973b5e733610a3f42e342b973471576d06ba698b4d6dc2e2788eef1",
       "kind": "theorem",
       "module": "AvailableChainKitFG.WindowInvariant"
+    },
+    "AvailableChain.KitFG.Window.window_on_block_F_mono": {
+      "digest": "2e1d3e0a0a0463435329a28fab09f3b3ad4656fab93cc5e748f7608db51d9526",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowStore"
+    },
+    "AvailableChain.KitFG.Window.window_on_block_TF_subset": {
+      "digest": "5893b3bdc5874cd60924a9432ca373d2935e13e919a44be6a24ecbb45b99adf1",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowStore"
+    },
+    "AvailableChain.KitFG.Window.window_on_block_of_accepted": {
+      "digest": "0e7a9fd9a135bb8d3fd79d4e5149728262ac6e4c93687db04c9b3203c1ca65c4",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowStore"
+    },
+    "AvailableChain.KitFG.Window.window_on_block_of_refused": {
+      "digest": "3042e1ac7a066ad6247373daba8dd3f2744e70e00d9ffcdde2e63bd08704acd6",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowStore"
     },
     "AvailableChain.KitFG.Window.window_ordered": {
       "digest": "3b66d9e6dd2fbf640035dac9cb3e25bc88fa0a1df642fc68972f882ffd84e26a",
@@ -7560,15 +7700,65 @@
       "kind": "theorem",
       "module": "AvailableChainKitFG.WindowInvariant"
     },
+    "AvailableChain.KitFG.Window.window_prefinal_entry_origin": {
+      "digest": "86b56d7e4fe1f05da9f86621ae39a2a90ebc504382e072d867b0904a088a78cc",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowCertificates"
+    },
+    "AvailableChain.KitFG.Window.window_provenance_entry": {
+      "digest": "89fdff2430cdb0231143842fff0db0edac340e018f6e2be134b29339a3e259cb",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowProvenance"
+    },
+    "AvailableChain.KitFG.Window.window_provenance_finalityQC": {
+      "digest": "54f0f244babff494938dee47929f5b7e20518e9e7239c56ba829913f8b663a76",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowProvenance"
+    },
+    "AvailableChain.KitFG.Window.window_provenance_finalityRow": {
+      "digest": "b7b64807b08b0883693afff7d4f5bd2acae30423a0e24e887553446b0b789bc0",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowProvenance"
+    },
     "AvailableChain.KitFG.Window.window_row_fields": {
       "digest": "4a4ff5842860e92354d5057d41c19c13b0880f2b40118ca3100d8e8f4c8e43fb",
       "kind": "theorem",
       "module": "AvailableChainKitFG.WindowSteps"
     },
+    "AvailableChain.KitFG.Window.window_storeControls_eq": {
+      "digest": "0a5df6774ca00a593dba9d6a10d2c9b17397e19dd1386f78e7c25c32afa95638",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowReaders"
+    },
+    "AvailableChain.KitFG.Window.window_storeFrame_eq": {
+      "digest": "e567d63ff990b7787f15596a04f993bb2d3e94a0f62992b43b5b813dd5a4a7ee",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowReaders"
+    },
     "AvailableChain.KitFG.Window.window_strict_node": {
       "digest": "020924986bf59291c850f1e58cc5efada79e8ae3dd76f989e14cccbf1b5c2866",
       "kind": "theorem",
       "module": "AvailableChainKitFG.WindowSteps"
+    },
+    "AvailableChain.KitFG.Window.window_update_finality_F_cases": {
+      "digest": "e68d2028d12bf682d15053ea7ecc7a9f3a88cc92a338d4650348e43b00b3a15f",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowStore"
+    },
+    "AvailableChain.KitFG.Window.window_update_finality_TF": {
+      "digest": "8f41101675256f0a0df14e08ce069d27ea6e04f6da70b525ed48e11ca81ece20",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowStore"
+    },
+    "AvailableChain.KitFG.Window.window_update_finality_h_max": {
+      "digest": "5a5fe4e43d3d5351cac555744a022c6283704a76a432616bcfdfe874abe641fc",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowStore"
+    },
+    "AvailableChain.KitFG.Window.window_update_finality_pair": {
+      "digest": "8907b879859f5a8247fb5bb002a9f441967b07b99e0a976d2a4570ed6f94e2ed",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowStore"
     },
     "AvailableChain.KitFG.WindowFoldMap": {
       "digest": "7d26210ff846557043ae7f5b4e48b78d863ffb2facd7aca85721396078334d63",
@@ -15506,6 +15696,7 @@
     "AvailableChain.KitFG.Window.EntryOriginAt_def",
     "AvailableChain.KitFG.Window.RetainedW",
     "AvailableChain.KitFG.Window.RetainedW_def",
+    "AvailableChain.KitFG.Window.acceptViable_eq",
     "AvailableChain.KitFG.Window.certificateFinality",
     "AvailableChain.KitFG.Window.certificateFinality_def",
     "AvailableChain.KitFG.Window.certificateFolded",
@@ -15518,9 +15709,12 @@
     "AvailableChain.KitFG.Window.finalityView_def",
     "AvailableChain.KitFG.Window.headFields",
     "AvailableChain.KitFG.Window.headFields_def",
+    "AvailableChain.KitFG.Window.headFields_eq_certificateHeadFields",
     "AvailableChain.KitFG.Window.heightRefinement",
     "AvailableChain.KitFG.Window.heightView",
     "AvailableChain.KitFG.Window.heightView_def",
+    "AvailableChain.KitFG.Window.justificationBirth_window_iff_simplex",
+    "AvailableChain.KitFG.Window.on_block_TF_eq",
     "AvailableChain.KitFG.Window.parentState",
     "AvailableChain.KitFG.Window.parentState_def",
     "AvailableChain.KitFG.Window.projectCertEntry",
@@ -15529,8 +15723,18 @@
     "AvailableChain.KitFG.Window.projectFinality_def",
     "AvailableChain.KitFG.Window.projectHeight",
     "AvailableChain.KitFG.Window.projectHeight_def",
+    "AvailableChain.KitFG.Window.update_finality_J_eq",
+    "AvailableChain.KitFG.Window.update_finality_h_j_eq",
+    "AvailableChain.KitFG.Window.update_finality_h_max_eq",
+    "AvailableChain.KitFG.Window.windowCertificateLaws",
+    "AvailableChain.KitFG.Window.windowChainCertificate",
     "AvailableChain.KitFG.Window.windowHeightBridge",
     "AvailableChain.KitFG.Window.windowHeightLaws",
+    "AvailableChain.KitFG.Window.windowSelectionLaws",
+    "AvailableChain.KitFG.Window.windowStoreInvariant_accept",
+    "AvailableChain.KitFG.Window.windowStoreInvariant_init",
+    "AvailableChain.KitFG.Window.windowStoreInvariant_on_block",
+    "AvailableChain.KitFG.Window.windowStoreSafety",
     "AvailableChain.KitFG.Window.window_F_mono",
     "AvailableChain.KitFG.Window.window_F_preceq_J",
     "AvailableChain.KitFG.Window.window_addBit",
@@ -15540,19 +15744,43 @@
     "AvailableChain.KitFG.Window.window_bit_retained",
     "AvailableChain.KitFG.Window.window_bounds",
     "AvailableChain.KitFG.Window.window_capacity",
+    "AvailableChain.KitFG.Window.window_entry_origin",
+    "AvailableChain.KitFG.Window.window_exists_crossing_quorum_ne_justified",
+    "AvailableChain.KitFG.Window.window_exists_honest_timeout_of_crossing",
+    "AvailableChain.KitFG.Window.window_filteredFrom_eq",
     "AvailableChain.KitFG.Window.window_finality_of_cover",
     "AvailableChain.KitFG.Window.window_finalized_zero",
+    "AvailableChain.KitFG.Window.window_fjControls_eq",
+    "AvailableChain.KitFG.Window.window_fjFrame_eq",
     "AvailableChain.KitFG.Window.window_fold_entry",
     "AvailableChain.KitFG.Window.window_fold_fields",
     "AvailableChain.KitFG.Window.window_fold_sources",
+    "AvailableChain.KitFG.Window.window_frontier_eq",
     "AvailableChain.KitFG.Window.window_greatest_spec",
     "AvailableChain.KitFG.Window.window_hF_le_hj",
     "AvailableChain.KitFG.Window.window_hF_mono",
+    "AvailableChain.KitFG.Window.window_hOf_eq",
+    "AvailableChain.KitFG.Window.window_headFields_latest",
+    "AvailableChain.KitFG.Window.window_lexMax_eq",
     "AvailableChain.KitFG.Window.window_no_reentry",
+    "AvailableChain.KitFG.Window.window_on_block_F_mono",
+    "AvailableChain.KitFG.Window.window_on_block_TF_subset",
+    "AvailableChain.KitFG.Window.window_on_block_of_accepted",
+    "AvailableChain.KitFG.Window.window_on_block_of_refused",
     "AvailableChain.KitFG.Window.window_ordered",
     "AvailableChain.KitFG.Window.window_post_not_ready",
+    "AvailableChain.KitFG.Window.window_prefinal_entry_origin",
+    "AvailableChain.KitFG.Window.window_provenance_entry",
+    "AvailableChain.KitFG.Window.window_provenance_finalityQC",
+    "AvailableChain.KitFG.Window.window_provenance_finalityRow",
     "AvailableChain.KitFG.Window.window_row_fields",
+    "AvailableChain.KitFG.Window.window_storeControls_eq",
+    "AvailableChain.KitFG.Window.window_storeFrame_eq",
     "AvailableChain.KitFG.Window.window_strict_node",
+    "AvailableChain.KitFG.Window.window_update_finality_F_cases",
+    "AvailableChain.KitFG.Window.window_update_finality_TF",
+    "AvailableChain.KitFG.Window.window_update_finality_h_max",
+    "AvailableChain.KitFG.Window.window_update_finality_pair",
     "AvailableChain.KitFG.WindowFoldMap.foldMap_finality_eq",
     "AvailableChain.KitFG.WindowFoldMap.foldMap_height_eq",
     "AvailableChain.KitFG.WindowFoldMap.fold_eq",
@@ -89256,6 +89484,43 @@
         "        (And (Eq e.j j) (Eq e.X U)))"
       ]
     },
+    "AvailableChain.KitFG.Window.acceptViable_eq": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.FGConfig",
+        "AvailableChain.SimplexFG.RowCodec",
+        "AvailableChain.SimplexFG.Store",
+        "AvailableChain.SimplexFG.Window.acceptViable",
+        "AvailableChain.SimplexFG.acceptViable",
+        "DecidableEq",
+        "Eq",
+        "Finset",
+        "Fintype",
+        "LE.le",
+        "Nat",
+        "OfNat.ofNat",
+        "instLENat",
+        "instOfNatNat"
+      ],
+      "digest": "13679afbf0a0e4ef6b8bb8c0007dfdff402daf4bec26e0de409a9a6d1f983e22",
+      "kernel_name": "str:2:71:str:2:54:str:2:38:str:2:12:anonymous:0:14:AvailableChain5:KitFG6:Window15:acceptViable_eq",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowStore",
+      "type": [
+        "∀ {V : Type} [inst : DecidableEq V] [inst_1 : Fintype V]",
+        "  [inst_2 : AvailableChain.SimplexFG.RowCodec V]",
+        "  (E : AvailableChain.SimplexFG.Electorate V) (cfg : AvailableChain.SimplexFG.FGConfig)",
+        "  (K : Nat),",
+        "  instLENat.le 2 K →",
+        "    ∀ (st : AvailableChain.SimplexFG.Store V),",
+        "      Eq (AvailableChain.SimplexFG.Window.acceptViable E cfg K st)",
+        "        (AvailableChain.SimplexFG.acceptViable E cfg st)"
+      ]
+    },
     "AvailableChain.KitFG.Window.certificateFinality": {
       "body": [
         "fun {V} [DecidableEq V] [Fintype V] [AvailableChain.SimplexFG.RowCodec V] E cfg K B =>",
@@ -89733,6 +89998,40 @@
         "      h_F := (AvailableChain.SimplexFG.Window.derive E cfg K Hd).h_F }"
       ]
     },
+    "AvailableChain.KitFG.Window.headFields_eq_certificateHeadFields": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.KitFG.Window.certificateFinality",
+        "AvailableChain.KitFG.Window.certificateHeight",
+        "AvailableChain.KitFG.Window.headFields",
+        "AvailableChain.KitFG.certificateHeadFields",
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.FGConfig",
+        "AvailableChain.SimplexFG.HeadFields",
+        "AvailableChain.SimplexFG.RowCodec",
+        "DecidableEq",
+        "Eq",
+        "Fintype",
+        "Nat"
+      ],
+      "digest": "0bb617784d633238def054064f61c73768b8ef4e3b84f38fa9126bd690bd9137",
+      "kernel_name": "str:2:71:str:2:54:str:2:38:str:2:12:anonymous:0:14:AvailableChain5:KitFG6:Window35:headFields_eq_certificateHeadFields",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowReaders",
+      "type": [
+        "∀ {V : Type} [inst : DecidableEq V] [inst_1 : Fintype V]",
+        "  [inst_2 : AvailableChain.SimplexFG.RowCodec V]",
+        "  (E : AvailableChain.SimplexFG.Electorate V) (cfg : AvailableChain.SimplexFG.FGConfig)",
+        "  (K : Nat) (Hd : AvailableChain.SimplexFG.FGBlock V),",
+        "  Eq (AvailableChain.KitFG.Window.headFields E cfg K Hd)",
+        "    (AvailableChain.KitFG.certificateHeadFields",
+        "      (AvailableChain.KitFG.Window.certificateHeight E cfg K)",
+        "      (AvailableChain.KitFG.Window.certificateFinality E cfg K) Hd)"
+      ]
+    },
     "AvailableChain.KitFG.Window.heightRefinement": {
       "body": [
         ""
@@ -89826,6 +90125,80 @@
         "  (K : Nat),",
         "  Eq (AvailableChain.KitFG.Window.heightView E cfg K)",
         "    (AvailableChain.KitFG.Window.certificateHeight E cfg K)"
+      ]
+    },
+    "AvailableChain.KitFG.Window.justificationBirth_window_iff_simplex": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.KitFG.JustificationBirth",
+        "AvailableChain.KitFG.Window.certificateHeight",
+        "AvailableChain.KitFG.simplexHeightView",
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.FGConfig",
+        "AvailableChain.SimplexFG.Height",
+        "AvailableChain.SimplexFG.RowCodec",
+        "DecidableEq",
+        "Fintype",
+        "Iff",
+        "LE.le",
+        "Nat",
+        "OfNat.ofNat",
+        "instLENat",
+        "instOfNatNat"
+      ],
+      "digest": "d9fb303fc6b43f7820e37de73fc976432ecfb17fd14e67806ac1116a13eaf3a5",
+      "kernel_name": "str:2:71:str:2:54:str:2:38:str:2:12:anonymous:0:14:AvailableChain5:KitFG6:Window37:justificationBirth_window_iff_simplex",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowCertificates",
+      "type": [
+        "∀ {V : Type} [inst : DecidableEq V] [inst_1 : Fintype V]",
+        "  [inst_2 : AvailableChain.SimplexFG.RowCodec V]",
+        "  (E : AvailableChain.SimplexFG.Electorate V) (cfg : AvailableChain.SimplexFG.FGConfig)",
+        "  (K : Nat),",
+        "  instLENat.le 2 K →",
+        "    ∀ (C : AvailableChain.SimplexFG.FGBlock V) (j : AvailableChain.SimplexFG.Height)",
+        "      (X : AvailableChain.SimplexFG.FGBlock V),",
+        "      Iff",
+        "        (AvailableChain.KitFG.JustificationBirth E",
+        "          (AvailableChain.KitFG.Window.certificateHeight E cfg K) C j X)",
+        "        (AvailableChain.KitFG.JustificationBirth E",
+        "          (AvailableChain.KitFG.simplexHeightView E cfg) C j X)"
+      ]
+    },
+    "AvailableChain.KitFG.Window.on_block_TF_eq": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.FGConfig",
+        "AvailableChain.SimplexFG.RowCodec",
+        "AvailableChain.SimplexFG.Store",
+        "AvailableChain.SimplexFG.Store.TF",
+        "AvailableChain.SimplexFG.Window.on_block",
+        "AvailableChain.SimplexFG.on_block",
+        "DecidableEq",
+        "Eq",
+        "Finset",
+        "Fintype",
+        "Nat"
+      ],
+      "digest": "808871601364269cbb50ad02ca2329ea6cf3440ad0c8bcb21af7400272860608",
+      "kernel_name": "str:2:71:str:2:54:str:2:38:str:2:12:anonymous:0:14:AvailableChain5:KitFG6:Window14:on_block_TF_eq",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowStore",
+      "type": [
+        "∀ {V : Type} [inst : DecidableEq V] [inst_1 : Fintype V]",
+        "  [inst_2 : AvailableChain.SimplexFG.RowCodec V]",
+        "  (E : AvailableChain.SimplexFG.Electorate V) (cfg : AvailableChain.SimplexFG.FGConfig)",
+        "  (K : Nat) (st : AvailableChain.SimplexFG.Store V)",
+        "  (B : AvailableChain.SimplexFG.FGBlock V),",
+        "  Eq (AvailableChain.SimplexFG.Window.on_block E cfg K st B).TF",
+        "    (AvailableChain.SimplexFG.on_block E cfg st B).TF"
       ]
     },
     "AvailableChain.KitFG.Window.parentState": {
@@ -90064,6 +90437,199 @@
         "      h_j := σ.h_j, J := σ.J }"
       ]
     },
+    "AvailableChain.KitFG.Window.update_finality_J_eq": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.FGConfig",
+        "AvailableChain.SimplexFG.RowCodec",
+        "AvailableChain.SimplexFG.Store",
+        "AvailableChain.SimplexFG.Store.J",
+        "AvailableChain.SimplexFG.Window.update_finality",
+        "AvailableChain.SimplexFG.update_finality",
+        "DecidableEq",
+        "Eq",
+        "Fintype",
+        "LE.le",
+        "Nat",
+        "OfNat.ofNat",
+        "instLENat",
+        "instOfNatNat"
+      ],
+      "digest": "98ca252f442cf9191412bb34d519bc47069773a6aa5b24084984a73248c05dc6",
+      "kernel_name": "str:2:71:str:2:54:str:2:38:str:2:12:anonymous:0:14:AvailableChain5:KitFG6:Window20:update_finality_J_eq",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowStore",
+      "type": [
+        "∀ {V : Type} [inst : DecidableEq V] [inst_1 : Fintype V]",
+        "  [inst_2 : AvailableChain.SimplexFG.RowCodec V]",
+        "  (E : AvailableChain.SimplexFG.Electorate V) (cfg : AvailableChain.SimplexFG.FGConfig)",
+        "  (K : Nat),",
+        "  instLENat.le 2 K →",
+        "    ∀ (st : AvailableChain.SimplexFG.Store V) (B : AvailableChain.SimplexFG.FGBlock V),",
+        "      Eq (AvailableChain.SimplexFG.Window.update_finality E cfg K st B).J",
+        "        (AvailableChain.SimplexFG.update_finality E cfg st B).J"
+      ]
+    },
+    "AvailableChain.KitFG.Window.update_finality_h_j_eq": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.FGConfig",
+        "AvailableChain.SimplexFG.Height",
+        "AvailableChain.SimplexFG.RowCodec",
+        "AvailableChain.SimplexFG.Store",
+        "AvailableChain.SimplexFG.Store.h_j",
+        "AvailableChain.SimplexFG.Window.update_finality",
+        "AvailableChain.SimplexFG.update_finality",
+        "DecidableEq",
+        "Eq",
+        "Fintype",
+        "LE.le",
+        "Nat",
+        "OfNat.ofNat",
+        "instLENat",
+        "instOfNatNat"
+      ],
+      "digest": "af53599d363867c7f8ce95454f63d52214e8527a6461c75a4f1f8d7543ba1fe1",
+      "kernel_name": "str:2:71:str:2:54:str:2:38:str:2:12:anonymous:0:14:AvailableChain5:KitFG6:Window22:update_finality_h_j_eq",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowStore",
+      "type": [
+        "∀ {V : Type} [inst : DecidableEq V] [inst_1 : Fintype V]",
+        "  [inst_2 : AvailableChain.SimplexFG.RowCodec V]",
+        "  (E : AvailableChain.SimplexFG.Electorate V) (cfg : AvailableChain.SimplexFG.FGConfig)",
+        "  (K : Nat),",
+        "  instLENat.le 2 K →",
+        "    ∀ (st : AvailableChain.SimplexFG.Store V) (B : AvailableChain.SimplexFG.FGBlock V),",
+        "      Eq (AvailableChain.SimplexFG.Window.update_finality E cfg K st B).h_j",
+        "        (AvailableChain.SimplexFG.update_finality E cfg st B).h_j"
+      ]
+    },
+    "AvailableChain.KitFG.Window.update_finality_h_max_eq": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.FGConfig",
+        "AvailableChain.SimplexFG.Height",
+        "AvailableChain.SimplexFG.RowCodec",
+        "AvailableChain.SimplexFG.Store",
+        "AvailableChain.SimplexFG.Store.h_max",
+        "AvailableChain.SimplexFG.Window.update_finality",
+        "AvailableChain.SimplexFG.update_finality",
+        "DecidableEq",
+        "Eq",
+        "Fintype",
+        "LE.le",
+        "Nat",
+        "OfNat.ofNat",
+        "instLENat",
+        "instOfNatNat"
+      ],
+      "digest": "fe4b50f4678eca533dc89221f87764001bd0534f88998746c35fea99d8261344",
+      "kernel_name": "str:2:71:str:2:54:str:2:38:str:2:12:anonymous:0:14:AvailableChain5:KitFG6:Window24:update_finality_h_max_eq",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowStore",
+      "type": [
+        "∀ {V : Type} [inst : DecidableEq V] [inst_1 : Fintype V]",
+        "  [inst_2 : AvailableChain.SimplexFG.RowCodec V]",
+        "  (E : AvailableChain.SimplexFG.Electorate V) (cfg : AvailableChain.SimplexFG.FGConfig)",
+        "  (K : Nat),",
+        "  instLENat.le 2 K →",
+        "    ∀ (st : AvailableChain.SimplexFG.Store V) (B : AvailableChain.SimplexFG.FGBlock V),",
+        "      Eq (AvailableChain.SimplexFG.Window.update_finality E cfg K st B).h_max",
+        "        (AvailableChain.SimplexFG.update_finality E cfg st B).h_max"
+      ]
+    },
+    "AvailableChain.KitFG.Window.windowCertificateLaws": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.KitFG.FGCertificateLaws",
+        "AvailableChain.KitFG.Window.certificateFinality",
+        "AvailableChain.KitFG.Window.certificateHeight",
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.Electorate.IsQuorum",
+        "AvailableChain.SimplexFG.FGConfig",
+        "AvailableChain.SimplexFG.RowCodec",
+        "DecidableEq",
+        "EmptyCollection.emptyCollection",
+        "Finset",
+        "Finset.instEmptyCollection",
+        "Fintype",
+        "LE.le",
+        "Nat",
+        "Not",
+        "OfNat.ofNat",
+        "instLENat",
+        "instOfNatNat"
+      ],
+      "digest": "4f565d19b1e1ac90e7e4c30d346b45df7d86caa6b77139a1ece50fbf48106142",
+      "kernel_name": "str:2:71:str:2:54:str:2:38:str:2:12:anonymous:0:14:AvailableChain5:KitFG6:Window21:windowCertificateLaws",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowSelection",
+      "type": [
+        "∀ {V : Type} [inst : DecidableEq V] [inst_1 : AvailableChain.SimplexFG.RowCodec V]",
+        "  [inst_2 : Fintype V] (E : AvailableChain.SimplexFG.Electorate V)",
+        "  (cfg : AvailableChain.SimplexFG.FGConfig) (K : Nat),",
+        "  Not (E.IsQuorum Finset.instEmptyCollection.emptyCollection) →",
+        "    instLENat.le 2 K →",
+        "      AvailableChain.KitFG.FGCertificateLaws E",
+        "        (AvailableChain.KitFG.Window.certificateHeight E cfg K)",
+        "        (AvailableChain.KitFG.Window.certificateFinality E cfg K)"
+      ]
+    },
+    "AvailableChain.KitFG.Window.windowChainCertificate": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.KitFG.FGChainCertificate",
+        "AvailableChain.KitFG.Window.certificateFinality",
+        "AvailableChain.KitFG.Window.certificateHeight",
+        "AvailableChain.KitFG.Window.certificateSelection",
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.Electorate.IsQuorum",
+        "AvailableChain.SimplexFG.FGConfig",
+        "AvailableChain.SimplexFG.RowCodec",
+        "DecidableEq",
+        "EmptyCollection.emptyCollection",
+        "Finset",
+        "Finset.instEmptyCollection",
+        "Fintype",
+        "LE.le",
+        "Nat",
+        "Not",
+        "OfNat.ofNat",
+        "instLENat",
+        "instOfNatNat"
+      ],
+      "digest": "6eacbdeecb236495b64674a7d2ca458aec8896cb000e6e1dc3a2ab97cac55115",
+      "kernel_name": "str:2:71:str:2:54:str:2:38:str:2:12:anonymous:0:14:AvailableChain5:KitFG6:Window22:windowChainCertificate",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowSelection",
+      "type": [
+        "∀ {V : Type} [inst : DecidableEq V] [inst_1 : AvailableChain.SimplexFG.RowCodec V]",
+        "  [inst_2 : Fintype V] (E : AvailableChain.SimplexFG.Electorate V)",
+        "  (cfg : AvailableChain.SimplexFG.FGConfig) (K : Nat),",
+        "  Not (E.IsQuorum Finset.instEmptyCollection.emptyCollection) →",
+        "    instLENat.le 2 K →",
+        "      AvailableChain.KitFG.FGChainCertificate E",
+        "        (AvailableChain.KitFG.Window.certificateHeight E cfg K)",
+        "        (AvailableChain.KitFG.Window.certificateFinality E cfg K)",
+        "        (AvailableChain.KitFG.Window.certificateSelection E cfg K)"
+      ]
+    },
     "AvailableChain.KitFG.Window.windowHeightBridge": {
       "body": [
         ""
@@ -90132,6 +90698,278 @@
         "    AvailableChain.KitFG.FGHeightLaws E fun B =>",
         "      AvailableChain.KitFG.Window.projectHeight",
         "        (AvailableChain.SimplexFG.Window.derive E cfg K B)"
+      ]
+    },
+    "AvailableChain.KitFG.Window.windowSelectionLaws": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.KitFG.FGSelectionLaws",
+        "AvailableChain.KitFG.Window.certificateFinality",
+        "AvailableChain.KitFG.Window.certificateHeight",
+        "AvailableChain.KitFG.Window.certificateSelection",
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.Electorate.IsQuorum",
+        "AvailableChain.SimplexFG.FGConfig",
+        "AvailableChain.SimplexFG.RowCodec",
+        "DecidableEq",
+        "EmptyCollection.emptyCollection",
+        "Finset",
+        "Finset.instEmptyCollection",
+        "Fintype",
+        "LE.le",
+        "Nat",
+        "Not",
+        "OfNat.ofNat",
+        "instLENat",
+        "instOfNatNat"
+      ],
+      "digest": "b047edadda61d9f4c71fc2e2fb6bb2fd7c6c5fefc6cb404b0a40684c4a0881c2",
+      "kernel_name": "str:2:71:str:2:54:str:2:38:str:2:12:anonymous:0:14:AvailableChain5:KitFG6:Window19:windowSelectionLaws",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowSelection",
+      "type": [
+        "∀ {V : Type} [inst : DecidableEq V] [inst_1 : AvailableChain.SimplexFG.RowCodec V]",
+        "  [inst_2 : Fintype V] (E : AvailableChain.SimplexFG.Electorate V)",
+        "  (cfg : AvailableChain.SimplexFG.FGConfig) (K : Nat),",
+        "  Not (E.IsQuorum Finset.instEmptyCollection.emptyCollection) →",
+        "    instLENat.le 2 K →",
+        "      AvailableChain.KitFG.FGSelectionLaws E",
+        "        (AvailableChain.KitFG.Window.certificateHeight E cfg K)",
+        "        (AvailableChain.KitFG.Window.certificateFinality E cfg K)",
+        "        (AvailableChain.KitFG.Window.certificateSelection E cfg K)"
+      ]
+    },
+    "AvailableChain.KitFG.Window.windowStoreInvariant_accept": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.KitFG.FGStoreInvariant",
+        "AvailableChain.KitFG.StoreStepRoots",
+        "AvailableChain.KitFG.Window.certificateFinality",
+        "AvailableChain.KitFG.Window.projectHeight",
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.Electorate.IsQuorum",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.FGBlock.parent",
+        "AvailableChain.SimplexFG.FGConfig",
+        "AvailableChain.SimplexFG.RowCodec",
+        "AvailableChain.SimplexFG.Store",
+        "AvailableChain.SimplexFG.Store.F",
+        "AvailableChain.SimplexFG.Store.J",
+        "AvailableChain.SimplexFG.Store.TF",
+        "AvailableChain.SimplexFG.Store.h_j",
+        "AvailableChain.SimplexFG.Store.h_max",
+        "AvailableChain.SimplexFG.Store.mk",
+        "AvailableChain.SimplexFG.Window.derive",
+        "AvailableChain.SimplexFG.Window.update_finality",
+        "AvailableChain.SimplexFG.instDecidableEqFGBlock",
+        "DecidableEq",
+        "EmptyCollection.emptyCollection",
+        "Finset",
+        "Finset.instEmptyCollection",
+        "Finset.instInsert",
+        "Finset.instSetLike",
+        "Fintype",
+        "Insert.insert",
+        "LE.le",
+        "Membership.mem",
+        "Nat",
+        "Not",
+        "OfNat.ofNat",
+        "SetLike.instMembership",
+        "instLENat",
+        "instOfNatNat"
+      ],
+      "digest": "2f54f00aae1390a48c693d92a3a384933a4de26fe98c6187b643e591edbfa2dd",
+      "kernel_name": "str:2:71:str:2:54:str:2:38:str:2:12:anonymous:0:14:AvailableChain5:KitFG6:Window27:windowStoreInvariant_accept",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowStore",
+      "type": [
+        "∀ {V : Type} [inst : DecidableEq V] [inst_1 : Fintype V]",
+        "  [inst_2 : AvailableChain.SimplexFG.RowCodec V]",
+        "  (E : AvailableChain.SimplexFG.Electorate V) (cfg : AvailableChain.SimplexFG.FGConfig)",
+        "  (K : Nat),",
+        "  Not (E.IsQuorum Finset.instEmptyCollection.emptyCollection) →",
+        "    instLENat.le 2 K →",
+        "      ∀ (st : AvailableChain.SimplexFG.Store V)",
+        "        (B : AvailableChain.SimplexFG.FGBlock V),",
+        "        AvailableChain.KitFG.FGStoreInvariant",
+        "            (fun B =>",
+        "              AvailableChain.KitFG.Window.projectHeight",
+        "                (AvailableChain.SimplexFG.Window.derive E cfg K B))",
+        "            (AvailableChain.KitFG.Window.certificateFinality E cfg K) st →",
+        "          SetLike.instMembership.mem st.TF B.parent →",
+        "            AvailableChain.KitFG.StoreStepRoots st B →",
+        "              AvailableChain.KitFG.FGStoreInvariant",
+        "                (fun B =>",
+        "                  AvailableChain.KitFG.Window.projectHeight",
+        "                    (AvailableChain.SimplexFG.Window.derive E cfg K B))",
+        "                (AvailableChain.KitFG.Window.certificateFinality E cfg K)",
+        "                (AvailableChain.SimplexFG.Window.update_finality E cfg K",
+        "                  { TF := Finset.instInsert.insert B st.TF, F := st.F, J := st.J,",
+        "                    h_j := st.h_j, h_max := st.h_max }",
+        "                  B)"
+      ]
+    },
+    "AvailableChain.KitFG.Window.windowStoreInvariant_init": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.KitFG.FGStoreInvariant",
+        "AvailableChain.KitFG.Window.certificateFinality",
+        "AvailableChain.KitFG.Window.projectHeight",
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.FGConfig",
+        "AvailableChain.SimplexFG.RowCodec",
+        "AvailableChain.SimplexFG.Store.init",
+        "AvailableChain.SimplexFG.Window.derive",
+        "DecidableEq",
+        "Fintype",
+        "Nat"
+      ],
+      "digest": "bd92de4e18703f30f3d2743b4660414499b0f14d015e16224f4dcb8aa28677ba",
+      "kernel_name": "str:2:71:str:2:54:str:2:38:str:2:12:anonymous:0:14:AvailableChain5:KitFG6:Window25:windowStoreInvariant_init",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowStore",
+      "type": [
+        "∀ {V : Type} [inst : DecidableEq V] [inst_1 : Fintype V]",
+        "  [inst_2 : AvailableChain.SimplexFG.RowCodec V]",
+        "  (E : AvailableChain.SimplexFG.Electorate V) (cfg : AvailableChain.SimplexFG.FGConfig)",
+        "  (K : Nat),",
+        "  AvailableChain.KitFG.FGStoreInvariant",
+        "    (fun B =>",
+        "      AvailableChain.KitFG.Window.projectHeight",
+        "        (AvailableChain.SimplexFG.Window.derive E cfg K B))",
+        "    (AvailableChain.KitFG.Window.certificateFinality E cfg K)",
+        "    AvailableChain.SimplexFG.Store.init"
+      ]
+    },
+    "AvailableChain.KitFG.Window.windowStoreInvariant_on_block": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.KitFG.FGStoreInvariant",
+        "AvailableChain.KitFG.StoreStepRoots",
+        "AvailableChain.KitFG.Window.certificateFinality",
+        "AvailableChain.KitFG.Window.projectHeight",
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.Electorate.IsQuorum",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.FGConfig",
+        "AvailableChain.SimplexFG.RowCodec",
+        "AvailableChain.SimplexFG.Store",
+        "AvailableChain.SimplexFG.Window.derive",
+        "AvailableChain.SimplexFG.Window.on_block",
+        "DecidableEq",
+        "EmptyCollection.emptyCollection",
+        "Finset",
+        "Finset.instEmptyCollection",
+        "Fintype",
+        "LE.le",
+        "Nat",
+        "Not",
+        "OfNat.ofNat",
+        "instLENat",
+        "instOfNatNat"
+      ],
+      "digest": "f7edbe896486e9e44b722b01c03327491db0a4b061fe2fdd221dea1ce03a10e4",
+      "kernel_name": "str:2:71:str:2:54:str:2:38:str:2:12:anonymous:0:14:AvailableChain5:KitFG6:Window29:windowStoreInvariant_on_block",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowStore",
+      "type": [
+        "∀ {V : Type} [inst : DecidableEq V] [inst_1 : Fintype V]",
+        "  [inst_2 : AvailableChain.SimplexFG.RowCodec V]",
+        "  (E : AvailableChain.SimplexFG.Electorate V) (cfg : AvailableChain.SimplexFG.FGConfig)",
+        "  (K : Nat),",
+        "  Not (E.IsQuorum Finset.instEmptyCollection.emptyCollection) →",
+        "    instLENat.le 2 K →",
+        "      ∀ (st : AvailableChain.SimplexFG.Store V)",
+        "        (B : AvailableChain.SimplexFG.FGBlock V),",
+        "        AvailableChain.KitFG.FGStoreInvariant",
+        "            (fun B =>",
+        "              AvailableChain.KitFG.Window.projectHeight",
+        "                (AvailableChain.SimplexFG.Window.derive E cfg K B))",
+        "            (AvailableChain.KitFG.Window.certificateFinality E cfg K) st →",
+        "          AvailableChain.KitFG.StoreStepRoots st B →",
+        "            AvailableChain.KitFG.FGStoreInvariant",
+        "              (fun B =>",
+        "                AvailableChain.KitFG.Window.projectHeight",
+        "                  (AvailableChain.SimplexFG.Window.derive E cfg K B))",
+        "              (AvailableChain.KitFG.Window.certificateFinality E cfg K)",
+        "              (AvailableChain.SimplexFG.Window.on_block E cfg K st B)"
+      ]
+    },
+    "AvailableChain.KitFG.Window.windowStoreSafety": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.KitFG.FGFinality",
+        "AvailableChain.KitFG.FGHeight",
+        "AvailableChain.KitFG.FGStoreInvariant",
+        "AvailableChain.KitFG.FGStoreSafety",
+        "AvailableChain.KitFG.StoreStepRoots",
+        "AvailableChain.KitFG.Window.certificateFinality",
+        "AvailableChain.KitFG.Window.projectHeight",
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.Electorate.IsQuorum",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.FGConfig",
+        "AvailableChain.SimplexFG.RowCodec",
+        "AvailableChain.SimplexFG.Store",
+        "AvailableChain.SimplexFG.Store.init",
+        "AvailableChain.SimplexFG.Window.derive",
+        "AvailableChain.SimplexFG.Window.on_block",
+        "DecidableEq",
+        "EmptyCollection.emptyCollection",
+        "Finset",
+        "Finset.instEmptyCollection",
+        "Fintype",
+        "LE.le",
+        "Nat",
+        "Not",
+        "OfNat.ofNat",
+        "Prod.mk",
+        "id",
+        "instLENat",
+        "instOfNatNat"
+      ],
+      "digest": "d6dc706394bc3225339c128cc16d9afb29ed4d6e5e8cc80fd5d7bd7a2ed57a2a",
+      "kernel_name": "str:2:71:str:2:54:str:2:38:str:2:12:anonymous:0:14:AvailableChain5:KitFG6:Window17:windowStoreSafety",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowStore",
+      "type": [
+        "∀ {V : Type} [inst : DecidableEq V] [inst_1 : Fintype V]",
+        "  [inst_2 : AvailableChain.SimplexFG.RowCodec V]",
+        "  (E : AvailableChain.SimplexFG.Electorate V) (cfg : AvailableChain.SimplexFG.FGConfig)",
+        "  (K : Nat),",
+        "  Not (E.IsQuorum Finset.instEmptyCollection.emptyCollection) →",
+        "    instLENat.le 2 K →",
+        "      AvailableChain.KitFG.FGStoreSafety E",
+        "        (fun B =>",
+        "          AvailableChain.KitFG.Window.projectHeight",
+        "            (AvailableChain.SimplexFG.Window.derive E cfg K B))",
+        "        (AvailableChain.KitFG.Window.certificateFinality E cfg K) id",
+        "        (fun x B =>",
+        "          {",
+        "            fst :=",
+        "              AvailableChain.KitFG.Window.projectHeight",
+        "                (AvailableChain.SimplexFG.Window.derive E cfg K B),",
+        "            snd := AvailableChain.KitFG.Window.certificateFinality E cfg K B })",
+        "        AvailableChain.SimplexFG.Store.init",
+        "        (AvailableChain.SimplexFG.Window.on_block E cfg K)",
+        "        (AvailableChain.KitFG.FGStoreInvariant",
+        "          (fun B =>",
+        "            AvailableChain.KitFG.Window.projectHeight",
+        "              (AvailableChain.SimplexFG.Window.derive E cfg K B))",
+        "          (AvailableChain.KitFG.Window.certificateFinality E cfg K))",
+        "        AvailableChain.KitFG.StoreStepRoots"
       ]
     },
     "AvailableChain.KitFG.Window.window_F_mono": {
@@ -90527,6 +91365,288 @@
         "        instLENat.le (AvailableChain.SimplexFG.Window.derive E cfg K B).W.length K"
       ]
     },
+    "AvailableChain.KitFG.Window.window_entry_origin": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.KitFG.Window.EntryOriginAt",
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.FGConfig",
+        "AvailableChain.SimplexFG.RowCodec",
+        "AvailableChain.SimplexFG.Window.Entry",
+        "AvailableChain.SimplexFG.Window.State.W",
+        "AvailableChain.SimplexFG.Window.derive",
+        "DecidableEq",
+        "Fintype",
+        "LE.le",
+        "List",
+        "List.instMembership",
+        "Membership.mem",
+        "Nat",
+        "OfNat.ofNat",
+        "instLENat",
+        "instOfNatNat"
+      ],
+      "digest": "e0ce16cdf8ab34587a958c6c749773cb7b55e4bd4cc28eeb7f7427b3485390d0",
+      "kernel_name": "str:2:71:str:2:54:str:2:38:str:2:12:anonymous:0:14:AvailableChain5:KitFG6:Window19:window_entry_origin",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowCertificates",
+      "type": [
+        "∀ {V : Type} [inst : DecidableEq V] [inst_1 : Fintype V]",
+        "  [inst_2 : AvailableChain.SimplexFG.RowCodec V]",
+        "  (E : AvailableChain.SimplexFG.Electorate V) (cfg : AvailableChain.SimplexFG.FGConfig)",
+        "  (K : Nat),",
+        "  instLENat.le 2 K →",
+        "    ∀ (B : AvailableChain.SimplexFG.FGBlock V)",
+        "      (e : AvailableChain.SimplexFG.Window.Entry V),",
+        "      List.instMembership.mem (AvailableChain.SimplexFG.Window.derive E cfg K B).W e →",
+        "        AvailableChain.KitFG.Window.EntryOriginAt E cfg K B e"
+      ]
+    },
+    "AvailableChain.KitFG.Window.window_exists_crossing_quorum_ne_justified": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "And",
+        "AvailableChain.BlockId",
+        "AvailableChain.KitFG.FGHeight.J",
+        "AvailableChain.KitFG.FGHeight.h",
+        "AvailableChain.KitFG.FGHeight.h_j",
+        "AvailableChain.KitFG.RootInjectiveOn",
+        "AvailableChain.KitFG.Window.certificateHeight",
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.Electorate.IsQuorum",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.FGBlock.Preceq",
+        "AvailableChain.SimplexFG.FGBlock.root",
+        "AvailableChain.SimplexFG.FGConfig",
+        "AvailableChain.SimplexFG.Height",
+        "AvailableChain.SimplexFG.NamedHeightPair.matchesEntry",
+        "AvailableChain.SimplexFG.Row",
+        "AvailableChain.SimplexFG.Row.height_pair",
+        "AvailableChain.SimplexFG.Row.signer",
+        "AvailableChain.SimplexFG.RowCodec",
+        "AvailableChain.SimplexFG.chainRows",
+        "Bool",
+        "Bool.true",
+        "DecidableEq",
+        "Eq",
+        "Exists",
+        "Finset",
+        "Finset.instSetLike",
+        "Fintype",
+        "LE.le",
+        "LT.lt",
+        "Membership.mem",
+        "Nat",
+        "Ne",
+        "Not",
+        "OfNat.ofNat",
+        "SetLike.instMembership",
+        "instLENat",
+        "instLTNat",
+        "instOfNatNat"
+      ],
+      "digest": "851ffab6fe3b3d25449dc03f5bbef5f8598977c63b73ac0d7dd93fdeb7b98991",
+      "kernel_name": "str:2:71:str:2:54:str:2:38:str:2:12:anonymous:0:14:AvailableChain5:KitFG6:Window42:window_exists_crossing_quorum_ne_justified",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowProvenance",
+      "type": [
+        "∀ {V : Type} [inst : DecidableEq V] [inst_1 : Fintype V]",
+        "  [inst_2 : AvailableChain.SimplexFG.RowCodec V]",
+        "  (E : AvailableChain.SimplexFG.Electorate V) (cfg : AvailableChain.SimplexFG.FGConfig)",
+        "  (K : Nat),",
+        "  instLENat.le 2 K →",
+        "    ∀ (B W : AvailableChain.SimplexFG.FGBlock V),",
+        "      AvailableChain.KitFG.RootInjectiveOn B W →",
+        "        Ne (AvailableChain.KitFG.Window.certificateHeight E cfg K B).h_j 0 →",
+        "          instLTNat.lt (AvailableChain.KitFG.Window.certificateHeight E cfg K B).h_j",
+        "              (AvailableChain.KitFG.Window.certificateHeight E cfg K W).h →",
+        "            Not ((AvailableChain.KitFG.Window.certificateHeight E cfg K B).J.Preceq W) →",
+        "              Exists fun X =>",
+        "                And",
+        "                  (Ne X.root",
+        "                    (AvailableChain.KitFG.Window.certificateHeight E cfg K B).J.root)",
+        "                  (Exists fun Q =>",
+        "                    And (E.IsQuorum Q)",
+        "                      (∀ (i : V),",
+        "                        SetLike.instMembership.mem Q i →",
+        "                          Exists fun b =>",
+        "                            And",
+        "                              (SetLike.instMembership.mem",
+        "                                (AvailableChain.SimplexFG.chainRows W) b)",
+        "                              (And (Eq b.signer i)",
+        "                                (Eq",
+        "                                  (AvailableChain.SimplexFG.NamedHeightPair.matchesEntry",
+        "                                    (AvailableChain.KitFG.Window.certificateHeight E cfg",
+        "                                        K B).h_j",
+        "                                    X.root b.height_pair)",
+        "                                  Bool.true))))"
+      ]
+    },
+    "AvailableChain.KitFG.Window.window_exists_honest_timeout_of_crossing": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "And",
+        "AvailableChain.BlockId",
+        "AvailableChain.KitFG.FGHeight.J",
+        "AvailableChain.KitFG.FGHeight.h",
+        "AvailableChain.KitFG.FGHeight.h_j",
+        "AvailableChain.KitFG.RootInjectiveOn",
+        "AvailableChain.KitFG.Window.certificateHeight",
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.Electorate.q",
+        "AvailableChain.SimplexFG.Electorate.totalWeight",
+        "AvailableChain.SimplexFG.Electorate.weightOf",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.FGBlock.Preceq",
+        "AvailableChain.SimplexFG.FGBlock.root",
+        "AvailableChain.SimplexFG.FGConfig",
+        "AvailableChain.SimplexFG.Height",
+        "AvailableChain.SimplexFG.NamedHeightPair",
+        "AvailableChain.SimplexFG.NamedHeightPair.vote",
+        "AvailableChain.SimplexFG.Row",
+        "AvailableChain.SimplexFG.Row.height_pair",
+        "AvailableChain.SimplexFG.Row.signer",
+        "AvailableChain.SimplexFG.RowCodec",
+        "AvailableChain.SimplexFG.Slashable",
+        "AvailableChain.SimplexFG.chainRows",
+        "Bool.false",
+        "Bool.true",
+        "DecidableEq",
+        "Eq",
+        "Exists",
+        "Finset",
+        "Finset.instSetLike",
+        "Fintype",
+        "HAdd.hAdd",
+        "HMul.hMul",
+        "LE.le",
+        "LT.lt",
+        "Membership.mem",
+        "Nat",
+        "Ne",
+        "Not",
+        "OfNat.ofNat",
+        "SetLike.instMembership",
+        "instAddNat",
+        "instHAdd",
+        "instHMul",
+        "instLENat",
+        "instLTNat",
+        "instMulNat",
+        "instOfNatNat"
+      ],
+      "digest": "701fd0b529ff995f19da32fc96d12864864ab8eb7468accb9584fc561ae466fe",
+      "kernel_name": "str:2:71:str:2:54:str:2:38:str:2:12:anonymous:0:14:AvailableChain5:KitFG6:Window40:window_exists_honest_timeout_of_crossing",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowProvenance",
+      "type": [
+        "∀ {V : Type} [inst : DecidableEq V] [inst_1 : Fintype V]",
+        "  [inst_2 : AvailableChain.SimplexFG.RowCodec V]",
+        "  (E : AvailableChain.SimplexFG.Electorate V) (cfg : AvailableChain.SimplexFG.FGConfig)",
+        "  (K : Nat),",
+        "  instLENat.le 2 K →",
+        "    ∀ (faulty : Finset V) (B W : AvailableChain.SimplexFG.FGBlock V),",
+        "      AvailableChain.KitFG.RootInjectiveOn B W →",
+        "        instLTNat.lt (instHAdd.hAdd (E.weightOf faulty) E.totalWeight)",
+        "            (instHMul.hMul 2 E.q) →",
+        "          Ne (AvailableChain.KitFG.Window.certificateHeight E cfg K B).h_j 0 →",
+        "            instLTNat.lt (AvailableChain.KitFG.Window.certificateHeight E cfg K B).h_j",
+        "                (AvailableChain.KitFG.Window.certificateHeight E cfg K W).h →",
+        "              Not",
+        "                  ((AvailableChain.KitFG.Window.certificateHeight E cfg K B).J.Preceq",
+        "                    W) →",
+        "                (∀ (a : AvailableChain.SimplexFG.Row V),",
+        "                    SetLike.instMembership.mem (AvailableChain.SimplexFG.chainRows B)",
+        "                        a →",
+        "                      ∀ (b : AvailableChain.SimplexFG.Row V),",
+        "                        SetLike.instMembership.mem",
+        "                            (AvailableChain.SimplexFG.chainRows W) b →",
+        "                          Not (SetLike.instMembership.mem faulty a.signer) →",
+        "                            Not (AvailableChain.SimplexFG.Slashable a b)) →",
+        "                  Exists fun i =>",
+        "                    And (Not (SetLike.instMembership.mem faulty i))",
+        "                      (Exists fun X =>",
+        "                        And",
+        "                          (Ne X",
+        "                            (AvailableChain.KitFG.Window.certificateHeight E cfg K",
+        "                                  B).J.root)",
+        "                          (And",
+        "                            (Exists fun a =>",
+        "                              And",
+        "                                (SetLike.instMembership.mem",
+        "                                  (AvailableChain.SimplexFG.chainRows B) a)",
+        "                                (And (Eq a.signer i)",
+        "                                  (Eq a.height_pair",
+        "                                    (AvailableChain.SimplexFG.NamedHeightPair.vote",
+        "                                      (AvailableChain.KitFG.Window.certificateHeight E",
+        "                                          cfg K B).h_j",
+        "                                      (AvailableChain.KitFG.Window.certificateHeight E",
+        "                                            cfg K B).J.root",
+        "                                      Bool.false))))",
+        "                            (Exists fun b =>",
+        "                              And",
+        "                                (SetLike.instMembership.mem",
+        "                                  (AvailableChain.SimplexFG.chainRows W) b)",
+        "                                (And (Eq b.signer i)",
+        "                                  (Eq b.height_pair",
+        "                                    (AvailableChain.SimplexFG.NamedHeightPair.vote",
+        "                                      (AvailableChain.KitFG.Window.certificateHeight E",
+        "                                          cfg K B).h_j",
+        "                                      X Bool.true))))))"
+      ]
+    },
+    "AvailableChain.KitFG.Window.window_filteredFrom_eq": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.KitFG.Window.projectHeight",
+        "AvailableChain.KitFG.filteredFromView",
+        "AvailableChain.SimplexFG.Controls",
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.FGConfig",
+        "AvailableChain.SimplexFG.RowCodec",
+        "AvailableChain.SimplexFG.Window.derive",
+        "AvailableChain.SimplexFG.filteredFrom",
+        "DecidableEq",
+        "Eq",
+        "Finset",
+        "Fintype",
+        "LE.le",
+        "Nat",
+        "OfNat.ofNat",
+        "instLENat",
+        "instOfNatNat"
+      ],
+      "digest": "3e3dde7945257856df419fed912977f8296240c6cd7da366428a04cb3bc1a526",
+      "kernel_name": "str:2:71:str:2:54:str:2:38:str:2:12:anonymous:0:14:AvailableChain5:KitFG6:Window22:window_filteredFrom_eq",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowReaders",
+      "type": [
+        "∀ {V : Type} [inst : DecidableEq V] [inst_1 : Fintype V]",
+        "  [inst_2 : AvailableChain.SimplexFG.RowCodec V]",
+        "  (E : AvailableChain.SimplexFG.Electorate V) (cfg : AvailableChain.SimplexFG.FGConfig)",
+        "  (K : Nat),",
+        "  instLENat.le 2 K →",
+        "    ∀ (c : AvailableChain.SimplexFG.Controls V)",
+        "      (blocks : Finset (AvailableChain.SimplexFG.FGBlock V)),",
+        "      Eq",
+        "        (AvailableChain.KitFG.filteredFromView",
+        "          (fun B =>",
+        "            AvailableChain.KitFG.Window.projectHeight",
+        "              (AvailableChain.SimplexFG.Window.derive E cfg K B))",
+        "          c blocks)",
+        "        (AvailableChain.SimplexFG.filteredFrom E cfg c blocks)"
+      ]
+    },
     "AvailableChain.KitFG.Window.window_finality_of_cover": {
       "body": [
         ""
@@ -90655,6 +91775,96 @@
         "        Eq (AvailableChain.SimplexFG.Window.derive E cfg K B).h_F 0 →",
         "          Eq (AvailableChain.SimplexFG.Window.derive E cfg K B).F",
         "            AvailableChain.SimplexFG.FGBlock.genesis"
+      ]
+    },
+    "AvailableChain.KitFG.Window.window_fjControls_eq": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.KitFG.Window.projectHeight",
+        "AvailableChain.KitFG.fjControlsView",
+        "AvailableChain.SimplexFG.Controls",
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.FGConfig",
+        "AvailableChain.SimplexFG.RowCodec",
+        "AvailableChain.SimplexFG.View",
+        "AvailableChain.SimplexFG.Window.derive",
+        "AvailableChain.SimplexFG.fjControls",
+        "DecidableEq",
+        "Eq",
+        "Fintype",
+        "LE.le",
+        "Nat",
+        "OfNat.ofNat",
+        "instLENat",
+        "instOfNatNat"
+      ],
+      "digest": "a2bae884169d6e666a751d232e964d41dfb0eee8c3429d08f1feeb1a230ed26c",
+      "kernel_name": "str:2:71:str:2:54:str:2:38:str:2:12:anonymous:0:14:AvailableChain5:KitFG6:Window20:window_fjControls_eq",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowReaders",
+      "type": [
+        "∀ {V : Type} [inst : DecidableEq V] [inst_1 : Fintype V]",
+        "  [inst_2 : AvailableChain.SimplexFG.RowCodec V]",
+        "  (E : AvailableChain.SimplexFG.Electorate V) (cfg : AvailableChain.SimplexFG.FGConfig)",
+        "  (K : Nat),",
+        "  instLENat.le 2 K →",
+        "    ∀ (F : AvailableChain.SimplexFG.FGBlock V)",
+        "      (blocks : AvailableChain.SimplexFG.View V),",
+        "      Eq",
+        "        (AvailableChain.KitFG.fjControlsView",
+        "          (fun B =>",
+        "            AvailableChain.KitFG.Window.projectHeight",
+        "              (AvailableChain.SimplexFG.Window.derive E cfg K B))",
+        "          F blocks)",
+        "        (AvailableChain.SimplexFG.fjControls E cfg F blocks)"
+      ]
+    },
+    "AvailableChain.KitFG.Window.window_fjFrame_eq": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.KitFG.Window.projectHeight",
+        "AvailableChain.KitFG.fjFrameView",
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.FGConfig",
+        "AvailableChain.SimplexFG.Frame",
+        "AvailableChain.SimplexFG.RowCodec",
+        "AvailableChain.SimplexFG.View",
+        "AvailableChain.SimplexFG.Window.derive",
+        "AvailableChain.SimplexFG.fjFrame",
+        "DecidableEq",
+        "Eq",
+        "Fintype",
+        "LE.le",
+        "Nat",
+        "OfNat.ofNat",
+        "instLENat",
+        "instOfNatNat"
+      ],
+      "digest": "648146981d466bd14ea9a541f19ea73a928034385fb218615beefa5c7af25ef9",
+      "kernel_name": "str:2:71:str:2:54:str:2:38:str:2:12:anonymous:0:14:AvailableChain5:KitFG6:Window17:window_fjFrame_eq",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowReaders",
+      "type": [
+        "∀ {V : Type} [inst : DecidableEq V] [inst_1 : Fintype V]",
+        "  [inst_2 : AvailableChain.SimplexFG.RowCodec V]",
+        "  (E : AvailableChain.SimplexFG.Electorate V) (cfg : AvailableChain.SimplexFG.FGConfig)",
+        "  (K : Nat),",
+        "  instLENat.le 2 K →",
+        "    ∀ (F : AvailableChain.SimplexFG.FGBlock V)",
+        "      (blocks : AvailableChain.SimplexFG.View V),",
+        "      Eq",
+        "        (AvailableChain.KitFG.fjFrameView",
+        "          (fun B =>",
+        "            AvailableChain.KitFG.Window.projectHeight",
+        "              (AvailableChain.SimplexFG.Window.derive E cfg K B))",
+        "          F blocks)",
+        "        (AvailableChain.SimplexFG.fjFrame E cfg F blocks)"
       ]
     },
     "AvailableChain.KitFG.Window.window_fold_entry": {
@@ -90832,6 +92042,50 @@
         "                                  { height := e.j, target := e.X.root })))))))))"
       ]
     },
+    "AvailableChain.KitFG.Window.window_frontier_eq": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.KitFG.Window.projectHeight",
+        "AvailableChain.KitFG.frontierView",
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.FGConfig",
+        "AvailableChain.SimplexFG.Height",
+        "AvailableChain.SimplexFG.RowCodec",
+        "AvailableChain.SimplexFG.View",
+        "AvailableChain.SimplexFG.Window.derive",
+        "AvailableChain.SimplexFG.frontier",
+        "DecidableEq",
+        "Eq",
+        "Fintype",
+        "LE.le",
+        "Nat",
+        "OfNat.ofNat",
+        "instLENat",
+        "instOfNatNat"
+      ],
+      "digest": "db1c7516037c724471c9cc6d1c6b58365fb2e18e47cf3656152f068aa3b0d353",
+      "kernel_name": "str:2:71:str:2:54:str:2:38:str:2:12:anonymous:0:14:AvailableChain5:KitFG6:Window18:window_frontier_eq",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowReaders",
+      "type": [
+        "∀ {V : Type} [inst : DecidableEq V] [inst_1 : Fintype V]",
+        "  [inst_2 : AvailableChain.SimplexFG.RowCodec V]",
+        "  (E : AvailableChain.SimplexFG.Electorate V) (cfg : AvailableChain.SimplexFG.FGConfig)",
+        "  (K : Nat),",
+        "  instLENat.le 2 K →",
+        "    ∀ (blocks : AvailableChain.SimplexFG.View V),",
+        "      Eq",
+        "        (AvailableChain.KitFG.frontierView",
+        "          (fun B =>",
+        "            AvailableChain.KitFG.Window.projectHeight",
+        "              (AvailableChain.SimplexFG.Window.derive E cfg K B))",
+        "          blocks)",
+        "        (AvailableChain.SimplexFG.frontier E cfg blocks)"
+      ]
+    },
     "AvailableChain.KitFG.Window.window_greatest_spec": {
       "body": [
         ""
@@ -90966,6 +92220,191 @@
         "            (AvailableChain.SimplexFG.Window.derive E cfg K B).h_F"
       ]
     },
+    "AvailableChain.KitFG.Window.window_hOf_eq": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.KitFG.FGHeight.h",
+        "AvailableChain.KitFG.Window.projectHeight",
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.FGConfig",
+        "AvailableChain.SimplexFG.Height",
+        "AvailableChain.SimplexFG.RowCodec",
+        "AvailableChain.SimplexFG.Window.derive",
+        "AvailableChain.SimplexFG.hOf",
+        "DecidableEq",
+        "Eq",
+        "Fintype",
+        "LE.le",
+        "Nat",
+        "OfNat.ofNat",
+        "instLENat",
+        "instOfNatNat"
+      ],
+      "digest": "5fddff7f84dc3df1ec19c1291b74eab160435b6119fdf78570ee6933466ddf3b",
+      "kernel_name": "str:2:71:str:2:54:str:2:38:str:2:12:anonymous:0:14:AvailableChain5:KitFG6:Window13:window_hOf_eq",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowReaders",
+      "type": [
+        "∀ {V : Type} [inst : DecidableEq V] [inst_1 : Fintype V]",
+        "  [inst_2 : AvailableChain.SimplexFG.RowCodec V]",
+        "  (E : AvailableChain.SimplexFG.Electorate V) (cfg : AvailableChain.SimplexFG.FGConfig)",
+        "  (K : Nat),",
+        "  instLENat.le 2 K →",
+        "    ∀ (B : AvailableChain.SimplexFG.FGBlock V),",
+        "      Eq",
+        "        (AvailableChain.KitFG.Window.projectHeight",
+        "            (AvailableChain.SimplexFG.Window.derive E cfg K B)).h",
+        "        (AvailableChain.SimplexFG.hOf E cfg B)"
+      ]
+    },
+    "AvailableChain.KitFG.Window.window_headFields_latest": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "And",
+        "AvailableChain.BlockId",
+        "AvailableChain.KitFG.Window.certificateFinality",
+        "AvailableChain.KitFG.Window.certificateHeight",
+        "AvailableChain.KitFG.certificateHeadFields",
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.FGBlock.root",
+        "AvailableChain.SimplexFG.FGConfig",
+        "AvailableChain.SimplexFG.FinalityPair",
+        "AvailableChain.SimplexFG.FinalityPair.mk",
+        "AvailableChain.SimplexFG.HeadFields",
+        "AvailableChain.SimplexFG.HeadFields.mk",
+        "AvailableChain.SimplexFG.Height",
+        "AvailableChain.SimplexFG.Record",
+        "AvailableChain.SimplexFG.Record.lock",
+        "AvailableChain.SimplexFG.Record.target",
+        "AvailableChain.SimplexFG.Record.timeout",
+        "AvailableChain.SimplexFG.RowCodec",
+        "AvailableChain.SimplexFG.Window.State.J",
+        "AvailableChain.SimplexFG.Window.State.h_F",
+        "AvailableChain.SimplexFG.Window.State.h_j",
+        "AvailableChain.SimplexFG.Window.derive",
+        "AvailableChain.SimplexFG.finality_pair",
+        "AvailableChain.instDecidableEqBlockId",
+        "Bool",
+        "Bool.false",
+        "DecidableEq",
+        "Eq",
+        "Fintype",
+        "LT.lt",
+        "Nat",
+        "Nat.decLt",
+        "Option",
+        "Option.decidableEqNone",
+        "Option.instDecidableEq",
+        "Option.none",
+        "Option.some",
+        "Or",
+        "instDecidableAnd",
+        "instDecidableEqBool",
+        "instDecidableOr",
+        "instLTNat",
+        "ite"
+      ],
+      "digest": "39b50703e38c0fb35d4531eb39c33f6e02f36cf3be2766182eb6952f0bf4e061",
+      "kernel_name": "str:2:71:str:2:54:str:2:38:str:2:12:anonymous:0:14:AvailableChain5:KitFG6:Window24:window_headFields_latest",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowProvenance",
+      "type": [
+        "∀ {V : Type} [inst : DecidableEq V] [inst_1 : Fintype V]",
+        "  [inst_2 : AvailableChain.SimplexFG.RowCodec V]",
+        "  (E : AvailableChain.SimplexFG.Electorate V) (cfg : AvailableChain.SimplexFG.FGConfig)",
+        "  (K : Nat) (Hd : AvailableChain.SimplexFG.FGBlock V)",
+        "  (Λ : AvailableChain.SimplexFG.Record),",
+        "  And",
+        "    (Eq",
+        "      (AvailableChain.KitFG.certificateHeadFields",
+        "        (AvailableChain.KitFG.Window.certificateHeight E cfg K)",
+        "        (AvailableChain.KitFG.Window.certificateFinality E cfg K) Hd)",
+        "      { h_j := (AvailableChain.SimplexFG.Window.derive E cfg K Hd).h_j,",
+        "        J := (AvailableChain.SimplexFG.Window.derive E cfg K Hd).J.root,",
+        "        h_F := (AvailableChain.SimplexFG.Window.derive E cfg K Hd).h_F })",
+        "    (Eq",
+        "      (AvailableChain.SimplexFG.finality_pair Λ",
+        "        (AvailableChain.KitFG.certificateHeadFields",
+        "          (AvailableChain.KitFG.Window.certificateHeight E cfg K)",
+        "          (AvailableChain.KitFG.Window.certificateFinality E cfg K) Hd))",
+        "      (ite",
+        "        (And",
+        "          (instLTNat.lt (AvailableChain.SimplexFG.Window.derive E cfg K Hd).h_F",
+        "            (AvailableChain.SimplexFG.Window.derive E cfg K Hd).h_j)",
+        "          (And",
+        "            (Or",
+        "              (Eq (Λ.target (AvailableChain.SimplexFG.Window.derive E cfg K Hd).h_j)",
+        "                Option.none)",
+        "              (Eq (Λ.target (AvailableChain.SimplexFG.Window.derive E cfg K Hd).h_j)",
+        "                (Option.some",
+        "                  (AvailableChain.SimplexFG.Window.derive E cfg K Hd).J.root)))",
+        "            (And",
+        "              (Eq (Λ.timeout (AvailableChain.SimplexFG.Window.derive E cfg K Hd).h_j)",
+        "                Bool.false)",
+        "              (Or",
+        "                (Eq (Λ.lock (AvailableChain.SimplexFG.Window.derive E cfg K Hd).h_j)",
+        "                  Option.none)",
+        "                (Eq (Λ.lock (AvailableChain.SimplexFG.Window.derive E cfg K Hd).h_j)",
+        "                  (Option.some",
+        "                    (AvailableChain.SimplexFG.Window.derive E cfg K Hd).J.root))))))",
+        "        (Option.some",
+        "          { height := (AvailableChain.SimplexFG.Window.derive E cfg K Hd).h_j,",
+        "            target := (AvailableChain.SimplexFG.Window.derive E cfg K Hd).J.root })",
+        "        Option.none))"
+      ]
+    },
+    "AvailableChain.KitFG.Window.window_lexMax_eq": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.KitFG.Window.projectHeight",
+        "AvailableChain.KitFG.lexMaxView",
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.FGConfig",
+        "AvailableChain.SimplexFG.Height",
+        "AvailableChain.SimplexFG.RowCodec",
+        "AvailableChain.SimplexFG.View",
+        "AvailableChain.SimplexFG.Window.derive",
+        "AvailableChain.SimplexFG.lexMax",
+        "DecidableEq",
+        "Eq",
+        "Fintype",
+        "LE.le",
+        "Nat",
+        "OfNat.ofNat",
+        "Prod",
+        "instLENat",
+        "instOfNatNat"
+      ],
+      "digest": "1468d86ea1137d217e027ec395cdf3d864379d46d6b24837815e1c73b2b0df81",
+      "kernel_name": "str:2:71:str:2:54:str:2:38:str:2:12:anonymous:0:14:AvailableChain5:KitFG6:Window16:window_lexMax_eq",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowReaders",
+      "type": [
+        "∀ {V : Type} [inst : DecidableEq V] [inst_1 : Fintype V]",
+        "  [inst_2 : AvailableChain.SimplexFG.RowCodec V]",
+        "  (E : AvailableChain.SimplexFG.Electorate V) (cfg : AvailableChain.SimplexFG.FGConfig)",
+        "  (K : Nat),",
+        "  instLENat.le 2 K →",
+        "    ∀ (F : AvailableChain.SimplexFG.FGBlock V)",
+        "      (blocks : AvailableChain.SimplexFG.View V),",
+        "      Eq",
+        "        (AvailableChain.KitFG.lexMaxView",
+        "          (fun B =>",
+        "            AvailableChain.KitFG.Window.projectHeight",
+        "              (AvailableChain.SimplexFG.Window.derive E cfg K B))",
+        "          F blocks)",
+        "        (AvailableChain.SimplexFG.lexMax E cfg F blocks)"
+      ]
+    },
     "AvailableChain.KitFG.Window.window_no_reentry": {
       "body": [
         ""
@@ -91029,6 +92468,180 @@
         "                        (List.instMembership.mem",
         "                          (AvailableChain.SimplexFG.Window.derive E cfg K C).W d)",
         "                        (And (Eq d.j e.j) (Eq d.X e.X)))"
+      ]
+    },
+    "AvailableChain.KitFG.Window.window_on_block_F_mono": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.FGBlock.Preceq",
+        "AvailableChain.SimplexFG.FGConfig",
+        "AvailableChain.SimplexFG.RowCodec",
+        "AvailableChain.SimplexFG.Store",
+        "AvailableChain.SimplexFG.Store.F",
+        "AvailableChain.SimplexFG.Window.on_block",
+        "DecidableEq",
+        "Fintype",
+        "Nat"
+      ],
+      "digest": "effbaa10f505ae9e2798a921127a853a9cd3af1d0c84ac2f0217e9f2847e543e",
+      "kernel_name": "str:2:71:str:2:54:str:2:38:str:2:12:anonymous:0:14:AvailableChain5:KitFG6:Window22:window_on_block_F_mono",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowStore",
+      "type": [
+        "∀ {V : Type} [inst : DecidableEq V] [inst_1 : Fintype V]",
+        "  [inst_2 : AvailableChain.SimplexFG.RowCodec V]",
+        "  (E : AvailableChain.SimplexFG.Electorate V) (cfg : AvailableChain.SimplexFG.FGConfig)",
+        "  (K : Nat) (st : AvailableChain.SimplexFG.Store V)",
+        "  (B : AvailableChain.SimplexFG.FGBlock V),",
+        "  st.F.Preceq (AvailableChain.SimplexFG.Window.on_block E cfg K st B).F"
+      ]
+    },
+    "AvailableChain.KitFG.Window.window_on_block_TF_subset": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.FGConfig",
+        "AvailableChain.SimplexFG.RowCodec",
+        "AvailableChain.SimplexFG.Store",
+        "AvailableChain.SimplexFG.Store.TF",
+        "AvailableChain.SimplexFG.Window.on_block",
+        "DecidableEq",
+        "Finset",
+        "Finset.instPartialOrder",
+        "Fintype",
+        "LE.le",
+        "Nat",
+        "PartialOrder.toPreorder",
+        "Preorder.toLE"
+      ],
+      "digest": "00b4d0c82752d008240f9236bc50b8c352f48ef26e84f2fb44b434fa09948bc0",
+      "kernel_name": "str:2:71:str:2:54:str:2:38:str:2:12:anonymous:0:14:AvailableChain5:KitFG6:Window25:window_on_block_TF_subset",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowStore",
+      "type": [
+        "∀ {V : Type} [inst : DecidableEq V] [inst_1 : Fintype V]",
+        "  [inst_2 : AvailableChain.SimplexFG.RowCodec V]",
+        "  (E : AvailableChain.SimplexFG.Electorate V) (cfg : AvailableChain.SimplexFG.FGConfig)",
+        "  (K : Nat) (st : AvailableChain.SimplexFG.Store V)",
+        "  (B : AvailableChain.SimplexFG.FGBlock V),",
+        "  Finset.instPartialOrder.le st.TF",
+        "    (AvailableChain.SimplexFG.Window.on_block E cfg K st B).TF"
+      ]
+    },
+    "AvailableChain.KitFG.Window.window_on_block_of_accepted": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.FGBlock.parent",
+        "AvailableChain.SimplexFG.FGBlock.preceq",
+        "AvailableChain.SimplexFG.FGBlock.slot",
+        "AvailableChain.SimplexFG.FGConfig",
+        "AvailableChain.SimplexFG.RowCodec",
+        "AvailableChain.SimplexFG.Store",
+        "AvailableChain.SimplexFG.Store.F",
+        "AvailableChain.SimplexFG.Store.J",
+        "AvailableChain.SimplexFG.Store.TF",
+        "AvailableChain.SimplexFG.Store.h_j",
+        "AvailableChain.SimplexFG.Store.h_max",
+        "AvailableChain.SimplexFG.Store.mk",
+        "AvailableChain.SimplexFG.Window.on_block",
+        "AvailableChain.SimplexFG.Window.update_finality",
+        "AvailableChain.SimplexFG.instDecidableEqFGBlock",
+        "AvailableChain.Slot",
+        "Bool",
+        "Bool.false",
+        "DecidableEq",
+        "Eq",
+        "Finset",
+        "Finset.instInsert",
+        "Finset.instSetLike",
+        "Fintype",
+        "Insert.insert",
+        "LE.le",
+        "Membership.mem",
+        "Nat",
+        "Not",
+        "Or",
+        "SetLike.instMembership",
+        "instLENat"
+      ],
+      "digest": "e428f68ca9097a8b1f25b90cc0241dcd55c5f310e4dcd4f633fe4de280a846db",
+      "kernel_name": "str:2:71:str:2:54:str:2:38:str:2:12:anonymous:0:14:AvailableChain5:KitFG6:Window27:window_on_block_of_accepted",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowStore",
+      "type": [
+        "∀ {V : Type} [inst : DecidableEq V] [inst_1 : Fintype V]",
+        "  [inst_2 : AvailableChain.SimplexFG.RowCodec V]",
+        "  (E : AvailableChain.SimplexFG.Electorate V) (cfg : AvailableChain.SimplexFG.FGConfig)",
+        "  (K : Nat) (st : AvailableChain.SimplexFG.Store V)",
+        "  (B : AvailableChain.SimplexFG.FGBlock V),",
+        "  Not",
+        "      (Or (SetLike.instMembership.mem st.TF B)",
+        "        (Or (Not (SetLike.instMembership.mem st.TF B.parent))",
+        "          (Or (Eq (st.F.preceq B) Bool.false) (instLENat.le B.slot B.parent.slot)))) →",
+        "    Eq (AvailableChain.SimplexFG.Window.on_block E cfg K st B)",
+        "      (AvailableChain.SimplexFG.Window.update_finality E cfg K",
+        "        { TF := Finset.instInsert.insert B st.TF, F := st.F, J := st.J, h_j := st.h_j,",
+        "          h_max := st.h_max }",
+        "        B)"
+      ]
+    },
+    "AvailableChain.KitFG.Window.window_on_block_of_refused": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.FGBlock.parent",
+        "AvailableChain.SimplexFG.FGBlock.preceq",
+        "AvailableChain.SimplexFG.FGBlock.slot",
+        "AvailableChain.SimplexFG.FGConfig",
+        "AvailableChain.SimplexFG.RowCodec",
+        "AvailableChain.SimplexFG.Store",
+        "AvailableChain.SimplexFG.Store.F",
+        "AvailableChain.SimplexFG.Store.TF",
+        "AvailableChain.SimplexFG.Window.on_block",
+        "AvailableChain.Slot",
+        "Bool",
+        "Bool.false",
+        "DecidableEq",
+        "Eq",
+        "Finset",
+        "Finset.instSetLike",
+        "Fintype",
+        "LE.le",
+        "Membership.mem",
+        "Nat",
+        "Not",
+        "Or",
+        "SetLike.instMembership",
+        "instLENat"
+      ],
+      "digest": "21e9cf80d6858da1ab860e759c75b7c8533989ab7d8a2d246e5713e430db60a9",
+      "kernel_name": "str:2:71:str:2:54:str:2:38:str:2:12:anonymous:0:14:AvailableChain5:KitFG6:Window26:window_on_block_of_refused",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowStore",
+      "type": [
+        "∀ {V : Type} [inst : DecidableEq V] [inst_1 : Fintype V]",
+        "  [inst_2 : AvailableChain.SimplexFG.RowCodec V]",
+        "  (E : AvailableChain.SimplexFG.Electorate V) (cfg : AvailableChain.SimplexFG.FGConfig)",
+        "  (K : Nat) (st : AvailableChain.SimplexFG.Store V)",
+        "  (B : AvailableChain.SimplexFG.FGBlock V),",
+        "  Or (SetLike.instMembership.mem st.TF B)",
+        "      (Or (Not (SetLike.instMembership.mem st.TF B.parent))",
+        "        (Or (Eq (st.F.preceq B) Bool.false) (instLENat.le B.slot B.parent.slot))) →",
+        "    Eq (AvailableChain.SimplexFG.Window.on_block E cfg K st B) st"
       ]
     },
     "AvailableChain.KitFG.Window.window_ordered": {
@@ -91124,6 +92737,311 @@
         "          Not (E.IsQuorum e.Q)"
       ]
     },
+    "AvailableChain.KitFG.Window.window_prefinal_entry_origin": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "And",
+        "AvailableChain.KitFG.JustificationBirth",
+        "AvailableChain.KitFG.StrictPrefix",
+        "AvailableChain.KitFG.Window.certificateFolded",
+        "AvailableChain.KitFG.Window.certificateHeight",
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.FGBlock.Preceq",
+        "AvailableChain.SimplexFG.FGBlock.root",
+        "AvailableChain.SimplexFG.FGBlock.rows",
+        "AvailableChain.SimplexFG.FGConfig",
+        "AvailableChain.SimplexFG.FinalityPair",
+        "AvailableChain.SimplexFG.FinalityPair.mk",
+        "AvailableChain.SimplexFG.Row",
+        "AvailableChain.SimplexFG.Row.finality_pair",
+        "AvailableChain.SimplexFG.Row.signer",
+        "AvailableChain.SimplexFG.RowCodec",
+        "AvailableChain.SimplexFG.Window.Entry",
+        "AvailableChain.SimplexFG.Window.Entry.Q",
+        "AvailableChain.SimplexFG.Window.Entry.X",
+        "AvailableChain.SimplexFG.Window.Entry.j",
+        "AvailableChain.SimplexFG.Window.State.W",
+        "DecidableEq",
+        "Eq",
+        "Exists",
+        "Finset",
+        "Finset.instSetLike",
+        "Fintype",
+        "LE.le",
+        "List",
+        "List.instMembership",
+        "Membership.mem",
+        "Nat",
+        "OfNat.ofNat",
+        "Option",
+        "Option.some",
+        "SetLike.instMembership",
+        "instLENat",
+        "instOfNatNat"
+      ],
+      "digest": "2c0fe35662382e0dc10fb2b8fb9b5cc30d17f1f3606449ae85db06497594dab0",
+      "kernel_name": "str:2:71:str:2:54:str:2:38:str:2:12:anonymous:0:14:AvailableChain5:KitFG6:Window28:window_prefinal_entry_origin",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowCertificates",
+      "type": [
+        "∀ {V : Type} [inst : DecidableEq V] [inst_1 : Fintype V]",
+        "  [inst_2 : AvailableChain.SimplexFG.RowCodec V]",
+        "  (E : AvailableChain.SimplexFG.Electorate V) (cfg : AvailableChain.SimplexFG.FGConfig)",
+        "  (K : Nat),",
+        "  instLENat.le 2 K →",
+        "    ∀ (B : AvailableChain.SimplexFG.FGBlock V)",
+        "      (e : AvailableChain.SimplexFG.Window.Entry V),",
+        "      List.instMembership.mem",
+        "          (AvailableChain.KitFG.Window.certificateFolded E cfg K B).W e →",
+        "        Exists fun C =>",
+        "          And (AvailableChain.KitFG.StrictPrefix C B)",
+        "            (And",
+        "              (AvailableChain.KitFG.JustificationBirth E",
+        "                (AvailableChain.KitFG.Window.certificateHeight E cfg K) C e.j e.X)",
+        "              (∀ (i : V),",
+        "                SetLike.instMembership.mem e.Q i →",
+        "                  Exists fun carrier =>",
+        "                    Exists fun a =>",
+        "                      And (AvailableChain.KitFG.StrictPrefix C carrier)",
+        "                        (And (carrier.Preceq B)",
+        "                          (And (List.instMembership.mem carrier.rows a)",
+        "                            (And (Eq a.signer i)",
+        "                              (Eq a.finality_pair",
+        "                                (Option.some",
+        "                                  { height := e.j, target := e.X.root })))))))"
+      ]
+    },
+    "AvailableChain.KitFG.Window.window_provenance_entry": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "And",
+        "AvailableChain.BlockId",
+        "AvailableChain.KitFG.FGHeight.T_h",
+        "AvailableChain.KitFG.FGHeight.h",
+        "AvailableChain.KitFG.Window.certificateHeight",
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.FGBlock.Preceq",
+        "AvailableChain.SimplexFG.FGBlock.root",
+        "AvailableChain.SimplexFG.FGConfig",
+        "AvailableChain.SimplexFG.FinalityPair",
+        "AvailableChain.SimplexFG.Height",
+        "AvailableChain.SimplexFG.NamedHeightPair",
+        "AvailableChain.SimplexFG.NamedHeightPair.vote",
+        "AvailableChain.SimplexFG.Record",
+        "AvailableChain.SimplexFG.RowCodec",
+        "AvailableChain.SimplexFG.height_pair",
+        "Bool",
+        "DecidableEq",
+        "Eq",
+        "Fintype",
+        "LE.le",
+        "Nat",
+        "OfNat.ofNat",
+        "Option",
+        "Option.some",
+        "Prod",
+        "Prod.mk",
+        "instLENat",
+        "instOfNatNat"
+      ],
+      "digest": "b07841b6c0ca872bed0f48210ea4a4ddea071d5822f06ba44ce1cb3b2e82762a",
+      "kernel_name": "str:2:71:str:2:54:str:2:38:str:2:12:anonymous:0:14:AvailableChain5:KitFG6:Window23:window_provenance_entry",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowProvenance",
+      "type": [
+        "∀ {V : Type} [inst : DecidableEq V] [inst_1 : Fintype V]",
+        "  [inst_2 : AvailableChain.SimplexFG.RowCodec V]",
+        "  (E : AvailableChain.SimplexFG.Electorate V) (cfg : AvailableChain.SimplexFG.FGConfig)",
+        "  (K : Nat),",
+        "  instLENat.le 2 K →",
+        "    ∀ (Λ : AvailableChain.SimplexFG.Record) (C : AvailableChain.SimplexFG.FGBlock V)",
+        "      (fp : Option AvailableChain.SimplexFG.FinalityPair)",
+        "      (h : AvailableChain.SimplexFG.Height) (T : AvailableChain.BlockId) (t : Bool),",
+        "      Eq",
+        "          (AvailableChain.SimplexFG.height_pair Λ",
+        "            (Option.some",
+        "              { fst := (AvailableChain.KitFG.Window.certificateHeight E cfg K C).h,",
+        "                snd :=",
+        "                  (AvailableChain.KitFG.Window.certificateHeight E cfg K C).T_h.root })",
+        "            fp)",
+        "          (AvailableChain.SimplexFG.NamedHeightPair.vote h T t) →",
+        "        And (Eq h (AvailableChain.KitFG.Window.certificateHeight E cfg K C).h)",
+        "          (And (Eq T (AvailableChain.KitFG.Window.certificateHeight E cfg K C).T_h.root)",
+        "            ((AvailableChain.KitFG.Window.certificateHeight E cfg K C).T_h.Preceq C))"
+      ]
+    },
+    "AvailableChain.KitFG.Window.window_provenance_finalityQC": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "And",
+        "AvailableChain.BlockId",
+        "AvailableChain.KitFG.FGHeight.J",
+        "AvailableChain.KitFG.FGHeight.h_j",
+        "AvailableChain.KitFG.TargetQCAt",
+        "AvailableChain.KitFG.Window.certificateFinality",
+        "AvailableChain.KitFG.Window.certificateHeight",
+        "AvailableChain.KitFG.certificateHeadFields",
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.Electorate.IsQuorum",
+        "AvailableChain.SimplexFG.Electorate.q",
+        "AvailableChain.SimplexFG.Electorate.weightOf",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.FGBlock.root",
+        "AvailableChain.SimplexFG.FGConfig",
+        "AvailableChain.SimplexFG.FinalityPair",
+        "AvailableChain.SimplexFG.FinalityPair.height",
+        "AvailableChain.SimplexFG.FinalityPair.target",
+        "AvailableChain.SimplexFG.Height",
+        "AvailableChain.SimplexFG.Record",
+        "AvailableChain.SimplexFG.Row",
+        "AvailableChain.SimplexFG.Row.finality_pair",
+        "AvailableChain.SimplexFG.Row.signer",
+        "AvailableChain.SimplexFG.RowCodec",
+        "AvailableChain.SimplexFG.finality_pair",
+        "DecidableEq",
+        "Eq",
+        "Exists",
+        "Finset",
+        "Finset.instSetLike",
+        "Fintype",
+        "LE.le",
+        "LT.lt",
+        "Membership.mem",
+        "Nat",
+        "Not",
+        "OfNat.ofNat",
+        "Option",
+        "Option.some",
+        "SetLike.instMembership",
+        "instLENat",
+        "instLTNat",
+        "instOfNatNat"
+      ],
+      "digest": "4ff72f618ef4dd24a383d7662d9b37a15b18612448f87363971d9468e3760b70",
+      "kernel_name": "str:2:71:str:2:54:str:2:38:str:2:12:anonymous:0:14:AvailableChain5:KitFG6:Window28:window_provenance_finalityQC",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowProvenance",
+      "type": [
+        "∀ {V : Type} [inst : DecidableEq V] [inst_1 : Fintype V]",
+        "  [inst_2 : AvailableChain.SimplexFG.RowCodec V]",
+        "  (E : AvailableChain.SimplexFG.Electorate V) (cfg : AvailableChain.SimplexFG.FGConfig)",
+        "  (K : Nat),",
+        "  instLENat.le 2 K →",
+        "    ∀ (faulty : Finset V),",
+        "      instLTNat.lt (E.weightOf faulty) E.q →",
+        "        ∀ (rows : Finset (AvailableChain.SimplexFG.Row V)) (Q : Finset V),",
+        "          E.IsQuorum Q →",
+        "            ∀ (pair : AvailableChain.SimplexFG.FinalityPair),",
+        "              (∀ (j : V),",
+        "                  SetLike.instMembership.mem Q j →",
+        "                    Exists fun a =>",
+        "                      And (SetLike.instMembership.mem rows a)",
+        "                        (And (Eq a.signer j) (Eq a.finality_pair (Option.some pair)))) →",
+        "                (∀ (a : AvailableChain.SimplexFG.Row V),",
+        "                    SetLike.instMembership.mem rows a →",
+        "                      Not (SetLike.instMembership.mem faulty a.signer) →",
+        "                        Eq a.finality_pair (Option.some pair) →",
+        "                          Exists fun Λ =>",
+        "                            Exists fun Hd =>",
+        "                              Eq",
+        "                                (AvailableChain.SimplexFG.finality_pair Λ",
+        "                                  (AvailableChain.KitFG.certificateHeadFields",
+        "                                    (AvailableChain.KitFG.Window.certificateHeight E cfg",
+        "                                      K)",
+        "                                    (AvailableChain.KitFG.Window.certificateFinality E",
+        "                                      cfg K)",
+        "                                    Hd))",
+        "                                (Option.some pair)) →",
+        "                  Exists fun Hd =>",
+        "                    And",
+        "                      (Eq pair.height",
+        "                        (AvailableChain.KitFG.Window.certificateHeight E cfg K Hd).h_j)",
+        "                      (And",
+        "                        (Eq pair.target",
+        "                          (AvailableChain.KitFG.Window.certificateHeight E cfg K",
+        "                                Hd).J.root)",
+        "                        (AvailableChain.KitFG.TargetQCAt E Hd pair.height",
+        "                          (AvailableChain.KitFG.Window.certificateHeight E cfg K Hd).J))"
+      ]
+    },
+    "AvailableChain.KitFG.Window.window_provenance_finalityRow": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "And",
+        "AvailableChain.BlockId",
+        "AvailableChain.KitFG.FGFinality.h_F",
+        "AvailableChain.KitFG.FGHeight.J",
+        "AvailableChain.KitFG.FGHeight.h_j",
+        "AvailableChain.KitFG.TargetQCAt",
+        "AvailableChain.KitFG.Window.certificateFinality",
+        "AvailableChain.KitFG.Window.certificateHeight",
+        "AvailableChain.KitFG.certificateHeadFields",
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.FGBlock.root",
+        "AvailableChain.SimplexFG.FGConfig",
+        "AvailableChain.SimplexFG.FinalityPair",
+        "AvailableChain.SimplexFG.FinalityPair.height",
+        "AvailableChain.SimplexFG.FinalityPair.target",
+        "AvailableChain.SimplexFG.Height",
+        "AvailableChain.SimplexFG.Record",
+        "AvailableChain.SimplexFG.RowCodec",
+        "AvailableChain.SimplexFG.finality_pair",
+        "DecidableEq",
+        "Eq",
+        "Fintype",
+        "LE.le",
+        "LT.lt",
+        "Nat",
+        "OfNat.ofNat",
+        "Option",
+        "Option.some",
+        "instLENat",
+        "instLTNat",
+        "instOfNatNat"
+      ],
+      "digest": "48d51abde14067565d0a8a6e73d7c4d21e611cd825e2d61e217e8651326629f2",
+      "kernel_name": "str:2:71:str:2:54:str:2:38:str:2:12:anonymous:0:14:AvailableChain5:KitFG6:Window29:window_provenance_finalityRow",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowProvenance",
+      "type": [
+        "∀ {V : Type} [inst : DecidableEq V] [inst_1 : Fintype V]",
+        "  [inst_2 : AvailableChain.SimplexFG.RowCodec V]",
+        "  (E : AvailableChain.SimplexFG.Electorate V) (cfg : AvailableChain.SimplexFG.FGConfig)",
+        "  (K : Nat),",
+        "  instLENat.le 2 K →",
+        "    ∀ (Λ : AvailableChain.SimplexFG.Record) (Hd : AvailableChain.SimplexFG.FGBlock V)",
+        "      (pair : AvailableChain.SimplexFG.FinalityPair),",
+        "      Eq",
+        "          (AvailableChain.SimplexFG.finality_pair Λ",
+        "            (AvailableChain.KitFG.certificateHeadFields",
+        "              (AvailableChain.KitFG.Window.certificateHeight E cfg K)",
+        "              (AvailableChain.KitFG.Window.certificateFinality E cfg K) Hd))",
+        "          (Option.some pair) →",
+        "        And",
+        "          (Eq pair.height",
+        "            (AvailableChain.KitFG.Window.certificateHeight E cfg K Hd).h_j)",
+        "          (And",
+        "            (Eq pair.target",
+        "              (AvailableChain.KitFG.Window.certificateHeight E cfg K Hd).J.root)",
+        "            (And",
+        "              (instLTNat.lt",
+        "                (AvailableChain.KitFG.Window.certificateFinality E cfg K Hd).h_F",
+        "                pair.height)",
+        "              (AvailableChain.KitFG.TargetQCAt E Hd pair.height",
+        "                (AvailableChain.KitFG.Window.certificateHeight E cfg K Hd).J)))"
+      ]
+    },
     "AvailableChain.KitFG.Window.window_row_fields": {
       "body": [
         ""
@@ -91168,6 +93086,95 @@
         "              (Eq (AvailableChain.SimplexFG.Window.process_row w a).F w.F))))))"
       ]
     },
+    "AvailableChain.KitFG.Window.window_storeControls_eq": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.KitFG.Window.projectHeight",
+        "AvailableChain.KitFG.storeControlsView",
+        "AvailableChain.SimplexFG.Controls",
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.FGConfig",
+        "AvailableChain.SimplexFG.RowCodec",
+        "AvailableChain.SimplexFG.Store",
+        "AvailableChain.SimplexFG.Window.derive",
+        "AvailableChain.SimplexFG.storeControls",
+        "DecidableEq",
+        "Eq",
+        "Fintype",
+        "LE.le",
+        "Nat",
+        "OfNat.ofNat",
+        "instLENat",
+        "instOfNatNat"
+      ],
+      "digest": "3a5f61ff494ee1387b4cccf867f9fef809e1a478546cd063e161dd3387b89837",
+      "kernel_name": "str:2:71:str:2:54:str:2:38:str:2:12:anonymous:0:14:AvailableChain5:KitFG6:Window23:window_storeControls_eq",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowReaders",
+      "type": [
+        "∀ {V : Type} [inst : DecidableEq V] [inst_1 : Fintype V]",
+        "  [inst_2 : AvailableChain.SimplexFG.RowCodec V]",
+        "  (E : AvailableChain.SimplexFG.Electorate V) (cfg : AvailableChain.SimplexFG.FGConfig)",
+        "  (K : Nat),",
+        "  instLENat.le 2 K →",
+        "    ∀ (st : AvailableChain.SimplexFG.Store V),",
+        "      Eq",
+        "        (AvailableChain.KitFG.storeControlsView",
+        "          (fun B =>",
+        "            AvailableChain.KitFG.Window.projectHeight",
+        "              (AvailableChain.SimplexFG.Window.derive E cfg K B))",
+        "          st)",
+        "        (AvailableChain.SimplexFG.storeControls E cfg st)"
+      ]
+    },
+    "AvailableChain.KitFG.Window.window_storeFrame_eq": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.KitFG.Window.projectHeight",
+        "AvailableChain.KitFG.storeFrameView",
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.FGConfig",
+        "AvailableChain.SimplexFG.RowCodec",
+        "AvailableChain.SimplexFG.Store",
+        "AvailableChain.SimplexFG.Window.derive",
+        "AvailableChain.SimplexFG.storeFrame",
+        "DecidableEq",
+        "Eq",
+        "Finset",
+        "Fintype",
+        "LE.le",
+        "Nat",
+        "OfNat.ofNat",
+        "instLENat",
+        "instOfNatNat"
+      ],
+      "digest": "e753c881138a11e16cbd2803ed82ae714f3b7a98c94bd8214eddd6f31de24240",
+      "kernel_name": "str:2:71:str:2:54:str:2:38:str:2:12:anonymous:0:14:AvailableChain5:KitFG6:Window20:window_storeFrame_eq",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowReaders",
+      "type": [
+        "∀ {V : Type} [inst : DecidableEq V] [inst_1 : Fintype V]",
+        "  [inst_2 : AvailableChain.SimplexFG.RowCodec V]",
+        "  (E : AvailableChain.SimplexFG.Electorate V) (cfg : AvailableChain.SimplexFG.FGConfig)",
+        "  (K : Nat),",
+        "  instLENat.le 2 K →",
+        "    ∀ (st : AvailableChain.SimplexFG.Store V)",
+        "      (blocks : Finset (AvailableChain.SimplexFG.FGBlock V)),",
+        "      Eq",
+        "        (AvailableChain.KitFG.storeFrameView",
+        "          (fun B =>",
+        "            AvailableChain.KitFG.Window.projectHeight",
+        "              (AvailableChain.SimplexFG.Window.derive E cfg K B))",
+        "          st blocks)",
+        "        (AvailableChain.SimplexFG.storeFrame E cfg st blocks)"
+      ]
+    },
     "AvailableChain.KitFG.Window.window_strict_node": {
       "body": [
         ""
@@ -91193,6 +93200,186 @@
         "  (s : AvailableChain.Slot) (r_s : AvailableChain.BlockId) (x : Nat)",
         "  (rs : List (AvailableChain.SimplexFG.Row V)),",
         "  C.Preceq P → AvailableChain.KitFG.StrictPrefix C (P.node s r_s x rs)"
+      ]
+    },
+    "AvailableChain.KitFG.Window.window_update_finality_F_cases": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "And",
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.FGBlock.Preceq",
+        "AvailableChain.SimplexFG.FGConfig",
+        "AvailableChain.SimplexFG.RowCodec",
+        "AvailableChain.SimplexFG.Store",
+        "AvailableChain.SimplexFG.Store.F",
+        "AvailableChain.SimplexFG.Store.J",
+        "AvailableChain.SimplexFG.Store.TF",
+        "AvailableChain.SimplexFG.Window.State.F",
+        "AvailableChain.SimplexFG.Window.derive",
+        "AvailableChain.SimplexFG.Window.update_finality",
+        "DecidableEq",
+        "Eq",
+        "Finset",
+        "Finset.instSetLike",
+        "Fintype",
+        "Membership.mem",
+        "Nat",
+        "Or",
+        "SetLike.instMembership"
+      ],
+      "digest": "b0c00044e2150788e0f772b03c2fab23d43be03226455a770d6bab187fb09ea6",
+      "kernel_name": "str:2:71:str:2:54:str:2:38:str:2:12:anonymous:0:14:AvailableChain5:KitFG6:Window30:window_update_finality_F_cases",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowStore",
+      "type": [
+        "∀ {V : Type} [inst : DecidableEq V] [inst_1 : Fintype V]",
+        "  [inst_2 : AvailableChain.SimplexFG.RowCodec V]",
+        "  (E : AvailableChain.SimplexFG.Electorate V) (cfg : AvailableChain.SimplexFG.FGConfig)",
+        "  (K : Nat) (st : AvailableChain.SimplexFG.Store V)",
+        "  (B : AvailableChain.SimplexFG.FGBlock V),",
+        "  Or (Eq (AvailableChain.SimplexFG.Window.update_finality E cfg K st B).F st.F)",
+        "    (And (st.F.Preceq (AvailableChain.SimplexFG.Window.derive E cfg K B).F)",
+        "      (And",
+        "        (SetLike.instMembership.mem st.TF",
+        "          (AvailableChain.SimplexFG.Window.derive E cfg K B).F)",
+        "        (And",
+        "          ((AvailableChain.SimplexFG.Window.derive E cfg K B).F.Preceq",
+        "            (AvailableChain.SimplexFG.Window.update_finality E cfg K st B).J)",
+        "          (Eq (AvailableChain.SimplexFG.Window.update_finality E cfg K st B).F",
+        "            (AvailableChain.SimplexFG.Window.derive E cfg K B).F))))"
+      ]
+    },
+    "AvailableChain.KitFG.Window.window_update_finality_TF": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.FGConfig",
+        "AvailableChain.SimplexFG.RowCodec",
+        "AvailableChain.SimplexFG.Store",
+        "AvailableChain.SimplexFG.Store.TF",
+        "AvailableChain.SimplexFG.Window.update_finality",
+        "DecidableEq",
+        "Eq",
+        "Finset",
+        "Fintype",
+        "Nat"
+      ],
+      "digest": "372436992231fc6631156cd3a6926a25d700c213f093f8f25018b0fce973e825",
+      "kernel_name": "str:2:71:str:2:54:str:2:38:str:2:12:anonymous:0:14:AvailableChain5:KitFG6:Window25:window_update_finality_TF",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowStore",
+      "type": [
+        "∀ {V : Type} [inst : DecidableEq V] [inst_1 : Fintype V]",
+        "  [inst_2 : AvailableChain.SimplexFG.RowCodec V]",
+        "  (E : AvailableChain.SimplexFG.Electorate V) (cfg : AvailableChain.SimplexFG.FGConfig)",
+        "  (K : Nat) (st : AvailableChain.SimplexFG.Store V)",
+        "  (B : AvailableChain.SimplexFG.FGBlock V),",
+        "  Eq (AvailableChain.SimplexFG.Window.update_finality E cfg K st B).TF st.TF"
+      ]
+    },
+    "AvailableChain.KitFG.Window.window_update_finality_h_max": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.FGConfig",
+        "AvailableChain.SimplexFG.Height",
+        "AvailableChain.SimplexFG.RowCodec",
+        "AvailableChain.SimplexFG.Store",
+        "AvailableChain.SimplexFG.Store.h_max",
+        "AvailableChain.SimplexFG.Window.State.h",
+        "AvailableChain.SimplexFG.Window.derive",
+        "AvailableChain.SimplexFG.Window.update_finality",
+        "DecidableEq",
+        "Eq",
+        "Fintype",
+        "Max.max",
+        "Nat",
+        "Nat.instMax"
+      ],
+      "digest": "92c4e8184ca1a65b163239aecd5888cea93e2dcb33c3a53bae38381df8d919dc",
+      "kernel_name": "str:2:71:str:2:54:str:2:38:str:2:12:anonymous:0:14:AvailableChain5:KitFG6:Window28:window_update_finality_h_max",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowStore",
+      "type": [
+        "∀ {V : Type} [inst : DecidableEq V] [inst_1 : Fintype V]",
+        "  [inst_2 : AvailableChain.SimplexFG.RowCodec V]",
+        "  (E : AvailableChain.SimplexFG.Electorate V) (cfg : AvailableChain.SimplexFG.FGConfig)",
+        "  (K : Nat) (st : AvailableChain.SimplexFG.Store V)",
+        "  (B : AvailableChain.SimplexFG.FGBlock V),",
+        "  Eq (AvailableChain.SimplexFG.Window.update_finality E cfg K st B).h_max",
+        "    (Nat.instMax.max st.h_max (AvailableChain.SimplexFG.Window.derive E cfg K B).h)"
+      ]
+    },
+    "AvailableChain.KitFG.Window.window_update_finality_pair": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "And",
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.FGBlock.Preceq",
+        "AvailableChain.SimplexFG.FGBlock.instDecidablePreceq",
+        "AvailableChain.SimplexFG.FGConfig",
+        "AvailableChain.SimplexFG.Height",
+        "AvailableChain.SimplexFG.RowCodec",
+        "AvailableChain.SimplexFG.Store",
+        "AvailableChain.SimplexFG.Store.F",
+        "AvailableChain.SimplexFG.Store.J",
+        "AvailableChain.SimplexFG.Store.h_j",
+        "AvailableChain.SimplexFG.Window.State.J",
+        "AvailableChain.SimplexFG.Window.State.h_j",
+        "AvailableChain.SimplexFG.Window.derive",
+        "AvailableChain.SimplexFG.Window.update_finality",
+        "AvailableChain.SimplexFG.lexKey",
+        "DecidableEq",
+        "Eq",
+        "Fintype",
+        "LT.lt",
+        "Lex",
+        "LinearOrder.toDecidableLT",
+        "Nat",
+        "Nat.instLinearOrder",
+        "Prod",
+        "Prod.Lex.instLT",
+        "Prod.Lex.instLinearOrder",
+        "Prod.mk",
+        "instDecidableAnd",
+        "instLTNat",
+        "ite"
+      ],
+      "digest": "20dc75b9a6cc4fbd1d056f2168335d4e2c9c41d4bdb54feb048edb29a49fbcb4",
+      "kernel_name": "str:2:71:str:2:54:str:2:38:str:2:12:anonymous:0:14:AvailableChain5:KitFG6:Window27:window_update_finality_pair",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowStore",
+      "type": [
+        "∀ {V : Type} [inst : DecidableEq V] [inst_1 : Fintype V]",
+        "  [inst_2 : AvailableChain.SimplexFG.RowCodec V]",
+        "  (E : AvailableChain.SimplexFG.Electorate V) (cfg : AvailableChain.SimplexFG.FGConfig)",
+        "  (K : Nat) (st : AvailableChain.SimplexFG.Store V)",
+        "  (B : AvailableChain.SimplexFG.FGBlock V),",
+        "  Eq",
+        "    { fst := (AvailableChain.SimplexFG.Window.update_finality E cfg K st B).h_j,",
+        "      snd := (AvailableChain.SimplexFG.Window.update_finality E cfg K st B).J }",
+        "    (ite",
+        "      (And (st.F.Preceq (AvailableChain.SimplexFG.Window.derive E cfg K B).J)",
+        "        ((Prod.Lex.instLT Nat Nat).lt",
+        "          (AvailableChain.SimplexFG.lexKey { fst := st.h_j, snd := st.J })",
+        "          (AvailableChain.SimplexFG.lexKey",
+        "            { fst := (AvailableChain.SimplexFG.Window.derive E cfg K B).h_j,",
+        "              snd := (AvailableChain.SimplexFG.Window.derive E cfg K B).J })))",
+        "      { fst := (AvailableChain.SimplexFG.Window.derive E cfg K B).h_j,",
+        "        snd := (AvailableChain.SimplexFG.Window.derive E cfg K B).J }",
+        "      { fst := st.h_j, snd := st.J })"
       ]
     },
     "AvailableChain.KitFG.WindowFoldMap": {

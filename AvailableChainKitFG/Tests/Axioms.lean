@@ -1,4 +1,10 @@
 module
+public import AvailableChainKitFG.WindowCertificates
+public import AvailableChainKitFG.WindowSelection
+public import AvailableChainKitFG.WindowStore
+public import AvailableChainKitFG.WindowReaders
+public import AvailableChainKitFG.WindowProvenance
+
 public import AvailableChainKitFG.WindowHeightBridge
 public import AvailableChainKitFG.WindowSteps
 public import AvailableChainKitFG.WindowInvariant
@@ -238,3 +244,42 @@ public import AvailableChainKitFG
 #print axioms AvailableChain.KitFG.Window.window_bit_retained
 #print axioms AvailableChain.KitFG.Window.window_no_reentry
 #print axioms AvailableChain.KitFG.Window.window_finality_of_cover
+
+#print axioms AvailableChain.KitFG.Window.justificationBirth_window_iff_simplex
+#print axioms AvailableChain.KitFG.Window.window_entry_origin
+#print axioms AvailableChain.KitFG.Window.window_prefinal_entry_origin
+#print axioms AvailableChain.KitFG.Window.windowSelectionLaws
+#print axioms AvailableChain.KitFG.Window.windowCertificateLaws
+#print axioms AvailableChain.KitFG.Window.windowChainCertificate
+#print axioms AvailableChain.KitFG.Window.acceptViable_eq
+#print axioms AvailableChain.KitFG.Window.window_update_finality_TF
+#print axioms AvailableChain.KitFG.Window.window_update_finality_h_max
+#print axioms AvailableChain.KitFG.Window.window_update_finality_pair
+#print axioms AvailableChain.KitFG.Window.window_update_finality_F_cases
+#print axioms AvailableChain.KitFG.Window.update_finality_h_max_eq
+#print axioms AvailableChain.KitFG.Window.update_finality_J_eq
+#print axioms AvailableChain.KitFG.Window.update_finality_h_j_eq
+#print axioms AvailableChain.KitFG.Window.on_block_TF_eq
+#print axioms AvailableChain.KitFG.Window.windowStoreInvariant_init
+#print axioms AvailableChain.KitFG.Window.windowStoreInvariant_accept
+#print axioms AvailableChain.KitFG.Window.window_on_block_of_refused
+#print axioms AvailableChain.KitFG.Window.window_on_block_of_accepted
+#print axioms AvailableChain.KitFG.Window.window_on_block_F_mono
+#print axioms AvailableChain.KitFG.Window.windowStoreInvariant_on_block
+#print axioms AvailableChain.KitFG.Window.window_on_block_TF_subset
+#print axioms AvailableChain.KitFG.Window.windowStoreSafety
+#print axioms AvailableChain.KitFG.Window.window_hOf_eq
+#print axioms AvailableChain.KitFG.Window.window_frontier_eq
+#print axioms AvailableChain.KitFG.Window.window_lexMax_eq
+#print axioms AvailableChain.KitFG.Window.window_filteredFrom_eq
+#print axioms AvailableChain.KitFG.Window.window_storeControls_eq
+#print axioms AvailableChain.KitFG.Window.window_storeFrame_eq
+#print axioms AvailableChain.KitFG.Window.window_fjControls_eq
+#print axioms AvailableChain.KitFG.Window.window_fjFrame_eq
+#print axioms AvailableChain.KitFG.Window.headFields_eq_certificateHeadFields
+#print axioms AvailableChain.KitFG.Window.window_provenance_entry
+#print axioms AvailableChain.KitFG.Window.window_provenance_finalityRow
+#print axioms AvailableChain.KitFG.Window.window_provenance_finalityQC
+#print axioms AvailableChain.KitFG.Window.window_exists_crossing_quorum_ne_justified
+#print axioms AvailableChain.KitFG.Window.window_exists_honest_timeout_of_crossing
+#print axioms AvailableChain.KitFG.Window.window_headFields_latest

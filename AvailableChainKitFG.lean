@@ -1,4 +1,10 @@
 module
+public import AvailableChainKitFG.WindowCertificates
+public import AvailableChainKitFG.WindowSelection
+public import AvailableChainKitFG.WindowStore
+public import AvailableChainKitFG.WindowReaders
+public import AvailableChainKitFG.WindowProvenance
+
 public import AvailableChainKitFG.RootScopeDef
 public import AvailableChainKitFG.Ancestry
 public import AvailableChainKitFG.Certificates
