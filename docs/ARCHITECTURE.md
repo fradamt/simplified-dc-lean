@@ -1313,3 +1313,29 @@ manifest passes the FG-SA, legacy, V2, generic and Compose snapshots. Its claim
 snapshot needed H1 test callers and P-As Assembly/NonVacuity ports at that
 checkpoint. P-H2 Round 10 and P-As Round 9 close those ports. The final P-As
 handoff records full Root closure and the inherited PC-SA manifest blocker.
+
+## Provisional integration gate
+
+`bash scripts/gate.sh --integration --base REF` runs all positive checks and
+package G0 checks. It defers the recorded generic negative controls only for
+an eligible, clean, committed candidate on a branch other than main/master.
+The result is provisional. It cannot write a FULL stamp, sign a FULL receipt,
+or authorize main. Main requires FULL `--neg` and Mac `check-fg` on the exact
+final candidate. Normal checker-path and control selection rules are unchanged.
+
+Existing production Lean files must preserve all old source bytes. The selector
+accepts exact import additions in a simple module header. It also accepts new
+single-line numeric `def` declarations at the end of a file that contains only
+that simple declaration grammar, imports, blank lines, and `public section`.
+Declaration, import, and scope removal are refused. Other source edits are
+unclassified and require the full gate. Existing test/control files are refused.
+
+`--reviewed-extraction SOURCE:TARGET` records explicit review of one exact module
+extraction. TARGET must be a new production module with the complete old SOURCE
+content, byte for byte. SOURCE must retain its old simple module/import header
+and replace its `public section` and body with a public import of TARGET.
+The record binds both commits and the source/target SHA-256 hashes. The selector
+checks preservation again at gate completion. Partial extraction, changed bodies,
+removed facade imports, and overlapping extraction records are refused.
+`--reviewed-allow FILE` remains limited to exact policy-data additions and retains
+all generic controls. Neither review option can authorize checker logic edits.

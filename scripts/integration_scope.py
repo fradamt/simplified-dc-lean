@@ -23,6 +23,80 @@ CONSTANTS = {'scripts/check-fgsa-claims.sh': {'ORDER', 'REQUIRED_MODEL_SCOPE'},
 P0 = ('AvailableChainGeneric', 'AvailableChainFGSA', 'AvailableChainFGSARun',
       'AvailableChainFGSAClaims', 'AvailableChainFGSAProofs',
       'AvailableChainFGSAInhabit', 'AvailableChainFGCompose')
+LEAN_NAME = r"[^\W\d][\w'.!?]*"
+IMPORT = re.compile(r'(?:public )?import (' + LEAN_NAME + r')\n')
+# A deliberately small grammar. Complex declaration edits need the full gate.
+SIMPLE_DEF = re.compile(r'def (' + LEAN_NAME + r')(?: : Nat)? := [0-9]+\n')
+
+
+def production_source(path):
+    return (path.endswith('.lean') and
+            any(path == p + '.lean' or path.startswith(p + '/') for p in P0) and
+            not re.search(r'Check|Control', path) and '/Tests/' not in path)
+
+
+def source_additions(before, after):
+    old, new = before.splitlines(keepends=True), after.splitlines(keepends=True)
+    if not old or old[0] != 'module\n':
+        raise ValueError('unclassified source header')
+    header = 1
+    while header < len(old) and (old[header] == '\n' or IMPORT.fullmatch(old[header])):
+        header += 1
+    simple = all(line in ('module\n', '\n', 'public section\n') or
+                 IMPORT.fullmatch(line) or SIMPLE_DEF.fullmatch(line) for line in old)
+    names = {m[1] for line in old if (m := SIMPLE_DEF.fullmatch(line))}
+    imports = {m[1] for line in old[:header] if (m := IMPORT.fullmatch(line))}
+    count = 0
+    for tag, i, j, k, l in SequenceMatcher(None, old, new, autojunk=False).get_opcodes():
+        if tag not in ('equal', 'insert'):
+            raise ValueError('source declaration, import, or scope removed or changed')
+        if tag == 'insert':
+            for line in new[k:l]:
+                if 1 <= i <= header and (m := IMPORT.fullmatch(line)) and m[1] not in imports:
+                    imports.add(m[1])
+                elif simple and i == len(old) and (m := SIMPLE_DEF.fullmatch(line)) and m[1] not in names:
+                    names.add(m[1])
+                else:
+                    raise ValueError('unclassified source addition')
+                count += 1
+    if not count:
+        raise ValueError('no classified source additions')
+    return count
+
+
+def reviewed_extractions(root, base, head, pairs, paths):
+    records = {}
+    targets = set()
+    for pair in pairs:
+        parts = pair.split(':')
+        if len(parts) != 2:
+            raise ValueError('--reviewed-extraction requires exact SOURCE:TARGET paths')
+        source, target = parts
+        if (source == target or source in records or target in targets or
+                any(p not in paths or not production_source(p) or
+                    any(c in p for c in '*?[]') for p in parts)):
+            raise ValueError('invalid or duplicate reviewed extraction paths')
+        if git(root, 'ls-tree', base, '--', target).strip():
+            raise ValueError('extraction target must be a new module')
+        before = git(root, 'show', base + ':' + source).decode()
+        after = git(root, 'show', head + ':' + source).decode()
+        moved = git(root, 'show', head + ':' + target).decode()
+        header, marker, body = before.partition('public section\n')
+        module = target[:-5].replace('/', '.')
+        exact_names([module])
+        if (not marker or not body.strip() or not header.startswith('module\n') or
+                any(line not in ('module\n', '\n') and not IMPORT.fullmatch(line)
+                    for line in header.splitlines(keepends=True)) or
+                moved != before or after != header + 'public import ' + module + '\n'):
+            raise ValueError('extraction must preserve the complete old source in the new module and all facade imports')
+        records[source] = dict(source=source, target=target, base=base, head=head,
+            before_sha256=hashlib.sha256(before.encode()).hexdigest(),
+            after_sha256=hashlib.sha256(after.encode()).hexdigest(),
+            target_sha256=hashlib.sha256(moved.encode()).hexdigest())
+        targets.add(target)
+    if targets & records.keys():
+        raise ValueError('overlapping reviewed extractions')
+    return records
 
 
 def git(root, *args):
@@ -158,7 +232,7 @@ def deferred_controls(root):
     return records
 
 
-def select(root, base, head='HEAD', reviewed=()):
+def select(root, base, head='HEAD', reviewed=(), extractions=()):
     base, head = resolve(root, base), resolve(root, head)
     subprocess.run(['git', '-C', str(root), 'merge-base', '--is-ancestor', base, head], check=True)
     if base == head:
@@ -177,6 +251,7 @@ def select(root, base, head='HEAD', reviewed=()):
     paths = [p for p in git(root, 'diff', '--no-ext-diff', '--no-renames', '--name-only',
                            '-z', base + '..' + head).decode().split('\0') if p]
     matched = matched_paths(root, base, head)
+    extraction_records = reviewed_extractions(root, base, head, extractions, paths)
     reviewed = sorted(set(reviewed))
     if any(p not in paths or not p.startswith('scripts/') or not p.endswith('.txt') or not policy_file(p) or
            any(c in p for c in '*?[]') for p in reviewed):
@@ -225,7 +300,12 @@ def select(root, base, head='HEAD', reviewed=()):
                   any(path == p + '.lean' or path.startswith(p + '/') for p in P0) and
                   not re.search(r'Check|Control', path) and
                   ('/Tests/' not in path or not old_tree)):
-                reason = 'P0 source addition or extraction; complete positive and package G0 checks required'
+                if path in extraction_records:
+                    reason = 'explicitly reviewed exact module extraction; source and facade imports preserved'
+                elif old_tree:
+                    reason = f'classified P0 source additions: {source_additions(before, after)}'
+                else:
+                    reason = 'new P0 source; complete positive and package G0 checks required'
             elif path.startswith(('scripts/', 'docs/api/')) or path in matched:
                 raise ValueError('checker logic, parser, fixture, toolchain, dependency, or unknown checker data')
             elif path.startswith('docs/') and path.endswith('.md'):
@@ -237,6 +317,7 @@ def select(root, base, head='HEAD', reviewed=()):
             raise ValueError(path + ': ' + str(error)) from None
     return dict(mode='integration', provisional=True, eligible=True, base=base, head=head,
                 matched_checker_paths=matched, reviewed_allow=reviewed, evidence=evidence,
+                reviewed_extractions=[extraction_records[p] for p in sorted(extraction_records)],
                 neg=1 if reviewed else 0,
                 deferred_controls=[] if reviewed else deferred_controls(root),
                 main_accepted=False, full_receipt=False)
@@ -247,10 +328,12 @@ if __name__ == '__main__':
     parser.add_argument('root', type=Path)
     parser.add_argument('base')
     parser.add_argument('--reviewed-allow', action='append', default=[])
+    parser.add_argument('--reviewed-extraction', action='append', default=[])
     parser.add_argument('--complete', type=Path)
     args = parser.parse_args()
     try:
-        record = select(args.root, args.base, reviewed=args.reviewed_allow)
+        record = select(args.root, args.base, reviewed=args.reviewed_allow,
+                        extractions=args.reviewed_extraction)
         if args.complete:
             if json.loads((args.complete / 'integration.json').read_text()) != record:
                 raise ValueError('candidate or eligibility changed during the gate')

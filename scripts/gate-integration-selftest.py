@@ -48,6 +48,9 @@ with tempfile.TemporaryDirectory(prefix='gate-integration-') as scratch:
         'lean-toolchain': 'fixed\n', 'lakefile.toml': 'name = "control"\n',
         'lake-manifest.json': '{}\n',
         'AvailableChainFGSAProofs/Proofs/Shared/Keep.lean': 'module\n',
+        'AvailableChainGeneric.lean': 'module\npublic import AvailableChainGeneric.Keep\n',
+        'AvailableChainGeneric/Keep.lean': 'module\npublic section\ndef Old.name := 1\n',
+        'AvailableChainGeneric/Extract.lean': 'module\npublic import Init\n\npublic section\nnamespace Old\ndef moved := 1\nend Old\n',
         'AvailableChainFGSA/Tests/Control.lean': 'module\n',
         'docs/api/gen-deep.json': json.dumps(snapshot),
     }
@@ -55,7 +58,7 @@ with tempfile.TemporaryDirectory(prefix='gate-integration-') as scratch:
         write(seed, path, text)
     base = commit(seed)
 
-    def candidate(label, edits, reviewed=(), eligible=False):
+    def candidate(label, edits, reviewed=(), eligible=False, extractions=()):
         root = Path(scratch) / label
         shutil.copytree(seed, root)
         for path, text in edits.items():
@@ -65,7 +68,7 @@ with tempfile.TemporaryDirectory(prefix='gate-integration-') as scratch:
                 write(root, path, text)
         commit(root)
         try:
-            result = select(root, base, reviewed=reviewed)
+            result = select(root, base, reviewed=reviewed, extractions=extractions)
         except (ValueError, subprocess.CalledProcessError) as error:
             assert not eligible, (label, error)
             print(f'CONTROL integration {label}: REFUSED ({error})')
@@ -75,6 +78,10 @@ with tempfile.TemporaryDirectory(prefix='gate-integration-') as scratch:
         assert result['main_accepted'] is False and result['full_receipt'] is False
         assert bool(result['deferred_controls']) == (not reviewed)
         assert result['neg'] == int(bool(reviewed))
+        assert len(result['reviewed_extractions']) == len(extractions)
+        for record in result['reviewed_extractions']:
+            assert record['base'] == base and record['head'] == result['head']
+            assert record['before_sha256'] == record['target_sha256']
         assert not (root / '.lake/gate-last-full').exists()
         print(f'CONTROL integration {label}: eligible; no FULL stamp')
         return root
@@ -94,7 +101,39 @@ with tempfile.TemporaryDirectory(prefix='gate-integration-') as scratch:
         'AvailableChainFGSAProofs/Proofs/Shared/New.lean': 'module\n',
         'AvailableChainFGSAProofs/Tests/PackageG0.lean': 'module\n',
     }, eligible=True)
+    candidate('source-addition', {'AvailableChainGeneric/Keep.lean':
+              files['AvailableChainGeneric/Keep.lean'] + 'def New.name : Nat := 2\n'}, eligible=True)
+    candidate('facade-import-addition', {'AvailableChainGeneric.lean':
+              files['AvailableChainGeneric.lean'] + 'public import AvailableChainGeneric.New\n',
+              'AvailableChainGeneric/New.lean': 'module\npublic section\ndef New.name := 2\n'}, eligible=True)
+    extraction = {
+        'AvailableChainGeneric/Extract.lean': 'module\npublic import Init\n\npublic import AvailableChainGeneric.Moved\n',
+        'AvailableChainGeneric/Moved.lean': files['AvailableChainGeneric/Extract.lean'],
+    }
+    pair = 'AvailableChainGeneric/Extract.lean:AvailableChainGeneric/Moved.lean'
+    candidate('reviewed-extraction', extraction, extractions=[pair], eligible=True)
+    candidate('unreviewed-extraction', extraction)
+    candidate('extraction-changed-body', dict(extraction, **{
+        'AvailableChainGeneric/Moved.lean': files['AvailableChainGeneric/Extract.lean'].replace(':= 1', ':= 2')}),
+        extractions=[pair])
+    candidate('extraction-removed-import', dict(extraction, **{
+        'AvailableChainGeneric/Extract.lean': 'module\npublic import AvailableChainGeneric.Moved\n'}),
+        extractions=[pair])
+    candidate('extraction-existing-target', {'AvailableChainGeneric/Extract.lean':
+        'module\npublic import AvailableChainGeneric.Keep\n'},
+        extractions=['AvailableChainGeneric/Extract.lean:AvailableChainGeneric/Keep.lean'])
     for label, edits in (
+        ('declaration-removal', {'AvailableChainGeneric/Keep.lean': 'module\npublic section\n'}),
+        ('replaced-file', {'AvailableChainGeneric/Keep.lean': 'module\n'}),
+        ('facade-import-removal', {'AvailableChainGeneric.lean': 'module\n'}),
+        ('existing-body-change', {'AvailableChainGeneric/Keep.lean':
+            files['AvailableChainGeneric/Keep.lean'].replace(':= 1', ':= 2')}),
+        ('ambiguous-edit', {'AvailableChainGeneric/Keep.lean':
+            files['AvailableChainGeneric/Keep.lean'] + 'set_option maxRecDepth 0\n'}),
+        ('body-insertion', {'AvailableChainGeneric/Extract.lean':
+            files['AvailableChainGeneric/Extract.lean'].replace('end Old', '  + 2\nend Old')}),
+        ('scope-removal-existing-file', {'AvailableChainGeneric/Extract.lean':
+            files['AvailableChainGeneric/Extract.lean'].replace('namespace Old\n', '').replace('end Old\n', '')}),
         ('checker-logic', {'scripts/check-fgsa-claims.sh': ast_added.replace('workers = audit_workers()', 'workers = 1')}),
         ('parser', {'scripts/new-parser.py': 'print("unsafe")\n'}),
         ('control-fixture', {'AvailableChainFGSA/Tests/Control.lean': 'module\n-- changed\n'}),

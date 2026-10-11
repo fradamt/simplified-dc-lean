@@ -22,14 +22,14 @@ integration=0; integration_args=(); integration_scope=
 usage() {
   echo 'usage: bash scripts/gate.sh [--tier merge|full|auto] [--base REF] [--jobs N] [--neg]'
   echo '       bash scripts/gate.sh --critical-path'
-  echo '       bash scripts/gate.sh --integration --base REF [--reviewed-allow FILE]'
+  echo '       bash scripts/gate.sh --integration --base REF [--reviewed-allow FILE] [--reviewed-extraction SOURCE:TARGET]'
 }
 while [ $# -gt 0 ]; do
   case "$1" in
     --integration) integration=1; shift ;;
-    --reviewed-allow)
+    --reviewed-allow|--reviewed-extraction)
       [ $# -ge 2 ] || { usage >&2; exit 2; }
-      integration_args+=(--reviewed-allow "$2"); shift 2 ;;
+      integration_args+=("$1" "$2"); shift 2 ;;
     --attest-key)
       [ $# -ge 2 ] || { usage >&2; exit 2; }
       attest_key=$2; shift 2 ;;
@@ -53,7 +53,7 @@ if [ "$integration" = 1 ]; then
   integration_scope=$(python3 -B scripts/integration_scope.py "$PWD" "$base" "${integration_args[@]}") || exit $?
   tier=full
 elif [ "${#integration_args[@]}" -ne 0 ]; then
-  echo 'INTEGRATION REFUSED: --reviewed-allow requires --integration' >&2; exit 2
+  echo 'INTEGRATION REFUSED: reviewed options require --integration' >&2; exit 2
 fi
 if [ "${SOURCE_ONLY:-0}" != 0 ]; then
   echo 'GATE REFUSED: SOURCE_ONLY must be unset or 0' >&2
