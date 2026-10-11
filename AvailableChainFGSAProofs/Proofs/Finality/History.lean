@@ -3,10 +3,7 @@ public import AvailableChainFGSAProofs.Proofs.Shared.ReceiptFacts
 public import AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient
 public import AvailableChainFGSAProofs.Proofs.Finality.Height
 public import AvailableChainFGSA.Proofs.StoreLaws
-public import AvailableChainFGSA.Proofs.WindowRetention
 public import AvailableChainFGCompose.Proofs.Finality.History
-public import AvailableChainKitFG.WindowTransport
-public import AvailableChainGeneric.Proofs.V2.Duty.Reads
 
 public section
 

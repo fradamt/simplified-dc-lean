@@ -1,6 +1,5 @@
 module
-public import AvailableChainFGCompose.Statements.ResetCut
-public import AvailableChainKitFG.WindowEntriesDef
+public import AvailableChainFGCompose.Statements.ResetCut -- shake: keep (Channels reads)
 
 @[expose] public section
 
