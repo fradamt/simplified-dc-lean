@@ -1,6 +1,4 @@
 module
--- shake keep reason: source test uses
-public import AvailableChainFGSAProofs.Proofs.Healing.SupportRecovery -- shake: keep
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseSettle -- shake: keep (RPhase tests)
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseService -- shake: keep (source test uses)
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseBoot -- shake: keep (bootstrap tests)

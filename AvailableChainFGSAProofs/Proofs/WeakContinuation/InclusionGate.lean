@@ -1,7 +1,7 @@
 module
 -- shake keep reason: source declarations
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepGateBatch -- shake: keep
--- shake keep reason: source declarations
+-- shake keep reason: Inclusion uses exactService_emitted_head_joined.
 public import AvailableChainFGSAProofs.Proofs.Shared.ExactService -- shake: keep
 
 public section

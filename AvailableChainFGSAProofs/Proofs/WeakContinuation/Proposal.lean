@@ -6,7 +6,6 @@ public import AvailableChainFGSAProofs.Proofs.WeakContinuation.ProposalService
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Safety
 public import AvailableChainFGSAProofs.Proofs.Shared.HeadAdmit
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumers
-public import AvailableChainFGSAProofs.Proofs.Shared.Relay -- shake: keep (source declarations)
 public import AvailableChainFGSAProofs.Proofs.Shared.ProposalRead
 
 public section

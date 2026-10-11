@@ -1,6 +1,5 @@
 module
 public import AvailableChainFGSAClaims.Statements.Channels
-public import AvailableChainFGSARun.Statements.Emission -- shake: keep (source declarations)
 
 public section
 

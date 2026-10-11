@@ -1,5 +1,5 @@
 module
--- shake keep reason: source declarations
+-- shake keep reason: HealingRecoveryPermAxioms and HealingRun use RecoveryPerm exports.
 public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryPerm -- shake: keep
 public import AvailableChainFGSAProofs.Proofs.Healing.RepairH6S -- shake: keep (source declarations)
 

@@ -1,8 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Shared.CatchUp
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingKernel
--- shake keep reason: source declarations
-public import AvailableChainFGSAProofs.Proofs.Outage.ArmingCover -- shake: keep
 
 public section
 
