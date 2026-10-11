@@ -13,6 +13,13 @@ def historicalLookup {Body : Type} [DecidableEq Body]
   | [b] => some b
   | _ => none
 
+theorem historicalLookup_def {Body : Type} [DecidableEq Body]
+    (root : Body → BlockId) (bodies : List Body) (r : BlockId) :
+    historicalLookup root bodies r =
+      (match (bodies.filter (fun b => root b == r)).eraseDups with
+       | [b] => some b
+       | _ => none) := rfl
+
 /-- Reads over cumulative accepted storage, independent of the active frame. -/
 structure FGHistoricalReads (State Body : Type) where
   acceptedBlocks : State → Finset Block
