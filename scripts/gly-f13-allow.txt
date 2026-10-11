@@ -68,3 +68,4 @@ F-13 dup window_ordered AvailableChainFGSA AvailableChainKitFG # P0: generic hom
 F-13 dup window_post_not_ready AvailableChainFGSA AvailableChainKitFG # P0: generic home; FG-SA copy frozen (plan v3 §1)
 F-13 dup window_row_fields AvailableChainFGSA AvailableChainKitFG # P0: generic home; FG-SA copy frozen (plan v3 §1)
 F-13 dup window_strict_node AvailableChainFGSA AvailableChainKitFG # P0: generic home; FG-SA copy frozen (plan v3 §1)
+F-13 dup finality_action_time_bounds AvailableChainFGCompose AvailableChainFGSAProofs # P0: generic home; FG-SA copy frozen (plan v3 §1)

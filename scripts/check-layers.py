@@ -620,6 +620,8 @@ def test_use(ctx: Context, m: Module, dep: str) -> bool:
 def test_scope(ctx: Context, m: Module, dep: str) -> bool:
     # P0b1: private fieldwise correspondence, with exact external suppliers.
     if (m.name, dep) in {
+        (PROOFS + ".Tests.P0c1", COMPOSE + ".Proofs.ObservationTransport"),
+        (PROOFS + ".Tests.P0c1", INHABIT + ".WitnessPositive"),
         (PROOFS + ".Tests.P0b1", FGSA + ".Model.WindowStore"),
         (PROOFS + ".Tests.P0b1", FGSA + ".Statements.FinalityView"),
         (PROOFS + ".Tests.P0b1", KITFG + ".WindowTransport"),
@@ -710,6 +712,37 @@ COMPOSE_EDGES |= frozenset({
 COMPOSE_MODULES += (COMPOSE + ".Statements.Restart", COMPOSE + ".Proofs.Restart")
 COMPOSE_EDGES |= frozenset({
     (PROOFS + ".Proofs.Finality.MiddleSupport", COMPOSE + ".Proofs.Restart"),
+})
+
+
+# P0c1: exact observation, paired selection, channel, and timing modules.
+COMPOSE_MODULES += (
+    "AvailableChainFGCompose.Statements.Observations",
+    "AvailableChainFGCompose.Statements.Selection",
+    "AvailableChainFGCompose.Statements.Timing",
+    "AvailableChainFGCompose.Statements.Channels",
+    "AvailableChainFGCompose.Statements.ChannelLaws",
+)
+COMPOSE_SAFETY_IMPORTS |= frozenset({
+    (COMPOSE + ".Statements.Observations", KITFG + ".TreeFrameDef"),
+    (COMPOSE + ".Statements.Observations", KITFG + ".CertificateCoreDef"),
+})
+
+
+COMPOSE_EDGES |= frozenset({
+    (PROOFS + ".Proofs.Shared.FGCompose", COMPOSE + ".Statements.Selection"),
+})
+
+
+COMPOSE_MODULES += (
+    COMPOSE + ".Proofs.ObservationTransport",
+    COMPOSE + ".Proofs.Timing",
+)
+COMPOSE_EDGES |= frozenset({
+    (PROOFS + ".Proofs.Shared.FGCompose", COMPOSE + ".Statements.ChannelLaws"),
+    (PROOFS + ".Proofs.Shared.FGCompose", COMPOSE + ".Proofs.ObservationTransport"),
+    (PROOFS + ".Proofs.Finality.ActionTime", COMPOSE + ".Proofs.Timing"),
+    (PROOFS + ".Tests.P0c1", COMPOSE + ".Proofs.ObservationTransport"),
 })
 
 
