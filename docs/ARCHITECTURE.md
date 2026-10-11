@@ -1360,3 +1360,43 @@ The source-service leaf retains the old gate, ancestry, and fastAt conjunction.
 clock instance. Private adapters are in `FGSAProofs.Proofs.Shared.FGCompose`.
 Both `Tests.P0c1` modules check inhabited reads and reject the weaker interfaces.
 FG-SA public definitions and snapshots stay fixed. PC-SA remains UNPORTED.
+
+## Provisional integration gate
+
+`bash scripts/gate.sh --integration --base REF` runs all positive checks and
+package G0 checks. It defers the recorded generic negative controls only for
+an eligible, clean, committed candidate on a branch other than main/master.
+The result is provisional. It cannot write a FULL stamp, sign a FULL receipt,
+or authorize main. Main requires FULL `--neg` and Mac `check-fg` on the exact
+final candidate. Normal checker-path and control selection rules are unchanged.
+
+Existing production Lean files must preserve all old source bytes. The selector
+accepts exact import additions in a simple module header. It also accepts new
+single-line numeric `def` declarations at the end of a file that contains only
+that simple declaration grammar, imports, blank lines, and `public section`.
+Declaration, import, and scope removal are refused. Other source edits are
+unclassified and require the full gate. Existing test/control files are refused.
+
+`--reviewed-extraction SOURCE:TARGET` records explicit review of one exact module
+extraction. TARGET must be a new production module with the complete old SOURCE
+content, byte for byte. SOURCE must retain its old simple module/import header
+and replace its `public section` and body with a public import of TARGET.
+The record binds both commits and the source/target SHA-256 hashes. The selector
+checks preservation again at gate completion. Partial extraction, changed bodies,
+removed facade imports, and overlapping extraction records are refused.
+`--reviewed-allow FILE` remains limited to exact policy-data additions and retains
+all generic controls. Neither review option can authorize checker logic edits.
+
+The required shallow manifests `docs/GEN-API.md` and `docs/FGSA-API.md` permit
+only structural declaration additions in the generated format. Every old name,
+library, owner module, kind, digest, and metadata field must remain unchanged.
+Counts must match the parsed rows and modules. Old row and module order is
+preserved. Deep snapshots require separate old-entry and metadata preservation.
+Other checker Markdown has no exemption. `checker-paths.txt` is unchanged.
+
+Permitted Python coverage constants use separate literal schemas. `ORDER`
+contains exact module suffixes; `CLAIMS_STRUCTURES` contains simple structure
+names; `SAFETY_FIELDS` contains exact field labels, including `assembled package`.
+`REQUIRED_MODEL_SCOPE` contains exact model owner/name pairs. Additions must
+preserve all old entries and have no duplicates or wildcards. The surrounding
+Python AST and shell wrapper must remain unchanged.
