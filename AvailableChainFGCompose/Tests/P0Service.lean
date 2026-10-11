@@ -169,7 +169,7 @@ private noncomputable abbrev c2HistoryProtocol : V2.ProtocolSpecD Unit where
   Duty := Nat
   signLabel s := s
   seats _ := 1
-  Payload := Block
+  Payload := Block × NamedHeightPair
   Durable := Time
   init := 0
   clock _ t := t
@@ -193,7 +193,7 @@ private noncomputable abbrev c2HistoryProtocol : V2.ProtocolSpecD Unit where
       · intro hs
         exact False.elim (ht (hs ▸ Int.natCast_nonneg s))
   duties_nodup t := by split <;> simp
-  act _ _ _ := some c2Opening
+  act _ s _ := some (c2Opening, if s = 6 then .vote 3 ⟨8⟩ false else .empty)
   gossip _ _ := []
   process st _ := st
   selfVisible _ := true
@@ -210,7 +210,7 @@ private noncomputable abbrev c2HistoryProtocol : V2.ProtocolSpecD Unit where
 private noncomputable def c2HistoryInterface : V2.D.Interface c2HistoryProtocol where
   confirmed _ := .genesis
   stable _ := .genesis
-  block B := some B
+  block B := some B.1
   opening _ := True
   propLabel s := 4 * s
   propDuty s := 4 * s
@@ -250,9 +250,9 @@ private theorem c2HistoryProposal :
   constructor
   · change 0 < (6 : Nat) ∧ () ∈ ({()} : Finset Unit)
     simp
-  · refine ⟨⟨.seat 24 0, c2Opening⟩, ?_, rfl⟩
+  · refine ⟨⟨.seat 24 0, (c2Opening, .empty)⟩, ?_, rfl⟩
     change ∃ i, c2HistoryRun.events[i]? = some (.tick () 24) ∧
-      (⟨.seat 24 0, c2Opening⟩ : c2HistoryProtocol.Object) ∈
+      (⟨.seat 24 0, (c2Opening, .empty)⟩ : c2HistoryProtocol.Object) ∈
         V2.D.Run.emitsAt c2HistoryEnv c2HistoryRun i
     exact ⟨2, rfl, by decide +kernel⟩
 
@@ -318,10 +318,46 @@ private theorem c2ActualSuffixInhabited :
     1 * c2HistoryClock.roundSlots + 2 ≤ 6 := by
   exact ⟨rfl, by constructor <;> decide, c2HistoryProposal, by decide⟩
 
-private def c2HistoricalRow : Nat × FGBlock (Fin 1) := (3, c2BadFG)
+private noncomputable def c2HistoricalRow : c2HistoryProtocol.Object :=
+  ⟨.seat 6 0, (c2Opening, .vote 3 c2BadFG.root false)⟩
+
+private noncomputable def c2HistorySafety :
+    FGSafetyReads c2HistoryProtocol 1 c2HistoryProtocol.Object where
+  proposalErase o := some o.payload.1
+  proposalRows _ := []
+  encode := id
+  decode o := some ⟨0, o.payload.2, none⟩
+  decodeObject o := some ⟨0, o.payload.2, none⟩
+  fgLabel := 6
+  fgSeats := Equiv.refl _
+  record _ := RecordOnce.initial
+  inputs _ := (some c2BadFG, ⟨3, c2BadFG.root, 0⟩)
+  enabled _ := true
+  finalizedOut _ := .genesis
+
+-- This is the signed wire emitted at tick 0, with the source read at action 0.
+private theorem c2HistoricalRowOrigin :
+    HonestRowAt c2HistorySafety c2HistoryEnv c2HistoryRun c2HistoryClock
+      0 () 0 c2HistoricalRow ∧
+    actionSourceFG c2HistoryCore c2HistoryEnv c2HistoryRun c2HistoryClock () 0 =
+      some (some c2BadFG) ∧
+    namedEntry c2HistoricalRow.payload.2 =
+      some ((c2HistoryObs.height c2BadFG).h, (c2HistoryObs.height c2BadFG).T_h.root) := by
+  refine ⟨⟨by simp [c2HistoryRun], rfl, ?_⟩, rfl, ?_⟩
+  · decide +kernel
+  · decide +kernel
+
 private theorem c2ActualRowCapFailure :
-    c2HistoricalRow.1 = (c2HistoryObs.height c2HistoricalRow.2).h ∧
-    ¬ c2HistoricalRow.1 ≤ (c2HistoryObs.height c2GoodFG).h := by decide +kernel
+    ∃ h e, HonestRowAt c2HistorySafety c2HistoryEnv c2HistoryRun c2HistoryClock
+      0 () 0 c2HistoricalRow ∧
+      actionSourceFG c2HistoryCore c2HistoryEnv c2HistoryRun c2HistoryClock () 0 =
+        some (some c2BadFG) ∧
+      namedEntry c2HistoricalRow.payload.2 = some (h, e) ∧
+      h = (c2HistoryObs.height c2BadFG).h ∧
+      c2HistoryClock.action 0 < c2Late.serviceStart ∧
+      ¬ h ≤ (c2HistoryObs.height c2GoodFG).h := by
+  exact ⟨_, _, c2HistoricalRowOrigin.1, c2HistoricalRowOrigin.2.1,
+    c2HistoricalRowOrigin.2.2, rfl, by decide, by decide +kernel⟩
 
 -- The PC leaf split has no gap: old shield rows, rows in [d_s,R_s), and suffix rows.
 private theorem c2ShieldSplit (shield start t : Time) (_hs : shield ≤ start)
@@ -334,32 +370,97 @@ private theorem c2ShieldSplit (shield start t : Time) (_hs : shield ≤ start)
     · exact Or.inr (Or.inl (hGap (le_of_not_gt ht) hu))
     · exact Or.inr (Or.inr (hSuffix (le_of_not_gt hu)))
 
--- Shield bounds and transfer-to-parent bounds imply the opening cap in all three intervals.
-private theorem c2ShieldCap (shield start t : Time) (row seed parent opening : Nat)
-    (hseed : seed ≤ opening) (hparent : parent ≤ opening)
-    (old : t < shield → row ≤ seed)
-    (gap : shield ≤ t → t < start → row ≤ parent)
-    (suffix : start ≤ t → row ≤ parent) : row ≤ opening := by
-  by_cases ht : t < shield
-  · exact (old ht).trans hseed
-  · by_cases hu : t < start
-    · exact (gap (le_of_not_gt ht) hu).trans hparent
-    · exact (suffix (le_of_not_gt hu)).trans hparent
+-- Conditional PC leaf test. The selected source determines a nonempty row entry.
+-- OldShield and fresh-slot order are leaves; row caps and entry equality are results.
+private def c2PCRow (H : FGHeightView (Fin 1)) (C : FGBlock (Fin 1)) : Row (Fin 1) :=
+  ⟨0, .vote (H C).h (H C).T_h.root false, none⟩
 
-private theorem c2GapRowCap : (3 : Nat) ≤ 4 :=
-  c2ShieldCap 10 20 15 3 2 4 4 (by decide) (by decide)
-    (fun h => (by decide : ¬ (15 : Time) < 10) h |>.elim)
-    (fun _ _ => by decide)
-    (fun h => (by decide : ¬ (20 : Time) ≤ 15) h |>.elim)
+private structure c2PCLeaves (H : FGHeightView (Fin 1)) (M : Nat)
+    (Cstar X A : FGBlock (Fin 1)) (source : Time → Option (FGBlock (Fin 1))) : Prop where
+  reset_height : (H Cstar).h = M + 1
+  reset_transfer : FGBlock.Preceq Cstar X.parent
+  seed_parent : FGBlock.Preceq X A.parent
+  parent_path : ∀ B : FGBlock (Fin 1), FGBlock.Preceq B.parent B
+  shield : ∀ t C, source t = some C → t < 10 → (H X).h ≤ (H C).h →
+    FGBlock.Preceq (H C).T_h X ∨ FGBlock.Preceq X (H C).T_h
+  fresh_slot : ∀ t C, source t = some C → t < 10 → (H C).T_h.slot < X.slot
+  slot_order : ∀ t C, source t = some C → t < 10 →
+    FGBlock.Preceq X (H C).T_h → X.slot ≤ (H C).T_h.slot
+  historical_transfer : ∀ t C, source t = some C → 10 ≤ t → t < 30 →
+    M + 1 ≤ (H C).h → FGBlock.Preceq C A.parent
 
-private theorem c2OldShieldRowCap : (2 : Nat) ≤ 4 :=
-  c2ShieldCap 10 20 9 2 2 4 4 (by decide) (by decide)
-    (fun _ => by decide) (fun _ _ => by decide) (fun _ => by decide)
+private theorem c2PCSemanticCap (Ef : Electorate (Fin 1)) (H : FGHeightView (Fin 1))
+    (laws : FGHeightLaws Ef H) (M : Nat) (Cstar X A C : FGBlock (Fin 1))
+    (source : Time → Option (FGBlock (Fin 1)))
+    (leaves : c2PCLeaves H M Cstar X A source) (t : Time)
+    (selected : source t = some C) (earlier : t < 30) :
+    namedEntry (c2PCRow H C).height_pair = some ((H C).h, (H C).T_h.root) ∧
+    M + 1 ≤ (H A).h ∧ (H C).h ≤ (H A).h ∧
+    ((H C).h = (H A).h → (H C).T_h = (H A).T_h) := by
+  have hXA := preceq_trans leaves.seed_parent (leaves.parent_path A)
+  have hCX := preceq_trans leaves.reset_transfer (leaves.parent_path X)
+  have hseed : M + 1 ≤ (H X).h := by
+    rw [← leaves.reset_height]
+    exact laws.h_mono hCX
+  have hopen := laws.h_mono hXA
+  refine ⟨rfl, hseed.trans hopen, ?_⟩
+  by_cases hold : t < 10
+  · by_cases hhigh : (H X).h ≤ (H C).h
+    · have hentry : FGBlock.Preceq (H C).T_h X := by
+        rcases leaves.shield t C selected hold hhigh with h | h
+        · exact h
+        · exact False.elim ((Nat.not_le_of_lt (leaves.fresh_slot t C selected hold))
+            (leaves.slot_order t C selected hold h))
+      have hEA := preceq_trans hentry hXA
+      have hcap := laws.h_mono hEA
+      rw [laws.entry_same_height] at hcap
+      refine ⟨hcap, ?_⟩
+      intro heq
+      have he := laws.entry_plateau hEA ((laws.entry_same_height C).trans heq)
+      simpa only [laws.entry_idem] using he
+    · exact ⟨(le_of_not_ge hhigh).trans hopen, fun heq =>
+        False.elim (hhigh (heq.symm ▸ hopen))⟩
+  · by_cases hhigh : M + 1 ≤ (H C).h
+    · have hCA := preceq_trans
+        (leaves.historical_transfer t C selected (le_of_not_gt hold) earlier hhigh)
+        (leaves.parent_path A)
+      exact ⟨laws.h_mono hCA, laws.entry_plateau hCA⟩
+    · have hlt := (Nat.lt_of_not_ge hhigh).trans_le (hseed.trans hopen)
+      exact ⟨hlt.le, fun heq => False.elim ((Nat.ne_of_lt hlt) heq)⟩
 
-private theorem c2SuffixRowCap : (4 : Nat) ≤ 4 :=
-  c2ShieldCap 10 20 25 4 2 4 4 (by decide) (by decide)
-    (fun h => (by decide : ¬ (25 : Time) < 10) h |>.elim)
-    (fun _ _ => by decide) (fun _ => by decide)
+private def c2PCSources (old boundary gap suffix : FGBlock (Fin 1))
+    (t : Time) : Option (FGBlock (Fin 1)) :=
+  some (if t = 9 then old else if t = 10 then boundary else if t = 15 then gap else suffix)
+
+-- Four nonempty source/row cases share the reset, seed, opening, and horizon.
+-- In particular the boundary and gap sources are high, before the start at 20.
+private theorem c2PCIntervals (Ef : Electorate (Fin 1)) (H : FGHeightView (Fin 1))
+    (laws : FGHeightLaws Ef H) (M : Nat) (Cstar X A old boundary gap suffix : FGBlock (Fin 1))
+    (leaves : c2PCLeaves H M Cstar X A (c2PCSources old boundary gap suffix))
+    (high : ∀ C ∈ [boundary, gap, suffix], M + 1 ≤ (H C).h) :
+    (∀ C ∈ [boundary, gap, suffix], M + 1 ≤ (H C).h) ∧
+    ∀ t ∈ ([9, 10, 15, 25] : List Time), ∃ C,
+      c2PCSources old boundary gap suffix t = some C ∧
+      namedEntry (c2PCRow H C).height_pair = some ((H C).h, (H C).T_h.root) ∧
+      M + 1 ≤ (H A).h ∧ (H C).h ≤ (H A).h ∧
+      ((H C).h = (H A).h → (H C).T_h = (H A).T_h) := by
+  refine ⟨high, ?_⟩
+  intro t ht
+  let C := if t = 9 then old else if t = 10 then boundary else if t = 15 then gap else suffix
+  refine ⟨C, rfl, c2PCSemanticCap Ef H laws M Cstar X A C
+    (c2PCSources old boundary gap suffix) leaves t rfl ?_⟩
+  simp only [List.mem_cons, List.not_mem_nil, or_false] at ht
+  rcases ht with rfl | rfl | rfl | rfl <;> norm_num
+
+private theorem c2OldShieldRowCap : (9 : Time) < 10 ∧ (9 : Time) < 20 := by norm_num
+private theorem c2AtShieldRow : (10 : Time) ≤ 10 ∧ (10 : Time) < 20 := by norm_num
+private theorem c2GapRowCap : (10 : Time) ≤ 15 ∧ (15 : Time) < 20 := by norm_num
+private theorem c2SuffixRowCap : (20 : Time) ≤ 25 ∧ (25 : Time) < 30 := by norm_num
+
+#print axioms c2HistoricalRowOrigin
+#print axioms c2PCSemanticCap
+#print axioms c2PCIntervals
+#print axioms c2AtShieldRow
 
 #print axioms c2TwoSeeds
 #print axioms c2EarlyStart
