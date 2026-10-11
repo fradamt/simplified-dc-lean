@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Finality.RowsBatch
+public import AvailableChainFGSAProofs.Proofs.Finality.RowsPrem
 public import AvailableChainFGSAProofs.Proofs.Finality.ReceiptSuppliers
 public import AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient
 
@@ -475,6 +476,96 @@ private theorem c2g0_output_frame [Fintype V] {G deltaF : Time} {pt : KernelPt}
     Block.Compatible (FGSA.liveRoot p nd.st) (eraseFG m.X_D) :=
   rowsPrem_liveRoot_compatible p c E rho hK m hQC hXing hNames x nd hx hnd
 
+-- Rebuild the old unbounded inputs from the projected laws on their service scope.
+-- Outside that scope, keep the original facts. All fields use the same service point.
+private theorem c2g0_consumer_input (w : HealingWitness) (deltaF : Time)
+    (h : HealingInput p c E rho w deltaF) : HealingInput p c E rho w deltaF := by
+  have hs := c2g0_service_laws p c E rho w h.t.h1 h.t.h2
+    h.ac.h2' h.ac.h2A h.ac.h3 h.ac.h6
+  have hp : H2Prime p c E rho w := by
+    intro s Q hQ hscope x i H hr hi hH
+    by_cases ht : (c2g0_point p w).serviceStart ≤ SA.proposalTime p.toParams s
+    · by_cases hh : SA.voteTime p.toParams i ≤ rho.horizon
+      · exact hs.proposal_later_head s Q x i H hQ hscope ht hr.1 hr.2 hi hh hH
+      · exact h.ac.h2' s Q hQ hscope x i H hr hi hH
+    · exact h.ac.h2' s Q hQ hscope x i H hr hi hH
+  have ha : H2A p c E rho w := by
+    intro y r C hy hC hc
+    refine ⟨?_, (h.ac.h2A y r C hy hC hc).2⟩
+    intro x i H hr hi hH
+    by_cases ht : FGCompose.InSuffix (c2g0_point p w) rho.horizon (p.actionTime r)
+    · by_cases hh : SA.voteTime p.toParams i ≤ rho.horizon
+      · exact hs.source_next_head y r (eraseFG C) x i H hy ⟨C, hC, rfl, hc⟩
+          (by change actionSource p c E rho y r = _; rw [actionSource, hC]; rfl)
+          ht hr.1 hr.2 hi hh hH
+      · exact (h.ac.h2A y r C hy hC hc).1 x i H hr hi hH
+    · exact (h.ac.h2A y r C hy hC hc).1 x i H hr hi hH
+  exact { h with ac := { h.ac with h2' := hp, h2A := ha } }
+
+section Consumers
+variable [Fintype V] {G deltaF : Time} {pt : KernelPt} {A : Block}
+    (hK : KernelPrem_W p c G deltaF E rho pt)
+    (m : KernelMiddleWitness_W p c E rho deltaF pt A)
+
+-- Both actual consumer labels are in the projected proposal service scope.
+include hK in
+private theorem c2g0_consumer_scope :
+    (c2g0_point p pt.w).serviceStart ≤ SA.proposalTime p.toParams m.cD ∧
+      pt.w.sStar + 2 ≤ m.cD ∧
+      m.cD ≤ (pt.r + 2) * p.R ∧
+      SA.voteTime p.toParams ((pt.r + 2) * p.R + 1) ≤ rho.horizon := by
+  have hrD : pt.r * p.R ≤ m.cD := by
+    have := m.earlySlot.1
+    have he : (pt.r + 1) * p.R = pt.r * p.R + p.R := Nat.succ_mul _ _
+    omega
+  have hstart := hK.start
+  rw [kmid_period_eq] at hstart
+  obtain ⟨_, _, _, _, hs2, hGST, _⟩ := kmid_kernel_bounds hK
+  have htimes := finality_action_time_bounds p pt.r (pt.r + 2) (by omega)
+    E.t_GST E.Δ rho.horizon hGST hK.set.base.delta m.actionsInRun
+  exact ⟨hstart.trans (kmid_slot_scale_le p hrD), hs2.trans hrD,
+    m.earlySlot.2, htimes.2.2.2⟩
+
+variable (hQC : RQCOrigin p c E rho) (hXing : RXing p c E rho)
+    (hNames : ∀ j x r a e, HonestRowAt p c E rho j x r a →
+      namedEntry a.payload.height_pair = some e →
+      ∃ C, actionSourceFG p c E rho x r = some (some C) ∧
+        e = ((heightView p C).h, (heightView p C).T_h.root))
+
+include hK hQC hXing hNames in
+private theorem c2g0_source_consumer :
+    ∀ x ∈ rho.honest, ∃ nd C,
+      postClock E rho x (p.actionTime (pt.r + 2)) = some nd ∧
+      FGSA.fgSource p nd.st = some C ∧ FGBlock.Preceq m.X_D C ∧
+      (heightView p C).h = m.d + 2 ∧
+      (heightView p C).T_h = (heightView p m.X_D).T_h := by
+  have hProjected : KernelPrem_W p c G deltaF E rho pt :=
+    { hK with input := c2g0_consumer_input p c E rho pt.w deltaF hK.input }
+  exact rowsPrem_action_source p c E rho hProjected m hQC hXing hNames
+
+include hK hQC hXing hNames in
+private theorem c2g0_batch_consumer
+    (hServices : FinalityActionReceipts p c E rho) :
+    ∀ x nd, x ∈ rho.honest →
+      postClock E rho x (p.actionTime (pt.r + 2)) = some nd →
+      let s := (pt.r + 2) * p.R + 1
+      let raw := GridCO.votesAt nd.st.base s
+      let support := raw.filter (fun o => match GridCO.resolvedHead? (FGSA.actView nd.st) o with
+        | some H => decide (H.slot ≤ s)
+        | none => false)
+      let seats : Finset (Fin p.n) := by
+        classical
+        exact Finset.univ.filter (fun k : Fin p.n => rho.seatOf (.base (.head s)) k ∈ rho.honest)
+      Gen.Pure.Batch seats.card (Gen.V2.Duty.faulty rho).card ∧
+      WalkBatch p c rho nd.st s raw support (eraseFG m.X_D) seats
+        (Gen.V2.Duty.faulty rho).card ∧
+      FGSA.fgHead p nd.st = FGSA.getHead p nd.st raw support := by
+  have hProjected : KernelPrem_W p c G deltaF E rho pt :=
+    { hK with input := c2g0_consumer_input p c E rho pt.w deltaF hK.input }
+  exact rowsPrem_action_walk_batch p c E rho hProjected m hServices hQC hXing hNames
+
+end Consumers
+
 private def c2g0_decode (o : Obj p) : Option (Slot × NamedProposal p.n) :=
   match (toWire p o).decode with
   | some (.block s N) => some (s, N)
@@ -512,6 +603,10 @@ private theorem c2g0_result_iff (deltaF : Time) (r : Nat) :
     c2g0_timing, c2g0_observations, fgsaCoreReads_def]
   rfl
 
+#print axioms c2g0_consumer_input
+#print axioms c2g0_consumer_scope
+#print axioms c2g0_source_consumer
+#print axioms c2g0_batch_consumer
 #print axioms c2g0_clock_read
 #print axioms c2g0_result_iff
 #print axioms c2g0_opening_iff
