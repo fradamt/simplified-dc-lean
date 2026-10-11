@@ -1,6 +1,6 @@
 module
-public import AvailableChainFGSARun.TestSupport.Sleep
-public import AvailableChainFGSARun.TestSupport.EmissionFreshness
+public import AvailableChainFGSARun.Model.TestSupport.Sleep
+public import AvailableChainFGSARun.Proofs.TestSupport.EmissionFreshness
 
 public section
 
@@ -143,38 +143,38 @@ theorem refused_valid : V2.D.ExecutionValid env refusedRun := by
            toDeliveryWellFormed := ?_, toUnforgeableSignatures := ?_ }
   · refine ⟨by decide, by decide, by decide, ?_, ?_, ?_, ?_⟩
     · intro e he
-      simp [refusedRun, EmissionFreshnessTests.run] at he
+      simp [refusedRun] at he
       rcases he with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;>
         decide
     · intro e he
-      simp [refusedRun, EmissionFreshnessTests.run] at he
+      simp [refusedRun] at he
       rcases he with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;>
         decide
     · intro v t he
-      simp [refusedRun, EmissionFreshnessTests.run] at he
+      simp [refusedRun] at he
       refine ⟨(t / 2).toNat, ?_⟩
-      simp [env]; dsimp [Time] at *; omega
+      simp; dsimp [Time] at *; omega
     · intro v hv t ⟨k, hk⟩ ht hh ha
       have hv0 : v = 0 := Finset.mem_singleton.mp hv
       subst v
       change t = (k : Time) * 2 at hk
       change t ≤ 18 at hh
       have hkbound : k ≤ 9 := by dsimp [Time] at *; omega
-      interval_cases k <;> simp [refusedRun, EmissionFreshnessTests.run] <;>
+      interval_cases k <;> simp [refusedRun] <;>
         dsimp [Time] at * <;> omega
   · refine ⟨?_, ?_, ?_⟩
     all_goals intro i v o t hi
     all_goals have he := List.mem_of_getElem? hi
-    all_goals simp [refusedRun, EmissionFreshnessTests.run] at he
+    all_goals simp [refusedRun] at he
     all_goals obtain ⟨rfl, rfl, rfl⟩ := he
     all_goals have hib := (List.getElem?_eq_some_iff.mp hi).1
-    all_goals simp [refusedRun, EmissionFreshnessTests.run] at hib
+    all_goals simp [refusedRun] at hib
     all_goals interval_cases i <;> decide +kernel
   · refine ⟨?_, ?_⟩
     · intro v o t hp u hu hh
       obtain ⟨i, hi⟩ := hp
       have he := List.mem_of_getElem? hi
-      simp [refusedRun, EmissionFreshnessTests.run] at he
+      simp [refusedRun] at he
       obtain ⟨rfl, rfl, rfl⟩ := he
       have hu0 : u = 0 := Finset.mem_singleton.mp hu
       subst u
@@ -183,7 +183,7 @@ theorem refused_valid : V2.D.ExecutionValid env refusedRun := by
     · intro v o t hp o' hc u hu hh
       obtain ⟨i, hi⟩ := hp
       have he := List.mem_of_getElem? hi
-      simp [refusedRun, EmissionFreshnessTests.run] at he
+      simp [refusedRun] at he
       obtain ⟨rfl, rfl, rfl⟩ := he
       change o' ∈ [] ∨ o' ∈ [] ∨ o' ∈ [] at hc
       simp at hc

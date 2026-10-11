@@ -1,6 +1,6 @@
 module
-public import AvailableChainFGSARun.Proofs.Restore
-public import AvailableChainFGSARun.Proofs.Schedule
+public import AvailableChainEngineV2.Engine.Duty.Run
+public import AvailableChainFGSARun.Model.Protocol
 public import Mathlib.Tactic.FinCases
 public import Mathlib.Tactic.IntervalCases
 

@@ -358,8 +358,9 @@ AvailableChainFGSARun.Statements.ReceiptCoverage
 AvailableChainFGSARun.Statements.Receipts
 AvailableChainFGSARun.Statements.Roots
 AvailableChainFGSARun.Statements.Slashing
-AvailableChainFGSARun.TestSupport.EmissionFreshness
-AvailableChainFGSARun.TestSupport.Sleep
+AvailableChainFGSARun.Proofs.TestSupport.EmissionFreshness
+AvailableChainFGSARun.Model.TestSupport.EmissionFreshness
+AvailableChainFGSARun.Model.TestSupport.Sleep
 AvailableChainFGSARun.Tests.Axioms
 AvailableChainFGSARun.Tests.DigestScope
 AvailableChainFGSARun.Tests.EmissionFreshness

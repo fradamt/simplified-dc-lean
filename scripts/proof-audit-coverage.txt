@@ -2696,6 +2696,7 @@
         ),
         'AvailableChainFGSAProofs.Proofs.Clean.Zero': (
             'AvailableChain.FGSA.Run.cleanCut_zero_body',
+            'AvailableChain.FGSA.Run.zero_export_no_gate',
         ),
         'AvailableChainFGSAProofs.Proofs.Finality.Above': (
             'AvailableChain.FGSA.Run.above_frontier_F4_W_of',

@@ -598,6 +598,7 @@ public import AvailableChainFGSAProofs.Proofs.Outage.ScopedCatchUp
 
 #print axioms AvailableChain.FGSA.Run.cleanTransfer
 
+#print axioms AvailableChain.FGSA.Run.zero_export_no_gate
 #print axioms AvailableChain.FGSA.Run.cleanCut_zero_body
 #print axioms AvailableChain.FGSA.Run.cleanSafety_of_trunc_body
 #print axioms AvailableChain.FGSA.Run.cleanHistoryAt_zero

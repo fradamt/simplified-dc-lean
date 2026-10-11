@@ -500,8 +500,11 @@ private theorem bodies_genesis (i : Nat) :
     rw [List.take_of_length_le (le_of_not_gt hi)]
     decide +kernel
 
-private theorem proposals_absent (i : Nat) : (run.emitsAt env i).all (fun o =>
-    match o.payload with | .proposal _ => false | _ => true) = true := by
+private def proposals_absent_check (i : Nat) : Bool := (run.emitsAt env i).all (fun o =>
+    match o.payload with | .proposal _ => false | _ => true)
+
+private theorem proposals_absent (i : Nat) : proposals_absent_check i = true := by
+  unfold proposals_absent_check
   by_cases hi : i < run.events.length
   · change i < 12 at hi
     interval_cases i <;> decide +kernel

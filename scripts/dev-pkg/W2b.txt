@@ -367,8 +367,9 @@ AvailableChainFGSARun.Proofs.ReadyAcceptance
 AvailableChainFGSARun.Proofs.ReceiptCoverageReady
 AvailableChainFGSARun.Proofs.RowHistory
 AvailableChainFGSARun.Proofs.StampOrigins
-AvailableChainFGSARun.TestSupport.EmissionFreshness
-AvailableChainFGSARun.TestSupport.Sleep
+AvailableChainFGSARun.Proofs.TestSupport.EmissionFreshness
+AvailableChainFGSARun.Model.TestSupport.EmissionFreshness
+AvailableChainFGSARun.Model.TestSupport.Sleep
 AvailableChainFGSARun.Tests.EmissionFreshness
 AvailableChainFGSARun.Tests.FGSource
 AvailableChainFGSARun.Tests.History

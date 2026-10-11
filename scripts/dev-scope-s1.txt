@@ -4,8 +4,9 @@
 AvailableChainFGSARun.Tests.P23Axioms
 AvailableChainFGSARun.Proofs.ReceiptCoverageReady
 AvailableChainFGSARun.Tests.ReceiptReady
-AvailableChainFGSARun.TestSupport.EmissionFreshness
-AvailableChainFGSARun.TestSupport.Sleep
+AvailableChainFGSARun.Proofs.TestSupport.EmissionFreshness
+AvailableChainFGSARun.Model.TestSupport.EmissionFreshness
+AvailableChainFGSARun.Model.TestSupport.Sleep
 AvailableChainFGSARun.Proofs.FGSource
 AvailableChainFGSARun.Proofs.HeadHistory
 AvailableChainFGSARun.Proofs.Join

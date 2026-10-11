@@ -1054,23 +1054,29 @@ def originTime (i : Nat) : Time :=
   if i = 2 then 1 else if i = 6 then 4 else if i = 8 then 5
   else if i = 13 ∨ i = 14 then 9 else if i = 18 then 13 else 17
 
-theorem fgp_delivery_checks (late : Bool) : ∀ i : Fin 25,
+def delivery_check (late : Bool) (i : Fin 25) : Prop :=
     match (run late).events[i.val]? with
     | some (.deliver v o _) => P.wellFormed o = true ∧
         P.depsPresent (V2.D.Run.stateBefore env (run late) i v) o = true ∧
         P.processed (V2.D.Run.stateBefore env (run late) i v) o = false
-    | _ => True := by
+    | _ => True
+
+theorem fgp_delivery_checks (late : Bool) : ∀ i : Fin 25, delivery_check late i := by
+  unfold delivery_check
   intro i
   fin_cases i <;> cases late <;>
     simp only [run, Bool.false_eq_true, ite_false, ite_true, List.cons_append,
       List.nil_append, List.getElem?_cons_zero, List.getElem?_cons_succ] <;> decide +kernel
 
-theorem origin_checks (late : Bool) : ∀ i : Fin 25,
+def origin_check (late : Bool) (i : Fin 25) : Prop :=
     match (run late).events[i.val]? with
     | some (.deliver v o t) => originTime i ≤ t ∧
         (run late).events[originIdx i]? = some (.tick v (originTime i)) ∧
         o ∈ V2.D.Run.emitsAt env (run late) (originIdx i)
-    | _ => True := by
+    | _ => True
+
+theorem origin_checks (late : Bool) : ∀ i : Fin 25, origin_check late i := by
+  unfold origin_check
   intro i
   fin_cases i <;> cases late <;>
     simp only [run, Bool.false_eq_true, ite_false, ite_true, List.cons_append,
@@ -1123,6 +1129,7 @@ theorem delivery_valid (late : Bool) : V2.D.DeliveryWellFormed env (run late) :=
   all_goals have hib := (List.getElem?_eq_some_iff.mp hi).1
   all_goals have hb : i < 25 := by cases late <;> simpa [run] using hib
   all_goals have hc := fgp_delivery_checks late ⟨i, hb⟩
+  all_goals dsimp only [delivery_check] at hc
   all_goals rw [hi] at hc
   · exact hc.1
   · exact hc.2.1
@@ -1136,6 +1143,7 @@ theorem signatures_valid (late : Bool) : V2.D.UnforgeableSignatures env (run lat
     have hb : i < 25 := by
       cases late <;> simpa [run] using (List.getElem?_eq_some_iff.mp hi).1
     have hc := origin_checks late ⟨i, hb⟩
+    dsimp only [origin_check] at hc
     rw [hi] at hc
     exact ⟨originTime i, hc.1, originIdx i, hc.2.1, hc.2.2⟩
   · intro v o t ⟨i, hi⟩ o' hc u _ _
@@ -1384,7 +1392,9 @@ theorem positive_slow :
 
 end AvailableChain.FGSA.Run.Tests.OutageArming.Finite
 
+#print axioms AvailableChain.FGSA.Run.Tests.OutageArming.Finite.delivery_check
 #print axioms AvailableChain.FGSA.Run.Tests.OutageArming.Finite.fgp_delivery_checks
+#print axioms AvailableChain.FGSA.Run.Tests.OutageArming.Finite.origin_check
 #print axioms AvailableChain.FGSA.Run.Tests.OutageArming.Finite.origin_checks
 #print axioms AvailableChain.FGSA.Run.Tests.OutageArming.Finite.schedule_valid
 #print axioms AvailableChain.FGSA.Run.Tests.OutageArming.Finite.delivery_valid
