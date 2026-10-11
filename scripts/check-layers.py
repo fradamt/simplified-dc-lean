@@ -817,6 +817,15 @@ COMPOSE_EDGES |= frozenset({
 })
 
 
+COMPOSE_PROOF_IMPORTS |= frozenset({
+    ("AvailableChainFGCompose.Proofs.Healing.PhaseFrame",
+     "AvailableChainKitFG.FrameGeometry"),
+    ("AvailableChainFGCompose.Proofs.Healing.PhaseFrame",
+     "AvailableChainKitFG.StoreBounds"),
+    ("AvailableChainFGCompose.Proofs.Healing.PhaseSettle",
+     "AvailableChainGeneric.Proofs.V2.Duty.Reads"),
+})
+
 def compose_base(dep: str) -> bool:
     return (foundation(dep) or under(dep, "AvailableChainModel.Objects")
             or any_under(dep, ("AvailableChainEngineV2.Engine",

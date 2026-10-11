@@ -11,6 +11,11 @@ AvailableChainFGSAProofs.Proofs.Healing.CommonEntryHeight
 AvailableChainFGSAProofs.Proofs.Healing.Promotion
 AvailableChainFGSAProofs.Proofs.Healing.PromotionRows
 [GREEN]
+AvailableChainFGCompose.Statements.Phase
+AvailableChainFGCompose.Statements.PhaseReceipts
+AvailableChainFGCompose.Proofs.Healing.PhaseFrame
+AvailableChainFGCompose.Proofs.Healing.PhaseOrder
+AvailableChainFGCompose.Proofs.Healing.PhaseSettle
 AvailableChainEngineV2
 AvailableChainEngineV2.Conditions.Committees
 AvailableChainEngineV2.Conditions.Delivery
