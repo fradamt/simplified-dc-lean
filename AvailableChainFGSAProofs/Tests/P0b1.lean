@@ -176,13 +176,13 @@ private theorem derive_eq (p : Params) (K : Nat) (B : FGBlock (Fin p.n)) :
     toWindow (FGSA.Window.derive p K B) = SimplexFG.Window.derive p.E p.cfg K B :=
   (foldMap p K).fold_eq B
 
-private theorem height_eq (p : Params) (B : FGBlock (Fin p.n)) :
+private theorem p0b1_height_eq (p : Params) (B : FGBlock (Fin p.n)) :
     FGSA.heightView p B = KitFG.Window.heightView p.E p.cfg p.K_W B :=
-  (foldMap p p.K_W).height_eq B
+  (foldMap p p.K_W).foldMap_height_eq B
 
-private theorem finality_eq (p : Params) (B : FGBlock (Fin p.n)) :
+private theorem p0b1_finality_eq (p : Params) (B : FGBlock (Fin p.n)) :
     FGSA.finalityView p B = KitFG.Window.finalityView p.E p.cfg p.K_W B :=
-  (foldMap p p.K_W).finality_eq B
+  (foldMap p p.K_W).foldMap_finality_eq B
 
 private theorem accept_eq (p : Params) (K : Nat) (st : Store (Fin p.n)) :
     FGSA.Window.acceptViable p K st = SimplexFG.Window.acceptViable p.E p.cfg K st := by
@@ -213,8 +213,8 @@ private theorem on_block_eq (p : Params) (K : Nat)
 #print axioms transition_eq
 #print axioms foldMap
 #print axioms derive_eq
-#print axioms height_eq
-#print axioms finality_eq
+#print axioms p0b1_height_eq
+#print axioms p0b1_finality_eq
 #print axioms accept_eq
 #print axioms update_eq
 #print axioms on_block_eq

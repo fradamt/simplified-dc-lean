@@ -7460,8 +7460,13 @@
       "kind": "structure",
       "module": "AvailableChainKitFG.WindowTransportDef"
     },
-    "AvailableChain.KitFG.WindowFoldMap.finality_eq": {
-      "digest": "4635d0f75a8ee5903a09c7f3ed54d9e0cd8cbc9a2d485a38829b661708d793a4",
+    "AvailableChain.KitFG.WindowFoldMap.foldMap_finality_eq": {
+      "digest": "0e7ed48ba13a32280da2ecddf9784c64c84d6a995bf468c1efc38a00c6b55986",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowTransport"
+    },
+    "AvailableChain.KitFG.WindowFoldMap.foldMap_height_eq": {
+      "digest": "3cc27c19640aa81bc211ad33999d6500eb0292c51e8b007591d7b56253a6cfb6",
       "kind": "theorem",
       "module": "AvailableChainKitFG.WindowTransport"
     },
@@ -7474,11 +7479,6 @@
       "digest": "e2dba1ca093bce9e7963544e9de8fd623949153f33cfc48b49bf46754aef5541",
       "kind": "field",
       "module": "AvailableChainKitFG.WindowTransportDef"
-    },
-    "AvailableChain.KitFG.WindowFoldMap.height_eq": {
-      "digest": "3ca2fd10bb40f622276fe4a34c205714246a92200b230b7d4b33428b7bc2e6cf",
-      "kind": "theorem",
-      "module": "AvailableChainKitFG.WindowTransport"
     },
     "AvailableChain.KitFG.WindowFoldMap.initial": {
       "digest": "dece2a85d249d825b330ba38186db55b7b10ea7dab9416d3c1ecd6e342c215fd",
@@ -15415,10 +15415,10 @@
     "AvailableChain.KitFG.Window.projectHeight_def",
     "AvailableChain.KitFG.Window.window_addBit",
     "AvailableChain.KitFG.Window.window_addBit_def",
-    "AvailableChain.KitFG.WindowFoldMap.finality_eq",
+    "AvailableChain.KitFG.WindowFoldMap.foldMap_finality_eq",
+    "AvailableChain.KitFG.WindowFoldMap.foldMap_height_eq",
     "AvailableChain.KitFG.WindowFoldMap.fold_eq",
     "AvailableChain.KitFG.WindowFoldMap.genesis",
-    "AvailableChain.KitFG.WindowFoldMap.height_eq",
     "AvailableChain.KitFG.WindowFoldMap.initial",
     "AvailableChain.KitFG.WindowFoldMap.mk",
     "AvailableChain.KitFG.WindowFoldMap.node",
@@ -90010,7 +90010,7 @@
         "                    (W → AvailableChain.SimplexFG.Window.State V) → Prop"
       ]
     },
-    "AvailableChain.KitFG.WindowFoldMap.finality_eq": {
+    "AvailableChain.KitFG.WindowFoldMap.foldMap_finality_eq": {
       "body": [
         ""
       ],
@@ -90031,8 +90031,8 @@
         "List",
         "Nat"
       ],
-      "digest": "f4a210455594e69745cf022b7a82cfaafdda6d9add5ec7746ad665bf1d1f04e2",
-      "kernel_name": "str:2:79:str:2:54:str:2:38:str:2:12:anonymous:0:14:AvailableChain5:KitFG13:WindowFoldMap11:finality_eq",
+      "digest": "f7a6904aec7bedb22bf349d98c3b5ca1e99ed0666b388bfc374919e64c898701",
+      "kernel_name": "str:2:79:str:2:54:str:2:38:str:2:12:anonymous:0:14:AvailableChain5:KitFG13:WindowFoldMap19:foldMap_finality_eq",
       "kind": "theorem",
       "module": "AvailableChainKitFG.WindowTransport",
       "type": [
@@ -90048,6 +90048,46 @@
         "    ∀ (B : AvailableChain.SimplexFG.FGBlock V),",
         "      Eq (AvailableChain.KitFG.Window.projectFinality (toWindow (oldFold B)))",
         "        (AvailableChain.KitFG.Window.finalityView E cfg K B)"
+      ]
+    },
+    "AvailableChain.KitFG.WindowFoldMap.foldMap_height_eq": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.KitFG.FGHeight",
+        "AvailableChain.KitFG.Window.heightView",
+        "AvailableChain.KitFG.Window.projectHeight",
+        "AvailableChain.KitFG.WindowFoldMap",
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.FGConfig",
+        "AvailableChain.SimplexFG.Row",
+        "AvailableChain.SimplexFG.RowCodec",
+        "AvailableChain.SimplexFG.Window.State",
+        "DecidableEq",
+        "Eq",
+        "Fintype",
+        "List",
+        "Nat"
+      ],
+      "digest": "0f661793c04e44389a9caa051b0c6e09a44ce15cb22af9652f9b91dd8125e841",
+      "kernel_name": "str:2:79:str:2:54:str:2:38:str:2:12:anonymous:0:14:AvailableChain5:KitFG13:WindowFoldMap17:foldMap_height_eq",
+      "kind": "theorem",
+      "module": "AvailableChainKitFG.WindowTransport",
+      "type": [
+        "∀ {V W : Type} [inst : DecidableEq V] [inst_1 : Fintype V]",
+        "  [inst_2 : AvailableChain.SimplexFG.RowCodec V]",
+        "  {E : AvailableChain.SimplexFG.Electorate V} {cfg : AvailableChain.SimplexFG.FGConfig}",
+        "  {K : Nat} {oldInitial : W}",
+        "  {oldStep :",
+        "    W → AvailableChain.SimplexFG.FGBlock V → List (AvailableChain.SimplexFG.Row V) → W}",
+        "  {oldFold : AvailableChain.SimplexFG.FGBlock V → W}",
+        "  {toWindow : W → AvailableChain.SimplexFG.Window.State V},",
+        "  AvailableChain.KitFG.WindowFoldMap E cfg K oldInitial oldStep oldFold toWindow →",
+        "    ∀ (B : AvailableChain.SimplexFG.FGBlock V),",
+        "      Eq (AvailableChain.KitFG.Window.projectHeight (toWindow (oldFold B)))",
+        "        (AvailableChain.KitFG.Window.heightView E cfg K B)"
       ]
     },
     "AvailableChain.KitFG.WindowFoldMap.fold_eq": {
@@ -90121,46 +90161,6 @@
         "  {toWindow : W → AvailableChain.SimplexFG.Window.State V},",
         "  AvailableChain.KitFG.WindowFoldMap E cfg K oldInitial oldStep oldFold toWindow →",
         "    Eq (oldFold AvailableChain.SimplexFG.FGBlock.genesis) oldInitial"
-      ]
-    },
-    "AvailableChain.KitFG.WindowFoldMap.height_eq": {
-      "body": [
-        ""
-      ],
-      "dependencies": [
-        "AvailableChain.KitFG.FGHeight",
-        "AvailableChain.KitFG.Window.heightView",
-        "AvailableChain.KitFG.Window.projectHeight",
-        "AvailableChain.KitFG.WindowFoldMap",
-        "AvailableChain.SimplexFG.Electorate",
-        "AvailableChain.SimplexFG.FGBlock",
-        "AvailableChain.SimplexFG.FGConfig",
-        "AvailableChain.SimplexFG.Row",
-        "AvailableChain.SimplexFG.RowCodec",
-        "AvailableChain.SimplexFG.Window.State",
-        "DecidableEq",
-        "Eq",
-        "Fintype",
-        "List",
-        "Nat"
-      ],
-      "digest": "2c0e81fdd9e290c3a54adc80c15eb49f359e6ce42fce9e8757d44de34f455ea4",
-      "kernel_name": "str:2:79:str:2:54:str:2:38:str:2:12:anonymous:0:14:AvailableChain5:KitFG13:WindowFoldMap9:height_eq",
-      "kind": "theorem",
-      "module": "AvailableChainKitFG.WindowTransport",
-      "type": [
-        "∀ {V W : Type} [inst : DecidableEq V] [inst_1 : Fintype V]",
-        "  [inst_2 : AvailableChain.SimplexFG.RowCodec V]",
-        "  {E : AvailableChain.SimplexFG.Electorate V} {cfg : AvailableChain.SimplexFG.FGConfig}",
-        "  {K : Nat} {oldInitial : W}",
-        "  {oldStep :",
-        "    W → AvailableChain.SimplexFG.FGBlock V → List (AvailableChain.SimplexFG.Row V) → W}",
-        "  {oldFold : AvailableChain.SimplexFG.FGBlock V → W}",
-        "  {toWindow : W → AvailableChain.SimplexFG.Window.State V},",
-        "  AvailableChain.KitFG.WindowFoldMap E cfg K oldInitial oldStep oldFold toWindow →",
-        "    ∀ (B : AvailableChain.SimplexFG.FGBlock V),",
-        "      Eq (AvailableChain.KitFG.Window.projectHeight (toWindow (oldFold B)))",
-        "        (AvailableChain.KitFG.Window.heightView E cfg K B)"
       ]
     },
     "AvailableChain.KitFG.WindowFoldMap.initial": {
