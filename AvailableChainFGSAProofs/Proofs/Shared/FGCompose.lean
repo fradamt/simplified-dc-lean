@@ -1,5 +1,8 @@
 module
 public import AvailableChainFGCompose.Statements.CoreReads
+public import AvailableChainFGCompose.Statements.Selection
+public import AvailableChainFGSARun.Proofs.FGSource
+public import AvailableChainGeneric.Proofs.Pure.BlockOrder
 public import AvailableChainFGSAClaims.Statements.Fold
 public import AvailableChainFGSARun.Proofs.Reachable
 public import AvailableChainFGSA.Proofs.Head
@@ -83,6 +86,177 @@ theorem fgsaHeadLaws (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In
     obtain ⟨B, hB, hBe⟩ := (hinv.baseTree _).mp hm
     exact ⟨B, hB, hBe⟩
   parent_closed i x B hB := (cstoreInv_stateBefore E rho i x).fg.closed B hB
+
+open Gen.Pure
+
+private def p0c1_observations (p : Params) {In : Type} (c : AppCodec In) :
+    FGCompose.FGObservationReads (fgsaCoreReads p c) where
+  height := heightView p
+  finality := finalityView p
+  controls nd := FGSA.controls p nd.st
+  viable nd X := domainR p nd.st X
+
+private def p0c1_selection (p : Params) {In : Type} (c : AppCodec In) :
+    FGCompose.FGSelectionReads (fgsa p c) p.n where
+  select nd := (FGSA.fgSource p nd.st, fgBlockOf nd.st (fgHead p nd.st))
+  clientInputs nd := fgInputs p nd.st
+
+private def p0c1_deeper (a b : Block) : Block :=
+  if a.depth < b.depth || (a.depth == b.depth && a.root < b.root) then b else a
+
+private theorem p0c1_deeper_depth (a b : Block) :
+    a.depth ≤ (p0c1_deeper a b).depth ∧ b.depth ≤ (p0c1_deeper a b).depth := by
+  unfold p0c1_deeper
+  split
+  · next h =>
+    rcases Bool.or_eq_true_iff.mp h with h | h
+    · exact ⟨Nat.le_of_lt (of_decide_eq_true h), le_rfl⟩
+    · exact ⟨(beq_iff_eq.mp (Bool.and_eq_true_iff.mp h).1).le, le_rfl⟩
+  · next h =>
+    have hn : ¬ a.depth < b.depth := by
+      intro hab
+      exact h (by simp only [hab, decide_true, Bool.true_or])
+    exact ⟨le_rfl, Nat.le_of_not_gt hn⟩
+
+private theorem p0c1_fold_depth (xs : List Block) (init : Block) :
+    init.depth ≤ (xs.foldl p0c1_deeper init).depth ∧
+      ∀ b ∈ xs, b.depth ≤ (xs.foldl p0c1_deeper init).depth := by
+  induction xs generalizing init with
+  | nil => exact ⟨le_rfl, fun _ h => (List.not_mem_nil h).elim⟩
+  | cons x xs ih =>
+    obtain ⟨hi, hb⟩ := ih (p0c1_deeper init x)
+    refine ⟨(p0c1_deeper_depth init x).1.trans hi, ?_⟩
+    intro b hm
+    rcases List.mem_cons.mp hm with rfl | hm
+    · exact (p0c1_deeper_depth init b).2.trans hi
+    · exact hb b hm
+
+
+private theorem p0c1_fold_covers (xs : List Block) (init B : Block) (hB : B ∈ xs)
+    (hinit : Block.Compatible init B)
+    (hxs : ∀ b ∈ xs, Block.Compatible b B) :
+    Block.Preceq B (xs.foldl (fun a b =>
+      if a.depth < b.depth || (a.depth == b.depth && a.root < b.root) then b else a) init) := by
+  change Block.Preceq B (xs.foldl p0c1_deeper init)
+  have hdepth := (p0c1_fold_depth xs init).2 B hB
+  have hmem := foldl_select_mem (fun (a b : Block) =>
+    a.depth < b.depth || (a.depth == b.depth && a.root < b.root)) xs init
+  change xs.foldl p0c1_deeper init = init ∨ xs.foldl p0c1_deeper init ∈ xs at hmem
+  have hcompat : Block.Compatible (xs.foldl p0c1_deeper init) B := by
+    rcases hmem with he | hm
+    · rw [he]; exact hinit
+    · exact hxs _ hm
+  rcases Bool.or_eq_true_iff.mp hcompat with h | h
+  · have he := prefix_eq_of_depth _ _ h hdepth
+    rw [he]
+    exact block_preceq_refl _
+  · exact h
+
+
+private theorem p0c1_liveRoot_of_lease (p : Params) (st : State p.n) {B : Block}
+    (hBS : Block.Preceq B st.base.stableRecord)
+    (hbelow : LeaseBelowOutputStore p st) {dl : Time}
+    (hlease : FGSA.leaseOf st B = some dl) (hlive : st.base.now < dl)
+    (hdom : ∃ β ∈ FGSA.fullTree p st, eraseFG β = B) :
+    Block.Preceq B (FGSA.liveRoot p st) := by
+  obtain ⟨β, hβ, hβB⟩ := hdom
+  have hZB : Block.Preceq (eraseFG (FGSA.controls p st).Z) B := by
+    rw [← hβB]
+    exact eraseFG_preceq
+      ((KitFG.mem_filteredFromView (heightView p) _ _ β).mp hβ).2.2.1
+  obtain ⟨row, hfind, hdl⟩ := Option.map_eq_some_iff.mp hlease
+  have hrow := List.mem_of_find?_eq_some hfind
+  have hp := List.find?_some hfind
+  have hkey : row.1 = B := beq_iff_eq.mp hp
+  let targets := st.base.obligations.filterMap (fun row =>
+    if st.base.now < row.2.2 && decide (∃ β ∈ FGSA.fullTree p st, eraseFG β = row.1)
+    then some row.1 else none)
+  have hBm : B ∈ targets := by
+    apply List.mem_filterMap.mpr
+    refine ⟨row, hrow, ?_⟩
+    have htime : st.base.now < row.2.2 := hdl ▸ hlive
+    have hdB : ∃ β ∈ FGSA.fullTree p st, eraseFG β = B := ⟨β, hβ, hβB⟩
+    simp only [htime, decide_true, hkey, hdB, Bool.and_self, ite_true]
+  change Block.Preceq B (targets.foldl p0c1_deeper (eraseFG (FGSA.controls p st).Z))
+  apply p0c1_fold_covers targets _ B hBm
+  · exact block_compatible_of_common hZB (block_preceq_refl B)
+  · intro b hb
+    obtain ⟨row, hr, he⟩ := List.mem_filterMap.mp hb
+    split at he
+    · next hc =>
+      have hl := of_decide_eq_true (Bool.and_eq_true_iff.mp hc).1
+      have hbe : row.1 = b := Option.some.inj he
+      rw [← hbe]
+      exact block_compatible_of_common (hbelow row hr hl) hBS
+    · cases he
+
+
+private theorem p0c1_source_head (p : Params) (st : State p.n)
+    (hReach : Reachable p st) {C H : FGBlock (Fin p.n)}
+    (hC : FGSA.fgSource p st = some C) (hH : fgBlockOf st (fgHead p st) = some H) :
+    FGBlock.Preceq C H := by
+  have hmem := Finset.mem_filter.mp (FGSA.pickPair_some_spec _ _ hC).1
+  have hguard := Bool.and_eq_true_iff.mp hmem.2
+  have hlive := hguard.2
+  cases hl : leaseOf st (eraseFG C) with
+  | none => simp only [hl, Bool.false_eq_true] at hlive
+  | some dl =>
+    simp only [hl, decide_eq_true_eq] at hlive
+    have hbelow := leaseBelowOutputStore_of_reachable p st hReach
+    obtain ⟨row, hfind, hdl⟩ := Option.map_eq_some_iff.mp hl
+    have hp := List.find?_some hfind
+    have hkey : row.1 = eraseFG C := beq_iff_eq.mp hp
+    have hCS : Block.Preceq (eraseFG C) st.base.stableRecord := by
+      rw [← hkey]
+      exact hbelow row (List.mem_of_find?_eq_some hfind) (hdl ▸ hlive)
+    have hroot := p0c1_liveRoot_of_lease p st hCS hbelow hl hlive ⟨C, hmem.1, rfl⟩
+    have hhead : Block.Preceq (liveRoot p st) (fgHead p st) :=
+      liveRoot_preceq_headInTree p st _ _ _
+    have hHe := ((fgBlockOf_spec p st (storeBundle_of_reachable p st hReach).cstore
+      (fgHead p st) H).mp hH).2
+    exact eraseFG_preceq_iff.mp (hHe ▸ block_preceq_trans hroot hhead)
+
+private theorem p0c1_selection_laws (p : Params) {In : Type} (c : AppCodec In) :
+    FGCompose.FGSelectionLaws (fgsaCoreReads p c) (p0c1_observations p c)
+      (p0c1_selection p c) (fun nd => Reachable p nd.st) (Window.headFields p p.K_W) where
+  source_eq _ _ := rfl
+  head_eq _ _ := rfl
+  head_held nd hReach := by
+    have hinv := (storeBundle_of_reachable p nd.st hReach).cstore
+    obtain ⟨H, hm, he⟩ := (hinv.baseTree _).mp (fgHead_stored p nd.st hinv)
+    exact ⟨H, (fgBlockOf_spec p nd.st hinv _ H).mpr ⟨hm, he⟩, hm⟩
+  source_viable nd C _ hC := by
+    exact (Finset.mem_filter.mp (FGSA.pickPair_some_spec _ _ hC).1).1
+  source_head nd C H hReach he := by
+    exact p0c1_source_head p nd.st hReach (congrArg Prod.fst he) (congrArg Prod.snd he)
+  client_eq nd H _ hH := by
+    change (fgSource p nd.st, _) = (fgSource p nd.st, Window.headFields p p.K_W H)
+    change fgBlockOf nd.st (fgHead p nd.st) = some H at hH
+    simp only [hH]
+
+private theorem p0c1_action_selection_laws (p : Params) {In V : Type} [DecidableEq V]
+    (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hvalid : V2.D.ExecutionValid E rho) :
+    FGCompose.FGActionSelectionLaws E rho (p0c1_selection p c) p.actionTime
+      (fun x r _ => x ∈ rho.honest ∧ E.awake x (p.actionTime r) = true)
+      (fun _ _ nd => joinedNow p nd.st = true) where
+  nonempty_joined x r nd C hread _ hC := by
+    obtain ⟨pre, hpre, rfl⟩ := Option.map_eq_some_iff.mp hread
+    obtain ⟨i, hi, rfl⟩ := Option.map_eq_some_iff.mp hpre
+    have ht := V2.D.Run.tickIdx?_spec hi
+    cases hj : joinedNow p ((fgsa p c).clock (V2.D.Run.stateBefore E rho i x)
+        (p.actionTime r)).st with
+    | true => rfl
+    | false =>
+      have hn := fgsa_fgAction_unjoined_source_none E rho hvalid ht hj
+      change FGSA.fgSource p _ = some C at hC
+      rw [hn] at hC
+      cases hC
+
+#print axioms p0c1_source_head
+#print axioms p0c1_selection_laws
+#print axioms p0c1_action_selection_laws
+
 end AvailableChain.FGSA.Run
 
 end
