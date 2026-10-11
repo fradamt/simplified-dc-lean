@@ -116,6 +116,28 @@ def main():
                 check(fixture, f'{modifier} constructor modifier with {label} inventory rejected',
                       source, {PREFIX + 'I'} | {PREFIX + 'I.' + n for n in names}, 'reject')
                 count += 1
+        derived = 'inductive I where\n  | make | other\n  deriving DecidableEq\n'
+        exact = {PREFIX + n for n in ('I', 'I.make', 'I.other', 'instDecidableEqI')}
+        source = 'namespace AvailableChain.FGCompose\n' + derived + 'end\n'
+        check(fixture, 'deriving DecidableEq exact', source, exact)
+        check(fixture, 'deriving DecidableEq unlisted instance', source,
+              exact - {PREFIX + 'instDecidableEqI'}, 2, 'UNLISTED:')
+        check(fixture, 'deriving DecidableEq fabricated deriving name', source,
+              exact | {PREFIX + 'I.deriving'}, 2, 'MISSING:')
+        source = ('namespace AvailableChain.FGCompose\nnamespace Nested\n' + derived
+                  + 'end Nested\nend\n')
+        check(fixture, 'nested deriving DecidableEq exact', source,
+              {PREFIX + 'Nested.' + n for n in ('I', 'I.make', 'I.other', 'instDecidableEqI')})
+        count += 4
+        for label, body in {
+            'deriving two classes': 'inductive I where\n  | make\n  deriving DecidableEq, Repr\n',
+            'deriving other class': 'inductive I where\n  | make\n  deriving Repr\n',
+            'same-line deriving': 'inductive I where | make deriving DecidableEq\n',
+            'dotted deriving type': 'inductive Q.I where\n  | make\n  deriving DecidableEq\n',
+        }.items():
+            source = 'namespace AvailableChain.FGCompose\n' + body + 'end\n'
+            check(fixture, label + ' rejected', source, {PREFIX + 'I'}, 'reject')
+            count += 1
     result = subprocess.run([sys.executable, '-B', CHECKER], check=True,
                             capture_output=True, text=True)
     coverage = re.search(r'; (\d+) public declarations/projections', result.stdout)

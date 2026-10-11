@@ -31,6 +31,13 @@ def constructors(raw, d):
                 break
             reject('continuation must be indented below the header')
         body.append(line)
+    derived = []
+    # A final own-line `deriving DecidableEq` adds one instance with Lean's derived name.
+    if len(body) > 1 and re.fullmatch(r'\s+deriving\s+DecidableEq\s*', body[-1]):
+        if '.' in d.name or d.name.startswith('«'):
+            reject('derived instance name needs a simple type identifier')
+        body.pop()
+        derived.append(d.full[:-len(d.name)] + 'instDecidableEq' + d.name)
     text = '\n'.join(body)
     # Such terms can contain bars which are not constructor separators. Fail closed.
     commands = '|'.join(C.DECL_KW + ('match', 'by', 'let', 'do', 'if', 'fun', 'deriving',
@@ -60,7 +67,7 @@ def constructors(raw, d):
         i += 1
     if stack:
         reject('unbalanced delimiters')
-    return names
+    return names + derived
 
 
 expected = set(read_names('scripts/fg-compose-expected.txt'))
