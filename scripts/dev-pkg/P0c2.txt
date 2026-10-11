@@ -11,6 +11,14 @@ AvailableChainFGSAProofs.Tests.P0Service
 AvailableChainFGSAProofs.Proofs.Finality.Rows
 AvailableChainFGSAProofs.Proofs.Finality.RowsBatch
 [GREEN]
+AvailableChainFGCompose.Proofs.ObservationTransport
+AvailableChainFGCompose.Proofs.Timing
+AvailableChainFGCompose.Statements.ChannelLaws
+AvailableChainFGCompose.Statements.Channels
+AvailableChainFGCompose.Statements.Observations
+AvailableChainFGCompose.Statements.Selection
+AvailableChainFGCompose.Statements.Timing
+AvailableChainFGCompose.Tests.P0c1
 AvailableChainEngineV2
 AvailableChainEngineV2.Conditions.Committees
 AvailableChainEngineV2.Conditions.Delivery
