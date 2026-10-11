@@ -115,7 +115,7 @@ for path in (Path('AvailableChainFGSAProofs/Proofs/Shared/FGCompose.lean'),
 # Lean renames a derived instance whose name is taken. Fail closed: every deriving clause
 # must be a supported public one, derived names must be distinct, and no source text may
 # mention a derived name (or a suffixed form of it) at all.
-if sum(len(re.findall(r'^\s*deriving\b', t, re.M)) for t in texts) != len(derived):
+if sum(len(re.findall(r'\bderiving\b', t)) for t in texts) != len(derived):
     raise SystemExit('UNSUPPORTED INDUCTIVE deriving: a clause outside a supported public inductive')
 for name in sorted(derived):
     short = name.rsplit('.', 1)[-1]

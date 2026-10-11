@@ -181,6 +181,24 @@ def main():
             check(fixture, f'private/public derived clash, {kind} instance, rejected', source,
                   base | {PREFIX + inst}, 'reject')
             count += 1
+        public = 'inductive Lower where\n  | a | b\n  deriving DecidableEq\n'
+        base = {PREFIX + n for n in ('Lower', 'Lower.a', 'Lower.b')}
+        for label, body, extra in (
+                ('inline private header', 'private inductive lower where | a | b deriving '
+                 'DecidableEq\n', ()),
+                ('inline private constructor', 'private inductive lower where\n  | a | b deriving '
+                 'DecidableEq\n', ()),
+                ('inline private structure', 'private structure lower where\n  x : Nat deriving '
+                 'DecidableEq\n', ()),
+                ('inline public structure', 'structure lower where\n  x : Nat deriving '
+                 'DecidableEq\n', ('lower', 'lower.mk', 'lower.x'))):
+            source = 'namespace AvailableChain.FGCompose\n' + body + public + 'end\n'
+            names = base | {PREFIX + n for n in extra}
+            for kind, inst in (('omitted', 'instDecidableEqLower'),
+                               ('complete', 'instDecidableEqLower_1')):
+                check(fixture, f'{label} deriving, {kind} instance, rejected', source,
+                      names | {PREFIX + inst}, 'reject')
+                count += 1
     result = subprocess.run([sys.executable, '-B', CHECKER], check=True,
                             capture_output=True, text=True)
     coverage = re.search(r'; (\d+) public declarations/projections', result.stdout)
