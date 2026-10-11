@@ -1,8 +1,9 @@
 module
-public import AvailableChainFGCompose.Statements.Promotion
+public import AvailableChainFGCompose.Statements.Bounds
+public import AvailableChainFGCompose.Statements.Channels
 public import AvailableChainGeneric.Proofs.V2.Duty.Reads
-public import Mathlib.Tactic.Linarith
-public import Mathlib.Tactic.Ring
+public import Mathlib.Tactic.Linarith -- shake: keep (arithmetic tactics)
+public import Mathlib.Tactic.Ring -- shake: keep (ring tactic)
 
 public section
 

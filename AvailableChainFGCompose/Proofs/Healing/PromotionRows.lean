@@ -1,5 +1,6 @@
 module
-public import AvailableChainFGCompose.Proofs.Healing.Promotion
+public import AvailableChainFGCompose.Statements.Promotion
+public import AvailableChainKitFG.Ancestry
 public import AvailableChainSimplexFG.Window
 
 public section

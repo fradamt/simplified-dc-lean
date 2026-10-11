@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionArithmetic
-public import AvailableChainFGSAProofs.Proofs.Healing.CommonEntryHeight
+public import AvailableChainFGSAProofs.Proofs.Healing.CommonEntryHeight -- shake: keep (axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionRows
 
 set_option linter.privateModule false

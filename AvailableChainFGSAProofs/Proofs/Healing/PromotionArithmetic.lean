@@ -1,7 +1,7 @@
 module
 public import AvailableChainFGSARun.Statements.Client
 public import AvailableChainFGCompose.Proofs.Healing.PromotionArithmetic
-public import AvailableChainFGSAProofs.Proofs.Shared.BoundsW
+public import AvailableChainFGSAProofs.Proofs.Shared.BoundsW -- shake: keep (carrier time API)
 public import AvailableChainFGSAProofs.Proofs.Shared.StoreRun
 public import AvailableChainFGSAProofs.Proofs.Shared.Reads -- shake: keep (healing lane strict-read supplier)
 public import AvailableChainFGSAClaims.Statements.Regimes

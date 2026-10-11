@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGCompose.Proofs.Healing.Promotion
 public import AvailableChainFGCompose.Proofs.Healing.CommonEntry
 public import AvailableChainFGCompose.Proofs.Healing.PromotionArithmetic
 public import AvailableChainFGCompose.Proofs.Healing.PromotionRows

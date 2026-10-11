@@ -1,7 +1,7 @@
 module
 public import AvailableChainFGCompose.Statements.Promotion
 public import AvailableChainFGCompose.Statements.Phase
-public import AvailableChainKitFG.Correspondence
+public import AvailableChainKitFG.Ancestry
 
 public section
 

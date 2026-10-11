@@ -1,6 +1,5 @@
 module
 public import AvailableChainFGCompose.Statements.Promotion
-public import AvailableChainKitFG.Correspondence
 
 public section
 
