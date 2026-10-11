@@ -168,6 +168,8 @@ def composeImportAllowed (m dep : Name) : Bool :=
      `AvailableChainFGCompose.Proofs.SafetyMonotone,
      `AvailableChainFGCompose.Proofs.SafetySlashing].contains dep
   else if composeStatements m then base || ownStatements || safety
+  else if [(`AvailableChainFGCompose.Tests.P0d3,
+      `AvailableChainKitFG.WindowHeightBridge)].contains (m, dep) then true
   else if (`AvailableChainFGCompose.Tests).isPrefixOf m then
     foundation || ownStatements || ownProofs
   else if (`AvailableChainFGCompose.Proofs).isPrefixOf m then

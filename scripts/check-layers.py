@@ -620,6 +620,7 @@ def test_use(ctx: Context, m: Module, dep: str) -> bool:
 def test_scope(ctx: Context, m: Module, dep: str) -> bool:
     # P0b1: private fieldwise correspondence, with exact external suppliers.
     if (m.name, dep) in {
+        (COMPOSE + ".Tests.P0d3", KITFG + ".WindowHeightBridge"),
         (PROOFS + ".Tests.P0c1", COMPOSE + ".Proofs.ObservationTransport"),
         (PROOFS + ".Tests.P0HistoricalReads", COMPOSE + ".Proofs.HistoricalReads"),
         (PROOFS + ".Tests.P0HistoricalReads", FGSA + ".Proofs.NamedReachable"),
@@ -859,6 +860,11 @@ def compose_s(ctx: Context, m: Module, dep: str) -> bool:
 
 
 def compose_p(ctx: Context, m: Module, dep: str) -> bool:
+    # P0d3: the non-genesis interface fixture uses the proved window height laws.
+    if (m.name, dep) in {
+        (COMPOSE + ".Tests.P0d3", KITFG + ".WindowHeightBridge"),
+    }:
+        return False
     if not (under(m.name, COMPOSE + ".Proofs") or under(m.name, COMPOSE + ".Tests")):
         return False
     own = any_under(dep, (COMPOSE + ".Statements", COMPOSE + ".Proofs"))

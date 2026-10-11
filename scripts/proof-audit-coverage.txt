@@ -15,6 +15,7 @@
             'AvailableChain.FGCompose.healing_promotion_fixed_rows',
             'AvailableChain.FGCompose.healing_promotion_entry_slot',
             'AvailableChain.FGCompose.healing_promotion_bounded_rows',
+            'AvailableChain.FGCompose.p0d3_bound_batch',
         ),
         'AvailableChainFGCompose.Proofs.Healing.PromotionArithmetic': (
             'AvailableChain.FGCompose.healing_promotion_gap_remainder',
@@ -30,6 +31,8 @@
         ),
         'AvailableChainFGCompose.Proofs.Healing.PromotionRows': (
             'AvailableChain.FGCompose.p0d3_same_row',
+            'AvailableChain.FGCompose.p0d3_same_batch_on',
+            'AvailableChain.FGCompose.p0d3_same_batch',
             'AvailableChain.FGCompose.healing_promotion_same_rows_on',
             'AvailableChain.FGCompose.healing_promotion_same_rows',
         ),

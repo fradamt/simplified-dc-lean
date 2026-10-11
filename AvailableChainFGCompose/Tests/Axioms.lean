@@ -423,3 +423,7 @@ public import AvailableChainFGCompose.Proofs.RowPermission -- shake: keep (#prin
 #print axioms AvailableChain.FGCompose.PromotionRowDeadline
 #print axioms AvailableChain.FGCompose.PromotionRowDeadlineStrict
 #print axioms AvailableChain.FGCompose.PromotionAgeGap
+
+#print axioms AvailableChain.FGCompose.p0d3_bound_batch
+#print axioms AvailableChain.FGCompose.p0d3_same_batch_on
+#print axioms AvailableChain.FGCompose.p0d3_same_batch

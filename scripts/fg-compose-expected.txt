@@ -598,3 +598,7 @@
     'AvailableChain.FGCompose.healing_promotion_same_rows_on',
     'AvailableChain.FGCompose.p0d3_same_row',
 )
+
+AvailableChain.FGCompose.p0d3_bound_batch
+AvailableChain.FGCompose.p0d3_same_batch_on
+AvailableChain.FGCompose.p0d3_same_batch
