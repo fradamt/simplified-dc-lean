@@ -25,21 +25,32 @@ theorem historicalLookup_spec {Body : Type} [DecidableEq Body]
     historicalLookup root tree r = some B ↔
       B ∈ tree ∧ root B = r ∧ ∀ C ∈ tree, root C = r → C = B := by
   let xs := (tree.filter (fun C => root C == r)).eraseDups
+  have lookup_eq : historicalLookup root tree r = some B ↔ xs = [B] := by
+    rw [historicalLookup_def]
+    change (match xs with | [b] => some b | _ => none) = some B ↔ xs = [B]
+    cases xs with
+    | nil => constructor <;> intro h <;> cases h
+    | cons C cs =>
+      cases cs with
+      | nil =>
+        constructor
+        · intro h
+          cases h
+          rfl
+        · intro h
+          exact congrArg some (List.cons.inj h).1
+      | cons D ds => constructor <;> intro h <;> cases h
   have hm (C : Body) : C ∈ xs ↔ C ∈ tree ∧ root C = r := by
     simp [xs]
   have hn : xs.Nodup := historical_lookup_nodup _
-  unfold historicalLookup
+  rw [lookup_eq]
   constructor
-  · intro h
-    split at h
-    · rename_i C he
-      cases h
-      have hB := (hm B).mp (by simp [xs, he])
-      refine ⟨hB.1, hB.2, ?_⟩
-      intro C hC hr
-      have := (hm C).mpr ⟨hC, hr⟩
-      simpa [xs, he] using this
-    · contradiction
+  · intro he
+    have hB := (hm B).mp (by simp [he])
+    refine ⟨hB.1, hB.2, ?_⟩
+    intro C hC hr
+    have := (hm C).mpr ⟨hC, hr⟩
+    simpa [he] using this
   · rintro ⟨hB, hr, hu⟩
     have hb : B ∈ xs := (hm B).mpr ⟨hB, hr⟩
     have hall : ∀ C ∈ xs, C = B := fun C hC =>
@@ -58,8 +69,7 @@ theorem historicalLookup_spec {Body : Type} [DecidableEq Body]
             subst C
             exact (List.nodup_cons.mp hn).1 hC
           simp [hempty]
-    change (tree.filter (fun C => root C == r)).eraseDups = [B] at he
-    simp [he]
+    exact he
 
 variable {In Body : Type} {P : V2.ProtocolSpecD In}
 variable {n : Nat} {Base Proposal Wire : Type}
