@@ -12,6 +12,7 @@ import sys
 import threading
 import tempfile
 import time
+from gate_timing import begin, update, finish
 
 
 def positive_seconds(value):
@@ -94,9 +95,22 @@ class AuditPool:
 
     def reserve_log(self, label):
         self.serial += 1
-        return self.work / f'{self.serial:02d}-{label}.log'
+        directory = self.work
+        if os.environ.get('GATE_LOG_DIR'):
+            directory = Path(os.environ['GATE_LOG_DIR']) / 'substeps' / \
+                os.environ.get('GATE_STEP', 'audit')
+            directory.mkdir(parents=True, exist_ok=True)
+        path = directory / f'{self.serial:02d}-{label}.log'
+        begin(path.with_suffix('.json'), label)
+        return path
 
-    def execute(self, path, args, *, env=None, cwd=None):
+    def execute(self, path, args, *, env=None, cwd=None, expect=None):
+        record = path.with_suffix('.json').resolve()
+        update(record, start=time.time(), command=list(args), control=expect,
+               cwd=str(cwd or Path.cwd()))
+        env = dict(os.environ if env is None else env,
+                   GATE_TIMING_RECORD=str(record),
+                   GATE_TIMING_HELPER=str(Path(__file__).with_name('gate_timing.py').resolve()))
         if self.time_args:
             args = [*self.time_args, '-o', str(path.with_suffix('.time')), *args]
         started = None
@@ -106,14 +120,26 @@ class AuditPool:
             args = ['bash', '-c', 'source "$1"; shift; gate_with_slot "$@"',
                     'audit-slot', str(self.slot_script), 'bash', '-c',
                     ': > "$1" || exit; shift; exec "$@"', 'audit-start', str(started), *args]
-        with path.open('w') as out:
+        code = 143
+        with path.with_suffix('.stdout').open('w') as out, \
+                path.with_suffix('.stderr').open('w') as err:
             # Only worker threads spawn commands. The main thread can safely
             # wait for this lock in a signal handler, with no spawn/register gap.
             with self.lock:
                 if self.stopping:
+                    finish(record, 143)
+                    path.write_text('')
+                    path.with_suffix('.rc').write_text('143\n')
                     return 143
-                proc = subprocess.Popen(args, stdout=out, stderr=subprocess.STDOUT,
-                                        env=env, cwd=cwd, start_new_session=True)
+                try:
+                    proc = subprocess.Popen(args, stdout=out, stderr=err,
+                                            env=env, cwd=cwd, start_new_session=True)
+                except OSError as error:
+                    err.write(str(error) + '\n')
+                    path.write_text(str(error) + '\n')
+                    finish(record, 127)
+                    path.with_suffix('.rc').write_text('127\n')
+                    raise
                 self.active.add(proc)
             try:
                 # Slot waits have no command budget, but remain in the active
@@ -133,6 +159,10 @@ class AuditPool:
                     self.active.discard(proc)
                 if started is not None:
                     started.unlink(missing_ok=True)
+                finish(record, code, path.with_suffix('.time'))
+        # Existing assertions inspect both streams. The raw streams stay separate.
+        path.write_text(path.with_suffix('.stdout').read_text() +
+                        path.with_suffix('.stderr').read_text())
         path.with_suffix('.rc').write_text(str(code) + '\n')
         return code
 
@@ -154,7 +184,8 @@ class AuditPool:
     def run(self, label, args, *, expect=None, env=None, cwd=None):
         path = self.reserve_log(label)
         with ThreadPoolExecutor(max_workers=1) as pool:
-            code = pool.submit(self.execute, path, args, env=env, cwd=cwd).result()
+            code = pool.submit(self.execute, path, args, env=env, cwd=cwd,
+                               expect=expect).result()
         return self.result(label, path, code, expect)
 
     def run_pool(self, controls):
@@ -162,7 +193,8 @@ class AuditPool:
                 for label, args, options in sorted(controls, key=lambda c: c[0])]
         with ThreadPoolExecutor(max_workers=self.workers) as pool:
             futures = [pool.submit(self.execute, path, args,
-                                   env=options.get('env'), cwd=options.get('cwd'))
+                                   env=options.get('env'), cwd=options.get('cwd'),
+                                   expect=options.get('expect'))
                        for _, path, args, options in jobs]
             outputs = {}
             failure = None

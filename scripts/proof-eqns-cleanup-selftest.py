@@ -62,7 +62,7 @@ with tempfile.TemporaryDirectory(prefix='proof-cleanup-') as scratch:
             scripts = case / 'scripts'
             scripts.mkdir(parents=True)
             (case / '.lake').mkdir()
-            for name in ('check-proof-eqns-controls.py', 'audit_pool.py'):
+            for name in ('check-proof-eqns-controls.py', 'audit_pool.py', 'gate_timing.py'):
                 shutil.copy2(REPO / 'scripts' / name, scripts / name)
             bindir = case / 'bin'
             bindir.mkdir()

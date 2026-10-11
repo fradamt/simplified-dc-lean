@@ -2,6 +2,7 @@
 """Test shell failure paths with a fake Lake. Real Lean checks run separately."""
 
 import os
+import json
 from pathlib import Path
 import shutil
 import signal
@@ -17,7 +18,7 @@ with tempfile.TemporaryDirectory(prefix="gate-shell-controls-") as scratch:
     scripts.mkdir()
     (root / ".lake").mkdir()
     for name in ("check-fgsa-manifest.sh", "check-fg.sh", "gate-common.sh",
-                 "unported.py", "unported-libraries.txt"):
+                 "unported.py", "unported-libraries.txt", "gate_timing.py"):
         shutil.copy2(REPO / "scripts" / name, scripts / name)
     for name in ('api-snapshot.py', 'api-snapshot-controls.py', 'fgsa-deep-controls.py'):
         (scripts / name).write_text("import os,sys\n"
@@ -69,6 +70,20 @@ elif mode == 'fail' or (mode == 'setup-fail' and '--write' in sys.argv):
         assert result.returncode == rc, result
         assert not list((root / ".lake").glob("fgsa-manifest*"))
         print(f"CONTROL manifest cleanup {mode} (rc {rc}): PASS")
+
+    retained = root / '.lake/retained'
+    result = run('check-fgsa-manifest.sh', 'pass', NEG='0', AUDIT_TIMING='1',
+                 GATE_LOG_DIR=str(retained), GATE_STEP='fgsa-manifest')
+    assert result.returncode == 0, result
+    records = list(retained.glob('timings/fgsa-manifest/*.json'))
+    assert len(records) == 7, records
+    for path in records:
+        record = json.loads(path.read_text())
+        assert record['queued'] <= record['start'] <= record['slot_acquired'] <= record['end']
+        assert record['rc'] == 0 and record['peak_rss_bytes'] is not None, record
+        assert Path(str(path) + '.stdout').exists() and Path(str(path) + '.stderr').exists()
+    assert not list((root / '.lake').glob('fgsa-manifest*'))
+    print('CONTROL manifest retained seven timing records and separate streams: PASS')
 
     child = subprocess.Popen(
         ["bash", str(scripts / "check-fgsa-manifest.sh")], cwd=root,

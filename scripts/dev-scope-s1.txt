@@ -8,6 +8,9 @@ AvailableChainFGCompose.Statements.Finality
 AvailableChainFGCompose.Statements.FinalityReceipts
 AvailableChainFGCompose.Proofs.ServiceTransport
 AvailableChainFGCompose.Tests.P0Service
+AvailableChainFGCompose.Statements.HistoricalReads
+AvailableChainFGCompose.Proofs.HistoricalReads
+AvailableChainFGCompose.Tests.HistoricalReads
 AvailableChainFGCompose.Proofs.ObservationTransport
 AvailableChainFGCompose.Proofs.Timing
 AvailableChainFGCompose.Tests.P0c1

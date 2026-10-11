@@ -90,6 +90,8 @@
       "AvailableChainFGCompose.Statements.Finality",
       "AvailableChainFGCompose.Statements.FinalityReceipts",
       "AvailableChainFGCompose.Proofs.ServiceTransport",
+      "AvailableChainFGCompose.Statements.HistoricalReads",
+      "AvailableChainFGCompose.Proofs.HistoricalReads",
       "AvailableChainFGCompose.Proofs.ObservationTransport",
       "AvailableChainFGCompose.Proofs.Timing",
       "AvailableChainFGCompose.Statements.ChannelLaws",

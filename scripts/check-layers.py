@@ -621,6 +621,9 @@ def test_scope(ctx: Context, m: Module, dep: str) -> bool:
     # P0b1: private fieldwise correspondence, with exact external suppliers.
     if (m.name, dep) in {
         (PROOFS + ".Tests.P0c1", COMPOSE + ".Proofs.ObservationTransport"),
+        (PROOFS + ".Tests.P0HistoricalReads", COMPOSE + ".Proofs.HistoricalReads"),
+        (PROOFS + ".Tests.P0HistoricalReads", FGSA + ".Proofs.NamedReachable"),
+        (PROOFS + ".Tests.P0HistoricalReads", FGSA + ".Proofs.Restart"),
         (PROOFS + ".Tests.P0c1", INHABIT + ".WitnessPositive"),
         (PROOFS + ".Tests.P0b1", FGSA + ".Model.WindowStore"),
         (PROOFS + ".Tests.P0b1", FGSA + ".Statements.FinalityView"),
@@ -764,6 +767,18 @@ COMPOSE_EDGES |= frozenset({
     (PROOFS + ".Tests.P0c1", COMPOSE + ".Proofs.ObservationTransport"),
 })
 
+
+# P0c4: cumulative full-body reads and one exact geometry proof edge.
+COMPOSE_MODULES += (
+    COMPOSE + ".Statements.HistoricalReads",
+    COMPOSE + ".Proofs.HistoricalReads",
+)
+COMPOSE_PROOF_IMPORTS |= frozenset({
+    (COMPOSE + ".Proofs.HistoricalReads", "AvailableChainGeneric.Proofs.Pure.CommonAncestor"),
+})
+COMPOSE_EDGES |= frozenset({
+    (PROOFS + ".Tests.P0HistoricalReads", COMPOSE + ".Proofs.HistoricalReads"),
+})
 
 def compose_base(dep: str) -> bool:
     return (foundation(dep) or under(dep, "AvailableChainModel.Objects")
