@@ -30,3 +30,5 @@ public import AvailableChainFGCompose.Proofs.SafetySlashing
 
 public import AvailableChainFGCompose.Statements.HistoricalReads
 public import AvailableChainFGCompose.Proofs.HistoricalReads
+public import AvailableChainFGCompose.Statements.RowPermission
+public import AvailableChainFGCompose.Proofs.RowPermission
