@@ -86,9 +86,25 @@ structure FGDependencyWorkResult (State Body Origin Wire : Type) where
   operations : List (FGDependencyOperation Body Origin Wire)
   reads : List (FGDependencyWorkRead State)
 
+/-- A handler's read continuation is executable and receives the state it observes. -/
+inductive FGDependencyProgram (State : Type) where
+  | finish (state : State)
+  | read (kind : FGDependencyReadKind) (state : State)
+      (next : State → FGDependencyProgram State)
+
+def dependencyExecuteProgram {State : Type} :
+    FGDependencyProgram State → State × List (FGDependencyReadKind × State)
+  | .finish st => (st, [])
+  | .read kind st next =>
+      let result := dependencyExecuteProgram (next st)
+      (result.1, (kind, st) :: result.2)
+
 /-- Executable hooks of the dependency driver. Raw restore and clock remain in P. -/
 structure FGDependencyDriver (V Body : Type) (P : V2.ProtocolSpecD In) where
   enter : P.State → P.Object → FGReceiptToken V P.Object → P.State
+  enterProgram : P.State → P.Object → FGReceiptToken V P.Object → FGDependencyProgram P.State
+  hookProgram : P.State → FGDependencyOperation Body (FGReceiptToken V P.Object) P.Object →
+    FGDependencyProgram P.State
   drain : P.State → P.State
   retry : P.State → Body → FGReceiptToken V P.Object → FGDependencyOutcome → P.State
   work : P.State → V2.Event V P.Object →
@@ -97,17 +113,9 @@ structure FGDependencyDriver (V Body : Type) (P : V2.ProtocolSpecD In) where
   notify : P.State → Body → FGReceiptToken V P.Object → P.State
 
 /-- Each primitive is the actual entry, leaf, report, notification or protocol operation. -/
-def dependencyExecuteOperation (F : FGDependencyDriver V Body P) (st : P.State) :
-    FGDependencyOperation Body (FGReceiptToken V P.Object) P.Object → P.State
-  | .arrival _ o => F.enter st o.wire o
-  | .leaf b o result => F.retry st b o result
-  | .inheritRefusal b o => F.inheritRefusal st b o
-  | .notification b o => F.notify st b o
-  | .ordinary wire | .rejected wire => P.process st wire
-  | .ownRecord wire => P.recordOwn st wire
-  | .clock t => P.clock st t
-  | .restore t => P.restore (P.durable st) t
-  | .idle => st
+def dependencyExecuteOperation (F : FGDependencyDriver V Body P) (st : P.State)
+    (op : FGDependencyOperation Body (FGReceiptToken V P.Object) P.Object) : P.State :=
+  (dependencyExecuteProgram (F.hookProgram st op)).1
 
 /-- Evaluation records every read at its actual state and ordered operation boundary. -/
 def dependencyExecuteWork (F : FGDependencyDriver V Body P) (st : P.State) :
@@ -117,6 +125,8 @@ def dependencyExecuteWork (F : FGDependencyDriver V Body P) (st : P.State) :
   | .step op :: rest =>
       let tail := dependencyExecuteWork F (dependencyExecuteOperation F st op) rest
       ⟨tail.state, op :: tail.operations,
+        ((dependencyExecuteProgram (F.hookProgram st op)).2.map
+          (fun r => ⟨1, r.1, r.2⟩)) ++
         tail.reads.map (fun r => { r with offset := r.offset + 1 })⟩
   | .read kind :: rest =>
       let tail := dependencyExecuteWork F st rest
@@ -139,7 +149,21 @@ def dependencyEventEntry (rho : V2.D.Run V P) (F : FGDependencyDriver V Body P)
   | .restart y t => if y = x then P.restore (P.durable st) t else st
   | .tick y t => if y = x then P.clock st t else st
   | .deliver y wire t => if y = x then
-      F.enter st wire ⟨x, j, wire, t, dependencyReceiverEpoch rho x j⟩ else st
+      (dependencyExecuteProgram (F.enterProgram st wire
+        ⟨x, j, wire, t, dependencyReceiverEpoch rho x j⟩)).1 else st
+
+/-- Entry and primitive-hook reads are collected by evaluation, even without read commands. -/
+def dependencyEventReads (rho : V2.D.Run V P) (F : FGDependencyDriver V Body P)
+    (x : V) (j : Nat) (st : P.State) (e : V2.Event V P.Object) :
+    List (FGDependencyWorkRead P.State) :=
+  let entryReads := match e with
+    | .deliver y wire t => if y = x then
+        (dependencyExecuteProgram (F.enterProgram st wire
+          ⟨x, j, wire, t, dependencyReceiverEpoch rho x j⟩)).2.map
+            (fun r => ⟨0, r.1, r.2⟩) else []
+    | _ => []
+  let entry := dependencyEventEntry rho F x j st e
+  entryReads ++ (dependencyExecuteWork F entry (F.work entry e)).reads
 
 def dependencyEventStep (_E : Generic.Env V) (rho : V2.D.Run V P)
     (F : FGDependencyDriver V Body P) (x : V) (j : Nat)
@@ -269,14 +293,15 @@ structure FGDependencyTraceLaws (E : Generic.Env V) (rho : V2.D.Run V P)
     work.state = T.state (T.done j) ∧
     work.operations = (List.range (T.done j - T.entryCut j)).map
       (fun offset => Op (T.entryCut j + offset))
+  work_step : ∀ j e k, rho.events[j]? = some e →
+    T.entryCut j ≤ k → k < T.done j →
+    T.state (k + 1) = dependencyExecuteOperation F (T.state k) (Op k)
   hook_correspondence : ∀ j e index kind cut st, rho.events[j]? = some e →
     (T.hookRead j index kind cut st ↔ ∃ r,
-      (dependencyExecuteWork F (T.state (T.entryCut j))
-        (F.work (T.state (T.entryCut j)) e)).reads[index]? = some r ∧
+      (dependencyEventReads rho F x j (T.state (T.start j)) e)[index]? = some r ∧
       r.kind = kind ∧ cut = T.entryCut j + r.offset ∧ st = r.consumed)
   hook_reads : ∀ j e r, rho.events[j]? = some e →
-    r ∈ (dependencyExecuteWork F (T.state (T.entryCut j))
-      (F.work (T.state (T.entryCut j)) e)).reads →
+    r ∈ dependencyEventReads rho F x j (T.state (T.start j)) e →
     T.entryCut j + r.offset ≤ T.done j ∧
     T.state (T.entryCut j + r.offset) = r.consumed ∧
     FGDependencySteps Step x (T.state (T.entryCut j)) r.consumed ∧
@@ -427,12 +452,10 @@ structure FGDependencyReadClosureLaws (E : Generic.Env V) (rho : V2.D.Run V P) (
       | _ => (site i).consumedCut = T.done (site i).eventIndex)
   hook_correspondence : ∀ j e index kind cut st, rho.events[j]? = some e →
     (T.hookRead j index kind cut st ↔ ∃ r,
-      (dependencyExecuteWork F (T.state (T.entryCut j))
-        (F.work (T.state (T.entryCut j)) e)).reads[index]? = some r ∧
+      (dependencyEventReads rho F x j (T.state (T.start j)) e)[index]? = some r ∧
       r.kind = kind ∧ cut = T.entryCut j + r.offset ∧ st = r.consumed)
   hook_completion : ∀ j e r, rho.events[j]? = some e →
-    r ∈ (dependencyExecuteWork F (T.state (T.entryCut j))
-      (F.work (T.state (T.entryCut j)) e)).reads →
+    r ∈ dependencyEventReads rho F x j (T.state (T.start j)) e →
     T.entryCut j + r.offset ≤ T.done j ∧
     T.state (T.entryCut j + r.offset) = r.consumed ∧
     FGDependencySteps Step x (T.state (T.entryCut j)) r.consumed ∧
