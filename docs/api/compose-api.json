@@ -251,82 +251,87 @@
       "module": "AvailableChainFGCompose.Statements.Dependency"
     },
     "AvailableChain.FGCompose.FGDependencyCommand": {
-      "digest": "6eea8dd9e1acee9c5c193dd813039ccd178f5ed37cb0cbe3abf74581c8bd4947",
+      "digest": "77346a5ef2957160ce31ed6653a61e5313bb58426fa4e2425726edbfb24c9c70",
       "kind": "inductive",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyCommand.read": {
-      "digest": "6eea8dd9e1acee9c5c193dd813039ccd178f5ed37cb0cbe3abf74581c8bd4947",
+      "digest": "77346a5ef2957160ce31ed6653a61e5313bb58426fa4e2425726edbfb24c9c70",
       "kind": "ctor",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyCommand.step": {
-      "digest": "6eea8dd9e1acee9c5c193dd813039ccd178f5ed37cb0cbe3abf74581c8bd4947",
+      "digest": "77346a5ef2957160ce31ed6653a61e5313bb58426fa4e2425726edbfb24c9c70",
       "kind": "ctor",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyDeliveryLaws": {
-      "digest": "4c991c290e0a2ae30f897ed04d13a12f328e7267a44e0e293d8fddb80ebef520",
+      "digest": "8084d8bb57c7d8e885ae399c47f37f15c47722a2e52f6c9e3f910f81489bf241",
       "kind": "structure",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyDeliveryLaws.mk": {
-      "digest": "4c991c290e0a2ae30f897ed04d13a12f328e7267a44e0e293d8fddb80ebef520",
+      "digest": "8084d8bb57c7d8e885ae399c47f37f15c47722a2e52f6c9e3f910f81489bf241",
       "kind": "ctor",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyDeliveryLaws.old_send": {
-      "digest": "9b9f0afbe6ceecf80a93b7225ab51f15533afba579c4fde2a16e63c49bdd1016",
+      "digest": "787147168b30e6d1890774a83b42712eb1f0625360f711747cad02b5cf660d86",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyDriver": {
-      "digest": "1a216511ca814ce7b6566ca1fef2ae385f2ceffb5b07f5ced0d85d88ca16d805",
+      "digest": "97fcd1dbe2745dc548d85cba4f5fc77cb108bd9b297bfb87a12dbe67cfecd7fe",
       "kind": "structure",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyDriver.drain": {
-      "digest": "19bd28a841949a4ac97d4c657a2378def7685268794133770d03c6feb6e74c87",
+      "digest": "748f999e8dae51cf431aebadb452110e88a44aed8a839f2173ec711274ff9cac",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyDriver.enter": {
-      "digest": "bba39710d4f42e6533c5261a1862419dfef2ada94919f325ce38decab1a99887",
+      "digest": "b2aa3020b27815ba6deebcef1da6a0182074246cc9c88376772acfd17b02794e",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyDriver.enterProgram": {
-      "digest": "c5bc52b88bad8bf94cdb5508cbc741b11e620bde42a396e101f19b67e4478f84",
+      "digest": "135533687c2565a36b36418ec240b9e1c21f904c5871c1814031e127a330856b",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyDriver.hookProgram": {
-      "digest": "b8877aba87a6811362c62f78b006f8c43879a1da0e18e1616bc66c391cfde45c",
+      "digest": "3c0ab4f11b0ddfb6997dbee573b7cf7d80c22d7da4923bd41bed84e4254d15c5",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyDriver.inheritRefusal": {
-      "digest": "6d539fe1d171730fe5da28d6c0780dcc12cea49e440619a2906292ebdd7ce9be",
+      "digest": "8ef46240933bebc9203cfe7277a64cc60136785c15ab3789fb2b2dfe8380cfa4",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyDriver.mk": {
-      "digest": "1a216511ca814ce7b6566ca1fef2ae385f2ceffb5b07f5ced0d85d88ca16d805",
+      "digest": "97fcd1dbe2745dc548d85cba4f5fc77cb108bd9b297bfb87a12dbe67cfecd7fe",
       "kind": "ctor",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyDriver.notify": {
-      "digest": "b33afd0327673813e312a5de91b0bd795897b7ad69b829cc427f174d7499a6b9",
+      "digest": "bc828803cec2bae2801230033a3a9fc887fa556b9cb6e1717f4b4b5036b51492",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.DependencyTrace"
+    },
+    "AvailableChain.FGCompose.FGDependencyDriver.replay": {
+      "digest": "6cb1352ea8d65d5309d21df2388f021cfac7c3debcd1a397407cb215ca9f6977",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyDriver.retry": {
-      "digest": "5002afd9b9be0ad94e5446d94510688ad6a4d6a8a63306a2ffc96106997a2554",
+      "digest": "0d24be54e5ebb20500db483f68eff457d1802beaec390e5a484b9b671e3c45e6",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyDriver.work": {
-      "digest": "87b73d8ba2074c7c563fb1daf83dcce60f1c99a0260c035ffa5fc87bbe3df75e",
+      "digest": "bad089dd1dcab8777f376f3cf5cda9199dc61ae3712b91ac49b78fb857c87f00",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
@@ -391,57 +396,62 @@
       "module": "AvailableChainFGCompose.Statements.Dependency"
     },
     "AvailableChain.FGCompose.FGDependencyOperation": {
-      "digest": "4eff49e9c3e6e06f49647854e40201a4e276286e75633278fbc4fb19f4ab6634",
+      "digest": "4fe32ea1a3c87e17f7ffb710fbaf6f99a3cceeacfb4d2aee12db30d9651c0d01",
       "kind": "inductive",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyOperation.arrival": {
-      "digest": "4eff49e9c3e6e06f49647854e40201a4e276286e75633278fbc4fb19f4ab6634",
+      "digest": "4fe32ea1a3c87e17f7ffb710fbaf6f99a3cceeacfb4d2aee12db30d9651c0d01",
       "kind": "ctor",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyOperation.clock": {
-      "digest": "4eff49e9c3e6e06f49647854e40201a4e276286e75633278fbc4fb19f4ab6634",
+      "digest": "4fe32ea1a3c87e17f7ffb710fbaf6f99a3cceeacfb4d2aee12db30d9651c0d01",
       "kind": "ctor",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyOperation.idle": {
-      "digest": "4eff49e9c3e6e06f49647854e40201a4e276286e75633278fbc4fb19f4ab6634",
+      "digest": "4fe32ea1a3c87e17f7ffb710fbaf6f99a3cceeacfb4d2aee12db30d9651c0d01",
       "kind": "ctor",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyOperation.inheritRefusal": {
-      "digest": "4eff49e9c3e6e06f49647854e40201a4e276286e75633278fbc4fb19f4ab6634",
+      "digest": "4fe32ea1a3c87e17f7ffb710fbaf6f99a3cceeacfb4d2aee12db30d9651c0d01",
       "kind": "ctor",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyOperation.leaf": {
-      "digest": "4eff49e9c3e6e06f49647854e40201a4e276286e75633278fbc4fb19f4ab6634",
+      "digest": "4fe32ea1a3c87e17f7ffb710fbaf6f99a3cceeacfb4d2aee12db30d9651c0d01",
       "kind": "ctor",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyOperation.notification": {
-      "digest": "4eff49e9c3e6e06f49647854e40201a4e276286e75633278fbc4fb19f4ab6634",
+      "digest": "4fe32ea1a3c87e17f7ffb710fbaf6f99a3cceeacfb4d2aee12db30d9651c0d01",
       "kind": "ctor",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyOperation.ordinary": {
-      "digest": "4eff49e9c3e6e06f49647854e40201a4e276286e75633278fbc4fb19f4ab6634",
+      "digest": "4fe32ea1a3c87e17f7ffb710fbaf6f99a3cceeacfb4d2aee12db30d9651c0d01",
       "kind": "ctor",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyOperation.ownRecord": {
-      "digest": "4eff49e9c3e6e06f49647854e40201a4e276286e75633278fbc4fb19f4ab6634",
+      "digest": "4fe32ea1a3c87e17f7ffb710fbaf6f99a3cceeacfb4d2aee12db30d9651c0d01",
       "kind": "ctor",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyOperation.rejected": {
-      "digest": "4eff49e9c3e6e06f49647854e40201a4e276286e75633278fbc4fb19f4ab6634",
+      "digest": "4fe32ea1a3c87e17f7ffb710fbaf6f99a3cceeacfb4d2aee12db30d9651c0d01",
+      "kind": "ctor",
+      "module": "AvailableChainFGCompose.Statements.DependencyTrace"
+    },
+    "AvailableChain.FGCompose.FGDependencyOperation.replay": {
+      "digest": "4fe32ea1a3c87e17f7ffb710fbaf6f99a3cceeacfb4d2aee12db30d9651c0d01",
       "kind": "ctor",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyOperation.restore": {
-      "digest": "4eff49e9c3e6e06f49647854e40201a4e276286e75633278fbc4fb19f4ab6634",
+      "digest": "4fe32ea1a3c87e17f7ffb710fbaf6f99a3cceeacfb4d2aee12db30d9651c0d01",
       "kind": "ctor",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
@@ -511,47 +521,47 @@
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyReadClosureLaws": {
-      "digest": "56e59975e1519b31d19bf4a4f15b5c78d021ebd32856cf7b8feb671a6ee5327e",
+      "digest": "eadf578e3b19260543c623ad44a3c9afe5eb55addfe652a86f50677b4d7ad7e5",
       "kind": "structure",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyReadClosureLaws.actual_read": {
-      "digest": "7dbb242c8a2e8a00679895c2177d9d79606e0adeb2e8e2166f81cd97753dd446",
+      "digest": "1efbfdea811e836a14346ffaf4ab111d69730ca8c754467a651ce563182a44ab",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyReadClosureLaws.finite_completion": {
-      "digest": "48cddaf1fe81e4ab3e71a1b2bdb0c9e55a7c4e39ad16449eb1de8e12ee01c567",
+      "digest": "5248a4c0beca26d03f0bc28dfe791e5780e7f6fe688d17ffb196b3ef0c1d2235",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyReadClosureLaws.hook_completion": {
-      "digest": "8fc4dfadc8148c9fb8db3d93a5a86974bec6216e5c1fe02618c42805a663dc75",
+      "digest": "833bac1ddb42b22cc15eb55eb9977db982a7967ee74387130272865f214b1277",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyReadClosureLaws.hook_correspondence": {
-      "digest": "43fcf3b12e3576fa15335598bc040187779d32409e901ad8bc03eb3f3c1cc083",
+      "digest": "f09c1099b15fd57f7ad6e2a664db7a25b527e435669ed4b9c65f1eb46b3a478c",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyReadClosureLaws.mk": {
-      "digest": "56e59975e1519b31d19bf4a4f15b5c78d021ebd32856cf7b8feb671a6ee5327e",
+      "digest": "eadf578e3b19260543c623ad44a3c9afe5eb55addfe652a86f50677b4d7ad7e5",
       "kind": "ctor",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyReadClosureLaws.read_closed": {
-      "digest": "e302c831a7a9ac09135c651e396c447a98a7f8b47ab38cce231dcd874bd18935",
+      "digest": "d65732163993a0930fd6e588ef1247012d206bf5222b6a8610eb5fe4bf157cfd",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyReadClosureLaws.site_correspondence": {
-      "digest": "568d8dc404a8a135c14fea204292b12f9624a251fc6afc90793585810c4f5601",
+      "digest": "f59ca5e4483aa9249583eff0f27ea81026a943bb0040b3af14548dfdc8378ba1",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyReadClosureLaws.trace_bound": {
-      "digest": "6adf2c1cf27239de0876bfbb26e52bf71c5d93ddcc0856b237af6281f5be229a",
+      "digest": "55f1ce7bcdde4c78c55ec468571d4da5da49ecf570257ccc5ca057b36103d359",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
@@ -931,207 +941,207 @@
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyTraceLaws": {
-      "digest": "016f4a534fae8bc82bfb3474b8c25a29e6b618e6301ddab062526919099390c8",
+      "digest": "77fe5944eef6e1b33e11450974d5b68a148d170817449dd68ee3fd5df233c030",
       "kind": "structure",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyTraceLaws.actual_read": {
-      "digest": "78f6b99c2f1c4628da3a5b1230b62d982e6cc7739802fd48c9055433ea5c06d2",
+      "digest": "75eecc7ca66161bbc496421a4fbf88627d9279554a87443d4ecb4bb3635fe9d5",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyTraceLaws.arrival_laws": {
-      "digest": "22f028476e5f6899a1c06221a74b04d26800884528e2d9b3c54c89a2d12bde1a",
+      "digest": "f9feac962da70a91b4a075ea34a9d7e0db5a05fbcd6ee6c8ba859c0efc0d1f38",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyTraceLaws.atomic_tick": {
-      "digest": "caab25af924203cbfae691748b486f7e07c5787cbf0531f488f0a6e57cf58baf",
+      "digest": "9c7963cabd9102b9411f6bf56e5426d96de8b4d2ff49c3014ce33605a50d45e2",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyTraceLaws.boundary_idle": {
-      "digest": "be4abdee2cee9861c47680b31be440fc10b7b28d0392cc8863f8f9cb076211fb",
+      "digest": "04d4b69570adebbed69c41d6e698b5fbd2b3401d87af0ea1d013bc95005abfad",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyTraceLaws.clock_no_insert": {
-      "digest": "942406eff4b938b698df567055c1d81ffdda5c7a213f6fff292a442a324f53de",
+      "digest": "4cc9b1dcb220b46e9a811356e65898448475b16913b1b5d17433d34dc2cd7713",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyTraceLaws.completion_cut": {
-      "digest": "c70a36ca89b78f9b4727d6f81f8cbe4d29d737c66647050c39c04883baab3feb",
+      "digest": "0b2571f19ff5bcd50a4a7b37e65d5e3fa3fa04246cb5b3f808696f9d7b0f48cc",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyTraceLaws.delivery_entry": {
-      "digest": "54e30b0f410ff1af08859baa14afc3e35a38afe5747816038f3f21d6696ac2a9",
+      "digest": "3ff69a313ab4d17559172f8cbd02a1d373747f8bcb31a50cb90712b837b84040",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyTraceLaws.drain_operations": {
-      "digest": "5b6126306de024694458790432123cbb95a65310a26b8ff5fc1b8e8a0f03f131",
+      "digest": "8edc5953b234ba69c4a94064c470728b3fb95cbbb5f1ed2c3a61f1a474166ddc",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyTraceLaws.entry_boundary": {
-      "digest": "fe62e25c0460977f878364aa18afd2590e29d2b96a8ea092cd59d342eaa37c0c",
+      "digest": "87ed8d4edd9a7d10f54eec75531a95f58cd51d14a210bc978bb40deab47bc9e6",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyTraceLaws.entry_drain": {
-      "digest": "81bea07c903c6618b123c5f215b4cb77c37e9e7e2dd1da2408828e8e658e61c5",
+      "digest": "f194b96c912061593ec9fb2ef7e3eae870fbe8288453e6f6e231cea45a8ef22c",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyTraceLaws.event_drain": {
-      "digest": "17d2c57e38fc755fa09365eae7f56533ab0dc043957eba64874133d8cb374d9e",
+      "digest": "4bd74aceb55dfb185ba786e9e64e9b7808f6d913224e949cd6cc090be52b6d14",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyTraceLaws.event_order": {
-      "digest": "3794ef591e9730ec494cf11ede421f9b4b136f698c4d9d7fcad0c5c1da6c1266",
+      "digest": "b27d3e779ac89914f161ff5f9eaed478aef391de2ba2e86917a692a85c20fe8b",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyTraceLaws.external_step": {
-      "digest": "7df450eb03ef5c54145c839b33a1e7b6326e7167ebedef622767e3b2bd0d22ae",
+      "digest": "b74398f178722948e71a30fdae57b8fbc7d139a2f461d6cb09c57cff3b34c049",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyTraceLaws.finite_segment": {
-      "digest": "a232431c5908eb551e8e3508fe3bca8374b6321c2fc6143161c2883a53c7b892",
+      "digest": "54f17acfcef7e9f2cf3fbe02290431725fb35cb4a9342be66168923fabf1e8fd",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyTraceLaws.hook_correspondence": {
-      "digest": "9eb519de589c9a8abad1af089ce4a0487ce52f3b048cd14760fcf5d7d9873cb2",
+      "digest": "86f41c6f666f8471ff3c8bd6c073123ab744fab271ae628ce64c0c3cfe10a2bd",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyTraceLaws.hook_reads": {
-      "digest": "6ef4fa6db9111efc3e059b9beacd0ad6a69118e78cb18d0693b5d6e48fdf4f86",
+      "digest": "f3a37ae34b0f827026bb869a7d48c6f4c3bbc8870c80397390329462b0713011",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyTraceLaws.initial": {
-      "digest": "555b2d5accbd4c5becde352226548d2c51fa93c49f033455944bf14603530165",
+      "digest": "0dcd5435bb7b64fde0d6f8a4085badc6954617f16c24fff1ca51f84c9d248e57",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyTraceLaws.initial_accepted": {
-      "digest": "30b9e778085713d61edf9ba68b49427d8910773b47aabd5de55eaf28cd03402a",
+      "digest": "46e1d2de381b85df0b456e7b1e109708998623e789a708ba73b9bb530d259882",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyTraceLaws.leaf_step": {
-      "digest": "6dbe6fe50a2b2d582822555d0122e9c81a1ca73c5209798de6064715516ac348",
+      "digest": "64d3c08388ebc687e4e82afe8ac21f4f331619233496c9403c89075162c898f8",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyTraceLaws.micro_step": {
-      "digest": "01687d8b36cb9bb0ca7347712aab249147f13221b7409293cdabcc91b594e83c",
+      "digest": "aa607129376777061ad7a2d051d237866e9522d6c3eff7053711c873ddbcdf3b",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyTraceLaws.mk": {
-      "digest": "016f4a534fae8bc82bfb3474b8c25a29e6b618e6301ddab062526919099390c8",
+      "digest": "77fe5944eef6e1b33e11450974d5b68a148d170817449dd68ee3fd5df233c030",
       "kind": "ctor",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyTraceLaws.notification_creation": {
-      "digest": "98b29e60ca673f6fc669a74fa94fcc06c02b7f08f190ef437d410bad097ac7da",
+      "digest": "8c28369f41ce2ac8f9e9516951b4925ebcfba84805cb11efa3bc96f77589acde",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyTraceLaws.operation_bound": {
-      "digest": "b9cbfb781e6742a64c68b83bef4df744101e0f98add335e411f456b4d1213ea2",
+      "digest": "39e3bfcb018618edb6d052e6fb0e9a5e1a68c02bd5f895f5424950ab764bc797",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyTraceLaws.order_and_time": {
-      "digest": "aa73c8a1c9467bc00e96bcd95fbc85b4c46743607c3f365976277eccd43f81de",
+      "digest": "3592166363d5308e4bd3efde72772deb0966760ce65e4b731aead512d4a34bb2",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyTraceLaws.origin_attribution": {
-      "digest": "9b58a5b7f1ecd69c5ead6ee8e795691bdf4d7720ac5adaf8670bcdf527df6f44",
+      "digest": "b876dcde81485ff776f54cda80cd3d065e8a202f5931c9b75391c2e7cf39fc75",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyTraceLaws.origin_valid": {
-      "digest": "5d9862dcdf96b6e4cfa25dc18e2ae38e08312780c52400efaca00abf9431fc38",
+      "digest": "1deb0f8fb31c780dfb9d8f42093e012917062f8f301cd4784ed34c9dcf12fc5e",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyTraceLaws.raw_clock": {
-      "digest": "df1e55de0402525658cb16f4dee65433278614304c6bb85391a162b4d2be91c1",
+      "digest": "4bb7107ea6509deeb881eff565d643195db4a73fa7b34a0fd102ce2c1cd1a194",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyTraceLaws.raw_restore": {
-      "digest": "885848b7b24463f1984092e096dc66095f5902b5107a33bf6a6f74d3d13456c2",
+      "digest": "549dace90d6a068e284d970ee4ebb55f9e67f51cb13b5e86aee11e89dde86d05",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyTraceLaws.read_correspondence": {
-      "digest": "8d671512bf357c5f4ed74bee96498fbef580bf6db5c301ef18fb46e86a58b40b",
+      "digest": "8f6cf0dec156827a1ee644f449c86f2427e30948e111298f049fc4513324008b",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyTraceLaws.read_order": {
-      "digest": "1a4562d07f86c06ee6395ffc9860097bb544943980bf99784882174de68e0d6d",
+      "digest": "7b0b4e6784a1d573d6b68800d262b3c494cd3ef2e8bb5f0ff844d67bd4a102d4",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyTraceLaws.receipt_entry": {
-      "digest": "2a3fd5d00a91c20e5d809f36d9d55396a1815c78c5ee5775612268df9cce0216",
+      "digest": "7e1db3e90c38cd25ed1459408f707f88c9c55da6558fea0a8024b1572828d7d1",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyTraceLaws.refusal_creation": {
-      "digest": "b754dd7d40987cec559366c15cac998a76e6fd8d47414953553992eb9ed31ebb",
+      "digest": "649a272775849a179df6c184013bf3745e76cc1da7888a6e66dd2ec923ad0b54",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyTraceLaws.refusal_history": {
-      "digest": "3679686637a8969ef493e83e8b713147c5f0b23f980a70ff028fe4ab6eed3b81",
+      "digest": "5a24974c802985392943e6fc82afa28e6046e40aa688dc6c04495bb1d9f5922e",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyTraceLaws.restore_data": {
-      "digest": "90d0e54287193b5343e627287bd3f1499ae018369507b6195dc24c40a216b842",
+      "digest": "36b48d6ed19be55c4766f45b011dc9ca4b11fe171d312656a1b5fac3c1e20a0c",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyTraceLaws.segment_time": {
-      "digest": "a640ea64ebfacccc776129d0928a88c3589226f4184e4e0f8b24d42fb511aaef",
+      "digest": "0a2b3e0a5b2660cee32ba5ceb1fb0a247196ab5f20b9cb183f16b38751732a80",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyTraceLaws.step_kind": {
-      "digest": "85ec7123cab32ec4cf2b4bcfba3a51034a25e4aff27be9acf1870e87eb0dda6b",
+      "digest": "85c61172afda95a8d27bd117b4d9e9dda309d2014d98556766e704d649168c76",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyTraceLaws.tick_records": {
-      "digest": "1e050edacab40fd2d04c86e68d2383665b36d892ac2f14819ff9eeb610aa31ad",
+      "digest": "9e2bd10de444fff9ccb985c2b3a7e15c61d3a94058c53168dd565abe6158ae20",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyTraceLaws.wire_validation": {
-      "digest": "76da94137ec59e364e7d5d223d2999b3cf72a590ffd1de3e346555b28fb50ef2",
+      "digest": "0aacf7721803c77faa93a51cb62929cb445ff8b2901cbf2499dac41967496ae8",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyTraceLaws.work_execution": {
-      "digest": "aa89cc18716774dec8f6167160d0b6a89a45576493fab4e4299a90847525367f",
+      "digest": "f7264b6bc661d25264fe124d7c3e00bd11d56606ab3bd8a971a47a9904f8db47",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyTraceLaws.work_step": {
-      "digest": "879a88880d438dc96dddb2ca3c735b79e645305d7a17c05d4d0edb53bf9c9eb6",
+      "digest": "fc557fd5e92d6a50c5393c976bec0ea2684098b14b9152ccbb53317d83ce59c2",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
@@ -1196,27 +1206,27 @@
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyWorkResult": {
-      "digest": "28c2d8261218bb0fb1961db6a9780f0e3cf81e15efafa6ae630dcb9a9b2c387d",
+      "digest": "5ee89ba62bfab510e7e5594f3d77ef44b55448b1610c40e7c76cfef2b847460a",
       "kind": "structure",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyWorkResult.mk": {
-      "digest": "28c2d8261218bb0fb1961db6a9780f0e3cf81e15efafa6ae630dcb9a9b2c387d",
+      "digest": "5ee89ba62bfab510e7e5594f3d77ef44b55448b1610c40e7c76cfef2b847460a",
       "kind": "ctor",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyWorkResult.operations": {
-      "digest": "b06f1cddf250d9a6348bfb08ed2aa446d1a4b911d4276c4a97013fec304b4830",
+      "digest": "99a09cf2fa6d812fe33fb5dbd26d3e2f1c40405011dcec25237f9438ee82b0d5",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyWorkResult.reads": {
-      "digest": "c79a81a5767e03fdeb2e4ccbf3bba3bb3db16ec5633ba643cd9da4fa23c59bd4",
+      "digest": "e9f2f04249444b2266c1c90aadc1d098a66f856a70f305b2759fd4e7ce99e596",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.FGDependencyWorkResult.state": {
-      "digest": "56683fd25ca288e467241032d05cbcd83f1fd5324fff3638c26c3beb15fadf69",
+      "digest": "057f62672b5e28a8083ed4c0bf21d6c0cb46fb2b31b5e60782c93a440a3f8e49",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
@@ -2496,7 +2506,7 @@
       "module": "AvailableChainFGCompose.Statements.EventReads"
     },
     "AvailableChain.FGCompose.dependencyActualRead": {
-      "digest": "b774736125de14d0d4a22f5cd2a2051a5597e9f347188d80c48ec0cc29aef0ea",
+      "digest": "18c85335c58f80b16e5410e80098e2a0cc57f65e57fe82f3530e164fc9d470be",
       "kind": "def",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
@@ -2506,32 +2516,32 @@
       "module": "AvailableChainFGCompose.Statements.Dependency"
     },
     "AvailableChain.FGCompose.dependencyDutyState": {
-      "digest": "a7d271790c7a5c93d745bd3c4a1a4f21d39af5faf73d52b592a804c15525496f",
+      "digest": "309fed8efc8d9532b7087e99b97c3a2b314a7fd24bf223c53adb25c49d836599",
       "kind": "def",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.dependencyEmits": {
-      "digest": "b8eef400411008619aadb99aa8cffea0e3a6ae53c6743b8764a018f5a3e1379c",
+      "digest": "d77891881f01b3d45223ba3b8f8846e5c1e5c8bc61826fef3c62fd8c8472b307",
       "kind": "def",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.dependencyEventEntry": {
-      "digest": "ca1bcf81d27f288547672c4a63317b5cb0e79e921f0abf1fc3da22df6224ebc4",
+      "digest": "46a805c66e204196f3daa0d8dac3f9e9bb947887100f582734f5e8ca2adaf575",
       "kind": "def",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.dependencyEventReads": {
-      "digest": "4bc7a405c21b7137a52b95c9de6138909c63d8ba130b2b012812df394be77d75",
+      "digest": "d4df4c7371f2413c5a6c9f2cf96647bb5b509d719476089656d65a92139bcb43",
       "kind": "def",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.dependencyEventStep": {
-      "digest": "a6ba7161d6e17683f09e475b515922e6eedd19904f54bbe56d5eabd3bf02f148",
+      "digest": "11abdd10a166f6710c5988ed3d894be404d74114b98f697b86acbdbaf2fd4917",
       "kind": "def",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.dependencyExecuteOperation": {
-      "digest": "b2a883d55dd57ad73d40e59344a8922ffdaa887983bc994bc267b94b6fbe0e13",
+      "digest": "201b9b2f25e403910447e694ec577549fbfcb84ba892783a7982a8bbb56a9b68",
       "kind": "def",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
@@ -2541,12 +2551,12 @@
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.dependencyExecuteWork": {
-      "digest": "b5d743314164a88f6c57a92d35e77a0d5df20bc1825c4c0765fc0e95c6b3a0a0",
+      "digest": "f1146a80c0ba1ae186d87ce51126ac9771f33b5b75a5a1d02d1498c33a1c73f0",
       "kind": "def",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.dependencyOperationKind": {
-      "digest": "ce1a0d0d7fee7ca590c87e86c10593dfddb84267829596e516eb4fa3e170fa35",
+      "digest": "6b6b3fcfd0dcd8f20b6f06dc46c8492498d23dd947a212893cfb8d5b5573a425",
       "kind": "def",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
@@ -2556,12 +2566,12 @@
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.dependencyReadRequired": {
-      "digest": "606b2f3a5c32b80a5f69dcbc6f87d14bd1c2bb58897ba0b5cf1efe95524116fa",
+      "digest": "3765b5e9c99e732ae1efc9d1e8485e3498e24f1585a76319edf3c6b3fb0d60bb",
       "kind": "def",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.dependencyReadState": {
-      "digest": "c3c6aa1baa2d1a6fb52c2f3f71dab3eff6f98c17eebab60b7da7c519f48f8891",
+      "digest": "c7836d7e7bbaf8f1b79281abc9ca8bb6883416eaa10ae72c6a6d079ffe9ccdbf",
       "kind": "def",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
@@ -2586,7 +2596,7 @@
       "module": "AvailableChainFGCompose.Statements.Dependency"
     },
     "AvailableChain.FGCompose.dependencyStateBefore": {
-      "digest": "1cfd01c0069b10441a508d1ee97f7b4ee098024fa7a2c5bc0289b3e2d68d38d9",
+      "digest": "4d4fc233a2e2b073d74baf060ce208d48659e84ff7f6727155b18085c4fa9aad",
       "kind": "def",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
@@ -2596,7 +2606,7 @@
       "module": "AvailableChainFGCompose.Statements.DependencyTrace"
     },
     "AvailableChain.FGCompose.dependency_accepted_origin_bridge": {
-      "digest": "716282553f3f6d42099644189366710ab408eee0226c7cae8e1b4f841bef3ff9",
+      "digest": "ecfd6fe80c320f968558c28849f2006caedf69ae042a648aff0ab402d84cec76",
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Proofs.Dependency"
     },
@@ -2606,7 +2616,7 @@
       "module": "AvailableChainFGCompose.Proofs.Dependency"
     },
     "AvailableChain.FGCompose.dependency_drain_before_deadline": {
-      "digest": "19be924f915ef8648db01ed8a7b04fbd9ad5b752a11070e142499d5a549f08ac",
+      "digest": "e404dcaf5b63a4c0e82c8c43fcc2e9eac3e179a682dcd9fd141d319352fa283a",
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Proofs.Dependency"
     },
@@ -2621,27 +2631,27 @@
       "module": "AvailableChainFGCompose.Proofs.Dependency"
     },
     "AvailableChain.FGCompose.dependency_finite_path_resolved_before": {
-      "digest": "fcce72c143a3ec14321026bf7ee9da05948367498c06501c61bc173177ac9062",
+      "digest": "3efa445a778dcf06ef71574118e2974e34a258fd13f3a7100006c32dbfe74b4b",
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Proofs.Dependency"
     },
     "AvailableChain.FGCompose.dependency_hook_accepted_origin_bridge": {
-      "digest": "ee5e9e961c339122e624be41036b20f1967c25c5f85c192fa1b4852524a79cfc",
+      "digest": "912de7620047a010597e43626090d23244799566b9027bf0596eb41dfd78a1b5",
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Proofs.Dependency"
     },
     "AvailableChain.FGCompose.dependency_hook_origin_at_read": {
-      "digest": "0e840aa74a2599e5fe206772d4783bdd25f56d8e2577670534211a4b05d40818",
+      "digest": "7cf0d968e73be673754ec26f689663f824a1a650b336fc1aaf070f567f4acb3e",
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Proofs.Dependency"
     },
     "AvailableChain.FGCompose.dependency_hook_read_completion": {
-      "digest": "3a4b6ac907d957dbbafd0acb1ea7bb6f3e551d666601feb332d0cf4f6c0192ad",
+      "digest": "8fb65ccf21b19b8e84e2608a1efbb40dc9c8820ef770a30af13ebce88231a462",
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Proofs.Dependency"
     },
     "AvailableChain.FGCompose.dependency_origin_at_read": {
-      "digest": "c4bde13673d5731dd2dd40cb52b844a8f7270162ac595385f84a4e3851ae6fd2",
+      "digest": "b9e2a4ec6a6a741f8499429557acb263708c55979d213c9433f5043dd30a9a37",
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Proofs.Dependency"
     },
@@ -2651,7 +2661,7 @@
       "module": "AvailableChainFGCompose.Proofs.Dependency"
     },
     "AvailableChain.FGCompose.dependency_read_completion": {
-      "digest": "65887aa337ce95b23f9b65220a8d47aa09cd0cef2cf3e406867eefccfd628915",
+      "digest": "a4330974dde51c8fbbf0978148d410c95da53cbf8939a3abbe964ccfbf5b8541",
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Proofs.Dependency"
     },
@@ -4615,6 +4625,7 @@
     "AvailableChain.FGCompose.FGDependencyDriver.inheritRefusal",
     "AvailableChain.FGCompose.FGDependencyDriver.mk",
     "AvailableChain.FGCompose.FGDependencyDriver.notify",
+    "AvailableChain.FGCompose.FGDependencyDriver.replay",
     "AvailableChain.FGCompose.FGDependencyDriver.retry",
     "AvailableChain.FGCompose.FGDependencyDriver.work",
     "AvailableChain.FGCompose.FGDependencyEnabled.companion",
@@ -4638,6 +4649,7 @@
     "AvailableChain.FGCompose.FGDependencyOperation.ownRecord",
     "AvailableChain.FGCompose.FGDependencyOperation.rec",
     "AvailableChain.FGCompose.FGDependencyOperation.rejected",
+    "AvailableChain.FGCompose.FGDependencyOperation.replay",
     "AvailableChain.FGCompose.FGDependencyOperation.restore",
     "AvailableChain.FGCompose.FGDependencyOutcome.accepted",
     "AvailableChain.FGCompose.FGDependencyOutcome.casesOn",
@@ -9157,7 +9169,7 @@
         "AvailableChain.V2.ProtocolSpecD.State",
         "List"
       ],
-      "digest": "3925382ce9e81dbdacf208b1b14524dd8c6e9176e66ea71d4b5ef7f9d295af53",
+      "digest": "b1363526284392c82d48674d96b39e668b335d31aeb3e7705a8123e6d58ebdef",
       "kernel_name": "str:2:88:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose18:FGDependencyDriver2:mk",
       "kind": "ctor",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace",
@@ -9191,7 +9203,11 @@
         "                  (P.State →",
         "                      Body →",
         "                        AvailableChain.FGCompose.FGReceiptToken V P.Object → P.State) →",
-        "                    AvailableChain.FGCompose.FGDependencyDriver V Body P"
+        "                    (P.State →",
+        "                        Body →",
+        "                          AvailableChain.FGCompose.FGReceiptToken V P.Object →",
+        "                            P.State) →",
+        "                      AvailableChain.FGCompose.FGDependencyDriver V Body P"
       ]
     },
     "AvailableChain.FGCompose.FGDependencyDriver.notify": {
@@ -9207,6 +9223,28 @@
       ],
       "digest": "6d13849ba7f4eff0f0da5cb397e6f2c1266e219b4fbc7cdc12a53af40a22fc40",
       "kernel_name": "str:2:88:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose18:FGDependencyDriver6:notify",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.DependencyTrace",
+      "type": [
+        "{In V Body : Type} →",
+        "  {P : AvailableChain.V2.ProtocolSpecD In} →",
+        "    AvailableChain.FGCompose.FGDependencyDriver V Body P →",
+        "      P.State → Body → AvailableChain.FGCompose.FGReceiptToken V P.Object → P.State"
+      ]
+    },
+    "AvailableChain.FGCompose.FGDependencyDriver.replay": {
+      "body": [
+        "fun In V Body P self => self.9"
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGDependencyDriver",
+        "AvailableChain.FGCompose.FGReceiptToken",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "AvailableChain.V2.ProtocolSpecD.State"
+      ],
+      "digest": "d320012b1af20df4b1b278a1352e27f8a47f1d5e9211865507acae1bb67f224e",
+      "kernel_name": "str:2:88:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose18:FGDependencyDriver6:replay",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace",
       "type": [
@@ -9553,9 +9591,10 @@
         "AvailableChain.FGCompose.FGDependencyOperation.ordinary",
         "AvailableChain.FGCompose.FGDependencyOperation.ownRecord",
         "AvailableChain.FGCompose.FGDependencyOperation.rejected",
+        "AvailableChain.FGCompose.FGDependencyOperation.replay",
         "AvailableChain.FGCompose.FGDependencyOperation.restore"
       ],
-      "digest": "9ac4327ab76854e980600f6bdd77d9326ade0c0cd9f6ab966131620a4ced8675",
+      "digest": "e4c9689c775d4579859fe3a62090ecd016452e8869387560bb76d95fb82d84fc",
       "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose21:FGDependencyOperation",
       "kind": "inductive",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace",
@@ -9582,11 +9621,11 @@
     },
     "AvailableChain.FGCompose.FGDependencyOperation.casesOn": {
       "body": [
-        "fun {Body Origin Wire} {motive} t arrival leaf inheritRefusal notification ordinary",
-        "    rejected ownRecord clock restore idle =>",
+        "fun {Body Origin Wire} {motive} t arrival leaf inheritRefusal notification replay",
+        "    ordinary rejected ownRecord clock restore idle =>",
         "  AvailableChain.FGCompose.FGDependencyOperation.rec (fun b o => arrival b o)",
         "    (fun b o result => leaf b o result) (fun b o => inheritRefusal b o)",
-        "    (fun b o => notification b o) (fun wire => ordinary wire)",
+        "    (fun b o => notification b o) (fun b o => replay b o) (fun wire => ordinary wire)",
         "    (fun wire => rejected wire) (fun wire => ownRecord wire) (fun t => clock t)",
         "    (fun t => restore t) idle t"
       ],
@@ -9602,11 +9641,12 @@
         "AvailableChain.FGCompose.FGDependencyOperation.ownRecord",
         "AvailableChain.FGCompose.FGDependencyOperation.rec",
         "AvailableChain.FGCompose.FGDependencyOperation.rejected",
+        "AvailableChain.FGCompose.FGDependencyOperation.replay",
         "AvailableChain.FGCompose.FGDependencyOperation.restore",
         "AvailableChain.FGCompose.FGDependencyOutcome",
         "AvailableChain.Time"
       ],
-      "digest": "42f4370519194dc899b07937076ff19e71854ebc91624ac30046a76d9096e9c3",
+      "digest": "7938850444809a9edf949a968a53322d7e47e95307b21546b11d15c340f4b537",
       "kernel_name": "str:2:91:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose21:FGDependencyOperation7:casesOn",
       "kind": "def",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace",
@@ -9630,25 +9670,30 @@
         "                (o : Origin) →",
         "                  motive",
         "                    (AvailableChain.FGCompose.FGDependencyOperation.notification b o)) →",
-        "              ((wire : Wire) →",
-        "                  motive",
-        "                    (AvailableChain.FGCompose.FGDependencyOperation.ordinary wire)) →",
+        "              ((b : Body) →",
+        "                  (o : Origin) →",
+        "                    motive",
+        "                      (AvailableChain.FGCompose.FGDependencyOperation.replay b o)) →",
         "                ((wire : Wire) →",
         "                    motive",
-        "                      (AvailableChain.FGCompose.FGDependencyOperation.rejected wire)) →",
+        "                      (AvailableChain.FGCompose.FGDependencyOperation.ordinary wire)) →",
         "                  ((wire : Wire) →",
         "                      motive",
-        "                        (AvailableChain.FGCompose.FGDependencyOperation.ownRecord",
+        "                        (AvailableChain.FGCompose.FGDependencyOperation.rejected",
         "                          wire)) →",
-        "                    ((t : AvailableChain.Time) →",
+        "                    ((wire : Wire) →",
         "                        motive",
-        "                          (AvailableChain.FGCompose.FGDependencyOperation.clock t)) →",
+        "                          (AvailableChain.FGCompose.FGDependencyOperation.ownRecord",
+        "                            wire)) →",
         "                      ((t : AvailableChain.Time) →",
         "                          motive",
-        "                            (AvailableChain.FGCompose.FGDependencyOperation.restore",
-        "                              t)) →",
-        "                        motive AvailableChain.FGCompose.FGDependencyOperation.idle →",
-        "                          motive t"
+        "                            (AvailableChain.FGCompose.FGDependencyOperation.clock t)) →",
+        "                        ((t : AvailableChain.Time) →",
+        "                            motive",
+        "                              (AvailableChain.FGCompose.FGDependencyOperation.restore",
+        "                                t)) →",
+        "                          motive AvailableChain.FGCompose.FGDependencyOperation.idle →",
+        "                            motive t"
       ]
     },
     "AvailableChain.FGCompose.FGDependencyOperation.clock": {
@@ -9660,7 +9705,7 @@
         "AvailableChain.FGCompose.FGDependencyOperation.clock",
         "AvailableChain.Time"
       ],
-      "digest": "c173b1407b3cc32f8c6f97de94b93c7f4ade3061d0589f793d7068965fabb4fd",
+      "digest": "0df8a4ab6379e0ab51a824c675f3eefb0457a0f5ef30c7a97f55934fac9519c0",
       "kernel_name": "str:2:91:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose21:FGDependencyOperation5:clock",
       "kind": "ctor",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace",
@@ -9677,7 +9722,7 @@
         "AvailableChain.FGCompose.FGDependencyOperation",
         "AvailableChain.FGCompose.FGDependencyOperation.idle"
       ],
-      "digest": "f85977664b3b7337a072c467f09fffd7a9e0361310022b738c2c94448dacc1e1",
+      "digest": "1781bd06d2c9b4c9989b17a2d608ae95d75f8a28670ba46a7d2a1f3294080e3a",
       "kernel_name": "str:2:91:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose21:FGDependencyOperation4:idle",
       "kind": "ctor",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace",
@@ -9749,7 +9794,7 @@
         "AvailableChain.FGCompose.FGDependencyOperation",
         "AvailableChain.FGCompose.FGDependencyOperation.ordinary"
       ],
-      "digest": "0829619be5eda7dab28c5523b71dc18b159b8241f72c36d6dd403c7828c7e4fd",
+      "digest": "bc0b21fa19b8e572675116b6577ca02951e748c335aa1f3c48d1b52517c47599",
       "kernel_name": "str:2:91:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose21:FGDependencyOperation8:ordinary",
       "kind": "ctor",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace",
@@ -9766,7 +9811,7 @@
         "AvailableChain.FGCompose.FGDependencyOperation",
         "AvailableChain.FGCompose.FGDependencyOperation.ownRecord"
       ],
-      "digest": "a4e8d672665d24cbace415441c88a71775693177482895bb9790856b7276de68",
+      "digest": "40cd1d7858c98cbab78174dc2cadd11d0a8e906229c761ecf987549694710ae3",
       "kernel_name": "str:2:91:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose21:FGDependencyOperation9:ownRecord",
       "kind": "ctor",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace",
@@ -9790,11 +9835,12 @@
         "AvailableChain.FGCompose.FGDependencyOperation.ordinary",
         "AvailableChain.FGCompose.FGDependencyOperation.ownRecord",
         "AvailableChain.FGCompose.FGDependencyOperation.rejected",
+        "AvailableChain.FGCompose.FGDependencyOperation.replay",
         "AvailableChain.FGCompose.FGDependencyOperation.restore",
         "AvailableChain.FGCompose.FGDependencyOutcome",
         "AvailableChain.Time"
       ],
-      "digest": "b24e83dbe425e3db2c5fe200af59412ed605e5380f4b28a687e27aabe7597158",
+      "digest": "805c3b4aeca7cf789243a1f3d98df2be5bf60777e33f7b59b6f16bff8a698ccd",
       "kernel_name": "str:2:91:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose21:FGDependencyOperation3:rec",
       "kind": "rec",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace",
@@ -9816,24 +9862,31 @@
         "              (o : Origin) →",
         "                motive",
         "                  (AvailableChain.FGCompose.FGDependencyOperation.notification b o)) →",
-        "            ((wire : Wire) →",
-        "                motive (AvailableChain.FGCompose.FGDependencyOperation.ordinary wire)) →",
+        "            ((b : Body) →",
+        "                (o : Origin) →",
+        "                  motive (AvailableChain.FGCompose.FGDependencyOperation.replay b o)) →",
         "              ((wire : Wire) →",
         "                  motive",
-        "                    (AvailableChain.FGCompose.FGDependencyOperation.rejected wire)) →",
+        "                    (AvailableChain.FGCompose.FGDependencyOperation.ordinary wire)) →",
         "                ((wire : Wire) →",
         "                    motive",
-        "                      (AvailableChain.FGCompose.FGDependencyOperation.ownRecord wire)) →",
-        "                  ((t : AvailableChain.Time) →",
-        "                      motive (AvailableChain.FGCompose.FGDependencyOperation.clock t)) →",
+        "                      (AvailableChain.FGCompose.FGDependencyOperation.rejected wire)) →",
+        "                  ((wire : Wire) →",
+        "                      motive",
+        "                        (AvailableChain.FGCompose.FGDependencyOperation.ownRecord",
+        "                          wire)) →",
         "                    ((t : AvailableChain.Time) →",
         "                        motive",
-        "                          (AvailableChain.FGCompose.FGDependencyOperation.restore t)) →",
-        "                      motive AvailableChain.FGCompose.FGDependencyOperation.idle →",
-        "                        (t :",
-        "                            AvailableChain.FGCompose.FGDependencyOperation Body Origin",
-        "                              Wire) →",
-        "                          motive t"
+        "                          (AvailableChain.FGCompose.FGDependencyOperation.clock t)) →",
+        "                      ((t : AvailableChain.Time) →",
+        "                          motive",
+        "                            (AvailableChain.FGCompose.FGDependencyOperation.restore",
+        "                              t)) →",
+        "                        motive AvailableChain.FGCompose.FGDependencyOperation.idle →",
+        "                          (t :",
+        "                              AvailableChain.FGCompose.FGDependencyOperation Body Origin",
+        "                                Wire) →",
+        "                            motive t"
       ]
     },
     "AvailableChain.FGCompose.FGDependencyOperation.rejected": {
@@ -9844,13 +9897,30 @@
         "AvailableChain.FGCompose.FGDependencyOperation",
         "AvailableChain.FGCompose.FGDependencyOperation.rejected"
       ],
-      "digest": "f9a5fe826dd7e0b84e0d3360aef972e2c5c3718238a8ceacfd65db6fe91dbfd3",
+      "digest": "e09595b9e42e2b3e5dc49a67c2bd68daf0fd949fc2673b156c2e7851cc0c0e4e",
       "kernel_name": "str:2:91:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose21:FGDependencyOperation8:rejected",
       "kind": "ctor",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace",
       "type": [
         "{Body Origin Wire : Type} →",
         "  Wire → AvailableChain.FGCompose.FGDependencyOperation Body Origin Wire"
+      ]
+    },
+    "AvailableChain.FGCompose.FGDependencyOperation.replay": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGDependencyOperation",
+        "AvailableChain.FGCompose.FGDependencyOperation.replay"
+      ],
+      "digest": "12d4d4b154e2e33ee6ca676ce0004f11e3e40cca6bad2c9f73e733660c714c97",
+      "kernel_name": "str:2:91:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose21:FGDependencyOperation6:replay",
+      "kind": "ctor",
+      "module": "AvailableChainFGCompose.Statements.DependencyTrace",
+      "type": [
+        "{Body Origin Wire : Type} →",
+        "  Body → Origin → AvailableChain.FGCompose.FGDependencyOperation Body Origin Wire"
       ]
     },
     "AvailableChain.FGCompose.FGDependencyOperation.restore": {
@@ -9862,7 +9932,7 @@
         "AvailableChain.FGCompose.FGDependencyOperation.restore",
         "AvailableChain.Time"
       ],
-      "digest": "d244f80401880a4f82d7a0c0d1055810f3179cee2fa277f2469e74abb89311e2",
+      "digest": "4cf7d1ca0919b9fb7cd5377fd122fd3a8423ecaa1a57901485c1a09faf77c0fa",
       "kernel_name": "str:2:91:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose21:FGDependencyOperation7:restore",
       "kind": "ctor",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace",
@@ -13767,6 +13837,7 @@
         "AvailableChain.FGCompose.FGDependencyOperation.leaf",
         "AvailableChain.FGCompose.FGDependencyOperation.notification",
         "AvailableChain.FGCompose.FGDependencyOperation.ownRecord",
+        "AvailableChain.FGCompose.FGDependencyOperation.replay",
         "AvailableChain.FGCompose.FGDependencyOutcome",
         "AvailableChain.FGCompose.FGDependencyReads",
         "AvailableChain.FGCompose.FGDependencyStepKind",
@@ -13810,7 +13881,7 @@
         "instLENat",
         "instLTNat"
       ],
-      "digest": "e0fbb4bbaf801aec8985115e371d839ff02e6e87dd75d164d9f442ce6a9de02e",
+      "digest": "9a8ff8bca28b4e9df8393b3071e44d2c310fe601d058603d62084e7e61535af6",
       "kernel_name": "str:2:91:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose21:FGDependencyTraceLaws16:drain_operations",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace",
@@ -13864,21 +13935,27 @@
         "                        (AvailableChain.FGCompose.FGDependencyOperation.notification b",
         "                          o))",
         "                  (Or",
-        "                    (Exists fun wire =>",
-        "                      Exists fun t =>",
-        "                        And (Eq e (AvailableChain.V2.Event.tick x t))",
-        "                          (And (instLENat.le (T.dutyCut j) k)",
-        "                            (And",
-        "                              (Eq (Op k)",
-        "                                (AvailableChain.FGCompose.FGDependencyOperation.ownRecord",
-        "                                  wire))",
+        "                    (Exists fun b =>",
+        "                      Exists fun o =>",
+        "                        Eq (Op k)",
+        "                          (AvailableChain.FGCompose.FGDependencyOperation.replay b o))",
+        "                    (Or",
+        "                      (Exists fun wire =>",
+        "                        Exists fun t =>",
+        "                          And (Eq e (AvailableChain.V2.Event.tick x t))",
+        "                            (And (instLENat.le (T.dutyCut j) k)",
         "                              (And",
-        "                                (List.instMembership.mem",
-        "                                  (AvailableChain.FGCompose.dependencyReleased E rho",
-        "                                    (T.state (T.dutyCut j)) x t)",
-        "                                  wire)",
-        "                                (Eq (P.objSelfVisible wire) Bool.true)))))",
-        "                    (Eq (Op k) AvailableChain.FGCompose.FGDependencyOperation.idle))))"
+        "                                (Eq (Op k)",
+        "                                  (AvailableChain.FGCompose.FGDependencyOperation.ownRecord",
+        "                                    wire))",
+        "                                (And",
+        "                                  (List.instMembership.mem",
+        "                                    (AvailableChain.FGCompose.dependencyReleased E rho",
+        "                                      (T.state (T.dutyCut j)) x t)",
+        "                                    wire)",
+        "                                  (Eq (P.objSelfVisible wire) Bool.true)))))",
+        "                      (Eq (Op k)",
+        "                        AvailableChain.FGCompose.FGDependencyOperation.idle)))))"
       ]
     },
     "AvailableChain.FGCompose.FGDependencyTraceLaws.entry_boundary": {
@@ -14761,11 +14838,11 @@
     },
     "AvailableChain.FGCompose.FGDependencyTraceLaws.match_1": {
       "body": [
-        "fun {In V Body} {P} motive x h_1 h_2 h_3 h_4 h_5 h_6 h_7 h_8 h_9 h_10 =>",
+        "fun {In V Body} {P} motive x h_1 h_2 h_3 h_4 h_5 h_6 h_7 h_8 h_9 h_10 h_11 =>",
         "  AvailableChain.FGCompose.FGDependencyOperation.casesOn x (fun b o => h_1 b o)",
         "    (fun b o result => h_2 b o result) (fun b o => h_3 b o) (fun b o => h_4 b o)",
-        "    (fun wire => h_6 wire) (fun wire => h_5 wire) (fun wire => h_7 wire)",
-        "    (fun t => h_8 t) (fun t => h_9 t) (h_10 Unit.unit)"
+        "    (fun b o => h_5 b o) (fun wire => h_7 wire) (fun wire => h_6 wire)",
+        "    (fun wire => h_8 wire) (fun t => h_9 t) (fun t => h_10 t) (h_11 Unit.unit)"
       ],
       "dependencies": [
         "AvailableChain.FGCompose.FGDependencyOperation",
@@ -14779,6 +14856,7 @@
         "AvailableChain.FGCompose.FGDependencyOperation.ordinary",
         "AvailableChain.FGCompose.FGDependencyOperation.ownRecord",
         "AvailableChain.FGCompose.FGDependencyOperation.rejected",
+        "AvailableChain.FGCompose.FGDependencyOperation.replay",
         "AvailableChain.FGCompose.FGDependencyOperation.restore",
         "AvailableChain.FGCompose.FGDependencyOutcome",
         "AvailableChain.FGCompose.FGReceiptToken",
@@ -14788,7 +14866,7 @@
         "Unit",
         "Unit.unit"
       ],
-      "digest": "e9b3ef187cb2163694346a54222b5654afd52b5b6244d1af6cbc7b11badabcf8",
+      "digest": "cb0e4952a41201109dc8dde454d96c946f7ec4e155d0380805ad9c8134f08348",
       "kernel_name": "str:2:91:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose21:FGDependencyTraceLaws7:match_1",
       "kind": "def",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace",
@@ -14820,28 +14898,34 @@
         "                    motive",
         "                      (AvailableChain.FGCompose.FGDependencyOperation.notification b",
         "                        o)) →",
-        "                ((wire : P.Object) →",
-        "                    motive",
-        "                      (AvailableChain.FGCompose.FGDependencyOperation.rejected wire)) →",
+        "                ((b : Body) →",
+        "                    (o : AvailableChain.FGCompose.FGReceiptToken V P.Object) →",
+        "                      motive",
+        "                        (AvailableChain.FGCompose.FGDependencyOperation.replay b o)) →",
         "                  ((wire : P.Object) →",
         "                      motive",
-        "                        (AvailableChain.FGCompose.FGDependencyOperation.ordinary",
+        "                        (AvailableChain.FGCompose.FGDependencyOperation.rejected",
         "                          wire)) →",
         "                    ((wire : P.Object) →",
         "                        motive",
-        "                          (AvailableChain.FGCompose.FGDependencyOperation.ownRecord",
+        "                          (AvailableChain.FGCompose.FGDependencyOperation.ordinary",
         "                            wire)) →",
-        "                      ((t : AvailableChain.Time) →",
+        "                      ((wire : P.Object) →",
         "                          motive",
-        "                            (AvailableChain.FGCompose.FGDependencyOperation.clock t)) →",
+        "                            (AvailableChain.FGCompose.FGDependencyOperation.ownRecord",
+        "                              wire)) →",
         "                        ((t : AvailableChain.Time) →",
         "                            motive",
-        "                              (AvailableChain.FGCompose.FGDependencyOperation.restore",
+        "                              (AvailableChain.FGCompose.FGDependencyOperation.clock",
         "                                t)) →",
-        "                          (Unit →",
+        "                          ((t : AvailableChain.Time) →",
         "                              motive",
-        "                                AvailableChain.FGCompose.FGDependencyOperation.idle) →",
-        "                            motive x"
+        "                                (AvailableChain.FGCompose.FGDependencyOperation.restore",
+        "                                  t)) →",
+        "                            (Unit →",
+        "                                motive",
+        "                                  AvailableChain.FGCompose.FGDependencyOperation.idle) →",
+        "                              motive x"
       ]
     },
     "AvailableChain.FGCompose.FGDependencyTraceLaws.match_3": {
@@ -14951,6 +15035,7 @@
         "AvailableChain.FGCompose.FGDependencyDriver.enter",
         "AvailableChain.FGCompose.FGDependencyDriver.inheritRefusal",
         "AvailableChain.FGCompose.FGDependencyDriver.notify",
+        "AvailableChain.FGCompose.FGDependencyDriver.replay",
         "AvailableChain.FGCompose.FGDependencyDriver.retry",
         "AvailableChain.FGCompose.FGDependencyDriver.work",
         "AvailableChain.FGCompose.FGDependencyLeaf",
@@ -14968,6 +15053,7 @@
         "AvailableChain.FGCompose.FGDependencyOperation.ordinary",
         "AvailableChain.FGCompose.FGDependencyOperation.ownRecord",
         "AvailableChain.FGCompose.FGDependencyOperation.rejected",
+        "AvailableChain.FGCompose.FGDependencyOperation.replay",
         "AvailableChain.FGCompose.FGDependencyOperation.restore",
         "AvailableChain.FGCompose.FGDependencyOutcome",
         "AvailableChain.FGCompose.FGDependencyOutcome.accepted",
@@ -15109,7 +15195,7 @@
         "instSubNat",
         "ite"
       ],
-      "digest": "5c0eba4205bd4ff1fe67429d7b49eabf848b42448fb0f5ea092633ea7d284ee0",
+      "digest": "bc0bfbce515471c11888cc6ebc796fdaa1bbb319f459b67b24143a651c4673b6",
       "kernel_name": "str:2:91:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose21:FGDependencyTraceLaws2:mk",
       "kind": "ctor",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace",
@@ -15204,6 +15290,70 @@
         "                                (Eq (T.state (instHAdd.hAdd k 1))",
         "                                  (F.notify (T.state k) b o))",
         "                                (D.notified (T.state (instHAdd.hAdd k 1)) b)))))",
+        "                      (fun b o =>",
+        "                        And (D.accepted (T.state k) b)",
+        "                          (And",
+        "                            (List.instMembership.mem (H.acceptedBodies (T.state k)) b)",
+        "                            (And (D.originAvailable (T.state k) b o)",
+        "                              (And (Eq (W.decodeBody o.wire) (Option.some b))",
+        "                                (And",
+        "                                  (Eq (T.state (instHAdd.hAdd k 1))",
+        "                                    (F.replay (T.state k) b o))",
+        "                                  (And",
+        "                                    (Eq (H.acceptedBlocks (T.state (instHAdd.hAdd k 1)))",
+        "                                      (H.acceptedBlocks (T.state k)))",
+        "                                    (And",
+        "                                      (Eq",
+        "                                        (H.acceptedBodies (T.state (instHAdd.hAdd k 1)))",
+        "                                        (H.acceptedBodies (T.state k)))",
+        "                                      (And",
+        "                                        (∀ (c : Body),",
+        "                                          Iff",
+        "                                            (D.accepted (T.state (instHAdd.hAdd k 1)) c)",
+        "                                            (D.accepted (T.state k) c))",
+        "                                        (And",
+        "                                          (∀ (c : Body) (r pr : AvailableChain.BlockId),",
+        "                                            Iff",
+        "                                              (D.refused (T.state (instHAdd.hAdd k 1)) c",
+        "                                                r pr)",
+        "                                              (D.refused (T.state k) c r pr))",
+        "                                          (And",
+        "                                            (∀ (c : Body)",
+        "                                              (token :",
+        "                                                AvailableChain.FGCompose.FGReceiptToken",
+        "                                                  V P.Object),",
+        "                                              Iff",
+        "                                                (D.pending (T.state (instHAdd.hAdd k 1))",
+        "                                                  c token)",
+        "                                                (D.pending (T.state k) c token))",
+        "                                            (And",
+        "                                              (∀ (c : Body)",
+        "                                                (token :",
+        "                                                  AvailableChain.FGCompose.FGReceiptToken",
+        "                                                    V P.Object),",
+        "                                                Iff",
+        "                                                  (D.originAvailable",
+        "                                                    (T.state (instHAdd.hAdd k 1)) c",
+        "                                                    token)",
+        "                                                  (D.originAvailable (T.state k) c",
+        "                                                    token))",
+        "                                              (And",
+        "                                                (∀ (c : Body)",
+        "                                                  (token :",
+        "                                                    AvailableChain.FGCompose.FGReceiptToken",
+        "                                                      V P.Object),",
+        "                                                  Not",
+        "                                                    (L.callback (T.state k) c token",
+        "                                                      (T.state (instHAdd.hAdd k 1))))",
+        "                                                (∀ (c : Body)",
+        "                                                  (token :",
+        "                                                    AvailableChain.FGCompose.FGReceiptToken",
+        "                                                      V P.Object),",
+        "                                                  Not",
+        "                                                    (L.report (T.state k) c token",
+        "                                                      (T.state",
+        "                                                        (instHAdd.hAdd k",
+        "                                                          1))))))))))))))))",
         "                      (fun wire =>",
         "                        And (Eq (P.wellFormed wire) Bool.false)",
         "                          (Eq (T.state (instHAdd.hAdd k 1))",
@@ -15373,29 +15523,37 @@
         "                                                    (AvailableChain.FGCompose.FGDependencyOperation.notification",
         "                                                      b o))",
         "                                              (Or",
-        "                                                (Exists fun wire =>",
-        "                                                  Exists fun t =>",
-        "                                                    And",
-        "                                                      (Eq e",
-        "                                                        (AvailableChain.V2.Event.tick x",
-        "                                                          t))",
-        "                                                      (And",
-        "                                                        (instLENat.le (T.dutyCut j) k)",
+        "                                                (Exists fun b =>",
+        "                                                  Exists fun o =>",
+        "                                                    Eq (Op k)",
+        "                                                      (AvailableChain.FGCompose.FGDependencyOperation.replay",
+        "                                                        b o))",
+        "                                                (Or",
+        "                                                  (Exists fun wire =>",
+        "                                                    Exists fun t =>",
+        "                                                      And",
+        "                                                        (Eq e",
+        "                                                          (AvailableChain.V2.Event.tick",
+        "                                                            x t))",
         "                                                        (And",
-        "                                                          (Eq (Op k)",
-        "                                                            (AvailableChain.FGCompose.FGDependencyOperation.ownRecord",
-        "                                                              wire))",
+        "                                                          (instLENat.le (T.dutyCut j) k)",
         "                                                          (And",
-        "                                                            (List.instMembership.mem",
-        "                                                              (AvailableChain.FGCompose.dependencyReleased",
-        "                                                                E rho",
-        "                                                                (T.state (T.dutyCut j))",
-        "                                                                x t)",
-        "                                                              wire)",
-        "                                                            (Eq (P.objSelfVisible wire)",
-        "                                                              Bool.true)))))",
-        "                                                (Eq (Op k)",
-        "                                                  AvailableChain.FGCompose.FGDependencyOperation.idle))))) →",
+        "                                                            (Eq (Op k)",
+        "                                                              (AvailableChain.FGCompose.FGDependencyOperation.ownRecord",
+        "                                                                wire))",
+        "                                                            (And",
+        "                                                              (List.instMembership.mem",
+        "                                                                (AvailableChain.FGCompose.dependencyReleased",
+        "                                                                  E rho",
+        "                                                                  (T.state",
+        "                                                                    (T.dutyCut j))",
+        "                                                                  x t)",
+        "                                                                wire)",
+        "                                                              (Eq",
+        "                                                                (P.objSelfVisible wire)",
+        "                                                                Bool.true)))))",
+        "                                                  (Eq (Op k)",
+        "                                                    AvailableChain.FGCompose.FGDependencyOperation.idle)))))) →",
         "                                (∀ (k : Nat),",
         "                                    instLTNat.lt k T.length →",
         "                                      Not",
@@ -16207,19 +16365,26 @@
       ],
       "dependencies": [
         "And",
+        "AvailableChain.Block",
+        "AvailableChain.BlockId",
         "AvailableChain.FGCompose.FGDependencyDriver",
         "AvailableChain.FGCompose.FGDependencyDriver.enter",
         "AvailableChain.FGCompose.FGDependencyDriver.inheritRefusal",
         "AvailableChain.FGCompose.FGDependencyDriver.notify",
+        "AvailableChain.FGCompose.FGDependencyDriver.replay",
         "AvailableChain.FGCompose.FGDependencyDriver.retry",
         "AvailableChain.FGCompose.FGDependencyLeaf",
+        "AvailableChain.FGCompose.FGDependencyLeaf.callback",
         "AvailableChain.FGCompose.FGDependencyLeaf.report",
         "AvailableChain.FGCompose.FGDependencyLeaf.step",
         "AvailableChain.FGCompose.FGDependencyOperation",
         "AvailableChain.FGCompose.FGDependencyOutcome",
         "AvailableChain.FGCompose.FGDependencyReads",
+        "AvailableChain.FGCompose.FGDependencyReads.accepted",
         "AvailableChain.FGCompose.FGDependencyReads.notified",
         "AvailableChain.FGCompose.FGDependencyReads.originAvailable",
+        "AvailableChain.FGCompose.FGDependencyReads.pending",
+        "AvailableChain.FGCompose.FGDependencyReads.refused",
         "AvailableChain.FGCompose.FGDependencyReads.validBody",
         "AvailableChain.FGCompose.FGDependencyStepKind",
         "AvailableChain.FGCompose.FGDependencyTrace",
@@ -16231,6 +16396,8 @@
         "AvailableChain.FGCompose.FGDependencyWireReads",
         "AvailableChain.FGCompose.FGDependencyWireReads.decodeBody",
         "AvailableChain.FGCompose.FGHistoricalReads",
+        "AvailableChain.FGCompose.FGHistoricalReads.acceptedBlocks",
+        "AvailableChain.FGCompose.FGHistoricalReads.acceptedBodies",
         "AvailableChain.FGCompose.FGHistoricalReads.parent",
         "AvailableChain.FGCompose.FGReceiptOrigin",
         "AvailableChain.FGCompose.FGReceiptToken",
@@ -16255,19 +16422,26 @@
         "Bool.true",
         "DecidableEq",
         "Eq",
+        "Finset",
         "HAdd.hAdd",
+        "Iff",
         "LT.lt",
+        "List",
+        "List.instMembership",
+        "Membership.mem",
         "Nat",
+        "Not",
         "OfNat.ofNat",
         "Option",
         "Option.none",
+        "Option.some",
         "Unit",
         "instAddNat",
         "instHAdd",
         "instLTNat",
         "instOfNatNat"
       ],
-      "digest": "2d1c29edbb342f488530ccf6f5ef4b190451d35a5e2520e2cc64db35d10656ec",
+      "digest": "9f513c1c7284c05f3feed5f7fbdc3f297ceaebb0da0937a56822b2ac12a96b80",
       "kernel_name": "str:2:91:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose21:FGDependencyTraceLaws15:operation_bound",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace",
@@ -16331,6 +16505,56 @@
         "                (And (AvailableChain.FGCompose.dependencyResolved H D (T.state k) b)",
         "                  (And (Eq (T.state (instHAdd.hAdd k 1)) (F.notify (T.state k) b o))",
         "                    (D.notified (T.state (instHAdd.hAdd k 1)) b)))))",
+        "          (fun b o =>",
+        "            And (D.accepted (T.state k) b)",
+        "              (And (List.instMembership.mem (H.acceptedBodies (T.state k)) b)",
+        "                (And (D.originAvailable (T.state k) b o)",
+        "                  (And (Eq (W.decodeBody o.wire) (Option.some b))",
+        "                    (And (Eq (T.state (instHAdd.hAdd k 1)) (F.replay (T.state k) b o))",
+        "                      (And",
+        "                        (Eq (H.acceptedBlocks (T.state (instHAdd.hAdd k 1)))",
+        "                          (H.acceptedBlocks (T.state k)))",
+        "                        (And",
+        "                          (Eq (H.acceptedBodies (T.state (instHAdd.hAdd k 1)))",
+        "                            (H.acceptedBodies (T.state k)))",
+        "                          (And",
+        "                            (∀ (c : Body),",
+        "                              Iff (D.accepted (T.state (instHAdd.hAdd k 1)) c)",
+        "                                (D.accepted (T.state k) c))",
+        "                            (And",
+        "                              (∀ (c : Body) (r pr : AvailableChain.BlockId),",
+        "                                Iff (D.refused (T.state (instHAdd.hAdd k 1)) c r pr)",
+        "                                  (D.refused (T.state k) c r pr))",
+        "                              (And",
+        "                                (∀ (c : Body)",
+        "                                  (token :",
+        "                                    AvailableChain.FGCompose.FGReceiptToken V P.Object),",
+        "                                  Iff (D.pending (T.state (instHAdd.hAdd k 1)) c token)",
+        "                                    (D.pending (T.state k) c token))",
+        "                                (And",
+        "                                  (∀ (c : Body)",
+        "                                    (token :",
+        "                                      AvailableChain.FGCompose.FGReceiptToken V",
+        "                                        P.Object),",
+        "                                    Iff",
+        "                                      (D.originAvailable (T.state (instHAdd.hAdd k 1)) c",
+        "                                        token)",
+        "                                      (D.originAvailable (T.state k) c token))",
+        "                                  (And",
+        "                                    (∀ (c : Body)",
+        "                                      (token :",
+        "                                        AvailableChain.FGCompose.FGReceiptToken V",
+        "                                          P.Object),",
+        "                                      Not",
+        "                                        (L.callback (T.state k) c token",
+        "                                          (T.state (instHAdd.hAdd k 1))))",
+        "                                    (∀ (c : Body)",
+        "                                      (token :",
+        "                                        AvailableChain.FGCompose.FGReceiptToken V",
+        "                                          P.Object),",
+        "                                      Not",
+        "                                        (L.report (T.state k) c token",
+        "                                          (T.state (instHAdd.hAdd k 1))))))))))))))))",
         "          (fun wire =>",
         "            And (Eq (P.wellFormed wire) Bool.false)",
         "              (Eq (T.state (instHAdd.hAdd k 1)) (P.process (T.state k) wire)))",
@@ -28699,6 +28923,7 @@
         "    (fun b o result => AvailableChain.FGCompose.FGDependencyStepKind.leafRetry)",
         "    (fun b o => AvailableChain.FGCompose.FGDependencyStepKind.refusalPropagation)",
         "    (fun b o => AvailableChain.FGCompose.FGDependencyStepKind.notification)",
+        "    (fun b o => AvailableChain.FGCompose.FGDependencyStepKind.ordinary)",
         "    (fun wire => AvailableChain.FGCompose.FGDependencyStepKind.ordinary)",
         "    (fun wire => AvailableChain.FGCompose.FGDependencyStepKind.ordinary)",
         "    (fun wire => AvailableChain.FGCompose.FGDependencyStepKind.ownRecord)",
@@ -28722,7 +28947,7 @@
         "AvailableChain.Time",
         "Unit"
       ],
-      "digest": "0dabadc132061a02a94b7bb3dbce6b3f5293295a0b0a92120b0e6b54ba12d667",
+      "digest": "89bb68c12bc2d06c0bc1f073601789a763cbdd250a5f9115236c0161d3a6feb1",
       "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose23:dependencyOperationKind",
       "kind": "def",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace",
@@ -28734,11 +28959,11 @@
     },
     "AvailableChain.FGCompose.dependencyOperationKind.match_1": {
       "body": [
-        "fun {Body Origin Wire} motive x h_1 h_2 h_3 h_4 h_5 h_6 h_7 h_8 h_9 h_10 =>",
+        "fun {Body Origin Wire} motive x h_1 h_2 h_3 h_4 h_5 h_6 h_7 h_8 h_9 h_10 h_11 =>",
         "  AvailableChain.FGCompose.FGDependencyOperation.casesOn x (fun b o => h_1 b o)",
         "    (fun b o result => h_2 b o result) (fun b o => h_3 b o) (fun b o => h_4 b o)",
-        "    (fun wire => h_5 wire) (fun wire => h_6 wire) (fun wire => h_7 wire)",
-        "    (fun t => h_8 t) (fun t => h_9 t) (h_10 Unit.unit)"
+        "    (fun b o => h_5 b o) (fun wire => h_6 wire) (fun wire => h_7 wire)",
+        "    (fun wire => h_8 wire) (fun t => h_9 t) (fun t => h_10 t) (h_11 Unit.unit)"
       ],
       "dependencies": [
         "AvailableChain.FGCompose.FGDependencyOperation",
@@ -28752,13 +28977,14 @@
         "AvailableChain.FGCompose.FGDependencyOperation.ordinary",
         "AvailableChain.FGCompose.FGDependencyOperation.ownRecord",
         "AvailableChain.FGCompose.FGDependencyOperation.rejected",
+        "AvailableChain.FGCompose.FGDependencyOperation.replay",
         "AvailableChain.FGCompose.FGDependencyOperation.restore",
         "AvailableChain.FGCompose.FGDependencyOutcome",
         "AvailableChain.Time",
         "Unit",
         "Unit.unit"
       ],
-      "digest": "54c64ee773239e9f0cf75190be2b9095df612c51e560353a7c45ff1690e687cc",
+      "digest": "82a3ed18e3743c28946c65869b6bb31a70308f16043d589b138c0951b7380c6b",
       "kernel_name": "str:2:93:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose23:dependencyOperationKind7:match_1",
       "kind": "def",
       "module": "AvailableChainFGCompose.Statements.DependencyTrace",
@@ -28783,27 +29009,32 @@
         "                (o : Origin) →",
         "                  motive",
         "                    (AvailableChain.FGCompose.FGDependencyOperation.notification b o)) →",
-        "              ((wire : Wire) →",
-        "                  motive",
-        "                    (AvailableChain.FGCompose.FGDependencyOperation.ordinary wire)) →",
+        "              ((b : Body) →",
+        "                  (o : Origin) →",
+        "                    motive",
+        "                      (AvailableChain.FGCompose.FGDependencyOperation.replay b o)) →",
         "                ((wire : Wire) →",
         "                    motive",
-        "                      (AvailableChain.FGCompose.FGDependencyOperation.rejected wire)) →",
+        "                      (AvailableChain.FGCompose.FGDependencyOperation.ordinary wire)) →",
         "                  ((wire : Wire) →",
         "                      motive",
-        "                        (AvailableChain.FGCompose.FGDependencyOperation.ownRecord",
+        "                        (AvailableChain.FGCompose.FGDependencyOperation.rejected",
         "                          wire)) →",
-        "                    ((t : AvailableChain.Time) →",
+        "                    ((wire : Wire) →",
         "                        motive",
-        "                          (AvailableChain.FGCompose.FGDependencyOperation.clock t)) →",
+        "                          (AvailableChain.FGCompose.FGDependencyOperation.ownRecord",
+        "                            wire)) →",
         "                      ((t : AvailableChain.Time) →",
         "                          motive",
-        "                            (AvailableChain.FGCompose.FGDependencyOperation.restore",
-        "                              t)) →",
-        "                        (Unit →",
+        "                            (AvailableChain.FGCompose.FGDependencyOperation.clock t)) →",
+        "                        ((t : AvailableChain.Time) →",
         "                            motive",
-        "                              AvailableChain.FGCompose.FGDependencyOperation.idle) →",
-        "                          motive x"
+        "                              (AvailableChain.FGCompose.FGDependencyOperation.restore",
+        "                                t)) →",
+        "                          (Unit →",
+        "                              motive",
+        "                                AvailableChain.FGCompose.FGDependencyOperation.idle) →",
+        "                            motive x"
       ]
     },
     "AvailableChain.FGCompose.dependencyReadCode": {

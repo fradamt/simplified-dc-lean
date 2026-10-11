@@ -78,6 +78,7 @@
             'AvailableChain.FGCompose.dependencyResolved',
         ),
         'AvailableChainFGCompose.Statements.DependencyTrace': (
+            'AvailableChain.FGCompose.FGDependencyDriver.replay',
             'AvailableChain.FGCompose.FGDependencyDriver',
             'AvailableChain.FGCompose.FGDependencyDriver.drain',
             'AvailableChain.FGCompose.FGDependencyDriver.enter',
