@@ -29,6 +29,12 @@ public import AvailableChainFGCompose.Proofs.HistoricalReads -- shake: keep (#pr
 public import AvailableChainFGCompose.Statements.RowPermission -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Proofs.RowPermission -- shake: keep (#print axioms)
 
+public import AvailableChainFGCompose.Statements.Phase -- shake: keep (#print axioms)
+public import AvailableChainFGCompose.Statements.PhaseReceipts -- shake: keep (#print axioms)
+public import AvailableChainFGCompose.Proofs.Healing.PhaseFrame -- shake: keep (#print axioms)
+public import AvailableChainFGCompose.Proofs.Healing.PhaseOrder -- shake: keep (#print axioms)
+public import AvailableChainFGCompose.Proofs.Healing.PhaseSettle -- shake: keep (#print axioms)
+
 #print axioms AvailableChain.FGCompose.ChainRowsBefore
 #print axioms AvailableChain.FGCompose.ChainRowsBefore_def
 #print axioms AvailableChain.FGCompose.FGCore
@@ -378,52 +384,42 @@ public import AvailableChainFGCompose.Proofs.RowPermission -- shake: keep (#prin
 #print axioms AvailableChain.FGCompose.historical_read_restore_eq
 #print axioms AvailableChain.FGCompose.historical_read_sound
 #print axioms AvailableChain.FGCompose.historical_read_step
-#print axioms AvailableChain.FGCompose.FGRowPermissionInputs
-#print axioms AvailableChain.FGCompose.FGRowPermissionInputs.permitted_lock
-#print axioms AvailableChain.FGCompose.FGRowPermissionInputs.source_eq
-#print axioms AvailableChain.FGCompose.FGRowPermissionWireLaws
-#print axioms AvailableChain.FGCompose.FGRowPermissionWireLaws.decoded_wire
-#print axioms AvailableChain.FGCompose.FGRowRecordHistory
-#print axioms AvailableChain.FGCompose.FGRowRecordHistory.invariant
-#print axioms AvailableChain.FGCompose.FGRowRecordHistory.sent_history
-#print axioms AvailableChain.FGCompose.p0d2_once_coverage
-#print axioms AvailableChain.FGCompose.p0d2_pair_of_lock
-#print axioms AvailableChain.FGCompose.rowPermission_covered
-#print axioms AvailableChain.FGCompose.rowPermission_pair
-#print axioms AvailableChain.FGCompose.common_entry_of_plateau
-#print axioms AvailableChain.FGCompose.common_low_or_high
-#print axioms AvailableChain.FGCompose.common_sources_extend_and_cap
-#print axioms AvailableChain.FGCompose.common_entry_at_high
-#print axioms AvailableChain.FGCompose.common_next_sources_extend_and_cap
-#print axioms AvailableChain.FGCompose.common_next_entry
-#print axioms AvailableChain.FGCompose.common_entry_at_low
-#print axioms AvailableChain.FGCompose.healing_promotion_fixed_rows
-#print axioms AvailableChain.FGCompose.healing_promotion_entry_slot
-#print axioms AvailableChain.FGCompose.healing_promotion_bounded_rows
-#print axioms AvailableChain.FGCompose.healing_promotion_gap_remainder
-#print axioms AvailableChain.FGCompose.healing_promotion_held_mono
-#print axioms AvailableChain.FGCompose.healing_promotion_gap
-#print axioms AvailableChain.FGCompose.healing_promotion_row_deadline
-#print axioms AvailableChain.FGCompose.healing_promotion_row_deadline_strict
-#print axioms AvailableChain.FGCompose.healing_promotion_row_receipt
-#print axioms AvailableChain.FGCompose.healing_promotion_row_receipt_strict
-#print axioms AvailableChain.FGCompose.healing_promotion_maturity
-#print axioms AvailableChain.FGCompose.healing_promotion_maturity_of_action
-#print axioms AvailableChain.FGCompose.healing_promotion_age_gap
-#print axioms AvailableChain.FGCompose.p0d3_same_row
-#print axioms AvailableChain.FGCompose.healing_promotion_same_rows_on
-#print axioms AvailableChain.FGCompose.healing_promotion_same_rows
-#print axioms AvailableChain.FGCompose.RowKind
-#print axioms AvailableChain.FGCompose.EntryAt
-#print axioms AvailableChain.FGCompose.NamesEntry
-#print axioms AvailableChain.FGCompose.OpeningEntry
-#print axioms AvailableChain.FGCompose.OpeningCovered
-#print axioms AvailableChain.FGCompose.FixedRows
-#print axioms AvailableChain.FGCompose.PromotionGap
-#print axioms AvailableChain.FGCompose.PromotionRowDeadline
-#print axioms AvailableChain.FGCompose.PromotionRowDeadlineStrict
-#print axioms AvailableChain.FGCompose.PromotionAgeGap
 
-#print axioms AvailableChain.FGCompose.p0d3_bound_batch
-#print axioms AvailableChain.FGCompose.p0d3_same_batch_on
-#print axioms AvailableChain.FGCompose.p0d3_same_batch
+#print axioms AvailableChain.FGCompose.AttemptPhaseAt
+#print axioms AvailableChain.FGCompose.ContestEvidence
+#print axioms AvailableChain.FGCompose.EffectiveEvent
+#print axioms AvailableChain.FGCompose.PhaseInterval
+#print axioms AvailableChain.FGCompose.PhaseKind
+#print axioms AvailableChain.FGCompose.RPhase
+#print axioms AvailableChain.FGCompose.SettledPhaseFrame
+#print axioms AvailableChain.FGCompose.TopEvidence
+#print axioms AvailableChain.FGCompose.frontierAtIdx
+#print axioms AvailableChain.FGCompose.PhaseWitnessReceiptScope
+#print axioms AvailableChain.FGCompose.PhaseWitnessReceiptScope.contest
+#print axioms AvailableChain.FGCompose.PhaseWitnessReceiptScope.frontier
+#print axioms AvailableChain.FGCompose.PhaseWitnessReceiptScope.top
+#print axioms AvailableChain.FGCompose.WitnessReceiptScope
+#print axioms AvailableChain.FGCompose.WitnessReceiptScope.atRead
+#print axioms AvailableChain.FGCompose.healing_frontier_mem
+#print axioms AvailableChain.FGCompose.healing_phase_finality_le
+#print axioms AvailableChain.FGCompose.healing_phase_frame
+#print axioms AvailableChain.FGCompose.healing_phase_frontier_root
+#print axioms AvailableChain.FGCompose.healing_phase_frontier_witness
+#print axioms AvailableChain.FGCompose.healing_phase_height_le
+#print axioms AvailableChain.FGCompose.healing_phase_justified_lt
+#print axioms AvailableChain.FGCompose.healing_settled_frame
+#print axioms AvailableChain.FGCompose.healing_settled_frame_ready
+#print axioms AvailableChain.FGCompose.healing_phase_contest_persist_of_crossing
+#print axioms AvailableChain.FGCompose.healing_phase_contest_persist_of_crossing_all
+#print axioms AvailableChain.FGCompose.healing_phase_entries_eq
+#print axioms AvailableChain.FGCompose.healing_phase_local_le_frontier
+#print axioms AvailableChain.FGCompose.healing_phase_order_of_crossing
+#print axioms AvailableChain.FGCompose.healing_phase_order_of_crossing_all
+#print axioms AvailableChain.FGCompose.healing_phase_top_persist
+#print axioms AvailableChain.FGCompose.healing_phase_top_persist_all
+#print axioms AvailableChain.FGCompose.healing_phase_window_all
+#print axioms AvailableChain.FGCompose.healing_settle_start_on
+#print axioms AvailableChain.FGCompose.phase_settle_from_carriers
+#print axioms AvailableChain.FGCompose.phase_top_carrier
+
+#print axioms AvailableChain.FGCompose.healing_phase_head_inclusion

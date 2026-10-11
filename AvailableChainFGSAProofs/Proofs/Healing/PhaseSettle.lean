@@ -1,8 +1,11 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Shared.FGCompose
 public import AvailableChainFGSAProofs.Proofs.Healing.Phase
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseRelay
 
 public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
+
+public import AvailableChainFGCompose.Proofs.Healing.PhaseSettle
 
 public section
 
@@ -11,6 +14,103 @@ open AvailableChain.SimplexFG
 
 variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+
+private def p0d1SettleCore (p : Params) {In : Type} (c : AppCodec In) :
+  FGCompose.FGCoreReads (fgsa p c) p.n (GridCO.State p.n .root) (Wire p.n) (RowWire p.n) :=
+  { core := fun nd => ⟨nd.st.base, nd.st.fg, nd.st.proposals, nd.st.rowPool⟩
+    erase := eraseFG
+    source := fun nd => FGSA.fgSource p nd.st
+    headVote := fun nd s => FGSA.headVote p nd.st s
+    finalityHead := fun nd => FGSA.fgBlockOf nd.st (FGSA.fgHead p nd.st)
+    proposalFG := fun nd o => match (toWire p o).decode with
+      | some (.block _ N) => (parentFG nd.st N.erase).map (fun P => fgBlock P N.erase N.rows)
+      | some (.vote _ _ _) => none
+      | some (.row _ _) => none
+      | none => none }
+
+private theorem p0d1SettleCoreEq (p : Params) {In : Type} (c : AppCodec In) :
+    p0d1SettleCore p c = fgsaCoreReads p c := (fgsaCoreReads_def p c).symm
+
+private theorem p0d1SettleCoreLaws (p : Params) {In : Type} (c : AppCodec In) :
+    FGCompose.FGCoreLaws (p0d1SettleCore p c) := by
+  rw [p0d1SettleCoreEq]
+  exact fgsaCoreLaws p c
+
+private theorem p0d1SettleOrder : RMonoAll p c E rho := by
+  intro i j x _ hij
+  let a := storeAt p c E rho i x
+  apply V2.D.Engine.stateBefore_stable_restore (P := fgsa p c)
+    (fun nd => FGBlock.Preceq a.fg.F nd.st.fg.F ∧
+      lexKey (a.fg.h_j, a.fg.J) ≤ lexKey (nd.st.fg.h_j, nd.st.fg.J) ∧
+      a.fg.h_max ≤ nd.st.fg.h_max)
+    ?_ ?_ (fun _ _ h => h) E rho hij x ?_
+    ⟨KitFG.preceq_refl _, le_rfl, le_rfl⟩
+  · intro nd t h
+    change FGBlock.Preceq a.fg.F (clock p nd.st t).fg.F ∧
+      lexKey (a.fg.h_j, a.fg.J) ≤ lexKey ((clock p nd.st t).fg.h_j, (clock p nd.st t).fg.J) ∧
+      a.fg.h_max ≤ (clock p nd.st t).fg.h_max
+    rw [clock_fg]
+    exact h
+  · intro nd o h
+    exact ⟨KitFG.preceq_trans h.1 (process_F_mono p nd.st (toWire p o)),
+      le_trans h.2.1 (process_pair_mono p nd.st (toWire p o)),
+      le_trans h.2.2 (process_hmax_mono p nd.st (toWire p o))⟩
+  · intro nd t h
+    change FGBlock.Preceq a.fg.F (acRestart p nd.st t).fg.F ∧
+      lexKey (a.fg.h_j, a.fg.J) ≤
+        lexKey ((acRestart p nd.st t).fg.h_j, (acRestart p nd.st t).fg.J) ∧
+      a.fg.h_max ≤ (acRestart p nd.st t).fg.h_max
+    rwa [acRestart_fg]
+
+
+private def p0d1SettleReads (p : Params) {In : Type} (c : AppCodec In) :
+    FGCompose.FGObservationReads (p0d1SettleCore p c) where
+  height := heightView p
+  finality := finalityView p
+  controls nd := FGSA.controls p nd.st
+  viable nd X := domainR p nd.st X
+
+private theorem p0d1SettleLaws (p : Params) {In : Type} (c : AppCodec In) :
+    FGCompose.FGObservationLaws (p0d1SettleCore p c) (p0d1SettleReads p c) where
+  controls_eq _ := rfl
+  viable_eq _ _ := rfl
+
+private def p0d1SettleTiming (p : Params) : FGCompose.FGTiming where
+  delta := p.Δ
+  roundSlots := p.R
+  proposal := SA.proposalTime p.toParams
+  vote := SA.voteTime p.toParams
+  early := SA.earlyTime p.toParams
+  freeze := SA.freezeTime p.toParams
+  release := SA.releaseTime p.toParams
+  gate := SA.gateTime p.toParams
+  action := p.actionTime
+
+private def p0d1SettleKind : PhaseKind → FGCompose.PhaseKind
+  | .gap => .gap
+  | .topJ => .topJ
+  | .contest => .contest
+
+private theorem p0d1WitnessProjection {W : FGBlock (Fin p.n)} {deadline : Time}
+    (h : WitnessReceiptScope E rho W deadline) :
+    FGCompose.WitnessReceiptScope (p0d1SettleCore p c) E rho
+      (fun nd => joinedNow p nd.st) (TargetReceiptService E rho) W deadline :=
+  ⟨h.atRead⟩
+
+private theorem p0d1PhaseReceiptsProjection {i m : Nat} {deadline : Time}
+    (h : PhaseWitnessReceiptScope E rho i m deadline) :
+    FGCompose.PhaseWitnessReceiptScope (p0d1SettleCore p c) E rho (p0d1SettleReads p c)
+      (fun nd => joinedNow p nd.st) (TargetReceiptService E rho) i m deadline := by
+  constructor
+  · obtain ⟨x, W, hW, hh, hr⟩ := h.frontier
+    exact ⟨x, W, hW, hh, p0d1WitnessProjection p c E rho hr⟩
+  · intro ht
+    obtain ⟨x, C, hC, hh, hj, hJ, hr⟩ := h.top ht
+    exact ⟨x, C, hC, hh, hj, hJ, p0d1WitnessProjection p c E rho hr⟩
+  · intro hc
+    obtain ⟨x, C, W, hC, hW, hhC, hhW, hj, hoff, hrC, hrW⟩ := h.contest hc
+    exact ⟨x, C, W, hC, hW, hhC, hhW, hj, hoff,
+      p0d1WitnessProjection p c E rho hrC, p0d1WitnessProjection p c E rho hrW⟩
 
 /-- Blueprint 21:1003–1012, 1193–1209; plan S20, H-PHASE r2/P3.
 DC: INTENTIONAL no effective event fixes the frontier and both evidence bits.
@@ -22,27 +122,12 @@ theorem healing_phase_window (hnr : V2.D.NoRestart rho) {i m : Nat} {v : Time}
       frontierAtIdx p c E rho k = m ∧
       (TopEvidence p c E rho k m → TopEvidence p c E rho (i + 1) m) ∧
       (ContestEvidence p c E rho k m → ContestEvidence p c E rho (i + 1) m) := by
-  intro k hk
-  induction k, hk using Nat.le_induction with
-  | base => exact fun _ => ⟨hfront, id, id⟩
-  | succ k hk ih =>
-    intro hkv
-    obtain ⟨hf, ht, hc⟩ := ih (by omega)
-    have hq := hquiet k (by omega) (by omega)
-    have hmono := healing_frontier_mono p c E rho hnr (Nat.le_add_right k 1)
-    have hf' : frontierAtIdx p c E rho (k + 1) = m := by
-      by_contra hne
-      exact hq (Or.inl (by omega))
-    refine ⟨hf', fun h => ht ?_, fun h => hc ?_⟩
-    · by_contra hn
-      exact hq (Or.inr (show (¬ TopEvidence p c E rho k (frontierAtIdx p c E rho (k + 1)) ∧
-        TopEvidence p c E rho (k + 1) (frontierAtIdx p c E rho (k + 1))) ∨ _ from
-        Or.inl (by rw [hf']; exact ⟨hn, h⟩)))
-    · by_contra hn
-      exact hq (Or.inr (show _ ∨
-        (¬ ContestEvidence p c E rho k (frontierAtIdx p c E rho (k + 1)) ∧
-        ContestEvidence p c E rho (k + 1) (frontierAtIdx p c E rho (k + 1))) from
-        Or.inr (by rw [hf']; exact ⟨hn, h⟩)))
+  have mono : RMono p c E rho := fun _ => p0d1SettleOrder p c E rho
+  exact FGCompose.healing_phase_window_all
+    (R := p0d1SettleCore p c) (E := E) (rho := rho) (O := p0d1SettleReads p c)
+    ⟨mono hnr⟩ hfront hquiet
+
+
 
 /-- Blueprint 21:1105–1113, 1193–1209; plan S20, H-PHASE r2/P3.
 DC: INTENTIONAL a held top carrier fixes the local top J below the frontier cap.
@@ -55,35 +140,13 @@ theorem healing_phase_top_node (crossing : RXing p c E rho) {k m : Nat} {y : V}
     (storeAt p c E rho k y).fg.h_max = m ∧ (storeAt p c E rho k y).fg.h_j + 1 = m ∧
       (FGBlock.Preceq (storeAt p c E rho k y).fg.J C →
         (storeAt p c E rho k y).fg.J = (heightView p C).J) := by
-  have hs : KitFG.FGStoreInvariant (heightView p) (finalityView p)
-      (storeAt p c E rho k y).fg := (storeBundle_stateBefore E rho k y).cstore.fg
-  have hmax : (storeAt p c E rho k y).fg.h_max = m := le_antisymm
-    ((healing_phase_local_le_frontier p c E rho hy).trans hcap)
-    (hh ▸ healing_phase_height_le p c E rho hC)
-  have hlt := healing_phase_justified_lt p c E rho k y
-  have hJC : FGBlock.Preceq (heightView p C).J C :=
-    KitFG.preceq_trans ((fgCertificateLaws p).height.justified_preceq_entry C)
-      ((fgCertificateLaws p).height.entry_preceq C)
-  obtain ⟨K, hK, hKF⟩ := hs.Fcar
-  have hFK := healing_phase_finality_le p c E rho hK hKF
-  have hlo : m - 1 ≤ (storeAt p c E rho k y).fg.h_j := by
-    by_cases hF : m - 1 ≤ (finalityView p K).h_F
-    · (simp only [Height] at *; omega)
-    · have hjne : (heightView p C).h_j ≠ 0 := by (simp only [Height] at *; omega)
-      have hJh := (fgJustificationLaws p).J_height C hjne
-      have hJmem := KitFG.ancestor_closed_of_parent_closed _ hs.closed C hC _ hJC
-      have hFJ := crossing k k y y K _ hy le_rfl hK hKF ⟨hy, hJmem⟩
-        (by (simp only [Height] at *; omega))
-      have hkey := KitFG.fst_le_of_lexKey_le (hs.pair.2 C hC hFJ)
-      (simp only [Height] at *; omega)
-  refine ⟨hmax, by (simp only [Height] at *; omega), ?_⟩
-  intro hJ
-  obtain ⟨D, _, _, hjD, hJD⟩ := hs.pair.1
-  rw [hJD]
-  apply healing_phase_entries_eq p (W := C)
-  · (simp only [Height] at *; omega)
-  · exact hJD ▸ hJ
-  · exact hJC
+  exact FGCompose.phase_top_carrier
+    (R := p0d1SettleCore p c) (E := E) (rho := rho) (O := p0d1SettleReads p c)
+    (Ef := p.E) (cert := fgCertificateLaws p)
+    (inv := fun i x => (storeBundle_stateBefore E rho i x).cstore.fg)
+    (justif := fgJustificationLaws p) crossing hy hC hh hj hcap
+
+
 
 /-- Blueprint 21:1012–1045; plan S20, H-PHASE r2/P3.
 DC: SAME the settled frame reads only the FG store. -/
@@ -197,94 +260,30 @@ theorem healing_settle_start (crossing : RXing p c E rho)
       hW.1 hgst hW.2 hhor ((hcap _ le_rfl hj0v).trans hh.symm).le hy
       (hAwake y hy _ (hgst.trans (le_add_of_nonneg_right p.deltaPos.le)) hhor)
     exact (fgsa_store_cumulative p c E rho hnr hk y).1 h0
-  have hH {x : V} {W : FGBlock (Fin p.n)} (hW : HeldAt p c E rho (i + 1) x W)
-      (hh : (heightView p W).h = m) {k : Nat} {y : V}
-      (hk : V2.D.Run.idxBefore rho (ev.time + p.Δ) ≤ k) (hkv : k ≤ timeIdx rho v)
-      (hy : y ∈ rho.honest) : (R_at p c E rho k y).H = m :=
-    le_antisymm ((healing_phase_local_le_frontier p c E rho hy).trans_eq (hcap k hk hkv))
-      (hh ▸ healing_phase_height_le p c E rho (relay hW hh hk hy))
   have wit := healing_phaseWitness p c E rho hm hfront
-  cases kind with
-  | gap =>
-    obtain ⟨hnt, _⟩ := hkind
-    obtain ⟨x, W, hW, hh⟩ := wit.frontier
-    refine ⟨.genesis, settle_finish p c E rho crossing hvalid hu hv hm ?_⟩
-    intro k y hk hkv hy
-    have hHk := hH hW hh hk hkv hy
-    have hnj : (storeAt p c E rho k y).fg.h_j + 1 ≠ m :=
-      fun ht => hnt ((hwin k (by omega) hkv).2.1 ⟨y, hy, ht⟩)
-    change (storeAt p c E rho k y).fg.h_max = m at hHk
-    have hc : (R_at p c E rho k y).contest = false := by
-      change (decide ((storeAt p c E rho k y).fg.h_max =
-        (storeAt p c E rho k y).fg.h_j + 1) && _) = false
-      rw [hHk]
-      simp only [Ne.symm hnj, decide_false, Bool.false_and]
-    refine ⟨hHk, hc, ?_⟩
-    change (decide ((R_at p c E rho k y).H = (R_at p c E rho k y).j + 1) &&
-      !(R_at p c E rho k y).contest) = false
-    change (decide ((storeAt p c E rho k y).fg.h_max =
-      (storeAt p c E rho k y).fg.h_j + 1) && _) = false
-    rw [hHk]
-    simp only [Ne.symm hnj, decide_false, Bool.false_and]
-  | topJ =>
-    obtain ⟨ht, hnc⟩ := hkind
-    obtain ⟨x, C, hC, hh, hj, _⟩ := wit.top ht
-    refine ⟨(heightView p C).J, settle_finish p c E rho crossing hvalid hu hv hm ?_⟩
-    intro k y hk hkv hy
-    have hCk := relay hC hh hk hy
-    obtain ⟨hmax, htop, hJ⟩ := healing_phase_top_node p c E rho crossing hy hCk hh hj
-      (hcap k hk hkv).le
-    have hc : (R_at p c E rho k y).contest = false := by
-      cases he : (R_at p c E rho k y).contest with
-      | false => rfl
-      | true => exact (hnc ((hwin k (by omega) hkv).2.2 ⟨y, hy, hmax, he⟩)).elim
-    have hc' := hc
-    change (decide ((storeAt p c E rho k y).fg.h_max =
-      (storeAt p c E rho k y).fg.h_j + 1) && decide (∃ W ∈ (storeAt p c E rho k y).fg.TF,
-        FGBlock.Preceq (storeAt p c E rho k y).fg.F W ∧
-        (heightView p W).h = (storeAt p c E rho k y).fg.h_max ∧
-        ¬ FGBlock.Preceq (storeAt p c E rho k y).fg.J W)) = false at hc'
-    have hJC : FGBlock.Preceq (storeAt p c E rho k y).fg.J C := by
-      by_contra hn
-      rcases Bool.and_eq_false_iff.mp hc' with h | h
-      · exact of_decide_eq_false h (hmax.trans htop.symm)
-      · exact of_decide_eq_false h ⟨C, hCk,
-          (healing_phase_frontier_root p c E rho crossing hy hCk
-            (hh.trans hmax.symm)).1, hh.trans hmax.symm, hn⟩
-    refine ⟨hmax, hc, ?_, hJ hJC⟩
-    change (decide ((storeAt p c E rho k y).fg.h_max =
-      (storeAt p c E rho k y).fg.h_j + 1) && !(R_at p c E rho k y).contest) = true
-    rw [hc, hmax, htop]
-    simp only [decide_true, Bool.not_false, Bool.and_self]
-  | contest =>
-    obtain ⟨x, C, W, hC, hW, hhC, hhW, hj, hoff⟩ := wit.contest hkind
-    refine ⟨.genesis, settle_finish p c E rho crossing hvalid hu hv hm ?_⟩
-    intro k y hk hkv hy
-    have hCk := relay hC hhC hk hy
-    have hWk := relay hW hhW hk hy
-    obtain ⟨hmax, htop, hJ⟩ := healing_phase_top_node p c E rho crossing hy hCk hhC hj
-      (hcap k hk hkv).le
-    have hc : (R_at p c E rho k y).contest = true := by
-      change (decide ((storeAt p c E rho k y).fg.h_max =
-        (storeAt p c E rho k y).fg.h_j + 1) && decide (∃ W ∈ (storeAt p c E rho k y).fg.TF,
-          FGBlock.Preceq (storeAt p c E rho k y).fg.F W ∧
-          (heightView p W).h = (storeAt p c E rho k y).fg.h_max ∧
-          ¬ FGBlock.Preceq (storeAt p c E rho k y).fg.J W)) = true
-      refine Bool.and_eq_true_iff.mpr ⟨decide_eq_true (hmax.trans htop.symm),
-        decide_eq_true ?_⟩
-      by_cases hJC : FGBlock.Preceq (storeAt p c E rho k y).fg.J C
-      · exact ⟨W, hWk,
-          (healing_phase_frontier_root p c E rho crossing hy hWk
-            (hhW.trans hmax.symm)).1, hhW.trans hmax.symm,
-          by rw [hJ hJC]; exact hoff⟩
-      · exact ⟨C, hCk,
-          (healing_phase_frontier_root p c E rho crossing hy hCk
-            (hhC.trans hmax.symm)).1, hhC.trans hmax.symm, hJC⟩
-    refine ⟨hmax, hc, ?_⟩
-    change (decide ((R_at p c E rho k y).H = (R_at p c E rho k y).j + 1) &&
-      !(R_at p c E rho k y).contest) = false
-    rw [hc]
-    simp only [Bool.not_true, Bool.and_false]
+  have result := FGCompose.phase_settle_from_carriers
+    (R := p0d1SettleCore p c) (E := E) (rho := rho) (O := p0d1SettleReads p c)
+    (Ef := p.E) (obs := p0d1SettleLaws p c) (cert := fgCertificateLaws p)
+    (inv := fun i x => (storeBundle_stateBefore E rho i x).cstore.fg)
+    (justif := fgJustificationLaws p)
+    (keep := fun _ _ hij x => (fgsa_store_durable p c E rho hij x).1)
+    (T := p0d1SettleTiming p) (positive := p.deltaPos) (coreLaws := p0d1SettleCoreLaws p c)
+    (kind := p0d1SettleKind kind) crossing hs hu hv hm (Nat.succ_le_of_lt hij0) hwin
+    (by cases kind <;> exact hkind)
+    (by
+      obtain ⟨x, W, hW, hh⟩ := wit.frontier
+      exact ⟨x, W, hW, hh, fun y hy => relay hW hh le_rfl hy⟩)
+    (by
+      intro ht
+      obtain ⟨x, C, hC, hh, hj, hJ⟩ := wit.top ht
+      exact ⟨x, C, hC, hh, hj, hJ, fun y hy => relay hC hh le_rfl hy⟩)
+    (by
+      intro hc
+      obtain ⟨x, C, W, hC, hW, hhC, hhW, hj, hoff⟩ := wit.contest hc
+      exact ⟨x, C, W, hC, hW, hhC, hhW, hj, hoff,
+        fun y hy => relay hC hhC le_rfl hy, fun y hy => relay hW hhW le_rfl hy⟩)
+  cases kind <;> exact result
+
 
 /-- ROOT-DIGEST W2b. The frozen effective-event statement follows from start settlement. -/
 theorem healing_settle_event (crossing : RXing p c E rho)
@@ -357,27 +356,10 @@ theorem healing_phase_window_all (mono : RMonoAll p c E rho) {i m : Nat} {v : Ti
       frontierAtIdx p c E rho k = m ∧
       (TopEvidence p c E rho k m → TopEvidence p c E rho (i + 1) m) ∧
       (ContestEvidence p c E rho k m → ContestEvidence p c E rho (i + 1) m) := by
-  intro k hk
-  induction k, hk using Nat.le_induction with
-  | base => exact fun _ => ⟨hfront, id, id⟩
-  | succ k hk ih =>
-    intro hkv
-    obtain ⟨hf, ht, hc⟩ := ih (by omega)
-    have hq := hquiet k (by omega) (by omega)
-    have hmono := healing_frontier_mono_all p c E rho mono (Nat.le_add_right k 1)
-    have hf' : frontierAtIdx p c E rho (k + 1) = m := by
-      by_contra hne
-      exact hq (Or.inl (by omega))
-    refine ⟨hf', fun h => ht ?_, fun h => hc ?_⟩
-    · by_contra hn
-      exact hq (Or.inr (show (¬ TopEvidence p c E rho k (frontierAtIdx p c E rho (k + 1)) ∧
-        TopEvidence p c E rho (k + 1) (frontierAtIdx p c E rho (k + 1))) ∨ _ from
-        Or.inl (by rw [hf']; exact ⟨hn, h⟩)))
-    · by_contra hn
-      exact hq (Or.inr (show _ ∨
-        (¬ ContestEvidence p c E rho k (frontierAtIdx p c E rho (k + 1)) ∧
-        ContestEvidence p c E rho (k + 1) (frontierAtIdx p c E rho (k + 1))) from
-        Or.inr (by rw [hf']; exact ⟨hn, h⟩)))
+  exact FGCompose.healing_phase_window_all
+    (R := p0d1SettleCore p c) (E := E) (rho := rho) (O := p0d1SettleReads p c)
+    ⟨mono⟩ hfront hquiet
+
 
 
 /-- Retained settlement uses per-object local services and durable storage. -/
@@ -403,163 +385,29 @@ theorem healing_settle_start_on (crossing : RXing p c E rho)
           SA.voteTime p.toParams s ≤ v →
           postClock E rho y (SA.voteTime p.toParams s) = some nd →
           SettledPhaseFrame p nd.st m root contested) := by
-  intro i (ev : V2.Event V (Obj p)) v m kind hi hready hu hv hm hfront hkind hquiet
-  -- Restate the event times at the object type of the relay lemmas.
-  have hready : recoveryStart p E ≤ ev.time := hready
-  have hu : ev.time + 3 * p.Δ ≤ v := hu
-  have hgst : E.t_GST ≤ ev.time := by
-    have := healing_recovery_start_lower (p := p) E
-    linarith [p.deltaPos]
-  have hs := hvalid.toScheduleWellFormed
-  have hpos := p.deltaPos
-  have hij0 : i < V2.D.Run.idxBefore rho (ev.time + p.Δ) :=
-    (Gen.V2.Duty.index_lt_idxBefore_iff hs hi _).mpr (lt_add_of_pos_right _ hpos)
-  have hdv : ev.time + p.Δ ≤ v := by
-    simp only [Time] at *
-    omega
-  have hj0v : V2.D.Run.idxBefore rho (ev.time + p.Δ) ≤ timeIdx rho v :=
-    healing_phase_idx_le_time p c rho hdv
-  have hhor : ev.time + p.Δ ≤ rho.horizon := hdv.trans hv
-  have hwin := healing_phase_window_all p c E rho mono hfront hquiet
-  have hcap (k : Nat) (hk : V2.D.Run.idxBefore rho (ev.time + p.Δ) ≤ k)
-      (hkv : k ≤ timeIdx rho v) :
-      frontierAtIdx p c E rho k = m := (hwin k (by omega) hkv).1
-  -- Every carrier held at i + 1 is held by every honest node in the window.
-  have relay {x : V} {W : FGBlock (Fin p.n)} (hW : HeldAt p c E rho (i + 1) x W)
-      (hh : (heightView p W).h = m)
-      (hReceipt : WitnessReceiptScope E rho W (ev.time + p.Δ)) {k : Nat} {y : V}
-      (hk : V2.D.Run.idxBefore rho (ev.time + p.Δ) ≤ k) (hy : y ∈ rho.honest) :
-      W ∈ (storeAt p c E rho k y).fg.TF := by
-    let d := V2.D.Run.idxBefore rho (ev.time + p.Δ)
-    have hMax : (storeAt p c E rho d y).fg.h_max ≤ m := by
-      have hm0 := healing_phase_local_le_frontier p c E rho (i := d) hy
-      exact hm0.trans_eq (hcap d le_rfl hj0v)
-    obtain ⟨Kc, hKc, hKcF⟩ := (storeBundle_stateBefore E rho d y).cstore.fg.Fcar
-    have hLow := (healing_phase_finality_le p c E rho hKc hKcF).trans_lt
-      (healing_phase_justified_lt p c E rho d y)
-    have hWD := (fgsa_store_durable p c E rho (show i + 1 ≤ d from by
-      dsimp [d]; omega) x).1 hW.2
-    have hFW := crossing d d y x Kc W hy le_rfl hKc hKcF ⟨hW.1, hWD⟩
-      (by simp only [Height] at *; omega)
-    have hFloor : Block.Compatible (eraseFG W)
-        (eraseFG (rho.stateBeforeTime E (ev.time + p.Δ) y).st.fg.F) := by
-      rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hs]
-      exact Gen.Pure.block_compatible_of_common (Gen.Pure.block_preceq_refl (eraseFG W))
-        (eraseFG_preceq hFW)
-    let n := ((ev.time + p.Δ) / p.Δ).toNat + 1
-    let t := (n : Time) * p.Δ
-    have hnonneg : 0 ≤ ev.time + p.Δ := by linarith [E.t_GST_nonneg]
-    have hquot := Int.ediv_nonneg hnonneg p.deltaPos.le
-    have hrem := Int.emod_nonneg (ev.time + p.Δ) (ne_of_gt p.deltaPos)
-    have hremLt := Int.emod_lt_of_pos (ev.time + p.Δ) p.deltaPos
-    have he := Int.mul_ediv_add_emod (ev.time + p.Δ) p.Δ
-    have ht : ev.time + p.Δ ≤ t ∧ t ≤ ev.time + 2 * p.Δ := by
-      dsimp [t, n]
-      rw [Int.toNat_of_nonneg hquot]
-      constructor <;> nlinarith
-    have hth : t ≤ rho.horizon := by linarith [p.deltaPos]
-    obtain ⟨iy, hiy, _⟩ := fgsa_tick_total E rho hs hrec.base.delta y hy n hth
-      (hrec.awake y hy t (by linarith [p.deltaPos]) hth)
-    have hjoin := healing_recovery_joinedNow hrec hy hiy hth
-      (readyCut t (by linarith [p.deltaPos]))
-    have hFloor' : Block.Preceq
-        (eraseFG (rho.stateBeforeTime E (ev.time + p.Δ) y).st.fg.F) (eraseFG W) := by
-      rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hs]
-      exact eraseFG_preceq hFW
-    have h0 := healing_held_block_receipt_on p c E rho hvalid hroots W
-      (ev.time + p.Δ) y hy (hReceipt.atRead iy y t hy hiy hjoin ht.1 hFloor')
-    change W ∈ (V2.D.Run.stateBeforeTime E rho (ev.time + p.Δ) y).st.fg.TF at h0
-    rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hs] at h0
-    exact (fgsa_store_durable p c E rho hk y).1 h0
-  have hH {x : V} {W : FGBlock (Fin p.n)} (hW : HeldAt p c E rho (i + 1) x W)
-      (hh : (heightView p W).h = m)
-      (hReceipt : WitnessReceiptScope E rho W (ev.time + p.Δ)) {k : Nat} {y : V}
-      (hk : V2.D.Run.idxBefore rho (ev.time + p.Δ) ≤ k) (hkv : k ≤ timeIdx rho v)
-      (hy : y ∈ rho.honest) : (R_at p c E rho k y).H = m :=
-    le_antisymm ((healing_phase_local_le_frontier p c E rho hy).trans_eq (hcap k hk hkv))
-      (hh ▸ healing_phase_height_le p c E rho (relay hW hh hReceipt hk hy))
-  have wit := hServices i ev m hi hready hm hfront hhor
-  cases kind with
-  | gap =>
-    obtain ⟨hnt, _⟩ := hkind
-    obtain ⟨x, W, hW, hh, hReceipt⟩ := wit.frontier
-    refine ⟨.genesis, settle_finish p c E rho crossing hvalid hu hv hm ?_⟩
-    intro k y hk hkv hy
-    have hHk := hH hW hh hReceipt hk hkv hy
-    have hnj : (storeAt p c E rho k y).fg.h_j + 1 ≠ m :=
-      fun ht => hnt ((hwin k (by omega) hkv).2.1 ⟨y, hy, ht⟩)
-    change (storeAt p c E rho k y).fg.h_max = m at hHk
-    have hc : (R_at p c E rho k y).contest = false := by
-      change (decide ((storeAt p c E rho k y).fg.h_max =
-        (storeAt p c E rho k y).fg.h_j + 1) && _) = false
-      rw [hHk]
-      simp only [Ne.symm hnj, decide_false, Bool.false_and]
-    refine ⟨hHk, hc, ?_⟩
-    change (decide ((R_at p c E rho k y).H = (R_at p c E rho k y).j + 1) &&
-      !(R_at p c E rho k y).contest) = false
-    change (decide ((storeAt p c E rho k y).fg.h_max =
-      (storeAt p c E rho k y).fg.h_j + 1) && _) = false
-    rw [hHk]
-    simp only [Ne.symm hnj, decide_false, Bool.false_and]
-  | topJ =>
-    obtain ⟨ht, hnc⟩ := hkind
-    obtain ⟨x, C, hC, hh, hj, _, hReceipt⟩ := wit.top ht
-    refine ⟨(heightView p C).J, settle_finish p c E rho crossing hvalid hu hv hm ?_⟩
-    intro k y hk hkv hy
-    have hCk := relay hC hh hReceipt hk hy
-    obtain ⟨hmax, htop, hJ⟩ := healing_phase_top_node p c E rho crossing hy hCk hh hj
-      (hcap k hk hkv).le
-    have hc : (R_at p c E rho k y).contest = false := by
-      cases he : (R_at p c E rho k y).contest with
-      | false => rfl
-      | true => exact (hnc ((hwin k (by omega) hkv).2.2 ⟨y, hy, hmax, he⟩)).elim
-    have hc' := hc
-    change (decide ((storeAt p c E rho k y).fg.h_max =
-      (storeAt p c E rho k y).fg.h_j + 1) && decide (∃ W ∈ (storeAt p c E rho k y).fg.TF,
-        FGBlock.Preceq (storeAt p c E rho k y).fg.F W ∧
-        (heightView p W).h = (storeAt p c E rho k y).fg.h_max ∧
-        ¬ FGBlock.Preceq (storeAt p c E rho k y).fg.J W)) = false at hc'
-    have hJC : FGBlock.Preceq (storeAt p c E rho k y).fg.J C := by
-      by_contra hn
-      rcases Bool.and_eq_false_iff.mp hc' with h | h
-      · exact of_decide_eq_false h (hmax.trans htop.symm)
-      · exact of_decide_eq_false h ⟨C, hCk,
-          (healing_phase_frontier_root p c E rho crossing hy hCk
-            (hh.trans hmax.symm)).1, hh.trans hmax.symm, hn⟩
-    refine ⟨hmax, hc, ?_, hJ hJC⟩
-    change (decide ((storeAt p c E rho k y).fg.h_max =
-      (storeAt p c E rho k y).fg.h_j + 1) && !(R_at p c E rho k y).contest) = true
-    rw [hc, hmax, htop]
-    simp only [decide_true, Bool.not_false, Bool.and_self]
-  | contest =>
-    obtain ⟨x, C, W, hC, hW, hhC, hhW, hj, hoff, hReceiptC, hReceiptW⟩ := wit.contest hkind
-    refine ⟨.genesis, settle_finish p c E rho crossing hvalid hu hv hm ?_⟩
-    intro k y hk hkv hy
-    have hCk := relay hC hhC hReceiptC hk hy
-    have hWk := relay hW hhW hReceiptW hk hy
-    obtain ⟨hmax, htop, hJ⟩ := healing_phase_top_node p c E rho crossing hy hCk hhC hj
-      (hcap k hk hkv).le
-    have hc : (R_at p c E rho k y).contest = true := by
-      change (decide ((storeAt p c E rho k y).fg.h_max =
-        (storeAt p c E rho k y).fg.h_j + 1) && decide (∃ W ∈ (storeAt p c E rho k y).fg.TF,
-          FGBlock.Preceq (storeAt p c E rho k y).fg.F W ∧
-          (heightView p W).h = (storeAt p c E rho k y).fg.h_max ∧
-          ¬ FGBlock.Preceq (storeAt p c E rho k y).fg.J W)) = true
-      refine Bool.and_eq_true_iff.mpr ⟨decide_eq_true (hmax.trans htop.symm),
-        decide_eq_true ?_⟩
-      by_cases hJC : FGBlock.Preceq (storeAt p c E rho k y).fg.J C
-      · exact ⟨W, hWk,
-          (healing_phase_frontier_root p c E rho crossing hy hWk
-            (hhW.trans hmax.symm)).1, hhW.trans hmax.symm,
-          by rw [hJ hJC]; exact hoff⟩
-      · exact ⟨C, hCk,
-          (healing_phase_frontier_root p c E rho crossing hy hCk
-            (hhC.trans hmax.symm)).1, hhC.trans hmax.symm, hJC⟩
-    refine ⟨hmax, hc, ?_⟩
-    change (decide ((R_at p c E rho k y).H = (R_at p c E rho k y).j + 1) &&
-      !(R_at p c E rho k y).contest) = false
-    rw [hc]
-    simp only [Bool.not_true, Bool.and_false]
+  intro i ev v m kind hi hready hu hv hm hfront hkind hquiet
+  have result := FGCompose.healing_settle_start_on
+    (R := p0d1SettleCore p c) (E := E) (rho := rho) (O := p0d1SettleReads p c)
+    (Ef := p.E) (obs := p0d1SettleLaws p c) (cert := fgCertificateLaws p)
+    (inv := fun i x => (storeBundle_stateBefore E rho i x).cstore.fg)
+    (justif := fgJustificationLaws p)
+    (keep := fun _ _ hij x => (fgsa_store_durable p c E rho hij x).1)
+    (T := p0d1SettleTiming p) (positive := p.deltaPos) (coreLaws := p0d1SettleCoreLaws p c)
+    (Jst := recoveryStart p E) (erasePreceq := fun h => eraseFG_preceq h)
+    (joined := fun nd => joinedNow p nd.st) (receipt := TargetReceiptService E rho)
+    crossing hvalid.toScheduleWellFormed ⟨mono⟩ hrec.base.delta
+    (by have := healing_recovery_start_lower (p := p) E; linarith [p.deltaPos])
+    hrec.awake
+    (fun _ _ _ hy hiy hhor hcut => healing_recovery_joinedNow hrec hy hiy hhor hcut)
+    readyCut
+    (fun j e m hj hr hm hf hh =>
+      p0d1PhaseReceiptsProjection p c E rho (hServices j e m hj hr hm hf hh))
+    (fun W d y hy hr => healing_held_block_receipt_on p c E rho hvalid hroots W d y hy hr)
+    i ev v m (p0d1SettleKind kind) hi hready hu hv hm hfront
+    (by cases kind <;> exact hkind) hquiet
+  cases kind <;> exact result
+
+
 
 end AvailableChain.FGSA.Run
 end

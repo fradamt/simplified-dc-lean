@@ -1,5 +1,6 @@
 module
-public import AvailableChainFGCompose.Statements.ChannelLaws
+public import AvailableChainFGCompose.Statements.Observations
+public import AvailableChainFGCompose.Statements.Timing
 
 @[expose] public section
 

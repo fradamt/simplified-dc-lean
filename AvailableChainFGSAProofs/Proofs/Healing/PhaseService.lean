@@ -13,6 +13,41 @@ open AvailableChain.SimplexFG Gen.Pure
 variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V] {c : AppCodec In}
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
+private def p0d1ServiceCore (p : Params) {In : Type} (c : AppCodec In) :
+  FGCompose.FGCoreReads (fgsa p c) p.n (GridCO.State p.n .root) (Wire p.n) (RowWire p.n) :=
+  { core := fun nd => ⟨nd.st.base, nd.st.fg, nd.st.proposals, nd.st.rowPool⟩
+    erase := eraseFG
+    source := fun nd => FGSA.fgSource p nd.st
+    headVote := fun nd s => FGSA.headVote p nd.st s
+    finalityHead := fun nd => FGSA.fgBlockOf nd.st (FGSA.fgHead p nd.st)
+    proposalFG := fun nd o => match (toWire p o).decode with
+      | some (.block _ N) => (parentFG nd.st N.erase).map (fun P => fgBlock P N.erase N.rows)
+      | some (.vote _ _ _) => none
+      | some (.row _ _) => none
+      | none => none }
+
+private def p0d1ServiceObservations (p : Params) {In : Type} (c : AppCodec In) :
+    FGCompose.FGObservationReads (p0d1ServiceCore p c) :=
+  ⟨heightView p, finalityView p, (fun nd => FGSA.controls p nd.st),
+    fun nd X => domainR p nd.st X⟩
+
+private def p0d1ServiceTiming (p : Params) : FGCompose.FGTiming where
+  delta := p.Δ
+  roundSlots := p.R
+  proposal := SA.proposalTime p.toParams
+  vote := SA.voteTime p.toParams
+  early := SA.earlyTime p.toParams
+  freeze := SA.freezeTime p.toParams
+  release := SA.releaseTime p.toParams
+  gate := SA.gateTime p.toParams
+  action := p.actionTime
+
+private def phaseVoterBlocks (p : Params) (nd : Node p) (s : Slot) :=
+  FGSA.voterBlocks p nd.st s
+
+private theorem p0d1_voterBlocks_eq (nd : Node p) (s : Slot) :
+    phaseVoterBlocks p nd s = FGSA.voterBlocks p nd.st s := rfl
+
 private theorem phase_service_proposal_direct (st : State p.n) (parent o : Obj p)
     {s : Slot} {N : NamedProposal p.n} (hd : (toWire p o).decode = some (.block s N))
     (hh : handlesS p st parent o) : parent = o := by
@@ -364,8 +399,15 @@ theorem healing_evidence_spread_recovery (crossing : RXing p c E rho)
       · exact Or.inl ⟨_, hij.trans_le (healing_phase_idx_le_time p c rho hdt),
           le_rfl, hrise⟩
       right
-      apply phase_service_frozen_mem E rho crossing
-        hvalid.toScheduleWellFormed hrec (hready.trans (le_add_of_nonneg_right p.deltaPos.le))
+      change W ∈ phaseVoterBlocks p nd s
+      apply FGCompose.healing_phase_head_inclusion
+        (R := p0d1ServiceCore p c) (E := E) (rho := rho)
+        (O := p0d1ServiceObservations p c) (Jst := recoveryStart p E)
+        (T := p0d1ServiceTiming p) (voterBlocks := phaseVoterBlocks p)
+        (fun _ _ _ _ _ hr hp hy hc ht hf hW hpost =>
+          phase_service_frozen_mem E rho crossing hvalid.toScheduleWellFormed hrec
+            hr hp hy hc ht hf hW hpost)
+        (hready.trans (le_add_of_nonneg_right p.deltaPos.le))
         (lt_add_of_le_of_pos (hvalid.in_horizon _ (List.mem_of_getElem? hi)).1 p.deltaPos)
         hy (hh ▸ Nat.le_of_not_gt hrise) hdt ?_ hw hpost
       cases s with
@@ -390,9 +432,20 @@ Only the named all-restart monotonicity and crossing channels remain as inputs. 
 theorem healing_rPhase_recovery {G ΔF : Time}
     (hrec : RecoverySleep₂ p c E rho G ΔF) (mono : RMonoAll p c E rho)
     (crossing : RXing p c E rho) : RPhase p c E rho := by
+  let O : FGCompose.FGObservationReads (p0d1ServiceCore p c) :=
+    ⟨heightView p, finalityView p, (fun nd => FGSA.controls p nd.st),
+      fun nd X => domainR p nd.st X⟩
+  have obs : FGCompose.FGObservationLaws (p0d1ServiceCore p c) O :=
+    ⟨fun _ => rfl, fun _ _ => rfl⟩
   refine ⟨?_, ?_, ?_, ?_, ?_⟩
   · intro a b m hab hb hm hfixed
-    exact healing_phase_order_of_crossing_all p c E rho crossing mono a b m hab hb hm hfixed
+    exact FGCompose.healing_phase_order_of_crossing_all
+      (R := p0d1ServiceCore p c) (E := E) (rho := rho) (O := O) (Ef := p.E)
+      (obs := obs) (cert := fgCertificateLaws p)
+      (inv := fun i x => (storeBundle_stateBefore E rho i x).cstore.fg)
+      (justif := fgJustificationLaws p)
+      (keep := fun _ _ hij x => (fgsa_store_durable p c E rho hij x).1)
+      crossing ⟨mono⟩ a b m hab hb hm hfixed
   · intro i ev x W m hi hx hready hm hfront hbefore hafter hh
     exact healing_evidence_spread_recovery E rho crossing hrec mono i ev x W m
       hi hx hready hm hfront hbefore hafter hh hrec.base.receiptIdealization
@@ -404,10 +457,19 @@ theorem healing_rPhase_recovery {G ΔF : Time}
     refine ⟨J, ?_⟩
     cases kind <;> exact h
   · intro u v m J contested hready hp i x hui hiv hx
-    exact healing_settled_frame_ready p c E rho crossing u v m J contested hready hp
-      i x hui hiv hx
+    have result := FGCompose.healing_settled_frame_ready
+      (R := p0d1ServiceCore p c) (E := E) (rho := rho) (O := O) (Ef := p.E)
+      (obs := obs) (cert := fgCertificateLaws p)
+      (inv := fun i x => (storeBundle_stateBefore E rho i x).cstore.fg)
+      (Jst := recoveryStart p E) crossing u v m J contested hready
+      (by cases J <;> exact hp) i x hui hiv hx
+    cases J <;> exact result
   · intro i x m X B hx hi hm hH hX hB hpath hh
-    exact healing_frontier_mem p c E rho crossing i x m X B hx hi hm hH hX hB hpath hh
+    exact FGCompose.healing_frontier_mem
+      (R := p0d1ServiceCore p c) (E := E) (rho := rho) (O := O) (Ef := p.E)
+      (obs := obs) (cert := fgCertificateLaws p)
+      (inv := fun i x => (storeBundle_stateBefore E rho i x).cstore.fg)
+      crossing i x m X B hx hi hm hH hX hB hpath hh
 
 end AvailableChain.FGSA.Run
 end
