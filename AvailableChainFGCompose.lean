@@ -30,9 +30,19 @@ public import AvailableChainFGCompose.Proofs.SafetySlashing
 
 public import AvailableChainFGCompose.Statements.HistoricalReads
 public import AvailableChainFGCompose.Proofs.HistoricalReads
-
+public import AvailableChainFGCompose.Statements.RowPermission
+public import AvailableChainFGCompose.Proofs.RowPermission
+public import AvailableChainFGCompose.Statements.Promotion
+public import AvailableChainFGCompose.Proofs.Healing.PromotionArithmetic
+public import AvailableChainFGCompose.Proofs.Healing.CommonEntry
+public import AvailableChainFGCompose.Proofs.Healing.Promotion
+public import AvailableChainFGCompose.Proofs.Healing.PromotionRows
 public import AvailableChainFGCompose.Statements.Phase
 public import AvailableChainFGCompose.Statements.PhaseReceipts
 public import AvailableChainFGCompose.Proofs.Healing.PhaseFrame
 public import AvailableChainFGCompose.Proofs.Healing.PhaseOrder
 public import AvailableChainFGCompose.Proofs.Healing.PhaseSettle
+public import AvailableChainFGCompose.Statements.ResetCut
+public import AvailableChainFGCompose.Proofs.Healing.ResetCut
+public import AvailableChainFGCompose.Statements.FinalityHistory
+public import AvailableChainFGCompose.Proofs.Finality.History

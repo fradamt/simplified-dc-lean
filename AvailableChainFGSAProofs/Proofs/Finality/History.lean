@@ -1,10 +1,9 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Shared.ReceiptFacts
+public import AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient
 public import AvailableChainFGSAProofs.Proofs.Finality.Height
 public import AvailableChainFGSA.Proofs.StoreLaws
-public import AvailableChainFGSA.Proofs.WindowRetention
-public import AvailableChainKitFG.CausalCapCore
-public import AvailableChainGeneric.Proofs.V2.Duty.Reads
+public import AvailableChainFGCompose.Proofs.Finality.History
 
 public section
 
@@ -90,199 +89,354 @@ private theorem khistory_decode {a : RowWire p.n} {u : Row (Fin p.n)}
       subst u
       rfl
 
-omit [Fintype V] in
-/-- FINAL 22:954–956. The emission tick gives its exact action time.
-DC: INTENTIONAL: the run uses event-indexed emission. -/
-private theorem khistory_event_time {j r : Nat} {z : V} {a : RowWire p.n}
-    (hj : HonestRowAt p c E rho j z r a) :
-    eventTime rho j = some (p.actionTime r) := by
-  rw [eventTime_def rho, hj.2.1]
+section
+
+private abbrev d7a_Old := FGSA.Window.State
+private abbrev d7a_New := SimplexFG.Window.State
+
+private def d7a_toEntry {V : Type} (e : FGSA.Window.Entry V) : SimplexFG.Window.Entry V :=
+  ⟨e.j, e.X, e.Q⟩
+
+/-- All eleven fields are copied; no field is reconstructed from another field. -/
+private def d7a_toWindow {V : Type} (w : d7a_Old V) : d7a_New V :=
+  ⟨w.L, w.s, w.h, w.T_h, w.target_participation, w.progress,
+    w.W.map d7a_toEntry, w.J, w.h_j, w.F, w.h_F⟩
+
+private theorem d7a_entry_eq {V : Type} (e : FGSA.Window.Entry V) :
+    d7a_toEntry e = ⟨e.j, e.X, e.Q⟩ := rfl
+
+private theorem d7a_state_eq {V : Type} (w : d7a_Old V) :
+    d7a_toWindow w = ⟨w.L, w.s, w.h, w.T_h, w.target_participation, w.progress,
+      w.W.map d7a_toEntry, w.J, w.h_j, w.F, w.h_F⟩ := rfl
+
+private theorem d7a_entry_fields {V : Type} (e : FGSA.Window.Entry V) :
+    (d7a_toEntry e).j = e.j ∧ (d7a_toEntry e).X = e.X ∧ (d7a_toEntry e).Q
+      = e.Q :=
+  ⟨rfl, rfl, rfl⟩
+
+private theorem d7a_state_fields {V : Type} (w : d7a_Old V) :
+    (d7a_toWindow w).L = w.L ∧ (d7a_toWindow w).s = w.s ∧
+    (d7a_toWindow w).h = w.h ∧ (d7a_toWindow w).T_h = w.T_h ∧
+    (d7a_toWindow w).target_participation = w.target_participation ∧
+    (d7a_toWindow w).progress = w.progress ∧ (d7a_toWindow w).W = w.W.map
+      d7a_toEntry ∧
+    (d7a_toWindow w).J = w.J ∧ (d7a_toWindow w).h_j = w.h_j ∧
+    (d7a_toWindow w).F = w.F ∧ (d7a_toWindow w).h_F = w.h_F := by
+  exact ⟨rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl⟩
+
+private theorem d7a_initial_eq {V : Type} :
+    d7a_toWindow (FGSA.Window.initial (V := V)) = SimplexFG.Window.initial := rfl
+
+variable {V : Type} [DecidableEq V] [RowCodec V]
+
+private theorem d7a_foldRow_eq (w : d7a_Old V) (a : Row V) :
+    d7a_toWindow (FGSA.Window.process_row w a) =
+      SimplexFG.Window.process_row (d7a_toWindow w) a := by
+  have bits :
+      (w.W.map (fun e => if a.finality_pair = some ⟨e.j, e.X.root⟩ then
+        { e with Q := insert a.signer e.Q } else e)).map d7a_toEntry =
+      (w.W.map d7a_toEntry).map (fun e => if a.finality_pair = some ⟨e.j, e.X.root⟩ then
+        { e with Q := insert a.signer e.Q } else e) := by
+    simp only [List.map_map]
+    congr 1
+    funext e
+    by_cases he : a.finality_pair = some ⟨e.j, e.X.root⟩ <;>
+      simp [d7a_entry_eq, he]
+  rcases a with ⟨i, hp, fp⟩
+  cases hp with
+  | empty =>
+      simpa only [FGSA.Window.process_row_def, SimplexFG.Window.process_row_def,
+        NamedHeightPair.matchesEntry, Bool.false_eq_true, ↓reduceIte, d7a_state_eq] using
+        congrArg (fun es => ({ d7a_toWindow w with W := es } : d7a_New V)) bits
+  | vote h X t =>
+      cases t <;>
+        simp only [FGSA.Window.process_row_def, SimplexFG.Window.process_row_def,
+          NamedHeightPair.matchesEntry] <;>
+        split_ifs <;> dsimp [d7a_state_eq] <;> rw [bits] <;> simp_all [d7a_state_eq]
+      all_goals
+        exfalso
+        have hm : h = w.h ∧ X = w.T_h.root := of_decide_eq_true (by assumption)
+        exact (by assumption : h = w.h → ¬ X = w.T_h.root) hm.1 hm.2
+
+private theorem d7a_rows_eq (rs : List (Row V)) (w : d7a_Old V) :
+    d7a_toWindow (rs.foldl FGSA.Window.process_row w) =
+      rs.foldl SimplexFG.Window.process_row (d7a_toWindow w) := by
+  induction rs generalizing w with
+  | nil => rfl
+  | cons a rs ih => simp only [List.foldl_cons, ih, d7a_foldRow_eq]
+
+omit [DecidableEq V] [RowCodec V] in
+private theorem d7a_advance_eq (w : d7a_Old V) :
+    d7a_toWindow (FGSA.Window.advance_height w) =
+      SimplexFG.Window.advance_height (d7a_toWindow w) := rfl
+
+variable [Fintype V]
+
+omit [DecidableEq V] [RowCodec V] in
+private theorem d7a_greatest_eq (E : Electorate V) (w : d7a_Old V) :
+    (FGSA.Window.greatestReady E w).map d7a_toEntry =
+      SimplexFG.Window.greatestReady E (d7a_toWindow w) := by
+  classical
+  let oldStep := fun (best : Option (FGSA.Window.Entry V)) e =>
+    if w.h_F < e.j ∧ E.q ≤ E.weightOf e.Q then
+      best.elim (some e) (fun old => if old.j < e.j then some e else best)
+    else best
+  let newStep := fun (best : Option (SimplexFG.Window.Entry V)) e =>
+    if w.h_F < e.j ∧ E.q ≤ E.weightOf e.Q then
+      best.elim (some e) (fun old => if old.j < e.j then some e else best)
+    else best
+  have step (best) (e) :
+      (oldStep best e).map d7a_toEntry = newStep (best.map d7a_toEntry)
+      (d7a_toEntry e) := by
+    dsimp [oldStep, newStep, d7a_entry_eq]
+    split_ifs <;> cases best <;> simp_all [d7a_entry_eq]
+    split_ifs <;> rfl
+  have fold (es : List (FGSA.Window.Entry V)) (best) :
+      (es.foldl oldStep best).map d7a_toEntry =
+        (es.map d7a_toEntry).foldl newStep (best.map d7a_toEntry) := by
+    induction es generalizing best with
+    | nil => rfl
+    | cons e es ih => simp only [List.foldl_cons, List.map_cons, ih, step]
+  have old_eq : FGSA.Window.greatestReady E w = w.W.foldl oldStep none := by
+    rw [FGSA.Window.greatestReady_def]
+    congr 1
+    funext best e
+    cases best <;> rfl
+  have new_eq : SimplexFG.Window.greatestReady E (d7a_toWindow w) =
+      (w.W.map d7a_toEntry).foldl newStep none := by
+    rw [SimplexFG.Window.greatestReady_def]
+    congr 1
+    funext best e
+    cases best <;> rfl
+  rw [old_eq, new_eq]
+  exact fold w.W none
+
+omit [DecidableEq V] [RowCodec V] in
+private theorem d7a_finalize_eq (E : Electorate V) (w : d7a_Old V) :
+    d7a_toWindow (FGSA.Window.finalizeWindow E w) =
+      SimplexFG.Window.finalizeWindow E (d7a_toWindow w) := by
+  rw [FGSA.Window.finalizeWindow_def, SimplexFG.Window.finalizeWindow_def]
+  rw [← d7a_greatest_eq]
+  cases FGSA.Window.greatestReady E w <;>
+    simp [d7a_state_eq, d7a_entry_eq, List.filter_map, Function.comp_def] <;> rfl
+
+omit [DecidableEq V] [RowCodec V] [Fintype V] in
+/-- Appending the new empty entry and dropping old entries preserve conversion. -/
+private theorem d7a_append_eviction_eq (es : List (FGSA.Window.Entry V))
+    (j : Height) (X : FGBlock V) (K : Nat) :
+    ((es ++ [FGSA.Window.Entry.mk j X ∅]).drop
+      ((es ++ [FGSA.Window.Entry.mk j X ∅]).length - K)).map d7a_toEntry =
+      (es.map d7a_toEntry ++ [SimplexFG.Window.Entry.mk j X ∅]).drop
+        ((es.map d7a_toEntry ++ [SimplexFG.Window.Entry.mk j X ∅]).length - K) := by
+  simp [List.map_drop, d7a_entry_eq]
+
+omit [DecidableEq V] [RowCodec V] in
+private theorem d7a_events_eq (E : Electorate V) (cfg : FGConfig) (K : Nat) (w :
+      d7a_Old V) :
+    d7a_toWindow (FGSA.Window.process_height_events E cfg K w) =
+      SimplexFG.Window.process_height_events E cfg K (d7a_toWindow w) := by
+  rw [FGSA.Window.process_height_events_def, SimplexFG.Window.process_height_events_def]
+  rw [← d7a_finalize_eq]
+  generalize FGSA.Window.finalizeWindow E w = u
+  change d7a_toWindow (if FGSA.Window.targetQuorum E u then _ else _) =
+    (if FGSA.Window.targetQuorum E u then _ else _)
+  rw [show SimplexFG.Window.progReady E cfg (d7a_toWindow u) =
+    FGSA.Window.progReady E cfg u from rfl]
+  split_ifs <;>
+    simp [FGSA.Window.advance_height_def, SimplexFG.Window.advance_height_def,
+      d7a_state_eq, d7a_entry_eq, List.map_drop]
+
+private theorem d7a_transition_eq (p : Params) (K : Nat) (w : d7a_Old (Fin p.n))
+    (B : FGBlock (Fin p.n)) (rs : List (Row (Fin p.n))) :
+    d7a_toWindow (FGSA.Window.transition p K w B rs) =
+      SimplexFG.Window.transition p.E p.cfg K (d7a_toWindow w) B rs := by
+  rw [FGSA.Window.transition_def, d7a_events_eq, SimplexFG.Window.transition_def]
+  have h := d7a_rows_eq rs { w with s := B.slot }
+  change SimplexFG.Window.process_height_events p.E p.cfg K
+    { d7a_toWindow (rs.foldl FGSA.Window.process_row { w with s := B.slot }) with L := B }
+      = _
+  rw [h]
   rfl
 
-include horigin in
-/-- FINAL 22:954–956. Authenticate each raw carrier before its strict cut.
-DC: ProposalBridge.lean:324; FG-SA retains the delivery witness. -/
-private theorem khistory_raw_origin (base : BaseSet p c E rho)
-    (B W : FGBlock (Fin p.n)) (cut : Time) (u : Row (Fin p.n))
-    (hraw : ChainRowsBefore p c E rho B cut) (hpath : FGBlock.Preceq W B)
-    (hocc : u ∈ W.rows) (hh : rho.seatOf (.base .fg) u.signer ∈ rho.honest) :
-    ∃ j r a t, HonestRowAt p c E rho j (rho.seatOf (.base .fg) u.signer) r a ∧
-      a.toRow? = some u ∧ eventTime rho j = some t ∧ t < cut := by
-  obtain ⟨x, s, hx, hs, hW⟩ := hraw W hpath u hocc
-  have held : HeldAt p c E rho (V2.D.Run.idxBefore rho s) x W := by
-    refine ⟨hx, ?_⟩
-    change W ∈ (V2.D.Run.stateBefore E rho (V2.D.Run.idxBefore rho s) x).st.fg.TF
-    rw [Gen.V2.Duty.stateBefore_idxBefore E rho s base.valid.toScheduleWellFormed]
-    exact hW
-  obtain ⟨a, r, ha, har, k, o, t, hki, hk, he⟩ :=
-    horigin _ x W held u (mem_chainRows_of_carrier (preceq_refl _) hocc)
-  have hsign : RowSigner p c rho a (rho.seatOf (.base .fg) u.signer) :=
-    ⟨u.signer, har, rfl⟩
-  obtain ⟨hb, ht⟩ := he _ hsign hh
-  obtain ⟨j, _hji, hj⟩ := hb
-  have hts := (Gen.V2.Duty.index_lt_idxBefore_iff
-    base.valid.toScheduleWellFormed hk s).mp hki
-  exact ⟨j, r, a, p.actionTime r, hj, ha, khistory_event_time p c E rho hj,
-    (ht.trans_lt hts).trans hs⟩
+private theorem d7a_foldMap (p : Params) (K : Nat) :
+    KitFG.WindowFoldMap p.E p.cfg K FGSA.Window.initial (FGSA.Window.transition p K)
+      (FGSA.Window.derive p K) d7a_toWindow where
+  initial := d7a_initial_eq
+  genesis := rfl
+  node := fun _ _ _ _ _ => rfl
+  step := d7a_transition_eq p K
 
-/-- FINAL 22:954–956. A matching pair has the stated wire height.
-DC: INTENTIONAL: the wire height is optional for an empty pair. -/
-private theorem khistory_matching_height {u : Row (Fin p.n)} {a : RowWire p.n}
-    {y : Nat} {T : BlockId} (ha : a.toRow? = some u)
-    (hm : u.height_pair.matchesEntry y T = true) : rowHeight a = some y := by
-  rw [khistory_decode p ha]
-  cases hp : u.height_pair with
-  | empty => simp only [hp, NamedHeightPair.matchesEntry] at hm; contradiction
-  | vote h U timeout =>
-    have hh : h = y := by
-      simp only [hp, NamedHeightPair.matchesEntry, decide_eq_true_eq] at hm
-      exact hm.1
-    rw [rowHeight_def]
-    change some h = some y
-    rw [hh]
+private theorem d7a_derive_eq (p : Params) (K : Nat) (B : FGBlock (Fin p.n)) :
+    d7a_toWindow (FGSA.Window.derive p K B) = SimplexFG.Window.derive p.E p.cfg K B :=
+  (d7a_foldMap p K).fold_eq B
+
+end
+
+private def d7a_timing (p : Params) : FGCompose.FGTiming where
+  delta := p.Δ
+  roundSlots := p.R
+  proposal := SA.proposalTime p.toParams
+  vote := SA.voteTime p.toParams
+  early := SA.earlyTime p.toParams
+  freeze := SA.freezeTime p.toParams
+  release := SA.releaseTime p.toParams
+  gate := SA.gateTime p.toParams
+  action := p.actionTime
+
+private def d7a_signer (a : RowWire p.n) : Option (Fin p.n) := match a.auth with
+  | .seat .fg i => some i
+  | _ => none
+
+private def d7a_wire : FGCompose.FGHistoryWireReads (fgsaSafetyReads p c) where
+  heightPair a := a.payload.height_pair
+  finalityPair a := a.payload.finality_pair
+  signer := d7a_signer p
+  decode_height a u ha := by
+    rw [fgsaSafetyReads_def] at ha
+    rw [khistory_decode p ha]
+    rfl
+  decode_finality a u ha := by
+    rw [fgsaSafetyReads_def] at ha
+    rw [khistory_decode p ha]
+    rfl
+  decode_signer a u ha := by
+    rw [fgsaSafetyReads_def] at ha
+    rw [khistory_decode p ha]
+    rfl
+
+omit [Fintype V] in
+private theorem d7a_row_eq (j r : Nat) (x : V) (a : RowWire p.n) :
+    FGCompose.HonestRowAt (fgsaSafetyReads p c) E rho (d7a_timing p) j x r a =
+      HonestRowAt p c E rho j x r a := by rw [fgsaSafetyReads_def]; rfl
+
+omit [Fintype V] in
+private theorem d7a_held_eq (i : Nat) (x : V) (B : FGBlock (Fin p.n)) :
+    FGCompose.HeldAt (fgsaCoreReads p c) E rho i x B = HeldAt p c E rho i x B := by
+  rw [fgsaCoreReads_def]
+  rfl
+
+private theorem d7a_chain_eq (B : FGBlock (Fin p.n)) (cut : Time) :
+    FGCompose.ChainRowsBefore (fgsaCoreReads p c) E rho B cut =
+      ChainRowsBefore p c E rho B cut := by rw [fgsaCoreReads_def]; rfl
+
+omit [Fintype V] in
+private theorem d7a_faulty_eq :
+    FGCompose.historyFaulty (fgsaSafetyReads p c) rho =
+      Finset.univ \ honestSeats p c rho := by
+  classical
+  rw [fgsaSafetyReads_def]
+  unfold FGCompose.historyFaulty FGCompose.safetyHolder
+  ext i
+  simp only [Finset.mem_filter, Finset.mem_univ, true_and, Finset.mem_sdiff,
+    khistory_honestSeats_mem]
+  rfl
+
+private theorem d7a_empty : ¬ p.E.IsQuorum ∅ := by
+  have hn := p.nPos
+  dsimp only [Params.E, Electorate.IsQuorum, Electorate.q, Electorate.totalWeight,
+    Electorate.weightOf]
+  simp only [Finset.sum_const, Finset.card_univ, Fintype.card_fin,
+    smul_eq_mul, mul_one, Finset.card_empty]
+  omega
+
+private theorem d7a_height_eq :
+    heightView p = KitFG.Window.certificateHeight p.E p.cfg p.K_W := by
+  funext B
+  change KitFG.Window.projectHeight (d7a_toWindow (FGSA.Window.derive p p.K_W B)) = _
+  rw [d7a_derive_eq, KitFG.Window.certificateHeight_def]
+
+private theorem d7a_finality_eq :
+    finalityView p = KitFG.Window.certificateFinality p.E p.cfg p.K_W := by
+  funext B
+  change KitFG.Window.projectFinality (d7a_toWindow (FGSA.Window.derive p p.K_W B)) = _
+  rw [d7a_derive_eq, KitFG.Window.certificateFinality_def]
+
+private theorem d7a_retained_eq (B U : FGBlock (Fin p.n)) (y : Nat) :
+    KitFG.Window.RetainedW p.E p.cfg p.K_W B y U = Window.RetainedW p B y U := by
+  apply propext
+  unfold KitFG.Window.RetainedW
+  rw [← d7a_derive_eq p p.K_W B, Window.RetainedW_def]
+  change (∃ e ∈ (Window.derive p p.K_W B).W.map d7a_toEntry, e.j = y ∧ e.X = U) ↔ _
+  simp only [List.mem_map]
+  constructor
+  · rintro ⟨e, ⟨d, hd, rfl⟩, hey, heU⟩
+    exact ⟨d, hd, hey, heU⟩
+  · rintro ⟨d, hd, hdy, hdU⟩
+    exact ⟨d7a_toEntry d, ⟨d, hd, rfl⟩, hdy, hdU⟩
+
+private theorem d7a_target : FGCompose.TargetJustification p.E (heightView p) := by
+  intro y U X hX hU hpath hcover hnomix
+  exact fgsa_justifyAt p y U X hX hU hpath hcover hnomix
+
+omit [Fintype V] in
+include horigin in
+private theorem d7a_origin : FGCompose.RawHistoryOrigin (fgsaCoreReads p c)
+    (fgsaSafetyReads p c) E rho (d7a_timing p) (d7a_wire p c) := by
+  intro i x B hh u hu
+  rw [d7a_held_eq] at hh
+  obtain ⟨a, r, ha, har, k, o, t, hki, hk, he⟩ := horigin i x B hh u hu
+  refine ⟨a, r, ?_, ?_, k, o, t, hki, hk, ?_⟩
+  · rw [fgsaSafetyReads_def]
+    exact ha
+  · change d7a_signer p a = some u.signer
+    rw [khistory_decode p ha]
+    rfl
+  · intro z hz hhonest
+    obtain ⟨seat, hseat, hholder⟩ := hz
+    have hseat' : a.auth = .seat .fg seat := by
+      change d7a_signer p a = some seat at hseat
+      rw [khistory_decode p ha] at hseat ⊢
+      have eq := Option.some.inj hseat
+      rw [eq]
+    have hholder' : rho.seatOf (.base .fg) seat = z := by
+      change FGCompose.safetyHolder (fgsaSafetyReads p c) rho seat = z at hholder
+      rw [FGCompose.safetyHolder, fgsaSafetyReads_def] at hholder
+      exact hholder
+    obtain ⟨⟨j, hji, hj⟩, hrt⟩ := he z ⟨seat, hseat', hholder'⟩ hhonest
+    exact ⟨⟨j, hji, (d7a_row_eq p c E rho j r z a).mpr hj⟩, hrt⟩
+
+private def d7a_pre (q y : Nat) (U X : FGBlock (Fin p.n))
+    (h : PreBatchPrem p c E rho q y U X) :
+    FGCompose.PreBatchPrem (fgsaCoreReads p c) (fgsaSafetyReads p c) E rho
+      (d7a_timing p) (d7a_wire p c) p.E (heightView p) q y U X where
+  schedule := h.base.valid.toScheduleWellFormed
+  fault_weight := by rw [d7a_faulty_eq]; exact khistory_faulty_weight p c E rho h.base h.faultQ
+  entry := h.entry
+  path := h.path
+  cut := h.cut
+  early := h.early
+  rows := (d7a_chain_eq p c E rho X.parent h.cut).mpr h.rows
+  noRow := by
+    intro j x r a H t hj ha hy ht
+    exact h.noRow j x r a H t ((d7a_row_eq p c E rho j r x a).mp hj) ha hy ht
+
+private def d7a_fresh (q y : Nat) (X : FGBlock (Fin p.n))
+    (h : FreshPrem p c E rho q y X) :
+    FGCompose.FreshPrem (fgsaCoreReads p c) (fgsaSafetyReads p c) E rho
+      (d7a_timing p) (d7a_wire p c) p.E q y X where
+  schedule := h.base.valid.toScheduleWellFormed
+  fault_weight := by rw [d7a_faulty_eq]; exact khistory_faulty_weight p c E rho h.base h.faultQ
+  cut := h.cut
+  early := h.early
+  rows := (d7a_chain_eq p c E rho X h.cut).mpr h.rows
+  noNextRow := by
+    intro j x r a H t hj ha hy ht
+    exact h.noNextRow j x r a H t ((d7a_row_eq p c E rho j r x a).mp hj) ha hy ht
+  noFinRow := by
+    intro j x r a H t hj ha hy ht
+    exact h.noFinRow j x r a H t ((d7a_row_eq p c E rho j r x a).mp hj) ha hy ht
 
 include horigin in
 /-- FINAL 22:1771–1780. No honest height-y row precedes the first action.
 DC: CarrierTimeoutGate.lean:121; FG-SA uses a raw parent-chain cut. -/
 theorem noMixedPreBatchParent (q y : Nat) (U X : FGBlock (Fin p.n))
     (h : PreBatchPrem p c E rho q y U X) : NoMixedOnPath p X y := by
-  intro W hWP hm
-  obtain ⟨hp, hw, _hj⟩ := hm
-  have hne : W ≠ .genesis := by
-    intro heq
-    subst W
-    change (heightView p .genesis).h = y at hp
-    rw [hp] at hw
-    simp only [Height] at hw
-    omega
-  obtain ⟨C, u, hCW, hu, hf, hmatch⟩ := crossing_honest_matching_row_of_bridge
-    p.E p.cfg (heightView p) (heightView_bridge p) (Finset.univ \ honestSeats p c rho)
-    y hne hp hw (khistory_faulty_weight p c E rho h.base h.faultQ)
-  obtain ⟨j, r, a, t, hj, ha, ht, hearly⟩ := khistory_raw_origin p c E rho horigin
-    h.base X.parent C h.cut u h.rows (preceq_trans hCW hWP) hu
-    (khistory_honest_seat p c rho u hf)
-  have hlate := h.noRow j _ r a y t hj (khistory_matching_height p ha hmatch)
-    (le_refl _) ht
-  exact (not_lt.mpr hlate) (hearly.trans_le h.early)
-
-
-/-- ROOT-DIGEST W2b. FINAL 22:954–956. Expose the carrier of a raw chain row.
-DC: INTENTIONAL: the endpoint need not be held. -/
-private theorem khistory_carrier (B : FGBlock (Fin p.n)) (u : Row (Fin p.n))
-    (hu : u ∈ chainRows B) : ∃ W, FGBlock.Preceq W B ∧ u ∈ W.rows := by
-  induction B with
-  | genesis => exact (Finset.notMem_empty u hu).elim
-  | node P s root x rs ih =>
-    change u ∈ rs.toFinset ∪ chainRows P at hu
-    rcases Finset.mem_union.mp hu with hu | hu
-    · exact ⟨.node P s root x rs, preceq_refl _, List.mem_toFinset.mp hu⟩
-    · obtain ⟨W, hWP, hu⟩ := ih hu
-      exact ⟨W, preceq_node_of_preceq s root x rs hWP, hu⟩
-
-include horigin in
-/-- FINAL 22:948–958. Raw rows before a cut bound the endpoint height.
-DC: INTENTIONAL: each raw carrier is authenticated separately. -/
-private theorem khistory_chain_height_le (base : BaseSet p c E rho)
-    (faultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
-    (B : FGBlock (Fin p.n)) (cut : Time) (m : Nat)
-    (hraw : ChainRowsBefore p c E rho B cut)
-    (hrows : ∀ j z r a h t, HonestRowAt p c E rho j z r a →
-      rowHeight a = some h → eventTime rho j = some t → t < cut → h ≤ m) :
-    (heightView p B).h ≤ m + 1 := by
-  by_contra hn
-  obtain ⟨C, _hCB, _hC, Q, hQ, hw⟩ := (fgCertificateLaws p).height.height_crossing
-    B (m + 1) (by simp only [Height]; omega) (by simp only [Height] at *; omega)
-  obtain ⟨seat, hs, hf⟩ := honest_in_quorum p.E (Finset.univ \ honestSeats p c rho)
-    hQ (khistory_faulty_weight p c E rho base faultQ)
-  obtain ⟨W, u, hWB, hu, hsign, hm⟩ := hw seat hs
-  have hfu : u.signer ∉ Finset.univ \ honestSeats p c rho := hsign ▸ hf
-  obtain ⟨j, r, a, t, hj, ha, ht, hearly⟩ := khistory_raw_origin p c E rho horigin
-    base B W cut u hraw hWB hu (khistory_honest_seat p c rho u hfu)
-  have hb := hrows j _ r a (m + 1) t hj (khistory_matching_height p ha hm) ht hearly
-  omega
-
-include horigin in
-/-- FINAL 22:952–958. A positive W certificate has an honest raw row before the cut.
-DC: INTENTIONAL: the active W certificate supplies the exact finality height. -/
-private theorem khistory_finality_origin (base : BaseSet p c E rho)
-    (faultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
-    (X : FGBlock (Fin p.n)) (cut : Time) (y : Nat)
-    (hraw : ChainRowsBefore p c E rho X cut)
-    (hy : 0 < y) (hF : y ≤ (finalityView p X).h_F) :
-    ∃ j z r a t, HonestRowAt p c E rho j z r a ∧
-      finHeight a = some (finalityView p X).h_F ∧ eventTime rho j = some t ∧ t < cut := by
-  let R := fun u : Row (Fin p.n) => ∃ j r a t,
-    HonestRowAt p c E rho j (rho.seatOf (.base .fg) u.signer) r a ∧
-      a.toRow? = some u ∧ eventTime rho j = some t ∧ t < cut
-  obtain ⟨u, _hu, _hf, ho, hp⟩ := finalityCap_row_of_certificate p.E
-    (heightView p) (finalityView p) (fgCertificateLaws p)
-    (Finset.univ \ honestSeats p c rho) (khistory_faulty_weight p c E rho base faultQ)
-    y X R (by
-      intro u hu hf
-      obtain ⟨W, hWX, hu⟩ := khistory_carrier p X u hu
-      exact khistory_raw_origin p c E rho horigin base X W cut u hraw hWX hu
-        (khistory_honest_seat p c rho u hf)) hy hF
-  obtain ⟨j, r, a, t, hj, ha, ht, hearly⟩ := ho
-  refine ⟨j, _, r, a, t, hj, ?_, ht, hearly⟩
-  rw [khistory_decode p ha]
-  rw [finHeight_def]
-  rw [hp]
-  rfl
-
-/-- ROOT-DIGEST W2b. FINAL 22:1061–1070. A justified target crossing creates the exact retained W
-key.
-DC: W4FKChainJustification.lean:185; FG-SA appends the key to its window. -/
-private theorem khistory_retained_cross (y : Nat) (U C : FGBlock (Fin p.n))
-    (hc : JustifiedCross p C U y) : Window.RetainedW p C y U := by
-  obtain ⟨hp, hh, hJ, hj⟩ := hc
-  have hne : C ≠ .genesis := by
-    intro heq
-    subst C
-    change (heightView p .genesis).h = y at hp
-    rw [hp] at hh
-    simp only [Height] at hh
-    omega
-  cases C with
-  | genesis => exact (hne rfl).elim
-  | node P s root x rs =>
-    change (heightView p P).h = y at hp
-    have hp' : (Window.derive p p.K_W P).h = y := by
-      simpa only [heightView_def, Window.projectHeight_def] using hp
-    have hj' : (Window.derive p p.K_W (.node P s root x rs)).h_j = y := by
-      simpa only [heightView_def, Window.projectHeight_def] using hj
-    have hJ' : (Window.derive p p.K_W (.node P s root x rs)).J = U := by
-      simpa only [heightView_def, Window.projectHeight_def] using hJ
-    have ht : Window.targetQuorum p.E
-        (Window.finalizeWindow p.E (Window.certificateFolded p p.K_W (.node P s root x rs))) =
-          true := by
-      rcases Window.window_latest_pair_kept p p.K_W P s root x rs with kept | crossed
-      · have below := (fgCertificateLaws p).height.justified_below_height P
-        simp only [heightView_def, Window.projectHeight_def] at below
-        rw [← kept.1, hj', hp'] at below
-        exact (Nat.lt_irrefl y below).elim
-      · exact crossed.2.2
-    have latest : (Window.derive p p.K_W (.node P s root x rs)).h_j =
-        (Window.finalizeWindow p.E
-          (Window.certificateFolded p p.K_W (.node P s root x rs))).h ∧
-        (Window.derive p p.K_W (.node P s root x rs)).J =
-        (Window.finalizeWindow p.E
-          (Window.certificateFolded p p.K_W (.node P s root x rs))).T_h := by
-      rw [Window.derive_def p p.K_W (.node P s root x rs)]
-      dsimp only
-      rw [Window.transition_def]
-      change (Window.process_height_events p.E p.cfg p.K_W
-          (Window.certificateFolded p p.K_W (.node P s root x rs))).h_j = _ ∧
-        (Window.process_height_events p.E p.cfg p.K_W
-          (Window.certificateFolded p p.K_W (.node P s root x rs))).J = _
-      rw [Window.process_height_events_def, ite_eq_left ht]
-      exact ⟨rfl, rfl⟩
-    obtain ⟨_hw, older, appended, _hord, _hf⟩ :=
-      Window.window_target_appended_newest p p.K_W p.kWLarge P s root x rs ht
-    rw [latest.1.symm.trans hj', latest.2.symm.trans hJ'] at appended
-    rw [Window.RetainedW_def]
-    refine ⟨⟨y, U, ∅⟩, ?_, rfl, rfl⟩
-    rw [appended]
-    exact List.mem_append_right _ (List.mem_singleton_self _)
+  exact FGCompose.noMixedPreBatchParent (R := fgsaCoreReads p c)
+    (S := fgsaSafetyReads p c) (E := E)
+    (rho := rho) (T := d7a_timing p) (D := d7a_wire p c) (Ef := p.E)
+    (H := heightView p)
+    (cfg := p.cfg) (hb := heightView_bridge p) (horigin := d7a_origin p c E rho horigin)
+    q y U X (d7a_pre p c E rho q y U X h)
 
 include horigin in
 /-- FINAL 22:945–958,1218–1223. Fresh raw history fixes the endpoint and retains its W key.
@@ -294,75 +448,16 @@ theorem justifyFresh_W (q y : Nat) (U X : FGBlock (Fin p.n)) (hX : X ≠ .genesi
     (heightView p X).h = y + 1 ∧ (heightView p X).J = U ∧
       (heightView p X).h_j = y ∧ (Window.derive p p.K_W X).h_F < y ∧
       Window.RetainedW p X y U := by
-  obtain ⟨C, hCX, hc⟩ := fgsa_justifyAt p y U X hX hentry hpath hcover hnomix
-  have hy : 0 < y := by
-    have hb := (fgCertificateLaws p).height.one_le_h U
-    rw [hentry.1] at hb
-    simp only [Height] at *
-    omega
-  have hlo := (fgCertificateLaws p).height.h_mono hCX
-  rw [hc.2.1] at hlo
-  have hhi := khistory_chain_height_le p c E rho horigin h.base h.faultQ X h.cut y
-    h.rows (by
-      intro j z r a H t hj ha ht hearly
-      by_contra hn
-      have hlate := h.noNextRow j z r a H t hj ha (by omega) ht
-      exact (not_lt.mpr hlate) (hearly.trans_le h.early))
-  have hh : (heightView p X).h = y + 1 := by simp only [Height] at *; omega
-  obtain ⟨hJ, hj⟩ := justification_eq_on_plateau_of_bridge p.E p.cfg
-    (heightView p) (heightView_bridge p) hCX (hc.2.1.trans hh.symm)
-  have hJU := hJ.trans hc.2.2.1
-  have hjy := hj.trans hc.2.2.2
-  have hf : (finalityView p X).h_F < y := by
-    by_contra hn
-    obtain ⟨j, z, r, a, t, hj, ha, ht, hearly⟩ :=
-      khistory_finality_origin p c E rho horigin h.base h.faultQ X h.cut y h.rows hy
-        (Nat.le_of_not_gt hn)
-    have hlate := h.noFinRow j z r a _ t hj ha (Nat.le_of_not_gt hn) ht
-    exact (not_lt.mpr hlate) (hearly.trans_le h.early)
-  have hfW : (Window.derive p p.K_W X).h_F < y := by
-    simpa only [finalityView_def, Window.certificateFinality_def,
-      Window.projectFinality_def] using hf
-  obtain ⟨e, he, hey, heU⟩ := khistory_retained_cross p y U C hc
-  obtain ⟨d, hd, hdy, hdU, _hbits⟩ := Window.window_retained_of_scalar p p.K_W p.kWLarge
-    C X hCX e he (by rw [hey]; exact hfW) (by
-      have hjW : (Window.derive p p.K_W X).h_j = y := by
-        simpa only [heightView_def, Window.projectHeight_def] using hjy
-      rw [hjW, hey]
-      have hK := p.kWLarge
-      simp only [Height] at *
-      omega)
-  exact ⟨hh, hJU, hjy, hfW, d, hd, hdy.trans hey, hdU.trans heU⟩
-
-
-include horigin in
-/-- FINAL 22:923–938. A held chain has no crossing above its honest row bound.
-DC: INTENTIONAL: timed raw origin replaces a selected-pool bound. -/
-private theorem khistory_held_height_le (base : BaseSet p c E rho)
-    (faultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card) (m : Nat) (cut : Time)
-    (hrows : ∀ j z r a h t, HonestRowAt p c E rho j z r a →
-      rowHeight a = some h → eventTime rho j = some t → t < cut → h ≤ m)
-    (i : Nat) (x : V) (B : FGBlock (Fin p.n)) (hheld : HeldAt p c E rho i x B)
-    (hbefore : ∀ k o t, k < i → rho.events[k]? = some (.deliver x o t) → t < cut) :
-    (heightView p B).h ≤ m + 1 := by
-  by_contra hn
-  obtain ⟨C, _hCB, _hC, Q, hQ, hw⟩ := (fgCertificateLaws p).height.height_crossing
-    B (m + 1) (by simp only [Height]; omega) (by simp only [Height] at *; omega)
-  obtain ⟨seat, hs, hf⟩ := honest_in_quorum p.E (Finset.univ \ honestSeats p c rho)
-    hQ (khistory_faulty_weight p c E rho base faultQ)
-  obtain ⟨W, u, hWB, hu, hsign, hm⟩ := hw seat hs
-  have hfu : u.signer ∉ Finset.univ \ honestSeats p c rho := hsign ▸ hf
-  have hhonest := khistory_honest_seat p c rho u hfu
-  obtain ⟨a, r, ha, har, k, o, t, hki, hk, he⟩ :=
-    horigin i x B hheld u (mem_chainRows_of_carrier hWB hu)
-  have hsigner : RowSigner p c rho a (rho.seatOf (.base .fg) u.signer) :=
-    ⟨u.signer, har, rfl⟩
-  obtain ⟨hb, hrt⟩ := he _ hsigner hhonest
-  obtain ⟨j, _hji, hj⟩ := hb
-  have ht := hrt.trans_lt (hbefore k o t hki hk)
-  have bound := hrows j _ r a (m + 1) (p.actionTime r) hj
-    (khistory_matching_height p ha hm) (khistory_event_time p c E rho hj) ht
-  omega
+  have result := FGCompose.justifyFresh_W (R := fgsaCoreReads p c)
+    (S := fgsaSafetyReads p c) (E := E)
+    (rho := rho) (T := d7a_timing p) (D := d7a_wire p c) (Ef := p.E)
+    (H := heightView p)
+    (cfg := p.cfg) (f := finalityView p) (hb := heightView_bridge p)
+    (hc := fgCertificateLaws p) (horigin := d7a_origin p c E rho horigin)
+    p.K_W (d7a_empty p) p.kWLarge (d7a_height_eq p) (d7a_finality_eq p) (d7a_target p)
+    q y U X hX hentry hpath hcover hnomix (d7a_fresh p c E rho q y X h)
+  rw [d7a_retained_eq] at result
+  exact result
 
 include horigin in
 /-- FINAL 22:923–938. Strict raw history caps a held block before the cut.
@@ -374,10 +469,16 @@ theorem raw_causal_cap_before (base : BaseSet p c E rho)
     (i : Nat) (x : V) (B : FGBlock (Fin p.n))
     (hcut : i ≤ V2.D.Run.idxBefore rho cut) (hheld : HeldAt p c E rho i x B) :
     (heightView p B).h ≤ m + 1 := by
-  apply khistory_held_height_le p c E rho horigin base faultQ m cut hrows i x B hheld
-  intro k o t hki hk
-  exact (Gen.V2.Duty.index_lt_idxBefore_iff base.valid.toScheduleWellFormed hk cut).mp
-    (hki.trans_le hcut)
+  apply FGCompose.raw_causal_cap_before (R := fgsaCoreReads p c)
+    (S := fgsaSafetyReads p c) (E := E)
+    (rho := rho) (T := d7a_timing p) (D := d7a_wire p c) (Ef := p.E)
+    (H := heightView p)
+    (f := finalityView p) (hc := fgCertificateLaws p)
+    (horigin := d7a_origin p c E rho horigin) base.valid.toScheduleWellFormed
+    (by rw [d7a_faulty_eq]; exact khistory_faulty_weight p c E rho base faultQ) m cut _ i x B hcut
+    ((d7a_held_eq p c E rho i x B).mpr hheld)
+  intro j z r a H t hj ha ht hearly
+  exact hrows j z r a H t ((d7a_row_eq p c E rho j r z a).mp hj) ha ht hearly
 
 include horigin in
 /-- FINAL 22:923–938. The tick read precedes every delivery at the same time.
@@ -389,17 +490,17 @@ theorem raw_causal_cap_at_tick (base : BaseSet p c E rho)
     (i : Nat) (x : V) (B : FGBlock (Fin p.n)) (v : V)
     (htick : rho.events[i]? = some (.tick v cut)) (hheld : HeldAt p c E rho i x B) :
     (heightView p B).h ≤ m + 1 := by
-  apply khistory_held_height_le p c E rho horigin base faultQ m cut hrows i x B hheld
-  intro k o t hki hk
-  by_contra hn
-  have hik := V2.D.Engine.tick_index_lt_delivery E rho
-    base.valid.toScheduleWellFormed htick hk (le_of_not_gt hn)
-  exact (Nat.lt_asymm hki hik)
-
-/-- FINAL 22:217–220,923–944. Positive delay and round length order the actions.
-DC: INTENTIONAL: FG-SA action times use its fixed round grid. -/
-private theorem khistory_action_strictMono : StrictMono p.actionTime := by
-  exact receipt_actionTime_strictMono p
+  apply FGCompose.raw_causal_cap_at_tick (R := fgsaCoreReads p c)
+    (S := fgsaSafetyReads p c) (E := E)
+    (rho := rho) (T := d7a_timing p) (D := d7a_wire p c) (Ef := p.E)
+    (H := heightView p)
+    (f := finalityView p) (hc := fgCertificateLaws p)
+    (horigin := d7a_origin p c E rho horigin) base.valid.toScheduleWellFormed
+    (by rw [d7a_faulty_eq]; exact khistory_faulty_weight p c E rho base faultQ)
+    m cut _ i x B v htick
+    ((d7a_held_eq p c E rho i x B).mpr hheld)
+  intro j z r a H t hj ha ht hearly
+  exact hrows j z r a H t ((d7a_row_eq p c E rho j r z a).mp hj) ha ht hearly
 
 include horigin in
 /-- FINAL 22:923–944,1188–1208. Include action q rows up to the strict next-action cut.
@@ -412,19 +513,29 @@ theorem raw_causal_cap_through_action (base : BaseSet p c E rho)
     (i : Nat) (x : V) (B : FGBlock (Fin p.n))
     (hcut : i ≤ V2.D.Run.idxBefore rho (p.actionTime (q + 1)))
     (hheld : HeldAt p c E rho i x B) : (heightView p B).h ≤ m + 1 := by
-  apply raw_causal_cap_before p c E rho horigin base faultQ m (p.actionTime (q + 1))
-    _ i x B hcut hheld
-  intro j z r a H t hj ha ht hearly
-  have heq : p.actionTime r = t :=
-    Option.some.inj ((khistory_event_time p c E rho hj).symm.trans ht)
-  have hrq : r ≤ q := by
-    have hlt : p.actionTime r < p.actionTime (q + 1) := heq ▸ hearly
-    have := (khistory_action_strictMono p).lt_iff_lt.mp hlt
-    omega
-  rcases Nat.lt_or_eq_of_le hrq with hlt | rfl
-  · exact hpre j z r a H t hj ha ht
-      (heq ▸ khistory_action_strictMono p hlt)
-  · exact haction j z a H hj ha
+  apply FGCompose.raw_causal_cap_through_action (R := fgsaCoreReads p c)
+    (S := fgsaSafetyReads p c) (E := E)
+    (rho := rho) (T := d7a_timing p) (D := d7a_wire p c) (Ef := p.E)
+    (H := heightView p)
+    (f := finalityView p) (hc := fgCertificateLaws p)
+    (horigin := d7a_origin p c E rho horigin) base.valid.toScheduleWellFormed
+    (by rw [d7a_faulty_eq]; exact khistory_faulty_weight p c E rho base faultQ)
+    (receipt_actionTime_strictMono p) q m _ _ i x B hcut
+    ((d7a_held_eq p c E rho i x B).mpr hheld)
+  · intro j z r a H t hj ha ht hearly
+    exact hpre j z r a H t ((d7a_row_eq p c E rho j r z a).mp hj) ha ht hearly
+  · intro j z a H hj ha
+    exact haction j z a H ((d7a_row_eq p c E rho j q z a).mp hj) ha
+
+#print axioms d7a_foldMap
+#print axioms d7a_height_eq
+#print axioms d7a_finality_eq
+#print axioms d7a_retained_eq
+#print axioms d7a_wire
+#print axioms d7a_origin
+#print axioms d7a_pre
+#print axioms d7a_fresh
+#print axioms d7a_target
 
 end AvailableChain.FGSA.Run
 end

@@ -132,15 +132,12 @@ def composeImportAllowed (m dep : Name) : Bool :=
     (`AvailableChainFGCompose.Statements.SafetyReads, `AvailableChainKitFG.CertificateCoreDef),
     (`AvailableChainFGCompose.Statements.SafetyReads, `AvailableChainGeneric.Statements.V2.Duty.Slashing),
     (`AvailableChainFGCompose.Statements.SafetyStore, `AvailableChainKitFG.StoreSafetyDef),
-    (`AvailableChainFGCompose.Statements.SafetyClient, `AvailableChainGeneric.Statements.Pure.Quorum)].contains (m, dep)
+    (`AvailableChainFGCompose.Statements.SafetyClient, `AvailableChainGeneric.Statements.Pure.Quorum),
+       (`AvailableChainFGCompose.Statements.FinalityHistory,
+        `AvailableChainKitFG.WindowEntriesDef)].contains (m, dep)
   if dep == `Init then true
   else if m == `AvailableChainFGCompose then
     [`AvailableChainFGCompose.Statements.EventReads, `AvailableChainFGCompose.Statements.CoreReads,
-     `AvailableChainFGCompose.Statements.Phase,
-     `AvailableChainFGCompose.Statements.PhaseReceipts,
-     `AvailableChainFGCompose.Proofs.Healing.PhaseFrame,
-     `AvailableChainFGCompose.Proofs.Healing.PhaseOrder,
-     `AvailableChainFGCompose.Proofs.Healing.PhaseSettle,
      `AvailableChainFGCompose.Statements.ResetHistory,
      `AvailableChainFGCompose.Statements.Service,
      `AvailableChainFGCompose.Statements.Bounds,
@@ -171,7 +168,16 @@ def composeImportAllowed (m dep : Name) : Bool :=
      `AvailableChainFGCompose.Proofs.SafetyAccountable,
      `AvailableChainFGCompose.Proofs.SafetyClient, `AvailableChainFGCompose.Proofs.SafetyCount,
      `AvailableChainFGCompose.Proofs.SafetyMonotone,
-     `AvailableChainFGCompose.Proofs.SafetySlashing].contains dep
+     `AvailableChainFGCompose.Proofs.SafetySlashing,
+     `AvailableChainFGCompose.Statements.Phase,
+     `AvailableChainFGCompose.Statements.PhaseReceipts,
+     `AvailableChainFGCompose.Proofs.Healing.PhaseFrame,
+     `AvailableChainFGCompose.Proofs.Healing.PhaseOrder,
+     `AvailableChainFGCompose.Proofs.Healing.PhaseSettle,
+     `AvailableChainFGCompose.Statements.ResetCut,
+     `AvailableChainFGCompose.Statements.FinalityHistory,
+     `AvailableChainFGCompose.Proofs.Finality.History,
+     `AvailableChainFGCompose.Proofs.Healing.ResetCut].contains dep
   else if composeStatements m then base || ownStatements || safety
   else if [(`AvailableChainFGCompose.Tests.P0d3,
       `AvailableChainKitFG.WindowHeightBridge)].contains (m, dep) then true
@@ -184,3 +190,111 @@ def composeImportAllowed (m dep : Name) : Bool :=
       -- Lead ruling 2026-10-07 (P2, S3a): the two exact SafetyClient pairs.
       [(`AvailableChainFGCompose.Proofs.SafetyAccountable,
         `AvailableChainKitFG.AccountableCore),
+       (`AvailableChainFGCompose.Proofs.Healing.CommonEntry,
+        `AvailableChainKitFG.Ancestry),
+       (`AvailableChainFGCompose.Proofs.Healing.PromotionRows,
+        `AvailableChainKitFG.Ancestry),
+       (`AvailableChainFGCompose.Proofs.Healing.PhaseFrame,
+        `AvailableChainKitFG.FrameGeometry),
+       (`AvailableChainFGCompose.Proofs.Healing.PhaseFrame,
+        `AvailableChainKitFG.StoreBounds),
+       (`AvailableChainFGCompose.Proofs.Healing.PhaseSettle,
+        `AvailableChainGeneric.Proofs.V2.Duty.Reads),
+       (`AvailableChainFGCompose.Proofs.Healing.PromotionArithmetic,
+        `AvailableChainGeneric.Proofs.V2.Duty.Reads),
+       (`AvailableChainFGCompose.Proofs.HistoricalReads,
+        `AvailableChainGeneric.Proofs.Pure.CommonAncestor),
+       (`AvailableChainFGCompose.Proofs.Healing.PromotionRows,
+        `AvailableChainSimplexFG.Window),
+       (`AvailableChainFGCompose.Proofs.RowPermission, `AvailableChainKitFG.ClientOnceSafety),
+       (`AvailableChainFGCompose.Proofs.SafetyClient, `AvailableChainKitFG.ClientOnceSafety),
+       (`AvailableChainFGCompose.Proofs.SafetyClient,
+        `AvailableChainGeneric.Proofs.V2.Duty.Fields),
+       (`AvailableChainFGCompose.Proofs.Finality.History,
+        `AvailableChainKitFG.CausalCapCore),
+       (`AvailableChainFGCompose.Proofs.Finality.History,
+        `AvailableChainKitFG.HeightHistoryTransfer),
+       (`AvailableChainFGCompose.Proofs.Finality.History,
+        `AvailableChainKitFG.WindowRetention),
+       (`AvailableChainFGCompose.Proofs.Finality.History,
+        `AvailableChainKitFG.WindowSelection),
+       (`AvailableChainFGCompose.Proofs.Finality.History,
+        `AvailableChainGeneric.Proofs.V2.Duty.Reads),
+       (`AvailableChainFGCompose.Proofs.Healing.ResetCut,
+        `AvailableChainKitFG.StoreBounds)].contains (m, dep)
+  else false
+
+def composeMain (args : List String) : IO UInt32 := do
+  let (extra, rest) := match args with
+    | "--root" :: m :: r => (#[m.toName], r)
+    | _ => (#[], args)
+  unless rest.isEmpty || (rest.head? == some "--expect" && rest.length ≥ 2) do
+    IO.eprintln "USAGE: CheckFGAxioms --compose [--root M] [--expect N …]"
+    return 2
+  let expected := rest.drop 1
+  unless ← System.FilePath.pathExists "AvailableChainFGCompose.lean" do
+    IO.eprintln "MISSING COMPOSE ROOT"
+    return 2
+  unless ← System.FilePath.isDir "AvailableChainFGCompose" do
+    IO.eprintln "MISSING COMPOSE DIRECTORY"
+    return 2
+  let sources := #[`AvailableChainFGCompose] ++ (← composeSources "AvailableChainFGCompose")
+  if sources.size ≤ 1 then
+    IO.eprintln "EMPTY COMPOSE SOURCE SCOPE"
+    return 2
+  initSearchPath (← findSysroot)
+  unsafe enableInitializersExecution
+  let env ← importModules ((sources ++ extra).map ({ module := · })) {}
+    (loadExts := true) (level := .private)
+  let mut bad := false
+  for h : i in [0:env.header.moduleNames.size] do
+    let m := env.header.moduleNames[i]
+    if !extra.contains m && !(closureRoots ++
+        [`AvailableChainEngineV2, `AvailableChainKitV2, `AvailableChainFGCompose]).contains m.getRoot then
+      IO.println s!"FORBIDDEN LIBRARY IN THE COMPOSE IMPORT CLOSURE: {m}"
+      bad := true
+    if (`AvailableChainFGCompose).isPrefixOf m then
+      for imp in env.header.moduleData[i]!.imports do
+        unless composeImportAllowed m imp.module do
+          IO.println s!"COMPILED IMPORT NOT ALLOWED: {m} imports {imp.module}"
+          bad := true
+  for m in sources do
+    unless env.header.moduleNames.contains m do
+      IO.eprintln s!"MISSING COMPILED SOURCE: {m}"
+      return 2
+  let cs := env.constants.toList.filter fun (n, _) =>
+    match env.getModuleIdxFor? n with
+    | some idx => (`AvailableChainFGCompose).isPrefixOf env.header.moduleNames[idx.toNat]!
+    | none => false
+  if cs.isEmpty then
+    IO.eprintln "NO CONSTANTS FOUND"
+    return 2
+  for (n, _) in cs do
+    let axs ← axiomsOf env n
+    let forbidden := axs.filter (fun a => !allowed.contains a)
+    unless forbidden.isEmpty do
+      IO.println s!"BAD AXIOMS {n}: {forbidden}"
+      bad := true
+  let mut missing := 0
+  for s in expected do
+    unless cs.any (fun (n, _) => s.toName.isSuffixOf n) do
+      IO.println s!"NOT CHECKED: {s}"
+      missing := missing + 1
+  IO.println s!"Compose checked {cs.length} constants in {sources.size} source modules"
+  if missing > 0 then return 2
+  return if bad then 1 else 0
+
+def main (args : List String) : IO UInt32 := do
+  match args with
+  | "--compose" :: rest =>
+      let pureArgs := match rest with
+        | "--root" :: m :: _ =>
+            if (`AvailableChainKitFG).isPrefixOf m.toName ||
+                (`AvailableChainSimplexFG).isPrefixOf m.toName then ["--root", m] else []
+        | _ => []
+      let rc ← pureMain pureArgs true
+      if rc != 0 then return rc
+      try composeMain rest catch e =>
+        IO.eprintln s!"COMPOSE INPUT ERROR: {e}"
+        return 2
+  | _ => pureMain args
