@@ -630,6 +630,9 @@ def test_scope(ctx: Context, m: Module, dep: str) -> bool:
         (PROOFS + ".Tests.P0b2", KITFG + ".WindowInvariant"),
         (PROOFS + ".Tests.P0b2", FGSA + ".Proofs.WindowSelection"),
         (PROOFS + ".Tests.P0b2", FGSA + ".Proofs.WindowStore"),
+        (PROOFS + ".Tests.P0b3", FGSA + ".Proofs.WindowOccurrences"),
+        (PROOFS + ".Tests.P0b3", FGSA + ".Proofs.WindowTerminal"),
+        (PROOFS + ".Tests.P0b3", FGSA + ".Proofs.WindowValidity"),
     }:
         return False
     if not is_test(m.name) or foundation(dep):
