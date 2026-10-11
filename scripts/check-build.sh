@@ -64,6 +64,7 @@ timed_selftest() {
 checker_selftests() {
   python3 -B scripts/unported-selftest.py &&
   python3 -B scripts/gate-neg-selftest.py &&
+  python3 -B scripts/gate-integration-selftest.py &&
   bash scripts/check-layers-selftest.sh &&
   bash scripts/shake-report-selftest.sh &&
   bash scripts/precheck-selftest.sh &&

@@ -77,6 +77,8 @@ def verify(main, target, receipt):
 
 
 def sign(root, head, policy, logs, key, receipt):
+    if (logs / 'integration.json').exists():
+        raise ValueError('FULL RECEIPT REFUSED: provisional integration logs')
     clean_head(root, head)
     policy = git(root, 'rev-parse', '--verify', policy + '^{commit}')
     scope = validate(root, policy, head, json.loads((logs / 'negative-controls.json').read_text()))

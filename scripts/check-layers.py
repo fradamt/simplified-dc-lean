@@ -746,6 +746,7 @@ COMPOSE_MODULES += (
 COMPOSE_EDGES |= frozenset({
     (PROOFS + ".Proofs.Shared.FGCompose", COMPOSE + ".Statements.ChannelLaws"),
     (PROOFS + ".Proofs.Shared.FGCompose", COMPOSE + ".Proofs.ObservationTransport"),
+    (PROOFS + ".Proofs.Shared.FGCompose", COMPOSE + ".Proofs.SourceHead"),
     (PROOFS + ".Proofs.Finality.ActionTime", COMPOSE + ".Proofs.Timing"),
     (PROOFS + ".Tests.P0c1", COMPOSE + ".Proofs.ObservationTransport"),
 })
