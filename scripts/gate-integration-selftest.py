@@ -52,10 +52,12 @@ with tempfile.TemporaryDirectory(prefix='gate-integration-') as scratch:
         'AvailableChainGeneric/Keep.lean': 'module\npublic section\ndef Old.name := 1\n',
         'AvailableChainGeneric/Extract.lean': 'module\npublic import Init\n\npublic section\nnamespace Old\ndef moved := 1\nend Old\n',
         'AvailableChainFGSA/Tests/Control.lean': 'module\n',
-        'docs/api/gen-deep.json': json.dumps(snapshot),
+        'docs/api/compose-api.json': json.dumps(snapshot),
     }
     for path, text in files.items():
         write(seed, path, text)
+    for path in ('docs/GEN-API.md', 'docs/FGSA-API.md', 'docs/api/gen-deep.json'):
+        write(seed, path, (REPO / path).read_text())
     base = commit(seed)
 
     def candidate(label, edits, reviewed=(), eligible=False, extractions=()):
@@ -96,7 +98,7 @@ with tempfile.TemporaryDirectory(prefix='gate-integration-') as scratch:
         'scripts/fgsa-claims-expected.txt': "('Old.name', 'New.name')\n",
         'scripts/claims-model-scope.txt': files['scripts/claims-model-scope.txt'] +
             'AvailableChainFGSA.Model.RowCore New.name\n',
-        'docs/api/gen-deep.json': json.dumps(added),
+        'docs/api/compose-api.json': json.dumps(added),
         'scripts/check-fgsa-claims.sh': ast_added,
         'AvailableChainFGSAProofs/Proofs/Shared/New.lean': 'module\n',
         'AvailableChainFGSAProofs/Tests/PackageG0.lean': 'module\n',
@@ -122,6 +124,46 @@ with tempfile.TemporaryDirectory(prefix='gate-integration-') as scratch:
     candidate('extraction-existing-target', {'AvailableChainGeneric/Extract.lean':
         'module\npublic import AvailableChainGeneric.Keep\n'},
         extractions=['AvailableChainGeneric/Extract.lean:AvailableChainGeneric/Keep.lean'])
+    # Use the real generated manifests and deep schema, not the toy snapshot.
+    shallow = (seed / 'docs/GEN-API.md').read_text()
+    deep = json.loads((seed / 'docs/api/gen-deep.json').read_text())
+    owner = 'AvailableChainGeneric.Statements.ZZGateEligibility'
+    name = 'AvailableChain.Gen.gateEligibilityAdded'
+    shallow_added = shallow.replace('Entries: 852; modules: 55.', 'Entries: 853; modules: 56.') + (
+        f'\n### `{owner}`\n\n```text\ndef {name} 123456789abcdef0\n```\n')
+    deep['entries'][name] = dict(module=owner, kind='def', digest='1' * 64)
+    node = dict(next(iter(deep['nodes'].values())))
+    node.update(module=owner, kind='def', digest='1' * 64,
+                kernel_name='str:2:12:anonymous:0:20:gateEligibilityAdded')
+    deep['nodes'][name] = node
+    deep['node_order'] = [*deep['node_order'], name]
+    generic = {
+        'AvailableChainGeneric.lean': files['AvailableChainGeneric.lean'] + f'public import {owner}\n',
+        owner.replace('.', '/') + '.lean':
+            'module\n\npublic section\nnamespace AvailableChain.Gen\ndef gateEligibilityAdded : Nat := 1\nend AvailableChain.Gen\n',
+        'docs/GEN-API.md': shallow_added,
+        'docs/api/gen-deep.json': json.dumps(deep),
+    }
+    candidate('generic-shallow-and-deep-addition', generic, eligible=True)
+    fgsa = (seed / 'docs/FGSA-API.md').read_text()
+    fgsa_added = fgsa.replace('Entries: 1358;', 'Entries: 1359;', 1).replace(
+        '```\n', 'def AvailableChain.FGSA.gateEligibilityAdded 123456789abcdef0\n```\n', 1)
+    candidate('fgsa-shallow-addition', {'docs/FGSA-API.md': fgsa_added}, eligible=True)
+    for label, content in (
+        ('shallow-declaration-removal', shallow_added.replace(
+            'structure AvailableChain.Gen.AC.Duty.ACReads a5157729fa91592f\n', '').replace('Entries: 853;', 'Entries: 852;')),
+        ('shallow-owner-change', shallow_added.replace(
+            '### `AvailableChainGeneric.Statements.AC.Duty.Reads`', '### `AvailableChainGeneric.Statements.AC.Duty.Renamed`')),
+        ('shallow-kind-change', shallow_added.replace('structure AvailableChain.Gen.AC.Duty.ACReads ', 'def AvailableChain.Gen.AC.Duty.ACReads ', 1)),
+        ('shallow-digest-change', shallow_added.replace('a5157729fa91592f', 'a5157729fa91592e', 1)),
+        ('shallow-metadata-change', shallow_added.replace('Policy: 2026-10-09', 'Policy: 2026-10-10')),
+        ('shallow-wrong-count', shallow_added.replace('Entries: 853;', 'Entries: 854;')),
+        ('shallow-duplicate', shallow_added.replace(f'def {name} ', 'def AvailableChain.Gen.AC.Duty.ACReads ')),
+        ('shallow-unknown-markdown', shallow_added + '\nUnclassified policy text.\n'),
+    ):
+        candidate(label, {'docs/GEN-API.md': content})
+    candidate('fgsa-library-change', {'docs/FGSA-API.md': fgsa_added.replace(
+        '## `AvailableChainFGSA`', '## `AvailableChainFGSARun`', 1)})
     for label, edits in (
         ('declaration-removal', {'AvailableChainGeneric/Keep.lean': 'module\npublic section\n'}),
         ('replaced-file', {'AvailableChainGeneric/Keep.lean': 'module\n'}),
@@ -144,11 +186,12 @@ with tempfile.TemporaryDirectory(prefix='gate-integration-') as scratch:
         ('scope-switch', {'scripts/unported-libraries.txt': ''}),
         ('inventory-removal', {'scripts/fgsa-claims-expected.txt': "('New.name',)\n"}),
         ('map-change', {'scripts/claims-model-scope.txt': 'AvailableChainFGSA.Model.Objects New.name\n'}),
-        ('snapshot-change', {'docs/api/gen-deep.json': json.dumps(dict(added, entries={'old': {}, 'new': {}}))}),
-        ('snapshot-removal', {'docs/api/gen-deep.json': json.dumps(dict(added, entries={'new': {}}))}),
-        ('snapshot-pins', {'docs/api/gen-deep.json': json.dumps(dict(added, pins={'toolchain': 'changed'}))}),
-        ('snapshot-duplicates', {'docs/api/gen-deep.json': '{"entries": {}, "entries": {}}'}),
+        ('snapshot-change', {'docs/api/compose-api.json': json.dumps(dict(added, entries={'old': {}, 'new': {}}))}),
+        ('snapshot-removal', {'docs/api/compose-api.json': json.dumps(dict(added, entries={'new': {}}))}),
+        ('snapshot-pins', {'docs/api/compose-api.json': json.dumps(dict(added, pins={'toolchain': 'changed'}))}),
+        ('snapshot-duplicates', {'docs/api/compose-api.json': '{"entries": {}, "entries": {}}'}),
         ('unknown-data', {'scripts/new-data.txt': 'New.name\n'}),
+        ('unknown-checker-markdown', {'docs/V2-API.md': '# Arbitrary Markdown\n'}),
         ('baseline-growth', {'scripts/baselines/check-layers.txt': 'old finding\nnew finding\n'}),
         ('allow-growth', {'scripts/gly-f13-allow.txt': 'Old.exemption\nNew.exemption\n'}),
         ('exclusion-growth', {'scripts/new-exclusions.txt': 'New.module\n'}),

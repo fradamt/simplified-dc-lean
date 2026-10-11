@@ -1339,3 +1339,10 @@ checks preservation again at gate completion. Partial extraction, changed bodies
 removed facade imports, and overlapping extraction records are refused.
 `--reviewed-allow FILE` remains limited to exact policy-data additions and retains
 all generic controls. Neither review option can authorize checker logic edits.
+
+The required shallow manifests `docs/GEN-API.md` and `docs/FGSA-API.md` permit
+only structural declaration additions in the generated format. Every old name,
+library, owner module, kind, digest, and metadata field must remain unchanged.
+Counts must match the parsed rows and modules. Old row and module order is
+preserved. Deep snapshots require separate old-entry and metadata preservation.
+Other checker Markdown has no exemption. `checker-paths.txt` is unchanged.

@@ -17,6 +17,9 @@ INVENTORIES = {f'scripts/{name}-expected.txt' for name in
 SNAPSHOTS = {f'docs/api/{name}.json' for name in
              ('legacy-api', 'compose-api', 'fgsa-deep', 'fgsa-claims-api',
               'gen-deep', 'v2-deep')}
+SHALLOW_MANIFESTS = {'docs/GEN-API.md': ('Entries',),
+                     'docs/FGSA-API.md': ('AvailableChainFGSA', 'AvailableChainFGSARun',
+                                          'AvailableChainFGSAClaims')}
 # Only coverage lists can grow. Permission/exemption lists are not in this set.
 CONSTANTS = {'scripts/check-fgsa-claims.sh': {'ORDER', 'REQUIRED_MODEL_SCOPE'},
              'scripts/check-fgsa-blueprint.py': {'CLAIMS_STRUCTURES', 'SAFETY_FIELDS'}}
@@ -204,6 +207,69 @@ def snapshot_additions(before, after):
     return count
 
 
+def shallow_manifest(text, path):
+    header, separator, body = text.partition('\n## ')
+    counts = re.findall(r'^Entries: ([0-9]+); modules: ([0-9]+)\.$', header, re.M)
+    if not separator or len(counts) != 1:
+        raise ValueError('invalid shallow manifest header')
+    metadata = re.sub(r'^Entries: [0-9]+; modules: [0-9]+\.$',
+                      'Entries: <count>; modules: <count>.', header, flags=re.M)
+    body = '## ' + body
+    groups, modules, entries = [], {}, {}
+    group = None
+    while body:
+        heading = re.match(r'## (Entries|`([^`]+)`)\n\n', body)
+        if heading:
+            group = heading[2] or heading[1]
+            if group not in SHALLOW_MANIFESTS[path] or group in groups:
+                raise ValueError('unknown or duplicate manifest library')
+            groups.append(group)
+            body = body[heading.end():]
+        block = re.match(r'### `([^`]+)`\n\n```text\n([^`]*)```(?:\n\n|\n$)', body)
+        if not group or not block:
+            raise ValueError('unclassified shallow manifest content')
+        owner, rows = block[1], block[2].splitlines()
+        exact_names([owner])
+        if (owner in modules or
+                (path == 'docs/GEN-API.md' and not owner.startswith('AvailableChainGeneric.Statements.')) or
+                (path == 'docs/FGSA-API.md' and not owner.startswith(group + '.'))):
+            raise ValueError('invalid or duplicate manifest owner')
+        modules[owner] = []
+        for row in rows:
+            entry = re.fullmatch(r'(axiom|def|theorem|opaque|quot|structure|inductive|ctor|rec|field) '
+                                 r'(\S+) ([0-9a-f]{1,16})', row)
+            if not entry or entry[2] in entries:
+                raise ValueError('invalid or duplicate manifest declaration')
+            kind, name, digest = entry.groups()
+            exact_names([name])
+            entries[name] = (group, owner, kind, digest)
+            modules[owner].append(name)
+        body = body[block.end():]
+    if tuple(map(int, counts[0])) != (len(entries), len(modules)):
+        raise ValueError('shallow manifest counts do not match content')
+    return metadata, groups, modules, entries
+
+
+def shallow_additions(before, after, path):
+    a, b = [shallow_manifest(text, path) for text in (before, after)]
+    if a[0] != b[0]:
+        raise ValueError('shallow manifest metadata changed')
+    for first, last in ((a[1], b[1]), (list(a[2]), list(b[2]))):
+        if first != last:
+            ordered_additions(first, last)
+    for owner, names in a[2].items():
+        if owner not in b[2]:
+            raise ValueError('old shallow manifest owner removed')
+        if names != b[2][owner]:
+            ordered_additions(names, b[2][owner])
+    if any(b[3].get(name) != value for name, value in a[3].items()):
+        raise ValueError('old shallow declaration, owner, kind, or digest changed')
+    count = len(b[3]) - len(a[3])
+    if count <= 0:
+        raise ValueError('no shallow manifest declarations added')
+    return count
+
+
 def policy_file(path):
     return (path.startswith('scripts/baselines/') or
             bool(re.search(r'(?:allow|exclu|wildcard)', path, re.I)))
@@ -293,6 +359,8 @@ def select(root, base, head='HEAD', reviewed=(), extractions=()):
                 reason = 'exact owner/name map additions'
             elif path in SNAPSHOTS:
                 reason = f'structural snapshot additions: {snapshot_additions(before, after)}'
+            elif path in SHALLOW_MANIFESTS:
+                reason = f'structural shallow manifest additions: {shallow_additions(before, after, path)}'
             elif path in CONSTANTS:
                 reason = 'AST coverage-list additions: ' + ', '.join(constant_additions(
                     before, after, CONSTANTS[path], path.endswith('.sh')))
