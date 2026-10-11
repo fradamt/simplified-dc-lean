@@ -3095,6 +3095,7 @@
     "Finset.empty",
     "Finset.filter",
     "Finset.fold",
+    "Finset.image",
     "Finset.instEmptyCollection",
     "Finset.instInsert",
     "Finset.instPartialOrder",
@@ -3229,6 +3230,8 @@
     "List.diff",
     "List.elem",
     "List.erase",
+    "List.eraseDups",
+    "List.eraseDupsBy",
     "List.filter",
     "List.filterMap",
     "List.finRange",
@@ -3262,6 +3265,8 @@
     "List.range",
     "List.range'",
     "List.rec",
+    "List.reverse",
+    "List.reverseAux",
     "List.take",
     "List.toByteArray",
     "List.toFinset",
@@ -3565,12 +3570,16 @@
     "AvailableChain.Block.brecOn",
     "AvailableChain.Block.casesOn",
     "AvailableChain.Block.compatible",
+    "AvailableChain.Block.depth",
     "AvailableChain.Block.genesis",
+    "AvailableChain.Block.instDecidablePreceq",
+    "AvailableChain.Block.meet",
     "AvailableChain.Block.node",
     "AvailableChain.Block.parent",
     "AvailableChain.Block.preceq",
     "AvailableChain.Block.rec",
     "AvailableChain.Block.root",
+    "AvailableChain.Block.slot",
     "AvailableChain.BlockId.casesOn",
     "AvailableChain.BlockId.mk",
     "AvailableChain.BlockId.rec",
@@ -3596,6 +3605,9 @@
     "AvailableChain.FGCompose.FGHeadLaws",
     "AvailableChain.FGCompose.FGHistoricalHighChain",
     "AvailableChain.FGCompose.FGHistoricalHighTransfer",
+    "AvailableChain.FGCompose.FGHistoricalLaws",
+    "AvailableChain.FGCompose.FGHistoricalReads",
+    "AvailableChain.FGCompose.FGHistoryStep",
     "AvailableChain.FGCompose.FGObservationLaws",
     "AvailableChain.FGCompose.FGObservationReads",
     "AvailableChain.FGCompose.FGResetHistory",
@@ -3680,8 +3692,20 @@
     "AvailableChain.FGCompose.head_held_from_all",
     "AvailableChain.FGCompose.heldAtProposal",
     "AvailableChain.FGCompose.high",
+    "AvailableChain.FGCompose.historicalLookup",
+    "AvailableChain.FGCompose.historicalLookup_def",
+    "AvailableChain.FGCompose.historicalLookup_spec",
     "AvailableChain.FGCompose.historical_chain_horizon",
     "AvailableChain.FGCompose.historical_chain_reseed",
+    "AvailableChain.FGCompose.historical_geometry_restore_eq",
+    "AvailableChain.FGCompose.historical_lca_held",
+    "AvailableChain.FGCompose.historical_parent_held",
+    "AvailableChain.FGCompose.historical_read_ambiguous",
+    "AvailableChain.FGCompose.historical_read_complete",
+    "AvailableChain.FGCompose.historical_read_frame_eq",
+    "AvailableChain.FGCompose.historical_read_restore_eq",
+    "AvailableChain.FGCompose.historical_read_sound",
+    "AvailableChain.FGCompose.historical_read_step",
     "AvailableChain.FGCompose.historical_transfer_horizon",
     "AvailableChain.FGCompose.historical_transfer_reseed",
     "AvailableChain.FGCompose.honestFrontier",
@@ -3945,6 +3969,7 @@
     "List.diff.match_1",
     "List.elem._f",
     "List.erase._f",
+    "List.eraseDupsBy.loop",
     "List.filter._f",
     "List.filter.match_1",
     "List.filterMap._f",
@@ -3981,6 +4006,8 @@
     "List.range.loop",
     "List.range'._f",
     "List.range'.match_1",
+    "List.reverseAux._f",
+    "List.reverseAux.match_1",
     "List.take._f",
     "List.take.match_1",
     "List.toByteArray.loop",
@@ -4112,6 +4139,10 @@
     "_private.Mathlib.Data.Nat.Find.0.Nat.findX._proof_4",
     "_private.Mathlib.Data.Nat.Find.0.Nat.findX._proof_5",
     "AvailableChain.Block.brecOn.go",
+    "AvailableChain.Block.depth._f",
+    "AvailableChain.Block.instDecidablePreceq._aux_1",
+    "AvailableChain.Block.meet._f",
+    "AvailableChain.Block.meet.match_1",
     "AvailableChain.Block.preceq._f",
     "AvailableChain.Block.preceq.match_1",
     "AvailableChain.Block.slot.match_1",
@@ -4196,6 +4227,34 @@
     "AvailableChain.FGCompose.FGHeadLaws.head_mem",
     "AvailableChain.FGCompose.FGHeadLaws.mk",
     "AvailableChain.FGCompose.FGHeadLaws.parent_closed",
+    "AvailableChain.FGCompose.FGHistoricalLaws.blocks_eq",
+    "AvailableChain.FGCompose.FGHistoricalLaws.bodies_eq",
+    "AvailableChain.FGCompose.FGHistoricalLaws.frame_independent",
+    "AvailableChain.FGCompose.FGHistoricalLaws.geometry_eq",
+    "AvailableChain.FGCompose.FGHistoricalLaws.mk",
+    "AvailableChain.FGCompose.FGHistoricalLaws.parent_closed",
+    "AvailableChain.FGCompose.FGHistoricalLaws.parent_eq",
+    "AvailableChain.FGCompose.FGHistoricalLaws.reachable_unique",
+    "AvailableChain.FGCompose.FGHistoricalLaws.read_iff",
+    "AvailableChain.FGCompose.FGHistoricalLaws.restore_eq",
+    "AvailableChain.FGCompose.FGHistoricalLaws.root_eq",
+    "AvailableChain.FGCompose.FGHistoricalLaws.slot_eq",
+    "AvailableChain.FGCompose.FGHistoricalLaws.step_keep",
+    "AvailableChain.FGCompose.FGHistoricalReads.acceptedBlocks",
+    "AvailableChain.FGCompose.FGHistoricalReads.acceptedBodies",
+    "AvailableChain.FGCompose.FGHistoricalReads.depth",
+    "AvailableChain.FGCompose.FGHistoricalReads.erase",
+    "AvailableChain.FGCompose.FGHistoricalReads.lca",
+    "AvailableChain.FGCompose.FGHistoricalReads.mk",
+    "AvailableChain.FGCompose.FGHistoricalReads.parent",
+    "AvailableChain.FGCompose.FGHistoricalReads.preceq",
+    "AvailableChain.FGCompose.FGHistoricalReads.readBlock",
+    "AvailableChain.FGCompose.FGHistoricalReads.root",
+    "AvailableChain.FGCompose.FGHistoricalReads.slot",
+    "AvailableChain.FGCompose.FGHistoryStep.clock",
+    "AvailableChain.FGCompose.FGHistoryStep.own",
+    "AvailableChain.FGCompose.FGHistoryStep.process",
+    "AvailableChain.FGCompose.FGHistoryStep.restore",
     "AvailableChain.FGCompose.FGObservationLaws.controls_eq",
     "AvailableChain.FGCompose.FGObservationLaws.mk",
     "AvailableChain.FGCompose.FGObservationLaws.viable_eq",
@@ -4376,6 +4435,9 @@
     "AvailableChain.FGCompose.Tests.reads_after_ticks",
     "AvailableChain.FGCompose.Tests.toy",
     "AvailableChain.FGCompose.Tests.trace",
+    "AvailableChain.FGCompose.historicalLookup._sparseCasesOn_1",
+    "AvailableChain.FGCompose.historicalLookup._sparseCasesOn_2",
+    "AvailableChain.FGCompose.historicalLookup.match_1",
     "AvailableChain.FGCompose.namedEntry.match_1",
     "AvailableChain.FGCompose.safetyInputAt._sparseCasesOn_1",
     "AvailableChain.FGCompose.safetyInputAt._sparseCasesOn_2",
@@ -4597,6 +4659,7 @@
     "Function.Injective.preorder._proof_3",
     "Lean.Syntax.Preresolved.decl",
     "Lean.Syntax.Preresolved.namespace",
+    "List.eraseDupsBy.loop._f",
     "List.findIdx.go.match_1",
     "List.findIdx?.go._f",
     "List.range.loop._f",
@@ -5741,6 +5804,55 @@
         "AvailableChain.Block \u2192 AvailableChain.Block \u2192 Bool"
       ]
     },
+    "AvailableChain.Block.depth": {
+      "body": [
+        "fun x => AvailableChain.Block.brecOn x AvailableChain.Block.depth._f"
+      ],
+      "dependencies": [
+        "AvailableChain.Block",
+        "AvailableChain.Block.brecOn",
+        "AvailableChain.Block.depth._f",
+        "Nat"
+      ],
+      "digest": "07f7afb42a3c2aecf0125c0fb91a12f905150478b241e6c9ca4d37208d0f89ce",
+      "kernel_name": "str:2:54:str:2:38:str:2:12:anonymous:0:14:AvailableChain5:Block5:depth",
+      "kind": "def",
+      "module": "AvailableChainModel.Objects.Blocks",
+      "type": [
+        "AvailableChain.Block \u2192 Nat"
+      ]
+    },
+    "AvailableChain.Block.depth._f": {
+      "body": [
+        "fun x f =>",
+        "  AvailableChain.Block.slot.match_1 (fun x => AvailableChain.Block.below x \u2192 Nat) x",
+        "    (fun _ x => 0) (fun p slot root body x => instHAdd.hAdd x.1 1) f"
+      ],
+      "dependencies": [
+        "AvailableChain.Block",
+        "AvailableChain.Block.below",
+        "AvailableChain.Block.genesis",
+        "AvailableChain.Block.node",
+        "AvailableChain.Block.slot.match_1",
+        "AvailableChain.BlockId",
+        "AvailableChain.Slot",
+        "HAdd.hAdd",
+        "Nat",
+        "OfNat.ofNat",
+        "PProd",
+        "Unit",
+        "instAddNat",
+        "instHAdd",
+        "instOfNatNat"
+      ],
+      "digest": "4c1d5f2658bab4d26f44e6e489f606cbc94fd78ea628475a86da736ad32e8723",
+      "kernel_name": "str:2:70:str:2:54:str:2:38:str:2:12:anonymous:0:14:AvailableChain5:Block5:depth2:_f",
+      "kind": "def",
+      "module": "AvailableChainModel.Objects.Blocks",
+      "type": [
+        "(x : AvailableChain.Block) \u2192 AvailableChain.Block.below x \u2192 Nat"
+      ]
+    },
     "AvailableChain.Block.genesis": {
       "body": [
         ""
@@ -5755,6 +5867,137 @@
       "module": "AvailableChainModel.Objects.Blocks",
       "type": [
         "AvailableChain.Block"
+      ]
+    },
+    "AvailableChain.Block.instDecidablePreceq": {
+      "body": [
+        "fun B C => AvailableChain.Block.instDecidablePreceq._aux_1 B C"
+      ],
+      "dependencies": [
+        "AvailableChain.Block",
+        "AvailableChain.Block.Preceq",
+        "AvailableChain.Block.instDecidablePreceq._aux_1",
+        "Decidable"
+      ],
+      "digest": "86c459b4524e8ae12c308fa0106ca990872061d661d389df1aee0c6f10fd0675",
+      "kernel_name": "str:2:54:str:2:38:str:2:12:anonymous:0:14:AvailableChain5:Block19:instDecidablePreceq",
+      "kind": "def",
+      "module": "AvailableChainModel.Objects.Blocks",
+      "type": [
+        "(B C : AvailableChain.Block) \u2192 Decidable (B.Preceq C)"
+      ]
+    },
+    "AvailableChain.Block.instDecidablePreceq._aux_1": {
+      "body": [
+        "fun B C => instDecidableEqBool (B.preceq C) Bool.true"
+      ],
+      "dependencies": [
+        "AvailableChain.Block",
+        "AvailableChain.Block.Preceq",
+        "AvailableChain.Block.preceq",
+        "Bool.true",
+        "Decidable",
+        "instDecidableEqBool"
+      ],
+      "digest": "d72dce2dbbdc6ec246b9ec96b77ea8a95cfa2724770a2694e3a88bd25f87f46b",
+      "kernel_name": "str:2:85:str:2:54:str:2:38:str:2:12:anonymous:0:14:AvailableChain5:Block19:instDecidablePreceq6:_aux_1",
+      "kind": "def",
+      "module": "AvailableChainModel.Objects.Blocks",
+      "type": [
+        "(B C : AvailableChain.Block) \u2192 Decidable (B.Preceq C)"
+      ]
+    },
+    "AvailableChain.Block.meet": {
+      "body": [
+        "fun x x_1 =>",
+        "  AvailableChain.Block.brecOn (motive := fun x =>",
+        "    AvailableChain.Block \u2192 AvailableChain.Block) x AvailableChain.Block.meet._f x_1"
+      ],
+      "dependencies": [
+        "AvailableChain.Block",
+        "AvailableChain.Block.brecOn",
+        "AvailableChain.Block.meet._f"
+      ],
+      "digest": "dbad9109d71e309c2d431e7f4c0cb891ef74c50fac39a922b1c2a59bb98d7b96",
+      "kernel_name": "str:2:54:str:2:38:str:2:12:anonymous:0:14:AvailableChain5:Block4:meet",
+      "kind": "def",
+      "module": "AvailableChainModel.Objects.CommonAncestor",
+      "type": [
+        "AvailableChain.Block \u2192 AvailableChain.Block \u2192 AvailableChain.Block"
+      ]
+    },
+    "AvailableChain.Block.meet._f": {
+      "body": [
+        "fun x f x_1 =>",
+        "  AvailableChain.Block.meet.match_1",
+        "    (fun x x_2 =>",
+        "      AvailableChain.Block.below (motive := fun x =>",
+        "          AvailableChain.Block \u2192 AvailableChain.Block) x \u2192",
+        "        AvailableChain.Block)",
+        "    x x_1 (fun x x_2 => AvailableChain.Block.genesis)",
+        "    (fun B p slot root body h C x => ite (B.Preceq C) B (x.1 C)) f"
+      ],
+      "dependencies": [
+        "AvailableChain.Block",
+        "AvailableChain.Block.Preceq",
+        "AvailableChain.Block.below",
+        "AvailableChain.Block.genesis",
+        "AvailableChain.Block.instDecidablePreceq",
+        "AvailableChain.Block.meet.match_1",
+        "AvailableChain.Block.node",
+        "AvailableChain.BlockId",
+        "AvailableChain.Slot",
+        "Eq",
+        "Nat",
+        "PProd",
+        "ite",
+        "namedPattern"
+      ],
+      "digest": "97788a66de57769b43f096439b16f01bc052e3264b02c8da95c8fcbc49f1fd06",
+      "kernel_name": "str:2:69:str:2:54:str:2:38:str:2:12:anonymous:0:14:AvailableChain5:Block4:meet2:_f",
+      "kind": "def",
+      "module": "AvailableChainModel.Objects.CommonAncestor",
+      "type": [
+        "(x : AvailableChain.Block) \u2192",
+        "  AvailableChain.Block.below (motive := fun x =>",
+        "      AvailableChain.Block \u2192 AvailableChain.Block) x \u2192",
+        "    AvailableChain.Block \u2192 AvailableChain.Block"
+      ]
+    },
+    "AvailableChain.Block.meet.match_1": {
+      "body": [
+        "fun motive x x_1 h_1 h_2 =>",
+        "  AvailableChain.Block.casesOn x (h_1 x_1) fun parent slot root body =>",
+        "    h_2 (parent.node slot root body) parent slot root body \u22ef x_1"
+      ],
+      "dependencies": [
+        "AvailableChain.Block",
+        "AvailableChain.Block.casesOn",
+        "AvailableChain.Block.genesis",
+        "AvailableChain.Block.node",
+        "AvailableChain.BlockId",
+        "AvailableChain.Slot",
+        "Eq",
+        "Eq.refl",
+        "Nat",
+        "namedPattern"
+      ],
+      "digest": "75b766dec86ed24e35114adf831945cd6a8ffb5492efa06dbc306da59407ecf2",
+      "kernel_name": "str:2:69:str:2:54:str:2:38:str:2:12:anonymous:0:14:AvailableChain5:Block4:meet7:match_1",
+      "kind": "def",
+      "module": "AvailableChainModel.Objects.CommonAncestor",
+      "type": [
+        "(motive : AvailableChain.Block \u2192 AvailableChain.Block \u2192 Sort u_1) \u2192",
+        "  (x x_1 : AvailableChain.Block) \u2192",
+        "    ((x : AvailableChain.Block) \u2192 motive AvailableChain.Block.genesis x) \u2192",
+        "      ((B p : AvailableChain.Block) \u2192",
+        "          (slot : AvailableChain.Slot) \u2192",
+        "            (root : AvailableChain.BlockId) \u2192",
+        "              (body : Nat) \u2192",
+        "                (h : Eq B (p.node slot root body)) \u2192",
+        "                  (C : AvailableChain.Block) \u2192",
+        "                    motive (namedPattern B (p.node slot root body) h) C) \u2192",
+        "        motive x x_1"
       ]
     },
     "AvailableChain.Block.node": {
@@ -5936,6 +6179,30 @@
       "module": "AvailableChainModel.Objects.Blocks",
       "type": [
         "AvailableChain.Block \u2192 AvailableChain.BlockId"
+      ]
+    },
+    "AvailableChain.Block.slot": {
+      "body": [
+        "fun x =>",
+        "  AvailableChain.Block.slot.match_1 (fun x => AvailableChain.Slot) x (fun _ => 0)",
+        "    fun parent s root body => s"
+      ],
+      "dependencies": [
+        "AvailableChain.Block",
+        "AvailableChain.Block.slot.match_1",
+        "AvailableChain.BlockId",
+        "AvailableChain.Slot",
+        "Nat",
+        "OfNat.ofNat",
+        "Unit",
+        "instOfNatNat"
+      ],
+      "digest": "a98cc8cd9abfd4fbba4af5fef3f2a16cae70da4d0d46abb7daa8a53354fed98e",
+      "kernel_name": "str:2:54:str:2:38:str:2:12:anonymous:0:14:AvailableChain5:Block4:slot",
+      "kind": "def",
+      "module": "AvailableChainModel.Objects.Blocks",
+      "type": [
+        "AvailableChain.Block \u2192 AvailableChain.Slot"
       ]
     },
     "AvailableChain.Block.slot.match_1": {
@@ -10144,6 +10411,911 @@
         "                    AvailableChain.V2.D.Interface P \u2192",
         "                      AvailableChain.FGCompose.FGServicePoint \u2192",
         "                        AvailableChain.Time \u2192 Prop"
+      ]
+    },
+    "AvailableChain.FGCompose.FGHistoricalLaws": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGHistoricalLaws",
+        "AvailableChain.FGCompose.FGHistoricalLaws.mk",
+        "AvailableChain.FGCompose.FGHistoricalReads",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "Nat"
+      ],
+      "digest": "627ca22d97cf730d926c7d8ab209bcdc6ad904170f9d50bb7cc0250e66a805b4",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose16:FGHistoricalLaws",
+      "kind": "structure",
+      "module": "AvailableChainFGCompose.Statements.HistoricalReads",
+      "type": [
+        "{In Body : Type} \u2192",
+        "  {P : AvailableChain.V2.ProtocolSpecD In} \u2192",
+        "    {n : Nat} \u2192",
+        "      {Base Proposal Wire : Type} \u2192",
+        "        AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire \u2192",
+        "          AvailableChain.FGCompose.FGHistoricalReads P.State Body \u2192",
+        "            (P.State \u2192 Prop) \u2192 Prop"
+      ]
+    },
+    "AvailableChain.FGCompose.FGHistoricalLaws.blocks_eq": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.Block",
+        "AvailableChain.FGCompose.FGCore.fg",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGCoreReads.core",
+        "AvailableChain.FGCompose.FGCoreReads.erase",
+        "AvailableChain.FGCompose.FGHistoricalLaws",
+        "AvailableChain.FGCompose.FGHistoricalReads",
+        "AvailableChain.FGCompose.FGHistoricalReads.acceptedBlocks",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.Store.TF",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "AvailableChain.instDecidableEqBlock",
+        "Eq",
+        "Fin",
+        "Finset",
+        "Finset.image",
+        "Nat"
+      ],
+      "digest": "91040d7689665e806e1b296bdb5dd00cc60be9bb2968f87eb78c59380c1bb0ee",
+      "kernel_name": "str:2:86:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose16:FGHistoricalLaws9:blocks_eq",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.HistoricalReads",
+      "type": [
+        "\u2200 {In Body : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire}",
+        "  {H : AvailableChain.FGCompose.FGHistoricalReads P.State Body} {Good : P.State \u2192 Prop},",
+        "  AvailableChain.FGCompose.FGHistoricalLaws R H Good \u2192",
+        "    \u2200 (st : P.State),",
+        "      Good st \u2192 Eq (H.acceptedBlocks st) (Finset.image R.erase (R.core st).fg.TF)"
+      ]
+    },
+    "AvailableChain.FGCompose.FGHistoricalLaws.bodies_eq": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "And",
+        "AvailableChain.Block",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGHistoricalLaws",
+        "AvailableChain.FGCompose.FGHistoricalReads",
+        "AvailableChain.FGCompose.FGHistoricalReads.acceptedBlocks",
+        "AvailableChain.FGCompose.FGHistoricalReads.acceptedBodies",
+        "AvailableChain.FGCompose.FGHistoricalReads.erase",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "Eq",
+        "Exists",
+        "Finset",
+        "Finset.instSetLike",
+        "Iff",
+        "List",
+        "List.instMembership",
+        "Membership.mem",
+        "Nat",
+        "SetLike.instMembership"
+      ],
+      "digest": "9df07085a6b6d18a9c0bb2326e252cff9a014c8d835d3b707486f551866fce8d",
+      "kernel_name": "str:2:86:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose16:FGHistoricalLaws9:bodies_eq",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.HistoricalReads",
+      "type": [
+        "\u2200 {In Body : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire}",
+        "  {H : AvailableChain.FGCompose.FGHistoricalReads P.State Body} {Good : P.State \u2192 Prop},",
+        "  AvailableChain.FGCompose.FGHistoricalLaws R H Good \u2192",
+        "    \u2200 (st : P.State),",
+        "      Good st \u2192",
+        "        \u2200 (B : AvailableChain.Block),",
+        "          Iff (SetLike.instMembership.mem (H.acceptedBlocks st) B)",
+        "            (Exists fun b =>",
+        "              And (List.instMembership.mem (H.acceptedBodies st) b) (Eq (H.erase b) B))"
+      ]
+    },
+    "AvailableChain.FGCompose.FGHistoricalLaws.frame_independent": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.BlockId",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGHistoricalLaws",
+        "AvailableChain.FGCompose.FGHistoricalReads",
+        "AvailableChain.FGCompose.FGHistoricalReads.acceptedBodies",
+        "AvailableChain.FGCompose.FGHistoricalReads.readBlock",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "Eq",
+        "List",
+        "Nat",
+        "Option"
+      ],
+      "digest": "d984f6f91293b5c4514af3b6aeabc11a1141b2e2a505c8729a4f50d50de1416b",
+      "kernel_name": "str:2:86:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose16:FGHistoricalLaws17:frame_independent",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.HistoricalReads",
+      "type": [
+        "\u2200 {In Body : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire}",
+        "  {H : AvailableChain.FGCompose.FGHistoricalReads P.State Body} {Good : P.State \u2192 Prop},",
+        "  AvailableChain.FGCompose.FGHistoricalLaws R H Good \u2192",
+        "    \u2200 (st st' : P.State),",
+        "      Eq (H.acceptedBodies st) (H.acceptedBodies st') \u2192",
+        "        \u2200 (r : AvailableChain.BlockId), Eq (H.readBlock st r) (H.readBlock st' r)"
+      ]
+    },
+    "AvailableChain.FGCompose.FGHistoricalLaws.geometry_eq": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "And",
+        "AvailableChain.Block",
+        "AvailableChain.Block.Preceq",
+        "AvailableChain.Block.depth",
+        "AvailableChain.Block.meet",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGHistoricalLaws",
+        "AvailableChain.FGCompose.FGHistoricalReads",
+        "AvailableChain.FGCompose.FGHistoricalReads.depth",
+        "AvailableChain.FGCompose.FGHistoricalReads.erase",
+        "AvailableChain.FGCompose.FGHistoricalReads.lca",
+        "AvailableChain.FGCompose.FGHistoricalReads.preceq",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "Eq",
+        "Iff",
+        "Nat"
+      ],
+      "digest": "74290d742b69b0dc121a3404c6b682b1d3b074a449bbb3fd2d1c24716fd13308",
+      "kernel_name": "str:2:86:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose16:FGHistoricalLaws11:geometry_eq",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.HistoricalReads",
+      "type": [
+        "\u2200 {In Body : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire}",
+        "  {H : AvailableChain.FGCompose.FGHistoricalReads P.State Body} {Good : P.State \u2192 Prop},",
+        "  AvailableChain.FGCompose.FGHistoricalLaws R H Good \u2192",
+        "    And (\u2200 (b c : Body), Iff (H.preceq b c) ((H.erase b).Preceq (H.erase c)))",
+        "      (And (\u2200 (b : Body), Eq (H.depth b) (H.erase b).depth)",
+        "        (\u2200 (b c : Body), Eq (H.lca b c) ((H.erase b).meet (H.erase c))))"
+      ]
+    },
+    "AvailableChain.FGCompose.FGHistoricalLaws.mk": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "And",
+        "AvailableChain.Block",
+        "AvailableChain.Block.Preceq",
+        "AvailableChain.Block.depth",
+        "AvailableChain.Block.meet",
+        "AvailableChain.Block.parent",
+        "AvailableChain.Block.root",
+        "AvailableChain.Block.slot",
+        "AvailableChain.BlockId",
+        "AvailableChain.FGCompose.FGCore.fg",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGCoreReads.core",
+        "AvailableChain.FGCompose.FGCoreReads.erase",
+        "AvailableChain.FGCompose.FGHistoricalLaws",
+        "AvailableChain.FGCompose.FGHistoricalLaws.mk",
+        "AvailableChain.FGCompose.FGHistoricalReads",
+        "AvailableChain.FGCompose.FGHistoricalReads.acceptedBlocks",
+        "AvailableChain.FGCompose.FGHistoricalReads.acceptedBodies",
+        "AvailableChain.FGCompose.FGHistoricalReads.depth",
+        "AvailableChain.FGCompose.FGHistoricalReads.erase",
+        "AvailableChain.FGCompose.FGHistoricalReads.lca",
+        "AvailableChain.FGCompose.FGHistoricalReads.parent",
+        "AvailableChain.FGCompose.FGHistoricalReads.preceq",
+        "AvailableChain.FGCompose.FGHistoricalReads.readBlock",
+        "AvailableChain.FGCompose.FGHistoricalReads.root",
+        "AvailableChain.FGCompose.FGHistoricalReads.slot",
+        "AvailableChain.FGCompose.FGHistoryStep",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.Store.TF",
+        "AvailableChain.Slot",
+        "AvailableChain.Time",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "AvailableChain.V2.ProtocolSpecD.durable",
+        "AvailableChain.V2.ProtocolSpecD.restore",
+        "AvailableChain.instDecidableEqBlock",
+        "Eq",
+        "Exists",
+        "Fin",
+        "Finset",
+        "Finset.image",
+        "Finset.instSetLike",
+        "Iff",
+        "List",
+        "List.instMembership",
+        "Membership.mem",
+        "Nat",
+        "Option",
+        "Option.some",
+        "SetLike.instMembership"
+      ],
+      "digest": "55c5f50abea621ce4154cbdd3c80c8d3cd86e55c9b8d4f8214f687b9203ad247",
+      "kernel_name": "str:2:86:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose16:FGHistoricalLaws2:mk",
+      "kind": "ctor",
+      "module": "AvailableChainFGCompose.Statements.HistoricalReads",
+      "type": [
+        "\u2200 {In Body : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire}",
+        "  {H : AvailableChain.FGCompose.FGHistoricalReads P.State Body} {Good : P.State \u2192 Prop},",
+        "  (\u2200 (st : P.State),",
+        "      Good st \u2192 Eq (H.acceptedBlocks st) (Finset.image R.erase (R.core st).fg.TF)) \u2192",
+        "    (\u2200 (st : P.State),",
+        "        Good st \u2192",
+        "          \u2200 (B : AvailableChain.Block),",
+        "            Iff (SetLike.instMembership.mem (H.acceptedBlocks st) B)",
+        "              (Exists fun b =>",
+        "                And (List.instMembership.mem (H.acceptedBodies st) b)",
+        "                  (Eq (H.erase b) B))) \u2192",
+        "      (\u2200 (b : Body), Eq (H.root b) (H.erase b).root) \u2192",
+        "        (\u2200 (b : Body), Eq (H.erase (H.parent b)) (H.erase b).parent) \u2192",
+        "          (\u2200 (b : Body), Eq (H.slot b) (H.erase b).slot) \u2192",
+        "            (\u2200 (st : P.State),",
+        "                Good st \u2192",
+        "                  \u2200 (b : Body),",
+        "                    List.instMembership.mem (H.acceptedBodies st) b \u2192",
+        "                      List.instMembership.mem (H.acceptedBodies st) (H.parent b)) \u2192",
+        "              (\u2200 (st : P.State) (r : AvailableChain.BlockId) (b : Body),",
+        "                  Iff (Eq (H.readBlock st r) (Option.some b))",
+        "                    (And (List.instMembership.mem (H.acceptedBodies st) b)",
+        "                      (And (Eq (H.root b) r)",
+        "                        (\u2200 (c : Body),",
+        "                          List.instMembership.mem (H.acceptedBodies st) c \u2192",
+        "                            Eq (H.root c) r \u2192 Eq c b)))) \u2192",
+        "                (\u2200 (st : P.State),",
+        "                    Good st \u2192",
+        "                      \u2200 (b : Body),",
+        "                        List.instMembership.mem (H.acceptedBodies st) b \u2192",
+        "                          \u2200 (c : Body),",
+        "                            List.instMembership.mem (H.acceptedBodies st) c \u2192",
+        "                              Eq (H.root b) (H.root c) \u2192 Eq b c) \u2192",
+        "                  And",
+        "                      (\u2200 (b c : Body),",
+        "                        Iff (H.preceq b c) ((H.erase b).Preceq (H.erase c)))",
+        "                      (And (\u2200 (b : Body), Eq (H.depth b) (H.erase b).depth)",
+        "                        (\u2200 (b c : Body),",
+        "                          Eq (H.lca b c) ((H.erase b).meet (H.erase c)))) \u2192",
+        "                    (\u2200 (st st' : P.State),",
+        "                        AvailableChain.FGCompose.FGHistoryStep P st st' \u2192",
+        "                          \u2200 (b : Body),",
+        "                            List.instMembership.mem (H.acceptedBodies st) b \u2192",
+        "                              List.instMembership.mem (H.acceptedBodies st') b) \u2192",
+        "                      (\u2200 (st : P.State) (t : AvailableChain.Time),",
+        "                          And",
+        "                            (Eq (H.acceptedBodies (P.restore (P.durable st) t))",
+        "                              (H.acceptedBodies st))",
+        "                            (Eq (H.acceptedBlocks (P.restore (P.durable st) t))",
+        "                              (H.acceptedBlocks st))) \u2192",
+        "                        (\u2200 (st st' : P.State),",
+        "                            Eq (H.acceptedBodies st) (H.acceptedBodies st') \u2192",
+        "                              \u2200 (r : AvailableChain.BlockId),",
+        "                                Eq (H.readBlock st r) (H.readBlock st' r)) \u2192",
+        "                          AvailableChain.FGCompose.FGHistoricalLaws R H Good"
+      ]
+    },
+    "AvailableChain.FGCompose.FGHistoricalLaws.parent_closed": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGHistoricalLaws",
+        "AvailableChain.FGCompose.FGHistoricalReads",
+        "AvailableChain.FGCompose.FGHistoricalReads.acceptedBodies",
+        "AvailableChain.FGCompose.FGHistoricalReads.parent",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "List",
+        "List.instMembership",
+        "Membership.mem",
+        "Nat"
+      ],
+      "digest": "78c5a81be96fc0d506ab86cd13780c6a8b8f40610c5e55e9e0df52e845c3bca5",
+      "kernel_name": "str:2:86:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose16:FGHistoricalLaws13:parent_closed",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.HistoricalReads",
+      "type": [
+        "\u2200 {In Body : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire}",
+        "  {H : AvailableChain.FGCompose.FGHistoricalReads P.State Body} {Good : P.State \u2192 Prop},",
+        "  AvailableChain.FGCompose.FGHistoricalLaws R H Good \u2192",
+        "    \u2200 (st : P.State),",
+        "      Good st \u2192",
+        "        \u2200 (b : Body),",
+        "          List.instMembership.mem (H.acceptedBodies st) b \u2192",
+        "            List.instMembership.mem (H.acceptedBodies st) (H.parent b)"
+      ]
+    },
+    "AvailableChain.FGCompose.FGHistoricalLaws.parent_eq": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.Block",
+        "AvailableChain.Block.parent",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGHistoricalLaws",
+        "AvailableChain.FGCompose.FGHistoricalReads",
+        "AvailableChain.FGCompose.FGHistoricalReads.erase",
+        "AvailableChain.FGCompose.FGHistoricalReads.parent",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "Eq",
+        "Nat"
+      ],
+      "digest": "5bc7b5f60ca8f85b01ea1a48015440e344fe9a48e93b7ef30bc309b4000f5dc5",
+      "kernel_name": "str:2:86:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose16:FGHistoricalLaws9:parent_eq",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.HistoricalReads",
+      "type": [
+        "\u2200 {In Body : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire}",
+        "  {H : AvailableChain.FGCompose.FGHistoricalReads P.State Body} {Good : P.State \u2192 Prop},",
+        "  AvailableChain.FGCompose.FGHistoricalLaws R H Good \u2192",
+        "    \u2200 (b : Body), Eq (H.erase (H.parent b)) (H.erase b).parent"
+      ]
+    },
+    "AvailableChain.FGCompose.FGHistoricalLaws.reachable_unique": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.BlockId",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGHistoricalLaws",
+        "AvailableChain.FGCompose.FGHistoricalReads",
+        "AvailableChain.FGCompose.FGHistoricalReads.acceptedBodies",
+        "AvailableChain.FGCompose.FGHistoricalReads.root",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "Eq",
+        "List",
+        "List.instMembership",
+        "Membership.mem",
+        "Nat"
+      ],
+      "digest": "769c7bb4daff4ad5cc5ce6ba7deb04a964abec548e89350bd3aa75f19beea791",
+      "kernel_name": "str:2:86:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose16:FGHistoricalLaws16:reachable_unique",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.HistoricalReads",
+      "type": [
+        "\u2200 {In Body : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire}",
+        "  {H : AvailableChain.FGCompose.FGHistoricalReads P.State Body} {Good : P.State \u2192 Prop},",
+        "  AvailableChain.FGCompose.FGHistoricalLaws R H Good \u2192",
+        "    \u2200 (st : P.State),",
+        "      Good st \u2192",
+        "        \u2200 (b : Body),",
+        "          List.instMembership.mem (H.acceptedBodies st) b \u2192",
+        "            \u2200 (c : Body),",
+        "              List.instMembership.mem (H.acceptedBodies st) c \u2192",
+        "                Eq (H.root b) (H.root c) \u2192 Eq b c"
+      ]
+    },
+    "AvailableChain.FGCompose.FGHistoricalLaws.read_iff": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "And",
+        "AvailableChain.BlockId",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGHistoricalLaws",
+        "AvailableChain.FGCompose.FGHistoricalReads",
+        "AvailableChain.FGCompose.FGHistoricalReads.acceptedBodies",
+        "AvailableChain.FGCompose.FGHistoricalReads.readBlock",
+        "AvailableChain.FGCompose.FGHistoricalReads.root",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "Eq",
+        "Iff",
+        "List",
+        "List.instMembership",
+        "Membership.mem",
+        "Nat",
+        "Option",
+        "Option.some"
+      ],
+      "digest": "0b7856bd53780544d2e98be95556fd598873b00cc54d00a1ce83533de0764718",
+      "kernel_name": "str:2:86:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose16:FGHistoricalLaws8:read_iff",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.HistoricalReads",
+      "type": [
+        "\u2200 {In Body : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire}",
+        "  {H : AvailableChain.FGCompose.FGHistoricalReads P.State Body} {Good : P.State \u2192 Prop},",
+        "  AvailableChain.FGCompose.FGHistoricalLaws R H Good \u2192",
+        "    \u2200 (st : P.State) (r : AvailableChain.BlockId) (b : Body),",
+        "      Iff (Eq (H.readBlock st r) (Option.some b))",
+        "        (And (List.instMembership.mem (H.acceptedBodies st) b)",
+        "          (And (Eq (H.root b) r)",
+        "            (\u2200 (c : Body),",
+        "              List.instMembership.mem (H.acceptedBodies st) c \u2192",
+        "                Eq (H.root c) r \u2192 Eq c b)))"
+      ]
+    },
+    "AvailableChain.FGCompose.FGHistoricalLaws.restore_eq": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "And",
+        "AvailableChain.Block",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGHistoricalLaws",
+        "AvailableChain.FGCompose.FGHistoricalReads",
+        "AvailableChain.FGCompose.FGHistoricalReads.acceptedBlocks",
+        "AvailableChain.FGCompose.FGHistoricalReads.acceptedBodies",
+        "AvailableChain.Time",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "AvailableChain.V2.ProtocolSpecD.durable",
+        "AvailableChain.V2.ProtocolSpecD.restore",
+        "Eq",
+        "Finset",
+        "List",
+        "Nat"
+      ],
+      "digest": "c029e0687fa9dd8d65b5e7aa319154e3ffa333de9f24dd14ce68e70a6dbb5dfd",
+      "kernel_name": "str:2:86:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose16:FGHistoricalLaws10:restore_eq",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.HistoricalReads",
+      "type": [
+        "\u2200 {In Body : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire}",
+        "  {H : AvailableChain.FGCompose.FGHistoricalReads P.State Body} {Good : P.State \u2192 Prop},",
+        "  AvailableChain.FGCompose.FGHistoricalLaws R H Good \u2192",
+        "    \u2200 (st : P.State) (t : AvailableChain.Time),",
+        "      And (Eq (H.acceptedBodies (P.restore (P.durable st) t)) (H.acceptedBodies st))",
+        "        (Eq (H.acceptedBlocks (P.restore (P.durable st) t)) (H.acceptedBlocks st))"
+      ]
+    },
+    "AvailableChain.FGCompose.FGHistoricalLaws.root_eq": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.Block.root",
+        "AvailableChain.BlockId",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGHistoricalLaws",
+        "AvailableChain.FGCompose.FGHistoricalReads",
+        "AvailableChain.FGCompose.FGHistoricalReads.erase",
+        "AvailableChain.FGCompose.FGHistoricalReads.root",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "Eq",
+        "Nat"
+      ],
+      "digest": "777a02a0a6ac1150f9af7d2910305e207705e7e35ab03f3bb5aa8eb193c1a855",
+      "kernel_name": "str:2:86:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose16:FGHistoricalLaws7:root_eq",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.HistoricalReads",
+      "type": [
+        "\u2200 {In Body : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire}",
+        "  {H : AvailableChain.FGCompose.FGHistoricalReads P.State Body} {Good : P.State \u2192 Prop},",
+        "  AvailableChain.FGCompose.FGHistoricalLaws R H Good \u2192",
+        "    \u2200 (b : Body), Eq (H.root b) (H.erase b).root"
+      ]
+    },
+    "AvailableChain.FGCompose.FGHistoricalLaws.slot_eq": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.Block.slot",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGHistoricalLaws",
+        "AvailableChain.FGCompose.FGHistoricalReads",
+        "AvailableChain.FGCompose.FGHistoricalReads.erase",
+        "AvailableChain.FGCompose.FGHistoricalReads.slot",
+        "AvailableChain.Slot",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "Eq",
+        "Nat"
+      ],
+      "digest": "e11e1d92740e5e27b3fa7c748b3592183442965c4ba85969bb5501df499d5e9a",
+      "kernel_name": "str:2:86:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose16:FGHistoricalLaws7:slot_eq",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.HistoricalReads",
+      "type": [
+        "\u2200 {In Body : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire}",
+        "  {H : AvailableChain.FGCompose.FGHistoricalReads P.State Body} {Good : P.State \u2192 Prop},",
+        "  AvailableChain.FGCompose.FGHistoricalLaws R H Good \u2192",
+        "    \u2200 (b : Body), Eq (H.slot b) (H.erase b).slot"
+      ]
+    },
+    "AvailableChain.FGCompose.FGHistoricalLaws.step_keep": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGHistoricalLaws",
+        "AvailableChain.FGCompose.FGHistoricalReads",
+        "AvailableChain.FGCompose.FGHistoricalReads.acceptedBodies",
+        "AvailableChain.FGCompose.FGHistoryStep",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "List",
+        "List.instMembership",
+        "Membership.mem",
+        "Nat"
+      ],
+      "digest": "cb46fecc4f37e7380d0e39fc8286260bc2c22c98af0266c95b6e051092abe83c",
+      "kernel_name": "str:2:86:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose16:FGHistoricalLaws9:step_keep",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.HistoricalReads",
+      "type": [
+        "\u2200 {In Body : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire}",
+        "  {H : AvailableChain.FGCompose.FGHistoricalReads P.State Body} {Good : P.State \u2192 Prop},",
+        "  AvailableChain.FGCompose.FGHistoricalLaws R H Good \u2192",
+        "    \u2200 (st st' : P.State),",
+        "      AvailableChain.FGCompose.FGHistoryStep P st st' \u2192",
+        "        \u2200 (b : Body),",
+        "          List.instMembership.mem (H.acceptedBodies st) b \u2192",
+        "            List.instMembership.mem (H.acceptedBodies st') b"
+      ]
+    },
+    "AvailableChain.FGCompose.FGHistoricalReads": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGHistoricalReads",
+        "AvailableChain.FGCompose.FGHistoricalReads.mk"
+      ],
+      "digest": "010d4ff9144120c242b280d600e435ddf20c1f4a121a88b038b8be0542864b78",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose17:FGHistoricalReads",
+      "kind": "structure",
+      "module": "AvailableChainFGCompose.Statements.HistoricalReads",
+      "type": [
+        "Type \u2192 Type \u2192 Type"
+      ]
+    },
+    "AvailableChain.FGCompose.FGHistoricalReads.acceptedBlocks": {
+      "body": [
+        "fun State Body self => self.1"
+      ],
+      "dependencies": [
+        "AvailableChain.Block",
+        "AvailableChain.FGCompose.FGHistoricalReads",
+        "Finset"
+      ],
+      "digest": "8653e9a743068cd282fdf916542decfb4b9d82c87dcafdacbcbd584541e1de4d",
+      "kernel_name": "str:2:87:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose17:FGHistoricalReads14:acceptedBlocks",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.HistoricalReads",
+      "type": [
+        "{State Body : Type} \u2192",
+        "  AvailableChain.FGCompose.FGHistoricalReads State Body \u2192",
+        "    State \u2192 Finset AvailableChain.Block"
+      ]
+    },
+    "AvailableChain.FGCompose.FGHistoricalReads.acceptedBodies": {
+      "body": [
+        "fun State Body self => self.2"
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGHistoricalReads",
+        "List"
+      ],
+      "digest": "0536fbe9fb27277052874cb178cb08e1cfb663cc00b153ac08b3a650173a803c",
+      "kernel_name": "str:2:87:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose17:FGHistoricalReads14:acceptedBodies",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.HistoricalReads",
+      "type": [
+        "{State Body : Type} \u2192",
+        "  AvailableChain.FGCompose.FGHistoricalReads State Body \u2192 State \u2192 List Body"
+      ]
+    },
+    "AvailableChain.FGCompose.FGHistoricalReads.depth": {
+      "body": [
+        "fun State Body self => self.9"
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGHistoricalReads",
+        "Nat"
+      ],
+      "digest": "78bbc5ce594290e36f52f2db50bf4074348194f5d7e82083419b322816b51077",
+      "kernel_name": "str:2:87:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose17:FGHistoricalReads5:depth",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.HistoricalReads",
+      "type": [
+        "{State Body : Type} \u2192 AvailableChain.FGCompose.FGHistoricalReads State Body \u2192 Body \u2192 Nat"
+      ]
+    },
+    "AvailableChain.FGCompose.FGHistoricalReads.erase": {
+      "body": [
+        "fun State Body self => self.3"
+      ],
+      "dependencies": [
+        "AvailableChain.Block",
+        "AvailableChain.FGCompose.FGHistoricalReads"
+      ],
+      "digest": "46bac8cc0c356e9b22a4acf2022290cf4a0623828c808786d9a6319e6bd2727a",
+      "kernel_name": "str:2:87:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose17:FGHistoricalReads5:erase",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.HistoricalReads",
+      "type": [
+        "{State Body : Type} \u2192",
+        "  AvailableChain.FGCompose.FGHistoricalReads State Body \u2192 Body \u2192 AvailableChain.Block"
+      ]
+    },
+    "AvailableChain.FGCompose.FGHistoricalReads.lca": {
+      "body": [
+        "fun State Body self => self.10"
+      ],
+      "dependencies": [
+        "AvailableChain.Block",
+        "AvailableChain.FGCompose.FGHistoricalReads"
+      ],
+      "digest": "ff9810b0db4fab8e51a8a266fe3fbe459089ae5137b722ab4c2cdb3dd1cddb82",
+      "kernel_name": "str:2:87:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose17:FGHistoricalReads3:lca",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.HistoricalReads",
+      "type": [
+        "{State Body : Type} \u2192",
+        "  AvailableChain.FGCompose.FGHistoricalReads State Body \u2192",
+        "    Body \u2192 Body \u2192 AvailableChain.Block"
+      ]
+    },
+    "AvailableChain.FGCompose.FGHistoricalReads.mk": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.Block",
+        "AvailableChain.BlockId",
+        "AvailableChain.FGCompose.FGHistoricalReads",
+        "AvailableChain.FGCompose.FGHistoricalReads.mk",
+        "AvailableChain.Slot",
+        "Finset",
+        "List",
+        "Nat",
+        "Option"
+      ],
+      "digest": "41ab766e4e09a65fa65f2417e748af5b12db7b9efc9374942f479772a555e04a",
+      "kernel_name": "str:2:87:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose17:FGHistoricalReads2:mk",
+      "kind": "ctor",
+      "module": "AvailableChainFGCompose.Statements.HistoricalReads",
+      "type": [
+        "{State Body : Type} \u2192",
+        "  (State \u2192 Finset AvailableChain.Block) \u2192",
+        "    (State \u2192 List Body) \u2192",
+        "      (Body \u2192 AvailableChain.Block) \u2192",
+        "        (Body \u2192 AvailableChain.BlockId) \u2192",
+        "          (Body \u2192 Body) \u2192",
+        "            (Body \u2192 AvailableChain.Slot) \u2192",
+        "              (State \u2192 AvailableChain.BlockId \u2192 Option Body) \u2192",
+        "                (Body \u2192 Body \u2192 Prop) \u2192",
+        "                  (Body \u2192 Nat) \u2192",
+        "                    (Body \u2192 Body \u2192 AvailableChain.Block) \u2192",
+        "                      AvailableChain.FGCompose.FGHistoricalReads State Body"
+      ]
+    },
+    "AvailableChain.FGCompose.FGHistoricalReads.parent": {
+      "body": [
+        "fun State Body self => self.5"
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGHistoricalReads"
+      ],
+      "digest": "8fedf7ae5ff457260eb31647ef4d4bcd56b7938bd624c3ce73a3a65e98460781",
+      "kernel_name": "str:2:87:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose17:FGHistoricalReads6:parent",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.HistoricalReads",
+      "type": [
+        "{State Body : Type} \u2192",
+        "  AvailableChain.FGCompose.FGHistoricalReads State Body \u2192 Body \u2192 Body"
+      ]
+    },
+    "AvailableChain.FGCompose.FGHistoricalReads.preceq": {
+      "body": [
+        "fun State Body self => self.8"
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGHistoricalReads"
+      ],
+      "digest": "0264fc4858c1291911204ce3f40a6d6fd06c07b29b9ee6d0f8871267516b8c20",
+      "kernel_name": "str:2:87:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose17:FGHistoricalReads6:preceq",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.HistoricalReads",
+      "type": [
+        "{State Body : Type} \u2192",
+        "  AvailableChain.FGCompose.FGHistoricalReads State Body \u2192 Body \u2192 Body \u2192 Prop"
+      ]
+    },
+    "AvailableChain.FGCompose.FGHistoricalReads.readBlock": {
+      "body": [
+        "fun State Body self => self.7"
+      ],
+      "dependencies": [
+        "AvailableChain.BlockId",
+        "AvailableChain.FGCompose.FGHistoricalReads",
+        "Option"
+      ],
+      "digest": "a73e9156ea845f66149f33e3d14b78a476176bc0ae7f49da62cce79aadaaebdf",
+      "kernel_name": "str:2:87:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose17:FGHistoricalReads9:readBlock",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.HistoricalReads",
+      "type": [
+        "{State Body : Type} \u2192",
+        "  AvailableChain.FGCompose.FGHistoricalReads State Body \u2192",
+        "    State \u2192 AvailableChain.BlockId \u2192 Option Body"
+      ]
+    },
+    "AvailableChain.FGCompose.FGHistoricalReads.root": {
+      "body": [
+        "fun State Body self => self.4"
+      ],
+      "dependencies": [
+        "AvailableChain.BlockId",
+        "AvailableChain.FGCompose.FGHistoricalReads"
+      ],
+      "digest": "3138671623eb328cf0c575fc4a50f0c2ce2f2d024e9c1b0d850e715c1f8b7c63",
+      "kernel_name": "str:2:87:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose17:FGHistoricalReads4:root",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.HistoricalReads",
+      "type": [
+        "{State Body : Type} \u2192",
+        "  AvailableChain.FGCompose.FGHistoricalReads State Body \u2192 Body \u2192 AvailableChain.BlockId"
+      ]
+    },
+    "AvailableChain.FGCompose.FGHistoricalReads.slot": {
+      "body": [
+        "fun State Body self => self.6"
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGHistoricalReads",
+        "AvailableChain.Slot"
+      ],
+      "digest": "557330ad3c66ef60aab1001be2617358d1da7530262abe9eab4d985c60776cf7",
+      "kernel_name": "str:2:87:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose17:FGHistoricalReads4:slot",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.HistoricalReads",
+      "type": [
+        "{State Body : Type} \u2192",
+        "  AvailableChain.FGCompose.FGHistoricalReads State Body \u2192 Body \u2192 AvailableChain.Slot"
+      ]
+    },
+    "AvailableChain.FGCompose.FGHistoryStep": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGHistoryStep",
+        "AvailableChain.FGCompose.FGHistoryStep.clock",
+        "AvailableChain.FGCompose.FGHistoryStep.own",
+        "AvailableChain.FGCompose.FGHistoryStep.process",
+        "AvailableChain.FGCompose.FGHistoryStep.restore",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.State"
+      ],
+      "digest": "1d38f0e1b9aaf0df864498947ec8f46a9f74d81289dec877d78992d8db4b89f3",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose13:FGHistoryStep",
+      "kind": "inductive",
+      "module": "AvailableChainFGCompose.Statements.HistoricalReads",
+      "type": [
+        "{In : Type} \u2192 (P : AvailableChain.V2.ProtocolSpecD In) \u2192 P.State \u2192 P.State \u2192 Prop"
+      ]
+    },
+    "AvailableChain.FGCompose.FGHistoryStep.clock": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGHistoryStep",
+        "AvailableChain.FGCompose.FGHistoryStep.clock",
+        "AvailableChain.Time",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "AvailableChain.V2.ProtocolSpecD.clock"
+      ],
+      "digest": "68f0cae0015cc34ded2629e8c143a074758377ac0ec2ba35aeccca51758c3018",
+      "kernel_name": "str:2:83:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose13:FGHistoryStep5:clock",
+      "kind": "ctor",
+      "module": "AvailableChainFGCompose.Statements.HistoricalReads",
+      "type": [
+        "\u2200 {In : Type} {P : AvailableChain.V2.ProtocolSpecD In} (st : P.State)",
+        "  (t : AvailableChain.Time), AvailableChain.FGCompose.FGHistoryStep P st (P.clock st t)"
+      ]
+    },
+    "AvailableChain.FGCompose.FGHistoryStep.own": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGHistoryStep",
+        "AvailableChain.FGCompose.FGHistoryStep.own",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "AvailableChain.V2.ProtocolSpecD.recordOwn"
+      ],
+      "digest": "386985f162ce21b58a064127c0a578805ac30dcb49c5d0ea4a8fcf2381143dec",
+      "kernel_name": "str:2:83:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose13:FGHistoryStep3:own",
+      "kind": "ctor",
+      "module": "AvailableChainFGCompose.Statements.HistoricalReads",
+      "type": [
+        "\u2200 {In : Type} {P : AvailableChain.V2.ProtocolSpecD In} (st : P.State) (o : P.Object),",
+        "  AvailableChain.FGCompose.FGHistoryStep P st (P.recordOwn st o)"
+      ]
+    },
+    "AvailableChain.FGCompose.FGHistoryStep.process": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGHistoryStep",
+        "AvailableChain.FGCompose.FGHistoryStep.process",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "AvailableChain.V2.ProtocolSpecD.process"
+      ],
+      "digest": "e3bfadc259b54047dafe1eeb4d980d971c9bc4e10e25a70b9a6f3424cd0a456a",
+      "kernel_name": "str:2:83:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose13:FGHistoryStep7:process",
+      "kind": "ctor",
+      "module": "AvailableChainFGCompose.Statements.HistoricalReads",
+      "type": [
+        "\u2200 {In : Type} {P : AvailableChain.V2.ProtocolSpecD In} (st : P.State) (o : P.Object),",
+        "  AvailableChain.FGCompose.FGHistoryStep P st (P.process st o)"
+      ]
+    },
+    "AvailableChain.FGCompose.FGHistoryStep.restore": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGHistoryStep",
+        "AvailableChain.FGCompose.FGHistoryStep.restore",
+        "AvailableChain.Time",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "AvailableChain.V2.ProtocolSpecD.durable",
+        "AvailableChain.V2.ProtocolSpecD.restore"
+      ],
+      "digest": "e8858e1304ead413abd249c1520dde2cbfa9cd15f2d30192b9c1ef82d5f088ce",
+      "kernel_name": "str:2:83:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose13:FGHistoryStep7:restore",
+      "kind": "ctor",
+      "module": "AvailableChainFGCompose.Statements.HistoricalReads",
+      "type": [
+        "\u2200 {In : Type} {P : AvailableChain.V2.ProtocolSpecD In} (st : P.State)",
+        "  (t : AvailableChain.Time),",
+        "  AvailableChain.FGCompose.FGHistoryStep P st (P.restore (P.durable st) t)"
       ]
     },
     "AvailableChain.FGCompose.FGObservationLaws": {
@@ -22706,6 +23878,198 @@
         "              AvailableChain.SimplexFG.FGBlock (Fin n) \u2192 Prop"
       ]
     },
+    "AvailableChain.FGCompose.historicalLookup": {
+      "body": [
+        "fun {Body} [DecidableEq Body] root bodies r =>",
+        "  AvailableChain.FGCompose.historicalLookup.match_1 (fun x => Option Body)",
+        "    (List.filter (fun b => instBEqOfDecidableEq.beq (root b) r) bodies).eraseDups",
+        "    (fun b => Option.some b) fun x => Option.none"
+      ],
+      "dependencies": [
+        "AvailableChain.BlockId",
+        "AvailableChain.FGCompose.historicalLookup.match_1",
+        "AvailableChain.instDecidableEqBlockId",
+        "BEq.beq",
+        "DecidableEq",
+        "List",
+        "List.eraseDups",
+        "List.filter",
+        "Option",
+        "Option.none",
+        "Option.some",
+        "instBEqOfDecidableEq"
+      ],
+      "digest": "57e159b9616276f6cc09a8580f80bc4ba416d1c8576709209e8c28b361e66e0e",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose16:historicalLookup",
+      "kind": "def",
+      "module": "AvailableChainFGCompose.Statements.HistoricalReads",
+      "type": [
+        "{Body : Type} \u2192",
+        "  [DecidableEq Body] \u2192",
+        "    (Body \u2192 AvailableChain.BlockId) \u2192 List Body \u2192 AvailableChain.BlockId \u2192 Option Body"
+      ]
+    },
+    "AvailableChain.FGCompose.historicalLookup._sparseCasesOn_1": {
+      "body": [
+        "fun {\u03b1} {motive} t cons =>",
+        "  List.rec (motive := fun t => (Nat.hasNotBit 2 t.ctorIdx \u2192 motive t) \u2192 motive t)",
+        "    (fun \u00abelse\u00bb => \u00abelse\u00bb \u22ef) (fun head tail tail_ih \u00abelse\u00bb => cons head tail) t"
+      ],
+      "dependencies": [
+        "Bool",
+        "Bool.false",
+        "Eq.refl",
+        "List",
+        "List.cons",
+        "List.ctorIdx",
+        "List.nil",
+        "List.rec",
+        "Nat",
+        "Nat.hasNotBit",
+        "Nat.land",
+        "Nat.ne_of_beq_eq_false",
+        "Nat.shiftRight",
+        "OfNat.ofNat",
+        "instOfNatNat"
+      ],
+      "digest": "52140904b6bee67cac24726a3967902cbeed83f48c96f5b340781d0101061d0f",
+      "kernel_name": "str:2:86:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose16:historicalLookup16:_sparseCasesOn_1",
+      "kind": "def",
+      "module": "AvailableChainFGCompose.Statements.HistoricalReads",
+      "type": [
+        "{\u03b1 : Type u} \u2192",
+        "  {motive : List \u03b1 \u2192 Sort u_1} \u2192",
+        "    (t : List \u03b1) \u2192",
+        "      ((head : \u03b1) \u2192 (tail : List \u03b1) \u2192 motive (List.cons head tail)) \u2192",
+        "        (Nat.hasNotBit 2 t.ctorIdx \u2192 motive t) \u2192 motive t"
+      ]
+    },
+    "AvailableChain.FGCompose.historicalLookup._sparseCasesOn_2": {
+      "body": [
+        "fun {\u03b1} {motive} t nil =>",
+        "  List.rec (motive := fun t => (Nat.hasNotBit 1 t.ctorIdx \u2192 motive t) \u2192 motive t)",
+        "    (fun \u00abelse\u00bb => nil) (fun head tail tail_ih \u00abelse\u00bb => \u00abelse\u00bb \u22ef) t"
+      ],
+      "dependencies": [
+        "Bool",
+        "Bool.false",
+        "Eq.refl",
+        "List",
+        "List.cons",
+        "List.ctorIdx",
+        "List.nil",
+        "List.rec",
+        "Nat",
+        "Nat.hasNotBit",
+        "Nat.land",
+        "Nat.ne_of_beq_eq_false",
+        "Nat.shiftRight",
+        "OfNat.ofNat",
+        "instOfNatNat"
+      ],
+      "digest": "6ecc735ed344a37cce57724e28bbdecc77214ab612d32a915423bb30099de8c6",
+      "kernel_name": "str:2:86:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose16:historicalLookup16:_sparseCasesOn_2",
+      "kind": "def",
+      "module": "AvailableChainFGCompose.Statements.HistoricalReads",
+      "type": [
+        "{\u03b1 : Type u} \u2192",
+        "  {motive : List \u03b1 \u2192 Sort u_1} \u2192",
+        "    (t : List \u03b1) \u2192 motive List.nil \u2192 (Nat.hasNotBit 1 t.ctorIdx \u2192 motive t) \u2192 motive t"
+      ]
+    },
+    "AvailableChain.FGCompose.historicalLookup.match_1": {
+      "body": [
+        "fun {Body} motive x h_1 h_2 =>",
+        "  AvailableChain.FGCompose.historicalLookup._sparseCasesOn_1 x",
+        "    (fun head tail =>",
+        "      AvailableChain.FGCompose.historicalLookup._sparseCasesOn_2 tail (h_1 head)",
+        "        fun h => h_2 (List.cons head tail))",
+        "    fun h => h_2 x"
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.historicalLookup._sparseCasesOn_1",
+        "AvailableChain.FGCompose.historicalLookup._sparseCasesOn_2",
+        "List",
+        "List.cons",
+        "List.ctorIdx",
+        "List.nil",
+        "Nat.hasNotBit"
+      ],
+      "digest": "a60835e9bbcdfe76f309fd3e6aa26af509e874e7cfec366f04b5f823d5cf39d6",
+      "kernel_name": "str:2:86:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose16:historicalLookup7:match_1",
+      "kind": "def",
+      "module": "AvailableChainFGCompose.Statements.HistoricalReads",
+      "type": [
+        "{Body : Type} \u2192",
+        "  (motive : List Body \u2192 Sort u_1) \u2192",
+        "    (x : List Body) \u2192",
+        "      ((b : Body) \u2192 motive (List.cons b List.nil)) \u2192",
+        "        ((x : List Body) \u2192 motive x) \u2192 motive x"
+      ]
+    },
+    "AvailableChain.FGCompose.historicalLookup_def": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.BlockId",
+        "AvailableChain.FGCompose.historicalLookup",
+        "AvailableChain.FGCompose.historicalLookup.match_1",
+        "AvailableChain.instDecidableEqBlockId",
+        "BEq.beq",
+        "DecidableEq",
+        "Eq",
+        "List",
+        "List.eraseDups",
+        "List.filter",
+        "Option",
+        "Option.none",
+        "Option.some",
+        "instBEqOfDecidableEq"
+      ],
+      "digest": "6234f946b5bcef6c38adc0d227af5fd848be1d0e342e40280445fe6e37e484f8",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose20:historicalLookup_def",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Statements.HistoricalReads",
+      "type": [
+        "\u2200 {Body : Type} [inst : DecidableEq Body] (root : Body \u2192 AvailableChain.BlockId)",
+        "  (bodies : List Body) (r : AvailableChain.BlockId),",
+        "  Eq (AvailableChain.FGCompose.historicalLookup root bodies r)",
+        "    (AvailableChain.FGCompose.historicalLookup.match_1 (fun x => Option Body)",
+        "      (List.filter (fun b => instBEqOfDecidableEq.beq (root b) r) bodies).eraseDups",
+        "      (fun b => Option.some b) fun x => Option.none)"
+      ]
+    },
+    "AvailableChain.FGCompose.historicalLookup_spec": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "And",
+        "AvailableChain.BlockId",
+        "AvailableChain.FGCompose.historicalLookup",
+        "DecidableEq",
+        "Eq",
+        "Iff",
+        "List",
+        "List.instMembership",
+        "Membership.mem",
+        "Option",
+        "Option.some"
+      ],
+      "digest": "33ef62bd5c9cfeac8a065b007981ca20bf153c432f27eaa02db93e0bd7e7fbcf",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose21:historicalLookup_spec",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.HistoricalReads",
+      "type": [
+        "\u2200 {Body : Type} [inst : DecidableEq Body] (root : Body \u2192 AvailableChain.BlockId)",
+        "  (tree : List Body) (r : AvailableChain.BlockId) (B : Body),",
+        "  Iff (Eq (AvailableChain.FGCompose.historicalLookup root tree r) (Option.some B))",
+        "    (And (List.instMembership.mem tree B)",
+        "      (And (Eq (root B) r)",
+        "        (\u2200 (C : Body), List.instMembership.mem tree C \u2192 Eq (root C) r \u2192 Eq C B)))"
+      ]
+    },
     "AvailableChain.FGCompose.historical_chain_horizon": {
       "body": [
         ""
@@ -22779,6 +24143,348 @@
         "    \u2200 (horizon : AvailableChain.Time),",
         "      Iff (AvailableChain.FGCompose.FGHistoricalHighChain R O T E rho sp horizon)",
         "        (AvailableChain.FGCompose.FGHistoricalHighChain R O T E rho sp' horizon)"
+      ]
+    },
+    "AvailableChain.FGCompose.historical_geometry_restore_eq": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "And",
+        "AvailableChain.Block",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGHistoricalLaws",
+        "AvailableChain.FGCompose.FGHistoricalReads",
+        "AvailableChain.FGCompose.FGHistoricalReads.acceptedBlocks",
+        "AvailableChain.FGCompose.FGHistoricalReads.acceptedBodies",
+        "AvailableChain.Time",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "AvailableChain.V2.ProtocolSpecD.durable",
+        "AvailableChain.V2.ProtocolSpecD.restore",
+        "Eq",
+        "Finset",
+        "List",
+        "Nat"
+      ],
+      "digest": "d5578790f6384e48e102842569efe2026525681bee5e6c85d26e298b84d45fd3",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose30:historical_geometry_restore_eq",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.HistoricalReads",
+      "type": [
+        "\u2200 {In Body : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire}",
+        "  {H : AvailableChain.FGCompose.FGHistoricalReads P.State Body} {Good : P.State \u2192 Prop},",
+        "  AvailableChain.FGCompose.FGHistoricalLaws R H Good \u2192",
+        "    \u2200 (st : P.State) (t : AvailableChain.Time),",
+        "      And (Eq (H.acceptedBodies (P.restore (P.durable st) t)) (H.acceptedBodies st))",
+        "        (Eq (H.acceptedBlocks (P.restore (P.durable st) t)) (H.acceptedBlocks st))"
+      ]
+    },
+    "AvailableChain.FGCompose.historical_lca_held": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "And",
+        "AvailableChain.Block",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGHistoricalLaws",
+        "AvailableChain.FGCompose.FGHistoricalReads",
+        "AvailableChain.FGCompose.FGHistoricalReads.acceptedBodies",
+        "AvailableChain.FGCompose.FGHistoricalReads.erase",
+        "AvailableChain.FGCompose.FGHistoricalReads.lca",
+        "AvailableChain.FGCompose.FGHistoricalReads.readBlock",
+        "AvailableChain.FGCompose.FGHistoricalReads.root",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "Eq",
+        "Exists",
+        "List",
+        "List.instMembership",
+        "Membership.mem",
+        "Nat",
+        "Option",
+        "Option.some"
+      ],
+      "digest": "cf5ed8f045e019dd001f5cd4898ac0a6c5237422248cb442a79bbc1fb5386970",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose19:historical_lca_held",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.HistoricalReads",
+      "type": [
+        "\u2200 {In Body : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire}",
+        "  {H : AvailableChain.FGCompose.FGHistoricalReads P.State Body} {Good : P.State \u2192 Prop},",
+        "  AvailableChain.FGCompose.FGHistoricalLaws R H Good \u2192",
+        "    \u2200 {st : P.State},",
+        "      Good st \u2192",
+        "        \u2200 {b c : Body},",
+        "          List.instMembership.mem (H.acceptedBodies st) b \u2192",
+        "            List.instMembership.mem (H.acceptedBodies st) c \u2192",
+        "              Exists fun d =>",
+        "                And (List.instMembership.mem (H.acceptedBodies st) d)",
+        "                  (And (Eq (H.erase d) (H.lca b c))",
+        "                    (Eq (H.readBlock st (H.root d)) (Option.some d)))"
+      ]
+    },
+    "AvailableChain.FGCompose.historical_parent_held": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "And",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGHistoricalLaws",
+        "AvailableChain.FGCompose.FGHistoricalReads",
+        "AvailableChain.FGCompose.FGHistoricalReads.acceptedBodies",
+        "AvailableChain.FGCompose.FGHistoricalReads.parent",
+        "AvailableChain.FGCompose.FGHistoricalReads.readBlock",
+        "AvailableChain.FGCompose.FGHistoricalReads.root",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "Eq",
+        "List",
+        "List.instMembership",
+        "Membership.mem",
+        "Nat",
+        "Option",
+        "Option.some"
+      ],
+      "digest": "ea64897d2c72e6eb94b88b5037de0ab2d33e55233cf259c978fe95124b7c44e5",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose22:historical_parent_held",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.HistoricalReads",
+      "type": [
+        "\u2200 {In Body : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire}",
+        "  {H : AvailableChain.FGCompose.FGHistoricalReads P.State Body} {Good : P.State \u2192 Prop},",
+        "  AvailableChain.FGCompose.FGHistoricalLaws R H Good \u2192",
+        "    \u2200 {st : P.State},",
+        "      Good st \u2192",
+        "        \u2200 {b : Body},",
+        "          List.instMembership.mem (H.acceptedBodies st) b \u2192",
+        "            And (List.instMembership.mem (H.acceptedBodies st) (H.parent b))",
+        "              (Eq (H.readBlock st (H.root (H.parent b))) (Option.some (H.parent b)))"
+      ]
+    },
+    "AvailableChain.FGCompose.historical_read_ambiguous": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.BlockId",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGHistoricalLaws",
+        "AvailableChain.FGCompose.FGHistoricalReads",
+        "AvailableChain.FGCompose.FGHistoricalReads.acceptedBodies",
+        "AvailableChain.FGCompose.FGHistoricalReads.readBlock",
+        "AvailableChain.FGCompose.FGHistoricalReads.root",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "Eq",
+        "List",
+        "List.instMembership",
+        "Membership.mem",
+        "Nat",
+        "Ne",
+        "Option",
+        "Option.none"
+      ],
+      "digest": "5ec43985ecf6abb877af5af0386a934b00024ecd931d100f7504165c2f4d8206",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose25:historical_read_ambiguous",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.HistoricalReads",
+      "type": [
+        "\u2200 {In Body : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire}",
+        "  {H : AvailableChain.FGCompose.FGHistoricalReads P.State Body} {Good : P.State \u2192 Prop},",
+        "  AvailableChain.FGCompose.FGHistoricalLaws R H Good \u2192",
+        "    \u2200 {st : P.State} {b c : Body},",
+        "      List.instMembership.mem (H.acceptedBodies st) b \u2192",
+        "        List.instMembership.mem (H.acceptedBodies st) c \u2192",
+        "          Eq (H.root b) (H.root c) \u2192 Ne b c \u2192 Eq (H.readBlock st (H.root b)) Option.none"
+      ]
+    },
+    "AvailableChain.FGCompose.historical_read_complete": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGHistoricalLaws",
+        "AvailableChain.FGCompose.FGHistoricalReads",
+        "AvailableChain.FGCompose.FGHistoricalReads.acceptedBodies",
+        "AvailableChain.FGCompose.FGHistoricalReads.readBlock",
+        "AvailableChain.FGCompose.FGHistoricalReads.root",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "Eq",
+        "List",
+        "List.instMembership",
+        "Membership.mem",
+        "Nat",
+        "Option",
+        "Option.some"
+      ],
+      "digest": "07cc21ca39a3e84cffe2b68fe68da61645dbf1304c5771d0bc95747460f5e3c1",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose24:historical_read_complete",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.HistoricalReads",
+      "type": [
+        "\u2200 {In Body : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire}",
+        "  {H : AvailableChain.FGCompose.FGHistoricalReads P.State Body} {Good : P.State \u2192 Prop},",
+        "  AvailableChain.FGCompose.FGHistoricalLaws R H Good \u2192",
+        "    \u2200 {st : P.State},",
+        "      Good st \u2192",
+        "        \u2200 {b : Body},",
+        "          List.instMembership.mem (H.acceptedBodies st) b \u2192",
+        "            Eq (H.readBlock st (H.root b)) (Option.some b)"
+      ]
+    },
+    "AvailableChain.FGCompose.historical_read_frame_eq": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.BlockId",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGHistoricalLaws",
+        "AvailableChain.FGCompose.FGHistoricalReads",
+        "AvailableChain.FGCompose.FGHistoricalReads.acceptedBodies",
+        "AvailableChain.FGCompose.FGHistoricalReads.readBlock",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "Eq",
+        "List",
+        "Nat",
+        "Option"
+      ],
+      "digest": "15761c28027b97ba3fc6a8afb4cb6bf3138cfb1f5842885ba12a995b35005e17",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose24:historical_read_frame_eq",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.HistoricalReads",
+      "type": [
+        "\u2200 {In Body : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire}",
+        "  {H : AvailableChain.FGCompose.FGHistoricalReads P.State Body} {Good : P.State \u2192 Prop},",
+        "  AvailableChain.FGCompose.FGHistoricalLaws R H Good \u2192",
+        "    \u2200 {st st' : P.State},",
+        "      Eq (H.acceptedBodies st) (H.acceptedBodies st') \u2192",
+        "        \u2200 (r : AvailableChain.BlockId), Eq (H.readBlock st r) (H.readBlock st' r)"
+      ]
+    },
+    "AvailableChain.FGCompose.historical_read_restore_eq": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.BlockId",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGHistoricalLaws",
+        "AvailableChain.FGCompose.FGHistoricalReads",
+        "AvailableChain.FGCompose.FGHistoricalReads.readBlock",
+        "AvailableChain.Time",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "AvailableChain.V2.ProtocolSpecD.durable",
+        "AvailableChain.V2.ProtocolSpecD.restore",
+        "Eq",
+        "Nat",
+        "Option"
+      ],
+      "digest": "dc8d8640b960747794aeb995b52ba1d7cbfeacfc4d1eb743b39c236c3277bcf1",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose26:historical_read_restore_eq",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.HistoricalReads",
+      "type": [
+        "\u2200 {In Body : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire}",
+        "  {H : AvailableChain.FGCompose.FGHistoricalReads P.State Body} {Good : P.State \u2192 Prop},",
+        "  AvailableChain.FGCompose.FGHistoricalLaws R H Good \u2192",
+        "    \u2200 (st : P.State) (t : AvailableChain.Time) (r : AvailableChain.BlockId),",
+        "      Eq (H.readBlock (P.restore (P.durable st) t) r) (H.readBlock st r)"
+      ]
+    },
+    "AvailableChain.FGCompose.historical_read_sound": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "And",
+        "AvailableChain.BlockId",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGHistoricalLaws",
+        "AvailableChain.FGCompose.FGHistoricalReads",
+        "AvailableChain.FGCompose.FGHistoricalReads.acceptedBodies",
+        "AvailableChain.FGCompose.FGHistoricalReads.readBlock",
+        "AvailableChain.FGCompose.FGHistoricalReads.root",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "Eq",
+        "List",
+        "List.instMembership",
+        "Membership.mem",
+        "Nat",
+        "Option",
+        "Option.some"
+      ],
+      "digest": "dabf6268f230e25b73c65ca01285b012de06c50ed5e1e94e8b70c0a5670f7feb",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose21:historical_read_sound",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.HistoricalReads",
+      "type": [
+        "\u2200 {In Body : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire}",
+        "  {H : AvailableChain.FGCompose.FGHistoricalReads P.State Body} {Good : P.State \u2192 Prop},",
+        "  AvailableChain.FGCompose.FGHistoricalLaws R H Good \u2192",
+        "    \u2200 {st : P.State} {r : AvailableChain.BlockId} {b : Body},",
+        "      Eq (H.readBlock st r) (Option.some b) \u2192",
+        "        And (List.instMembership.mem (H.acceptedBodies st) b) (Eq (H.root b) r)"
+      ]
+    },
+    "AvailableChain.FGCompose.historical_read_step": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.BlockId",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGHistoricalLaws",
+        "AvailableChain.FGCompose.FGHistoricalReads",
+        "AvailableChain.FGCompose.FGHistoricalReads.readBlock",
+        "AvailableChain.FGCompose.FGHistoryStep",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "Eq",
+        "Nat",
+        "Option",
+        "Option.some"
+      ],
+      "digest": "7b999cf827d24823bed49b5b76c12e9ad5cbbf343f3394c847c0c22fea4ad18f",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose20:historical_read_step",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.HistoricalReads",
+      "type": [
+        "\u2200 {In Body : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire}",
+        "  {H : AvailableChain.FGCompose.FGHistoricalReads P.State Body} {Good : P.State \u2192 Prop},",
+        "  AvailableChain.FGCompose.FGHistoricalLaws R H Good \u2192",
+        "    \u2200 {st st' : P.State},",
+        "      AvailableChain.FGCompose.FGHistoryStep P st st' \u2192",
+        "        Good st' \u2192",
+        "          \u2200 {r : AvailableChain.BlockId} {b : Body},",
+        "            Eq (H.readBlock st r) (Option.some b) \u2192",
+        "              Eq (H.readBlock st' r) (Option.some b)"
       ]
     },
     "AvailableChain.FGCompose.historical_transfer_horizon": {
@@ -40656,6 +42362,25 @@
         ""
       ]
     },
+    "Finset.image": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "DecidableEq",
+        "Finset",
+        "Finset.val",
+        "Multiset.map",
+        "Multiset.toFinset"
+      ],
+      "digest": "50f06a2913e736dfee15758ff562f19e14b3ea171ade46dedc9ad5db6d8c9253",
+      "kernel_name": "str:2:29:str:2:12:anonymous:0:6:Finset5:image",
+      "kind": "def",
+      "module": "Mathlib.Data.Finset.Image",
+      "type": [
+        ""
+      ]
+    },
     "Finset.instEmptyCollection": {
       "body": [
         ""
@@ -45353,6 +47078,85 @@
         ""
       ]
     },
+    "List.eraseDups": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "BEq",
+        "BEq.beq",
+        "List",
+        "List.eraseDupsBy"
+      ],
+      "digest": "188b2bccd5136ea20296ae35e4714e1b6e880be8da95112838c75ccc61b969c5",
+      "kernel_name": "str:2:27:str:2:12:anonymous:0:4:List9:eraseDups",
+      "kind": "def",
+      "module": "Init.Data.List.Basic",
+      "type": [
+        ""
+      ]
+    },
+    "List.eraseDupsBy": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "Bool",
+        "List",
+        "List.eraseDupsBy.loop",
+        "List.nil"
+      ],
+      "digest": "5e72ad6360aa7a61cbaba7022b13ab25969f3ac016d97dc0baa467d17007af2c",
+      "kernel_name": "str:2:27:str:2:12:anonymous:0:4:List11:eraseDupsBy",
+      "kind": "def",
+      "module": "Init.Data.List.Basic",
+      "type": [
+        ""
+      ]
+    },
+    "List.eraseDupsBy.loop": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "Bool",
+        "List",
+        "List.brecOn",
+        "List.eraseDupsBy.loop._f"
+      ],
+      "digest": "d3659e07f86fbfb046ebc5d044c63b9a6f28be241af39c7a1489521cd35ed253",
+      "kernel_name": "str:2:50:str:2:27:str:2:12:anonymous:0:4:List11:eraseDupsBy4:loop",
+      "kind": "def",
+      "module": "Init.Data.List.Basic",
+      "type": [
+        ""
+      ]
+    },
+    "List.eraseDupsBy.loop._f": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "Bool",
+        "List",
+        "List.any",
+        "List.below",
+        "List.cons",
+        "List.filter.match_1",
+        "List.nil",
+        "List.reverse",
+        "List.reverseAux.match_1",
+        "PProd",
+        "Unit"
+      ],
+      "digest": "7d85053f5ae6195b6667e7c548ab9a92eaf496742c220394dc8c2bbc6a527695",
+      "kernel_name": "str:2:65:str:2:50:str:2:27:str:2:12:anonymous:0:4:List11:eraseDupsBy4:loop2:_f",
+      "kind": "def",
+      "module": "Init.Data.List.Basic",
+      "type": [
+        ""
+      ]
+    },
     "List.filter": {
       "body": [
         ""
@@ -46895,6 +48699,78 @@
       "kernel_name": "str:2:27:str:2:12:anonymous:0:4:List3:rec",
       "kind": "rec",
       "module": "Init.Prelude",
+      "type": [
+        ""
+      ]
+    },
+    "List.reverse": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "List",
+        "List.nil",
+        "List.reverseAux"
+      ],
+      "digest": "697856c006aaa29e73927de19cb9699edf0889aba8bef0ae69120ef94dc7a8ae",
+      "kernel_name": "str:2:27:str:2:12:anonymous:0:4:List7:reverse",
+      "kind": "def",
+      "module": "Init.Data.List.Basic",
+      "type": [
+        ""
+      ]
+    },
+    "List.reverseAux": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "List",
+        "List.brecOn",
+        "List.reverseAux._f"
+      ],
+      "digest": "6193fcc26b327447b24f67639e2beb213ccd05ad4e3d5d27d25a4beb0d726afc",
+      "kernel_name": "str:2:27:str:2:12:anonymous:0:4:List10:reverseAux",
+      "kind": "def",
+      "module": "Init.Data.List.Basic",
+      "type": [
+        ""
+      ]
+    },
+    "List.reverseAux._f": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "List",
+        "List.below",
+        "List.cons",
+        "List.nil",
+        "List.reverseAux.match_1",
+        "PProd"
+      ],
+      "digest": "cfdd1d7053b0eeb74f525f01d28d4918db2e26282a3a55c62a8949a3d08ef1b9",
+      "kernel_name": "str:2:49:str:2:27:str:2:12:anonymous:0:4:List10:reverseAux2:_f",
+      "kind": "def",
+      "module": "Init.Data.List.Basic",
+      "type": [
+        ""
+      ]
+    },
+    "List.reverseAux.match_1": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "List",
+        "List.casesOn",
+        "List.cons",
+        "List.nil"
+      ],
+      "digest": "942ef432077584a33a65f9e6e431095a13640b750cd637de2d72d497b01a1643",
+      "kernel_name": "str:2:49:str:2:27:str:2:12:anonymous:0:4:List10:reverseAux7:match_1",
+      "kind": "def",
+      "module": "Init.Data.List.Basic",
       "type": [
         ""
       ]
