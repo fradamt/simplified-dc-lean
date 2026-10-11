@@ -64,3 +64,7 @@ F-3 AvailableChain.FGSA.contentAgree_projection
 
 # AUTHORIZED EXCEPTION: WC plan r2 §5 pure crossing adapter (explicit two-chain root identity; run callers discharge it from named scope), lead ruling 2026-10-05
 F-3 AvailableChain.KitFG.finalizedOccurrence_preceq_of_crossing
+# P0 generic homes of the allowed frozen FG-SA copies above (same premise; lead ruling 2026-10-11, plan v3 §1).
+F-3 AvailableChain.KitFG.Window.window_exists_crossing_quorum_ne_justified
+F-3 AvailableChain.KitFG.Window.window_exists_honest_timeout_of_crossing
+F-3 AvailableChain.KitFG.Window.store_window_pair_iff
