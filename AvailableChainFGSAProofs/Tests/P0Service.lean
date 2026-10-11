@@ -222,6 +222,90 @@ private theorem c2g0_row_eq (j : Nat) (y : V) (r : Nat) (a : RowWire p.n) :
   rw [fgsaSafetyReads_def]
   rfl
 
+-- Local adapters preserve the exact signed wire and the Node-to-State reads.
+private def c2g0_carrier (p : Params) (o : Obj p) (_ : Slot) (Q : Block)
+    (rows : List (RowWire p.n)) : Prop :=
+  ∃ N, o.payload = .proposal N ∧ N.erase = Q ∧ N.rows = rows
+
+private theorem c2g0_carrier_eq (s : Slot) (Q : Block) (rows : List (RowWire p.n)) :
+    FGCompose.HonestCarrier E rho (fgsaInterface p c) (c2g0_carrier p) s Q rows =
+      HonestCarrier p c E rho s Q rows := by
+  simp only [FGCompose.HonestCarrier, HonestCarrier, c2g0_carrier,
+    FGCompose.HonestProposal, HonestProposal, exists_and_left]
+  rfl
+
+private theorem c2g0_held_before_eq (x : V) (a : RowWire p.n) (d : Time) :
+    FGCompose.HeldBefore (fgsaCoreReads p c) E rho
+      (fun nd => FGSA.blockWireRows nd.st) x a d = HeldBefore p c E rho x a d := by
+  rw [fgsaCoreReads_def]
+  rfl
+
+private theorem c2g0_held_proposal_eq (s : Slot) (a : RowWire p.n) :
+    FGCompose.heldAtProposal (fgsaCoreReads p c) E rho (fgsaInterface p c)
+      (fun nd => FGSA.blockWireRows nd.st) s a = heldAtProposal p c E rho s a := by
+  rw [fgsaCoreReads_def]
+  apply propext
+  constructor
+  · rintro ⟨nd, hread, hrow⟩
+    exact ⟨nd.st, Option.map_eq_some_iff.mpr ⟨nd, hread, rfl⟩, hrow⟩
+  · rintro ⟨st, hread, hrow⟩
+    obtain ⟨nd, hnd, rfl⟩ := Option.map_eq_some_iff.mp hread
+    exact ⟨nd, hnd, hrow⟩
+
+private theorem c2g0_parent_chain_eq (s : Slot) (Q : Block) (a : RowWire p.n) :
+    FGCompose.onParentChain E rho (fgsaInterface p c)
+      (fun nd => FGSA.chainWireRows nd.st) s Q a = onParentChain p c E rho s Q a := by
+  apply propext
+  constructor
+  · rintro ⟨nd, hread, hrow⟩
+    exact ⟨nd.st, Option.map_eq_some_iff.mpr ⟨nd, hread, rfl⟩, hrow⟩
+  · rintro ⟨st, hread, hrow⟩
+    obtain ⟨nd, hnd, rfl⟩ := Option.map_eq_some_iff.mp hread
+    exact ⟨nd, hnd, hrow⟩
+
+private theorem c2g0_valid_parent_eq (s : Slot) (Q : Block) (a : RowWire p.n) :
+    FGCompose.ValidForParent E rho (fgsaInterface p c) (fun nd => FGSA.fgBlockOf nd.st)
+      (fun _ s H => Window.rowValidW (parentFoldState p s H)) s Q a =
+      ValidForParent p c E rho s Q a := by
+  apply propext
+  constructor
+  · rintro ⟨nd, H, hread, hparent, hrow⟩
+    exact ⟨nd.st, H, Option.map_eq_some_iff.mpr ⟨nd, hread, rfl⟩, hparent, hrow⟩
+  · rintro ⟨st, H, hread, hparent, hrow⟩
+    obtain ⟨nd, hnd, rfl⟩ := Option.map_eq_some_iff.mp hread
+    exact ⟨nd, H, hnd, hparent, hrow⟩
+
+private theorem c2g0_rows_select (h : TRowsSelect p c E rho) :
+    FGCompose.TRowsSelect (fgsaCoreReads p c) (fgsaSafetyReads p c) E rho (c2g0_timing p)
+      (fgsaInterface p c) (c2g0_carrier p) (fun nd => FGSA.chainWireRows nd.st)
+      (fun nd => FGSA.blockWireRows nd.st) (fun nd => FGSA.fgBlockOf nd.st)
+      (fun _ s H => Window.rowValidW (parentFoldState p s H)) := by
+  simpa only [FGCompose.TRowsSelect, TRowsSelect, c2g0_carrier_eq, c2g0_row_eq,
+    c2g0_valid_parent_eq, c2g0_held_proposal_eq, c2g0_parent_chain_eq] using h
+
+private theorem c2g0_rows_sync (deltaF : Time) (h : TRowsSync p c E rho deltaF) :
+    FGCompose.TRowsSync (fgsaCoreReads p c) (fgsaSafetyReads p c) E rho (c2g0_timing p)
+      (fgsaInterface p c) (c2g0_carrier p) (fun nd => FGSA.chainWireRows nd.st)
+      (fun nd => FGSA.blockWireRows nd.st) (fun nd => FGSA.fgBlockOf nd.st)
+      (fun _ s H => Window.rowValidW (parentFoldState p s H)) deltaF := by
+  simp only [FGCompose.TRowsSync, c2g0_carrier_eq, c2g0_row_eq,
+    c2g0_valid_parent_eq, c2g0_held_before_eq, c2g0_parent_chain_eq]
+  simpa only [TRowsSync, c2g0_timing] using h
+
+private theorem c2g0_rows_receipt (deltaF : Time) (h : TRowsReceipt p c E rho deltaF) :
+    FGCompose.TRowsReceipt (fgsaCoreReads p c) (fgsaSafetyReads p c) E rho (c2g0_timing p)
+      (fun nd => FGSA.blockWireRows nd.st) deltaF := by
+  simp only [FGCompose.TRowsReceipt, c2g0_row_eq, c2g0_held_before_eq]
+  simpa only [TRowsReceipt, c2g0_timing] using h
+
+-- HoldsBefore retains a cut whose original event time is strictly below d.
+private theorem c2g0_receipt_strict (x : V) (a : RowWire p.n) (d : Time) :
+    FGCompose.HeldBefore (fgsaCoreReads p c) E rho
+      (fun nd => FGSA.blockWireRows nd.st) x a d ↔
+      Gen.V2.Duty.HoldsBefore E rho (fun nd => rowHeld p nd.st a) d x := by
+  rw [c2g0_held_before_eq]
+  rfl
+
 private theorem c2g0_height_row_eq (r h : Nat) :
     FGCompose.HeightRow (fgsaSafetyReads p c) E rho (c2g0_timing p)
       (fun a => FGCompose.namedEntry a.payload.height_pair) r h =
@@ -275,6 +359,20 @@ private theorem c2g0_bounds (deltaF G allowance : Time) (r : Nat) :
     FGCompose.carrierTimeW (c2g0_timing p) deltaF r = carrierTimeW p deltaF r ∧
     FGCompose.kernelDeadlineW (c2g0_timing p) deltaF r = kernelDeadlineW p deltaF r := by
   exact ⟨rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl⟩
+
+-- The old kernel also takes hδ explicitly; Params alone does not fix δt.
+private theorem c2g0_kernel [Fintype V] {G deltaF : Time} {pt : KernelPt}
+    (hK : KernelPrem_W p c G deltaF E rho pt) (hδ : p.δt = 2 * p.R) :
+    FGCompose.KernelPrem_W (c2g0_timing p) deltaF rho.horizon (c2g0_point p pt.w)
+      ⟨pt.r⟩ (Gen.V2.Duty.HonestSlot rho (fgsaInterface p c))
+      p.E.q (p.E.weightOf (honestSeats p c rho)) p.δt p.K_W where
+  bound := ⟨hK.bound.kappa_le_R⟩
+  window := hK.window
+  start := hK.start
+  hhor := hK.hhor
+  honest_quorum := kmid_honest_quorum p c rho hK.set.base.linked hK.set.fault
+  timeout_eq := hδ
+  capacity_ge := p.kWLarge
 
 private theorem c2g0_reset_before_start (w : HealingWitness) (h : H0 p c E rho w) :
     p.actionTime w.rStar < (c2g0_point p w).serviceStart := by
@@ -602,6 +700,12 @@ private theorem c2g0_result_iff (deltaF : Time) (r : Nat) :
   simp only [FGCompose.KernelConclusion_W, KernelConclusion_W_def, c2g0_opening_iff,
     c2g0_timing, c2g0_observations, fgsaCoreReads_def]
   rfl
+
+#print axioms c2g0_kernel
+#print axioms c2g0_rows_select
+#print axioms c2g0_rows_sync
+#print axioms c2g0_rows_receipt
+#print axioms c2g0_receipt_strict
 
 #print axioms c2g0_consumer_input
 #print axioms c2g0_consumer_scope
