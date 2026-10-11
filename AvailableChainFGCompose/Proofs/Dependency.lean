@@ -153,6 +153,17 @@ theorem dependency_read_completion {i st} (read : Read x i st) :
   exact ⟨j, e, kind, event, required, rfl, lo, hi, state_eq ▸ steps, closed⟩
 
 include traceLaws in
+/-- A hook read consumes its executed command's cut, after the actual entry segment. -/
+theorem dependency_hook_read_completion {j e index kind cut st}
+    (event : rho.events[j]? = some e) (read : T.hookRead j index kind cut st) :
+    T.entryCut j ≤ cut ∧ cut ≤ T.done j ∧ T.state cut = st ∧
+    FGDependencySteps Step x (T.state (T.entryCut j)) st ∧ dependencyClosed H D st := by
+  obtain ⟨r, member, _, rfl, rfl⟩ :=
+    (traceLaws.hook_correspondence j e index kind cut st event).mp read
+  have completed := traceLaws.hook_reads j e r event (List.mem_of_getElem? member)
+  exact ⟨Nat.le_add_right _ _, completed⟩
+
+include traceLaws in
 theorem dependency_accepted_origin_bridge {i st b} (read : Read x i st)
     (accepted : D.accepted st b) (nonGenesis : b ≠ L.genesis) : ∃ o,
     FGReceiptOrigin E rho H W x b o ∧
