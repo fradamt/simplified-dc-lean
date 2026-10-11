@@ -704,6 +704,12 @@ COMPOSE_EDGES |= frozenset({
     ('AvailableChainPCSAProofs.Proofs.Foundations.FGSafetyBridge', 'AvailableChainFGCompose.Proofs.SafetySlashing'),
 })
 
+# P0a: exact restart facade modules and the private FG-SA wrapper edge.
+COMPOSE_MODULES += (COMPOSE + ".Statements.Restart", COMPOSE + ".Proofs.Restart")
+COMPOSE_EDGES |= frozenset({
+    (PROOFS + ".Proofs.Finality.MiddleSupport", COMPOSE + ".Proofs.Restart"),
+})
+
 
 def compose_base(dep: str) -> bool:
     return (foundation(dep) or under(dep, "AvailableChainModel.Objects")

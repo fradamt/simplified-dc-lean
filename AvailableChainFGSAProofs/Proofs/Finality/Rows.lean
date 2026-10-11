@@ -19,12 +19,10 @@ private theorem rows_clock_read (x : V) (t : Time) (nd : Node p)
     (hnd : postClock E rho x t = some nd) :
     ∃ j, rho.events[j]? = some (.tick x t) ∧
       (fgsa p c).clock (V2.D.Run.stateBefore E rho j x) t = nd := by
-  rw [postClock_def, preTick_def] at hnd
-  cases hj : V2.D.Run.tickIdx? rho x t with
-  | none => rw [hj] at hnd; cases hnd
-  | some j =>
-      rw [hj] at hnd
-      exact ⟨j, V2.D.Run.tickIdx?_spec hj, Option.some.inj hnd⟩
+  have hnd' : FGCompose.postClock E rho x t = some nd := by
+    rw [← (fgsa_eventReads_eq_compose E rho x t).2.2.2.2.2.1]
+    exact hnd
+  exact FGCompose.postClock_tick E rho hnd'
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Paper 22:1228–1254: the full action walk covers D and keeps the pending fields.

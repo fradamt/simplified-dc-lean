@@ -1,6 +1,7 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Shared.FGCompose
 public import AvailableChainFGCompose.Proofs.SourceHead
+public import AvailableChainFGCompose.Proofs.Restart
 public import AvailableChainFGSAProofs.Proofs.Finality.RecoveryScope
 public import AvailableChainFGSAProofs.Proofs.Finality.TickRead
 public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowthProposal
@@ -411,6 +412,29 @@ theorem kmid_source_held_at_tick (hs : V2.D.ScheduleWellFormed E rho) {x : V} {r
     rw [FGSA.clock_fg] at hm
     exact ⟨i, hj, kmid_tick_lt_afterTicks p c E rho hs hj le_rfl, hx, hm⟩
 
+omit [Fintype V] in
+private theorem kmid_tree_restore : FGCompose.FGTreeRestoreLaws (fgsaCoreReads p c) := by
+  constructor
+  intro nd t
+  rw [fgsaCoreReads_def]
+  exact congrArg (fun st => st.TF) (acRestart_fg p nd.st t)
+
+omit [Fintype V] in
+private theorem kmid_tree_keep : FGCompose.FGTreeKeepLaws (fgsaCoreReads p c) := by
+  constructor
+  intro nd t
+  rw [(kmid_tree_restore p c).restart_eq]
+
+omit [Fintype V] in
+private theorem kmid_head_read {v : Slot} {X : FGBlock (Fin p.n)}
+    (hex : ExactService p c E rho v (eraseFG X))
+    (hh : SA.voteTime p.toParams v ≤ rho.horizon) (x : V) (hx : x ∈ rho.honest)
+    (hjoined : joinedAt p E rho x v (SA.voteTime p.toParams v)) :
+    (FGCompose.postClock E rho x (SA.voteTime p.toParams v)).map
+      (fun nd => (fgsaCoreReads p c).headVote nd v) = some ((fgsaCoreReads p c).erase X) := by
+  rw [fgsaCoreReads_def, ← (fgsa_eventReads_eq_compose E rho x _).2.2.2.2.2.1]
+  exact hex.1 hh x hx hjoined
+
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 FINAL 22:954–956,1226. The exact HEAD read gives raw chain rows before a later cut.
 DC: INTENTIONAL: an actual honest strict-before read holds every carrier. -/
@@ -420,14 +444,11 @@ theorem kmid_chainRows_of_head (hs : V2.D.ScheduleWellFormed E rho)
     (hjoined : joinedAt p E rho x v (SA.voteTime p.toParams v))
     (cut : Time) (hcut : SA.voteTime p.toParams v < cut) :
     ChainRowsBefore p c E rho X cut := by
-  obtain ⟨i, hi, hX⟩ := kmid_head_held p c E rho hex hh x hx hjoined
-  intro W hW _row _hrow
-  refine ⟨x, SA.voteTime p.toParams v, hx, hcut, ?_⟩
-  have hanc := KitFG.ancestor_closed_of_parent_closed _
-    (cstoreInv_stateBefore E rho i x).fg.closed X hX W hW
-  rw [Gen.V2.Duty.HoldsBefore_def]
-  rw [← finality_joined_tick_read p c E rho hs hi hjoined]
-  exact hanc
+  have h := FGCompose.chainRows_of_head_all (fgsaCoreReads p c) E rho (fgsaCoreLaws p c)
+    (fgsaHeadLaws p c E rho) hs (kmid_tree_restore p c) hx
+    (kmid_head_read p c E rho hex hh x hx hjoined) cut hcut
+  rw [FGCompose.ChainRowsBefore_def, fgsaCoreReads_def] at h
+  exact h
 
 omit [Fintype V] in
 /-- The joined HEAD target remains in durable storage at each later cut. -/
@@ -437,9 +458,11 @@ theorem kmid_head_held_from (hs : V2.D.ScheduleWellFormed E rho)
     (hjoined : joinedAt p E rho x v (SA.voteTime p.toParams v))
     (k : Nat) (t : Time) (ht : SA.voteTime p.toParams v ≤ t) (hk : afterTicksIdx rho t ≤ k) :
     X ∈ (storeAt p c E rho k x).fg.TF := by
-  obtain ⟨i, hi, hX⟩ := kmid_head_held p c E rho hex hh x hx hjoined
-  exact (fgsa_store_durable p c E rho
-    ((kmid_tick_lt_afterTicks p c E rho hs hi ht).le.trans hk) x).1 hX
+  have h := FGCompose.head_held_from_all (fgsaCoreReads p c) E rho (fgsaCoreLaws p c)
+    (fgsaHeadLaws p c E rho) hs (kmid_tree_keep p c)
+    (kmid_head_read p c E rho hex hh x hx hjoined) k t ht hk
+  rw [FGCompose.TFAt_def, fgsaCoreReads_def] at h
+  exact h
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 FINAL 22:948–958. Linked unit-weight seats bound the faulty weight.

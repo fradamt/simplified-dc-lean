@@ -93,6 +93,7 @@
       "AvailableChainFGCompose.Statements.EventReads",
       "AvailableChainFGCompose.Statements.CoreReads",
       "AvailableChainFGCompose.Proofs.SourceHead",
+      "AvailableChainFGCompose.Proofs.Restart",
       "AvailableChainFGCompose.Statements.SafetyClient",
       "AvailableChainFGCompose.Statements.SafetyStore",
       "AvailableChainFGCompose.Proofs.SafetyAccountable",

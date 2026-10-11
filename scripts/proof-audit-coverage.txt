@@ -2,6 +2,18 @@
 # Review changes. Normal checks never regenerate this file.
 {
     'AvailableChainFGCompose.Tests.Axioms': {
+        'AvailableChainFGCompose.Statements.Restart': (
+            'AvailableChain.FGCompose.FGTreeKeepLaws',
+            'AvailableChain.FGCompose.FGTreeKeepLaws.restart_keep',
+            'AvailableChain.FGCompose.FGTreeRestoreLaws',
+            'AvailableChain.FGCompose.FGTreeRestoreLaws.restart_eq',
+        ),
+        'AvailableChainFGCompose.Proofs.Restart': (
+            'AvailableChain.FGCompose.tf_cumulative_all',
+            'AvailableChain.FGCompose.head_held_from_all',
+            'AvailableChain.FGCompose.tf_before_tick_eq_beforeTime',
+            'AvailableChain.FGCompose.chainRows_of_head_all',
+        ),
         'AvailableChainFGCompose.Proofs.SourceHead': (
             'AvailableChain.FGCompose.action_source_capped',
             'AvailableChain.FGCompose.chainRows_of_head',
@@ -84,10 +96,14 @@
             'AvailableChain.FGCompose.safety_record_fold',
         ),
         'AvailableChainFGCompose.Proofs.SafetyCount': (
+            'AvailableChain.FGCompose.safety_fault_count_bound_lt',
+            'AvailableChain.FGCompose.safety_slashable_fg_faulty_count',
+            'AvailableChain.FGCompose.safety_fault_count_bound_fg_lt',
             'AvailableChain.FGCompose.safety_fault_count_bound',
             'AvailableChain.FGCompose.safety_slashable_faulty_count',
         ),
         'AvailableChainFGCompose.Proofs.SafetyMonotone': (
+            'AvailableChain.FGCompose.safety_finalized_monotone_all',
             'AvailableChain.FGCompose.safety_F_mono',
             'AvailableChain.FGCompose.safety_F_mono_all',
             'AvailableChain.FGCompose.safety_finalized_monotone',
