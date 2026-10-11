@@ -583,6 +583,7 @@
     'AvailableChain.FGCompose.healing_phase_order_of_crossing_all',
     'AvailableChain.FGCompose.healing_phase_top_persist',
     'AvailableChain.FGCompose.healing_phase_top_persist_all',
+    'AvailableChain.FGCompose.healing_phase_head_inclusion',
     'AvailableChain.FGCompose.healing_phase_window_all',
     'AvailableChain.FGCompose.healing_settle_start_on',
     'AvailableChain.FGCompose.phase_settle_from_carriers',

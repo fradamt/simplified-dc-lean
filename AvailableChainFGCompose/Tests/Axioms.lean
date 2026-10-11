@@ -414,3 +414,5 @@ public import AvailableChainFGCompose.Proofs.Healing.PhaseSettle -- shake: keep 
 #print axioms AvailableChain.FGCompose.healing_settle_start_on
 #print axioms AvailableChain.FGCompose.phase_settle_from_carriers
 #print axioms AvailableChain.FGCompose.phase_top_carrier
+
+#print axioms AvailableChain.FGCompose.healing_phase_head_inclusion

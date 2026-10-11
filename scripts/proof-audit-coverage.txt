@@ -43,6 +43,7 @@
             'AvailableChain.FGCompose.healing_phase_top_persist_all',
         ),
         'AvailableChainFGCompose.Proofs.Healing.PhaseSettle': (
+            'AvailableChain.FGCompose.healing_phase_head_inclusion',
             'AvailableChain.FGCompose.healing_phase_window_all',
             'AvailableChain.FGCompose.healing_settle_start_on',
             'AvailableChain.FGCompose.phase_settle_from_carriers',
