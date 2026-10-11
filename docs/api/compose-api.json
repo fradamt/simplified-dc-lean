@@ -465,6 +465,36 @@
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.CoreReads"
     },
+    "AvailableChain.FGCompose.FGTreeKeepLaws": {
+      "digest": "65b82d758afd8e1fe3f7a5bdfea75865f221c8f49fe5a541383755bbb69fc207",
+      "kind": "structure",
+      "module": "AvailableChainFGCompose.Statements.Restart"
+    },
+    "AvailableChain.FGCompose.FGTreeKeepLaws.mk": {
+      "digest": "65b82d758afd8e1fe3f7a5bdfea75865f221c8f49fe5a541383755bbb69fc207",
+      "kind": "ctor",
+      "module": "AvailableChainFGCompose.Statements.Restart"
+    },
+    "AvailableChain.FGCompose.FGTreeKeepLaws.restart_keep": {
+      "digest": "b2a231f6541349c02fe2e4dfee8dfb754ff0311a87c787b4cf266267399a8612",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.Restart"
+    },
+    "AvailableChain.FGCompose.FGTreeRestoreLaws": {
+      "digest": "573c1ddc214ac43268642e993f21743c5946f967a421008100c1321f7a621d16",
+      "kind": "structure",
+      "module": "AvailableChainFGCompose.Statements.Restart"
+    },
+    "AvailableChain.FGCompose.FGTreeRestoreLaws.mk": {
+      "digest": "573c1ddc214ac43268642e993f21743c5946f967a421008100c1321f7a621d16",
+      "kind": "ctor",
+      "module": "AvailableChainFGCompose.Statements.Restart"
+    },
+    "AvailableChain.FGCompose.FGTreeRestoreLaws.restart_eq": {
+      "digest": "00403451b2fcd556827eed2f75b63bd94e7ec79cd0add016d5461533a21d3df3",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.Restart"
+    },
     "AvailableChain.FGCompose.SafetyWholeAccountable": {
       "digest": "355467e2f6b876629f80eebb809edadcff7e9fa865379a681ab848f3a98723b5",
       "kind": "def",
@@ -770,6 +800,11 @@
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Proofs.SourceHead"
     },
+    "AvailableChain.FGCompose.chainRows_of_head_all": {
+      "digest": "aa5ef7268217e650a3e5196745d3bdace97ce32b89bed49c579b9ec6e3495669",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.Restart"
+    },
     "AvailableChain.FGCompose.cutPred": {
       "digest": "f6c2ca1919b09ffcc5ef47304a28956b81b2a44c4b69e895b890c978649e6bb9",
       "kind": "def",
@@ -789,6 +824,11 @@
       "digest": "ca42a64f7c9c2311617dfc62591f178e27531558dc4a3e47e2c51184af60b3fe",
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Proofs.SourceHead"
+    },
+    "AvailableChain.FGCompose.head_held_from_all": {
+      "digest": "e797eb89b876e129292a60adc01ce5796a0db5cf1843bdc98c3a8157fb65e060",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.Restart"
     },
     "AvailableChain.FGCompose.postClock": {
       "digest": "c69fdb6d0eb30e0dfa36e4839b94c5ae3eb8a1162e7e99470ef5ce1b621894aa",
@@ -995,8 +1035,23 @@
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Proofs.SafetyCount"
     },
+    "AvailableChain.FGCompose.safety_fault_count_bound_fg_lt": {
+      "digest": "181c687b8eef2d3fca4e96d0327727dbd2516f580269cd24f2b486d62ac53fd3",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.SafetyCount"
+    },
+    "AvailableChain.FGCompose.safety_fault_count_bound_lt": {
+      "digest": "30842a83ecb5e42efe15b30c2778cbbe8f378743fd4402ef128ea87648e8f517",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.SafetyCount"
+    },
     "AvailableChain.FGCompose.safety_finalized_monotone": {
       "digest": "31f9992a0d99192cfdd2cf8173e24a5022764b3150732564eff938b41d6cc6bc",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.SafetyMonotone"
+    },
+    "AvailableChain.FGCompose.safety_finalized_monotone_all": {
+      "digest": "49e0233710d4043ab96e7078a4922c0af53f45dc6c967a642c2092bba1e34fd7",
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Proofs.SafetyMonotone"
     },
@@ -1090,6 +1145,11 @@
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Proofs.SafetyCount"
     },
+    "AvailableChain.FGCompose.safety_slashable_fg_faulty_count": {
+      "digest": "79714e2591ca5f9ba1d6272be149ab43bfd57dba212da5395b867e8f16143ba6",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.SafetyCount"
+    },
     "AvailableChain.FGCompose.safety_store_accountable": {
       "digest": "d9a34c26e6ff192e46189e38d4374c474844988dff9afa7d9f4a7c956e26602c",
       "kind": "theorem",
@@ -1125,10 +1185,20 @@
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Proofs.SourceHead"
     },
+    "AvailableChain.FGCompose.tf_before_tick_eq_beforeTime": {
+      "digest": "2daa60884784f5bbe45fa63a8e9aa26d17b970a7b74b863e984baf5f74c02b5f",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.Restart"
+    },
     "AvailableChain.FGCompose.tf_cumulative": {
       "digest": "d83d927a9a400c3326a657f87be1307f13503a51d5fb919acb3b417c408a959e",
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Proofs.SourceHead"
+    },
+    "AvailableChain.FGCompose.tf_cumulative_all": {
+      "digest": "69dec348633b1a14f5ffdf39a3c39036af95c29093bcdd13f1153d59fbf243f5",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.Restart"
     },
     "AvailableChain.FGCompose.tick_lt_afterTicks": {
       "digest": "9f5babdf8c7102a77fd77301ab831be29fa575a5dbcdff769d8b4530854c22a6",
@@ -1252,6 +1322,7 @@
     "Singleton",
     "String",
     "Sub",
+    "Subsingleton",
     "ToString",
     "True",
     "UInt32",
@@ -1299,6 +1370,7 @@
     "instHasEquivOfSetoid",
     "instLENat",
     "instLTNat",
+    "instLawfulBEq",
     "instLeftCommutativeOfCommutativeOfAssociative",
     "instMinNat",
     "instMulNat",
@@ -1415,6 +1487,7 @@
     "EmptyCollection.emptyCollection",
     "EmptyCollection.mk",
     "Eq.ndrec",
+    "Eq.ndrecOn",
     "Eq.rec",
     "Eq.refl",
     "Eq.symm",
@@ -1451,7 +1524,9 @@
     "Fin.val_injective",
     "Finset.biUnion",
     "Finset.card",
+    "Finset.decidableMem",
     "Finset.empty",
+    "Finset.filter",
     "Finset.fold",
     "Finset.instEmptyCollection",
     "Finset.instInsert",
@@ -1638,7 +1713,9 @@
     "Multiset.bind",
     "Multiset.card",
     "Multiset.cons",
+    "Multiset.decidableMem",
     "Multiset.dedup",
+    "Multiset.filter",
     "Multiset.fold",
     "Multiset.foldr",
     "Multiset.instAdd",
@@ -1762,8 +1839,10 @@
     "Ordering.then",
     "PProd.mk",
     "PSigma.casesOn",
+    "PSigma.fst",
     "PSigma.mk",
     "PSigma.rec",
+    "PSigma.snd",
     "PUnit.ext",
     "PUnit.unit",
     "PartialOrder.le_antisymm",
@@ -1793,9 +1872,15 @@
     "Prop.instDistribLattice",
     "Prop.le",
     "Prop.partialOrder",
+    "Quot.indep",
+    "Quot.indepCoherent",
     "Quot.lift",
+    "Quot.liftIndepPr1",
     "Quot.liftOn",
     "Quot.mk",
+    "Quot.rec",
+    "Quot.recOnSubsingleton",
+    "Quot.sound",
     "Quotient.lift",
     "Quotient.liftOn₂",
     "Quotient.lift₂",
@@ -1838,6 +1923,7 @@
     "String.utf8EncodeChar",
     "Sub.mk",
     "Sub.sub",
+    "Subsingleton.intro",
     "Substring.Raw",
     "ToString.mk",
     "ToString.toString",
@@ -1905,6 +1991,8 @@
     "AvailableChain.FGCompose.FGSafetyUnitLaws",
     "AvailableChain.FGCompose.FGSafetyWireLaws",
     "AvailableChain.FGCompose.FGSourceService",
+    "AvailableChain.FGCompose.FGTreeKeepLaws",
+    "AvailableChain.FGCompose.FGTreeRestoreLaws",
     "AvailableChain.FGCompose.SafetyWholeAccountable",
     "AvailableChain.FGCompose.SafetyWholeAccountable_def",
     "AvailableChain.FGCompose.SafetyWholeAgreement",
@@ -1917,10 +2005,12 @@
     "AvailableChain.FGCompose.afterTicksIdx_def",
     "AvailableChain.FGCompose.afterTicks_def",
     "AvailableChain.FGCompose.chainRows_of_head",
+    "AvailableChain.FGCompose.chainRows_of_head_all",
     "AvailableChain.FGCompose.cutPred",
     "AvailableChain.FGCompose.cutPred_def",
     "AvailableChain.FGCompose.head_held",
     "AvailableChain.FGCompose.head_held_from",
+    "AvailableChain.FGCompose.head_held_from_all",
     "AvailableChain.FGCompose.postClock",
     "AvailableChain.FGCompose.postClock_def",
     "AvailableChain.FGCompose.postClock_tick",
@@ -1962,7 +2052,10 @@
     "AvailableChain.FGCompose.safety_emitted_noSlash",
     "AvailableChain.FGCompose.safety_event_agreement",
     "AvailableChain.FGCompose.safety_fault_count_bound",
+    "AvailableChain.FGCompose.safety_fault_count_bound_fg_lt",
+    "AvailableChain.FGCompose.safety_fault_count_bound_lt",
     "AvailableChain.FGCompose.safety_finalized_monotone",
+    "AvailableChain.FGCompose.safety_finalized_monotone_all",
     "AvailableChain.FGCompose.safety_good_readAt",
     "AvailableChain.FGCompose.safety_good_stateBefore",
     "AvailableChain.FGCompose.safety_honest_never_slashed",
@@ -1981,6 +2074,7 @@
     "AvailableChain.FGCompose.safety_run_accountable",
     "AvailableChain.FGCompose.safety_run_agreement",
     "AvailableChain.FGCompose.safety_slashable_faulty_count",
+    "AvailableChain.FGCompose.safety_slashable_fg_faulty_count",
     "AvailableChain.FGCompose.safety_store_accountable",
     "AvailableChain.FGCompose.safety_store_agreement",
     "AvailableChain.FGCompose.safety_stored_delivery",
@@ -1988,7 +2082,9 @@
     "AvailableChain.FGCompose.safety_stored_scope",
     "AvailableChain.FGCompose.source_height_entry",
     "AvailableChain.FGCompose.source_mem_TF",
+    "AvailableChain.FGCompose.tf_before_tick_eq_beforeTime",
     "AvailableChain.FGCompose.tf_cumulative",
+    "AvailableChain.FGCompose.tf_cumulative_all",
     "AvailableChain.FGCompose.tick_lt_afterTicks",
     "AvailableChain.FGCompose.timeIdx",
     "AvailableChain.FGCompose.timeIdx_def",
@@ -2076,6 +2172,7 @@
     "Fin.elim0.match_1",
     "Fin.foldr.loop",
     "Fin.ofNat._proof_1",
+    "Finset.filter._proof_1",
     "Finset.instInsert._proof_1",
     "Finset.instSDiff._proof_1",
     "Finset.instSetLike._proof_1",
@@ -2185,7 +2282,10 @@
     "Multiset.Nodup._proof_1",
     "Multiset.add._proof_1",
     "Multiset.cons._proof_1",
+    "Multiset.decidableMem._aux_1",
+    "Multiset.decidableMem._proof_1",
     "Multiset.dedup._proof_1",
+    "Multiset.filter._proof_1",
     "Multiset.instAddCancelCommMonoid._proof_1",
     "Multiset.instAddCancelCommMonoid._proof_2",
     "Multiset.instAddCancelCommMonoid._proof_3",
@@ -2269,6 +2369,7 @@
     "Prop.instDistribLattice._proof_3",
     "Prop.partialOrder._proof_1",
     "Prop.partialOrder._proof_2",
+    "Quot.recOnSubsingleton._proof_1",
     "Quotient.lift₂._proof_1",
     "Quotient.lift₂._proof_2",
     "Set.instDistribLattice._proof_1",
@@ -2372,6 +2473,10 @@
     "AvailableChain.FGCompose.FGSourceService.coveredSource",
     "AvailableChain.FGCompose.FGSourceService.mk",
     "AvailableChain.FGCompose.FGSourceService.openingSource",
+    "AvailableChain.FGCompose.FGTreeKeepLaws.mk",
+    "AvailableChain.FGCompose.FGTreeKeepLaws.restart_keep",
+    "AvailableChain.FGCompose.FGTreeRestoreLaws.mk",
+    "AvailableChain.FGCompose.FGTreeRestoreLaws.restart_eq",
     "AvailableChain.FGCompose.Tests.env",
     "AvailableChain.FGCompose.Tests.object",
     "AvailableChain.FGCompose.Tests.reads_after_ticks",
@@ -7103,6 +7208,198 @@
         "          (Eq (R.source nd) (Option.some D))"
       ]
     },
+    "AvailableChain.FGCompose.FGTreeKeepLaws": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGTreeKeepLaws",
+        "AvailableChain.FGCompose.FGTreeKeepLaws.mk",
+        "AvailableChain.V2.ProtocolSpecD",
+        "Nat"
+      ],
+      "digest": "7cb641639b5e9b0c25c4b35b6a19f4d3ccca38cd4121ec797f1180078524ffcc",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose14:FGTreeKeepLaws",
+      "kind": "structure",
+      "module": "AvailableChainFGCompose.Statements.Restart",
+      "type": [
+        "{In : Type} →",
+        "  {P : AvailableChain.V2.ProtocolSpecD In} →",
+        "    {n : Nat} →",
+        "      {Base Proposal Wire : Type} →",
+        "        AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire → Prop"
+      ]
+    },
+    "AvailableChain.FGCompose.FGTreeKeepLaws.mk": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGCore.fg",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGCoreReads.core",
+        "AvailableChain.FGCompose.FGTreeKeepLaws",
+        "AvailableChain.FGCompose.FGTreeKeepLaws.mk",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.Store.TF",
+        "AvailableChain.Time",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "AvailableChain.V2.ProtocolSpecD.durable",
+        "AvailableChain.V2.ProtocolSpecD.restore",
+        "Fin",
+        "Finset",
+        "Finset.instPartialOrder",
+        "LE.le",
+        "Nat",
+        "PartialOrder.toPreorder",
+        "Preorder.toLE"
+      ],
+      "digest": "472b26a367139d09a1539a40a5d1e95859f20cf4181e2611e777c27785698f0e",
+      "kernel_name": "str:2:84:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose14:FGTreeKeepLaws2:mk",
+      "kind": "ctor",
+      "module": "AvailableChainFGCompose.Statements.Restart",
+      "type": [
+        "∀ {In : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire},",
+        "  (∀ (nd : P.State) (t : AvailableChain.Time),",
+        "      Finset.instPartialOrder.le (R.core nd).fg.TF",
+        "        (R.core (P.restore (P.durable nd) t)).fg.TF) →",
+        "    AvailableChain.FGCompose.FGTreeKeepLaws R"
+      ]
+    },
+    "AvailableChain.FGCompose.FGTreeKeepLaws.restart_keep": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGCore.fg",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGCoreReads.core",
+        "AvailableChain.FGCompose.FGTreeKeepLaws",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.Store.TF",
+        "AvailableChain.Time",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "AvailableChain.V2.ProtocolSpecD.durable",
+        "AvailableChain.V2.ProtocolSpecD.restore",
+        "Fin",
+        "Finset",
+        "Finset.instPartialOrder",
+        "LE.le",
+        "Nat",
+        "PartialOrder.toPreorder",
+        "Preorder.toLE"
+      ],
+      "digest": "ca748f889d57117e1cbff2286901e0561ef156563d1edf50364dd05d60c903e9",
+      "kernel_name": "str:2:84:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose14:FGTreeKeepLaws12:restart_keep",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.Restart",
+      "type": [
+        "∀ {In : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire},",
+        "  AvailableChain.FGCompose.FGTreeKeepLaws R →",
+        "    ∀ (nd : P.State) (t : AvailableChain.Time),",
+        "      Finset.instPartialOrder.le (R.core nd).fg.TF",
+        "        (R.core (P.restore (P.durable nd) t)).fg.TF"
+      ]
+    },
+    "AvailableChain.FGCompose.FGTreeRestoreLaws": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGTreeRestoreLaws",
+        "AvailableChain.FGCompose.FGTreeRestoreLaws.mk",
+        "AvailableChain.V2.ProtocolSpecD",
+        "Nat"
+      ],
+      "digest": "6bc74c9c17f7641fa3d43732338cff40b87ea21170c4115d4d9d1bd1dcbb315a",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose17:FGTreeRestoreLaws",
+      "kind": "structure",
+      "module": "AvailableChainFGCompose.Statements.Restart",
+      "type": [
+        "{In : Type} →",
+        "  {P : AvailableChain.V2.ProtocolSpecD In} →",
+        "    {n : Nat} →",
+        "      {Base Proposal Wire : Type} →",
+        "        AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire → Prop"
+      ]
+    },
+    "AvailableChain.FGCompose.FGTreeRestoreLaws.mk": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGCore.fg",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGCoreReads.core",
+        "AvailableChain.FGCompose.FGTreeRestoreLaws",
+        "AvailableChain.FGCompose.FGTreeRestoreLaws.mk",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.Store.TF",
+        "AvailableChain.Time",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "AvailableChain.V2.ProtocolSpecD.durable",
+        "AvailableChain.V2.ProtocolSpecD.restore",
+        "Eq",
+        "Fin",
+        "Finset",
+        "Nat"
+      ],
+      "digest": "0d87edc0ce5e772bffbdf85ae6f5bed3026e2ca8ec8e5baac247f9418f0d9939",
+      "kernel_name": "str:2:87:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose17:FGTreeRestoreLaws2:mk",
+      "kind": "ctor",
+      "module": "AvailableChainFGCompose.Statements.Restart",
+      "type": [
+        "∀ {In : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire},",
+        "  (∀ (nd : P.State) (t : AvailableChain.Time),",
+        "      Eq (R.core (P.restore (P.durable nd) t)).fg.TF (R.core nd).fg.TF) →",
+        "    AvailableChain.FGCompose.FGTreeRestoreLaws R"
+      ]
+    },
+    "AvailableChain.FGCompose.FGTreeRestoreLaws.restart_eq": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGCore.fg",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGCoreReads.core",
+        "AvailableChain.FGCompose.FGTreeRestoreLaws",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.Store.TF",
+        "AvailableChain.Time",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "AvailableChain.V2.ProtocolSpecD.durable",
+        "AvailableChain.V2.ProtocolSpecD.restore",
+        "Eq",
+        "Fin",
+        "Finset",
+        "Nat"
+      ],
+      "digest": "667e2bda785d4a5440aaf3633e47c967257256b9a02b76f49b5af7a502fe1307",
+      "kernel_name": "str:2:87:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose17:FGTreeRestoreLaws10:restart_eq",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.Restart",
+      "type": [
+        "∀ {In : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire},",
+        "  AvailableChain.FGCompose.FGTreeRestoreLaws R →",
+        "    ∀ (nd : P.State) (t : AvailableChain.Time),",
+        "      Eq (R.core (P.restore (P.durable nd) t)).fg.TF (R.core nd).fg.TF"
+      ]
+    },
     "AvailableChain.FGCompose.SafetyWholeAccountable": {
       "body": [
         "fun {In V} {P} {n} {Base Proposal Wire} R S Ef f [DecidableEq V] E rho =>",
@@ -9917,6 +10214,68 @@
         "                    AvailableChain.FGCompose.ChainRowsBefore R E rho X cut"
       ]
     },
+    "AvailableChain.FGCompose.chainRows_of_head_all": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.Block",
+        "AvailableChain.FGCompose.ChainRowsBefore",
+        "AvailableChain.FGCompose.FGCoreLaws",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGCoreReads.erase",
+        "AvailableChain.FGCompose.FGCoreReads.headVote",
+        "AvailableChain.FGCompose.FGHeadLaws",
+        "AvailableChain.FGCompose.FGTreeRestoreLaws",
+        "AvailableChain.FGCompose.postClock",
+        "AvailableChain.Generic.Env",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.Slot",
+        "AvailableChain.Time",
+        "AvailableChain.V2.D.Run",
+        "AvailableChain.V2.D.Run.honest",
+        "AvailableChain.V2.D.ScheduleWellFormed",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "DecidableEq",
+        "Eq",
+        "Fin",
+        "Finset",
+        "Finset.instSetLike",
+        "Int.instLTInt",
+        "LT.lt",
+        "Membership.mem",
+        "Nat",
+        "Option",
+        "Option.map",
+        "Option.some",
+        "SetLike.instMembership"
+      ],
+      "digest": "34bc691c2204b43e9f4415cf63ff347d145922c88b1c081f160e6254b7a2804a",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose21:chainRows_of_head_all",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.Restart",
+      "type": [
+        "∀ {V In : Type} {P : AvailableChain.V2.ProtocolSpecD In} [inst : DecidableEq V]",
+        "  {n : Nat} {Base Proposal Wire : Type}",
+        "  (R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire)",
+        "  (E : AvailableChain.Generic.Env V) (rho : AvailableChain.V2.D.Run V P),",
+        "  AvailableChain.FGCompose.FGCoreLaws R →",
+        "    AvailableChain.FGCompose.FGHeadLaws R E rho →",
+        "      AvailableChain.V2.D.ScheduleWellFormed E rho →",
+        "        AvailableChain.FGCompose.FGTreeRestoreLaws R →",
+        "          ∀ {s : AvailableChain.Slot} {t : AvailableChain.Time}",
+        "            {X : AvailableChain.SimplexFG.FGBlock (Fin n)} {x : V},",
+        "            SetLike.instMembership.mem rho.honest x →",
+        "              Eq",
+        "                  (Option.map (fun nd => R.headVote nd s)",
+        "                    (AvailableChain.FGCompose.postClock E rho x t))",
+        "                  (Option.some (R.erase X)) →",
+        "                ∀ (cut : AvailableChain.Time),",
+        "                  Int.instLTInt.lt t cut →",
+        "                    AvailableChain.FGCompose.ChainRowsBefore R E rho X cut"
+      ]
+    },
     "AvailableChain.FGCompose.cutPred": {
       "body": [
         "fun {V In} {P} t e =>",
@@ -10128,6 +10487,70 @@
         "    AvailableChain.FGCompose.FGHeadLaws R E rho →",
         "      AvailableChain.V2.D.ScheduleWellFormed E rho →",
         "        AvailableChain.V2.D.NoRestart rho →",
+        "          ∀ {s : AvailableChain.Slot} {t : AvailableChain.Time}",
+        "            {X : AvailableChain.SimplexFG.FGBlock (Fin n)} {x : V},",
+        "            Eq",
+        "                (Option.map (fun nd => R.headVote nd s)",
+        "                  (AvailableChain.FGCompose.postClock E rho x t))",
+        "                (Option.some (R.erase X)) →",
+        "              ∀ (k : Nat) (cut : AvailableChain.Time),",
+        "                Int.instLEInt.le t cut →",
+        "                  instLENat.le (AvailableChain.FGCompose.afterTicksIdx rho cut) k →",
+        "                    SetLike.instMembership.mem",
+        "                      (AvailableChain.FGCompose.TFAt R E rho k x) X"
+      ]
+    },
+    "AvailableChain.FGCompose.head_held_from_all": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.Block",
+        "AvailableChain.FGCompose.FGCoreLaws",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGCoreReads.erase",
+        "AvailableChain.FGCompose.FGCoreReads.headVote",
+        "AvailableChain.FGCompose.FGHeadLaws",
+        "AvailableChain.FGCompose.FGTreeKeepLaws",
+        "AvailableChain.FGCompose.TFAt",
+        "AvailableChain.FGCompose.afterTicksIdx",
+        "AvailableChain.FGCompose.postClock",
+        "AvailableChain.Generic.Env",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.Slot",
+        "AvailableChain.Time",
+        "AvailableChain.V2.D.Run",
+        "AvailableChain.V2.D.ScheduleWellFormed",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "DecidableEq",
+        "Eq",
+        "Fin",
+        "Finset",
+        "Finset.instSetLike",
+        "Int.instLEInt",
+        "LE.le",
+        "Membership.mem",
+        "Nat",
+        "Option",
+        "Option.map",
+        "Option.some",
+        "SetLike.instMembership",
+        "instLENat"
+      ],
+      "digest": "32cc5d9f2ee50c27703acded252c35c0c1f63461c7d4dcd00213e23161ce8308",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose18:head_held_from_all",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.Restart",
+      "type": [
+        "∀ {V In : Type} {P : AvailableChain.V2.ProtocolSpecD In} [inst : DecidableEq V]",
+        "  {n : Nat} {Base Proposal Wire : Type}",
+        "  (R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire)",
+        "  (E : AvailableChain.Generic.Env V) (rho : AvailableChain.V2.D.Run V P),",
+        "  AvailableChain.FGCompose.FGCoreLaws R →",
+        "    AvailableChain.FGCompose.FGHeadLaws R E rho →",
+        "      AvailableChain.V2.D.ScheduleWellFormed E rho →",
+        "        AvailableChain.FGCompose.FGTreeKeepLaws R →",
         "          ∀ {s : AvailableChain.Slot} {t : AvailableChain.Time}",
         "            {X : AvailableChain.SimplexFG.FGBlock (Fin n)} {x : V},",
         "            Eq",
@@ -12124,6 +12547,157 @@
         "                AvailableChain.FGCompose.safetyBound R S Ef E rho"
       ]
     },
+    "AvailableChain.FGCompose.safety_fault_count_bound_fg_lt": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.FGSafetyUnitLaws",
+        "AvailableChain.FGCompose.safetyBound",
+        "AvailableChain.FGCompose.safetyCarriage",
+        "AvailableChain.FGCompose.safetyHolder",
+        "AvailableChain.FGCompose.safetyNoSlash",
+        "AvailableChain.FGCompose.safetyRunBlock",
+        "AvailableChain.Gen.Pure.qF",
+        "AvailableChain.Generic.Env",
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.chainRows",
+        "AvailableChain.V2.D.Run",
+        "AvailableChain.V2.D.Run.honest",
+        "AvailableChain.V2.ProtocolSpecD",
+        "DecidableEq",
+        "Fin",
+        "Fin.fintype",
+        "Finset",
+        "Finset.card",
+        "Finset.decidableMem",
+        "Finset.filter",
+        "Finset.instSetLike",
+        "Finset.univ",
+        "HMul.hMul",
+        "HSub.hSub",
+        "LT.lt",
+        "Membership.mem",
+        "Nat",
+        "Not",
+        "OfNat.ofNat",
+        "SetLike.instMembership",
+        "instDecidableEqFin",
+        "instDecidableNot",
+        "instHMul",
+        "instHSub",
+        "instLTNat",
+        "instMulNat",
+        "instOfNatNat",
+        "instSubNat"
+      ],
+      "digest": "f74ded4c09b8d23f9ed6bf2e8cebe3d938d2771604863a1259a13783fbaa91ed",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose30:safety_fault_count_bound_fg_lt",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.SafetyCount",
+      "type": [
+        "∀ {In V : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  (R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire)",
+        "  (S : AvailableChain.FGCompose.FGSafetyReads P n Wire)",
+        "  (Ef : AvailableChain.SimplexFG.Electorate (Fin n)) [inst : DecidableEq V]",
+        "  (E : AvailableChain.Generic.Env V) (rho : AvailableChain.V2.D.Run V P),",
+        "  AvailableChain.FGCompose.FGSafetyUnitLaws Ef →",
+        "    (∀ (B : AvailableChain.SimplexFG.FGBlock (Fin n)),",
+        "        AvailableChain.FGCompose.safetyRunBlock R S E rho B →",
+        "          AvailableChain.FGCompose.safetyCarriage S E rho",
+        "            (AvailableChain.SimplexFG.chainRows B)) →",
+        "      (∀ (x : V),",
+        "          SetLike.instMembership.mem rho.honest x →",
+        "            AvailableChain.FGCompose.safetyNoSlash S E rho x) →",
+        "        instLTNat.lt",
+        "            (Finset.filter",
+        "                (fun i =>",
+        "                  Not",
+        "                    (SetLike.instMembership.mem rho.honest",
+        "                      (AvailableChain.FGCompose.safetyHolder S rho i)))",
+        "                Finset.univ).card",
+        "            (instHSub.hSub (instHMul.hMul 2 (AvailableChain.Gen.Pure.qF n)) n) →",
+        "          AvailableChain.FGCompose.safetyBound R S Ef E rho"
+      ]
+    },
+    "AvailableChain.FGCompose.safety_fault_count_bound_lt": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.FGSafetyReads.fgLabel",
+        "AvailableChain.FGCompose.FGSafetyUnitLaws",
+        "AvailableChain.FGCompose.safetyBound",
+        "AvailableChain.FGCompose.safetyCarriage",
+        "AvailableChain.FGCompose.safetyNoSlash",
+        "AvailableChain.FGCompose.safetyRunBlock",
+        "AvailableChain.Gen.Pure.qF",
+        "AvailableChain.Gen.V2.Duty.faulty",
+        "AvailableChain.Generic.Env",
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.chainRows",
+        "AvailableChain.V2.D.Linked",
+        "AvailableChain.V2.D.Run",
+        "AvailableChain.V2.D.Run.honest",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Label",
+        "DecidableEq",
+        "Fin",
+        "Fin.fintype",
+        "Finset",
+        "Finset.card",
+        "Finset.instSetLike",
+        "Fintype",
+        "HMul.hMul",
+        "HSub.hSub",
+        "LT.lt",
+        "Membership.mem",
+        "Nat",
+        "OfNat.ofNat",
+        "SetLike.instMembership",
+        "instDecidableEqFin",
+        "instHMul",
+        "instHSub",
+        "instLTNat",
+        "instMulNat",
+        "instOfNatNat",
+        "instSubNat"
+      ],
+      "digest": "271f52914d507e3e446e655fe3ceb900a2e22e308d68f06172319cebfad759cb",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose27:safety_fault_count_bound_lt",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.SafetyCount",
+      "type": [
+        "∀ {In V : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  (R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire)",
+        "  (S : AvailableChain.FGCompose.FGSafetyReads P n Wire)",
+        "  (Ef : AvailableChain.SimplexFG.Electorate (Fin n)) [inst : DecidableEq V]",
+        "  (E : AvailableChain.Generic.Env V) (rho : AvailableChain.V2.D.Run V P)",
+        "  [inst_1 : Fintype V],",
+        "  AvailableChain.FGCompose.FGSafetyUnitLaws Ef →",
+        "    ∀ (linked : P.Label → Prop),",
+        "      linked S.fgLabel →",
+        "        AvailableChain.V2.D.Linked linked rho →",
+        "          (∀ (B : AvailableChain.SimplexFG.FGBlock (Fin n)),",
+        "              AvailableChain.FGCompose.safetyRunBlock R S E rho B →",
+        "                AvailableChain.FGCompose.safetyCarriage S E rho",
+        "                  (AvailableChain.SimplexFG.chainRows B)) →",
+        "            (∀ (x : V),",
+        "                SetLike.instMembership.mem rho.honest x →",
+        "                  AvailableChain.FGCompose.safetyNoSlash S E rho x) →",
+        "              instLTNat.lt (AvailableChain.Gen.V2.Duty.faulty rho).card",
+        "                  (instHSub.hSub (instHMul.hMul 2 (AvailableChain.Gen.Pure.qF n)) n) →",
+        "                AvailableChain.FGCompose.safetyBound R S Ef E rho"
+      ]
+    },
     "AvailableChain.FGCompose.safety_finalized_monotone": {
       "body": [
         ""
@@ -12177,6 +12751,67 @@
         "          (fun a b => (Prod.Lex.instLE AvailableChain.Time Nat).le a.key b.key)",
         "          rho.events →",
         "        AvailableChain.V2.D.NoRestart rho →",
+        "          ∀ (x : V),",
+        "            SetLike.instMembership.mem rho.honest x →",
+        "              ∀ (t t' : AvailableChain.Time),",
+        "                Int.instLEInt.le t t' →",
+        "                  (S.finalizedOut (AvailableChain.V2.D.Run.readAt E rho t x)).Preceq",
+        "                    (S.finalizedOut (AvailableChain.V2.D.Run.readAt E rho t' x))"
+      ]
+    },
+    "AvailableChain.FGCompose.safety_finalized_monotone_all": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.Block.Preceq",
+        "AvailableChain.FGCompose.FGCoreLaws",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGSafetyOrderLaws",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.FGSafetyReads.finalizedOut",
+        "AvailableChain.FGCompose.FGSafetyRestartLaws",
+        "AvailableChain.Generic.Env",
+        "AvailableChain.Time",
+        "AvailableChain.V2.D.Run",
+        "AvailableChain.V2.D.Run.events",
+        "AvailableChain.V2.D.Run.honest",
+        "AvailableChain.V2.D.Run.readAt",
+        "AvailableChain.V2.Event",
+        "AvailableChain.V2.Event.key",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "DecidableEq",
+        "Finset",
+        "Finset.instSetLike",
+        "Int.instLEInt",
+        "Int.instLTInt",
+        "LE.le",
+        "Lex",
+        "List.Pairwise",
+        "Membership.mem",
+        "Nat",
+        "Prod",
+        "Prod.Lex.instLE",
+        "SetLike.instMembership",
+        "instLENat"
+      ],
+      "digest": "e3320e5ad1453f87ba77bff05f6f9e2dbad3f2f1ec6ba7276150f6b3f5e24590",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose29:safety_finalized_monotone_all",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.SafetyMonotone",
+      "type": [
+        "∀ {In V : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  (R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire)",
+        "  (S : AvailableChain.FGCompose.FGSafetyReads P n Wire) [inst : DecidableEq V]",
+        "  (E : AvailableChain.Generic.Env V) (rho : AvailableChain.V2.D.Run V P),",
+        "  AvailableChain.FGCompose.FGCoreLaws R →",
+        "    AvailableChain.FGCompose.FGSafetyOrderLaws R S →",
+        "      AvailableChain.FGCompose.FGSafetyRestartLaws R →",
+        "        List.Pairwise",
+        "            (fun a b => (Prod.Lex.instLE AvailableChain.Time Nat).le a.key b.key)",
+        "            rho.events →",
         "          ∀ (x : V),",
         "            SetLike.instMembership.mem rho.honest x →",
         "              ∀ (t t' : AvailableChain.Time),",
@@ -13106,6 +13741,77 @@
         "                      (AvailableChain.Gen.V2.Duty.faulty rho).card"
       ]
     },
+    "AvailableChain.FGCompose.safety_slashable_fg_faulty_count": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.FGSafetyUnitLaws",
+        "AvailableChain.FGCompose.safetyCarriage",
+        "AvailableChain.FGCompose.safetyHolder",
+        "AvailableChain.FGCompose.safetyNoSlash",
+        "AvailableChain.Gen.Pure.qF",
+        "AvailableChain.Generic.Env",
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.HasSlashableWeightBetween",
+        "AvailableChain.SimplexFG.Row",
+        "AvailableChain.V2.D.Run",
+        "AvailableChain.V2.D.Run.honest",
+        "AvailableChain.V2.ProtocolSpecD",
+        "DecidableEq",
+        "Fin",
+        "Fin.fintype",
+        "Finset",
+        "Finset.card",
+        "Finset.decidableMem",
+        "Finset.filter",
+        "Finset.instSetLike",
+        "Finset.univ",
+        "HMul.hMul",
+        "HSub.hSub",
+        "LE.le",
+        "Membership.mem",
+        "Nat",
+        "Not",
+        "OfNat.ofNat",
+        "SetLike.instMembership",
+        "instDecidableEqFin",
+        "instDecidableNot",
+        "instHMul",
+        "instHSub",
+        "instLENat",
+        "instMulNat",
+        "instOfNatNat",
+        "instSubNat"
+      ],
+      "digest": "04a7e437d6acc0faa6931ac70f48a8fb2ec287074c4fc56041b271bf3a2b16a0",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose32:safety_slashable_fg_faulty_count",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.SafetyCount",
+      "type": [
+        "∀ {In V : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat} {Wire : Type}",
+        "  (S : AvailableChain.FGCompose.FGSafetyReads P n Wire)",
+        "  (Ef : AvailableChain.SimplexFG.Electorate (Fin n)) [inst : DecidableEq V]",
+        "  (E : AvailableChain.Generic.Env V) (rho : AvailableChain.V2.D.Run V P),",
+        "  AvailableChain.FGCompose.FGSafetyUnitLaws Ef →",
+        "    (∀ (x : V),",
+        "        SetLike.instMembership.mem rho.honest x →",
+        "          AvailableChain.FGCompose.safetyNoSlash S E rho x) →",
+        "      ∀ {A B : Finset (AvailableChain.SimplexFG.Row (Fin n))},",
+        "        AvailableChain.FGCompose.safetyCarriage S E rho A →",
+        "          AvailableChain.FGCompose.safetyCarriage S E rho B →",
+        "            AvailableChain.SimplexFG.HasSlashableWeightBetween Ef A B →",
+        "              instLENat.le",
+        "                (instHSub.hSub (instHMul.hMul 2 (AvailableChain.Gen.Pure.qF n)) n)",
+        "                (Finset.filter",
+        "                    (fun i =>",
+        "                      Not",
+        "                        (SetLike.instMembership.mem rho.honest",
+        "                          (AvailableChain.FGCompose.safetyHolder S rho i)))",
+        "                    Finset.univ).card"
+      ]
+    },
     "AvailableChain.FGCompose.safety_store_accountable": {
       "body": [
         ""
@@ -13512,6 +14218,60 @@
         "      Eq (R.source nd) (Option.some C) → SetLike.instMembership.mem (R.core nd).fg.TF C"
       ]
     },
+    "AvailableChain.FGCompose.tf_before_tick_eq_beforeTime": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGCore.fg",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGCoreReads.core",
+        "AvailableChain.FGCompose.FGTreeRestoreLaws",
+        "AvailableChain.FGCompose.TFAt",
+        "AvailableChain.Generic.Env",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.Store.TF",
+        "AvailableChain.Time",
+        "AvailableChain.V2.D.Run",
+        "AvailableChain.V2.D.Run.events",
+        "AvailableChain.V2.D.Run.stateBeforeTime",
+        "AvailableChain.V2.D.ScheduleWellFormed",
+        "AvailableChain.V2.Event",
+        "AvailableChain.V2.Event.tick",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "DecidableEq",
+        "Eq",
+        "Fin",
+        "Finset",
+        "GetElem?.getElem?",
+        "LT.lt",
+        "List",
+        "List.instGetElem?NatLtLength",
+        "List.length",
+        "Nat",
+        "Option",
+        "Option.some",
+        "instLTNat"
+      ],
+      "digest": "1c4a872807cfabc6be39e5c0b2b9e6ef2e24da38319465759e1e275bfa17c0cc",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose28:tf_before_tick_eq_beforeTime",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.Restart",
+      "type": [
+        "∀ {V In : Type} {P : AvailableChain.V2.ProtocolSpecD In} [inst : DecidableEq V]",
+        "  {n : Nat} {Base Proposal Wire : Type}",
+        "  (R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire)",
+        "  (E : AvailableChain.Generic.Env V) (rho : AvailableChain.V2.D.Run V P),",
+        "  AvailableChain.V2.D.ScheduleWellFormed E rho →",
+        "    AvailableChain.FGCompose.FGTreeRestoreLaws R →",
+        "      ∀ {i : Nat} {x : V} {t : AvailableChain.Time},",
+        "        Eq (List.instGetElem?NatLtLength.getElem? rho.events i)",
+        "            (Option.some (AvailableChain.V2.Event.tick x t)) →",
+        "          Eq (AvailableChain.FGCompose.TFAt R E rho i x)",
+        "            (R.core (AvailableChain.V2.D.Run.stateBeforeTime E rho t x)).fg.TF"
+      ]
+    },
     "AvailableChain.FGCompose.tf_cumulative": {
       "body": [
         ""
@@ -13546,6 +14306,47 @@
         "  (E : AvailableChain.Generic.Env V) (rho : AvailableChain.V2.D.Run V P),",
         "  AvailableChain.FGCompose.FGCoreLaws R →",
         "    AvailableChain.V2.D.NoRestart rho →",
+        "      ∀ {i j : Nat},",
+        "        instLENat.le i j →",
+        "          ∀ (x : V),",
+        "            Finset.instPartialOrder.le (AvailableChain.FGCompose.TFAt R E rho i x)",
+        "              (AvailableChain.FGCompose.TFAt R E rho j x)"
+      ]
+    },
+    "AvailableChain.FGCompose.tf_cumulative_all": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGCoreLaws",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGTreeKeepLaws",
+        "AvailableChain.FGCompose.TFAt",
+        "AvailableChain.Generic.Env",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.V2.D.Run",
+        "AvailableChain.V2.ProtocolSpecD",
+        "DecidableEq",
+        "Fin",
+        "Finset",
+        "Finset.instPartialOrder",
+        "LE.le",
+        "Nat",
+        "PartialOrder.toPreorder",
+        "Preorder.toLE",
+        "instLENat"
+      ],
+      "digest": "08be3e504c0cee1e1e3756b1aeff0535df4e6460886d673e64a3e22812919b44",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose17:tf_cumulative_all",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.Restart",
+      "type": [
+        "∀ {V In : Type} {P : AvailableChain.V2.ProtocolSpecD In} [inst : DecidableEq V]",
+        "  {n : Nat} {Base Proposal Wire : Type}",
+        "  (R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire)",
+        "  (E : AvailableChain.Generic.Env V) (rho : AvailableChain.V2.D.Run V P),",
+        "  AvailableChain.FGCompose.FGCoreLaws R →",
+        "    AvailableChain.FGCompose.FGTreeKeepLaws R →",
         "      ∀ {i j : Nat},",
         "        instLENat.le i j →",
         "          ∀ (x : V),",
@@ -24091,6 +24892,22 @@
         ""
       ]
     },
+    "Eq.ndrecOn": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "Eq",
+        "Eq.ndrec"
+      ],
+      "digest": "35ee6875bfb4bc5c11be4c6f117df77fdd9e5406963f84d579fbc1d16c917ef2",
+      "kernel_name": "str:2:25:str:2:12:anonymous:0:2:Eq7:ndrecOn",
+      "kind": "def",
+      "module": "Init.Core",
+      "type": [
+        ""
+      ]
+    },
     "Eq.rec": {
       "body": [
         ""
@@ -25123,6 +25940,28 @@
         ""
       ]
     },
+    "Finset.decidableMem": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "Decidable",
+        "DecidableEq",
+        "Finset",
+        "Finset.instSetLike",
+        "Finset.val",
+        "Membership.mem",
+        "Multiset.decidableMem",
+        "SetLike.instMembership"
+      ],
+      "digest": "aaa4470fc3c188331760a7ecacd82f8b59105b251ebe2cf7e8f55df6dd09b5ab",
+      "kernel_name": "str:2:29:str:2:12:anonymous:0:6:Finset12:decidableMem",
+      "kind": "def",
+      "module": "Mathlib.Data.Finset.Defs",
+      "type": [
+        ""
+      ]
+    },
     "Finset.empty": {
       "body": [
         ""
@@ -25140,6 +25979,45 @@
       "kernel_name": "str:2:29:str:2:12:anonymous:0:6:Finset5:empty",
       "kind": "def",
       "module": "Mathlib.Data.Finset.Empty",
+      "type": [
+        ""
+      ]
+    },
+    "Finset.filter": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "DecidablePred",
+        "Finset",
+        "Finset.filter._proof_1",
+        "Finset.mk",
+        "Finset.val",
+        "Multiset.filter"
+      ],
+      "digest": "0b2b806ac46531662a864691c452538ff5cf12106aea722610538cfb8f5a66bd",
+      "kernel_name": "str:2:29:str:2:12:anonymous:0:6:Finset6:filter",
+      "kind": "def",
+      "module": "Mathlib.Data.Finset.Filter",
+      "type": [
+        ""
+      ]
+    },
+    "Finset.filter._proof_1": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "DecidablePred",
+        "Finset",
+        "Finset.val",
+        "Multiset.Nodup",
+        "Multiset.filter"
+      ],
+      "digest": "e5b31db7a3ad6447291d0a52b5656c072ca5306bd47c4b1c709874300e928cb0",
+      "kernel_name": "str:2:46:str:2:29:str:2:12:anonymous:0:6:Finset6:filter8:_proof_1",
+      "kind": "theorem",
+      "module": "Mathlib.Data.Finset.Filter",
       "type": [
         ""
       ]
@@ -31763,6 +32641,80 @@
         ""
       ]
     },
+    "Multiset.decidableMem": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "Decidable",
+        "DecidableEq",
+        "List",
+        "List.isSetoid",
+        "Membership.mem",
+        "Multiset",
+        "Multiset.decidableMem._aux_1",
+        "Multiset.decidableMem._proof_1",
+        "Multiset.instMembership",
+        "Quot.recOnSubsingleton",
+        "Setoid.r"
+      ],
+      "digest": "0986fb5d555d379035cdf79ac19d7245d9e9e6cf3d3bf84933a871745a91ea8f",
+      "kernel_name": "str:2:31:str:2:12:anonymous:0:8:Multiset12:decidableMem",
+      "kind": "def",
+      "module": "Mathlib.Data.Multiset.Defs",
+      "type": [
+        ""
+      ]
+    },
+    "Multiset.decidableMem._aux_1": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "Decidable",
+        "DecidableEq",
+        "List",
+        "List.instDecidableMemOfLawfulBEq",
+        "List.isSetoid",
+        "Membership.mem",
+        "Multiset",
+        "Multiset.instMembership",
+        "Quot.mk",
+        "Setoid.r",
+        "instBEqOfDecidableEq",
+        "instLawfulBEq"
+      ],
+      "digest": "3b28df2e01006bf662aca596d58b9e07632987275d8d1f427cac458194e6a6a8",
+      "kernel_name": "str:2:55:str:2:31:str:2:12:anonymous:0:8:Multiset12:decidableMem6:_aux_1",
+      "kind": "def",
+      "module": "Mathlib.Data.Multiset.Defs",
+      "type": [
+        ""
+      ]
+    },
+    "Multiset.decidableMem._proof_1": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "Decidable",
+        "List",
+        "List.isSetoid",
+        "Membership.mem",
+        "Multiset",
+        "Multiset.instMembership",
+        "Quot.mk",
+        "Setoid.r",
+        "Subsingleton"
+      ],
+      "digest": "ae6cc1648f63ef5d134514663b2068eeaa15235555b5793e988be53f264f76c3",
+      "kernel_name": "str:2:55:str:2:31:str:2:12:anonymous:0:8:Multiset12:decidableMem8:_proof_1",
+      "kind": "theorem",
+      "module": "Mathlib.Data.Multiset.Defs",
+      "type": [
+        ""
+      ]
+    },
     "Multiset.dedup": {
       "body": [
         ""
@@ -31804,6 +32756,53 @@
       "kernel_name": "str:2:47:str:2:31:str:2:12:anonymous:0:8:Multiset5:dedup8:_proof_1",
       "kind": "theorem",
       "module": "Mathlib.Data.Multiset.Dedup",
+      "type": [
+        ""
+      ]
+    },
+    "Multiset.filter": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "Decidable.decide",
+        "DecidablePred",
+        "List",
+        "List.filter",
+        "List.isSetoid",
+        "Multiset",
+        "Multiset.filter._proof_1",
+        "Multiset.ofList",
+        "Quot.liftOn",
+        "Setoid.r"
+      ],
+      "digest": "a7078fd6a8bebde40a63e7249ae46e23deab5aa3e42c9314a803b1e16a3821be",
+      "kernel_name": "str:2:31:str:2:12:anonymous:0:8:Multiset6:filter",
+      "kind": "def",
+      "module": "Mathlib.Data.Multiset.Filter",
+      "type": [
+        ""
+      ]
+    },
+    "Multiset.filter._proof_1": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "Decidable.decide",
+        "DecidablePred",
+        "Eq",
+        "List",
+        "List.filter",
+        "List.isSetoid",
+        "Quot",
+        "Quot.mk",
+        "Setoid.r"
+      ],
+      "digest": "7e9b51d957be4f2e47ec5a5d3b5d6956f9eca57242e5f6852b43b28b7b7afff9",
+      "kernel_name": "str:2:48:str:2:31:str:2:12:anonymous:0:8:Multiset6:filter8:_proof_1",
+      "kind": "theorem",
+      "module": "Mathlib.Data.Multiset.Filter",
       "type": [
         ""
       ]
@@ -35670,6 +36669,21 @@
         ""
       ]
     },
+    "PSigma.fst": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "PSigma"
+      ],
+      "digest": "da0d1217b2ff4b4d34c69ffc12ecf24241963255aaead73ee7e217a6cf5ef758",
+      "kernel_name": "str:2:29:str:2:12:anonymous:0:6:PSigma3:fst",
+      "kind": "field",
+      "module": "Init.Core",
+      "type": [
+        ""
+      ]
+    },
     "PSigma.mk": {
       "body": [
         ""
@@ -35697,6 +36711,22 @@
       "digest": "bb3a60fcb40111f69814f7cf282c5003e26cd685faca12dfefd5a62ed249ec3c",
       "kernel_name": "str:2:29:str:2:12:anonymous:0:6:PSigma3:rec",
       "kind": "rec",
+      "module": "Init.Core",
+      "type": [
+        ""
+      ]
+    },
+    "PSigma.snd": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "PSigma",
+        "PSigma.fst"
+      ],
+      "digest": "22e65bf08a86bbc25da7530bb4c04b9ab361c1da473eb7dd6b474e9d97e6f614",
+      "kernel_name": "str:2:29:str:2:12:anonymous:0:6:PSigma3:snd",
+      "kind": "field",
       "module": "Init.Core",
       "type": [
         ""
@@ -37357,6 +38387,45 @@
         ""
       ]
     },
+    "Quot.indep": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "PSigma",
+        "PSigma.mk",
+        "Quot",
+        "Quot.mk"
+      ],
+      "digest": "8a5a5218e57af42cdfe9b7b0e1c1d1b433df431d723a4fddb357978214ea2c4b",
+      "kernel_name": "str:2:27:str:2:12:anonymous:0:4:Quot5:indep",
+      "kind": "def",
+      "module": "Init.Core",
+      "type": [
+        ""
+      ]
+    },
+    "Quot.indepCoherent": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "Eq",
+        "Eq.ndrec",
+        "PSigma",
+        "Quot",
+        "Quot.indep",
+        "Quot.mk",
+        "Quot.sound"
+      ],
+      "digest": "099fe5c7c3ea94375cd2683c9d2ef140d810368aa6f32e8a42ea7face06c7d40",
+      "kernel_name": "str:2:27:str:2:12:anonymous:0:4:Quot13:indepCoherent",
+      "kind": "theorem",
+      "module": "Init.Core",
+      "type": [
+        ""
+      ]
+    },
     "Quot.lift": {
       "body": [
         ""
@@ -37369,6 +38438,30 @@
       "kernel_name": "str:2:27:str:2:12:anonymous:0:4:Quot4:lift",
       "kind": "quot",
       "module": "Init.Prelude",
+      "type": [
+        ""
+      ]
+    },
+    "Quot.liftIndepPr1": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "Eq",
+        "Eq.ndrec",
+        "PSigma",
+        "PSigma.fst",
+        "Quot",
+        "Quot.indep",
+        "Quot.indepCoherent",
+        "Quot.lift",
+        "Quot.mk",
+        "Quot.sound"
+      ],
+      "digest": "595b913f2cd204c323cd6da2ad09b6d09a8bd3f5c789ed81497055ab77ea3157",
+      "kernel_name": "str:2:27:str:2:12:anonymous:0:4:Quot12:liftIndepPr1",
+      "kind": "theorem",
+      "module": "Init.Core",
       "type": [
         ""
       ]
@@ -37400,6 +38493,89 @@
       "digest": "0f7ffd8e6c704050005ea3efd1afc3dc7f0db1bc91af878b621cbbad510a1c37",
       "kernel_name": "str:2:27:str:2:12:anonymous:0:4:Quot2:mk",
       "kind": "quot",
+      "module": "Init.Prelude",
+      "type": [
+        ""
+      ]
+    },
+    "Quot.rec": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "Eq",
+        "Eq.ndrec",
+        "Eq.ndrecOn",
+        "PSigma",
+        "PSigma.fst",
+        "PSigma.snd",
+        "Quot",
+        "Quot.indep",
+        "Quot.indepCoherent",
+        "Quot.lift",
+        "Quot.liftIndepPr1",
+        "Quot.mk",
+        "Quot.sound"
+      ],
+      "digest": "c23786c03734973d75895cd671e320a1169aa93b67c5f61adcbb81cccde39e44",
+      "kernel_name": "str:2:27:str:2:12:anonymous:0:4:Quot3:rec",
+      "kind": "def",
+      "module": "Init.Core",
+      "type": [
+        ""
+      ]
+    },
+    "Quot.recOnSubsingleton": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "Quot",
+        "Quot.mk",
+        "Quot.rec",
+        "Quot.recOnSubsingleton._proof_1",
+        "Subsingleton"
+      ],
+      "digest": "a9741d4f518632f67bd91b28883c6a0b50e7e31fb1db830f254cd523dd6c73f0",
+      "kernel_name": "str:2:27:str:2:12:anonymous:0:4:Quot17:recOnSubsingleton",
+      "kind": "def",
+      "module": "Init.Core",
+      "type": [
+        ""
+      ]
+    },
+    "Quot.recOnSubsingleton._proof_1": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "Eq",
+        "Eq.ndrec",
+        "Quot",
+        "Quot.mk",
+        "Quot.sound",
+        "Subsingleton"
+      ],
+      "digest": "866adf6c22d64debdb10764e08527e77e5ce9ae2ecb44152edcfaee2c072d2b6",
+      "kernel_name": "str:2:56:str:2:27:str:2:12:anonymous:0:4:Quot17:recOnSubsingleton8:_proof_1",
+      "kind": "theorem",
+      "module": "Init.Core",
+      "type": [
+        ""
+      ]
+    },
+    "Quot.sound": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "Eq",
+        "Quot",
+        "Quot.mk"
+      ],
+      "digest": "ae3bffe94dc90edbd4df6e51f1618bbe4c53136aec39e667fb609d3d6a4a764a",
+      "kernel_name": "str:2:27:str:2:12:anonymous:0:4:Quot5:sound",
+      "kind": "axiom",
       "module": "Init.Prelude",
       "type": [
         ""
@@ -38803,6 +39979,39 @@
       "kernel_name": "str:2:26:str:2:12:anonymous:0:3:Sub3:sub",
       "kind": "field",
       "module": "Init.Prelude",
+      "type": [
+        ""
+      ]
+    },
+    "Subsingleton": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "Subsingleton",
+        "Subsingleton.intro"
+      ],
+      "digest": "5b994910850c0af9aab3de54dc8e770151869871679497b5ada7f3bfa025e656",
+      "kernel_name": "str:2:12:anonymous:0:12:Subsingleton",
+      "kind": "structure",
+      "module": "Init.Core",
+      "type": [
+        ""
+      ]
+    },
+    "Subsingleton.intro": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "Eq",
+        "Subsingleton",
+        "Subsingleton.intro"
+      ],
+      "digest": "f50ec67ae7eeed831c0f9a58b8ac4933b4a8bae20696d79f170cdf108f049639",
+      "kernel_name": "str:2:36:str:2:12:anonymous:0:12:Subsingleton5:intro",
+      "kind": "ctor",
+      "module": "Init.Core",
       "type": [
         ""
       ]
@@ -40675,6 +41884,23 @@
       "kernel_name": "str:2:12:anonymous:0:9:instLTNat",
       "kind": "def",
       "module": "Init.Prelude",
+      "type": [
+        ""
+      ]
+    },
+    "instLawfulBEq": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "DecidableEq",
+        "LawfulBEq",
+        "instBEqOfDecidableEq"
+      ],
+      "digest": "5fb5b2b99307d6c9064fbb642de8fc1ff19f9c14dd7d061d8879ab952cff56ce",
+      "kernel_name": "str:2:12:anonymous:0:13:instLawfulBEq",
+      "kind": "theorem",
+      "module": "Init.Core",
       "type": [
         ""
       ]
