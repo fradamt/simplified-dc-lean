@@ -18,12 +18,18 @@ cd "$(dirname "$0")/.."
 source scripts/gate-common.sh
 gate_args=("$@")
 tier=auto; base=; critical_path=0; attest_key=; attest_head=; force_neg=${NEG:-0}
+integration=0; integration_args=(); integration_scope=
 usage() {
   echo 'usage: bash scripts/gate.sh [--tier merge|full|auto] [--base REF] [--jobs N] [--neg]'
   echo '       bash scripts/gate.sh --critical-path'
+  echo '       bash scripts/gate.sh --integration --base REF [--reviewed-allow FILE]'
 }
 while [ $# -gt 0 ]; do
   case "$1" in
+    --integration) integration=1; shift ;;
+    --reviewed-allow)
+      [ $# -ge 2 ] || { usage >&2; exit 2; }
+      integration_args+=(--reviewed-allow "$2"); shift 2 ;;
     --attest-key)
       [ $# -ge 2 ] || { usage >&2; exit 2; }
       attest_key=$2; shift 2 ;;
@@ -38,6 +44,17 @@ while [ $# -gt 0 ]; do
   esac
 done
 case "$tier" in auto|merge|full) ;; *) usage >&2; exit 2 ;; esac
+if [ "$integration" = 1 ]; then
+  [ -n "$base" ] && [ -z "$attest_key" ] && [ "$critical_path" = 0 ] &&
+    [ "$force_neg" = 0 ] && [ "$tier" != merge ] || {
+    echo 'INTEGRATION REFUSED: requires explicit --base; incompatible with signing, --neg, merge, or critical-path' >&2
+    exit 2
+  }
+  integration_scope=$(python3 -B scripts/integration_scope.py "$PWD" "$base" "${integration_args[@]}") || exit $?
+  tier=full
+elif [ "${#integration_args[@]}" -ne 0 ]; then
+  echo 'INTEGRATION REFUSED: --reviewed-allow requires --integration' >&2; exit 2
+fi
 if [ "${SOURCE_ONLY:-0}" != 0 ]; then
   echo 'GATE REFUSED: SOURCE_ONLY must be unset or 0' >&2
   exit 2
@@ -89,6 +106,12 @@ if [ "$(uname -s)" = Linux ]; then
 fi
 if [ "$critical_path" = 0 ]; then
   gate_select_neg "$base" "$force_neg"
+  if [ "$integration" = 1 ]; then
+    NEG=$(printf '%s' "$integration_scope" | python3 -c 'import json,sys; print(json.load(sys.stdin)["neg"])')
+    export NEG
+    GATE_NEG_SCOPE=$(printf '%s' "$GATE_NEG_SCOPE" | python3 -c \
+      'import json,sys; d=json.load(sys.stdin); d.update(neg=int(sys.argv[1]),reason="provisional integration"); print(json.dumps(d))' "$NEG")
+  fi
 fi
 # FIRST gate step: no build, slot directory, logs or full-pass stamp yet.
 gate_precheck "$base" || exit $?
@@ -106,6 +129,10 @@ export AUDIT_WORKERS=${AUDIT_WORKERS:-$((GATE_SLOTS < 2 ? GATE_SLOTS : 2))}
 logs=$(mktemp -d "$PWD/.lake/gate-logs.XXXXXX")
 export GATE_LOG_DIR=$logs GATE_TIMING_HELPER=$PWD/scripts/gate_timing.py AUDIT_TIMING=1
 printf '%s\n' "$GATE_NEG_SCOPE" > "$logs/negative-controls.json"
+if [ "$integration" = 1 ]; then
+  printf '%s\n' "$integration_scope" > "$logs/integration.json"
+  echo "PROVISIONAL INTEGRATION: $integration_scope"
+fi
 started=$(date +%s)
 failed=0
 
@@ -153,7 +180,11 @@ choose_tier() {
   tier=merge; reason="no full-tier changes; full PASS is less than 24 h old"
 }
 choose_tier
-echo "tier: $(printf '%s' "$tier" | tr '[:lower:]' '[:upper:]') ($reason); slots=$GATE_SLOTS memory=$memory_limit"
+if [ "$integration" = 1 ]; then
+  echo "mode: PROVISIONAL INTEGRATION; slots=$GATE_SLOTS memory=$memory_limit"
+else
+  echo "tier: $(printf '%s' "$tier" | tr '[:lower:]' '[:upper:]') ($reason); slots=$GATE_SLOTS memory=$memory_limit"
+fi
 echo "logs: $logs"
 gate_neg_summary
 echo "reminder: run bash scripts/check-fg.sh on the Mac (research files required)"
@@ -192,6 +223,14 @@ finish() {
       echo "memory.peak=$((peak / 1048576)) MiB (cgroup $cg)"
   fi
   if [ "$failed" -eq 0 ]; then
+    if [ "$integration" = 1 ]; then
+      if ! python3 -B scripts/integration_scope.py "$PWD" "$base" "${integration_args[@]}" --complete "$logs" > "$logs/integration-complete.log" 2>&1; then
+        cat "$logs/integration-complete.log"; failed=1
+        echo 'PROVISIONAL INTEGRATION FAIL'; return
+      fi
+      echo "PROVISIONAL INTEGRATION PASS (main acceptance requires FULL --neg and Mac check-fg); logs=$logs"
+      return
+    fi
     if [ -n "$attest_key" ]; then
       python3 scripts/full-pass.py sign "$PWD" "$attest_head" "$base" "$logs" \
         "$attest_key" "$logs/full-pass.json" || return $?
@@ -199,7 +238,8 @@ finish() {
     if [ "$tier" = full ]; then touch .lake/gate-last-full; fi
     echo "GATE PASS tier=$tier slots=$GATE_SLOTS memory=$memory_limit wall=$(($(date +%s)-started))s"
   else
-    echo "GATE FAIL tier=$tier slots=$GATE_SLOTS memory=$memory_limit wall=$(($(date +%s)-started))s"
+    if [ "$integration" = 1 ]; then echo 'PROVISIONAL INTEGRATION FAIL'
+    else echo "GATE FAIL tier=$tier slots=$GATE_SLOTS memory=$memory_limit wall=$(($(date +%s)-started))s"; fi
   fi
 }
 build_all() {
@@ -219,6 +259,11 @@ step build build_all
 summary build
 if [ "$failed" -ne 0 ]; then finish; exit 1; fi
 export GATE_NO_BUILD=1
+if [ "$integration" = 1 ]; then
+  step package-g0 python3 -B scripts/integration_g0.py
+  summary package-g0
+  stop_if_failed
+fi
 # Control selection applies to both tiers; build checks remain mandatory.
 export SKIP_CONE=0
 # Every check step by name. Heavy steps share the gate slots (GATE_SLOTS cap).
