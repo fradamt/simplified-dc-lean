@@ -1665,6 +1665,7 @@ private theorem dr4_step_laws :
 
 
 set_option maxHeartbeats 800000 in
+-- Finite cases cover 17 microsteps, five events, and two reads in the restart segment.
 private theorem dr4_trace_laws :
     FGDependencyTraceLaws do_env dr4_run false do_history dr4_wireReads dr4_reads do_leaf
       dr4_step dr4_trace dr4_driver dr4_op do_arrival dr4_notify
