@@ -123,6 +123,14 @@ private theorem d1G0ClosedAssembly [Fintype V] {G ΔF : Time}
       (recoveryStart p E) (fun nd s => FGSA.voterBlocks p nd.st s) :=
   (d1G0FiveClauses p c E rho).mp (healing_rPhase_recovery E rho hrec mono crossing)
 
+-- The closed recovery assembly supplies HEAD inclusion for the native frozen read.
+private theorem d1G0NativeHeadProjection (nd : Node p) (s : Slot) :
+    (fun nd s => FGSA.voterBlocks p nd.st s) nd s = FGSA.voterBlocks p nd.st s := rfl
+
+#print axioms d1G0NativeHeadProjection
+#print axioms AvailableChain.FGCompose.healing_phase_head_inclusion
+#print axioms AvailableChain.FGSA.Run.healing_evidence_spread_recovery
+
 #print axioms d1G0ObsLaws
 #print axioms d1G0WitnessProjection
 #print axioms d1G0ReceiptProjection

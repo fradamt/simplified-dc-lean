@@ -160,6 +160,52 @@ private theorem d1G0_start_cut :
     frontierAtIdx R d1Env rho 0 = 1 ∧ frontierAtIdx R d1Env rho (0 + 1) = 3  := by
   decide +kernel
 
+-- The held block C is absent from this interface model's frozen HEAD read.
+private def d1HeadTiming : FGTiming :=
+  ⟨1, 2, fun _ => 0, fun _ => 6, fun _ => 2, fun _ => 3,
+    fun _ => 5, fun _ => 6, fun _ => 6⟩
+
+private def d1FrozenRead (nd : Store (Fin 1)) (_ : Slot) : Finset (FGBlock (Fin 1)) :=
+  nd.TF.filter (fun W => W ≠ d1C)
+
+private theorem d1G0_held_not_frozen :
+    d1C ∈ d1OnlyA.TF ∧ d1C ∉ d1FrozenRead d1OnlyA 1 := by
+  decide +kernel
+
+-- A cumulative-TF read cannot satisfy the required native-read projection.
+private theorem d1G0_cumulative_not_native :
+    ¬ (fun (nd : Store (Fin 1)) (_ : Slot) => nd.TF) = d1FrozenRead := by
+  intro h
+  have he := congrFun (congrFun h d1OnlyA) 1
+  exact d1G0_held_not_frozen.2 (he ▸ d1G0_held_not_frozen.1)
+
+-- All bridge guards are inhabited: strict cut 2, actual tick 6, and frontier 3.
+-- Held membership alone cannot supply frozenHeadMem for the native read.
+private theorem d1G0_without_frozenHeadMem :
+    let R := d1Core d1OnlyA d1OnlyA
+    let rho := d1Trace d1OnlyA d1OnlyA
+    let O := d1Obs d1OnlyA d1OnlyA
+    ¬ (∀ d y (W : FGBlock (Fin 1)) s nd,
+      (0 : Time) ≤ d → 0 < d → y ∈ rho.honest →
+      frontierAtIdx R d1Env rho (timeIdx rho (d1HeadTiming.vote s)) ≤ (O.height W).h →
+      d ≤ d1HeadTiming.vote s → d ≤ d1HeadTiming.freeze (s - 1) →
+      W ∈ (R.core (rho.stateBefore d1Env (rho.idxBefore d) y)).fg.TF →
+      postClock d1Env rho y (d1HeadTiming.vote s) = some nd →
+      W ∈ d1FrozenRead nd s) := by
+  dsimp only
+  intro frozenHeadMem
+  have bad := healing_phase_head_inclusion
+    (R := d1Core d1OnlyA d1OnlyA) (E := d1Env) (rho := d1Trace d1OnlyA d1OnlyA)
+    (O := d1Obs d1OnlyA d1OnlyA) (T := d1HeadTiming) (Jst := 0)
+    d1FrozenRead frozenHeadMem (d := 2) (y := ()) (W := d1C) (s := 1) (nd := d1OnlyA)
+    (by decide) (by decide) (by decide) (by decide +kernel)
+    (by decide) (by decide) (by decide +kernel) (by rfl)
+  exact d1G0_held_not_frozen.2 bad
+
+#print axioms d1G0_held_not_frozen
+#print axioms d1G0_cumulative_not_native
+#print axioms d1G0_without_frozenHeadMem
+
 #print axioms d1G0_observations
 #print axioms d1G0_m1
 #print axioms d1G0_quiet_lower_F

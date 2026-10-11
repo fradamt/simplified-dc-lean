@@ -27,6 +27,25 @@ variable (coreLaws : FGCoreLaws R)
 variable (erasePreceq : ∀ {A B}, FGBlock.Preceq A B → Block.Preceq (R.erase A) (R.erase B))
 variable (joined : P.State → Bool) (receipt : Block → Time → V → Prop)
 
+/-- Selected held evidence enters the protocol's frozen HEAD input at the same read. -/
+theorem healing_phase_head_inclusion
+    (voterBlocks : P.State → Slot → Finset (FGBlock (Fin n)))
+    (frozenHeadMem : ∀ d y (W : FGBlock (Fin n)) s nd,
+      Jst ≤ d → 0 < d → y ∈ rho.honest →
+      frontierAtIdx R E rho (timeIdx rho (T.vote s)) ≤ (O.height W).h →
+      d ≤ T.vote s → d ≤ T.freeze (s - 1) →
+      W ∈ (R.core (rho.stateBefore E (rho.idxBefore d) y)).fg.TF →
+      postClock E rho y (T.vote s) = some nd →
+      W ∈ voterBlocks nd s)
+    {d : Time} {y : V} {W : FGBlock (Fin n)} {s : Slot} {nd : P.State}
+    (hready : Jst ≤ d) (hdpos : 0 < d) (hy : y ∈ rho.honest)
+    (hcap : frontierAtIdx R E rho (timeIdx rho (T.vote s)) ≤ (O.height W).h)
+    (hdt : d ≤ T.vote s) (hdf : d ≤ T.freeze (s - 1))
+    (hW : W ∈ (R.core (rho.stateBefore E (rho.idxBefore d) y)).fg.TF)
+    (hpost : postClock E rho y (T.vote s) = some nd) :
+    W ∈ voterBlocks nd s :=
+  frozenHeadMem d y W s nd hready hdpos hy hcap hdt hdf hW hpost
+
 omit [DecidableEq V] in
 private theorem phase_cut_le_time {d t : Time} (hdt : d ≤ t) :
     V2.D.Run.idxBefore rho d ≤ timeIdx rho t := by
