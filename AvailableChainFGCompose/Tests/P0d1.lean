@@ -154,6 +154,104 @@ private theorem d1G0_later_deadline_differs :
   intro _ _ _ _ _ _ _ _
   exact (by decide : (5 : Time) < 6)
 
+-- A separate receipt model delivers the selected non-genesis body at time 5.
+private def d1ReceiptBody : Block := .node .genesis 2 ⟨3⟩ 17
+private def d1OtherBody : Block := .node .genesis 2 ⟨3⟩ 18
+
+private abbrev d1ReceiptProtocol : V2.ProtocolSpecD Unit where
+  State := Store (Fin 1)
+  Label := Unit
+  Duty := Empty
+  signLabel _ := ()
+  seats _ := 1
+  Payload := Block
+  Durable := Store (Fin 1)
+  init := d1OnlyA
+  clock st _ := st
+  actTime d := nomatch d
+  duties _ := []
+  duties_spec d := nomatch d
+  duties_nodup _ := List.nodup_nil
+  act _ d := nomatch d
+  gossip _ _ := []
+  process st _ := st
+  selfVisible _ := true
+  recordOwn st _ := st
+  durable st := st
+  restore st _ := st
+  wellFormed _ := true
+  depsPresent _ _ := true
+  processed _ _ := false
+  excludes _ _ := false
+  handles _ _ _ := False
+  carries _ _ := False
+
+private noncomputable def d1ReceiptCore : FGCoreReads d1ReceiptProtocol 1 Unit Unit Unit where
+  core nd := ⟨(), nd, [], []⟩
+  erase W := if W = d1C then d1ReceiptBody else .genesis
+  source _ := none
+  headVote _ _ := .genesis
+  finalityHead _ := none
+  proposalFG _ _ := none
+
+private noncomputable def d1ReceiptTrace : V2.D.Run Unit d1ReceiptProtocol where
+  honest := {()}
+  horizon := 10
+  events := [.deliver () ⟨.seat () 0, d1ReceiptBody⟩ 5, .tick () 6]
+  seatOf _ _ := ()
+  input _ _ := ()
+
+private def d1BodyReceipt (B : Block) (deadline : Time) (y : Unit) : Prop :=
+  d1ReceiptTrace.events[0]? = some (.deliver y ⟨.seat () 0, B⟩ 5) ∧ 5 < deadline
+
+private def d1ReceiptJoined (st : Store (Fin 1)) : Bool := d1C ∈ st.TF
+
+-- The selected carrier, delivery, joined tick, and both floor guards are inhabited.
+private theorem d1G0_non_genesis_receipt_guards :
+    d1C ≠ .genesis ∧ d1ReceiptCore.erase d1C = d1ReceiptBody ∧
+    d1ReceiptBody ≠ .genesis ∧ () ∈ d1ReceiptTrace.honest ∧
+    d1ReceiptTrace.events[0]? = some (.deliver () ⟨.seat () 0, d1ReceiptBody⟩ 5) ∧
+    d1ReceiptTrace.events[1]? = some (.tick () 6) ∧
+    d1ReceiptJoined (d1ReceiptProtocol.clock
+      (d1ReceiptTrace.stateBefore d1Env 1 ()) 6) = true ∧
+    Block.Preceq (d1ReceiptCore.erase
+      (d1ReceiptCore.core (d1ReceiptTrace.stateBeforeTime d1Env 5 ())).fg.F)
+      (d1ReceiptCore.erase d1C) ∧
+    Block.Preceq (d1ReceiptCore.erase
+      (d1ReceiptCore.core (d1ReceiptTrace.stateBeforeTime d1Env 6 ())).fg.F)
+      (d1ReceiptCore.erase d1C) := by
+  decide +kernel
+
+private theorem d1G0_body_receipt_strict_cuts :
+    ¬ d1BodyReceipt (d1ReceiptCore.erase d1C) 5 () ∧
+    d1BodyReceipt (d1ReceiptCore.erase d1C) 6 () ∧
+    ¬ d1BodyReceipt .genesis 6 () ∧
+    d1OtherBody.root = d1ReceiptBody.root ∧
+    ¬ d1BodyReceipt d1OtherBody 6 () := by
+  simp [d1BodyReceipt, d1ReceiptTrace, d1ReceiptCore, d1ReceiptBody, d1OtherBody,
+    Block.root]
+
+private theorem d1G0_non_genesis_receipt_rejected :
+    ¬ WitnessReceiptScope d1ReceiptCore d1Env d1ReceiptTrace
+      d1ReceiptJoined d1BodyReceipt d1C 5 := by
+  intro h
+  have bad := h.atRead 1 () 6 (by decide) rfl (by decide +kernel)
+    (by decide) (by decide +kernel)
+  exact d1G0_body_receipt_strict_cuts.1 bad
+
+private theorem d1G0_non_genesis_receipt_accepted :
+    WitnessReceiptScope d1ReceiptCore d1Env d1ReceiptTrace
+      d1ReceiptJoined d1BodyReceipt d1C 6 := by
+  constructor
+  intro _ y _ _ _ _ _ _
+  cases y
+  exact d1G0_body_receipt_strict_cuts.2.1
+
+#print axioms d1G0_non_genesis_receipt_guards
+#print axioms d1G0_body_receipt_strict_cuts
+#print axioms d1G0_non_genesis_receipt_rejected
+#print axioms d1G0_non_genesis_receipt_accepted
+
 private theorem d1G0_start_cut :
     let R := d1Core d1Initial d1OnlyA
     let rho := d1Trace d1Initial d1OnlyA
