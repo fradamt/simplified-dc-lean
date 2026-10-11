@@ -319,6 +319,18 @@ end
 #print axioms d2g_wrong_lock
 #print axioms d2g_durable_resume
 #print axioms AvailableChain.FGCompose.rowPermission_covered
+#print axioms d2t_timing
+#print axioms d2t_schedule
+#print axioms d2t_client
+#print axioms d2t_wires
+#print axioms d2t_permission
+#print axioms d2t_fresh_origin
+#print axioms d2t_restart_record
+#print axioms d2t_prior_origin
+#print axioms d2t_fresh_covered
+#print axioms d2t_repeat_suppressed
+#print axioms d2t_restart_covered
+#print axioms d2t_exact_prior_witness
 
 end AvailableChain.FGCompose.Tests.P0d2
 end
