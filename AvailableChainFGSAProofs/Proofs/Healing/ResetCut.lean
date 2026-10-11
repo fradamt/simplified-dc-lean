@@ -1,7 +1,8 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.RepairGate
-public import AvailableChainFGSAProofs.Proofs.Shared.BoundsW
-public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
+-- Preserve the old wrapper facade and its exported repair and bound suppliers.
+public import AvailableChainFGSAProofs.Proofs.Healing.RepairGate -- shake: keep (facade coverage)
+public import AvailableChainFGSAProofs.Proofs.Shared.BoundsW -- shake: keep (facade coverage)
+public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope -- shake: keep (facade coverage)
 public import AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient
 public import AvailableChainFGCompose.Proofs.Healing.ResetCut
 

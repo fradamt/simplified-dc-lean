@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGCompose.Statements.ResetHistory
-import Mathlib.Tactic.Linarith
+import Mathlib.Tactic.Linarith -- shake: keep (exposed proof tactic)
 
 @[expose] public section
 
