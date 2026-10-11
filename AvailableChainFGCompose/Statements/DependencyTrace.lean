@@ -45,13 +45,82 @@ structure FGReceiptOrigin (E : Generic.Env V) (rho : V2.D.Run V P)
   rows : W.decodedRows o.wire = W.bodyRows b
   epoch_eq : o.receiptEpoch = dependencyReceiverEpoch rho x o.eventIndex
 
+/-- Every microstep records the operation which actually ran. -/
+inductive FGDependencyOperation (Body Origin Wire : Type) where
+  | arrival (b : Body) (o : Origin)
+  | leaf (b : Body) (o : Origin) (result : FGDependencyOutcome)
+  | inheritRefusal (b : Body) (o : Origin)
+  | notification (b : Body) (o : Origin)
+  | ordinary (wire : Wire)
+  | rejected (wire : Wire)
+  | ownRecord (wire : Wire)
+  | clock (t : Time)
+  | restore (t : Time)
+  | idle
+
+def dependencyOperationKind {Origin Wire : Type} :
+    FGDependencyOperation Body Origin Wire → FGDependencyStepKind
+  | .arrival _ _ => .arrival
+  | .leaf _ _ _ => .leafRetry
+  | .inheritRefusal _ _ => .refusalPropagation
+  | .notification _ _ => .notification
+  | .ordinary _ => .ordinary
+  | .rejected _ => .ordinary
+  | .ownRecord _ => .ownRecord
+  | .clock _ => .clock
+  | .restore _ => .restore
+  | .idle => .ordinary
+
+/-- Reads are commands in the executable handler, not a separate selectable read list. -/
+inductive FGDependencyCommand (Body Origin Wire : Type) where
+  | step (op : FGDependencyOperation Body Origin Wire)
+  | read (kind : FGDependencyReadKind)
+
+structure FGDependencyWorkRead (State : Type) where
+  offset : Nat
+  kind : FGDependencyReadKind
+  consumed : State
+
+structure FGDependencyWorkResult (State Body Origin Wire : Type) where
+  state : State
+  operations : List (FGDependencyOperation Body Origin Wire)
+  reads : List (FGDependencyWorkRead State)
+
 /-- Executable hooks of the dependency driver. Raw restore and clock remain in P. -/
 structure FGDependencyDriver (V Body : Type) (P : V2.ProtocolSpecD In) where
   enter : P.State → P.Object → FGReceiptToken V P.Object → P.State
   drain : P.State → P.State
-  readKinds : P.State → V2.Event V P.Object → List FGDependencyReadKind
+  retry : P.State → Body → FGReceiptToken V P.Object → FGDependencyOutcome → P.State
+  work : P.State → V2.Event V P.Object →
+    List (FGDependencyCommand Body (FGReceiptToken V P.Object) P.Object)
   inheritRefusal : P.State → Body → FGReceiptToken V P.Object → P.State
   notify : P.State → Body → FGReceiptToken V P.Object → P.State
+
+/-- Each primitive is the actual entry, leaf, report, notification or protocol operation. -/
+def dependencyExecuteOperation (F : FGDependencyDriver V Body P) (st : P.State) :
+    FGDependencyOperation Body (FGReceiptToken V P.Object) P.Object → P.State
+  | .arrival _ o => F.enter st o.wire o
+  | .leaf b o result => F.retry st b o result
+  | .inheritRefusal b o => F.inheritRefusal st b o
+  | .notification b o => F.notify st b o
+  | .ordinary wire | .rejected wire => P.process st wire
+  | .ownRecord wire => P.recordOwn st wire
+  | .clock t => P.clock st t
+  | .restore t => P.restore (P.durable st) t
+  | .idle => st
+
+/-- Evaluation records every read at its actual state and ordered operation boundary. -/
+def dependencyExecuteWork (F : FGDependencyDriver V Body P) (st : P.State) :
+    List (FGDependencyCommand Body (FGReceiptToken V P.Object) P.Object) →
+      FGDependencyWorkResult P.State Body (FGReceiptToken V P.Object) P.Object
+  | [] => ⟨st, [], []⟩
+  | .step op :: rest =>
+      let tail := dependencyExecuteWork F (dependencyExecuteOperation F st op) rest
+      ⟨tail.state, op :: tail.operations,
+        tail.reads.map (fun r => { r with offset := r.offset + 1 })⟩
+  | .read kind :: rest =>
+      let tail := dependencyExecuteWork F st rest
+      ⟨tail.state, tail.operations, ⟨0, kind, st⟩ :: tail.reads⟩
 
 /-- All duties and gossip use this one completed post-clock state. -/
 def dependencyReleased (E : Generic.Env V) (rho : V2.D.Run V P)
@@ -72,15 +141,11 @@ def dependencyEventEntry (rho : V2.D.Run V P) (F : FGDependencyDriver V Body P)
   | .deliver y wire t => if y = x then
       F.enter st wire ⟨x, j, wire, t, dependencyReceiverEpoch rho x j⟩ else st
 
-def dependencyEventStep (E : Generic.Env V) (rho : V2.D.Run V P)
+def dependencyEventStep (_E : Generic.Env V) (rho : V2.D.Run V P)
     (F : FGDependencyDriver V Body P) (x : V) (j : Nat)
     (st : P.State) (e : V2.Event V P.Object) : P.State :=
-  let prepared := F.drain (dependencyEventEntry rho F x j st e)
-  match e with
-  | .tick y t => if y = x then
-      F.drain (((dependencyReleased E rho prepared x t).filter P.objSelfVisible).foldl
-        P.recordOwn prepared) else prepared
-  | _ => prepared
+  let entry := dependencyEventEntry rho F x j st e
+  (dependencyExecuteWork F entry (F.work entry e)).state
 
 /-- This is the dependency-aware event fold; it is not the ordinary Duty fold. -/
 def dependencyStateBefore (E : Generic.Env V) (rho : V2.D.Run V P)
@@ -101,13 +166,12 @@ def dependencyEmits (E : Generic.Env V) (rho : V2.D.Run V P)
 def dependencyReadCode : FGDependencyReadKind → Nat
   | .fg => 0 | .proposer => 1 | .head => 2 | .ac => 3
 
-/-- Required interfaces cannot be removed by choosing an empty read predicate. -/
-def dependencyReadRequired (E : Generic.Env V) (F : FGDependencyDriver V Body P)
-    (x : V) (entry : P.State) (e : V2.Event V P.Object) (kind : FGDependencyReadKind) : Prop :=
+/-- Tick interfaces use one duty state. Other handler reads come from executed commands. -/
+def dependencyReadRequired (E : Generic.Env V) (_F : FGDependencyDriver V Body P)
+    (x : V) (_entry : P.State) (e : V2.Event V P.Object) (_kind : FGDependencyReadKind) : Prop :=
   match e with
   | .tick y t => y = x ∧ E.awake x t = true
-  | .deliver y _ t => y = x ∧ E.awake x t = true ∧ kind ∈ F.readKinds entry e
-  | .restart y _ => y = x ∧ kind ∈ F.readKinds entry e
+  | .deliver _ _ _ | .restart _ _ => False
 
 def dependencyReadState (E : Generic.Env V) (rho : V2.D.Run V P)
     (F : FGDependencyDriver V Body P) (x : V) (j : Nat) (e : V2.Event V P.Object) :
@@ -122,30 +186,6 @@ def dependencyActualRead (E : Generic.Env V) (rho : V2.D.Run V P)
     dependencyReadRequired E F x (dependencyStateBefore E rho F x j) e kind ∧
     i = 4 * j + dependencyReadCode kind ∧ st = dependencyReadState E rho F x j e
 
-/-- Every microstep records the operation which actually ran. -/
-inductive FGDependencyOperation (Body Origin Wire : Type) where
-  | arrival (b : Body) (o : Origin)
-  | leaf (b : Body) (o : Origin) (result : FGDependencyOutcome)
-  | inheritRefusal (b : Body) (o : Origin)
-  | notification (b : Body) (o : Origin)
-  | ordinary (wire : Wire)
-  | ownRecord (wire : Wire)
-  | clock (t : Time)
-  | restore (t : Time)
-  | idle
-
-def dependencyOperationKind {Origin Wire : Type} :
-    FGDependencyOperation Body Origin Wire → FGDependencyStepKind
-  | .arrival _ _ => .arrival
-  | .leaf _ _ _ => .leafRetry
-  | .inheritRefusal _ _ => .refusalPropagation
-  | .notification _ _ => .notification
-  | .ordinary _ => .ordinary
-  | .ownRecord _ => .ownRecord
-  | .clock _ => .clock
-  | .restore _ => .restore
-  | .idle => .ordinary
-
 /-- Finite refinement data. The driver protocol P and the one-body leaf are separate. -/
 structure FGDependencyTrace (State : Type) where
   length : Nat
@@ -156,6 +196,7 @@ structure FGDependencyTrace (State : Type) where
   readCut : Nat → Nat
   entryCut : Nat → Nat
   dutyCut : Nat → Nat
+  hookRead : Nat → Nat → FGDependencyReadKind → Nat → State → Prop
 
 def dependencyStrictPrefix (rho : V2.D.Run V P) (T : FGDependencyTrace P.State)
     (deadline : Time) (k : Nat) : Prop :=
@@ -192,7 +233,8 @@ structure FGDependencyTraceLaws (E : Generic.Env V) (rho : V2.D.Run V P)
     | .arrival b o => Arrival (T.state k) b o (T.state (k + 1)) ∧
         T.state (k + 1) = F.enter (T.state k) o.wire o ∧
         FGReceiptOrigin E rho H W x b o ∧ k = T.start o.eventIndex
-    | .leaf b o result => L.step (T.state k) b o result (T.state (k + 1)) ∧
+    | .leaf b o result => T.state (k + 1) = F.retry (T.state k) b o result ∧
+        L.step (T.state k) b o result (T.state (k + 1)) ∧
         D.originAvailable (T.state k) b o ∧
         leafState (T.state (k + 1)) = Leaf.process (leafState (T.state k)) (leafWire o.wire)
     | .inheritRefusal b o => D.validBody b ∧ D.originAvailable (T.state k) b o ∧
@@ -203,12 +245,42 @@ structure FGDependencyTraceLaws (E : Generic.Env V) (rho : V2.D.Run V P)
     | .notification b o => Notify (T.state k) b (T.state (k + 1)) ∧
         D.originAvailable (T.state k) b o ∧ dependencyResolved H D (T.state k) b ∧
         T.state (k + 1) = F.notify (T.state k) b o ∧ D.notified (T.state (k + 1)) b
-    | .ordinary wire => W.decodeBody wire = none ∧
+    | .rejected wire => P.wellFormed wire = false ∧
+        T.state (k + 1) = P.process (T.state k) wire
+    | .ordinary wire => P.wellFormed wire = true ∧ W.decodeBody wire = none ∧
         T.state (k + 1) = P.process (T.state k) wire
     | .ownRecord wire => T.state (k + 1) = P.recordOwn (T.state k) wire
     | .clock t => T.state (k + 1) = P.clock (T.state k) t
     | .restore t => T.state (k + 1) = P.restore (P.durable (T.state k)) t
     | .idle => T.state (k + 1) = T.state k
+  delivery_entry : ∀ j wire t, rho.events[j]? = some (.deliver x wire t) →
+    let o : FGReceiptToken V P.Object := ⟨x, j, wire, t, dependencyReceiverEpoch rho x j⟩
+    Op (T.start j) =
+      (if E.awake x t then
+        if P.wellFormed wire then
+          match W.decodeBody wire with
+          | some b => .arrival b o
+          | none => .ordinary wire
+        else .rejected wire
+      else .idle)
+  work_execution : ∀ j e, rho.events[j]? = some e →
+    let work := dependencyExecuteWork F (T.state (T.entryCut j))
+      (F.work (T.state (T.entryCut j)) e)
+    work.state = T.state (T.done j) ∧
+    work.operations = (List.range (T.done j - T.entryCut j)).map
+      (fun offset => Op (T.entryCut j + offset))
+  hook_correspondence : ∀ j e index kind cut st, rho.events[j]? = some e →
+    (T.hookRead j index kind cut st ↔ ∃ r,
+      (dependencyExecuteWork F (T.state (T.entryCut j))
+        (F.work (T.state (T.entryCut j)) e)).reads[index]? = some r ∧
+      r.kind = kind ∧ cut = T.entryCut j + r.offset ∧ st = r.consumed)
+  hook_reads : ∀ j e r, rho.events[j]? = some e →
+    r ∈ (dependencyExecuteWork F (T.state (T.entryCut j))
+      (F.work (T.state (T.entryCut j)) e)).reads →
+    T.entryCut j + r.offset ≤ T.done j ∧
+    T.state (T.entryCut j + r.offset) = r.consumed ∧
+    FGDependencySteps Step x (T.state (T.entryCut j)) r.consumed ∧
+    dependencyClosed H D r.consumed
   receipt_entry : ∀ j wire t b, rho.events[j]? = some (.deliver x wire t) →
     E.awake x t = true → P.wellFormed wire = true → W.decodeBody wire = some b →
     let o : FGReceiptToken V P.Object := ⟨x, j, wire, t, dependencyReceiverEpoch rho x j⟩
@@ -316,11 +388,60 @@ structure FGDependencyTraceLaws (E : Generic.Env V) (rho : V2.D.Run V P)
     i < j → T.done i < T.start j
   completion_cut : ∀ j e deadline, rho.events[j]? = some e → e.time < deadline →
     dependencyStrictPrefix rho T deadline (T.done j)
+  tick_records : ∀ j t, rho.events[j]? = some (.tick x t) →
+    T.state (T.done j) = F.drain
+      (((dependencyReleased E rho (T.state (T.dutyCut j)) x t).filter
+        P.objSelfVisible).foldl P.recordOwn (T.state (T.dutyCut j)))
   atomic_tick : ∀ (j : Nat) (t : Time), rho.events[j]? = some (.tick x t) →
     T.entryCut j ≤ T.dutyCut j ∧ T.dutyCut j ≤ T.done j ∧
     T.state (T.dutyCut j) = dependencyDutyState E rho F x j (.tick x t) ∧
     dependencyClosed H D (T.state (T.dutyCut j)) ∧
     FGDependencySteps Step x (T.state (T.dutyCut j)) (T.state (T.done j))
+
+/-- Public completion sites must name the actual event, kind and trace boundaries. -/
+structure FGDependencyReadClosureLaws (E : Generic.Env V) (rho : V2.D.Run V P) (x : V)
+    (H : FGHistoricalReads P.State Body)
+    (D : FGDependencyReads P.State Body (FGReceiptToken V P.Object) Latest)
+    (Step : FGDependencyStepKind → V → P.State → P.State → Prop)
+    (T : FGDependencyTrace P.State) (F : FGDependencyDriver V Body P)
+    (site : Nat → FGDependencyReadSite P.State)
+    (Read : V → Nat → P.State → Prop)
+    (W : FGDependencyWireReads P Body Row)
+    (L : FGDependencyLeaf P.State Body (FGReceiptToken V P.Object))
+    (Op : Nat → FGDependencyOperation Body (FGReceiptToken V P.Object) P.Object)
+    (Arrival : P.State → Body → FGReceiptToken V P.Object → P.State → Prop)
+    (Notify : P.State → Body → P.State → Prop)
+    (leafState : P.State → Leaf.State) (leafWire : P.Object → Leaf.Object) : Prop where
+  trace_bound : FGDependencyTraceLaws E rho x H W D L Step T F Op Arrival Notify
+    leafState leafWire Read
+  actual_read : ∀ i st, Read x i st ↔ dependencyActualRead E rho F x i st
+  site_correspondence : ∀ i st, Read x i st → ∃ e,
+    rho.events[(site i).eventIndex]? = some e ∧
+    dependencyReadRequired E F x
+      (dependencyStateBefore E rho F x (site i).eventIndex) e (site i).kind ∧
+    i = 4 * (site i).eventIndex + dependencyReadCode (site i).kind ∧
+    (site i).entryCut = T.entryCut (site i).eventIndex ∧
+    (site i).consumedCut = T.readCut i ∧
+    (match e with
+      | .tick _ _ => (site i).consumedCut = T.dutyCut (site i).eventIndex
+      | _ => (site i).consumedCut = T.done (site i).eventIndex)
+  hook_correspondence : ∀ j e index kind cut st, rho.events[j]? = some e →
+    (T.hookRead j index kind cut st ↔ ∃ r,
+      (dependencyExecuteWork F (T.state (T.entryCut j))
+        (F.work (T.state (T.entryCut j)) e)).reads[index]? = some r ∧
+      r.kind = kind ∧ cut = T.entryCut j + r.offset ∧ st = r.consumed)
+  hook_completion : ∀ j e r, rho.events[j]? = some e →
+    r ∈ (dependencyExecuteWork F (T.state (T.entryCut j))
+      (F.work (T.state (T.entryCut j)) e)).reads →
+    T.entryCut j + r.offset ≤ T.done j ∧
+    T.state (T.entryCut j + r.offset) = r.consumed ∧
+    FGDependencySteps Step x (T.state (T.entryCut j)) r.consumed ∧
+    dependencyClosed H D r.consumed
+  read_closed : ∀ i st, Read x i st → dependencyClosed H D st
+  finite_completion : ∀ i st, Read x i st →
+    (site i).entryCut ≤ (site i).consumedCut ∧ (site i).consumedCut ≤ T.length ∧
+    (site i).consumed = st ∧ T.state (site i).consumedCut = st ∧
+    FGDependencySteps Step x (T.state (site i).entryCut) st ∧ dependencyClosed H D st
 
 /-- Network facts are consumed under the original awake, horizon and old-send guards. -/
 structure FGDependencyDeliveryLaws (E : Generic.Env V) (rho : V2.D.Run V P)
@@ -335,7 +456,8 @@ structure FGDependencyDeliveryLaws (E : Generic.Env V) (rho : V2.D.Run V P)
     W.decodeBody wire = some b → D.validBody b → Outstanding wire sent wake →
     sent < deadline → wake ≤ deadline →
     (∀ t, wake ≤ t → t ≤ deadline → E.awake x t = true) →
-    (∀ (j : Nat) (t : Time), rho.events[j]? = some (.restart x t) → wake < t → deadline < t) →
+    (∀ (j : Nat) (t : Time), rho.events[j]? = some (.restart x t) →
+      wake < t → deadline < t) →
     deadline ≤ rho.horizon →
     max (max sent E.t_GST) wake + E.Δ ≤ deadline →
     ∃ j o, FGReceiptOrigin E rho H W x b o ∧ o.eventIndex = j ∧

@@ -197,17 +197,6 @@ structure FGDependencyReadSite (State : Type) where
   consumedCut : Nat
   consumed : State
 
-structure FGDependencyReadClosureLaws (H : FGHistoricalReads State Body)
-    (D : FGDependencyReads State Body Origin Latest)
-    (Step : FGDependencyStepKind → V → State → State → Prop)
-    (state : Nat → State) (site : Nat → FGDependencyReadSite State)
-    (Read : V → Nat → State → Prop) : Prop where
-  read_closed : ∀ x i st, Read x i st → dependencyClosed H D st
-  finite_completion : ∀ x i st, Read x i st →
-    (site i).entryCut ≤ (site i).consumedCut ∧
-    (site i).consumed = st ∧ state (site i).consumedCut = st ∧
-    FGDependencySteps Step x (state (site i).entryCut) st ∧ dependencyClosed H D st
-
 /-- A finite named parent path, with genesis as its held base. -/
 inductive FGDependencyPath (H : FGHistoricalReads State Body) (genesis : Body) :
     Body → List Body → Prop
