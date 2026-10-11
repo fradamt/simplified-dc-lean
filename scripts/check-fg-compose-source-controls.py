@@ -155,6 +155,32 @@ def main():
             check(fixture, f'derived name collision with {label} instance rejected', collision,
                   names, 'reject')
             count += 1
+        holder = ('inductive I where\n  | a | b\n  deriving DecidableEq\n'
+                  'end Holder\n')
+        for label, body, extra in (
+                ('constructor', 'inductive Holder where\n  | instDecidableEqI\n'
+                 'namespace Holder\n' + holder, ('Holder', 'Holder.instDecidableEqI')),
+                ('projection', 'structure Holder where\n  instDecidableEqI : Nat\n'
+                 'namespace Holder\n' + holder,
+                 ('Holder', 'Holder.mk', 'Holder.instDecidableEqI')),
+                ('private derived', 'private inductive i where\n  | a\n  deriving DecidableEq\n'
+                 'namespace Holder\n' + holder, ())):
+            source = 'namespace AvailableChain.FGCompose\n' + body + 'end\n'
+            base = {PREFIX + n for n in extra + ('Holder.I', 'Holder.I.a', 'Holder.I.b')}
+            for kind, names in (('omitted', base),
+                                ('complete', base | {PREFIX + 'Holder.instDecidableEqI_1'})):
+                check(fixture, f'{label} collision, {kind} instance, rejected', source,
+                      names, 'reject')
+                count += 1
+        source = ('namespace AvailableChain.FGCompose\nprivate inductive lower where\n'
+                  '  | a | b\n  deriving DecidableEq\ninductive Lower where\n  | a | b\n'
+                  '  deriving DecidableEq\nend\n')
+        base = {PREFIX + n for n in ('Lower', 'Lower.a', 'Lower.b')}
+        for kind, inst in (('fabricated', 'instDecidableEqLower'),
+                           ('actual', 'instDecidableEqLower_1')):
+            check(fixture, f'private/public derived clash, {kind} instance, rejected', source,
+                  base | {PREFIX + inst}, 'reject')
+            count += 1
     result = subprocess.run([sys.executable, '-B', CHECKER], check=True,
                             capture_output=True, text=True)
     coverage = re.search(r'; (\d+) public declarations/projections', result.stdout)
