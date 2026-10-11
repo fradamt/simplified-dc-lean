@@ -1,6 +1,9 @@
 module
 public import AvailableChainFGSA.Proofs.WindowCertificates
 
+public import AvailableChainKitFG.WindowHistory
+public import AvailableChainKitFG.WindowTransport
+
 public section
 
 namespace AvailableChain.FGSA.Window
@@ -9,6 +12,252 @@ open AvailableChain.SimplexFG hiding process_row process_height_events transitio
 open AvailableChain.KitFG
 
 variable {V : Type} [DecidableEq V] [RowCodec V]
+
+section
+
+private abbrev b3history_Old := FGSA.Window.State
+private abbrev b3history_New := SimplexFG.Window.State
+
+private def b3history_toEntry {V : Type} (e : FGSA.Window.Entry V) : SimplexFG.Window.Entry V :=
+  ⟨e.j, e.X, e.Q⟩
+
+/-- All eleven fields are copied; no field is reconstructed from another field. -/
+private def b3history_toWindow {V : Type} (w : b3history_Old V) : b3history_New V :=
+  ⟨w.L, w.s, w.h, w.T_h, w.target_participation, w.progress,
+    w.W.map b3history_toEntry, w.J, w.h_j, w.F, w.h_F⟩
+
+private theorem b3history_entry_eq {V : Type} (e : Entry V) :
+    b3history_toEntry e = ⟨e.j, e.X, e.Q⟩ := rfl
+
+private theorem b3history_state_eq {V : Type} (w : b3history_Old V) :
+    b3history_toWindow w = ⟨w.L, w.s, w.h, w.T_h, w.target_participation, w.progress,
+      w.W.map b3history_toEntry, w.J, w.h_j, w.F, w.h_F⟩ := rfl
+
+private theorem b3history_entry_fields {V : Type} (e : FGSA.Window.Entry V) :
+    (b3history_toEntry e).j = e.j ∧ (b3history_toEntry e).X = e.X ∧ (b3history_toEntry e).Q = e.Q :=
+  ⟨rfl, rfl, rfl⟩
+
+private theorem b3history_state_fields {V : Type} (w : b3history_Old V) :
+    (b3history_toWindow w).L = w.L ∧ (b3history_toWindow w).s = w.s ∧
+    (b3history_toWindow w).h = w.h ∧ (b3history_toWindow w).T_h = w.T_h ∧
+    (b3history_toWindow w).target_participation = w.target_participation ∧
+    (b3history_toWindow w).progress = w.progress ∧ (b3history_toWindow w).W = w.W.map
+      b3history_toEntry ∧
+    (b3history_toWindow w).J = w.J ∧ (b3history_toWindow w).h_j = w.h_j ∧
+    (b3history_toWindow w).F = w.F ∧ (b3history_toWindow w).h_F = w.h_F := by
+  exact ⟨rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl⟩
+
+private theorem b3history_initial_eq {V : Type} :
+    b3history_toWindow (FGSA.Window.initial (V := V)) = SimplexFG.Window.initial := rfl
+
+variable {V : Type} [DecidableEq V] [RowCodec V]
+
+private theorem b3history_row_eq (w : b3history_Old V) (a : Row V) :
+    b3history_toWindow (FGSA.Window.process_row w a) =
+      SimplexFG.Window.process_row (b3history_toWindow w) a := by
+  have bits :
+      (w.W.map (fun e => if a.finality_pair = some ⟨e.j, e.X.root⟩ then
+        { e with Q := insert a.signer e.Q } else e)).map b3history_toEntry =
+      (w.W.map b3history_toEntry).map (fun e => if a.finality_pair = some ⟨e.j, e.X.root⟩ then
+        { e with Q := insert a.signer e.Q } else e) := by
+    simp only [List.map_map]
+    congr 1
+    funext e
+    by_cases he : a.finality_pair = some ⟨e.j, e.X.root⟩ <;>
+      simp [b3history_entry_eq, he]
+  rcases a with ⟨i, hp, fp⟩
+  cases hp with
+  | empty =>
+      simpa only [FGSA.Window.process_row_def, SimplexFG.Window.process_row_def,
+        NamedHeightPair.matchesEntry, Bool.false_eq_true, ↓reduceIte, b3history_state_eq] using
+        congrArg (fun es => ({ b3history_toWindow w with W := es } : b3history_New V)) bits
+  | vote h X t =>
+      cases t <;>
+        simp only [FGSA.Window.process_row_def, SimplexFG.Window.process_row_def,
+          NamedHeightPair.matchesEntry] <;>
+        split_ifs <;> dsimp [b3history_state_eq] <;> rw [bits] <;> simp_all [b3history_state_eq]
+      all_goals
+        exfalso
+        have hm : h = w.h ∧ X = w.T_h.root := of_decide_eq_true (by assumption)
+        exact (by assumption : h = w.h → ¬ X = w.T_h.root) hm.1 hm.2
+
+private theorem b3history_rows_eq (rs : List (Row V)) (w : b3history_Old V) :
+    b3history_toWindow (rs.foldl FGSA.Window.process_row w) =
+      rs.foldl SimplexFG.Window.process_row (b3history_toWindow w) := by
+  induction rs generalizing w with
+  | nil => rfl
+  | cons a rs ih => simp only [List.foldl_cons, ih, b3history_row_eq]
+
+omit [DecidableEq V] [RowCodec V] in
+private theorem b3history_advance_eq (w : b3history_Old V) :
+    b3history_toWindow (FGSA.Window.advance_height w) =
+      SimplexFG.Window.advance_height (b3history_toWindow w) := rfl
+
+variable [Fintype V]
+
+omit [DecidableEq V] [RowCodec V] in
+private theorem b3history_greatest_eq (E : Electorate V) (w : b3history_Old V) :
+    (FGSA.Window.greatestReady E w).map b3history_toEntry =
+      SimplexFG.Window.greatestReady E (b3history_toWindow w) := by
+  classical
+  let oldStep := fun (best : Option (FGSA.Window.Entry V)) e =>
+    if w.h_F < e.j ∧ E.q ≤ E.weightOf e.Q then
+      best.elim (some e) (fun old => if old.j < e.j then some e else best)
+    else best
+  let newStep := fun (best : Option (SimplexFG.Window.Entry V)) e =>
+    if w.h_F < e.j ∧ E.q ≤ E.weightOf e.Q then
+      best.elim (some e) (fun old => if old.j < e.j then some e else best)
+    else best
+  have step (best) (e) :
+      (oldStep best e).map b3history_toEntry = newStep (best.map b3history_toEntry)
+      (b3history_toEntry e) := by
+    dsimp [oldStep, newStep, b3history_entry_eq]
+    split_ifs <;> cases best <;> simp_all [b3history_entry_eq]
+    split_ifs <;> rfl
+  have fold (es : List (FGSA.Window.Entry V)) (best) :
+      (es.foldl oldStep best).map b3history_toEntry =
+        (es.map b3history_toEntry).foldl newStep (best.map b3history_toEntry) := by
+    induction es generalizing best with
+    | nil => rfl
+    | cons e es ih => simp only [List.foldl_cons, List.map_cons, ih, step]
+  have old_eq : FGSA.Window.greatestReady E w = w.W.foldl oldStep none := by
+    rw [FGSA.Window.greatestReady_def]
+    congr 1
+    funext best e
+    cases best <;> rfl
+  have new_eq : SimplexFG.Window.greatestReady E (b3history_toWindow w) =
+      (w.W.map b3history_toEntry).foldl newStep none := by
+    rw [SimplexFG.Window.greatestReady_def]
+    congr 1
+    funext best e
+    cases best <;> rfl
+  rw [old_eq, new_eq]
+  exact fold w.W none
+
+omit [DecidableEq V] [RowCodec V] in
+private theorem b3history_finalize_eq (E : Electorate V) (w : b3history_Old V) :
+    b3history_toWindow (FGSA.Window.finalizeWindow E w) =
+      SimplexFG.Window.finalizeWindow E (b3history_toWindow w) := by
+  rw [FGSA.Window.finalizeWindow_def, SimplexFG.Window.finalizeWindow_def]
+  rw [← b3history_greatest_eq]
+  cases FGSA.Window.greatestReady E w <;>
+    simp [b3history_state_eq, b3history_entry_eq, List.filter_map, Function.comp_def] <;> rfl
+
+omit [DecidableEq V] [RowCodec V] [Fintype V] in
+/-- Appending the new empty entry and dropping old entries preserve conversion. -/
+private theorem b3history_append_eviction_eq (es : List (FGSA.Window.Entry V))
+    (j : Height) (X : FGBlock V) (K : Nat) :
+    ((es ++ [FGSA.Window.Entry.mk j X ∅]).drop
+      ((es ++ [FGSA.Window.Entry.mk j X ∅]).length - K)).map b3history_toEntry =
+      (es.map b3history_toEntry ++ [SimplexFG.Window.Entry.mk j X ∅]).drop
+        ((es.map b3history_toEntry ++ [SimplexFG.Window.Entry.mk j X ∅]).length - K) := by
+  simp [List.map_drop, b3history_entry_eq]
+
+omit [DecidableEq V] [RowCodec V] in
+private theorem b3history_events_eq (E : Electorate V) (cfg : FGConfig) (K : Nat) (w :
+      b3history_Old V) :
+    b3history_toWindow (FGSA.Window.process_height_events E cfg K w) =
+      SimplexFG.Window.process_height_events E cfg K (b3history_toWindow w) := by
+  rw [FGSA.Window.process_height_events_def, SimplexFG.Window.process_height_events_def]
+  rw [← b3history_finalize_eq]
+  generalize FGSA.Window.finalizeWindow E w = u
+  change b3history_toWindow (if FGSA.Window.targetQuorum E u then _ else _) =
+    (if FGSA.Window.targetQuorum E u then _ else _)
+  rw [show SimplexFG.Window.progReady E cfg (b3history_toWindow u) =
+    FGSA.Window.progReady E cfg u from rfl]
+  split_ifs <;>
+    simp [FGSA.Window.advance_height_def, SimplexFG.Window.advance_height_def,
+      b3history_state_eq, b3history_entry_eq, List.map_drop]
+
+private theorem b3history_transition_eq (p : Params) (K : Nat) (w : b3history_Old (Fin p.n))
+    (B : FGBlock (Fin p.n)) (rs : List (Row (Fin p.n))) :
+    b3history_toWindow (FGSA.Window.transition p K w B rs) =
+      SimplexFG.Window.transition p.E p.cfg K (b3history_toWindow w) B rs := by
+  rw [FGSA.Window.transition_def, b3history_events_eq, SimplexFG.Window.transition_def]
+  have h := b3history_rows_eq rs { w with s := B.slot }
+  change SimplexFG.Window.process_height_events p.E p.cfg K
+    { b3history_toWindow (rs.foldl FGSA.Window.process_row { w with s := B.slot }) with L := B } = _
+  rw [h]
+  rfl
+
+private theorem b3history_foldMap (p : Params) (K : Nat) :
+    KitFG.WindowFoldMap p.E p.cfg K FGSA.Window.initial (FGSA.Window.transition p K)
+      (FGSA.Window.derive p K) b3history_toWindow where
+  initial := b3history_initial_eq
+  genesis := rfl
+  node := fun _ _ _ _ _ => rfl
+  step := b3history_transition_eq p K
+
+private theorem b3history_derive_eq (p : Params) (K : Nat) (B : FGBlock (Fin p.n)) :
+    b3history_toWindow (FGSA.Window.derive p K B) = SimplexFG.Window.derive p.E p.cfg K B :=
+  (b3history_foldMap p K).fold_eq B
+
+end
+
+private theorem b3history_empty_not_quorum (p : Params) : ¬ p.E.IsQuorum ∅ := by
+  have hn := p.nPos
+  dsimp only [Params.E, Electorate.IsQuorum, Electorate.q, Electorate.totalWeight,
+    Electorate.weightOf]
+  simp only [Finset.sum_const, Finset.card_univ, Fintype.card_fin,
+    smul_eq_mul, mul_one, Finset.card_empty]
+  omega
+
+private theorem b3history_height_eq (p : Params) (K : Nat) :
+    certificateHeight p K = KitFG.Window.certificateHeight p.E p.cfg K := by
+  funext B
+  change KitFG.Window.projectHeight (b3history_toWindow (derive p K B)) = _
+  rw [b3history_derive_eq, KitFG.Window.certificateHeight_def]
+
+private theorem b3history_finality_eq (p : Params) (K : Nat) :
+    certificateFinality p K = KitFG.Window.certificateFinality p.E p.cfg K := by
+  funext B
+  change KitFG.Window.projectFinality (b3history_toWindow (derive p K B)) = _
+  rw [b3history_derive_eq, KitFG.Window.certificateFinality_def]
+
+private theorem b3history_folded_eq (p : Params) (K : Nat) (B : FGBlock (Fin p.n)) :
+    b3history_toWindow (certificateFolded p K B) =
+      KitFG.Window.certificateFolded p.E p.cfg K B := by
+  rw [certificateFolded_def, KitFG.Window.certificateFolded_def]
+  change { b3history_toWindow (B.rows.foldl process_row { derive p K B.parent with s := B.slot })
+    with L := B } = _
+  rw [b3history_rows_eq]
+  change { B.rows.foldl SimplexFG.Window.process_row
+    { b3history_toWindow (derive p K B.parent) with s := B.slot } with L := B } = _
+  rw [b3history_derive_eq]
+
+private theorem b3history_exists_map {V : Type} (xs : List (Entry V))
+    (P : SimplexFG.Window.Entry V → Prop) :
+    (∃ e ∈ xs.map b3history_toEntry, P e) ↔ ∃ e ∈ xs, P (b3history_toEntry e) := by
+  simp only [List.mem_map]
+  constructor
+  · rintro ⟨e, ⟨d, hd, rfl⟩, hp⟩; exact ⟨d, hd, hp⟩
+  · rintro ⟨d, hd, hp⟩; exact ⟨b3history_toEntry d, ⟨d, hd, rfl⟩, hp⟩
+
+private theorem b3history_filter_length {V : Type} (xs : List (Entry V)) (y : Nat) :
+    ((xs.map b3history_toEntry).filter (fun e => decide (y < e.j))).length =
+      (xs.filter (fun e => decide (y < e.j))).length := by
+  rw [List.filter_map]
+  simp only [Function.comp_def, b3history_toEntry, List.length_map]
+  rfl
+
+private theorem b3history_r6w_eq {V : Type} [RowCodec V]
+    (w : State V) (a : Row V) :
+    SimplexFG.Window.r6w (b3history_toWindow w) a = r6w w a := by
+  simp only [SimplexFG.Window.r6w_def, r6w_def,
+    SimplexFG.Window.heightMatch_def, heightMatch_def,
+    SimplexFG.Window.staleUseful_def, staleUseful_def,
+    SimplexFG.Window.windowMatch_def, windowMatch_def,
+    b3history_state_eq, List.any_map, Function.comp_def, b3history_entry_eq]
+  rfl
+
+private theorem b3history_mem_map {V : Type} (e : Entry V) (xs : List (Entry V)) :
+    b3history_toEntry e ∈ xs.map b3history_toEntry ↔ e ∈ xs := by
+  rw [List.mem_map]
+  constructor
+  · rintro ⟨d, hd, eq⟩
+    have same : d = e := by cases d; cases e; cases eq; rfl
+    exact same ▸ hd
+  · intro he; exact ⟨e, he, rfl⟩
 
 private theorem final_fields (p : Params) (w : State (Fin p.n)) :
     (finalizeWindow p.E w).h = w.h ∧
@@ -33,30 +282,22 @@ theorem window_final_birth (p : Params) (K : Nat) (hK : 2 ≤ K)
     (B : FGBlock (Fin p.n)) (hnz : (derive p K B).h_F ≠ 0) :
     ∃ C, FGBlock.Preceq C B ∧ JustificationBirth p.E (certificateHeight p K)
       C (derive p K B).h_F (derive p K B).F := by
-  induction B with
-  | genesis => exact (hnz rfl).elim
-  | node P s r_s x rs ih =>
-      let B := FGBlock.node P s r_s x rs
-      let w := certificateFolded p K B
-      have ff := window_fold_fields rs { derive p K P with s := s }
-      have ef := events_finality p K w
-      change (derive p K B).F = _ ∧ (derive p K B).h_F = _ at ef
-      rw [ef.2] at hnz
-      rw [ef.1, ef.2]
-      cases hg : greatestReady p.E w with
-      | none =>
-          have hF : (finalizeWindow p.E w).F = (derive p K P).F := by
-            rw [finalizeWindow_def, hg]; exact ff.2.2.2.2.2.2
-          have hh : (finalizeWindow p.E w).h_F = (derive p K P).h_F := by
-            rw [finalizeWindow_def, hg]; exact ff.2.2.2.2.2.1
-          rw [hh, hF]
-          obtain ⟨C, hc, hb⟩ := ih (hh ▸ hnz)
-          exact ⟨C, preceq_node_of_preceq s r_s x rs hc, hb⟩
-      | some d =>
-          obtain ⟨C, hc, hb, _⟩ := window_prefinal_entry_origin p K hK B d
-            ((window_greatest_spec p.E w).1 d hg).1
-          refine ⟨C, hc.1, ?_⟩
-          simpa only [finalizeWindow_def, hg] using hb
+  have result := KitFG.Window.window_final_birth p.E
+    p.cfg
+    K
+    (b3history_empty_not_quorum p)
+    hK
+    B
+    (by simpa only [← b3history_derive_eq, ← b3history_height_eq, ← b3history_finality_eq,
+    ← b3history_folded_eq, ← b3history_finalize_eq, b3history_state_fields, b3history_entry_fields,
+    b3history_mem_map, b3history_exists_map, List.forall_mem_map, b3history_filter_length,
+      List.length_map,
+    b3history_r6w_eq, SimplexFG.Window.targetQuorum_def, targetQuorum_def] using hnz)
+  simpa only [← b3history_derive_eq, ← b3history_height_eq, ← b3history_finality_eq,
+    ← b3history_folded_eq, ← b3history_finalize_eq, b3history_state_fields, b3history_entry_fields,
+    b3history_mem_map, b3history_exists_map, List.forall_mem_map, b3history_filter_length,
+      List.length_map,
+    b3history_r6w_eq, SimplexFG.Window.targetQuorum_def, targetQuorum_def] using result
 
 private theorem birth_geometry (p : Params) (K : Nat) (hK : 2 ≤ K)
     {C X : FGBlock (Fin p.n)} {j : Height}
@@ -101,11 +342,30 @@ theorem window_le_hF_covered (p : Params) (K : Nat) (hK : 2 ≤ K)
     (A B : FGBlock (Fin p.n)) (hAB : FGBlock.Preceq A B)
     (e : Entry (Fin p.n)) (he : e ∈ (derive p K A).W)
     (hle : e.j ≤ (derive p K B).h_F) : FGBlock.Preceq e.X (derive p K B).F := by
-  have hb := window_bounds p K hK A e he
-  have hnz : (derive p K B).h_F ≠ 0 := Nat.ne_of_gt ((Nat.zero_lt_of_lt hb.1).trans_le hle)
-  obtain ⟨C, hc, hbirth, _⟩ := window_entry_origin p K hK A e he
-  obtain ⟨D, hd, hfinal⟩ := window_final_birth p K hK B hnz
-  exact birth_order p K hK (preceq_trans hc hAB) hd hbirth hfinal hle
+  have result := KitFG.Window.window_le_hF_covered p.E
+    p.cfg
+    K
+    (b3history_empty_not_quorum p)
+    hK
+    A
+    B
+    hAB
+    (b3history_toEntry e)
+    (by simpa only [← b3history_derive_eq, ← b3history_height_eq, ← b3history_finality_eq,
+    ← b3history_folded_eq, ← b3history_finalize_eq, b3history_state_fields, b3history_entry_fields,
+    b3history_mem_map, b3history_exists_map, List.forall_mem_map, b3history_filter_length,
+      List.length_map,
+    b3history_r6w_eq, SimplexFG.Window.targetQuorum_def, targetQuorum_def] using he)
+    (by simpa only [← b3history_derive_eq, ← b3history_height_eq, ← b3history_finality_eq,
+    ← b3history_folded_eq, ← b3history_finalize_eq, b3history_state_fields, b3history_entry_fields,
+    b3history_mem_map, b3history_exists_map, List.forall_mem_map, b3history_filter_length,
+      List.length_map,
+    b3history_r6w_eq, SimplexFG.Window.targetQuorum_def, targetQuorum_def] using hle)
+  simpa only [← b3history_derive_eq, ← b3history_height_eq, ← b3history_finality_eq,
+    ← b3history_folded_eq, ← b3history_finalize_eq, b3history_state_fields, b3history_entry_fields,
+    b3history_mem_map, b3history_exists_map, List.forall_mem_map, b3history_filter_length,
+      List.length_map,
+    b3history_r6w_eq, SimplexFG.Window.targetQuorum_def, targetQuorum_def] using result
 
 /-- [bp §3.1; bp 22 I7] The absent-key form of `window_le_hF_covered`. Absence is
 not used; the form matches the COVERED case of `window_entry_history`. -/
@@ -114,8 +374,35 @@ theorem window_absent_le_hF_covered (p : Params) (K : Nat) (hK : 2 ≤ K)
     (e : Entry (Fin p.n)) (he : e ∈ (derive p K A).W)
     (gone : ¬ ∃ d ∈ (derive p K B).W, d.j = e.j ∧ d.X = e.X)
     (hle : e.j ≤ (derive p K B).h_F) : FGBlock.Preceq e.X (derive p K B).F := by
-  have _absent := gone
-  exact window_le_hF_covered p K hK A B hAB e he hle
+  have result := KitFG.Window.window_absent_le_hF_covered p.E
+    p.cfg
+    K
+    (b3history_empty_not_quorum p)
+    hK
+    A
+    B
+    hAB
+    (b3history_toEntry e)
+    (by simpa only [← b3history_derive_eq, ← b3history_height_eq, ← b3history_finality_eq,
+    ← b3history_folded_eq, ← b3history_finalize_eq, b3history_state_fields, b3history_entry_fields,
+    b3history_mem_map, b3history_exists_map, List.forall_mem_map, b3history_filter_length,
+      List.length_map,
+    b3history_r6w_eq, SimplexFG.Window.targetQuorum_def, targetQuorum_def] using he)
+    (by simpa only [← b3history_derive_eq, ← b3history_height_eq, ← b3history_finality_eq,
+    ← b3history_folded_eq, ← b3history_finalize_eq, b3history_state_fields, b3history_entry_fields,
+    b3history_mem_map, b3history_exists_map, List.forall_mem_map, b3history_filter_length,
+      List.length_map,
+    b3history_r6w_eq, SimplexFG.Window.targetQuorum_def, targetQuorum_def] using gone)
+    (by simpa only [← b3history_derive_eq, ← b3history_height_eq, ← b3history_finality_eq,
+    ← b3history_folded_eq, ← b3history_finalize_eq, b3history_state_fields, b3history_entry_fields,
+    b3history_mem_map, b3history_exists_map, List.forall_mem_map, b3history_filter_length,
+      List.length_map,
+    b3history_r6w_eq, SimplexFG.Window.targetQuorum_def, targetQuorum_def] using hle)
+  simpa only [← b3history_derive_eq, ← b3history_height_eq, ← b3history_finality_eq,
+    ← b3history_folded_eq, ← b3history_finalize_eq, b3history_state_fields, b3history_entry_fields,
+    b3history_mem_map, b3history_exists_map, List.forall_mem_map, b3history_filter_length,
+      List.length_map,
+    b3history_r6w_eq, SimplexFG.Window.targetQuorum_def, targetQuorum_def] using result
 
 /-- At B an absent key that is not covered is strictly above finality.
 This does not assert that it stays uncovered at later blocks. -/
@@ -125,9 +412,35 @@ theorem window_evicted_above_hF (p : Params) (K : Nat) (hK : 2 ≤ K)
     (gone : ¬ ∃ d ∈ (derive p K B).W, d.j = e.j ∧ d.X = e.X)
     (uncovered : ¬ (e.j ≤ (derive p K B).h_F ∧ FGBlock.Preceq e.X (derive p K B).F)) :
     (derive p K B).h_F < e.j := by
-  by_contra h
-  have hle := Nat.le_of_not_gt h
-  exact uncovered ⟨hle, window_absent_le_hF_covered p K hK A B hAB e he gone hle⟩
+  have result := KitFG.Window.window_evicted_above_hF p.E
+    p.cfg
+    K
+    (b3history_empty_not_quorum p)
+    hK
+    A
+    B
+    hAB
+    (b3history_toEntry e)
+    (by simpa only [← b3history_derive_eq, ← b3history_height_eq, ← b3history_finality_eq,
+    ← b3history_folded_eq, ← b3history_finalize_eq, b3history_state_fields, b3history_entry_fields,
+    b3history_mem_map, b3history_exists_map, List.forall_mem_map, b3history_filter_length,
+      List.length_map,
+    b3history_r6w_eq, SimplexFG.Window.targetQuorum_def, targetQuorum_def] using he)
+    (by simpa only [← b3history_derive_eq, ← b3history_height_eq, ← b3history_finality_eq,
+    ← b3history_folded_eq, ← b3history_finalize_eq, b3history_state_fields, b3history_entry_fields,
+    b3history_mem_map, b3history_exists_map, List.forall_mem_map, b3history_filter_length,
+      List.length_map,
+    b3history_r6w_eq, SimplexFG.Window.targetQuorum_def, targetQuorum_def] using gone)
+    (by simpa only [← b3history_derive_eq, ← b3history_height_eq, ← b3history_finality_eq,
+    ← b3history_folded_eq, ← b3history_finalize_eq, b3history_state_fields, b3history_entry_fields,
+    b3history_mem_map, b3history_exists_map, List.forall_mem_map, b3history_filter_length,
+      List.length_map,
+    b3history_r6w_eq, SimplexFG.Window.targetQuorum_def, targetQuorum_def] using uncovered)
+  simpa only [← b3history_derive_eq, ← b3history_height_eq, ← b3history_finality_eq,
+    ← b3history_folded_eq, ← b3history_finalize_eq, b3history_state_fields, b3history_entry_fields,
+    b3history_mem_map, b3history_exists_map, List.forall_mem_map, b3history_filter_length,
+      List.length_map,
+    b3history_r6w_eq, SimplexFG.Window.targetQuorum_def, targetQuorum_def] using result
 
 /-- [bp §3.1] Retention at both ends forbids a gap and preserves all bits. -/
 theorem window_retained_bits_mono (p : Params) (K : Nat) (hK : 2 ≤ K)
@@ -135,13 +448,35 @@ theorem window_retained_bits_mono (p : Params) (K : Nat) (hK : 2 ≤ K)
     (e d : Entry (Fin p.n)) (he : e ∈ (derive p K A).W) (hd : d ∈ (derive p K C).W)
     (hj : d.j = e.j) (hX : d.X = e.X) :
     ∃ b ∈ (derive p K B).W, b.j = e.j ∧ b.X = e.X ∧ e.Q ⊆ b.Q ∧ b.Q ⊆ d.Q := by
-  have present : ∃ b ∈ (derive p K B).W, b.j = e.j ∧ b.X = e.X := by
-    by_contra gone
-    exact window_no_reentry p K hK A B C hAB hBC e he gone ⟨d, hd, hj, hX⟩
-  obtain ⟨b, hb, hbj, hbX⟩ := present
-  exact ⟨b, hb, hbj, hbX,
-    window_bit_retained p K hK A B hAB e b he hb hbj.symm hbX.symm,
-    window_bit_retained p K hK B C hBC b d hb hd (hbj.trans hj.symm) (hbX.trans hX.symm)⟩
+  have result := KitFG.Window.window_retained_bits_mono p.E
+    p.cfg
+    K
+    (b3history_empty_not_quorum p)
+    hK
+    A
+    B
+    C
+    hAB
+    hBC
+    (b3history_toEntry e)
+    (b3history_toEntry d)
+    (by simpa only [← b3history_derive_eq, ← b3history_height_eq, ← b3history_finality_eq,
+    ← b3history_folded_eq, ← b3history_finalize_eq, b3history_state_fields, b3history_entry_fields,
+    b3history_mem_map, b3history_exists_map, List.forall_mem_map, b3history_filter_length,
+      List.length_map,
+    b3history_r6w_eq, SimplexFG.Window.targetQuorum_def, targetQuorum_def] using he)
+    (by simpa only [← b3history_derive_eq, ← b3history_height_eq, ← b3history_finality_eq,
+    ← b3history_folded_eq, ← b3history_finalize_eq, b3history_state_fields, b3history_entry_fields,
+    b3history_mem_map, b3history_exists_map, List.forall_mem_map, b3history_filter_length,
+      List.length_map,
+    b3history_r6w_eq, SimplexFG.Window.targetQuorum_def, targetQuorum_def] using hd)
+    hj
+    hX
+  simpa only [← b3history_derive_eq, ← b3history_height_eq, ← b3history_finality_eq,
+    ← b3history_folded_eq, ← b3history_finalize_eq, b3history_state_fields, b3history_entry_fields,
+    b3history_mem_map, b3history_exists_map, List.forall_mem_map, b3history_filter_length,
+      List.length_map,
+    b3history_r6w_eq, SimplexFG.Window.targetQuorum_def, targetQuorum_def] using result
 
 /-- [spec 605–607] A step keeps the latest pair unless it crosses a target
 quorum. Pruning does not clear the pair; a capacity append writes a new pair. -/
@@ -155,16 +490,19 @@ theorem window_latest_pair_kept (p : Params) (K : Nat)
     ((derive p K B).h_j = (derive p K P).h ∧
       (derive p K B).J = (derive p K P).T_h ∧
       targetQuorum p.E (finalizeWindow p.E w) = true) := by
-  dsimp only
-  have ff := window_fold_fields rs { derive p K P with s := s }
-  have fin := final_fields p (certificateFolded p K (.node P s r_s x rs))
-  simp only [derive_def p K (.node P s r_s x rs), transition_def, process_height_events_def]
-  split_ifs with ht
-  · exact Or.inr ⟨fin.1.trans ff.2.1, fin.2.1.trans ff.2.2.1, ht⟩
-  · exact Or.inl ⟨fin.2.2.1.trans ff.2.2.2.1, fin.2.2.2.1.trans ff.2.2.2.2.1,
-      Bool.eq_false_iff.mpr ht⟩
-  · exact Or.inl ⟨fin.2.2.1.trans ff.2.2.2.1, fin.2.2.2.1.trans ff.2.2.2.2.1,
-      Bool.eq_false_iff.mpr ht⟩
+  have result := KitFG.Window.window_latest_pair_kept p.E
+    p.cfg
+    K
+    P
+    s
+    r_s
+    x
+    rs
+  simpa only [← b3history_derive_eq, ← b3history_height_eq, ← b3history_finality_eq,
+    ← b3history_folded_eq, ← b3history_finalize_eq, b3history_state_fields, b3history_entry_fields,
+    b3history_mem_map, b3history_exists_map, List.forall_mem_map, b3history_filter_length,
+      List.length_map,
+    b3history_r6w_eq, SimplexFG.Window.targetQuorum_def, targetQuorum_def] using result
 
 omit [RowCodec V] in
 private theorem drop_oldest (K : Nat) (xs : List (Entry V))
@@ -278,20 +616,37 @@ theorem window_evicted_has_K_newer (p : Params) (K : Nat) (hK : 2 ≤ K)
       ∀ d ∈ (derive p K (.node P s r_s x rs)).W, e.j < d.j ∧
         ∃ D, StrictPrefix C D ∧ FGBlock.Preceq D (.node P s r_s x rs) ∧
           JustificationBirth p.E (certificateHeight p K) D d.j d.X := by
-  obtain ⟨hl, hn⟩ := node_evicted p K hK P s r_s x rs e he gone above
-  obtain ⟨C, hc, hb, _⟩ := window_entry_origin p K hK P e he
-  refine ⟨hl, C, hc, hb, ?_⟩
-  intro d hd
-  obtain ⟨D, hD, hbirth, _⟩ := window_entry_origin p K hK (.node P s r_s x rs) d hd
-  have hlt := hn d hd
-  have heights : (certificateHeight p K C).h < (certificateHeight p K D).h := by
-    rw [hb.2.2.2.2.2.1, hbirth.2.2.2.2.2.1]
-    exact Nat.succ_lt_succ hlt
-  have hCD : FGBlock.Preceq C D := by
-    rcases preceq_total_of_common (preceq_node_of_preceq s r_s x rs hc) hD with h | h
-    · exact h
-    · exact (Nat.not_lt_of_ge ((windowHeightLaws p K hK).h_mono h) heights).elim
-  exact ⟨hlt, D, ⟨hCD, fun h => by simp only [h, lt_self_iff_false] at heights⟩, hD, hbirth⟩
+  have result := KitFG.Window.window_evicted_has_K_newer p.E
+    p.cfg
+    K
+    (b3history_empty_not_quorum p)
+    hK
+    P
+    s
+    r_s
+    x
+    rs
+    (b3history_toEntry e)
+    (by simpa only [← b3history_derive_eq, ← b3history_height_eq, ← b3history_finality_eq,
+    ← b3history_folded_eq, ← b3history_finalize_eq, b3history_state_fields, b3history_entry_fields,
+    b3history_mem_map, b3history_exists_map, List.forall_mem_map, b3history_filter_length,
+      List.length_map,
+    b3history_r6w_eq, SimplexFG.Window.targetQuorum_def, targetQuorum_def] using he)
+    (by simpa only [← b3history_derive_eq, ← b3history_height_eq, ← b3history_finality_eq,
+    ← b3history_folded_eq, ← b3history_finalize_eq, b3history_state_fields, b3history_entry_fields,
+    b3history_mem_map, b3history_exists_map, List.forall_mem_map, b3history_filter_length,
+      List.length_map,
+    b3history_r6w_eq, SimplexFG.Window.targetQuorum_def, targetQuorum_def] using gone)
+    (by simpa only [← b3history_derive_eq, ← b3history_height_eq, ← b3history_finality_eq,
+    ← b3history_folded_eq, ← b3history_finalize_eq, b3history_state_fields, b3history_entry_fields,
+    b3history_mem_map, b3history_exists_map, List.forall_mem_map, b3history_filter_length,
+      List.length_map,
+    b3history_r6w_eq, SimplexFG.Window.targetQuorum_def, targetQuorum_def] using above)
+  simpa only [← b3history_derive_eq, ← b3history_height_eq, ← b3history_finality_eq,
+    ← b3history_folded_eq, ← b3history_finalize_eq, b3history_state_fields, b3history_entry_fields,
+    b3history_mem_map, b3history_exists_map, List.forall_mem_map, b3history_filter_length,
+      List.length_map,
+    b3history_r6w_eq, SimplexFG.Window.targetQuorum_def, targetQuorum_def] using result
 
 private theorem first_removal (p : Params) (K : Nat)
     (A B : FGBlock (Fin p.n)) (hAB : FGBlock.Preceq A B)
@@ -334,24 +689,51 @@ theorem window_entry_history (p : Params) (K : Nat) (hK : 2 ≤ K)
           ∀ d ∈ (derive p K (.node P s r_s x rs)).W, e.j < d.j ∧
             ∃ D, StrictPrefix C D ∧ FGBlock.Preceq D (.node P s r_s x rs) ∧
               JustificationBirth p.E (certificateHeight p K) D d.j d.X) := by
-  by_cases present : ∃ d ∈ (derive p K B).W, d.j = e.j ∧ d.X = e.X
-  · obtain ⟨d, hd, hj, hX⟩ := present
-    exact Or.inl ⟨d, hd, hj, hX,
-      window_bit_retained p K hK A B hAB e d he hd hj.symm hX.symm⟩
-  · by_cases covered : e.j ≤ (derive p K B).h_F ∧ FGBlock.Preceq e.X (derive p K B).F
-    · exact Or.inr (Or.inl ⟨present, covered⟩)
-    · have above := window_evicted_above_hF p K hK A B hAB e he present covered
-      obtain ⟨P, s, r_s, x, rs, hAP, hPB, hp, hg⟩ := first_removal p K A B hAB e he present
-      obtain ⟨d, hd, hj, hX⟩ := hp
-      have stepAbove : (derive p K (.node P s r_s x rs)).h_F < d.j := by
-        rw [hj]
-        exact (window_hF_mono p K hK _ _ hPB).trans_lt above
-      have stepGone : ¬ ∃ a ∈ (derive p K (.node P s r_s x rs)).W,
-          a.j = d.j ∧ a.X = d.X := by simpa only [hj, hX] using hg
-      have ev := window_evicted_has_K_newer p K hK P s r_s x rs d hd stepGone stepAbove
-      rw [hj, hX] at ev
-      exact Or.inr (Or.inr ⟨present, covered, above, P, s, r_s, x, rs, hAP, hPB,
-        ⟨d, hd, hj, hX⟩, hg, ev⟩)
+  have result := KitFG.Window.window_entry_history p.E
+    p.cfg
+    K
+    (b3history_empty_not_quorum p)
+    hK
+    A
+    B
+    hAB
+    (b3history_toEntry e)
+    (by simpa only [← b3history_derive_eq, ← b3history_height_eq, ← b3history_finality_eq,
+    ← b3history_folded_eq, ← b3history_finalize_eq, b3history_state_fields, b3history_entry_fields,
+    b3history_mem_map, b3history_exists_map, List.forall_mem_map, b3history_filter_length,
+      List.length_map,
+    b3history_r6w_eq, SimplexFG.Window.targetQuorum_def, targetQuorum_def] using he)
+  simpa only [← b3history_derive_eq, ← b3history_height_eq, ← b3history_finality_eq,
+    ← b3history_folded_eq, ← b3history_finalize_eq, b3history_state_fields, b3history_entry_fields,
+    b3history_mem_map, b3history_exists_map, List.forall_mem_map, b3history_filter_length,
+      List.length_map,
+    b3history_r6w_eq, SimplexFG.Window.targetQuorum_def, targetQuorum_def] using result
+
+#print axioms b3history_toEntry
+#print axioms b3history_toWindow
+#print axioms b3history_entry_eq
+#print axioms b3history_state_eq
+#print axioms b3history_entry_fields
+#print axioms b3history_state_fields
+#print axioms b3history_initial_eq
+#print axioms b3history_row_eq
+#print axioms b3history_rows_eq
+#print axioms b3history_advance_eq
+#print axioms b3history_greatest_eq
+#print axioms b3history_finalize_eq
+#print axioms b3history_append_eviction_eq
+#print axioms b3history_events_eq
+#print axioms b3history_transition_eq
+#print axioms b3history_foldMap
+#print axioms b3history_derive_eq
+#print axioms b3history_empty_not_quorum
+#print axioms b3history_height_eq
+#print axioms b3history_finality_eq
+#print axioms b3history_folded_eq
+#print axioms b3history_exists_map
+#print axioms b3history_filter_length
+#print axioms b3history_r6w_eq
+#print axioms b3history_mem_map
 
 end AvailableChain.FGSA.Window
 end

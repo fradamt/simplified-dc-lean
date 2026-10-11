@@ -83,5 +83,11 @@ public import AvailableChainKitFG.WindowHeightBridge
 public import AvailableChainKitFG.WindowSteps
 public import AvailableChainKitFG.WindowInvariant
 
+public import AvailableChainKitFG.WindowHistory
+public import AvailableChainKitFG.WindowLiveness
+public import AvailableChainKitFG.WindowRetention
+public import AvailableChainKitFG.WindowOccurrences
+public import AvailableChainKitFG.WindowTerminal
+public import AvailableChainKitFG.WindowValidity
 @[expose] public section
 end
