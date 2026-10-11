@@ -2,6 +2,8 @@ module
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseFrame
 public import AvailableChainFGSAProofs.Proofs.Shared.StoreRun
 
+public import AvailableChainFGCompose.Proofs.Healing.PhaseOrder
+
 public section
 
 namespace AvailableChain.FGSA.Run
@@ -10,12 +12,40 @@ open AvailableChain.SimplexFG
 variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
+private def p0d1PhaseOrderCore (p : Params) {In : Type} (c : AppCodec In) :
+  FGCompose.FGCoreReads (fgsa p c) p.n (GridCO.State p.n .root) (Wire p.n) (RowWire p.n) :=
+  { core := fun nd => ⟨nd.st.base, nd.st.fg, nd.st.proposals, nd.st.rowPool⟩
+    erase := eraseFG
+    source := fun nd => FGSA.fgSource p nd.st
+    headVote := fun nd s => FGSA.headVote p nd.st s
+    finalityHead := fun nd => FGSA.fgBlockOf nd.st (FGSA.fgHead p nd.st)
+    proposalFG := fun nd o => match (toWire p o).decode with
+      | some (.block _ N) => (parentFG nd.st N.erase).map (fun P => fgBlock P N.erase N.rows)
+      | some (.vote _ _ _) => none
+      | some (.row _ _) => none
+      | none => none }
+
+private def p0d1PhaseOrderReads (p : Params) {In : Type} (c : AppCodec In) :
+    FGCompose.FGObservationReads (p0d1PhaseOrderCore p c) where
+  height := heightView p
+  finality := finalityView p
+  controls nd := FGSA.controls p nd.st
+  viable nd X := domainR p nd.st X
+
+private theorem p0d1PhaseOrderLaws (p : Params) {In : Type} (c : AppCodec In) :
+    FGCompose.FGObservationLaws (p0d1PhaseOrderCore p c) (p0d1PhaseOrderReads p c) where
+  controls_eq _ := rfl
+  viable_eq _ _ := rfl
+
 /-- Blueprint 21:1193–1209; plan S20, H-PHASE/P1. DC: SAME global cache bound. -/
 theorem healing_phase_local_le_frontier {i : Nat} {x : V} (hx : x ∈ rho.honest) :
     (storeAt p c E rho i x).fg.h_max ≤ frontierAtIdx p c E rho i := by
-  change (storeAt p c E rho i x).fg.h_max ≤
-    rho.honest.sup (fun x => (storeAt p c E rho i x).fg.h_max)
-  exact Finset.le_sup (f := fun x => (storeAt p c E rho i x).fg.h_max) hx
+  exact FGCompose.healing_phase_local_le_frontier
+    (R := p0d1PhaseOrderCore p c)
+    (E := E)
+    (rho := rho)
+    hx
+
 
 /-- Blueprint 21:1193–1209; plan S20, H-PHASE/P1.
 DC: SAME a top cache persists below a fixed global cap. Assembly supplies RMono. -/
@@ -25,18 +55,31 @@ theorem healing_phase_top_persist_all (mono : RMonoAll p c E rho)
     (htop : (storeAt p c E rho i x).fg.h_j + 1 = m) :
     (storeAt p c E rho j x).fg.h_j + 1 = m ∧
       (storeAt p c E rho j x).fg.h_max = m := by
-  have hlo := KitFG.fst_le_of_lexKey_le (mono i j x hx hij).2.1
-  have hhi := healing_phase_justified_lt p c E rho j x
-  have hb := healing_phase_local_le_frontier p c E rho (i := j) hx
-  (simp only [Height] at *; omega)
+  exact FGCompose.healing_phase_top_persist_all
+    (R := p0d1PhaseOrderCore p c)
+    (E := E)
+    (rho := rho)
+    (O := p0d1PhaseOrderReads p c)
+    (Ef := p.E) (cert := fgCertificateLaws p)
+    (inv := fun i x => (storeBundle_stateBefore E rho i x).cstore.fg)
+    ⟨mono⟩ hx hij hcap htop
+
 
 theorem healing_phase_top_persist (mono : RMono p c E rho) (hnr : V2.D.NoRestart rho)
     {i j m : Nat} {x : V} (hx : x ∈ rho.honest) (hij : i ≤ j)
     (hcap : frontierAtIdx p c E rho j = m)
     (htop : (storeAt p c E rho i x).fg.h_j + 1 = m) :
     (storeAt p c E rho j x).fg.h_j + 1 = m ∧
-      (storeAt p c E rho j x).fg.h_max = m :=
-  healing_phase_top_persist_all p c E rho (mono hnr) hx hij hcap htop
+      (storeAt p c E rho j x).fg.h_max = m := by
+  exact FGCompose.healing_phase_top_persist
+    (R := p0d1PhaseOrderCore p c)
+    (E := E)
+    (rho := rho)
+    (O := p0d1PhaseOrderReads p c)
+    (Ef := p.E) (cert := fgCertificateLaws p)
+    (inv := fun i x => (storeBundle_stateBefore E rho i x).cstore.fg)
+    (fun h => ⟨mono h⟩) hnr hx hij hcap htop
+
 
 /-- Blueprint 21:1105–1113, 1193–1209; plan S20, H-PHASE/P1.
 DC: SAME two equal-height entries on one path are equal.
@@ -46,8 +89,9 @@ theorem healing_phase_entries_eq {C D W : FGBlock (Fin p.n)}
     (hC : FGBlock.Preceq (heightView p C).J W)
     (hD : FGBlock.Preceq (heightView p D).J W) :
     (heightView p C).J = (heightView p D).J := by
-  exact KitFG.store_entries_eq p.E (heightView p) (finalityView p)
+  exact FGCompose.healing_phase_entries_eq (Ef := p.E) (heightView p) (finalityView p)
     (fgCertificateLaws p) (fgJustificationLaws p) hh hC hD
+
 
 /-- Blueprint 21:1105–1113, 1193–1209; plan S20, H-PHASE/P1.
 DC: INTENTIONAL a contest uses cumulative live evidence.
@@ -60,50 +104,18 @@ theorem healing_phase_contest_persist_of_crossing_all (crossing : RXing p c E rh
     (hH : (R_at p c E rho i x).H = m)
     (hcontest : (R_at p c E rho i x).contest = true) :
     (R_at p c E rho j x).H = m ∧ (R_at p c E rho j x).contest = true := by
-  let st := storeAt p c E rho i x
-  let st' := storeAt p c E rho j x
-  change (decide (st.fg.h_max = st.fg.h_j + 1) && decide _) = true at hcontest
-  obtain ⟨ht, he⟩ := Bool.and_eq_true_iff.mp hcontest
-  have ht : st.fg.h_max = st.fg.h_j + 1 := of_decide_eq_true ht
-  have he : ∃ W ∈ st.fg.TF, FGBlock.Preceq st.fg.F W ∧ (heightView p W).h = st.fg.h_max ∧
-      ¬ FGBlock.Preceq st.fg.J W := of_decide_eq_true he
-  have htop : st.fg.h_j + 1 = m := ht.symm.trans hH
-  obtain ⟨htop', hmax'⟩ := healing_phase_top_persist_all p c E rho mono hx hij hcap htop
-  refine ⟨hmax', ?_⟩
-  change (decide (st'.fg.h_max = st'.fg.h_j + 1) && decide _) = true
-  refine Bool.and_eq_true_iff.mpr ⟨decide_eq_true (hmax'.trans htop'.symm), decide_eq_true ?_⟩
-  have hsub := (fgsa_store_durable p c E rho hij x).1
-  by_cases hJ : st.fg.J = st'.fg.J
-  · obtain ⟨W, hW, _hFW, hh, hn⟩ := he
-    have hh' := hh.trans (hH.trans hmax'.symm)
-    exact ⟨W, hsub hW,
-      (healing_phase_frontier_root p c E rho crossing hx (hsub hW) hh').1,
-      hh', hJ ▸ hn⟩
-  · obtain ⟨C, hC, _, hjC, hJC⟩ := (storeBundle_stateBefore E rho i x).cstore.fg.pair.1
-    obtain ⟨D, _, _, hjD, hJD⟩ := (storeBundle_stateBefore E rho j x).cstore.fg.pair.1
-    change st.fg.J = _ at hJC
-    change st'.fg.J = _ at hJD
-    change st.fg.h_j = _ at hjC
-    change st'.fg.h_j = _ at hjD
-    change st'.fg.h_j + 1 = m at htop'
-    have hhC := (fgCertificateLaws p).height.justified_below_height C
-    have hhCm := healing_phase_height_le p c E rho hC
-    have hc : (heightView p C).h = st'.fg.h_max := by
-      change st.fg.h_j = _ at hjC
-      change (heightView p C).h ≤ st.fg.h_max at hhCm
-      change st.fg.h_max = m at hH
-      change st'.fg.h_max = m at hmax'
-      (simp only [Height] at *; omega)
-    refine ⟨C, hsub hC,
-      (healing_phase_frontier_root p c E rho crossing hx (hsub hC) hc).1, hc, ?_⟩
-    intro hDC
-    apply hJ
-    rw [hJC, hJD]
-    apply healing_phase_entries_eq p (W := C)
-    · (simp only [Height] at *; omega)
-    · exact KitFG.preceq_trans ((fgCertificateLaws p).height.justified_preceq_entry C)
-        ((fgCertificateLaws p).height.entry_preceq C)
-    · exact hJD ▸ hDC
+  exact FGCompose.healing_phase_contest_persist_of_crossing_all
+    (R := p0d1PhaseOrderCore p c)
+    (E := E)
+    (rho := rho)
+    (O := p0d1PhaseOrderReads p c)
+    (obs := p0d1PhaseOrderLaws p c)
+    (Ef := p.E) (cert := fgCertificateLaws p)
+    (inv := fun i x => (storeBundle_stateBefore E rho i x).cstore.fg)
+    (justif := fgJustificationLaws p)
+    (keep := fun _ _ hij x => (fgsa_store_durable p c E rho hij x).1)
+    crossing ⟨mono⟩ hx hij hcap hH hcontest
+
 
 theorem healing_phase_contest_persist_of_crossing (crossing : RXing p c E rho)
     (mono : RMono p c E rho)
@@ -112,9 +124,19 @@ theorem healing_phase_contest_persist_of_crossing (crossing : RXing p c E rho)
     (hcap : frontierAtIdx p c E rho j = m)
     (hH : (R_at p c E rho i x).H = m)
     (hcontest : (R_at p c E rho i x).contest = true) :
-    (R_at p c E rho j x).H = m ∧ (R_at p c E rho j x).contest = true :=
-  healing_phase_contest_persist_of_crossing_all p c E rho crossing (mono hnr)
-    hx hij hcap hH hcontest
+    (R_at p c E rho j x).H = m ∧ (R_at p c E rho j x).contest = true := by
+  exact FGCompose.healing_phase_contest_persist_of_crossing
+    (R := p0d1PhaseOrderCore p c)
+    (E := E)
+    (rho := rho)
+    (O := p0d1PhaseOrderReads p c)
+    (obs := p0d1PhaseOrderLaws p c)
+    (Ef := p.E) (cert := fgCertificateLaws p)
+    (inv := fun i x => (storeBundle_stateBefore E rho i x).cstore.fg)
+    (justif := fgJustificationLaws p)
+    (keep := fun _ _ hij x => (fgsa_store_durable p c E rho hij x).1)
+    crossing (fun h => ⟨mono h⟩) hnr hx hij hcap hH hcontest
+
 
 /-- Blueprint 21:1091–1113, 1193–1209; plan S20, H-PHASE/P1.
 DC: INTENTIONAL gap, top J, contest are the live cumulative phase bits.
@@ -127,19 +149,18 @@ theorem healing_phase_order_of_crossing_all (crossing : RXing p c E rho)
       (TopEvidence p c E rho i m → TopEvidence p c E rho j m) ∧
       (ContestEvidence p c E rho i m → ContestEvidence p c E rho j m)) ∧
     (∀ i, a ≤ i → i ≤ b → ContestEvidence p c E rho i m → TopEvidence p c E rho i m) := by
-  constructor
-  · intro i j hai hij hjb
-    have hcap := hfixed j (hai.trans hij) hjb
-    constructor
-    · rintro ⟨x, hx, ht⟩
-      exact ⟨x, hx, (healing_phase_top_persist_all p c E rho mono hx hij hcap ht).1⟩
-    · rintro ⟨x, hx, hH, hc⟩
-      exact ⟨x, hx, healing_phase_contest_persist_of_crossing_all
-        p c E rho crossing mono hx hij hcap hH hc⟩
-  · rintro i _ _ ⟨x, hx, hH, hc⟩
-    have ht : (storeAt p c E rho i x).fg.h_max = (storeAt p c E rho i x).fg.h_j + 1 :=
-      of_decide_eq_true (Bool.and_eq_true_iff.mp hc).1
-    exact ⟨x, hx, ht.symm.trans hH⟩
+  exact FGCompose.healing_phase_order_of_crossing_all
+    (R := p0d1PhaseOrderCore p c)
+    (E := E)
+    (rho := rho)
+    (O := p0d1PhaseOrderReads p c)
+    (obs := p0d1PhaseOrderLaws p c)
+    (Ef := p.E) (cert := fgCertificateLaws p)
+    (inv := fun i x => (storeBundle_stateBefore E rho i x).cstore.fg)
+    (justif := fgJustificationLaws p)
+    (keep := fun _ _ hij x => (fgsa_store_durable p c E rho hij x).1)
+    crossing ⟨mono⟩ a b m _hab _hb _hm hfixed
+
 
 theorem healing_phase_order_of_crossing (crossing : RXing p c E rho)
     (mono : RMono p c E rho) (hnr : V2.D.NoRestart rho)
@@ -148,8 +169,19 @@ theorem healing_phase_order_of_crossing (crossing : RXing p c E rho)
     (∀ i j, a ≤ i → i ≤ j → j ≤ b →
       (TopEvidence p c E rho i m → TopEvidence p c E rho j m) ∧
       (ContestEvidence p c E rho i m → ContestEvidence p c E rho j m)) ∧
-    (∀ i, a ≤ i → i ≤ b → ContestEvidence p c E rho i m → TopEvidence p c E rho i m) :=
-  healing_phase_order_of_crossing_all p c E rho crossing (mono hnr) a b m _hab _hb _hm hfixed
+    (∀ i, a ≤ i → i ≤ b → ContestEvidence p c E rho i m → TopEvidence p c E rho i m) := by
+  exact FGCompose.healing_phase_order_of_crossing
+    (R := p0d1PhaseOrderCore p c)
+    (E := E)
+    (rho := rho)
+    (O := p0d1PhaseOrderReads p c)
+    (obs := p0d1PhaseOrderLaws p c)
+    (Ef := p.E) (cert := fgCertificateLaws p)
+    (inv := fun i x => (storeBundle_stateBefore E rho i x).cstore.fg)
+    (justif := fgJustificationLaws p)
+    (keep := fun _ _ hij x => (fgsa_store_durable p c E rho hij x).1)
+    crossing (fun h => ⟨mono h⟩) hnr a b m _hab _hb _hm hfixed
+
 
 end AvailableChain.FGSA.Run
 end
