@@ -330,10 +330,10 @@ if [ "$NEG" = 1 ]; then
   summary checker-self-tests
   stop_if_failed
 fi
-# Longest measured FULL steps first; PC-SA has no separate wall measurement.
+# Start the measured long tail earlier; this is submission order only.
 # No control writes the real source/build tree. Shared slots bound every child;
 # Linux's existing memory scope bounds the whole group, including private builds.
-run_group fgsa-claims check-fg-compose check-fgsa check-build check-fgsa-run \
-  fgsa-manifest
+run_group fgsa-claims check-fg-compose fgsa-manifest check-fgsa-run check-fgsa \
+  check-build
 finish
 exit "$failed"

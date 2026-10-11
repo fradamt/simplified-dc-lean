@@ -15,8 +15,8 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / 'scripts'))
 from audit_pool import AuditPool
 
-HEAVY = ('fgsa-claims', 'check-fg-compose', 'check-fgsa', 'check-build',
-         'check-fgsa-run', 'fgsa-manifest')
+HEAVY = ('fgsa-claims', 'check-fg-compose', 'fgsa-manifest', 'check-fgsa-run',
+         'check-fgsa', 'check-build')
 CHEAP = ('build', 'fg-finality-coverage', 'catalog-lock',
          'v2-manifest', 'gen-manifest', 'fgsa-old-reads', 'proof-audit-coverage',
          'Generic-axioms', 'FGSA-axioms', 'FGSARun-axioms', 'FGCompose-axioms',
@@ -162,10 +162,10 @@ def graph(root, tier, slots, fail='', change='', force=False, env_neg='0'):
     maximum = peak(seen, HEAVY)
     assert maximum <= slots, (maximum, result)
     heavy_starts = starts[len(expected):] if not early else []
-    if slots == 1:
+    if slots == 1 and not fail:
         assert heavy_starts == list(HEAVY), heavy_starts
     elif not early:
-        assert set(heavy_starts[:2]) == set(HEAVY[:2]), heavy_starts
+        assert set(heavy_starts[:slots]) == set(HEAVY[:slots]), heavy_starts
     logs = next((root / '.lake').glob('gate-logs.*'))
     assert not list((root / '.lake').glob('gate-slots.*/slot.*'))
     if not early:
@@ -187,7 +187,7 @@ def graph(root, tier, slots, fail='', change='', force=False, env_neg='0'):
         else:
             assert 'stopped:' in result.stdout, result
             assert not all((logs / (n + '.result')).exists() for n in HEAVY), result
-            assert set(heavy_starts) == set(HEAVY[:2]), heavy_starts
+            assert set(heavy_starts) == set(HEAVY[:slots]), heavy_starts
             assert not any(e['name'] == 'check-fg-compose' and e['kind'] == 'end'
                            for e in seen), seen
     else:
@@ -301,7 +301,9 @@ with tempfile.TemporaryDirectory(prefix='gate-graph-') as temp:
     subprocess.run([sys.executable, '-B', 'scripts/fgsa-deep-controls.py', '--source-only'],
                    cwd=REPO, check=True)
     root = Path(temp)
-    for tier, slots, fail in (('full', 1, ''), ('full', 2, ''), ('full', 2, 'build'),
+    for tier, slots, fail in (('full', 1, ''), ('full', 2, ''), ('full', 3, ''),
+                              ('full', 1, 'fgsa-claims'), ('full', 3, 'fgsa-claims'),
+                              ('full', 2, 'build'),
                               ('full', 2, 'fg-finality-coverage'),
                               ('full', 2, 'fgsa-claims'), ('merge', 2, '')):
         graph(root / f'{tier}-{slots}-{fail or "pass"}', tier, slots, fail,
@@ -315,6 +317,6 @@ with tempfile.TemporaryDirectory(prefix='gate-graph-') as temp:
             graph(root / (tier + '-' + label), tier, 2, change=change, force=force,
                   env_neg=env_neg)
     copy_control(root / 'copy')
-    for slots in (1, 2):
+    for slots in (1, 2, 3):
         pool_slots(root / f'pool-{slots}', slots)
 print('gate-graph-selftest: PASS')
