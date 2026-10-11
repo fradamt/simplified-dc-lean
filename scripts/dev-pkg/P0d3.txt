@@ -1,5 +1,7 @@
 # P0d3 promotion arithmetic and fixed rows.
 [TARGETS]
+AvailableChainFGSAProofs.Tests.P0d3
+AvailableChainFGCompose.Tests.P0d3
 AvailableChainFGCompose.Statements.Promotion
 AvailableChainFGCompose.Proofs.Healing.PromotionArithmetic
 AvailableChainFGCompose.Proofs.Healing.CommonEntry
@@ -11,6 +13,8 @@ AvailableChainFGSAProofs.Proofs.Healing.CommonEntryHeight
 AvailableChainFGSAProofs.Proofs.Healing.Promotion
 AvailableChainFGSAProofs.Proofs.Healing.PromotionRows
 [GREEN]
+AvailableChainFGSAProofs.Tests.P0d3
+AvailableChainFGCompose.Tests.P0d3
 AvailableChainFGCompose.Statements.Phase
 AvailableChainFGCompose.Statements.PhaseReceipts
 AvailableChainFGCompose.Proofs.Healing.PhaseFrame

@@ -826,6 +826,18 @@ COMPOSE_PROOF_IMPORTS |= frozenset({
      "AvailableChainGeneric.Proofs.V2.Duty.Reads"),
 })
 
+COMPOSE_PROOF_IMPORTS |= frozenset({
+    ("AvailableChainFGCompose.Proofs.Healing.PromotionArithmetic",
+     "AvailableChainGeneric.Proofs.V2.Duty.Reads"),
+})
+
+COMPOSE_PROOF_IMPORTS |= frozenset({
+    ("AvailableChainFGCompose.Proofs.Healing.CommonEntry",
+     "AvailableChainKitFG.Ancestry"),
+    ("AvailableChainFGCompose.Proofs.Healing.PromotionRows",
+     "AvailableChainKitFG.Ancestry"),
+})
+
 def compose_base(dep: str) -> bool:
     return (foundation(dep) or under(dep, "AvailableChainModel.Objects")
             or any_under(dep, ("AvailableChainEngineV2.Engine",
