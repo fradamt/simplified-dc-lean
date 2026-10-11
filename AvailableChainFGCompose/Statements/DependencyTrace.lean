@@ -51,6 +51,7 @@ inductive FGDependencyOperation (Body Origin Wire : Type) where
   | leaf (b : Body) (o : Origin) (result : FGDependencyOutcome)
   | inheritRefusal (b : Body) (o : Origin)
   | notification (b : Body) (o : Origin)
+  | replay (b : Body) (o : Origin)
   | ordinary (wire : Wire)
   | rejected (wire : Wire)
   | ownRecord (wire : Wire)
@@ -64,6 +65,7 @@ def dependencyOperationKind {Origin Wire : Type} :
   | .leaf _ _ _ => .leafRetry
   | .inheritRefusal _ _ => .refusalPropagation
   | .notification _ _ => .notification
+  | .replay _ _ => .ordinary
   | .ordinary _ => .ordinary
   | .rejected _ => .ordinary
   | .ownRecord _ => .ownRecord
@@ -111,6 +113,9 @@ structure FGDependencyDriver (V Body : Type) (P : V2.ProtocolSpecD In) where
     List (FGDependencyCommand Body (FGReceiptToken V P.Object) P.Object)
   inheritRefusal : P.State → Body → FGReceiptToken V P.Object → P.State
   notify : P.State → Body → FGReceiptToken V P.Object → P.State
+  /-- Ordinary AC reconstruction of a held carrier, separate from the insertion callback.
+  The hook program executes this operation and collects its reads. Step laws prohibit signing. -/
+  replay : P.State → Body → FGReceiptToken V P.Object → P.State
 
 /-- Each primitive is the actual entry, leaf, report, notification or protocol operation. -/
 def dependencyExecuteOperation (F : FGDependencyDriver V Body P) (st : P.State)
@@ -269,6 +274,18 @@ structure FGDependencyTraceLaws (E : Generic.Env V) (rho : V2.D.Run V P)
     | .notification b o => Notify (T.state k) b (T.state (k + 1)) ∧
         D.originAvailable (T.state k) b o ∧ dependencyResolved H D (T.state k) b ∧
         T.state (k + 1) = F.notify (T.state k) b o ∧ D.notified (T.state (k + 1)) b
+    | .replay b o => D.accepted (T.state k) b ∧ b ∈ H.acceptedBodies (T.state k) ∧
+        D.originAvailable (T.state k) b o ∧ W.decodeBody o.wire = some b ∧
+        T.state (k + 1) = F.replay (T.state k) b o ∧
+        H.acceptedBlocks (T.state (k + 1)) = H.acceptedBlocks (T.state k) ∧
+        H.acceptedBodies (T.state (k + 1)) = H.acceptedBodies (T.state k) ∧
+        (∀ c, D.accepted (T.state (k + 1)) c ↔ D.accepted (T.state k) c) ∧
+        (∀ c r pr, D.refused (T.state (k + 1)) c r pr ↔ D.refused (T.state k) c r pr) ∧
+        (∀ c token, D.pending (T.state (k + 1)) c token ↔ D.pending (T.state k) c token) ∧
+        (∀ c token, D.originAvailable (T.state (k + 1)) c token ↔
+          D.originAvailable (T.state k) c token) ∧
+        (∀ c token, ¬ L.callback (T.state k) c token (T.state (k + 1))) ∧
+        (∀ c token, ¬ L.report (T.state k) c token (T.state (k + 1)))
     | .rejected wire => P.wellFormed wire = false ∧
         T.state (k + 1) = P.process (T.state k) wire
     | .ordinary wire => P.wellFormed wire = true ∧ W.decodeBody wire = none ∧
@@ -323,6 +340,7 @@ structure FGDependencyTraceLaws (E : Generic.Env V) (rho : V2.D.Run V P)
     (∃ b o result, Op k = .leaf b o result) ∨
     (∃ b o, Op k = .inheritRefusal b o) ∨
     (∃ b o, Op k = .notification b o) ∨
+    (∃ b o, Op k = .replay b o) ∨
     (∃ wire t, e = .tick x t ∧ T.dutyCut j ≤ k ∧ Op k = .ownRecord wire ∧
       wire ∈ dependencyReleased E rho (T.state (T.dutyCut j)) x t ∧
       P.objSelfVisible wire = true) ∨ Op k = .idle
