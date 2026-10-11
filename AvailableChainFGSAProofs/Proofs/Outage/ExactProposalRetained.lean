@@ -1,9 +1,10 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Shared.RetainedEndpoint
 public import AvailableChainFGSAProofs.Proofs.Shared.ProposalRead
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposal
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalHistory
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalReceipts
--- shake keep reason: source declarations
+-- shake keep reason: facade coverage of the RegimesService production module.
 public import AvailableChainFGSAProofs.Proofs.Shared.RegimesService -- shake: keep
 
 public section

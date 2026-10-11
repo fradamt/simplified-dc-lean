@@ -1,7 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Shared.AnchorService -- shake: keep (audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.Regimes -- shake: keep (audit)
-public import AvailableChainFGSAProofs.Proofs.Shared.RegimesService -- shake: keep (audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.StoreRun -- shake: keep (#print axioms)
 public import AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient -- shake: keep (#print axioms)
 public import AvailableChainFGSAProofs.Proofs.Shared.FGSafetyStore -- shake: keep (#print axioms)

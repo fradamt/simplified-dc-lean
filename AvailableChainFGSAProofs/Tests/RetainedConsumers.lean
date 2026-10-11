@@ -1,8 +1,8 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Shared.Regimes
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumersH6S
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumersQ
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumersL2
-public import AvailableChainFGSAProofs.Proofs.Shared.RegimesService
 
 set_option linter.privateModule false
 

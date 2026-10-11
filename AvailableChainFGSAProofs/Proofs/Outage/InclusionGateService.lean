@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Shared.ExactService
 public import AvailableChainFGSARun.Proofs.ReadFacts
 public import AvailableChainFGSAProofs.Proofs.Outage.InclusionGateBounds
 public import AvailableChainFGSAProofs.Proofs.Outage.ReceiverInputs

@@ -1,8 +1,8 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Shared.Regimes
 public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
 public import AvailableChainFGSAClaims.Statements.FrameNext
 public import AvailableChainFGSARun.Proofs.Join
-public import AvailableChainFGSAProofs.Proofs.Shared.RegimesService
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumers
 
 public section
