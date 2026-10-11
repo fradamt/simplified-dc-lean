@@ -713,6 +713,23 @@ COMPOSE_EDGES |= frozenset({
 })
 
 
+# P0c2: exact service, history, and receipt modules and wrapper edges.
+COMPOSE_MODULES += (
+    'AvailableChainFGCompose.Statements.ResetHistory',
+    'AvailableChainFGCompose.Statements.Service',
+    'AvailableChainFGCompose.Statements.Bounds',
+    'AvailableChainFGCompose.Statements.Finality',
+    'AvailableChainFGCompose.Statements.FinalityReceipts',
+    'AvailableChainFGCompose.Proofs.ServiceTransport',
+)
+COMPOSE_EDGES |= frozenset({
+    ('AvailableChainFGSAProofs.Proofs.Finality.Rows',
+     'AvailableChainFGCompose.Proofs.ServiceTransport'),
+    ('AvailableChainFGSAProofs.Proofs.Finality.RowsBatch',
+     'AvailableChainFGCompose.Proofs.ServiceTransport'),
+})
+
+
 def compose_base(dep: str) -> bool:
     return (foundation(dep) or under(dep, "AvailableChainModel.Objects")
             or any_under(dep, ("AvailableChainEngineV2.Engine",

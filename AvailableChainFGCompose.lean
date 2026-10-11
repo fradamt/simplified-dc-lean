@@ -1,4 +1,10 @@
 module
+public import AvailableChainFGCompose.Statements.ResetHistory
+public import AvailableChainFGCompose.Statements.Service
+public import AvailableChainFGCompose.Statements.Bounds
+public import AvailableChainFGCompose.Statements.Finality
+public import AvailableChainFGCompose.Statements.FinalityReceipts
+public import AvailableChainFGCompose.Proofs.ServiceTransport
 public import AvailableChainFGCompose.Statements.EventReads
 public import AvailableChainFGCompose.Statements.CoreReads
 public import AvailableChainFGCompose.Statements.Restart

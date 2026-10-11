@@ -84,6 +84,12 @@
       "AvailableChainGeneric.Statements.**"
     ],
     "laneUpstream": [
+      "AvailableChainFGCompose.Statements.ResetHistory",
+      "AvailableChainFGCompose.Statements.Service",
+      "AvailableChainFGCompose.Statements.Bounds",
+      "AvailableChainFGCompose.Statements.Finality",
+      "AvailableChainFGCompose.Statements.FinalityReceipts",
+      "AvailableChainFGCompose.Proofs.ServiceTransport",
       "AvailableChainGeneric.**",
       "AvailableChainKitFG.**",
       "AvailableChainEngineV2.**",

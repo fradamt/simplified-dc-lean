@@ -1,6 +1,13 @@
 # Fixed G-S1 scope. Entries are module names, not Lake library targets.
 # REQUIRED compiles; DEFERRED has an owner; STABLE lists unchanged library prefixes.
 [REQUIRED]
+AvailableChainFGCompose.Statements.ResetHistory
+AvailableChainFGCompose.Statements.Service
+AvailableChainFGCompose.Statements.Bounds
+AvailableChainFGCompose.Statements.Finality
+AvailableChainFGCompose.Statements.FinalityReceipts
+AvailableChainFGCompose.Proofs.ServiceTransport
+AvailableChainFGCompose.Tests.P0Service
 AvailableChainFGCompose.Statements.Restart
 AvailableChainFGCompose.Proofs.Restart
 AvailableChainFGCompose.Tests.RestartKeep

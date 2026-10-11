@@ -134,6 +134,12 @@ def composeImportAllowed (m dep : Name) : Bool :=
   if dep == `Init then true
   else if m == `AvailableChainFGCompose then
     [`AvailableChainFGCompose.Statements.EventReads, `AvailableChainFGCompose.Statements.CoreReads,
+     `AvailableChainFGCompose.Statements.ResetHistory,
+     `AvailableChainFGCompose.Statements.Service,
+     `AvailableChainFGCompose.Statements.Bounds,
+     `AvailableChainFGCompose.Statements.Finality,
+     `AvailableChainFGCompose.Statements.FinalityReceipts,
+     `AvailableChainFGCompose.Proofs.ServiceTransport,
      `AvailableChainFGCompose.Proofs.SourceHead,
      `AvailableChainFGCompose.Statements.Restart, `AvailableChainFGCompose.Proofs.Restart,
      `AvailableChainFGCompose.Statements.SafetyReads, `AvailableChainFGCompose.Statements.SafetyStore,
