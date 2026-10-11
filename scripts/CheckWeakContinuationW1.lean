@@ -26,7 +26,7 @@ theorem w1_weakContinuationLive :
   obtain ⟨u, Q, iStar, hcut, hcont⟩ :=
     (fgsaClaims params).weakContinuationLive 4 unitCodec 1 hδ
       strongEnv source w1_strongRecovery
-  exact ⟨u, Q, iStar, hcut, hcont weakEnv continuation w1_cleanContinuation⟩
+  exact ⟨u, Q, iStar, hcut, hcont weakEnv continuation w1_cleanContinuationSleep⟩
 
 #print axioms w1_weakContinuationLive
 
