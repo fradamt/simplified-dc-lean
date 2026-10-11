@@ -164,11 +164,10 @@ theorem dependency_hook_read_completion {j e index kind cut st}
   exact ⟨Nat.le_add_right _ _, completed⟩
 
 include traceLaws in
-theorem dependency_accepted_origin_bridge {i st b} (read : Read x i st)
-    (accepted : D.accepted st b) (nonGenesis : b ≠ L.genesis) : ∃ o,
+private theorem dependency_accepted_origin_at_cut {cut b} (bound : cut ≤ T.length)
+    (accepted : D.accepted (T.state cut) b) (nonGenesis : b ≠ L.genesis) : ∃ o,
     FGReceiptOrigin E rho H W x b o ∧
     W.proposalErase o.wire = some (H.erase b) ∧ W.decodedRows o.wire = W.bodyRows b := by
-  obtain ⟨bound, eq, _⟩ := traceLaws.read_correspondence i st read
   have go : ∀ k, k ≤ T.length → D.accepted (T.state k) b → ∃ o,
       FGReceiptOrigin E rho H W x b o := by
     intro k
@@ -184,8 +183,35 @@ theorem dependency_accepted_origin_bridge {i st b} (read : Read x i st)
       · exact ih (by omega) old
       · obtain ⟨o, leaf, _, _⟩ := traceLaws.origin_attribution k b (by omega) hb old
         exact ⟨o, (traceLaws.leaf_step k b o _ (by omega) leaf rfl).1⟩
-  obtain ⟨o, ho⟩ := go _ bound (eq ▸ accepted)
+  obtain ⟨o, ho⟩ := go _ bound accepted
   exact ⟨o, ho, ho.geometry, ho.rows⟩
+
+include traceLaws in
+theorem dependency_accepted_origin_bridge {i st b} (read : Read x i st)
+    (accepted : D.accepted st b) (nonGenesis : b ≠ L.genesis) : ∃ o,
+    FGReceiptOrigin E rho H W x b o ∧
+    W.proposalErase o.wire = some (H.erase b) ∧ W.decodedRows o.wire = W.bodyRows b := by
+  obtain ⟨bound, eq, _⟩ := traceLaws.read_correspondence i st read
+  exact dependency_accepted_origin_at_cut traceLaws bound (eq ▸ accepted) nonGenesis
+
+include traceLaws in
+theorem dependency_hook_origin_at_read {j e index kind cut st b o}
+    (event : rho.events[j]? = some e) (read : T.hookRead j index kind cut st)
+    (origin : D.originAvailable st b o) :
+    FGReceiptOrigin E rho H W x b o ∧ T.start o.eventIndex < cut := by
+  obtain ⟨_, upper, eq, _⟩ := dependency_hook_read_completion traceLaws event read
+  exact traceLaws.origin_valid cut b o
+    (Nat.le_trans upper (traceLaws.finite_segment j e event).2) (eq ▸ origin)
+
+include traceLaws in
+theorem dependency_hook_accepted_origin_bridge {j e index kind cut st b}
+    (event : rho.events[j]? = some e) (read : T.hookRead j index kind cut st)
+    (accepted : D.accepted st b) (nonGenesis : b ≠ L.genesis) : ∃ o,
+    FGReceiptOrigin E rho H W x b o ∧
+    W.proposalErase o.wire = some (H.erase b) ∧ W.decodedRows o.wire = W.bodyRows b := by
+  obtain ⟨_, upper, eq, _⟩ := dependency_hook_read_completion traceLaws event read
+  exact dependency_accepted_origin_at_cut traceLaws
+    (Nat.le_trans upper (traceLaws.finite_segment j e event).2) (eq ▸ accepted) nonGenesis
 
 include traceLaws in
 theorem dependency_drain_before_deadline {j wire t deadline}
