@@ -13,13 +13,13 @@ variable {V : Type} [DecidableEq V] [RowCodec V]
 
 theorem window_addBit_key (a : Row V) (e : Entry V) :
     (window_addBit a e).j = e.j ∧ (window_addBit a e).X = e.X := by
-  unfold window_addBit
+  rw [window_addBit_def]
   split_ifs <;> exact ⟨rfl, rfl⟩
 
 theorem window_addBit_bits (a : Row V) (e : Entry V) (i : V) :
     i ∈ (window_addBit a e).Q ↔ i ∈ e.Q ∨
       (a.signer = i ∧ a.finality_pair = some ⟨e.j, e.X.root⟩) := by
-  unfold window_addBit
+  rw [window_addBit_def]
   split_ifs with h <;> simp [h, eq_comm, or_comm]
 
 theorem window_row_fields (w : State V) (a : Row V) :
