@@ -87,6 +87,11 @@
       "AvailableChainFGCompose.Proofs.Healing.PhaseSettle",
       "AvailableChainFGCompose.Proofs.Healing.PhaseOrder",
       "AvailableChainFGCompose.Proofs.Healing.PhaseFrame",
+      "AvailableChainFGCompose.Statements.Promotion",
+      "AvailableChainFGCompose.Proofs.Healing.PromotionArithmetic",
+      "AvailableChainFGCompose.Proofs.Healing.CommonEntry",
+      "AvailableChainFGCompose.Proofs.Healing.Promotion",
+      "AvailableChainFGCompose.Proofs.Healing.PromotionRows",
       "AvailableChainFGCompose.Statements.ResetHistory",
       "AvailableChainFGCompose.Statements.Service",
       "AvailableChainFGCompose.Statements.Bounds",
@@ -114,7 +119,8 @@
       "AvailableChainFGCompose.Proofs.SafetyMonotone",
       "AvailableChainFGCompose.Proofs.SafetySlashing",
       "AvailableChainFGCompose.Statements.HistoricalReads",
-      "AvailableChainFGCompose.Proofs.HistoricalReads"
+      "AvailableChainFGCompose.Proofs.HistoricalReads",
+      "AvailableChainFGCompose.Proofs.RowPermission"
     ]
   },
   "profiles": {

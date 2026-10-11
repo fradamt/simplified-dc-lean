@@ -620,6 +620,7 @@ def test_use(ctx: Context, m: Module, dep: str) -> bool:
 def test_scope(ctx: Context, m: Module, dep: str) -> bool:
     # P0b1: private fieldwise correspondence, with exact external suppliers.
     if (m.name, dep) in {
+        (COMPOSE + ".Tests.P0d3", KITFG + ".WindowHeightBridge"),
         (PROOFS + ".Tests.P0c1", COMPOSE + ".Proofs.ObservationTransport"),
         (PROOFS + ".Tests.P0HistoricalReads", COMPOSE + ".Proofs.HistoricalReads"),
         (PROOFS + ".Tests.P0HistoricalReads", FGSA + ".Proofs.NamedReachable"),
@@ -807,6 +808,57 @@ COMPOSE_EDGES |= frozenset({
      'AvailableChainFGCompose.Proofs.Healing.PhaseSettle'),
 })
 
+# P0d2: exact row permission homes and wrapper imports.
+COMPOSE_MODULES += (COMPOSE + ".Statements.RowPermission", COMPOSE + ".Proofs.RowPermission")
+COMPOSE_PROOF_IMPORTS |= frozenset({
+    (COMPOSE + ".Proofs.RowPermission", KITFG + ".ClientOnceSafety"),
+})
+COMPOSE_EDGES |= frozenset({
+    (PROOFS + ".Proofs.Foundations.RowPermission", COMPOSE + ".Proofs.RowPermission"),
+})
+
+
+
+# P0d3: promotion consumers and exact wrapper edges.
+COMPOSE_MODULES += (
+    'AvailableChainFGCompose.Statements.Promotion',
+    'AvailableChainFGCompose.Proofs.Healing.PromotionArithmetic',
+    'AvailableChainFGCompose.Proofs.Healing.CommonEntry',
+    'AvailableChainFGCompose.Proofs.Healing.Promotion',
+    'AvailableChainFGCompose.Proofs.Healing.PromotionRows',
+)
+COMPOSE_PROOF_IMPORTS |= frozenset({
+    ("AvailableChainFGCompose.Proofs.Healing.PromotionRows",
+     "AvailableChainSimplexFG.Window"),
+})
+COMPOSE_EDGES |= frozenset({
+    ('AvailableChainFGSAProofs.Proofs.Healing.PromotionArithmetic',
+     'AvailableChainFGCompose.Proofs.Healing.PromotionArithmetic'),
+    ('AvailableChainFGSAProofs.Proofs.Healing.CommonEntryFacts',
+     'AvailableChainFGCompose.Proofs.Healing.CommonEntry'),
+    ('AvailableChainFGSAProofs.Proofs.Healing.CommonEntryHeight',
+     'AvailableChainFGCompose.Proofs.Healing.CommonEntry'),
+    ('AvailableChainFGSAProofs.Proofs.Healing.Promotion',
+     'AvailableChainFGCompose.Proofs.Healing.Promotion'),
+    ('AvailableChainFGSAProofs.Proofs.Healing.PromotionRows',
+     'AvailableChainFGCompose.Proofs.Healing.PromotionRows'),
+})
+
+
+
+
+COMPOSE_PROOF_IMPORTS |= frozenset({
+    ("AvailableChainFGCompose.Proofs.Healing.PromotionArithmetic",
+     "AvailableChainGeneric.Proofs.V2.Duty.Reads"),
+})
+
+COMPOSE_PROOF_IMPORTS |= frozenset({
+    ("AvailableChainFGCompose.Proofs.Healing.CommonEntry",
+     "AvailableChainKitFG.Ancestry"),
+    ("AvailableChainFGCompose.Proofs.Healing.PromotionRows",
+     "AvailableChainKitFG.Ancestry"),
+})
+
 def compose_base(dep: str) -> bool:
     return (foundation(dep) or under(dep, "AvailableChainModel.Objects")
             or any_under(dep, ("AvailableChainEngineV2.Engine",
@@ -828,6 +880,11 @@ def compose_s(ctx: Context, m: Module, dep: str) -> bool:
 
 
 def compose_p(ctx: Context, m: Module, dep: str) -> bool:
+    # P0d3: the non-genesis interface fixture uses the proved window height laws.
+    if (m.name, dep) in {
+        (COMPOSE + ".Tests.P0d3", KITFG + ".WindowHeightBridge"),
+    }:
+        return False
     if not (under(m.name, COMPOSE + ".Proofs") or under(m.name, COMPOSE + ".Tests")):
         return False
     own = any_under(dep, (COMPOSE + ".Statements", COMPOSE + ".Proofs"))
