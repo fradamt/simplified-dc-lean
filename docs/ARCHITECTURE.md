@@ -1346,3 +1346,10 @@ library, owner module, kind, digest, and metadata field must remain unchanged.
 Counts must match the parsed rows and modules. Old row and module order is
 preserved. Deep snapshots require separate old-entry and metadata preservation.
 Other checker Markdown has no exemption. `checker-paths.txt` is unchanged.
+
+Permitted Python coverage constants use separate literal schemas. `ORDER`
+contains exact module suffixes; `CLAIMS_STRUCTURES` contains simple structure
+names; `SAFETY_FIELDS` contains exact field labels, including `assembled package`.
+`REQUIRED_MODEL_SCOPE` contains exact model owner/name pairs. Additions must
+preserve all old entries and have no duplicates or wildcards. The surrounding
+Python AST and shell wrapper must remain unchanged.

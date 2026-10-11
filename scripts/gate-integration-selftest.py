@@ -58,6 +58,7 @@ with tempfile.TemporaryDirectory(prefix='gate-integration-') as scratch:
         write(seed, path, text)
     for path in ('docs/GEN-API.md', 'docs/FGSA-API.md', 'docs/api/gen-deep.json'):
         write(seed, path, (REPO / path).read_text())
+    write(seed, 'scripts/check-fgsa-blueprint.py', (REPO / 'scripts/check-fgsa-blueprint.py').read_text())
     base = commit(seed)
 
     def candidate(label, edits, reviewed=(), eligible=False, extractions=()):
@@ -94,6 +95,43 @@ with tempfile.TemporaryDirectory(prefix='gate-integration-') as scratch:
     added['node_order'] = ['old', 'new']
     claims = (seed / 'scripts/check-fgsa-claims.sh').read_text()
     ast_added = claims.replace("ORDER = ('Recurrence',", "ORDER = ('NewLane', 'Recurrence',")
+    blueprint = (seed / 'scripts/check-fgsa-blueprint.py').read_text()
+    # Exercise each real constant without importing or executing its checker.
+    for constant, path, original, anchor, valid, old in (
+        ('SAFETY_FIELDS', 'scripts/check-fgsa-blueprint.py', blueprint,
+         "'assembled package')", 'newField', 'assembled package'),
+        ('CLAIMS_STRUCTURES', 'scripts/check-fgsa-blueprint.py', blueprint,
+         "'FGSAClaims')", 'NewClaims', 'FGSAClaims'),
+        ('ORDER', 'scripts/check-fgsa-claims.sh', claims,
+         "'Packages.Healing')", 'NewLane', 'Packages.Healing'),
+    ):
+        def extend(literal):
+            return original.replace(anchor, anchor[:-1] + ', ' + literal + ')', 1)
+        candidate(constant + '-addition', {path: extend(repr(valid))}, eligible=True)
+        for label, literal in (('duplicate', repr(old)), ('wildcard', repr('New*Field')),
+                               ('glob-question', repr('New?Field')), ('glob-class', repr('New[AB]Field')),
+                               ('expression', "str('NewField')"), ('wrong-type', '42')):
+            candidate(constant + '-' + label, {path: extend(literal)})
+        candidate(constant + '-removal', {path: extend(repr(valid)).replace(repr(old) + ',', '', 1)})
+        candidate(constant + '-logic', {path: extend(repr(valid)) + '\nunsafe_logic = True\n'})
+    candidate('SAFETY_FIELDS-label-addition', {'scripts/check-fgsa-blueprint.py':
+              blueprint.replace("'assembled package')", "'assembled package', 'new field')")}, eligible=True)
+    candidate('CLAIMS_STRUCTURES-qualified-name', {'scripts/check-fgsa-blueprint.py':
+              blueprint.replace("'FGSAClaims')", "'FGSAClaims', 'New.Claims')")})
+    scope_anchor = 'REQUIRED_MODEL_SCOPE = {\n'
+    scope_pair = "('AvailableChainFGSA.Model.RowCore', 'AvailableChain.FGSA.newField')"
+    scope_added = claims.replace(scope_anchor, scope_anchor + '    ' + scope_pair + ',\n', 1)
+    candidate('REQUIRED_MODEL_SCOPE-addition', {'scripts/check-fgsa-claims.sh': scope_added}, eligible=True)
+    for label, content in (
+        ('duplicate', scope_added.replace(scope_anchor, scope_anchor + '    ' + scope_pair + ',\n', 1)),
+        ('wildcard', scope_added.replace('AvailableChain.FGSA.newField', 'AvailableChain.FGSA.*')),
+        ('wrong-owner', scope_added.replace("'AvailableChainFGSA.Model.RowCore', 'AvailableChain.FGSA.newField'",
+                                            "'AvailableChainGeneric.Model.RowCore', 'AvailableChain.FGSA.newField'")),
+        ('wrong-shape', claims.replace(scope_anchor, scope_anchor + "    'NewField',\n", 1)),
+        ('removal', scope_added.replace("'AvailableChain.FGSA.parentFoldState_def'", "'AvailableChain.FGSA.changed'", 1)),
+        ('logic', scope_added.replace('workers = audit_workers()', 'workers = 1')),
+    ):
+        candidate('REQUIRED_MODEL_SCOPE-' + label, {'scripts/check-fgsa-claims.sh': content})
     eligible = candidate('additions', {
         'scripts/fgsa-claims-expected.txt': "('Old.name', 'New.name')\n",
         'scripts/claims-model-scope.txt': files['scripts/claims-model-scope.txt'] +

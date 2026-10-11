@@ -21,8 +21,10 @@ SHALLOW_MANIFESTS = {'docs/GEN-API.md': ('Entries',),
                      'docs/FGSA-API.md': ('AvailableChainFGSA', 'AvailableChainFGSARun',
                                           'AvailableChainFGSAClaims')}
 # Only coverage lists can grow. Permission/exemption lists are not in this set.
-CONSTANTS = {'scripts/check-fgsa-claims.sh': {'ORDER', 'REQUIRED_MODEL_SCOPE'},
-             'scripts/check-fgsa-blueprint.py': {'CLAIMS_STRUCTURES', 'SAFETY_FIELDS'}}
+CONSTANTS = {'scripts/check-fgsa-claims.sh': {'ORDER': 'module_suffix',
+                                           'REQUIRED_MODEL_SCOPE': 'model_scope'},
+             'scripts/check-fgsa-blueprint.py': {'CLAIMS_STRUCTURES': 'structure_name',
+                                               'SAFETY_FIELDS': 'field_label'}}
 P0 = ('AvailableChainGeneric', 'AvailableChainFGSA', 'AvailableChainFGSARun',
       'AvailableChainFGSAClaims', 'AvailableChainFGSAProofs',
       'AvailableChainFGSAInhabit', 'AvailableChainFGCompose')
@@ -135,6 +137,22 @@ def exact_names(values):
         raise ValueError('entries must be exact names without wildcards')
 
 
+def constant_literals(values, schema):
+    identifier = r'[A-Za-z_][A-Za-z0-9_]*'
+    dotted = identifier + r'(?:\.' + identifier + r')*'
+    if schema == 'model_scope':
+        for pair in values:
+            if (not isinstance(pair, tuple) or len(pair) != 2 or
+                    not all(isinstance(x, str) and re.fullmatch(dotted, x) for x in pair) or
+                    not pair[0].startswith('AvailableChainFGSA.Model.')):
+                raise ValueError('scope entry must be an exact model owner/name pair')
+    else:
+        pattern = {'module_suffix': dotted, 'structure_name': identifier,
+                   'field_label': identifier + r'(?: ' + identifier + r')*'}[schema]
+        if not all(isinstance(x, str) and re.fullmatch(pattern, x) for x in values):
+            raise ValueError('invalid exact ' + schema + ' literal; wildcards are refused')
+
+
 def constant_additions(before, after, names, shell=False):
     if shell:
         marker = "<<'PY'\n"
@@ -157,18 +175,16 @@ def constant_additions(before, after, names, shell=False):
         x, y = assignment(old), assignment(new)
         if ast.dump(x) == ast.dump(y):
             continue
-        if type(x.value) != type(y.value) or not isinstance(x.value, (ast.Tuple, ast.List, ast.Set)):
+        schema = names[name]
+        expected = ast.Set if schema == 'model_scope' else ast.Tuple
+        if not isinstance(x.value, expected) or not isinstance(y.value, expected):
             raise ValueError('constant is not a literal list: ' + name)
         first, last = [ast.literal_eval(n) for n in (x.value, y.value)]
+        constant_literals(last, schema)
         if isinstance(first, set):
-            if not first < last or len(y.value.elts) != len(last):
+            if not first < last or len(x.value.elts) != len(first) or len(y.value.elts) != len(last):
                 raise ValueError('set is not a distinct strict superset: ' + name)
-            for pair in last:
-                if not isinstance(pair, tuple) or len(pair) != 2:
-                    raise ValueError('scope entry is not an owner/name pair')
-                exact_names(pair)
         else:
-            exact_names(last)
             ordered_additions(first, last)
         x.value = y.value = ast.Constant(value=None)
         changed.append(name)
