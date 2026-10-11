@@ -15,9 +15,9 @@ def first : Obj p :=
   ⟨.seat (.prop 1) ⟨0, by decide⟩, .proposal (namedProposal p .genesis 1 0 [] [] [])⟩
 def second : Obj p :=
   ⟨.seat (.prop 2) ⟨0, by decide⟩, .proposal (namedProposal p .genesis 2 0 [] [] [])⟩
-def env : Generic.Env (Fin 2) := ⟨2, by decide, 0, by decide, fun _ _ => true⟩
+abbrev env : Generic.Env (Fin 2) := ⟨2, by decide, 0, by decide, fun _ _ => true⟩
 
-def run : V2.D.Run (Fin 2) P where
+abbrev run : V2.D.Run (Fin 2) P where
   honest := {0}
   horizon := 18
   events := [.tick 0 0, .tick 0 2, .tick 0 4, .tick 0 6, .tick 0 8,

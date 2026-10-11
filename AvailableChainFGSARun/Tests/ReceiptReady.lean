@@ -63,7 +63,7 @@ theorem valid : V2.D.ExecutionValid env run := by
     · intro v t he
       simp [run] at he
       refine ⟨(t / 2).toNat, ?_⟩
-      simp [env, EmissionFreshnessTests.env]; dsimp [Time] at *; omega
+      simp; dsimp [Time] at *; omega
     · intro v hv t ⟨k, hk⟩ ht hh ha
       have hv0 : v = 0 := Finset.mem_singleton.mp hv
       subst v

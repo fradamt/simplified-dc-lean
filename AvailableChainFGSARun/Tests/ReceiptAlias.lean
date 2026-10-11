@@ -22,7 +22,7 @@ private theorem emitted_cases {v : Fin 2} {o : Obj p} {t : Time}
   obtain ⟨i, hi, ho⟩ := h
   have hb := (List.getElem?_eq_some_iff.mp hi).1
   change i < 11 at hb
-  interval_cases i <;> simp [run] at hi
+  interval_cases i <;> simp at hi
   all_goals obtain ⟨rfl, rfl⟩ := hi
   all_goals first
     | (change o ∈ [] at ho; exact (List.not_mem_nil ho).elim)
@@ -32,7 +32,7 @@ private theorem accepted_cases {i : Nat} {v : Fin 2} {o : Obj p} {t : Time}
     (h : V2.D.Run.acceptsAt env run i v o t) : v = 0 ∧ o = first ∧ t = 8 := by
   obtain ⟨parent, he, hc⟩ := h.1
   have hm := List.mem_of_getElem? he
-  simp [run] at hm
+  simp at hm
   obtain ⟨rfl, rfl, rfl⟩ := hm
   rcases (fgsaHooks p unitCodec).handles_carries _ _ _ hc with h | h
   · exact ⟨rfl, h.symm, rfl⟩
@@ -168,7 +168,7 @@ theorem coverage_false : ¬ legacyReceiptCoverageStatement := by
   have hNR : V2.D.NoRestart run := by
     intro i v t hi
     have hm := List.mem_of_getElem? hi
-    simp [run] at hm
+    simp at hm
   have hc := h env run dl 18 17 0 0 B required paths roots rfl valid hNR (by decide) premises
   rcases hc.1 with hleft | hright
   · exact (by decide +kernel : ¬ Block.Preceq B
