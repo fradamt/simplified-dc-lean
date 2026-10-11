@@ -21,3 +21,6 @@ FrameBridgeDef
 JustificationLawsDef
 RootScopeDef
 TreeFrameDef
+WindowViewsDef
+WindowEntriesDef
+WindowTransportDef

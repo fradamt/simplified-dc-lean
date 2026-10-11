@@ -16,6 +16,9 @@ public import AvailableChainKitFG.ClientOnceSafety
 public import AvailableChainKitFG.RecordHighOnce
 public import AvailableChainKitFG.FrameGeometry
 public import AvailableChainKitFG.AccountableCore
+public import AvailableChainKitFG.WindowTransport
+public import AvailableChainKitFG.WindowEntriesDef
+public import AvailableChainKitFG
 
 /-! Kernel dependency audit for the FG chain lemmas without root premises. -/
 
@@ -167,3 +170,44 @@ public import AvailableChainKitFG.AccountableCore
 #print axioms AvailableChain.KitFG.treeTwoChanges
 #print axioms AvailableChain.KitFG.treeTwoChanges_count
 #print axioms AvailableChain.KitFG.treeTwoChanges_nested
+
+-- P0b1 window transport and equation audit.
+#print axioms AvailableChain.SimplexFG.Window.initial_def
+#print axioms AvailableChain.SimplexFG.Window.process_row_def
+#print axioms AvailableChain.SimplexFG.Window.advance_height_def
+#print axioms AvailableChain.SimplexFG.Window.greatestReady_def
+#print axioms AvailableChain.SimplexFG.Window.finalizeWindow_def
+#print axioms AvailableChain.SimplexFG.Window.targetQuorum_def
+#print axioms AvailableChain.SimplexFG.Window.progReady_def
+#print axioms AvailableChain.SimplexFG.Window.process_height_events_def
+#print axioms AvailableChain.SimplexFG.Window.transition_def
+#print axioms AvailableChain.SimplexFG.Window.derive_def
+#print axioms AvailableChain.SimplexFG.Window.heightMatch_def
+#print axioms AvailableChain.SimplexFG.Window.windowMatch_def
+#print axioms AvailableChain.SimplexFG.Window.staleUseful_def
+#print axioms AvailableChain.SimplexFG.Window.r6w_def
+#print axioms AvailableChain.SimplexFG.Window.latestQfin_def
+#print axioms AvailableChain.SimplexFG.Window.acceptViable_def
+#print axioms AvailableChain.SimplexFG.Window.update_finality_def
+#print axioms AvailableChain.SimplexFG.Window.on_block_def
+#print axioms AvailableChain.KitFG.Window.projectHeight_def
+#print axioms AvailableChain.KitFG.Window.parentState_def
+#print axioms AvailableChain.KitFG.Window.headFields_def
+#print axioms AvailableChain.KitFG.Window.projectFinality_def
+#print axioms AvailableChain.KitFG.Window.projectCertEntry_def
+#print axioms AvailableChain.KitFG.Window.certificateHeight_def
+#print axioms AvailableChain.KitFG.Window.certificateFinality_def
+#print axioms AvailableChain.KitFG.Window.certificateFolded_def
+#print axioms AvailableChain.KitFG.Window.certificateSelection_def
+#print axioms AvailableChain.KitFG.Window.EntryOriginAt_def
+#print axioms AvailableChain.KitFG.Window.heightView_def
+#print axioms AvailableChain.KitFG.Window.finalityView_def
+#print axioms AvailableChain.KitFG.Window.RetainedW_def
+#print axioms AvailableChain.KitFG.Window.CoveredW_def
+#print axioms AvailableChain.KitFG.Window.EntryBitW_def
+#print axioms AvailableChain.KitFG.Window.window_addBit_def
+#print axioms AvailableChain.KitFG.WindowFoldMap_def
+#print axioms AvailableChain.KitFG.WindowFoldMap.fold_eq
+#print axioms AvailableChain.KitFG.WindowFoldMap.view_eq
+#print axioms AvailableChain.KitFG.WindowFoldMap.height_eq
+#print axioms AvailableChain.KitFG.WindowFoldMap.finality_eq

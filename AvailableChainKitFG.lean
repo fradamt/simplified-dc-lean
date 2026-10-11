@@ -68,6 +68,10 @@ public import AvailableChainKitFG.FrameGeometry
 public import AvailableChainKitFG.StoreBounds
 public import AvailableChainKitFG.CausalCapCore
 public import AvailableChainKitFG.FinalizedOccurrence
+public import AvailableChainKitFG.WindowViewsDef
+public import AvailableChainKitFG.WindowEntriesDef
+public import AvailableChainKitFG.WindowTransportDef
+public import AvailableChainKitFG.WindowTransport
 
 @[expose] public section
 end

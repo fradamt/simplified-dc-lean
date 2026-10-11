@@ -618,6 +618,14 @@ def test_use(ctx: Context, m: Module, dep: str) -> bool:
 
 
 def test_scope(ctx: Context, m: Module, dep: str) -> bool:
+    # P0b1: private fieldwise correspondence, with exact external suppliers.
+    if (m.name, dep) in {
+        (PROOFS + ".Tests.P0b1", FGSA + ".Model.WindowStore"),
+        (PROOFS + ".Tests.P0b1", FGSA + ".Statements.FinalityView"),
+        (PROOFS + ".Tests.P0b1", KITFG + ".WindowTransport"),
+        (PROOFS + ".Tests.P0b1", "AvailableChainSimplexFG.WindowStore"),
+    }:
+        return False
     if not is_test(m.name) or foundation(dep):
         return False
     owner = ctx.modules[dep].library if dep in ctx.modules else dep.split(".")[0]

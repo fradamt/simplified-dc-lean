@@ -5,6 +5,8 @@ public import AvailableChainSimplexFG.Evidence
 public import AvailableChainSimplexFG.Frame
 public import AvailableChainSimplexFG.Client
 public import AvailableChainSimplexFG.Store
+public import AvailableChainSimplexFG.Window
+public import AvailableChainSimplexFG.WindowStore
 
 @[expose] public section
 end
