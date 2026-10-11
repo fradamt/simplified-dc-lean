@@ -5,6 +5,13 @@ public import AvailableChainFGCompose.Statements.Bounds
 public import AvailableChainFGCompose.Statements.Finality
 public import AvailableChainFGCompose.Statements.FinalityReceipts
 public import AvailableChainFGCompose.Proofs.ServiceTransport
+public import AvailableChainFGCompose.Proofs.ObservationTransport
+public import AvailableChainFGCompose.Proofs.Timing
+public import AvailableChainFGCompose.Statements.Observations
+public import AvailableChainFGCompose.Statements.Selection
+public import AvailableChainFGCompose.Statements.Timing
+public import AvailableChainFGCompose.Statements.Channels
+public import AvailableChainFGCompose.Statements.ChannelLaws
 public import AvailableChainFGCompose.Statements.EventReads
 public import AvailableChainFGCompose.Statements.CoreReads
 public import AvailableChainFGCompose.Statements.Restart

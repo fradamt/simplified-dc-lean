@@ -1,4 +1,6 @@
 module
+public import AvailableChainFGSA.Proofs.WindowSelection
+public import AvailableChainFGSA.Proofs.WindowStore
 public import AvailableChainFGSA.Proofs.WindowInvariant
 public import AvailableChainKitFG.WindowInvariant
 
@@ -79,5 +81,64 @@ private theorem p0b2h_fgsa_complete_height (p : Params) (K : Nat) (hK : 2 ≤ K)
 #print axioms inhabited_adapter
 #print axioms closed_cover
 #print axioms p0b2h_fgsa_complete_height
+
+private theorem p0b2c_fgsa_FGCertificateLaws (p : Params) (K : Nat) (hK : 2 ≤ K) :
+    FGCertificateLaws p.E (FGSA.Window.certificateHeight p K) (FGSA.Window.certificateFinality p
+      K) := by
+  let laws := FGSA.Window.windowCertificateLaws p K hK
+  exact {
+    height := laws.height
+    initial := laws.initial
+    justified_zero := laws.justified_zero
+    finalized_zero := laws.finalized_zero
+    finalized_preceq_justified := laws.finalized_preceq_justified
+    heights_ordered := laws.heights_ordered
+    finalized_mono := laws.finalized_mono
+    finality_origin := laws.finality_origin }
+
+private theorem p0b2c_fgsa_FGSelectionLaws (p : Params) (K : Nat) (hK : 2 ≤ K) :
+    FGSelectionLaws p.E (FGSA.Window.certificateHeight p K) (FGSA.Window.certificateFinality p K)
+      (FGSA.Window.certificateSelection p K) := by
+  let laws := FGSA.Window.windowSelectionLaws p K hK
+  exact {
+    initial := laws.initial
+    ordered := laws.ordered
+    bounds := laws.bounds
+    entry_origin := laws.entry_origin
+    none_iff := laws.none_iff
+    greatest := laws.greatest
+    write := laws.write
+    prune := laws.prune
+    pruned_covered := laws.pruned_covered }
+
+private theorem p0b2c_fgsa_FGStoreSafety (p : Params) (K : Nat) (hK : 2 ≤ K) :
+    FGStoreSafety p.E (FGSA.Window.certificateHeight p K) (FGSA.Window.certificateFinality p K)
+      (id : Store (Fin p.n) → Store (Fin p.n))
+      (fun _ B => (FGSA.Window.certificateHeight p K B, FGSA.Window.certificateFinality p K B))
+      Store.init (FGSA.Window.on_block p K)
+      (FGStoreInvariant (FGSA.Window.certificateHeight p K) (FGSA.Window.certificateFinality p K))
+      StoreStepRoots := by
+  let laws := FGSA.Window.windowStoreSafety p K hK
+  exact {
+    initial_good := laws.initial_good
+    invariant := laws.invariant
+    step_good := laws.step_good
+    tree_mono := laws.tree_mono
+    accepted_F_mono := laws.accepted_F_mono
+    cache_eq := laws.cache_eq
+    F_lock_no_evidence := laws.F_lock_no_evidence
+    F_lock_fault := laws.F_lock_fault }
+
+private theorem p0b2c_fgsa_selection_phases :
+    (FGSA.Window.certificateSelection p 2).before B3 =
+      [⟨1, .genesis, ∅⟩, ⟨2, B1, {0}⟩] ∧
+    (FGSA.Window.certificateSelection p 2).chosen B3 = some ⟨2, B1, {0}⟩ ∧
+    (FGSA.Window.certificateSelection p 2).afterPrune B3 = [] := by
+  exact ⟨rfl, rfl, rfl⟩
+
+#print axioms p0b2c_fgsa_FGCertificateLaws
+#print axioms p0b2c_fgsa_FGSelectionLaws
+#print axioms p0b2c_fgsa_FGStoreSafety
+#print axioms p0b2c_fgsa_selection_phases
 
 end AvailableChain.FGSA.Tests.P0b2
