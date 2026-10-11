@@ -109,10 +109,11 @@ structure FGDependencyArrivalLeafLaws (H : FGHistoricalReads State Body)
     (L : FGDependencyLeaf State Body Origin)
     (Arrival : State → Body → Origin → State → Prop)
     (Notify : State → Body → State → Prop) : Prop where
-  direct_refusal_iff : ∀ st b o st', L.step st b o .definitiveRefused st' ↔
+  direct_refusal_iff : ∀ st b o st', (∃ result, L.step st b o result st') →
+    (L.step st b o .definitiveRefused st' ↔
     D.validBody b ∧ D.priorChecks st b ∧ D.timely st b ∧ ¬ D.accepted st b ∧
     D.accepted st (H.parent b) ∧ D.conflictsFinal st b ∧
-    dependencyRefused H D st' b ∧ D.originAvailable st' b o ∧ L.report st b o st'
+    dependencyRefused H D st' b ∧ D.originAvailable st' b o ∧ L.report st b o st')
   arrival_inherits : ∀ st st' b o, Arrival st b o st' → D.validBody b →
     dependencyRefused H D st (H.parent b) →
     dependencyRefused H D st' b ∧ D.originAvailable st' b o ∧ L.report st b o st'
@@ -120,10 +121,11 @@ structure FGDependencyArrivalLeafLaws (H : FGHistoricalReads State Body)
     ¬ D.accepted st b → ¬ D.accepted st (H.parent b) →
     ¬ dependencyRefused H D st (H.parent b) → ¬ dependencyRefused H D st b →
     D.pending st' b o
-  held_parent_accepts : ∀ st st' b o, L.step st b o .accepted st' ↔
+  held_parent_accepts : ∀ st st' b o, (∃ result, L.step st b o result st') →
+    (L.step st b o .accepted st' ↔
     D.validBody b ∧ D.priorChecks st b ∧ D.timely st b ∧ ¬ D.accepted st b ∧
     D.accepted st (H.parent b) ∧ ¬ D.conflictsFinal st b ∧ D.accepted st' b ∧
-    D.originAvailable st' b o ∧ H.erase b ∈ H.acceptedBlocks st'
+    D.originAvailable st' b o ∧ H.erase b ∈ H.acceptedBlocks st')
   accepted_callback : ∀ st st' b o, L.step st b o .accepted st' → L.callback st b o st'
   callback_only : ∀ st st' b o, L.callback st b o st' →
     L.step st b o .accepted st' ∧ ¬ D.accepted st b ∧ ¬ dependencyRefused H D st' b
