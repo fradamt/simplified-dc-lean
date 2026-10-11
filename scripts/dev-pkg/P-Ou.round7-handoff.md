@@ -197,4 +197,3 @@ layers-final.log, headers-final.log, export-repair-build.log, scoped-consumer-bu
 induction-tests-build2.log and open-consumers.log. Complete scope table: scope-table.txt.
 P-Ou remains PREPARED. Full continuation, global hResults, later conditional hTargets,
 InclusionReceiverInputs, and final public closure remain open.
-
