@@ -559,7 +559,11 @@ def rule_f28(x):
     out = []
     for lf, d in x.all_decls():
         if d.kind in THM and ('.Statements.' in lf.module + '.' or lf.module in defs) \
-                and not d.short.endswith('_def'):
+                and not d.short.endswith('_def') and not (
+                    # DECISION P23-A / 04e0a138: exact old-safety projection, as in
+                    # check-fgsa-claims.sh (user approval 2026-10-11).
+                    lf.module == 'AvailableChainFGSAClaims.Statements.Regimes'
+                    and d.full == 'AvailableChain.FGSA.Run.Base₂.idealization'):
             out.append(F('F-28', f'{lf.module} {d.full}', f'{lf.path}:{d.line}: theorem {d.full} in a Statements module',
                          new=x.new(lf)))
     return out

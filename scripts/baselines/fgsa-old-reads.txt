@@ -4,6 +4,7 @@
 # Exception: lead ruling 2026-10-05 added the WC height lines (70) for the weak-continuation lane; J6 must cover them too.
 # Exception: lead ruling 2026-10-07 added the 54 WC growth height lines (48 mirror a WC line; 6 growth-only lemmas, height-only via hOf); J6 must cover them too.
 # Exception: lead ruling 2026-10-09 (FG-SA port Stage 0) added 3 height lines: Legacy.attest, Next.attestNext and its eq_1 export mirror the canonical `attest` line; the SWITCH/J6 must cover them too.
+# Exception: user approval 2026-10-11 (sleep landing, consistent with the WC precedent) added 10 height lines: sleep WC/WCG inclusion6 and arming interfaces keep the old (hOf, derive.T_h.root) pair, bridge-equal to heightView; changing them changes public roots; J6 must cover them too.
 # old <constant> # <reason>: one more old constant (tightening only).
 # An unlisted read fails; a stale, duplicate or misplaced line fails.
 allow AvailableChain.FGSA.Window.acceptViable_eq # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.WindowStore)
@@ -251,3 +252,13 @@ height AvailableChain.FGSA.Run.fgsa_cpCompat_of_srcFrame # WP16 port: measured h
 height AvailableChain.FGSA.Run.fgsa_cpPrefix_of_srcFrame # WP16 port: measured height-only derive dependency; A/N canonical or guarded frame helper
 height AvailableChain.FGSA.Run.fgsa_walkRun_path_domain_filtered # WP16 port: measured height-only derive dependency; A/N canonical or guarded frame helper
 height AvailableChain.FGSA.Run.fgsa_walkRun_path_domain_of_top_retained # WP16 port: measured height-only derive dependency; A/N canonical or guarded frame helper
+height AvailableChain.FGSA.Run.AssemblyWCGInclusion6ResultStatement # sleep landing: old height pair in WC/WCG/arming interface; bridge-equal; public root; user approval 2026-10-11
+height AvailableChain.FGSA.Run.WCInclusion6ResultStatement # sleep landing: old height pair in WC/WCG/arming interface; bridge-equal; public root; user approval 2026-10-11
+height AvailableChain.FGSA.Run.arming_sleep_entry_below # sleep landing: old height pair in WC/WCG/arming interface; bridge-equal; public root; user approval 2026-10-11
+height AvailableChain.FGSA.Run.assembly_wcg_dischargeL # sleep landing: old height pair in WC/WCG/arming interface; bridge-equal; public root; user approval 2026-10-11
+height AvailableChain.FGSA.Run.wc_heightSeed_of_finite # sleep landing: old height pair in WC/WCG/arming interface; bridge-equal; public root; user approval 2026-10-11
+height AvailableChain.FGSA.Run.wc_inclusion6_result # sleep landing: old height pair in WC/WCG/arming interface; bridge-equal; public root; user approval 2026-10-11
+height AvailableChain.FGSA.Run.wcg_heightSeed_of_finite # sleep landing: old height pair in WC/WCG/arming interface; bridge-equal; public root; user approval 2026-10-11
+height AvailableChain.FGSA.Run.wcg_inclusion6_result # sleep landing: old height pair in WC/WCG/arming interface; bridge-equal; public root; user approval 2026-10-11
+height AvailableChain.FGSA.Run.wcg_retainedSeed_of_finite # sleep landing: old height pair in WC/WCG/arming interface; bridge-equal; public root; user approval 2026-10-11
+height AvailableChain.FGSA.Run.wcg_service4OfSeed # sleep landing: old height pair in WC/WCG/arming interface; bridge-equal; public root; user approval 2026-10-11
