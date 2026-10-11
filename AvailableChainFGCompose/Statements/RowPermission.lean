@@ -11,7 +11,8 @@ variable {In : Type} {P : V2.ProtocolSpecD In} {n : Nat} {Wire : Type}
 
 /-- The durable record agrees with every earlier target and timeout. -/
 structure FGRowRecordHistory (Λ : RecordOnce) : Prop where
-  invariant : RecordInv Λ.toRecord
+  invariant : ∀ h T, Λ.lock h = some T →
+    Λ.timeout h = false ∧ (Λ.target h = none ∨ Λ.target h = some T)
   sent_history : ∀ h T timeout fp, (.vote h T timeout, fp) ∈ Λ.sent →
     (timeout = false → Λ.target h = some T) ∧ (timeout = true → Λ.timeout h = true)
 
