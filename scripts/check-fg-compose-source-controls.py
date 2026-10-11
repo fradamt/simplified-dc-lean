@@ -108,6 +108,14 @@ def main():
             source = 'namespace AvailableChain.FGCompose\n' + body + 'end\n'
             check(fixture, label + ' rejected', source, {PREFIX + 'I'}, 'reject')
             count += 1
+        for modifier in ('private', 'public', 'protected', 'meta', 'noncomputable',
+                         'unsafe', 'partial', 'nonrec'):
+            source = ('namespace AvailableChain.FGCompose\ninductive I where\n'
+                      f'  | {modifier} make : I\nend\n')
+            for label, names in (('exact', {'make'}), ('substituted', {modifier})):
+                check(fixture, f'{modifier} constructor modifier with {label} inventory rejected',
+                      source, {PREFIX + 'I'} | {PREFIX + 'I.' + n for n in names}, 'reject')
+                count += 1
     result = subprocess.run([sys.executable, '-B', CHECKER], check=True,
                             capture_output=True, text=True)
     coverage = re.search(r'; (\d+) public declarations/projections', result.stdout)

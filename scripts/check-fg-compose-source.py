@@ -8,6 +8,10 @@ sys.path.insert(0, 'scripts')
 import check_common as C
 from check_inventory import read_names
 
+# Lean v4.34.1 declModifiers keywords, which may precede a constructor identifier.
+MODIFIERS = {'private', 'public', 'protected', 'meta', 'noncomputable', 'unsafe',
+             'partial', 'nonrec'}
+
 
 def constructors(raw, d):
     """Collect simple inductive syntax; reject ambiguous terms and command layouts."""
@@ -49,6 +53,8 @@ def constructors(raw, d):
             ctor = re.match(r'\s*([^\s:({\[⦃]+)', text[i + 1:])
             if not ctor or not re.fullmatch(r"[^\W\d][\w'!?]*", ctor[1]):
                 reject('unsupported constructor identifier after |')
+            if ctor[1] in MODIFIERS:
+                reject('constructor modifier is not supported')
             names.append(d.full + '.' + ctor[1])
             i += ctor.end()
         i += 1
