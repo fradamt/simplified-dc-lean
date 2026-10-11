@@ -116,6 +116,89 @@ def main():
                 check(fixture, f'{modifier} constructor modifier with {label} inventory rejected',
                       source, {PREFIX + 'I'} | {PREFIX + 'I.' + n for n in names}, 'reject')
                 count += 1
+        derived = 'inductive I where\n  | make | other\n  deriving DecidableEq\n'
+        exact = {PREFIX + n for n in ('I', 'I.make', 'I.other', 'instDecidableEqI')}
+        source = 'namespace AvailableChain.FGCompose\n' + derived + 'end\n'
+        check(fixture, 'deriving DecidableEq exact', source, exact)
+        check(fixture, 'deriving DecidableEq unlisted instance', source,
+              exact - {PREFIX + 'instDecidableEqI'}, 2, 'UNLISTED:')
+        check(fixture, 'deriving DecidableEq fabricated deriving name', source,
+              exact | {PREFIX + 'I.deriving'}, 2, 'MISSING:')
+        source = ('namespace AvailableChain.FGCompose\nnamespace Nested\n' + derived
+                  + 'end Nested\nend\n')
+        check(fixture, 'nested deriving DecidableEq exact', source,
+              {PREFIX + 'Nested.' + n for n in ('I', 'I.make', 'I.other', 'instDecidableEqI')})
+        count += 4
+        for label, body in {
+            'deriving two classes': 'inductive I where\n  | make\n  deriving DecidableEq, Repr\n',
+            'deriving other class': 'inductive I where\n  | make\n  deriving Repr\n',
+            'same-line deriving': 'inductive I where | make deriving DecidableEq\n',
+            'dotted deriving type': 'inductive Q.I where\n  | make\n  deriving DecidableEq\n',
+            'lowercase deriving type': 'inductive lower where\n  | make\n  deriving DecidableEq\n',
+        }.items():
+            source = 'namespace AvailableChain.FGCompose\n' + body + 'end\n'
+            check(fixture, label + ' rejected', source, {PREFIX + 'I'}, 'reject')
+            count += 1
+        source = ('namespace AvailableChain.FGCompose\nnamespace Nested\ninductive lower where\n'
+                  '  | a | b\n  deriving DecidableEq\nend Nested\nend\n')
+        for label, inst in (('actual', 'instDecidableEqLower'),
+                            ('fabricated', 'instDecidableEqlower')):
+            names = {PREFIX + 'Nested.' + n for n in ('lower', 'lower.a', 'lower.b', inst)}
+            check(fixture, f'nested lowercase deriving, {label} instance, rejected', source,
+                  names, 'reject')
+            count += 1
+        collision = ('namespace AvailableChain.FGCompose\ndef instDecidableEqI : Nat := 0\n'
+                     'inductive I where\n  | a | b\n  deriving DecidableEq\nend\n')
+        base = {PREFIX + n for n in ('instDecidableEqI', 'I', 'I.a', 'I.b')}
+        for label, names in (('omitted', base),
+                             ('suffixed', base | {PREFIX + 'instDecidableEqI_1'})):
+            check(fixture, f'derived name collision with {label} instance rejected', collision,
+                  names, 'reject')
+            count += 1
+        holder = ('inductive I where\n  | a | b\n  deriving DecidableEq\n'
+                  'end Holder\n')
+        for label, body, extra in (
+                ('constructor', 'inductive Holder where\n  | instDecidableEqI\n'
+                 'namespace Holder\n' + holder, ('Holder', 'Holder.instDecidableEqI')),
+                ('projection', 'structure Holder where\n  instDecidableEqI : Nat\n'
+                 'namespace Holder\n' + holder,
+                 ('Holder', 'Holder.mk', 'Holder.instDecidableEqI')),
+                ('private derived', 'private inductive i where\n  | a\n  deriving DecidableEq\n'
+                 'namespace Holder\n' + holder, ())):
+            source = 'namespace AvailableChain.FGCompose\n' + body + 'end\n'
+            base = {PREFIX + n for n in extra + ('Holder.I', 'Holder.I.a', 'Holder.I.b')}
+            for kind, names in (('omitted', base),
+                                ('complete', base | {PREFIX + 'Holder.instDecidableEqI_1'})):
+                check(fixture, f'{label} collision, {kind} instance, rejected', source,
+                      names, 'reject')
+                count += 1
+        source = ('namespace AvailableChain.FGCompose\nprivate inductive lower where\n'
+                  '  | a | b\n  deriving DecidableEq\ninductive Lower where\n  | a | b\n'
+                  '  deriving DecidableEq\nend\n')
+        base = {PREFIX + n for n in ('Lower', 'Lower.a', 'Lower.b')}
+        for kind, inst in (('fabricated', 'instDecidableEqLower'),
+                           ('actual', 'instDecidableEqLower_1')):
+            check(fixture, f'private/public derived clash, {kind} instance, rejected', source,
+                  base | {PREFIX + inst}, 'reject')
+            count += 1
+        public = 'inductive Lower where\n  | a | b\n  deriving DecidableEq\n'
+        base = {PREFIX + n for n in ('Lower', 'Lower.a', 'Lower.b')}
+        for label, body, extra in (
+                ('inline private header', 'private inductive lower where | a | b deriving '
+                 'DecidableEq\n', ()),
+                ('inline private constructor', 'private inductive lower where\n  | a | b deriving '
+                 'DecidableEq\n', ()),
+                ('inline private structure', 'private structure lower where\n  x : Nat deriving '
+                 'DecidableEq\n', ()),
+                ('inline public structure', 'structure lower where\n  x : Nat deriving '
+                 'DecidableEq\n', ('lower', 'lower.mk', 'lower.x'))):
+            source = 'namespace AvailableChain.FGCompose\n' + body + public + 'end\n'
+            names = base | {PREFIX + n for n in extra}
+            for kind, inst in (('omitted', 'instDecidableEqLower'),
+                               ('complete', 'instDecidableEqLower_1')):
+                check(fixture, f'{label} deriving, {kind} instance, rejected', source,
+                      names | {PREFIX + inst}, 'reject')
+                count += 1
     result = subprocess.run([sys.executable, '-B', CHECKER], check=True,
                             capture_output=True, text=True)
     coverage = re.search(r'; (\d+) public declarations/projections', result.stdout)

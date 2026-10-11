@@ -31,6 +31,14 @@ def constructors(raw, d):
                 break
             reject('continuation must be indented below the header')
         body.append(line)
+    derived = []
+    # A final own-line `deriving DecidableEq` adds one instance with Lean's derived name.
+    if len(body) > 1 and re.fullmatch(r'\s+deriving\s+DecidableEq\s*', body[-1]):
+        # Lean capitalizes the type name; accept only names it leaves unchanged.
+        if not re.fullmatch(r"[A-Z][\w']*", d.name):
+            reject('derived instance name needs a simple capitalized type identifier')
+        body.pop()
+        derived.append(d.full[:-len(d.name)] + 'instDecidableEq' + d.name)
     text = '\n'.join(body)
     # Such terms can contain bars which are not constructor separators. Fail closed.
     commands = '|'.join(C.DECL_KW + ('match', 'by', 'let', 'do', 'if', 'fun', 'deriving',
@@ -60,17 +68,20 @@ def constructors(raw, d):
         i += 1
     if stack:
         reject('unbalanced delimiters')
-    return names
+    return names, derived
 
 
 expected = set(read_names('scripts/fg-compose-expected.txt'))
 found = set()
+derived = []
+texts = []
 files = [lf for lf in C.library_files() if lf.lib == 'AvailableChainFGCompose']
 if not files or not Path('AvailableChainFGCompose.lean').is_file():
     raise SystemExit('MISSING COMPOSE SOURCE SCOPE')
 found.update(import_module('current-inventory').source_names('compose'))
 for lf in files:
     raw = C.strip(Path(lf.path).read_text())
+    texts.append(raw)
     # Statements expose their definitions. No other extension is permitted.
     if '.Statements.' in lf.module:
         raw = raw.replace('@[expose] public section', '')
@@ -84,7 +95,9 @@ for lf in files:
                 if not d.private:
                     found.add(d.full)
                     if d.kind == 'inductive':
-                        found.update(constructors(raw, d))
+                        ctors, instances = constructors(raw, d)
+                        found.update(ctors + instances)
+                        derived.extend(instances)
         for name, body in re.findall(r'^structure (\w+).*?where\n(.*?)(?=^(?:variable|structure|def|theorem)|\Z)',
                                      raw, re.M | re.S):
             found.add('AvailableChain.FGCompose.' + name + '.mk')
@@ -94,10 +107,20 @@ for path in (Path('AvailableChainFGSAProofs/Proofs/Shared/FGCompose.lean'),
              Path('AvailableChainPCSAProofs/Proofs/Shared/FGCompose.lean')):
     if path.exists():
         raw = C.strip(path.read_text())
+        texts.append(raw)
         if re.search(r'@\[|\b(instance|notation|infix[lr]?|prefix|postfix|macro|syntax|attribute|'
                      r'initialize|register_option|elab|builtin_initialize|declare_syntax_cat|export|alias|'
                  r'register_simp_attr|declare_aesop_rule_sets)\b', raw):
             raise SystemExit('FORBIDDEN GLOBAL EXTENSION: ' + str(path))
+# Lean renames a derived instance whose name is taken. Fail closed: every deriving clause
+# must be a supported public one, derived names must be distinct, and no source text may
+# mention a derived name (or a suffixed form of it) at all.
+if sum(len(re.findall(r'\bderiving\b', t)) for t in texts) != len(derived):
+    raise SystemExit('UNSUPPORTED INDUCTIVE deriving: a clause outside a supported public inductive')
+for name in sorted(derived):
+    short = name.rsplit('.', 1)[-1]
+    if derived.count(name) > 1 or any(re.search(r'\b' + short, t) for t in texts):
+        raise SystemExit(f'UNSUPPORTED INDUCTIVE {name}: derived instance name may be taken')
 if found != expected:
     print('COMPOSE INVENTORY MISSING:', sorted(expected - found))
     print('COMPOSE INVENTORY UNLISTED:', sorted(found - expected))
