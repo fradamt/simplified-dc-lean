@@ -145,6 +145,7 @@ private noncomputable abbrev do_driver : FGDependencyDriver Bool (Fin 4) do_prot
       | _ => []
   inheritRefusal st _ _ := st
   notify st b _ := if st = 4 ∧ b = 1 then 5 else if st = 5 ∧ b = 2 then 6 else st
+  replay st _ _ := st
 
 private noncomputable abbrev do_op (k : Nat) :
     FGDependencyOperation (Fin 4) (FGReceiptToken Bool do_protocol.Object) do_protocol.Object :=
@@ -955,6 +956,7 @@ private noncomputable abbrev do_sendDriver (body : Fin 4) :
   work _ _ := []
   inheritRefusal st _ _ := st
   notify st _ _ := st
+  replay st _ _ := st
 
 private theorem do_honest_old_send (body : Fin 4) (horizon : Time) :
     dependencyEmits do_asleep (do_sentRun body horizon) (do_sendDriver body)
@@ -1150,6 +1152,7 @@ private noncomputable abbrev do_silentOrdinaryDriver :
   work _ _ := []
   inheritRefusal st _ _ := st
   notify st _ _ := st
+  replay st _ _ := st
 
 private noncomputable abbrev do_ordinaryTrace : FGDependencyTrace Nat where
   length := 1
@@ -1462,6 +1465,542 @@ private theorem do_retained_processing_enables_and_completes :
 #print axioms do_later_read_closed_but_late
 #print axioms do_retained_only_entry
 #print axioms do_terminal_equality_not_strict
+
+/-- Restart reconstruction on two retained non-genesis carriers, in parent order. -/
+private noncomputable abbrev dr4_protocol : V2.ProtocolSpecD Unit :=
+  { do_protocol with restore := fun st _ => if st = 6 then 7 else st }
+
+private noncomputable abbrev dr4_wireReads :
+    FGDependencyWireReads dr4_protocol (Fin 4) Nat where
+  decodeBody := do_wireReads.decodeBody
+  namedRoots := do_wireReads.namedRoots
+  proposalErase := do_wireReads.proposalErase
+  decodedRows := do_wireReads.decodedRows
+  bodyRows := do_wireReads.bodyRows
+
+private noncomputable abbrev dr4_run : V2.D.Run Bool dr4_protocol :=
+  { do_run with events := [.deliver false (do_wire 2) 0, .restart false 1,
+    .deliver false (do_wire 1) 1, .tick false 4, .restart false 5] }
+
+private noncomputable abbrev dr4_reads : FGDependencyReads Nat (Fin 4)
+    (FGReceiptToken Bool dr4_protocol.Object) Nat :=
+  { do_reads with
+    matching := fun st b => st ≠ 7 ∧ b = 2
+    companionHeld := fun st b => b = 2 ∧ 6 ≤ st ∧ st ≠ 8
+    latestKey := fun st _ => if st = 7 then none
+      else some (if 8 ≤ st then 3 else 2, do_history.root 2)
+    latestCompanion := fun st _ => if 6 ≤ st ∧ st ≠ 7 ∧ st ≠ 8 then some 2 else none }
+
+private noncomputable abbrev dr4_driver : FGDependencyDriver Bool (Fin 4) dr4_protocol :=
+  { do_driver with
+    replay := fun st b _ => if st = 7 ∧ b = 1 then 8 else st
+    hookProgram := fun st op => match op with
+      | .replay b _ => if st = 7 ∧ b = 1 then .finish 8
+          else if st = 9 ∧ b = 2 then .read .ac st .finish else .finish st
+      | .notification b _ => if st = 8 ∧ b = 2 then .read .ac 9 .finish
+          else do_driver.hookProgram st op
+      | _ => do_driver.hookProgram st op
+    notify := fun st b o => if st = 8 ∧ b = 2 then 9 else do_driver.notify st b o
+    work := fun st e => if st = 7 then
+      [.step (.replay 1 do_parent), .step (.notification 2 do_child), .step (.replay 2 do_child)]
+      else do_driver.work st e }
+
+private noncomputable abbrev dr4_notify (a : Nat) (b : Fin 4) (z : Nat) : Prop :=
+  do_notify a b z ∨ (a = 8 ∧ b = 2 ∧ z = 9)
+
+private noncomputable abbrev dr4_step (kind : FGDependencyStepKind) (x : Bool)
+    (a z : Nat) : Prop :=
+  do_step kind x a z ∨ (kind = .restore ∧ a = 6 ∧ z = 7) ∨
+    (kind = .ordinary ∧ a = 7 ∧ z = 8) ∨ (kind = .notification ∧ a = 8 ∧ z = 9)
+
+private noncomputable abbrev dr4_op (k : Nat) :
+    FGDependencyOperation (Fin 4) (FGReceiptToken Bool dr4_protocol.Object)
+      dr4_protocol.Object :=
+  match k with
+  | 0 => .arrival 2 do_child
+  | 3 => .restore 1
+  | 5 => .arrival 1 do_parent
+  | 6 => .leaf 1 do_parent .accepted
+  | 7 => .leaf 2 do_child .accepted
+  | 8 => .notification 1 do_parent
+  | 9 => .notification 2 do_child
+  | 11 => .clock 4
+  | 13 => .restore 5
+  | 14 => .replay 1 do_parent
+  | 15 => .notification 2 do_child
+  | 16 => .replay 2 do_child
+  | _ => .idle
+
+private noncomputable abbrev dr4_trace : FGDependencyTrace Nat where
+  length := 17
+  state k := [0, 1, 1, 1, 1, 1, 2, 3, 4, 5, 6, 6, 6, 6, 7, 8, 9, 9][k]?.getD 9
+  time k := [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 4, 4, 5, 5, 5, 5, 5][k]?.getD 5
+  start j := [0, 3, 5, 11, 13][j]?.getD 17
+  done j := [2, 4, 10, 12, 17][j]?.getD 17
+  readCut _ := 12
+  entryCut j := [1, 4, 6, 12, 14][j]?.getD 17
+  dutyCut j := [2, 4, 10, 12, 14][j]?.getD 17
+  hookRead j index kind cut st := do_trace.hookRead j index kind cut st ∨
+    (j = 4 ∧ kind = .ac ∧ st = 9 ∧
+      ((index = 0 ∧ cut = 16) ∨ (index = 1 ∧ cut = 17)))
+
+private theorem dr4_child_origin :
+    FGReceiptOrigin do_env dr4_run do_history dr4_wireReads false 2 do_child := by
+  constructor <;> rfl
+
+private theorem dr4_parent_origin :
+    FGReceiptOrigin do_env dr4_run do_history dr4_wireReads false 1 do_parent := by
+  constructor <;> rfl
+
+private theorem dr4_closed (st : Nat) (h : st = 1 ∨ st = 6 ∨ st = 7 ∨ st = 9) :
+    dependencyClosed do_history dr4_reads st := by
+  rcases h with rfl | rfl | rfl | rfl <;> intro work <;> cases work <;>
+    simp_all [dependencyResolved, dependencyRefused]
+
+private theorem dr4_events_bound {j : Nat} {e : V2.Event Bool dr4_protocol.Object}
+    (h : dr4_run.events[j]? = some e) : j < 5 :=
+  (List.getElem?_eq_some_iff.mp h).1
+
+private theorem dr4_micro_steps (k : Nat) (hk : k < dr4_trace.length) :
+    ∃ kind, dr4_step kind false (dr4_trace.state k) (dr4_trace.state (k + 1)) := by
+  change k < 17 at hk
+  interval_cases k <;> solve
+    | exact ⟨.ordinary, Or.inl (Or.inl rfl)⟩
+    | (refine ⟨.arrival, ?_⟩; simp [dr4_step, do_step])
+    | (refine ⟨.leafRetry, ?_⟩; simp [dr4_step, do_step])
+    | (refine ⟨.notification, ?_⟩; simp [dr4_step, do_step])
+    | (refine ⟨.restore, ?_⟩; simp [dr4_step, do_step])
+    | (refine ⟨.ordinary, ?_⟩; simp [dr4_step, do_step])
+
+private theorem dr4_entry_steps (x : Bool) : FGDependencySteps dr4_step x 2 6 := by
+  have lift : ∀ a z, FGDependencySteps do_step x a z → FGDependencySteps dr4_step x a z := by
+    intro a z steps
+    induction steps with
+    | refl => exact .refl _
+    | tail k _ h ih => exact .tail k ih (Or.inl h)
+  exact lift _ _ (do_entry_steps x)
+
+private theorem dr4_replay_steps : FGDependencySteps dr4_step false 7 9 :=
+  .tail .notification (.tail .ordinary (.refl _) (Or.inr (Or.inr (Or.inl ⟨rfl, rfl, rfl⟩))))
+    (Or.inr (Or.inr (Or.inr ⟨rfl, rfl, rfl⟩)))
+
+private theorem dr4_hook_laws :
+    FGDependencyArrivalLeafLaws do_history dr4_reads do_leaf do_arrival dr4_notify :=
+  { do_arrival_laws with
+    notification_resolved := by
+      intro a z b h
+      rcases h with (⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩) | ⟨rfl, rfl, rfl⟩ <;>
+        simp [dependencyResolved, dependencyRefused]
+    notification_keys := by
+      intro a z b h
+      rcases h with (⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩) | ⟨rfl, rfl, rfl⟩ <;> rfl
+    notification_fields := by
+      intro a z b i h unmatched
+      rcases h with (⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩) | ⟨rfl, rfl, rfl⟩
+      · rfl
+      · simp at unmatched
+      · simp at unmatched
+    notification_matching := by
+      intro a z b i slot h held matching
+      rcases h with (⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩) | ⟨rfl, rfl, rfl⟩
+      · have bad : (2 : Nat) = 1 :=
+          congrArg BlockId.value (congrArg Prod.snd (Option.some.inj matching))
+        omega
+      · rfl
+      · rfl
+    refused_notification := by intro _ _ _ _ h; exact h.elim
+    callback_latest := by
+      intro a z b h held
+      rcases h with (⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩) | ⟨rfl, rfl, rfl⟩ <;>
+        decide +kernel }
+
+
+private theorem dr4_state_laws : FGDependencyStateLaws do_history dr4_reads do_leaf :=
+  { do_state_laws with }
+
+private theorem dr4_step_laws :
+    FGDependencyStepLaws do_history dr4_reads do_leaf dr4_step (fun s t => dr4_protocol.restore s t)
+      (fun _ _ => False) where
+  accepted_keep k x a z b step held := by
+    have le : a ≤ z := by rcases step with (h | h | h | h) | h | h | h <;> omega
+    rcases held with rfl | ⟨rfl, h⟩ | ⟨rfl, h⟩
+    · exact Or.inl rfl
+    · exact Or.inr (Or.inl ⟨rfl, Nat.le_trans h le⟩)
+    · exact Or.inr (Or.inr ⟨rfl, Nat.le_trans h le⟩)
+  refused_keep _ _ _ _ _ _ _ _ h := h.elim
+  pending_effect k x a z b o step pending := by
+    have le : a ≤ z := by rcases step with (h | h | h | h) | h | h | h <;> omega
+    rcases pending with ⟨rfl, ha, hb, rfl⟩ | ⟨rfl, rfl, rfl⟩
+    · refine ⟨Or.inl ⟨rfl, by omega, rfl⟩, ?_⟩
+      by_cases hz : z < 4
+      · exact Or.inl (Or.inl ⟨rfl, by omega, hz, rfl⟩)
+      · exact Or.inr (Or.inl (Or.inr (Or.inr ⟨rfl, by omega⟩)))
+    · refine ⟨Or.inr ⟨rfl, le, rfl⟩, ?_⟩
+      by_cases hz : z = 2
+      · exact Or.inl (Or.inr ⟨rfl, hz, rfl⟩)
+      · exact Or.inr (Or.inl (Or.inr (Or.inl ⟨rfl, by omega⟩)))
+  origin_keep k x a z b o step origin := by
+    have le : a ≤ z := by rcases step with (h | h | h | h) | h | h | h <;> omega
+    rcases origin with ⟨rfl, h, rfl⟩ | ⟨rfl, h, rfl⟩
+    · exact Or.inl ⟨rfl, Nat.le_trans h le, rfl⟩
+    · exact Or.inr ⟨rfl, Nat.le_trans h le, rfl⟩
+  metadata_fg_eq k x a z step notArrival notLeaf := by
+    rcases step with old | ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩
+    · exact do_step_laws.metadata_fg_eq k x a z old notArrival notLeaf
+    all_goals rfl
+  insertion_leaf k x a z b step held fresh := by
+    rcases step with old | ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩
+    · exact do_step_laws.insertion_leaf k x a z b old held fresh
+    all_goals simp_all
+  one_body a z b o result leaf c held := by
+    rcases leaf with ⟨rfl, (⟨rfl, rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl, rfl⟩)⟩
+    all_goals simp_all
+    all_goals tauto
+  restore_exact st t := by
+    by_cases h : st = 6
+    · subst st
+      simp [dr4_protocol]
+    · simp [dr4_protocol, h]
+  no_signing _ _ _ _ _ := not_false
+
+
+set_option maxHeartbeats 800000 in
+private theorem dr4_trace_laws :
+    FGDependencyTraceLaws do_env dr4_run false do_history dr4_wireReads dr4_reads do_leaf
+      dr4_step dr4_trace dr4_driver dr4_op do_arrival dr4_notify
+      (Leaf := do_leafProtocol) id id do_read where
+  arrival_laws := dr4_hook_laws
+  initial := rfl
+  initial_accepted b h := by simpa [dr4_reads, do_protocol, do_leaf] using h
+  micro_step := dr4_micro_steps
+  external_step j e h := by
+    have hj := dr4_events_bound h
+    interval_cases j <;> simp only [List.getElem?_cons_zero,
+      List.getElem?_cons_succ, Option.some.injEq] at h <;> subst e <;> exact ⟨rfl, rfl⟩
+  step_kind k hk := by
+    change k < 17 at hk
+    interval_cases k <;> simp [dependencyOperationKind, dr4_op, dr4_step, do_step]
+  operation_bound k hk := by
+    change k < 17 at hk
+    interval_cases k <;> simp only [dr4_op]
+    all_goals first
+      | exact ⟨Or.inl ⟨rfl, rfl, rfl, rfl⟩, rfl, dr4_child_origin, rfl⟩
+      | exact ⟨Or.inr ⟨rfl, rfl, rfl, rfl⟩, rfl, dr4_parent_origin, rfl⟩
+      | simp [dependencyResolved, dependencyRefused, dr4_notify, do_notify]
+  delivery_entry j wire t h := by
+    have hj := dr4_events_bound h
+    interval_cases j <;> simp only [List.getElem?_cons_zero,
+      List.getElem?_cons_succ, Option.some.injEq] at h
+    all_goals cases h <;> rfl
+  work_execution j e h := by
+    have hj := dr4_events_bound h
+    interval_cases j <;> simp only [List.getElem?_cons_zero,
+      List.getElem?_cons_succ, Option.some.injEq] at h <;> subst e <;> exact ⟨rfl, rfl⟩
+  work_step j e k h lo hi := by
+    have hj := dr4_events_bound h
+    interval_cases j <;> simp only [List.getElem?_cons_zero,
+      List.getElem?_cons_succ, Option.some.injEq] at h <;> subst e <;>
+      norm_num [dr4_trace] at lo hi <;> interval_cases k <;> rfl
+  hook_correspondence j e index kind cut st h := by
+    have hj := dr4_events_bound h
+    interval_cases j <;> simp only [List.getElem?_cons_zero,
+      List.getElem?_cons_succ, Option.some.injEq] at h <;> subst e
+    · change ((0 = 2 ∧ _) ∨ (0 = 4 ∧ _)) ↔
+        ∃ r, ([] : List (FGDependencyWorkRead Nat))[index]? = some r ∧ _
+      simp
+    · change ((1 = 2 ∧ _) ∨ (1 = 4 ∧ _)) ↔
+        ∃ r, ([] : List (FGDependencyWorkRead Nat))[index]? = some r ∧ _
+      simp
+    · change ((2 = 2 ∧ index = 0 ∧ kind = .ac ∧ cut = 10 ∧ st = 6) ∨
+        (2 = 4 ∧ _)) ↔
+        ∃ r, ([⟨4, .ac, 6⟩] : List (FGDependencyWorkRead Nat))[index]? = some r ∧
+          r.kind = kind ∧ cut = 6 + r.offset ∧ st = r.consumed
+      cases index <;> simp [eq_comm]
+    · change ((3 = 2 ∧ _) ∨ (3 = 4 ∧ _)) ↔
+        ∃ r, ([] : List (FGDependencyWorkRead Nat))[index]? = some r ∧ _
+      simp
+    · change ((4 = 2 ∧ _) ∨ (4 = 4 ∧ kind = .ac ∧ st = 9 ∧
+        ((index = 0 ∧ cut = 16) ∨ (index = 1 ∧ cut = 17)))) ↔
+        ∃ r, ([⟨2, .ac, 9⟩, ⟨3, .ac, 9⟩] :
+          List (FGDependencyWorkRead Nat))[index]? = some r ∧
+          r.kind = kind ∧ cut = 14 + r.offset ∧ st = r.consumed
+      rcases index with _ | (_ | index) <;> simp [eq_comm] <;> tauto
+  hook_reads j e r h member := by
+    have hj := dr4_events_bound h
+    interval_cases j <;> simp only [List.getElem?_cons_zero,
+      List.getElem?_cons_succ, Option.some.injEq] at h <;> subst e
+    · change r ∈ ([] : List (FGDependencyWorkRead Nat)) at member
+      cases member
+    · change r ∈ ([] : List (FGDependencyWorkRead Nat)) at member
+      cases member
+    · change r ∈ ([⟨4, .ac, 6⟩] : List (FGDependencyWorkRead Nat)) at member
+      have hr := List.mem_singleton.mp member
+      subst r
+      exact ⟨by decide, rfl, dr4_entry_steps false, dr4_closed 6 (Or.inr (Or.inl rfl))⟩
+    · change r ∈ ([] : List (FGDependencyWorkRead Nat)) at member
+      cases member
+    · change r ∈ ([⟨2, .ac, 9⟩, ⟨3, .ac, 9⟩] :
+        List (FGDependencyWorkRead Nat)) at member
+      simp only [List.mem_cons, List.not_mem_nil, or_false] at member
+      rcases member with rfl | rfl <;>
+        exact ⟨by decide, rfl, dr4_replay_steps,
+          dr4_closed 9 (Or.inr (Or.inr (Or.inr rfl)))⟩
+  receipt_entry j wire t b h awake valid decoded := by
+    have hj := dr4_events_bound h
+    interval_cases j <;> simp only [List.getElem?_cons_zero,
+      List.getElem?_cons_succ, Option.some.injEq] at h
+    · obtain ⟨_, rfl, rfl⟩ := V2.Event.deliver.inj h
+      have hb := Option.some.inj decoded
+      subst b
+      simp [Effect, dependencyResolved, dependencyRefused, dependencyReceiverEpoch,
+        dr4_op, do_arrival]
+    · cases h
+    · obtain ⟨_, rfl, rfl⟩ := V2.Event.deliver.inj h
+      have hb := Option.some.inj decoded
+      subst b
+      simp [Effect, dependencyResolved, dependencyRefused, dependencyReceiverEpoch,
+        dr4_op, do_arrival]
+    · cases h
+    · cases h
+  entry_boundary j e h := by
+    have hj := dr4_events_bound h
+    interval_cases j <;> simp only [List.getElem?_cons_zero,
+      List.getElem?_cons_succ, Option.some.injEq] at h <;> subst e <;>
+      exact ⟨rfl, by decide, by decide, rfl, rfl⟩
+  drain_operations j e k h lo hi := by
+    have hj := dr4_events_bound h
+    interval_cases j <;> simp only [List.getElem?_cons_zero,
+      List.getElem?_cons_succ, Option.some.injEq] at h <;> subst e <;>
+      norm_num [dr4_trace] at lo hi <;> interval_cases k <;> simp [dr4_op]
+  boundary_idle k hk outside := by
+    change k < 17 at hk
+    interval_cases k <;> simp only [dr4_op]
+    all_goals exfalso; apply outside
+    all_goals first
+      | exact ⟨0, _, rfl, by decide, by decide⟩
+      | exact ⟨1, _, rfl, by decide, by decide⟩
+      | exact ⟨2, _, rfl, by decide, by decide⟩
+      | exact ⟨3, _, rfl, by decide, by decide⟩
+      | exact ⟨4, _, rfl, by decide, by decide⟩
+  raw_restore j t h := by
+    have hj := dr4_events_bound h
+    interval_cases j <;> simp only [List.getElem?_cons_zero,
+      List.getElem?_cons_succ, Option.some.injEq] at h
+    all_goals cases h <;> rfl
+  raw_clock j t h := by
+    have hj := dr4_events_bound h
+    interval_cases j <;> simp only [List.getElem?_cons_zero,
+      List.getElem?_cons_succ, Option.some.injEq] at h
+    all_goals cases h <;> rfl
+  restore_data := dr4_step_laws.restore_exact
+  clock_no_insert _ _ := ⟨rfl, rfl⟩
+  refusal_creation _ _ _ refused _ := refused.elim
+  refusal_history _ _ _ refused := refused.elim
+  notification_creation k b hk notified fresh := by
+    change k < 17 at hk
+    interval_cases k <;> simp_all
+    all_goals rcases notified with rfl | ⟨rfl, _⟩ | ⟨rfl, _⟩
+    · exact ⟨rfl, Or.inl (Or.inl ⟨rfl, rfl, rfl⟩), 6, by decide, by simp [dr4_op]⟩
+    · exact ⟨rfl, Or.inl (Or.inr ⟨rfl, rfl, rfl⟩), 7, by decide, by simp [dr4_op]⟩
+  actual_read i st := by
+    constructor
+    · rintro ⟨lo, hi, rfl⟩
+      interval_cases i
+      · exact ⟨3, .tick false 4, .fg, rfl, ⟨rfl, rfl⟩, rfl, rfl⟩
+      · exact ⟨3, .tick false 4, .proposer, rfl, ⟨rfl, rfl⟩, rfl, rfl⟩
+      · exact ⟨3, .tick false 4, .head, rfl, ⟨rfl, rfl⟩, rfl, rfl⟩
+      · exact ⟨3, .tick false 4, .ac, rfl, ⟨rfl, rfl⟩, rfl, rfl⟩
+    · rintro ⟨j, e, kind, he, required, rfl, rfl⟩
+      have hj := dr4_events_bound he
+      interval_cases j <;> simp only [List.getElem?_cons_zero,
+        List.getElem?_cons_succ, Option.some.injEq] at he <;> subst e
+      all_goals simp [dependencyReadRequired] at required
+      all_goals cases kind <;> exact ⟨by decide, by decide, rfl⟩
+  read_order j e kind h required := by
+    have hj := dr4_events_bound h
+    interval_cases j <;> simp only [List.getElem?_cons_zero,
+      List.getElem?_cons_succ, Option.some.injEq] at h <;> subst e
+    all_goals simp [dependencyReadRequired] at required
+    all_goals exact ⟨Nat.le_refl 12, Nat.le_refl 12, rfl, .refl _⟩
+  wire_validation wire b valid decoded := by
+    have hb : wire.payload = b := Option.some.inj decoded
+    simpa [do_protocol, dr4_reads, hb] using valid
+  origin_valid k b o hk origin := by
+    change k ≤ 17 at hk
+    rcases origin with ⟨rfl, h, rfl⟩ | ⟨rfl, h, rfl⟩
+    · refine ⟨dr4_child_origin, ?_⟩
+      interval_cases k <;> simp_all
+    · refine ⟨dr4_parent_origin, ?_⟩
+      interval_cases k <;> simp_all
+  leaf_step k b o z hk leaf hz := by
+    change k < 17 at hk
+    rcases leaf with ⟨_, (⟨ha, rfl, rfl, rfl⟩ | ⟨ha, rfl, rfl, rfl⟩)⟩
+    · refine ⟨dr4_parent_origin, ?_, ?_⟩
+      · clear hz
+        interval_cases k <;> simp_all
+      · change 3 = do_leafProtocol.process (dr4_trace.state k) (do_wire 1)
+        rw [ha]
+        rfl
+    · refine ⟨dr4_child_origin, ?_, ?_⟩
+      · clear hz
+        interval_cases k <;> simp_all
+      · change 4 = do_leafProtocol.process (dr4_trace.state k) (do_wire 2)
+        rw [ha]
+        rfl
+  origin_attribution k b hk held fresh := by
+    obtain ⟨kind, step⟩ := dr4_micro_steps k hk
+    obtain ⟨o, leaf⟩ := dr4_step_laws.insertion_leaf kind false _ _ b step held fresh
+    rcases leaf with ⟨_, (⟨ha, rfl, rfl, hz⟩ | ⟨ha, rfl, rfl, hz⟩)⟩
+    · exact ⟨do_parent, ⟨rfl, Or.inl ⟨ha, rfl, rfl, hz⟩⟩,
+        Or.inr ⟨rfl, by omega, rfl⟩, by
+          change k < 17 at hk
+          interval_cases k <;> simp_all [dr4_op], rfl, rfl⟩
+    · exact ⟨do_child, ⟨rfl, Or.inr ⟨ha, rfl, rfl, hz⟩⟩,
+        Or.inl ⟨rfl, by omega, rfl⟩, by
+          change k < 17 at hk
+          interval_cases k <;> simp_all [dr4_op], rfl, rfl⟩
+  read_correspondence i st read := by
+    rcases read with ⟨_, _, rfl⟩
+    exact ⟨by change 12 ≤ 17; decide, rfl, dr4_closed 6 (Or.inr (Or.inl rfl))⟩
+  order_and_time i j ei ej hi hj le := by
+    have bi := dr4_events_bound hi
+    have bj := dr4_events_bound hj
+    interval_cases i <;> interval_cases j <;>
+      simp only [List.getElem?_cons_zero, List.getElem?_cons_succ,
+        Option.some.injEq] at hi hj <;> subst ei <;> subst ej <;>
+      decide +kernel
+  finite_segment j e h := by
+    have hj := dr4_events_bound h
+    interval_cases j <;> decide +kernel
+  event_drain j y wire t h := by
+    have hj := dr4_events_bound h
+    interval_cases j <;> simp only [List.getElem?_cons_zero,
+      List.getElem?_cons_succ, Option.some.injEq, V2.Event.deliver.injEq] at h
+    · exact dr4_closed 1 (Or.inl rfl)
+    · cases h
+    · exact dr4_closed 6 (Or.inr (Or.inl rfl))
+    · cases h
+    · cases h
+  entry_drain j e h := by
+    have hj := dr4_events_bound h
+    interval_cases j
+    · exact dr4_closed 1 (Or.inl rfl)
+    · exact dr4_closed 1 (Or.inl rfl)
+    · exact dr4_closed 6 (Or.inr (Or.inl rfl))
+    · exact dr4_closed 6 (Or.inr (Or.inl rfl))
+    · exact dr4_closed 9 (Or.inr (Or.inr (Or.inr rfl)))
+  segment_time j e k h lower upper := by
+    have hj := dr4_events_bound h
+    interval_cases j <;> simp only [List.getElem?_cons_zero,
+      List.getElem?_cons_succ, Option.some.injEq] at h <;> subst e <;>
+      norm_num [dr4_trace] at lower upper <;> interval_cases k <;> rfl
+  event_order i j ei ej hi hj lt := by
+    have bi := dr4_events_bound hi
+    have bj := dr4_events_bound hj
+    interval_cases i <;> interval_cases j <;> simp_all
+  completion_cut j e deadline h strict := by
+    have hj := dr4_events_bound h
+    refine ⟨?_, ?_, ?_⟩
+    · interval_cases j <;> decide +kernel
+    · interval_cases j <;> simp only [List.getElem?_cons_zero,
+        List.getElem?_cons_succ, Option.some.injEq] at h <;> subst e <;> exact strict
+    · intro i ei hi before
+      have bi := dr4_events_bound hi
+      interval_cases i <;> interval_cases j <;>
+        simp only [List.getElem?_cons_zero, List.getElem?_cons_succ,
+          Option.some.injEq] at hi h <;> subst ei <;> subst e <;>
+        norm_num [dr4_trace] at before <;>
+        exact lt_of_le_of_lt (by decide) strict
+  tick_records j t h := by
+    have hj := dr4_events_bound h
+    interval_cases j <;> simp only [List.getElem?_cons_zero,
+      List.getElem?_cons_succ, Option.some.injEq] at h
+    all_goals cases h <;> rfl
+  atomic_tick j t h := by
+    have hj := dr4_events_bound h
+    interval_cases j <;> simp only [List.getElem?_cons_zero,
+      List.getElem?_cons_succ, Option.some.injEq] at h
+    · cases h
+    · cases h
+    · cases h
+    · have ht : (4 : Time) = t := V2.Event.tick.inj h |>.2
+      subst t
+      exact ⟨by decide, by decide, rfl, dr4_closed 6 (Or.inr (Or.inl rfl)), .refl _⟩
+    · cases h
+
+/-- The retained parent carries nonempty content; replay fills a cleared open role. -/
+private theorem dr4_restart_replay_completes :
+    dependencyStateBefore do_env dr4_run dr4_driver false 4 = 6 ∧
+    dependencyEventEntry dr4_run dr4_driver false 4 6 (.restart false 5) = 7 ∧
+    (1 : Fin 4) ≠ do_leaf.genesis ∧ dr4_wireReads.bodyRows 1 = [1] ∧
+    dr4_reads.latestKey 7 0 = none ∧
+    dr4_reads.latestKey 8 0 = some (3, do_history.root 2) ∧
+    FGDependencyEnabled do_history dr4_reads 8 ∧
+    dependencyStateBefore do_env dr4_run dr4_driver false 5 = 9 ∧
+    dr4_trace.time (dr4_trace.done 4) = 5 ∧
+    dependencyClosed do_history dr4_reads (dr4_trace.state (dr4_trace.done 4)) ∧
+    dependencyStrictPrefix dr4_run dr4_trace 6 (dr4_trace.done 4) := by
+  refine ⟨rfl, rfl, by decide, rfl, rfl, rfl, ?_, rfl, rfl, ?_, ?_⟩
+  · exact .companion 2 (Or.inr (Or.inr ⟨rfl, by decide⟩))
+      ⟨by decide, rfl⟩ (by simp)
+  · exact dr4_trace_laws.entry_drain 4 (.restart false 5) rfl
+  · exact dr4_trace_laws.completion_cut 4 (.restart false 5) 6 rfl (by decide)
+
+private theorem dr4_replay_reads_and_provenance :
+    (dependencyEventReads dr4_run dr4_driver false 4 6 (.restart false 5)) =
+      [⟨2, .ac, 9⟩, ⟨3, .ac, 9⟩] ∧
+    dr4_trace.hookRead 4 1 .ac 17 9 ∧
+    FGReceiptOrigin do_env dr4_run do_history dr4_wireReads false 1 do_parent ∧
+    FGReceiptOrigin do_env dr4_run do_history dr4_wireReads false 2 do_child ∧
+    ¬ do_leaf.callback 7 1 do_parent 8 ∧
+    ¬ do_leaf.step 7 1 do_parent .duplicate 8 := by
+  exact ⟨rfl, Or.inr ⟨rfl, rfl, rfl, Or.inr ⟨rfl, rfl⟩⟩,
+    dr4_parent_origin, dr4_child_origin, by simp, by simp⟩
+
+private noncomputable abbrev dr4_omittedTrace : FGDependencyTrace Nat :=
+  { dr4_trace with done := fun j => if j = 4 then 14 else dr4_trace.done j }
+
+private theorem dr4_omitted_replay_rejected :
+    ¬ FGDependencyTraceLaws do_env dr4_run false do_history dr4_wireReads dr4_reads do_leaf
+      dr4_step dr4_omittedTrace dr4_driver dr4_op do_arrival dr4_notify
+      (Leaf := do_leafProtocol) id id do_read := by
+  intro laws
+  have bad : (9 : Nat) = 7 := (laws.work_execution 4 (.restart false 5) rfl).1
+  omega
+
+private noncomputable abbrev dr4_substitutedOp (k : Nat) :=
+  if k = 14 then FGDependencyOperation.replay 2 do_child else dr4_op k
+
+private theorem dr4_substituted_carrier_rejected :
+    ¬ FGDependencyTraceLaws do_env dr4_run false do_history dr4_wireReads dr4_reads do_leaf
+      dr4_step dr4_trace dr4_driver dr4_substitutedOp do_arrival dr4_notify
+      (Leaf := do_leafProtocol) id id do_read := by
+  intro laws
+  have bad : (8 : Nat) = 7 := (laws.operation_bound 14 (by decide)).2.2.2.2.1
+  omega
+
+private noncomputable abbrev dr4_omittedReadTrace : FGDependencyTrace Nat :=
+  { dr4_trace with hookRead := fun j index kind cut st =>
+      dr4_trace.hookRead j index kind cut st ∧ ¬ (j = 4 ∧ index = 1) }
+
+private theorem dr4_omitted_replay_read_rejected :
+    ¬ FGDependencyTraceLaws do_env dr4_run false do_history dr4_wireReads dr4_reads do_leaf
+      dr4_step dr4_omittedReadTrace dr4_driver dr4_op do_arrival dr4_notify
+      (Leaf := do_leafProtocol) id id do_read := by
+  intro laws
+  have read := (laws.hook_correspondence 4 (.restart false 5) 1 .ac 17 9 rfl).mpr
+    ⟨⟨3, .ac, 9⟩, rfl, rfl, rfl, rfl⟩
+  exact read.2 ⟨rfl, rfl⟩
+
+#print axioms dr4_state_laws
+#print axioms dr4_step_laws
+#print axioms dr4_hook_laws
+#print axioms dr4_trace_laws
+#print axioms dr4_restart_replay_completes
+#print axioms dr4_replay_reads_and_provenance
+#print axioms dr4_omitted_replay_rejected
+#print axioms dr4_substituted_carrier_rejected
+#print axioms dr4_omitted_replay_read_rejected
 
 end AvailableChain.FGCompose.Tests.DependencyOrigins
 end
