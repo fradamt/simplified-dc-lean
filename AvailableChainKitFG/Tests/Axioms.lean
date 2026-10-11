@@ -1,4 +1,7 @@
 module
+public import AvailableChainKitFG.WindowHeightBridge
+public import AvailableChainKitFG.WindowSteps
+public import AvailableChainKitFG.WindowInvariant
 public import AvailableChainKitFG.TreeCorrespondence
 public import AvailableChainKitFG.TreeFrameGeometry
 public import AvailableChainKitFG.TreeTwoChanges
@@ -211,3 +214,27 @@ public import AvailableChainKitFG
 #print axioms AvailableChain.KitFG.WindowFoldMap.view_eq
 #print axioms AvailableChain.KitFG.WindowFoldMap.foldMap_height_eq
 #print axioms AvailableChain.KitFG.WindowFoldMap.foldMap_finality_eq
+
+#print axioms AvailableChain.KitFG.Window.heightRefinement
+#print axioms AvailableChain.KitFG.Window.windowHeightBridge
+#print axioms AvailableChain.KitFG.Window.windowHeightLaws
+#print axioms AvailableChain.KitFG.Window.window_addBit_key
+#print axioms AvailableChain.KitFG.Window.window_addBit_bits
+#print axioms AvailableChain.KitFG.Window.window_row_fields
+#print axioms AvailableChain.KitFG.Window.window_fold_fields
+#print axioms AvailableChain.KitFG.Window.window_fold_entry
+#print axioms AvailableChain.KitFG.Window.window_greatest_spec
+#print axioms AvailableChain.KitFG.Window.window_strict_node
+#print axioms AvailableChain.KitFG.Window.window_fold_sources
+#print axioms AvailableChain.KitFG.Window.window_ordered
+#print axioms AvailableChain.KitFG.Window.window_bounds
+#print axioms AvailableChain.KitFG.Window.window_capacity
+#print axioms AvailableChain.KitFG.Window.window_post_not_ready
+#print axioms AvailableChain.KitFG.Window.window_F_preceq_J
+#print axioms AvailableChain.KitFG.Window.window_hF_le_hj
+#print axioms AvailableChain.KitFG.Window.window_finalized_zero
+#print axioms AvailableChain.KitFG.Window.window_hF_mono
+#print axioms AvailableChain.KitFG.Window.window_F_mono
+#print axioms AvailableChain.KitFG.Window.window_bit_retained
+#print axioms AvailableChain.KitFG.Window.window_no_reentry
+#print axioms AvailableChain.KitFG.Window.window_finality_of_cover

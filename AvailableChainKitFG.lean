@@ -73,5 +73,9 @@ public import AvailableChainKitFG.WindowEntriesDef
 public import AvailableChainKitFG.WindowTransportDef
 public import AvailableChainKitFG.WindowTransport
 
+public import AvailableChainKitFG.WindowHeightBridge
+public import AvailableChainKitFG.WindowSteps
+public import AvailableChainKitFG.WindowInvariant
+
 @[expose] public section
 end

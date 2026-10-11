@@ -1,6 +1,8 @@
 module
 public import AvailableChainFGSA.Statements.WindowHeight
 public import AvailableChainKitFG.HeightLaws
+public import AvailableChainKitFG.WindowHeightBridge
+public import AvailableChainKitFG.WindowTransport
 
 public section
 
@@ -8,116 +10,230 @@ namespace AvailableChain.FGSA.Window
 
 open AvailableChain.SimplexFG AvailableChain.KitFG
 
-variable {V : Type} [DecidableEq V] [Fintype V] [RowCodec V]
+private abbrev hb_Old := FGSA.Window.State
+private abbrev hb_New := SimplexFG.Window.State
 
-omit [Fintype V] in
-/-- [spec 1202–1218] Finality writes leave the height projection unchanged. -/
-private theorem row_height {w : State V} {σ : ChainState V}
-    (heq : projectHeight w = heightOf σ) (a : Row V) :
-    projectHeight (process_row w a) = heightOf (SimplexFG.process_row σ a) := by
-  simp only [projectHeight_def, heightOf_def, FGHeight.mk.injEq] at heq
-  obtain ⟨hL, hs, hh, hT, ht, hp, hj, hJ⟩ := heq
-  obtain ⟨i, pair, fp⟩ := a
-  cases pair with
+private def hb_toEntry {V : Type} (e : FGSA.Window.Entry V) : SimplexFG.Window.Entry V :=
+  ⟨e.j, e.X, e.Q⟩
+
+/-- All eleven fields are copied; no field is reconstructed from another field. -/
+private def hb_toWindow {V : Type} (w : hb_Old V) : hb_New V :=
+  ⟨w.L, w.s, w.h, w.T_h, w.target_participation, w.progress,
+    w.W.map hb_toEntry, w.J, w.h_j, w.F, w.h_F⟩
+
+private theorem hb_entry_eq {V : Type} (e : Entry V) :
+    hb_toEntry e = ⟨e.j, e.X, e.Q⟩ := rfl
+
+private theorem hb_state_eq {V : Type} (w : hb_Old V) :
+    hb_toWindow w = ⟨w.L, w.s, w.h, w.T_h, w.target_participation, w.progress,
+      w.W.map hb_toEntry, w.J, w.h_j, w.F, w.h_F⟩ := rfl
+
+private theorem hb_entry_fields {V : Type} (e : FGSA.Window.Entry V) :
+    (hb_toEntry e).j = e.j ∧ (hb_toEntry e).X = e.X ∧ (hb_toEntry e).Q = e.Q :=
+  ⟨rfl, rfl, rfl⟩
+
+private theorem hb_state_fields {V : Type} (w : hb_Old V) :
+    (hb_toWindow w).L = w.L ∧ (hb_toWindow w).s = w.s ∧
+    (hb_toWindow w).h = w.h ∧ (hb_toWindow w).T_h = w.T_h ∧
+    (hb_toWindow w).target_participation = w.target_participation ∧
+    (hb_toWindow w).progress = w.progress ∧ (hb_toWindow w).W = w.W.map hb_toEntry ∧
+    (hb_toWindow w).J = w.J ∧ (hb_toWindow w).h_j = w.h_j ∧
+    (hb_toWindow w).F = w.F ∧ (hb_toWindow w).h_F = w.h_F := by
+  exact ⟨rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl⟩
+
+private theorem hb_initial_eq {V : Type} :
+    hb_toWindow (FGSA.Window.initial (V := V)) = SimplexFG.Window.initial := rfl
+
+variable {V : Type} [DecidableEq V] [RowCodec V]
+
+private theorem hb_row_eq (w : hb_Old V) (a : Row V) :
+    hb_toWindow (FGSA.Window.process_row w a) =
+      SimplexFG.Window.process_row (hb_toWindow w) a := by
+  have bits :
+      (w.W.map (fun e => if a.finality_pair = some ⟨e.j, e.X.root⟩ then
+        { e with Q := insert a.signer e.Q } else e)).map hb_toEntry =
+      (w.W.map hb_toEntry).map (fun e => if a.finality_pair = some ⟨e.j, e.X.root⟩ then
+        { e with Q := insert a.signer e.Q } else e) := by
+    simp only [List.map_map]
+    congr 1
+    funext e
+    by_cases he : a.finality_pair = some ⟨e.j, e.X.root⟩ <;>
+      simp [hb_entry_eq, he]
+  rcases a with ⟨i, hp, fp⟩
+  cases hp with
   | empty =>
-      simp only [process_row_def, SimplexFG.process_row, NamedHeightPair.matchesEntry]
-      split_ifs <;> simp_all only [projectHeight_def, heightOf_def]
-  | vote k e timeout =>
-      cases timeout <;>
-        simp only [process_row_def, SimplexFG.process_row, hh, hT] <;>
-        split_ifs <;> simp_all only [projectHeight_def, heightOf_def]
+      simpa only [FGSA.Window.process_row_def, SimplexFG.Window.process_row_def,
+        NamedHeightPair.matchesEntry, Bool.false_eq_true, ↓reduceIte, hb_state_eq] using
+        congrArg (fun es => ({ hb_toWindow w with W := es } : hb_New V)) bits
+  | vote h X t =>
+      cases t <;>
+        simp only [FGSA.Window.process_row_def, SimplexFG.Window.process_row_def,
+          NamedHeightPair.matchesEntry] <;>
+        split_ifs <;> dsimp [hb_state_eq] <;> rw [bits] <;> simp_all [hb_state_eq]
+      all_goals
+        exfalso
+        have hm : h = w.h ∧ X = w.T_h.root := of_decide_eq_true (by assumption)
+        exact (by assumption : h = w.h → ¬ X = w.T_h.root) hm.1 hm.2
 
-omit [Fintype V] in
-/-- [spec 1193–1196] The row fold preserves equal height projections. -/
-private theorem fold_height (rows : List (Row V))
-    {w : State V} {σ : ChainState V} (heq : projectHeight w = heightOf σ) :
-    projectHeight (rows.foldl process_row w) =
-      heightOf (rows.foldl SimplexFG.process_row σ) := by
-  induction rows generalizing w σ with
-  | nil => exact heq
-  | cons a rows ih => exact ih (row_height heq a)
-
-omit [DecidableEq V] [RowCodec V] in
-/-- [spec 1222–1227] Greatest-ready selection and pruning preserve height. -/
-private theorem finality_height (E : Electorate V) (w : State V) :
-    projectHeight (finalizeWindow E w) = projectHeight w := by
-  rw [finalizeWindow_def]
-  cases greatestReady E w <;> simp only [projectHeight_def]
+private theorem hb_rows_eq (rs : List (Row V)) (w : hb_Old V) :
+    hb_toWindow (rs.foldl FGSA.Window.process_row w) =
+      rs.foldl SimplexFG.Window.process_row (hb_toWindow w) := by
+  induction rs generalizing w with
+  | nil => rfl
+  | cons a rs ih => simp only [List.foldl_cons, ih, hb_row_eq]
 
 omit [DecidableEq V] [RowCodec V] in
-/-- [spec 1220–1250] Both evaluators test target before mature progress. -/
-private theorem events_height (E : Electorate V) (cfg : FGConfig) (K : Nat)
-    {w : State V} {σ : ChainState V} (heq : projectHeight w = heightOf σ) :
-    projectHeight (process_height_events E cfg K w) =
-      heightOf (SimplexFG.process_height_events E cfg σ) := by
-  have hfin : projectHeight (finalizeWindow E w) = heightOf (afterFin E σ) := by
-    rw [finality_height]
-    simpa only [heightOf_def, afterFin_L, afterFin_s, afterFin_h, afterFin_T_h,
-      afterFin_target_participation, afterFin_progress, afterFin_h_j, afterFin_J] using heq
-  have core (α : State V) (β : ChainState V) (h : projectHeight α = heightOf β) :
-      projectHeight (if targetQuorum E α then
-        advance_height { α with
-          J := α.T_h
-          h_j := α.h
-          W := (α.W ++ [Entry.mk α.h α.T_h ∅]).drop ((α.W ++ [Entry.mk α.h α.T_h ∅]).length - K) }
-        else if progReady E cfg α then advance_height α else α) =
-      heightOf (if β.targetQuorum E then
-        SimplexFG.advance_height { β with J := β.T_h, h_j := β.h, finalize := ∅ }
-        else if SimplexFG.progReady E cfg β then SimplexFG.advance_height β else β) := by
-    have fields := h
-    simp only [projectHeight_def, heightOf_def, FGHeight.mk.injEq] at fields
-    obtain ⟨hL, hs, hh, hT, ht, hp, hj, hJ⟩ := fields
-    have htarget : targetQuorum E α = β.targetQuorum E := by
-      rw [targetQuorum_def]
-      change decide (E.q ≤ E.weightOf α.target_participation) =
-        decide (E.q ≤ E.weightOf β.target_participation)
-      rw [ht]
-    have hprog : progReady E cfg α = SimplexFG.progReady E cfg β := by
-      rw [progReady_def, htarget]
-      rw [hT, hs, hp]
-      rfl
-    rw [htarget, hprog]
-    split_ifs
-    · simp only [advance_height_def, projectHeight_def, SimplexFG.advance_height,
-        heightOf_def, hL, hs, hh, hT]
-    · simp only [advance_height_def, projectHeight_def, SimplexFG.advance_height,
-        heightOf_def, hL, hs, hh, hj, hJ]
-    · exact h
-  rw [process_height_events_def, process_height_events_eq]
-  exact core _ _ hfin
+private theorem hb_advance_eq (w : hb_Old V) :
+    hb_toWindow (FGSA.Window.advance_height w) =
+      SimplexFG.Window.advance_height (hb_toWindow w) := rfl
+
+variable [Fintype V]
+
+omit [DecidableEq V] [RowCodec V] in
+private theorem hb_greatest_eq (E : Electorate V) (w : hb_Old V) :
+    (FGSA.Window.greatestReady E w).map hb_toEntry =
+      SimplexFG.Window.greatestReady E (hb_toWindow w) := by
+  classical
+  let oldStep := fun (best : Option (FGSA.Window.Entry V)) e =>
+    if w.h_F < e.j ∧ E.q ≤ E.weightOf e.Q then
+      best.elim (some e) (fun old => if old.j < e.j then some e else best)
+    else best
+  let newStep := fun (best : Option (SimplexFG.Window.Entry V)) e =>
+    if w.h_F < e.j ∧ E.q ≤ E.weightOf e.Q then
+      best.elim (some e) (fun old => if old.j < e.j then some e else best)
+    else best
+  have step (best) (e) :
+      (oldStep best e).map hb_toEntry = newStep (best.map hb_toEntry) (hb_toEntry e) := by
+    dsimp [oldStep, newStep, hb_entry_eq]
+    split_ifs <;> cases best <;> simp_all [hb_entry_eq]
+    split_ifs <;> rfl
+  have fold (es : List (FGSA.Window.Entry V)) (best) :
+      (es.foldl oldStep best).map hb_toEntry =
+        (es.map hb_toEntry).foldl newStep (best.map hb_toEntry) := by
+    induction es generalizing best with
+    | nil => rfl
+    | cons e es ih => simp only [List.foldl_cons, List.map_cons, ih, step]
+  have old_eq : FGSA.Window.greatestReady E w = w.W.foldl oldStep none := by
+    rw [FGSA.Window.greatestReady_def]
+    congr 1
+    funext best e
+    cases best <;> rfl
+  have new_eq : SimplexFG.Window.greatestReady E (hb_toWindow w) =
+      (w.W.map hb_toEntry).foldl newStep none := by
+    rw [SimplexFG.Window.greatestReady_def]
+    congr 1
+    funext best e
+    cases best <;> rfl
+  rw [old_eq, new_eq]
+  exact fold w.W none
+
+omit [DecidableEq V] [RowCodec V] in
+private theorem hb_finalize_eq (E : Electorate V) (w : hb_Old V) :
+    hb_toWindow (FGSA.Window.finalizeWindow E w) =
+      SimplexFG.Window.finalizeWindow E (hb_toWindow w) := by
+  rw [FGSA.Window.finalizeWindow_def, SimplexFG.Window.finalizeWindow_def]
+  rw [← hb_greatest_eq]
+  cases FGSA.Window.greatestReady E w <;>
+    simp [hb_state_eq, hb_entry_eq, List.filter_map, Function.comp_def] <;> rfl
+
+omit [DecidableEq V] [RowCodec V] [Fintype V] in
+/-- Appending the new empty entry and dropping old entries preserve conversion. -/
+private theorem hb_append_eviction_eq (es : List (FGSA.Window.Entry V))
+    (j : Height) (X : FGBlock V) (K : Nat) :
+    ((es ++ [FGSA.Window.Entry.mk j X ∅]).drop
+      ((es ++ [FGSA.Window.Entry.mk j X ∅]).length - K)).map hb_toEntry =
+      (es.map hb_toEntry ++ [SimplexFG.Window.Entry.mk j X ∅]).drop
+        ((es.map hb_toEntry ++ [SimplexFG.Window.Entry.mk j X ∅]).length - K) := by
+  simp [List.map_drop, hb_entry_eq]
+
+omit [DecidableEq V] [RowCodec V] in
+private theorem hb_events_eq (E : Electorate V) (cfg : FGConfig) (K : Nat) (w : hb_Old V) :
+    hb_toWindow (FGSA.Window.process_height_events E cfg K w) =
+      SimplexFG.Window.process_height_events E cfg K (hb_toWindow w) := by
+  rw [FGSA.Window.process_height_events_def, SimplexFG.Window.process_height_events_def]
+  rw [← hb_finalize_eq]
+  generalize FGSA.Window.finalizeWindow E w = u
+  change hb_toWindow (if FGSA.Window.targetQuorum E u then _ else _) =
+    (if FGSA.Window.targetQuorum E u then _ else _)
+  rw [show SimplexFG.Window.progReady E cfg (hb_toWindow u) =
+    FGSA.Window.progReady E cfg u from rfl]
+  split_ifs <;>
+    simp [FGSA.Window.advance_height_def, SimplexFG.Window.advance_height_def,
+      hb_state_eq, hb_entry_eq, List.map_drop]
+
+private theorem hb_transition_eq (p : Params) (K : Nat) (w : hb_Old (Fin p.n))
+    (B : FGBlock (Fin p.n)) (rs : List (Row (Fin p.n))) :
+    hb_toWindow (FGSA.Window.transition p K w B rs) =
+      SimplexFG.Window.transition p.E p.cfg K (hb_toWindow w) B rs := by
+  rw [FGSA.Window.transition_def, hb_events_eq, SimplexFG.Window.transition_def]
+  have h := hb_rows_eq rs { w with s := B.slot }
+  change SimplexFG.Window.process_height_events p.E p.cfg K
+    { hb_toWindow (rs.foldl FGSA.Window.process_row { w with s := B.slot }) with L := B } = _
+  rw [h]
+  rfl
+
+private theorem hb_foldMap (p : Params) (K : Nat) :
+    KitFG.WindowFoldMap p.E p.cfg K FGSA.Window.initial (FGSA.Window.transition p K)
+      (FGSA.Window.derive p K) hb_toWindow where
+  initial := hb_initial_eq
+  genesis := rfl
+  node := fun _ _ _ _ _ => rfl
+  step := hb_transition_eq p K
+
+private theorem hb_derive_eq (p : Params) (K : Nat) (B : FGBlock (Fin p.n)) :
+    hb_toWindow (FGSA.Window.derive p K B) = SimplexFG.Window.derive p.E p.cfg K B :=
+  (hb_foldMap p K).fold_eq B
+
+omit [DecidableEq V] [Fintype V] [RowCodec V] in
+/-- The old height projection reads the same eight copied fields. -/
+private theorem hb_project_eq (w : hb_Old V) :
+    projectHeight w = KitFG.Window.projectHeight (hb_toWindow w) := rfl
 
 /-- [bp.heightBridge.v1] The raw window evaluator refines the height fold
 on the same block tree. Capacity does not affect this projection. -/
 theorem heightRefinement (p : Params) (K : Nat) (hK : 2 ≤ K) :
     HeightFoldRefinement p.E p.cfg projectHeight initial (transition p K) (derive p K) := by
-  have _capacity := hK
-  refine ⟨?_, ?_, ?_, ?_⟩
-  · rw [initial_def, projectHeight_def]
-    rfl
-  · rw [derive_def]
-  · intro q s r x rs
-    rw [derive_def]
+  have h := KitFG.Window.heightRefinement p.E p.cfg K hK
+  refine ⟨?_, rfl, fun _ _ _ _ _ => rfl, ?_⟩
+  · exact h.initial_height
   · intro w σ B rs heq
-    rw [transition_def]
-    apply events_height
-    have hslot : projectHeight { w with s := B.slot } =
-        heightOf { σ with s := B.slot } := by
-      simp only [projectHeight_def, heightOf_def, FGHeight.mk.injEq] at heq ⊢
-      exact ⟨heq.1, trivial, heq.2.2⟩
-    have hfold := fold_height rs hslot
-    simp only [projectHeight_def, heightOf_def, FGHeight.mk.injEq] at hfold ⊢
-    exact ⟨trivial, hfold.2⟩
+    rw [hb_project_eq, hb_transition_eq]
+    exact h.step_height (hb_toWindow w) σ B rs heq
 
 /-- [bp.heightBridge.v1] Lift the step refinement over the original tree. -/
 theorem windowHeightBridge (p : Params) (K : Nat) (hK : 2 ≤ K) :
-    HeightBridge p.E p.cfg (fun B => projectHeight (derive p K B)) :=
-  heightBridge_of_refinement p.E p.cfg projectHeight initial (transition p K)
-    (derive p K) (heightRefinement p K hK)
+    HeightBridge p.E p.cfg (fun B => projectHeight (derive p K B)) := by
+  intro B
+  simpa only [← hb_derive_eq, ← hb_project_eq] using
+    KitFG.Window.windowHeightBridge p.E p.cfg K hK B
 
 /-- The bridge transfers all height laws and their row certificates. -/
 theorem windowHeightLaws (p : Params) (K : Nat) (hK : 2 ≤ K) :
-    FGHeightLaws p.E (fun B => projectHeight (derive p K B)) :=
-  heightLaws_of_bridge p.E p.cfg _ (windowHeightBridge p K hK)
+    FGHeightLaws p.E (fun B => projectHeight (derive p K B)) := by
+  have heq : (fun B => projectHeight (derive p K B)) =
+      (fun B => KitFG.Window.projectHeight (SimplexFG.Window.derive p.E p.cfg K B)) := by
+    funext B
+    rw [hb_project_eq, hb_derive_eq]
+  rw [heq]
+  exact KitFG.Window.windowHeightLaws p.E p.cfg K hK
+
+#print axioms hb_entry_fields
+#print axioms hb_state_fields
+#print axioms hb_initial_eq
+#print axioms hb_row_eq
+#print axioms hb_rows_eq
+#print axioms hb_advance_eq
+#print axioms hb_greatest_eq
+#print axioms hb_finalize_eq
+#print axioms hb_append_eviction_eq
+#print axioms hb_events_eq
+#print axioms hb_transition_eq
+#print axioms hb_foldMap
+#print axioms hb_derive_eq
+#print axioms hb_project_eq
+
+#print axioms hb_entry_eq
+#print axioms hb_state_eq
 
 end AvailableChain.FGSA.Window
 end

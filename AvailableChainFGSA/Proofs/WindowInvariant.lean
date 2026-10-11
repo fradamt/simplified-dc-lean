@@ -1,5 +1,7 @@
 module
 public import AvailableChainFGSA.Proofs.WindowSteps
+public import AvailableChainKitFG.WindowInvariant
+public import AvailableChainKitFG.WindowTransport
 
 public section
 
@@ -8,197 +10,185 @@ namespace AvailableChain.FGSA.Window
 open AvailableChain.SimplexFG hiding process_row process_height_events transition derive
 open AvailableChain.KitFG
 
+section
+
+private abbrev wi_Old := FGSA.Window.State
+private abbrev wi_New := SimplexFG.Window.State
+
+private def wi_toEntry {V : Type} (e : FGSA.Window.Entry V) : SimplexFG.Window.Entry V :=
+  ⟨e.j, e.X, e.Q⟩
+
+/-- All eleven fields are copied; no field is reconstructed from another field. -/
+private def wi_toWindow {V : Type} (w : wi_Old V) : wi_New V :=
+  ⟨w.L, w.s, w.h, w.T_h, w.target_participation, w.progress,
+    w.W.map wi_toEntry, w.J, w.h_j, w.F, w.h_F⟩
+
+private theorem wi_entry_eq {V : Type} (e : Entry V) :
+    wi_toEntry e = ⟨e.j, e.X, e.Q⟩ := rfl
+
+private theorem wi_state_eq {V : Type} (w : wi_Old V) :
+    wi_toWindow w = ⟨w.L, w.s, w.h, w.T_h, w.target_participation, w.progress,
+      w.W.map wi_toEntry, w.J, w.h_j, w.F, w.h_F⟩ := rfl
+
+private theorem wi_entry_fields {V : Type} (e : FGSA.Window.Entry V) :
+    (wi_toEntry e).j = e.j ∧ (wi_toEntry e).X = e.X ∧ (wi_toEntry e).Q = e.Q :=
+  ⟨rfl, rfl, rfl⟩
+
+private theorem wi_state_fields {V : Type} (w : wi_Old V) :
+    (wi_toWindow w).L = w.L ∧ (wi_toWindow w).s = w.s ∧
+    (wi_toWindow w).h = w.h ∧ (wi_toWindow w).T_h = w.T_h ∧
+    (wi_toWindow w).target_participation = w.target_participation ∧
+    (wi_toWindow w).progress = w.progress ∧ (wi_toWindow w).W = w.W.map wi_toEntry ∧
+    (wi_toWindow w).J = w.J ∧ (wi_toWindow w).h_j = w.h_j ∧
+    (wi_toWindow w).F = w.F ∧ (wi_toWindow w).h_F = w.h_F := by
+  exact ⟨rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl⟩
+
+private theorem wi_initial_eq {V : Type} :
+    wi_toWindow (FGSA.Window.initial (V := V)) = SimplexFG.Window.initial := rfl
+
 variable {V : Type} [DecidableEq V] [RowCodec V]
 
-/-- [bp §3.1] Structural invariant before or after the row fold.
-Height geometry is supplied separately by `windowHeightLaws`. -/
-private structure Inv (K : Nat) (w : State V) : Prop where
-  ordered : w.W.Pairwise (fun e d => e.j < d.j ∧ FGBlock.Preceq e.X d.X)
-  bounds : ∀ e ∈ w.W, w.h_F < e.j ∧ e.j ≤ w.h_j ∧
-    FGBlock.Preceq w.F e.X ∧ FGBlock.Preceq e.X w.J
-  capacity : w.W.length ≤ K
-  finality : FGBlock.Preceq w.F w.J
-  heights : w.h_F ≤ w.h_j
-  zero : w.h_F = 0 → w.F = .genesis
+private theorem wi_row_eq (w : wi_Old V) (a : Row V) :
+    wi_toWindow (FGSA.Window.process_row w a) =
+      SimplexFG.Window.process_row (wi_toWindow w) a := by
+  have bits :
+      (w.W.map (fun e => if a.finality_pair = some ⟨e.j, e.X.root⟩ then
+        { e with Q := insert a.signer e.Q } else e)).map wi_toEntry =
+      (w.W.map wi_toEntry).map (fun e => if a.finality_pair = some ⟨e.j, e.X.root⟩ then
+        { e with Q := insert a.signer e.Q } else e) := by
+    simp only [List.map_map]
+    congr 1
+    funext e
+    by_cases he : a.finality_pair = some ⟨e.j, e.X.root⟩ <;>
+      simp [wi_entry_eq, he]
+  rcases a with ⟨i, hp, fp⟩
+  cases hp with
+  | empty =>
+      simpa only [FGSA.Window.process_row_def, SimplexFG.Window.process_row_def,
+        NamedHeightPair.matchesEntry, Bool.false_eq_true, ↓reduceIte, wi_state_eq] using
+        congrArg (fun es => ({ wi_toWindow w with W := es } : wi_New V)) bits
+  | vote h X t =>
+      cases t <;>
+        simp only [FGSA.Window.process_row_def, SimplexFG.Window.process_row_def,
+          NamedHeightPair.matchesEntry] <;>
+        split_ifs <;> dsimp [wi_state_eq] <;> rw [bits] <;> simp_all [wi_state_eq]
+      all_goals
+        exfalso
+        have hm : h = w.h ∧ X = w.T_h.root := of_decide_eq_true (by assumption)
+        exact (by assumption : h = w.h → ¬ X = w.T_h.root) hm.1 hm.2
 
-private theorem inv_fold (K : Nat) (w : State V) (rs : List (Row V))
-    (hw : Inv K w) : Inv K (rs.foldl process_row w) := by
-  have f := window_fold_fields rs w
-  constructor
-  · rw [f.1, List.pairwise_map]
-    exact hw.ordered.imp (fun {a b} h => by
-      simpa only [(window_fold_entry rs a).1, (window_fold_entry rs a).2.1,
-        (window_fold_entry rs b).1, (window_fold_entry rs b).2.1] using h)
-  · intro d hd
-    rw [f.1, List.mem_map] at hd
-    obtain ⟨e, he, rfl⟩ := hd
-    simpa only [f.2.2.2.2.2.1, f.2.2.2.1, f.2.2.2.2.2.2,
-      f.2.2.2.2.1, (window_fold_entry rs e).1, (window_fold_entry rs e).2.1] using hw.bounds e he
-  · simpa only [f.1, List.length_map] using hw.capacity
-  · simpa only [f.2.2.2.2.2.2, f.2.2.2.2.1] using hw.finality
-  · simpa only [f.2.2.2.2.2.1, f.2.2.2.1] using hw.heights
-  · simpa only [f.2.2.2.2.2.1, f.2.2.2.2.2.2] using hw.zero
+private theorem wi_rows_eq (rs : List (Row V)) (w : wi_Old V) :
+    wi_toWindow (rs.foldl FGSA.Window.process_row w) =
+      rs.foldl SimplexFG.Window.process_row (wi_toWindow w) := by
+  induction rs generalizing w with
+  | nil => rfl
+  | cons a rs ih => simp only [List.foldl_cons, ih, wi_row_eq]
+
+omit [DecidableEq V] [RowCodec V] in
+private theorem wi_advance_eq (w : wi_Old V) :
+    wi_toWindow (FGSA.Window.advance_height w) =
+      SimplexFG.Window.advance_height (wi_toWindow w) := rfl
 
 variable [Fintype V]
 
-omit [RowCodec V] [Fintype V] in
-private theorem ordered_compare {xs : List (Entry V)}
-    (h : xs.Pairwise (fun e d => e.j < d.j ∧ FGBlock.Preceq e.X d.X))
-    {e d : Entry V} (he : e ∈ xs) (hd : d ∈ xs) :
-    e = d ∨ (e.j < d.j ∧ FGBlock.Preceq e.X d.X) ∨
-      (d.j < e.j ∧ FGBlock.Preceq d.X e.X) := by
-  induction xs with
-  | nil => simp at he
-  | cons a xs ih =>
-      obtain ⟨ha, ht⟩ := List.pairwise_cons.mp h
-      rcases List.mem_cons.mp he with hea | he
-      · subst e
-        rcases List.mem_cons.mp hd with hda | hd
-        · subst d
-          exact Or.inl rfl
-        · exact Or.inr (Or.inl (ha d hd))
-      · rcases List.mem_cons.mp hd with hda | hd
-        · subst d
-          exact Or.inr (Or.inr (ha e he))
-        · exact ih ht he hd
-
-omit [RowCodec V] [Fintype V] in
-private theorem ordered_le {xs : List (Entry V)}
-    (h : xs.Pairwise (fun e d => e.j < d.j ∧ FGBlock.Preceq e.X d.X))
-    {e d : Entry V} (he : e ∈ xs) (hd : d ∈ xs) (hj : e.j ≤ d.j) :
-    FGBlock.Preceq e.X d.X := by
-  rcases ordered_compare h he hd with rfl | h | h
-  · exact preceq_refl _
-  · exact h.2
-  · exact False.elim (Nat.not_lt_of_ge hj h.1)
+omit [DecidableEq V] [RowCodec V] in
+private theorem wi_greatest_eq (E : Electorate V) (w : wi_Old V) :
+    (FGSA.Window.greatestReady E w).map wi_toEntry =
+      SimplexFG.Window.greatestReady E (wi_toWindow w) := by
+  classical
+  let oldStep := fun (best : Option (FGSA.Window.Entry V)) e =>
+    if w.h_F < e.j ∧ E.q ≤ E.weightOf e.Q then
+      best.elim (some e) (fun old => if old.j < e.j then some e else best)
+    else best
+  let newStep := fun (best : Option (SimplexFG.Window.Entry V)) e =>
+    if w.h_F < e.j ∧ E.q ≤ E.weightOf e.Q then
+      best.elim (some e) (fun old => if old.j < e.j then some e else best)
+    else best
+  have step (best) (e) :
+      (oldStep best e).map wi_toEntry = newStep (best.map wi_toEntry) (wi_toEntry e) := by
+    dsimp [oldStep, newStep, wi_entry_eq]
+    split_ifs <;> cases best <;> simp_all [wi_entry_eq]
+    split_ifs <;> rfl
+  have fold (es : List (FGSA.Window.Entry V)) (best) :
+      (es.foldl oldStep best).map wi_toEntry =
+        (es.map wi_toEntry).foldl newStep (best.map wi_toEntry) := by
+    induction es generalizing best with
+    | nil => rfl
+    | cons e es ih => simp only [List.foldl_cons, List.map_cons, ih, step]
+  have old_eq : FGSA.Window.greatestReady E w = w.W.foldl oldStep none := by
+    rw [FGSA.Window.greatestReady_def]
+    congr 1
+    funext best e
+    cases best <;> rfl
+  have new_eq : SimplexFG.Window.greatestReady E (wi_toWindow w) =
+      (w.W.map wi_toEntry).foldl newStep none := by
+    rw [SimplexFG.Window.greatestReady_def]
+    congr 1
+    funext best e
+    cases best <;> rfl
+  rw [old_eq, new_eq]
+  exact fold w.W none
 
 omit [DecidableEq V] [RowCodec V] in
-private theorem final_fields (E : Electorate V) (w : State V) :
-    (finalizeWindow E w).h = w.h ∧ (finalizeWindow E w).T_h = w.T_h ∧
-    (finalizeWindow E w).h_j = w.h_j ∧ (finalizeWindow E w).J = w.J ∧
-    (finalizeWindow E w).W ⊆ w.W := by
-  rw [finalizeWindow_def]
-  cases greatestReady E w <;> simp
+private theorem wi_finalize_eq (E : Electorate V) (w : wi_Old V) :
+    wi_toWindow (FGSA.Window.finalizeWindow E w) =
+      SimplexFG.Window.finalizeWindow E (wi_toWindow w) := by
+  rw [FGSA.Window.finalizeWindow_def, SimplexFG.Window.finalizeWindow_def]
+  rw [← wi_greatest_eq]
+  cases FGSA.Window.greatestReady E w <;>
+    simp [wi_state_eq, wi_entry_eq, List.filter_map, Function.comp_def] <;> rfl
 
-omit [RowCodec V] in
-private theorem inv_final (E : Electorate V) (K : Nat) (w : State V) (hw : Inv K w) :
-    Inv K (finalizeWindow E w) ∧
-    (∀ e ∈ (finalizeWindow E w).W, ¬ E.IsQuorum e.Q) ∧
-    w.h_F ≤ (finalizeWindow E w).h_F ∧ FGBlock.Preceq w.F (finalizeWindow E w).F := by
-  have g := window_greatest_spec E w
-  rw [finalizeWindow_def]
-  cases hg : greatestReady E w with
-  | none =>
-      simp only
-      refine ⟨?_, ?_, le_rfl, preceq_refl _⟩
-      · exact ⟨hw.ordered.filter _, fun e he => hw.bounds e (List.mem_filter.mp he).1,
-          (List.length_filter_le _ _).trans hw.capacity, hw.finality, hw.heights, hw.zero⟩
-      · intro e he hq
-        have hb := hw.bounds e (List.mem_filter.mp he).1
-        obtain ⟨d, hd, _⟩ := g.2 e (List.mem_filter.mp he).1 hb.1 hq
-        simp [hg] at hd
-  | some d =>
-      have gd := g.1 d hg
-      have bd := hw.bounds d gd.1
-      simp only
-      refine ⟨?_, ?_, Nat.le_of_lt bd.1, bd.2.2.1⟩
-      · refine ⟨hw.ordered.filter _, ?_,
-          (List.length_filter_le _ _).trans hw.capacity, bd.2.2.2, bd.2.1, ?_⟩
-        · intro e he
-          obtain ⟨he, hj⟩ := List.mem_filter.mp he
-          have hj' : d.j < e.j := of_decide_eq_true hj
-          have be := hw.bounds e he
-          exact ⟨hj', be.2.1, ordered_le hw.ordered gd.1 he (Nat.le_of_lt hj'), be.2.2.2⟩
-        · intro hz
-          have : d.j = 0 := hz
-          exact False.elim (Nat.not_lt_zero _ (this ▸ bd.1))
-      · intro e he hq
-        obtain ⟨he, hj⟩ := List.mem_filter.mp he
-        have hj' : d.j < e.j := of_decide_eq_true hj
-        obtain ⟨a, ha, hle⟩ := g.2 e he (hw.bounds e he).1 hq
-        have : a = d := Option.some.inj (ha.symm.trans hg)
-        subst a
-        exact False.elim (Nat.not_lt_of_ge hle hj')
-
-omit [RowCodec V] in
-private theorem final_cover (E : Electorate V) (K : Nat) (w : State V)
-    (hw : Inv K w) (e : Entry V) (he : e ∈ w.W) (hq : E.IsQuorum e.Q) :
-    FGBlock.Preceq e.X (finalizeWindow E w).F ∧ e.j ≤ (finalizeWindow E w).h_F := by
-  obtain ⟨d, hd, hle⟩ := (window_greatest_spec E w).2 e he (hw.bounds e he).1 hq
-  have hm := ((window_greatest_spec E w).1 d hd).1
-  rw [finalizeWindow_def, hd]
-  exact ⟨ordered_le hw.ordered he hm hle, hle⟩
-
-omit [RowCodec V] [Fintype V] in
-private theorem inv_advance (K : Nat) (w : State V) (hw : Inv K w) :
-    Inv K (advance_height w) := by
-  rw [advance_height_def]
-  exact ⟨hw.ordered, hw.bounds, hw.capacity, hw.finality, hw.heights, hw.zero⟩
-
-omit [RowCodec V] [Fintype V] in
-private theorem inv_append (K : Nat) (w : State V) (hw : Inv K w)
-    (hj : w.h_j < w.h) (hJT : FGBlock.Preceq w.J w.T_h) :
-    Inv K { w with
-      J := w.T_h, h_j := w.h
-      W := (w.W ++ [Entry.mk w.h w.T_h ∅]).drop ((w.W ++ [Entry.mk w.h w.T_h ∅]).length - K) } := by
-  have hp : (w.W ++ [Entry.mk w.h w.T_h ∅]).Pairwise
-      (fun e d => e.j < d.j ∧ FGBlock.Preceq e.X d.X) := by
-    rw [List.pairwise_append]
-    refine ⟨hw.ordered, by simp, ?_⟩
-    intro e he d hd
-    have hd' : d = Entry.mk w.h w.T_h ∅ := List.mem_singleton.mp hd
-    subst d
-    have hb := hw.bounds e he
-    exact ⟨Nat.lt_of_le_of_lt hb.2.1 hj, preceq_trans hb.2.2.2 hJT⟩
-  refine ⟨hp.drop, ?_, ?_, preceq_trans hw.finality hJT,
-    hw.heights.trans (Nat.le_of_lt hj), hw.zero⟩
-  · intro e he
-    have hm := List.mem_of_mem_drop he
-    rcases List.mem_append.mp hm with hm | hm
-    · have hb := hw.bounds e hm
-      exact ⟨hb.1, hb.2.1.trans (Nat.le_of_lt hj), hb.2.2.1,
-        preceq_trans hb.2.2.2 hJT⟩
-    · have : e = Entry.mk w.h w.T_h ∅ := List.mem_singleton.mp hm
-      subst e
-      exact ⟨Nat.lt_of_le_of_lt hw.heights hj, le_rfl,
-        preceq_trans hw.finality hJT, preceq_refl _⟩
-  · simp only [List.length_drop]
-    omega
+omit [DecidableEq V] [RowCodec V] [Fintype V] in
+/-- Appending the new empty entry and dropping old entries preserve conversion. -/
+private theorem wi_append_eviction_eq (es : List (FGSA.Window.Entry V))
+    (j : Height) (X : FGBlock V) (K : Nat) :
+    ((es ++ [FGSA.Window.Entry.mk j X ∅]).drop
+      ((es ++ [FGSA.Window.Entry.mk j X ∅]).length - K)).map wi_toEntry =
+      (es.map wi_toEntry ++ [SimplexFG.Window.Entry.mk j X ∅]).drop
+        ((es.map wi_toEntry ++ [SimplexFG.Window.Entry.mk j X ∅]).length - K) := by
+  simp [List.map_drop, wi_entry_eq]
 
 omit [DecidableEq V] [RowCodec V] in
-private theorem events_finality (E : Electorate V) (cfg : FGConfig) (K : Nat) (w : State V) :
-    (process_height_events E cfg K w).F = (finalizeWindow E w).F ∧
-    (process_height_events E cfg K w).h_F = (finalizeWindow E w).h_F := by
-  rw [process_height_events_def]
-  dsimp only
-  split_ifs <;> simp only [advance_height_def, and_self]
+private theorem wi_events_eq (E : Electorate V) (cfg : FGConfig) (K : Nat) (w : wi_Old V) :
+    wi_toWindow (FGSA.Window.process_height_events E cfg K w) =
+      SimplexFG.Window.process_height_events E cfg K (wi_toWindow w) := by
+  rw [FGSA.Window.process_height_events_def, SimplexFG.Window.process_height_events_def]
+  rw [← wi_finalize_eq]
+  generalize FGSA.Window.finalizeWindow E w = u
+  change wi_toWindow (if FGSA.Window.targetQuorum E u then _ else _) =
+    (if FGSA.Window.targetQuorum E u then _ else _)
+  rw [show SimplexFG.Window.progReady E cfg (wi_toWindow u) =
+    FGSA.Window.progReady E cfg u from rfl]
+  split_ifs <;>
+    simp [FGSA.Window.advance_height_def, SimplexFG.Window.advance_height_def,
+      wi_state_eq, wi_entry_eq, List.map_drop]
 
-omit [RowCodec V] in
-private theorem inv_events (E : Electorate V) (cfg : FGConfig) (K : Nat) (w : State V)
-    (hw : Inv K w) (hj : w.h_j < w.h) (hJT : FGBlock.Preceq w.J w.T_h)
-    (hzero : ¬ E.IsQuorum ∅) :
-    Inv K (process_height_events E cfg K w) ∧
-      ∀ e ∈ (process_height_events E cfg K w).W, ¬ E.IsQuorum e.Q := by
-  have hf := inv_final E K w hw
-  have ff := final_fields E w
-  have hi := inv_append K _ hf.1 (by simpa only [ff.1, ff.2.2.1] using hj)
-    (by simpa only [ff.2.1, ff.2.2.2.1] using hJT)
-  rw [process_height_events_def]
-  dsimp only
-  split_ifs
-  · refine ⟨inv_advance K _ hi, ?_⟩
-    intro e he
-    simp only [advance_height_def] at he
-    rcases List.mem_append.mp (List.mem_of_mem_drop he) with he | he
-    · exact hf.2.1 e he
-    · have : e = ⟨(finalizeWindow E w).h, (finalizeWindow E w).T_h, ∅⟩ :=
-        List.mem_singleton.mp he
-      subst e
-      exact hzero
-  · exact ⟨inv_advance K _ hf.1, by simpa only [advance_height_def] using hf.2.1⟩
-  · exact ⟨hf.1, hf.2.1⟩
+private theorem wi_transition_eq (p : Params) (K : Nat) (w : wi_Old (Fin p.n))
+    (B : FGBlock (Fin p.n)) (rs : List (Row (Fin p.n))) :
+    wi_toWindow (FGSA.Window.transition p K w B rs) =
+      SimplexFG.Window.transition p.E p.cfg K (wi_toWindow w) B rs := by
+  rw [FGSA.Window.transition_def, wi_events_eq, SimplexFG.Window.transition_def]
+  have h := wi_rows_eq rs { w with s := B.slot }
+  change SimplexFG.Window.process_height_events p.E p.cfg K
+    { wi_toWindow (rs.foldl FGSA.Window.process_row { w with s := B.slot }) with L := B } = _
+  rw [h]
+  rfl
 
-private theorem empty_not_quorum (p : Params) : ¬ p.E.IsQuorum ∅ := by
+private theorem wi_foldMap (p : Params) (K : Nat) :
+    KitFG.WindowFoldMap p.E p.cfg K FGSA.Window.initial (FGSA.Window.transition p K)
+      (FGSA.Window.derive p K) wi_toWindow where
+  initial := wi_initial_eq
+  genesis := rfl
+  node := fun _ _ _ _ _ => rfl
+  step := wi_transition_eq p K
+
+private theorem wi_derive_eq (p : Params) (K : Nat) (B : FGBlock (Fin p.n)) :
+    wi_toWindow (FGSA.Window.derive p K B) = SimplexFG.Window.derive p.E p.cfg K B :=
+  (wi_foldMap p K).fold_eq B
+
+end
+
+private theorem wi_empty_not_quorum (p : Params) : ¬ p.E.IsQuorum ∅ := by
   have hn := p.nPos
   dsimp only [Params.E, Electorate.IsQuorum, Electorate.q, Electorate.totalWeight,
     Electorate.weightOf]
@@ -206,177 +196,83 @@ private theorem empty_not_quorum (p : Params) : ¬ p.E.IsQuorum ∅ := by
     smul_eq_mul, mul_one, Finset.card_empty]
   omega
 
-/-- [bp §3.1] One induction on the original block tree. -/
-private theorem derived_inv (p : Params) (K : Nat) (hK : 2 ≤ K)
-    (B : FGBlock (Fin p.n)) :
-    Inv K (derive p K B) ∧ ∀ e ∈ (derive p K B).W, ¬ p.E.IsQuorum e.Q := by
-  induction B with
-  | genesis =>
-      rw [derive_def, initial_def]
-      refine ⟨⟨by simp, by simp, by simp, preceq_refl _, le_rfl, fun _ => rfl⟩, by simp⟩
-  | node P s r_s x rs ih =>
-      have hw : Inv K { derive p K P with s := (FGBlock.node P s r_s x rs).slot } :=
-        ⟨ih.1.ordered, ih.1.bounds, ih.1.capacity, ih.1.finality, ih.1.heights, ih.1.zero⟩
-      have hi := inv_fold K _ rs hw
-      have ff := window_fold_fields rs { derive p K P with s := (FGBlock.node P s r_s x rs).slot }
-      have hg := windowHeightLaws p K hK
-      have hj : (derive p K P).h_j < (derive p K P).h := hg.justified_below_height P
-      have hJT : FGBlock.Preceq (derive p K P).J (derive p K P).T_h :=
-        hg.justified_preceq_entry P
-      simp only [derive_def p K (.node P s r_s x rs), transition_def]
-      apply inv_events
-      · exact ⟨hi.ordered, hi.bounds, hi.capacity, hi.finality, hi.heights, hi.zero⟩
-      · simpa only [ff.2.1, ff.2.2.2.1] using hj
-      · simpa only [ff.2.2.1, ff.2.2.2.2.1] using hJT
-      · exact empty_not_quorum p
+private theorem wi_entry_mem (p : Params) (K : Nat) (B : FGBlock (Fin p.n))
+    (e : Entry (Fin p.n)) (he : e ∈ (derive p K B).W) :
+    wi_toEntry e ∈ (SimplexFG.Window.derive p.E p.cfg K B).W := by
+  rw [← wi_derive_eq]
+  exact List.mem_map.mpr ⟨e, he, rfl⟩
 
 /-- [bp §3.1; W5] Entry heights strictly increase in chain order. -/
 theorem window_ordered (p : Params) (K : Nat) (hK : 2 ≤ K) (B : FGBlock (Fin p.n)) :
-    ((derive p K B).W).Pairwise (fun e d => e.j < d.j ∧ FGBlock.Preceq e.X d.X) :=
-  (derived_inv p K hK B).1.ordered
+    ((derive p K B).W).Pairwise (fun e d => e.j < d.j ∧ FGBlock.Preceq e.X d.X) := by
+  simpa only [← wi_derive_eq, wi_state_eq, List.pairwise_map, List.length_map, wi_entry_eq] using
+    KitFG.Window.window_ordered p.E p.cfg K (wi_empty_not_quorum p) hK B
 
 /-- [bp §3.1] Every retained entry lies between finality and the latest justification. -/
 theorem window_bounds (p : Params) (K : Nat) (hK : 2 ≤ K)
     (B : FGBlock (Fin p.n)) (e : Entry (Fin p.n)) (he : e ∈ (derive p K B).W) :
     (derive p K B).h_F < e.j ∧ e.j ≤ (derive p K B).h_j ∧
-    FGBlock.Preceq (derive p K B).F e.X ∧ FGBlock.Preceq e.X (derive p K B).J :=
-  (derived_inv p K hK B).1.bounds e he
+    FGBlock.Preceq (derive p K B).F e.X ∧ FGBlock.Preceq e.X (derive p K B).J := by
+  simpa only [← wi_derive_eq, wi_state_eq, wi_entry_eq] using
+    KitFG.Window.window_bounds p.E p.cfg K (wi_empty_not_quorum p) hK B
+      (wi_toEntry e) (wi_entry_mem p K B e he)
 
 /-- [bp §3.1] The window keeps at most K entries. -/
 theorem window_capacity (p : Params) (K : Nat) (hK : 2 ≤ K) (B : FGBlock (Fin p.n)) :
-    (derive p K B).W.length ≤ K := (derived_inv p K hK B).1.capacity
+    (derive p K B).W.length ≤ K := by
+  simpa only [← wi_derive_eq, wi_state_eq, List.pairwise_map, List.length_map, wi_entry_eq] using
+    KitFG.Window.window_capacity p.E p.cfg K (wi_empty_not_quorum p) hK B
 
 /-- [bp §3.1] Finality removes every ready entry; new entries have no bits. -/
 theorem window_post_not_ready (p : Params) (K : Nat) (hK : 2 ≤ K)
     (B : FGBlock (Fin p.n)) (e : Entry (Fin p.n)) (he : e ∈ (derive p K B).W) :
-    ¬ p.E.IsQuorum e.Q := (derived_inv p K hK B).2 e he
+    ¬ p.E.IsQuorum e.Q := by
+  simpa only [← wi_derive_eq, wi_state_eq, wi_entry_eq] using
+    KitFG.Window.window_post_not_ready p.E p.cfg K (wi_empty_not_quorum p) hK B
+      (wi_toEntry e) (wi_entry_mem p K B e he)
 
 /-- [bp §3.1] Finality precedes the latest justification. -/
 theorem window_F_preceq_J (p : Params) (K : Nat) (hK : 2 ≤ K) (B : FGBlock (Fin p.n)) :
-    FGBlock.Preceq (derive p K B).F (derive p K B).J := (derived_inv p K hK B).1.finality
+    FGBlock.Preceq (derive p K B).F (derive p K B).J := by
+  simpa only [← wi_derive_eq, wi_state_eq, List.pairwise_map, List.length_map, wi_entry_eq] using
+    KitFG.Window.window_F_preceq_J p.E p.cfg K (wi_empty_not_quorum p) hK B
 
 /-- [bp §3.1] Finalized height does not exceed justified height. -/
 theorem window_hF_le_hj (p : Params) (K : Nat) (hK : 2 ≤ K) (B : FGBlock (Fin p.n)) :
-    (derive p K B).h_F ≤ (derive p K B).h_j := (derived_inv p K hK B).1.heights
+    (derive p K B).h_F ≤ (derive p K B).h_j := by
+  simpa only [← wi_derive_eq, wi_state_eq, List.pairwise_map, List.length_map, wi_entry_eq] using
+    KitFG.Window.window_hF_le_hj p.E p.cfg K (wi_empty_not_quorum p) hK B
 
 /-- [bp §3.1] Finality at height zero is genesis. -/
 theorem window_finalized_zero (p : Params) (K : Nat) (hK : 2 ≤ K)
     (B : FGBlock (Fin p.n)) (hz : (derive p K B).h_F = 0) :
-    (derive p K B).F = .genesis := (derived_inv p K hK B).1.zero hz
-
-private theorem node_mono (p : Params) (K : Nat) (hK : 2 ≤ K)
-    (P : FGBlock (Fin p.n)) (s : Slot) (r_s : BlockId) (x : Nat) (rs : List (Row (Fin p.n))) :
-    (derive p K P).h_F ≤ (derive p K (.node P s r_s x rs)).h_F ∧
-    FGBlock.Preceq (derive p K P).F (derive p K (.node P s r_s x rs)).F := by
-  have hw := (derived_inv p K hK P).1
-  have hs : Inv K { derive p K P with s := (FGBlock.node P s r_s x rs).slot } :=
-    ⟨hw.ordered, hw.bounds, hw.capacity, hw.finality, hw.heights, hw.zero⟩
-  have hi := inv_fold K _ rs hs
-  have ff := window_fold_fields rs { derive p K P with s := (FGBlock.node P s r_s x rs).slot }
-  have hm := (inv_final p.E K
-    { rs.foldl process_row { derive p K P with s := (FGBlock.node P s r_s x rs).slot }
-      with L := .node P s r_s x rs }
-    ⟨hi.ordered, hi.bounds, hi.capacity, hi.finality, hi.heights, hi.zero⟩).2.2
-  simp only [derive_def p K (.node P s r_s x rs), transition_def]
-  rw [(events_finality p.E p.cfg K _).1, (events_finality p.E p.cfg K _).2]
-  simpa only [ff.2.2.2.2.2.1, ff.2.2.2.2.2.2] using hm
-
-private theorem ancestor_mono (p : Params) (K : Nat) (hK : 2 ≤ K)
-    (A B : FGBlock (Fin p.n)) (hAB : FGBlock.Preceq A B) :
-    (derive p K A).h_F ≤ (derive p K B).h_F ∧
-    FGBlock.Preceq (derive p K A).F (derive p K B).F := by
-  induction B with
-  | genesis =>
-      have : A = .genesis := preceq_genesis.mp hAB
-      subst A
-      exact ⟨le_rfl, preceq_refl _⟩
-  | node P s r_s x rs ih =>
-      by_cases heq : A = .node P s r_s x rs
-      · subst A
-        exact ⟨le_rfl, preceq_refl _⟩
-      · have ha := ih (preceq_parent_of_preceq_node hAB heq)
-        have hb := node_mono p K hK P s r_s x rs
-        exact ⟨ha.1.trans hb.1, preceq_trans ha.2 hb.2⟩
+    (derive p K B).F = .genesis := by
+  have hz' : (SimplexFG.Window.derive p.E p.cfg K B).h_F = 0 := by
+    simpa only [← wi_derive_eq, wi_state_eq] using hz
+  simpa only [← wi_derive_eq, wi_state_eq] using
+    KitFG.Window.window_finalized_zero p.E p.cfg K (wi_empty_not_quorum p) hK B hz'
 
 /-- [bp §3.1] Finalized height is monotone along ancestry. -/
 theorem window_hF_mono (p : Params) (K : Nat) (hK : 2 ≤ K)
     (A B : FGBlock (Fin p.n)) (hAB : FGBlock.Preceq A B) :
-    (derive p K A).h_F ≤ (derive p K B).h_F := (ancestor_mono p K hK A B hAB).1
+    (derive p K A).h_F ≤ (derive p K B).h_F := by
+  simpa only [← wi_derive_eq, wi_state_eq, List.pairwise_map, List.length_map, wi_entry_eq] using
+    KitFG.Window.window_hF_mono p.E p.cfg K (wi_empty_not_quorum p) hK A B hAB
 
 /-- [bp §3.1] Finalized blocks are monotone along ancestry. -/
 theorem window_F_mono (p : Params) (K : Nat) (hK : 2 ≤ K)
     (A B : FGBlock (Fin p.n)) (hAB : FGBlock.Preceq A B) :
-    FGBlock.Preceq (derive p K A).F (derive p K B).F := (ancestor_mono p K hK A B hAB).2
-
-omit [DecidableEq V] [RowCodec V] in
-private theorem events_old (E : Electorate V) (cfg : FGConfig) (K : Nat) (w : State V)
-    (d : Entry V) (hd : d ∈ (process_height_events E cfg K w).W) (hj : d.j < w.h) :
-    d ∈ w.W := by
-  have ff := final_fields E w
-  rw [process_height_events_def] at hd
-  dsimp only at hd
-  split_ifs at hd
-  · simp only [advance_height_def] at hd
-    rcases List.mem_append.mp (List.mem_of_mem_drop hd) with hd | hd
-    · exact ff.2.2.2.2 hd
-    · have heq := List.mem_singleton.mp hd
-      have hj' : d.j = w.h := by simp only [heq, ff.1]
-      exact False.elim (Nat.ne_of_lt hj hj')
-  · simp only [advance_height_def] at hd
-    exact ff.2.2.2.2 hd
-  · exact ff.2.2.2.2 hd
-
-private theorem node_old (p : Params) (K : Nat)
-    (P : FGBlock (Fin p.n)) (s : Slot) (r_s : BlockId) (x : Nat) (rs : List (Row (Fin p.n)))
-    (d : Entry (Fin p.n)) (hd : d ∈ (derive p K (.node P s r_s x rs)).W)
-    (hj : d.j < (derive p K P).h) :
-    ∃ e ∈ (derive p K P).W, e.j = d.j ∧ e.X = d.X ∧ e.Q ⊆ d.Q := by
-  have ff := window_fold_fields rs { derive p K P with s := (FGBlock.node P s r_s x rs).slot }
-  simp only [derive_def p K (.node P s r_s x rs), transition_def] at hd
-  have hm := events_old p.E p.cfg K _ d hd (by simpa only [ff.2.1] using hj)
-  change d ∈ (rs.foldl process_row _).W at hm
-  rw [ff.1, List.mem_map] at hm
-  obtain ⟨e, he, rfl⟩ := hm
-  have fe := window_fold_entry rs e
-  exact ⟨e, he, fe.1.symm, fe.2.1.symm, fun i hi => (fe.2.2 i).mpr (Or.inl hi)⟩
-
-/-- An entry below an ancestor's height must have survived from that ancestor. -/
-private theorem ancestor_old (p : Params) (K : Nat) (hK : 2 ≤ K)
-    (A B : FGBlock (Fin p.n)) (hAB : FGBlock.Preceq A B)
-    (d : Entry (Fin p.n)) (hd : d ∈ (derive p K B).W) (hj : d.j < (derive p K A).h) :
-    ∃ e ∈ (derive p K A).W, e.j = d.j ∧ e.X = d.X ∧ e.Q ⊆ d.Q := by
-  induction B generalizing d with
-  | genesis =>
-      have : A = .genesis := preceq_genesis.mp hAB
-      subst A
-      exact ⟨d, hd, rfl, rfl, Finset.Subset.refl _⟩
-  | node P s r_s x rs ih =>
-      by_cases heq : A = .node P s r_s x rs
-      · subst A
-        exact ⟨d, hd, rfl, rfl, Finset.Subset.refl _⟩
-      · have ha := preceq_parent_of_preceq_node hAB heq
-        have hh : (derive p K A).h ≤ (derive p K P).h :=
-          (windowHeightLaws p K hK).h_mono ha
-        obtain ⟨c, hc, hcj, hcX, hcQ⟩ := node_old p K P s r_s x rs d hd (hj.trans_le hh)
-        obtain ⟨e, he, hej, heX, heQ⟩ := ih ha c hc (hcj ▸ hj)
-        exact ⟨e, he, hej.trans hcj, heX.trans hcX, heQ.trans hcQ⟩
+    FGBlock.Preceq (derive p K A).F (derive p K B).F := by
+  simpa only [← wi_derive_eq, wi_state_eq, List.pairwise_map, List.length_map, wi_entry_eq] using
+    KitFG.Window.window_F_mono p.E p.cfg K (wi_empty_not_quorum p) hK A B hAB
 
 /-- [bp §3.1] Bits only grow while the exact entry is retained. -/
 theorem window_bit_retained (p : Params) (K : Nat) (hK : 2 ≤ K)
     (A B : FGBlock (Fin p.n)) (hAB : FGBlock.Preceq A B)
     (e d : Entry (Fin p.n)) (he : e ∈ (derive p K A).W) (hd : d ∈ (derive p K B).W)
     (hj : e.j = d.j) (hX : e.X = d.X) : e.Q ⊆ d.Q := by
-  have hb := window_bounds p K hK A e he
-  have hh : (derive p K A).h_j < (derive p K A).h :=
-    (windowHeightLaws p K hK).justified_below_height A
-  obtain ⟨c, hc, hcj, _, hcQ⟩ := ancestor_old p K hK A B hAB d hd
-    (hj ▸ Nat.lt_of_le_of_lt hb.2.1 hh)
-  have hkey : e.j = c.j := hj.trans hcj.symm
-  have _sameBlock := hX
-  rcases ordered_compare (window_ordered p K hK A) he hc with heq | hlt | hlt
-  · simpa only [heq] using hcQ
-  · exact False.elim (Nat.ne_of_lt hlt.1 hkey)
-  · exact False.elim (Nat.ne_of_lt hlt.1 hkey.symm)
+  exact KitFG.Window.window_bit_retained p.E p.cfg K (wi_empty_not_quorum p) hK A B hAB
+    (wi_toEntry e) (wi_toEntry d) (wi_entry_mem p K A e he) (wi_entry_mem p K B d hd) hj hX
 
 /-- [bp §3.1] Removal is permanent: all later births have greater height. -/
 theorem window_no_reentry (p : Params) (K : Nat) (hK : 2 ≤ K)
@@ -384,14 +280,16 @@ theorem window_no_reentry (p : Params) (K : Nat) (hK : 2 ≤ K)
     (e : Entry (Fin p.n)) (he : e ∈ (derive p K A).W)
     (gone : ¬ ∃ d ∈ (derive p K B).W, d.j = e.j ∧ d.X = e.X) :
     ¬ ∃ d ∈ (derive p K C).W, d.j = e.j ∧ d.X = e.X := by
-  rintro ⟨d, hd, hdj, hdX⟩
-  have hb := window_bounds p K hK A e he
-  have hh : (derive p K A).h_j < (derive p K A).h :=
-    (windowHeightLaws p K hK).justified_below_height A
-  have hm : (derive p K A).h ≤ (derive p K B).h := (windowHeightLaws p K hK).h_mono hAB
-  obtain ⟨c, hc, hcj, hcX, _⟩ := ancestor_old p K hK B C hBC d hd
-    (hdj ▸ (Nat.lt_of_le_of_lt hb.2.1 hh).trans_le hm)
-  exact gone ⟨c, hc, hcj.trans hdj, hcX.trans hdX⟩
+  have gone' : ¬ ∃ d ∈ (SimplexFG.Window.derive p.E p.cfg K B).W,
+      d.j = (wi_toEntry e).j ∧ d.X = (wi_toEntry e).X := by
+    rintro ⟨d, hd, hj, hX⟩
+    rw [← wi_derive_eq] at hd
+    obtain ⟨c, hc, rfl⟩ := List.mem_map.mp hd
+    exact gone ⟨c, hc, hj, hX⟩
+  have h := KitFG.Window.window_no_reentry p.E p.cfg K (wi_empty_not_quorum p) hK A B C hAB hBC
+    (wi_toEntry e) (wi_entry_mem p K A e he) gone'
+  rintro ⟨d, hd, hj, hX⟩
+  exact h ⟨wi_toEntry d, wi_entry_mem p K C d hd, hj, hX⟩
 
 /-- [design §5; bp 22 I7] A covered quorum finalizes this entry or a later entry. -/
 theorem window_finality_of_cover (p : Params) (K : Nat) (hK : 2 ≤ K)
@@ -402,24 +300,28 @@ theorem window_finality_of_cover (p : Params) (K : Nat) (hK : 2 ≤ K)
       a.signer = i ∧ a.finality_pair = some ⟨e.j, e.X.root⟩) :
     FGBlock.Preceq e.X (derive p K (.node P s r_s x rs)).F ∧
       e.j ≤ (derive p K (.node P s r_s x rs)).h_F := by
-  let w := { derive p K P with s := (FGBlock.node P s r_s x rs).slot }
-  let u := { rs.foldl process_row w with L := FGBlock.node P s r_s x rs }
-  let d := rs.foldl (fun e a => window_addBit a e) e
-  have hw := (derived_inv p K hK P).1
-  have hw' : Inv K w :=
-    ⟨hw.ordered, hw.bounds, hw.capacity, hw.finality, hw.heights, hw.zero⟩
-  have hi := inv_fold K w rs hw'
-  have hu : Inv K u :=
-    ⟨hi.ordered, hi.bounds, hi.capacity, hi.finality, hi.heights, hi.zero⟩
-  have hd : d ∈ u.W := by
-    change d ∈ (rs.foldl process_row w).W
-    rw [(window_fold_fields rs w).1]
-    exact List.mem_map.mpr ⟨e, he, rfl⟩
-  have hsub : Q ⊆ d.Q := fun i hi => ((window_fold_entry rs e).2.2 i).mpr (hcover i hi)
-  have hc := final_cover p.E K u hu d hd (isQuorum_of_subset p.E hQ hsub)
-  simp only [derive_def p K (.node P s r_s x rs), transition_def]
-  rw [(events_finality p.E p.cfg K _).1, (events_finality p.E p.cfg K _).2]
-  simpa only [d, (window_fold_entry rs e).1, (window_fold_entry rs e).2.1] using hc
+  simpa only [← wi_derive_eq, wi_state_eq, wi_entry_eq] using
+    KitFG.Window.window_finality_of_cover p.E p.cfg K (wi_empty_not_quorum p) hK P s r_s x rs
+      (wi_toEntry e) (wi_entry_mem p K P e he) Q hQ hcover
+
+#print axioms wi_entry_fields
+#print axioms wi_state_fields
+#print axioms wi_initial_eq
+#print axioms wi_row_eq
+#print axioms wi_rows_eq
+#print axioms wi_advance_eq
+#print axioms wi_greatest_eq
+#print axioms wi_finalize_eq
+#print axioms wi_append_eviction_eq
+#print axioms wi_events_eq
+#print axioms wi_transition_eq
+#print axioms wi_foldMap
+#print axioms wi_derive_eq
+#print axioms wi_empty_not_quorum
+#print axioms wi_entry_mem
+
+#print axioms wi_entry_eq
+#print axioms wi_state_eq
 
 end AvailableChain.FGSA.Window
 end
