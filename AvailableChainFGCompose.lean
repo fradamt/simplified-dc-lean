@@ -1,4 +1,7 @@
 module
+public import AvailableChainFGCompose.Statements.Dependency
+public import AvailableChainFGCompose.Statements.DependencyTrace
+public import AvailableChainFGCompose.Proofs.Dependency
 public import AvailableChainFGCompose.Proofs.ObservationTransport
 public import AvailableChainFGCompose.Proofs.Timing
 public import AvailableChainFGCompose.Statements.Observations

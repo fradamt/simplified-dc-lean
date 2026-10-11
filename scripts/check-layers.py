@@ -763,6 +763,13 @@ COMPOSE_EDGES |= frozenset({
     (PROOFS + ".Tests.P0HistoricalReads", COMPOSE + ".Proofs.HistoricalReads"),
 })
 
+# P0c3: exact dependency contract and proof modules.
+COMPOSE_MODULES += (
+    "AvailableChainFGCompose.Statements.Dependency",
+    "AvailableChainFGCompose.Statements.DependencyTrace",
+    "AvailableChainFGCompose.Proofs.Dependency",
+)
+
 def compose_base(dep: str) -> bool:
     return (foundation(dep) or under(dep, "AvailableChainModel.Objects")
             or any_under(dep, ("AvailableChainEngineV2.Engine",

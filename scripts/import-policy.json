@@ -84,6 +84,9 @@
       "AvailableChainGeneric.Statements.**"
     ],
     "laneUpstream": [
+      "AvailableChainFGCompose.Statements.Dependency",
+      "AvailableChainFGCompose.Statements.DependencyTrace",
+      "AvailableChainFGCompose.Proofs.Dependency",
       "AvailableChainFGCompose.Statements.HistoricalReads",
       "AvailableChainFGCompose.Proofs.HistoricalReads",
       "AvailableChainFGCompose.Proofs.ObservationTransport",
