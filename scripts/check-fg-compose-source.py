@@ -28,6 +28,14 @@ for lf in files:
             if d.kind in ('def', 'abbrev', 'theorem', 'lemma', 'structure', 'inductive', 'opaque', 'irreducible_def'):
                 if not d.private:
                     found.add(d.full)
+                    if d.kind == 'inductive':
+                        body = raw.splitlines()[d.line:]
+                        for line in body:
+                            if C.DECL.match(line) or C.END.match(line):
+                                break
+                            ctor = re.match(r'^\s*\|\s+(\w+)\b', line)
+                            if ctor:
+                                found.add(d.full + '.' + ctor[1])
         for name, body in re.findall(r'^structure (\w+).*?where\n(.*?)(?=^(?:variable|structure|def|theorem)|\Z)',
                                      raw, re.M | re.S):
             found.add('AvailableChain.FGCompose.' + name + '.mk')
