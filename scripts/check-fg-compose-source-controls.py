@@ -134,9 +134,26 @@ def main():
             'deriving other class': 'inductive I where\n  | make\n  deriving Repr\n',
             'same-line deriving': 'inductive I where | make deriving DecidableEq\n',
             'dotted deriving type': 'inductive Q.I where\n  | make\n  deriving DecidableEq\n',
+            'lowercase deriving type': 'inductive lower where\n  | make\n  deriving DecidableEq\n',
         }.items():
             source = 'namespace AvailableChain.FGCompose\n' + body + 'end\n'
             check(fixture, label + ' rejected', source, {PREFIX + 'I'}, 'reject')
+            count += 1
+        source = ('namespace AvailableChain.FGCompose\nnamespace Nested\ninductive lower where\n'
+                  '  | a | b\n  deriving DecidableEq\nend Nested\nend\n')
+        for label, inst in (('actual', 'instDecidableEqLower'),
+                            ('fabricated', 'instDecidableEqlower')):
+            names = {PREFIX + 'Nested.' + n for n in ('lower', 'lower.a', 'lower.b', inst)}
+            check(fixture, f'nested lowercase deriving, {label} instance, rejected', source,
+                  names, 'reject')
+            count += 1
+        collision = ('namespace AvailableChain.FGCompose\ndef instDecidableEqI : Nat := 0\n'
+                     'inductive I where\n  | a | b\n  deriving DecidableEq\nend\n')
+        base = {PREFIX + n for n in ('instDecidableEqI', 'I', 'I.a', 'I.b')}
+        for label, names in (('omitted', base),
+                             ('suffixed', base | {PREFIX + 'instDecidableEqI_1'})):
+            check(fixture, f'derived name collision with {label} instance rejected', collision,
+                  names, 'reject')
             count += 1
     result = subprocess.run([sys.executable, '-B', CHECKER], check=True,
                             capture_output=True, text=True)

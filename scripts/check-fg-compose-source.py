@@ -34,8 +34,9 @@ def constructors(raw, d):
     derived = []
     # A final own-line `deriving DecidableEq` adds one instance with Lean's derived name.
     if len(body) > 1 and re.fullmatch(r'\s+deriving\s+DecidableEq\s*', body[-1]):
-        if '.' in d.name or d.name.startswith('«'):
-            reject('derived instance name needs a simple type identifier')
+        # Lean capitalizes the type name; accept only names it leaves unchanged.
+        if not re.fullmatch(r"[A-Z][\w']*", d.name):
+            reject('derived instance name needs a simple capitalized type identifier')
         body.pop()
         derived.append(d.full[:-len(d.name)] + 'instDecidableEq' + d.name)
     text = '\n'.join(body)
@@ -67,11 +68,12 @@ def constructors(raw, d):
         i += 1
     if stack:
         reject('unbalanced delimiters')
-    return names + derived
+    return names, derived
 
 
 expected = set(read_names('scripts/fg-compose-expected.txt'))
 found = set()
+derived = set()
 files = [lf for lf in C.library_files() if lf.lib == 'AvailableChainFGCompose']
 if not files or not Path('AvailableChainFGCompose.lean').is_file():
     raise SystemExit('MISSING COMPOSE SOURCE SCOPE')
@@ -91,7 +93,9 @@ for lf in files:
                 if not d.private:
                     found.add(d.full)
                     if d.kind == 'inductive':
-                        found.update(constructors(raw, d))
+                        ctors, instances = constructors(raw, d)
+                        found.update(ctors + instances)
+                        derived.update(instances)
         for name, body in re.findall(r'^structure (\w+).*?where\n(.*?)(?=^(?:variable|structure|def|theorem)|\Z)',
                                      raw, re.M | re.S):
             found.add('AvailableChain.FGCompose.' + name + '.mk')
@@ -105,6 +109,12 @@ for path in (Path('AvailableChainFGSAProofs/Proofs/Shared/FGCompose.lean'),
                      r'initialize|register_option|elab|builtin_initialize|declare_syntax_cat|export|alias|'
                  r'register_simp_attr|declare_aesop_rule_sets)\b', raw):
             raise SystemExit('FORBIDDEN GLOBAL EXTENSION: ' + str(path))
+# Lean suffixes a derived instance whose name is taken; fail closed on any such clash.
+declared = set()
+for lf in files:
+    declared.update(d.full for d in C.declarations(lf))
+for name in sorted(derived & declared):
+    raise SystemExit(f'UNSUPPORTED INDUCTIVE {name}: derived instance name is already declared')
 if found != expected:
     print('COMPOSE INVENTORY MISSING:', sorted(expected - found))
     print('COMPOSE INVENTORY UNLISTED:', sorted(found - expected))
