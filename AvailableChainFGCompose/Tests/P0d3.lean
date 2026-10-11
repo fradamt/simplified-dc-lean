@@ -1,5 +1,5 @@
 module
-public import AvailableChainKitFG.WindowInvariant
+public import AvailableChainKitFG.WindowHeightBridge
 public import AvailableChainFGCompose.Proofs.Healing.CommonEntry
 public import AvailableChainFGCompose.Proofs.Healing.PromotionArithmetic
 public import AvailableChainFGCompose.Proofs.Healing.PromotionRows
