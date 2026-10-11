@@ -437,6 +437,44 @@ private theorem c2g0_earlier_row_cap (w : HealingWitness) (h2 : TCarrier p c E r
     ((fgCertificateLaws p).height.h_mono hCA).trans
       ((fgCertificateLaws p).height.h_mono hPA)⟩
 
+-- Use exactly the row and source supplied by H0.fresh, at the same opening/horizon.
+private theorem c2g0_fresh_row_cap (w : HealingWitness) (h0 : H0 p c E rho w)
+    (h2 : TCarrier p c E rho w) (q : Nat) (A : FGBlock (Fin p.n))
+    (hA : HonestProposal E rho (fgsaInterface p c) (q * p.R) (eraseFG A))
+    (hgap : w.sStar + 2 ≤ q * p.R)
+    (hhor : p.actionTime w.rStar ≤ rho.horizon)
+    (hprop : SA.proposalTime p.toParams (q * p.R) ≤ rho.horizon) :
+    ∃ j y, ∃ (a : RowWire p.n) (C : FGBlock (Fin p.n)),
+      HonestRowAt p c E rho j y w.rStar a ∧
+      namedEntry a.payload.height_pair = some (w.M + 1, (heightView p C).T_h.root) ∧
+      actionSourceFG p c E rho y w.rStar = some (some C) ∧
+      eraseFG C = w.CStar ∧ (heightView p C).h = w.M + 1 ∧
+      p.actionTime w.rStar < (c2g0_point p w).serviceStart ∧
+      rowHeight a = some (w.M + 1) ∧ w.M + 1 ≤ (heightView p A).h := by
+  obtain ⟨j, y, a, C, ha, he, hs, hC, hh⟩ := h0.fresh
+  have hrq : w.rStar < q := by
+    by_contra hn
+    have hm := Nat.mul_le_mul_right p.R (Nat.le_of_not_gt hn)
+    rw [h0.label] at hgap
+    have hbad : w.rStar * p.R + 2 ≤ w.rStar * p.R := hgap.trans hm
+    omega
+  have hrow : rowHeight a = some (heightView p C).h := by
+    rw [hh]
+    cases hp : a.payload.height_pair with
+    | empty => simp [namedEntry, hp] at he
+    | vote h e timeout =>
+      simp only [namedEntry, hp] at he
+      have heq : h = w.M + 1 := (Prod.mk.inj (Option.some.inj he)).1
+      simpa only [rowHeight, hp] using congrArg some heq
+  have hcap := c2g0_earlier_row_cap p c E rho w h2 j y w.rStar q a C A ha hs
+    (by change w.M + 1 ≤ (heightView p C).h; rw [hh]) hrq
+    (c2g0_reset_before_start p c E rho w h0) hrow hA hhor hprop
+  obtain ⟨hbefore, h, hrow', hle⟩ := hcap
+  have heq : h = w.M + 1 := by
+    rw [hh] at hrow
+    exact Option.some.inj (hrow'.symm.trans hrow)
+  exact ⟨j, y, a, C, ha, he, hs, hC, hh, hbefore, heq ▸ hrow', heq ▸ hle⟩
+
 private theorem c2g0_start_laws (w : HealingWitness) (h : H0 p c E rho w)
     (budget horizon : Time)
     (hbound : tstar p w < recoveryStart p E + budget)
@@ -701,6 +739,7 @@ private theorem c2g0_result_iff (deltaF : Time) (r : Nat) :
     c2g0_timing, c2g0_observations, fgsaCoreReads_def]
   rfl
 
+#print axioms c2g0_fresh_row_cap
 #print axioms c2g0_kernel
 #print axioms c2g0_rows_select
 #print axioms c2g0_rows_sync

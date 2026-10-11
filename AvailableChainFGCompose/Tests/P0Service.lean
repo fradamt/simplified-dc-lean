@@ -169,7 +169,7 @@ private noncomputable abbrev c2HistoryProtocol : V2.ProtocolSpecD Unit where
   Duty := Nat
   signLabel s := s
   seats _ := 1
-  Payload := Block
+  Payload := Block × NamedHeightPair
   Durable := Time
   init := 0
   clock _ t := t
@@ -193,7 +193,7 @@ private noncomputable abbrev c2HistoryProtocol : V2.ProtocolSpecD Unit where
       · intro hs
         exact False.elim (ht (hs ▸ Int.natCast_nonneg s))
   duties_nodup t := by split <;> simp
-  act _ _ _ := some c2Opening
+  act _ s _ := some (c2Opening, if s = 6 then .vote 3 ⟨8⟩ false else .empty)
   gossip _ _ := []
   process st _ := st
   selfVisible _ := true
@@ -210,7 +210,7 @@ private noncomputable abbrev c2HistoryProtocol : V2.ProtocolSpecD Unit where
 private noncomputable def c2HistoryInterface : V2.D.Interface c2HistoryProtocol where
   confirmed _ := .genesis
   stable _ := .genesis
-  block B := some B
+  block B := some B.1
   opening _ := True
   propLabel s := 4 * s
   propDuty s := 4 * s
@@ -250,9 +250,9 @@ private theorem c2HistoryProposal :
   constructor
   · change 0 < (6 : Nat) ∧ () ∈ ({()} : Finset Unit)
     simp
-  · refine ⟨⟨.seat 24 0, c2Opening⟩, ?_, rfl⟩
+  · refine ⟨⟨.seat 24 0, (c2Opening, .empty)⟩, ?_, rfl⟩
     change ∃ i, c2HistoryRun.events[i]? = some (.tick () 24) ∧
-      (⟨.seat 24 0, c2Opening⟩ : c2HistoryProtocol.Object) ∈
+      (⟨.seat 24 0, (c2Opening, .empty)⟩ : c2HistoryProtocol.Object) ∈
         V2.D.Run.emitsAt c2HistoryEnv c2HistoryRun i
     exact ⟨2, rfl, by decide +kernel⟩
 
@@ -318,10 +318,46 @@ private theorem c2ActualSuffixInhabited :
     1 * c2HistoryClock.roundSlots + 2 ≤ 6 := by
   exact ⟨rfl, by constructor <;> decide, c2HistoryProposal, by decide⟩
 
-private def c2HistoricalRow : Nat × FGBlock (Fin 1) := (3, c2BadFG)
+private noncomputable def c2HistoricalRow : c2HistoryProtocol.Object :=
+  ⟨.seat 6 0, (c2Opening, .vote 3 c2BadFG.root false)⟩
+
+private noncomputable def c2HistorySafety :
+    FGSafetyReads c2HistoryProtocol 1 c2HistoryProtocol.Object where
+  proposalErase o := some o.payload.1
+  proposalRows _ := []
+  encode := id
+  decode o := some ⟨0, o.payload.2, none⟩
+  decodeObject o := some ⟨0, o.payload.2, none⟩
+  fgLabel := 6
+  fgSeats := Equiv.refl _
+  record _ := RecordOnce.initial
+  inputs _ := (some c2BadFG, ⟨3, c2BadFG.root, 0⟩)
+  enabled _ := true
+  finalizedOut _ := .genesis
+
+-- This is the signed wire emitted at tick 0, with the source read at action 0.
+private theorem c2HistoricalRowOrigin :
+    HonestRowAt c2HistorySafety c2HistoryEnv c2HistoryRun c2HistoryClock
+      0 () 0 c2HistoricalRow ∧
+    actionSourceFG c2HistoryCore c2HistoryEnv c2HistoryRun c2HistoryClock () 0 =
+      some (some c2BadFG) ∧
+    namedEntry c2HistoricalRow.payload.2 =
+      some ((c2HistoryObs.height c2BadFG).h, (c2HistoryObs.height c2BadFG).T_h.root) := by
+  refine ⟨⟨by simp [c2HistoryRun], rfl, ?_⟩, rfl, ?_⟩
+  · decide +kernel
+  · decide +kernel
+
 private theorem c2ActualRowCapFailure :
-    c2HistoricalRow.1 = (c2HistoryObs.height c2HistoricalRow.2).h ∧
-    ¬ c2HistoricalRow.1 ≤ (c2HistoryObs.height c2GoodFG).h := by decide +kernel
+    ∃ h e, HonestRowAt c2HistorySafety c2HistoryEnv c2HistoryRun c2HistoryClock
+      0 () 0 c2HistoricalRow ∧
+      actionSourceFG c2HistoryCore c2HistoryEnv c2HistoryRun c2HistoryClock () 0 =
+        some (some c2BadFG) ∧
+      namedEntry c2HistoricalRow.payload.2 = some (h, e) ∧
+      h = (c2HistoryObs.height c2BadFG).h ∧
+      c2HistoryClock.action 0 < c2Late.serviceStart ∧
+      ¬ h ≤ (c2HistoryObs.height c2GoodFG).h := by
+  exact ⟨_, _, c2HistoricalRowOrigin.1, c2HistoricalRowOrigin.2.1,
+    c2HistoricalRowOrigin.2.2, rfl, by decide, by decide +kernel⟩
 
 -- The PC leaf split has no gap: old shield rows, rows in [d_s,R_s), and suffix rows.
 private theorem c2ShieldSplit (shield start t : Time) (_hs : shield ≤ start)
@@ -421,6 +457,7 @@ private theorem c2AtShieldRow : (10 : Time) ≤ 10 ∧ (10 : Time) < 20 := by no
 private theorem c2GapRowCap : (10 : Time) ≤ 15 ∧ (15 : Time) < 20 := by norm_num
 private theorem c2SuffixRowCap : (20 : Time) ≤ 25 ∧ (25 : Time) < 30 := by norm_num
 
+#print axioms c2HistoricalRowOrigin
 #print axioms c2PCSemanticCap
 #print axioms c2PCIntervals
 #print axioms c2AtShieldRow
