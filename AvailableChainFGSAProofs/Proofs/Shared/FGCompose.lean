@@ -1,15 +1,10 @@
 module
-public import AvailableChainFGCompose.Statements.CoreReads
-public import AvailableChainFGCompose.Statements.Selection
 public import AvailableChainFGCompose.Statements.ChannelLaws
-public import AvailableChainFGCompose.Proofs.ObservationTransport
-public import AvailableChainFGSAClaims.Statements.ChannelProps
+public import AvailableChainFGCompose.Proofs.SourceHead
 public import AvailableChainFGSARun.Statements.Client
-public import AvailableChainKitV2.DutyStable
 public import AvailableChainFGSARun.Proofs.FGSource
 public import AvailableChainGeneric.Proofs.Pure.BlockOrder
 public import AvailableChainFGSAClaims.Statements.Fold
-public import AvailableChainFGSARun.Proofs.Reachable
 public import AvailableChainFGSA.Proofs.Head
 
 public section
@@ -287,7 +282,7 @@ private theorem p0c1_timing_laws (p : Params) :
   gate_eq _ := rfl
   action_eq _ := rfl
 
-private def p0c1_safety (p : Params) {In : Type} (c : AppCodec In) :
+private abbrev p0c1_safety (p : Params) {In : Type} (c : AppCodec In) :
     FGCompose.FGSafetyReads (fgsa p c) p.n (RowWire p.n) where
   proposalErase := safetyProposalErase p
   proposalRows := safetyProposalRows p
@@ -340,21 +335,21 @@ private theorem p0c1_client_laws (p : Params) {In : Type} (c : AppCodec In) :
     FGCompose.FGSelectionClientLaws (p0c1_selection p c) (p0c1_safety p c) :=
   ⟨fun _ => rfl⟩
 
-private def p0c1_signer {n : Nat} (a : RowWire n) : Option (Fin n) :=
+private abbrev p0c1_signer {n : Nat} (a : RowWire n) : Option (Fin n) :=
   match a.auth with
   | .seat .fg i => some i
   | _ => none
 
-private def p0c1_carrier (p : Params) (o : Obj p) (_ : Slot) (Q : Block)
+private abbrev p0c1_carrier (p : Params) (o : Obj p) (_ : Slot) (Q : Block)
     (rows : List (RowWire p.n)) : Prop :=
   ∃ N, o.payload = .proposal N ∧ N.erase = Q ∧ N.rows = rows
 
-private def p0c1_stored_carrier (p : Params) (nd : Node p) (B : FGBlock (Fin p.n))
+private abbrev p0c1_stored_carrier (p : Params) (nd : Node p) (B : FGBlock (Fin p.n))
     (wire : RowWire p.n) : Prop :=
   ∃ s N, N.erase = eraseFG B ∧
     (⟨.proposer s, .proposal N⟩ : Wire p.n) ∈ nd.st.proposals ∧ wire ∈ N.rows
 
-private def p0c1_source_service (p : Params) {In V : Type} [DecidableEq V]
+private abbrev p0c1_source_service (p : Params) {In V : Type} [DecidableEq V]
     (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (y : V) (r : Nat) (C : FGBlock (Fin p.n)) : Prop :=
   ∃ G, gateResult p c E rho y (r * p.R) = some (some G) ∧
@@ -377,13 +372,16 @@ private theorem p0c1_named_entry_eq (e : NamedHeightPair) :
 omit [DecidableEq V] in
 private theorem p0c1_row_signer_eq (a : RowWire p.n) (x : V) :
     FGCompose.RowSigner (p0c1_safety p c) rho p0c1_signer a x = RowSigner p c rho a x := by
+  rw [RowSigner_def]
+  dsimp only [FGCompose.RowSigner]
+  simp only [FGCompose.safetyHolder_def]
+  dsimp only [p0c1_safety, p0c1_signer]
   rcases a with ⟨auth, payload⟩
   cases auth with
-  | none => simp [FGCompose.RowSigner, p0c1_signer, RowSigner]
-  | proposer s => simp [FGCompose.RowSigner, p0c1_signer, RowSigner]
+  | none => simp
+  | proposer s => simp
   | seat label i =>
-    cases label <;> simp [FGCompose.RowSigner, p0c1_signer, RowSigner,
-      FGCompose.safetyHolder, p0c1_safety]
+    cases label <;> simp
     rfl
 
 private theorem p0c1_honest_row_eq (j : Nat) (y : V) (r : Nat) (a : RowWire p.n) :
@@ -416,8 +414,10 @@ private theorem p0c1_honest_proposal_eq (s : Slot) (Q : Block) :
 private theorem p0c1_honest_carrier_eq (s : Slot) (Q : Block) (rows : List (RowWire p.n)) :
     FGCompose.HonestCarrier E rho (fgsaInterface p c) (p0c1_carrier p) s Q rows =
       HonestCarrier p c E rho s Q rows := by
-  simp only [FGCompose.HonestCarrier, HonestCarrier, p0c1_carrier,
-    FGCompose.HonestProposal, HonestProposal, exists_and_left]
+  rw [HonestCarrier_def]
+  dsimp only [FGCompose.HonestCarrier, p0c1_carrier]
+  rw [p0c1_honest_proposal_eq]
+  simp only [exists_and_left]
   rfl
 
 private theorem p0c1_action_source_eq (x : V) (r : Nat) :
@@ -514,8 +514,9 @@ private theorem p0c1_qc_origin_eq :
     FGCompose.RQCOrigin (fgsaCoreReads p c) (p0c1_safety p c) E rho
       (p0c1_observations p c) (p0c1_timing p) (p0c1_stored_carrier p)
       (p0c1_source_service p c E rho) p.E = RQCOrigin p c E rho := by
-  simp only [FGCompose.RQCOrigin, RQCOrigin, p0c1_stored_carrier,
-    p0c1_source_service, exists_and_left]
+  rw [RQCOrigin_def]
+  dsimp only [FGCompose.RQCOrigin, p0c1_stored_carrier, p0c1_source_service]
+  simp only [exists_and_left]
   rfl
 
 
