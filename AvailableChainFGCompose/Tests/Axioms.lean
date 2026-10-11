@@ -13,6 +13,9 @@ public import AvailableChainFGCompose.Proofs.SourceHead -- shake: keep (#print a
 public import AvailableChainFGCompose.Statements.Restart -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Proofs.Restart -- shake: keep (#print axioms)
 
+public import AvailableChainFGCompose.Statements.HistoricalReads -- shake: keep (#print axioms)
+public import AvailableChainFGCompose.Proofs.HistoricalReads -- shake: keep (#print axioms)
+
 #print axioms AvailableChain.FGCompose.ChainRowsBefore
 #print axioms AvailableChain.FGCompose.ChainRowsBefore_def
 #print axioms AvailableChain.FGCompose.FGCore
@@ -157,3 +160,41 @@ public import AvailableChainFGCompose.Proofs.Restart -- shake: keep (#print axio
 #print axioms AvailableChain.FGCompose.action_source_at_read
 #print axioms AvailableChain.FGCompose.action_eq_early_next
 #print axioms AvailableChain.FGCompose.finality_action_time_bounds
+
+#print axioms AvailableChain.FGCompose.FGHistoricalLaws
+#print axioms AvailableChain.FGCompose.FGHistoricalLaws.blocks_eq
+#print axioms AvailableChain.FGCompose.FGHistoricalLaws.bodies_eq
+#print axioms AvailableChain.FGCompose.FGHistoricalLaws.frame_independent
+#print axioms AvailableChain.FGCompose.FGHistoricalLaws.geometry_eq
+#print axioms AvailableChain.FGCompose.FGHistoricalLaws.parent_closed
+#print axioms AvailableChain.FGCompose.FGHistoricalLaws.parent_eq
+#print axioms AvailableChain.FGCompose.FGHistoricalLaws.reachable_unique
+#print axioms AvailableChain.FGCompose.FGHistoricalLaws.read_iff
+#print axioms AvailableChain.FGCompose.FGHistoricalLaws.restore_eq
+#print axioms AvailableChain.FGCompose.FGHistoricalLaws.root_eq
+#print axioms AvailableChain.FGCompose.FGHistoricalLaws.slot_eq
+#print axioms AvailableChain.FGCompose.FGHistoricalLaws.step_keep
+#print axioms AvailableChain.FGCompose.FGHistoricalReads
+#print axioms AvailableChain.FGCompose.FGHistoricalReads.acceptedBlocks
+#print axioms AvailableChain.FGCompose.FGHistoricalReads.acceptedBodies
+#print axioms AvailableChain.FGCompose.FGHistoricalReads.depth
+#print axioms AvailableChain.FGCompose.FGHistoricalReads.erase
+#print axioms AvailableChain.FGCompose.FGHistoricalReads.lca
+#print axioms AvailableChain.FGCompose.FGHistoricalReads.parent
+#print axioms AvailableChain.FGCompose.FGHistoricalReads.preceq
+#print axioms AvailableChain.FGCompose.FGHistoricalReads.readBlock
+#print axioms AvailableChain.FGCompose.FGHistoricalReads.root
+#print axioms AvailableChain.FGCompose.FGHistoricalReads.slot
+#print axioms AvailableChain.FGCompose.FGHistoryStep
+#print axioms AvailableChain.FGCompose.historicalLookup
+#print axioms AvailableChain.FGCompose.historicalLookup_def
+#print axioms AvailableChain.FGCompose.historicalLookup_spec
+#print axioms AvailableChain.FGCompose.historical_geometry_restore_eq
+#print axioms AvailableChain.FGCompose.historical_lca_held
+#print axioms AvailableChain.FGCompose.historical_parent_held
+#print axioms AvailableChain.FGCompose.historical_read_ambiguous
+#print axioms AvailableChain.FGCompose.historical_read_complete
+#print axioms AvailableChain.FGCompose.historical_read_frame_eq
+#print axioms AvailableChain.FGCompose.historical_read_restore_eq
+#print axioms AvailableChain.FGCompose.historical_read_sound
+#print axioms AvailableChain.FGCompose.historical_read_step
