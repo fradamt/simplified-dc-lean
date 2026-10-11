@@ -1,8 +1,8 @@
 module
 public import AvailableChainFGCompose.Statements.FinalityHistory
-public import AvailableChainFGCompose.Statements.RowPermission
-public import AvailableChainFGCompose.Statements.Service
-public import AvailableChainFGCompose.Statements.ChannelLaws
+public import AvailableChainFGCompose.Statements.RowPermission -- shake: keep (checkpoint API)
+public import AvailableChainFGCompose.Statements.Service -- shake: keep (checkpoint API)
+public import AvailableChainFGCompose.Statements.ChannelLaws -- shake: keep (checkpoint API)
 public import AvailableChainKitV2.DutyRecord
 public import AvailableChainKitFG.ProvenanceCoreDef
 

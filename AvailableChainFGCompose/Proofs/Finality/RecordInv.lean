@@ -1,10 +1,8 @@
 module
 public import AvailableChainFGCompose.Statements.FinalityRecords
 public import AvailableChainFGCompose.Proofs.RowPermission
-public import AvailableChainFGCompose.Proofs.Finality.History
 public import AvailableChainKitFG.ProvenanceCore
 public import AvailableChainKitFG.StoreSafetyDef
-public import AvailableChainKitFG.FrameGeometry
 public import AvailableChainFGCompose.Proofs.SafetyClient
 public import AvailableChainGeneric.Proofs.V2.Duty.Fields
 
