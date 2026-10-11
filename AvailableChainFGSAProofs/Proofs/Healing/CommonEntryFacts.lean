@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGCompose.Proofs.Healing.CommonEntry
 public import AvailableChainFGSAProofs.Proofs.Healing.OpeningServiceBody
 public import AvailableChainFGSAProofs.Proofs.Shared.SameLabel
 
@@ -15,6 +16,29 @@ open AvailableChain.SimplexFG Gen.Pure
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
+private def p0d3_common_timing (p : Params) : FGCompose.FGTiming where
+  delta := p.Δ
+  roundSlots := p.R
+  proposal := SA.proposalTime p.toParams
+  vote := SA.voteTime p.toParams
+  early := SA.earlyTime p.toParams
+  freeze := SA.freezeTime p.toParams
+  release := SA.releaseTime p.toParams
+  gate := SA.gateTime p.toParams
+  action := p.actionTime
+
+private def p0d3_common_core (p : Params) {In : Type} (c : AppCodec In) :
+  FGCompose.FGCoreReads (fgsa p c) p.n (GridCO.State p.n .root) (Wire p.n) (RowWire p.n) :=
+  { core := fun nd => ⟨nd.st.base, nd.st.fg, nd.st.proposals, nd.st.rowPool⟩
+    erase := eraseFG
+    source := fun nd => FGSA.fgSource p nd.st
+    headVote := fun nd s => FGSA.headVote p nd.st s
+    finalityHead := fun nd => FGSA.fgBlockOf nd.st (FGSA.fgHead p nd.st)
+    proposalFG := fun nd o => match (toWire p o).decode with
+      | some (.block _ N) => (parentFG nd.st N.erase).map (fun P => fgBlock P N.erase N.rows)
+      | some (.vote _ _ _) => none
+      | some (.row _ _) => none
+      | none => none }
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.9; plan §3F.1. DC: SAME first-opening minimality bounds its label. -/
 theorem common_first_opening_labels (q r : Nat)
@@ -154,12 +178,9 @@ theorem common_entry_of_plateau (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)
     (hsources : ∀ x K, x ∈ rho.honest → actionSourceFG p c E rho x r = some (some K) →
       FGBlock.Preceq Qfg K ∧ (heightView p K).h ≤ m) :
     OpeningEntry p c E rho r m := by
-  refine ⟨(heightView p Qfg).T_h.root, ?_⟩
-  intro x K hx hK
-  obtain ⟨hQK, hcap⟩ := hsources x K hx hK
-  have hlaws := (fgCertificateLaws p).height
-  have he : (heightView p K).h = m := le_antisymm hcap (hh ▸ hlaws.h_mono hQK)
-  exact ⟨he, by rw [hlaws.entry_plateau hQK (hh.trans he.symm)]⟩
+  exact FGCompose.common_entry_of_plateau (p0d3_common_core p c) E rho
+    (heightView p) (p0d3_common_timing p) p.E (fgCertificateLaws p).height
+    r m Qfg hh hsources
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.9; plan §3F.3. DC: INTENTIONAL at a low pivot, either all
@@ -171,18 +192,9 @@ theorem common_low_or_high (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     OpeningEntry p c E rho r (m - 1) ∨
       ∃ x K, x ∈ rho.honest ∧ actionSourceFG p c E rho x r = some (some K) ∧
         (heightView p K).h = m := by
-  classical
-  by_cases hhigh : ∃ x K, x ∈ rho.honest ∧ actionSourceFG p c E rho x r = some (some K) ∧
-      (heightView p K).h = m
-  · exact Or.inr hhigh
-  · apply Or.inl
-    apply common_entry_of_plateau E rho r (m - 1) Qfg hh
-    intro x K hx hK
-    obtain ⟨hQK, hcap⟩ := hsources x K hx hK
-    have hne : (heightView p K).h ≠ m := fun he => hhigh ⟨x, K, hx, hK, he⟩
-    refine ⟨hQK, ?_⟩
-    simp only [Height] at hcap hne ⊢
-    omega
+  exact FGCompose.common_low_or_high (p0d3_common_core p c) E rho
+    (heightView p) (p0d3_common_timing p) p.E (fgCertificateLaws p).height
+    r m Qfg hh hsources
 
 end AvailableChain.FGSA.Run
 end
