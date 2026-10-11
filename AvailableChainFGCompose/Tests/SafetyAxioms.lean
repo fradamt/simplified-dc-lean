@@ -123,3 +123,8 @@ public import AvailableChainFGCompose.Proofs.SafetySlashing -- shake: keep (#pri
 #print axioms AvailableChain.FGCompose.FGSafetyRestartLaws
 #print axioms AvailableChain.FGCompose.FGSafetyRestartLaws.restart_F
 #print axioms AvailableChain.FGCompose.safety_F_mono_all
+
+#print axioms AvailableChain.FGCompose.safety_fault_count_bound_lt
+#print axioms AvailableChain.FGCompose.safety_slashable_fg_faulty_count
+#print axioms AvailableChain.FGCompose.safety_fault_count_bound_fg_lt
+#print axioms AvailableChain.FGCompose.safety_finalized_monotone_all

@@ -1,6 +1,8 @@
 module
 public import AvailableChainFGCompose.Statements.EventReads
 public import AvailableChainFGCompose.Statements.CoreReads
+public import AvailableChainFGCompose.Statements.Restart
+public import AvailableChainFGCompose.Proofs.Restart
 public import AvailableChainFGCompose.Proofs.SourceHead
 public import AvailableChainFGCompose.Statements.SafetyReads
 public import AvailableChainFGCompose.Statements.SafetyStore

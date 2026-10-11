@@ -3,6 +3,9 @@ public import AvailableChainFGCompose.Statements.EventReads -- shake: keep (#pri
 public import AvailableChainFGCompose.Statements.CoreReads -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Proofs.SourceHead -- shake: keep (#print axioms)
 
+public import AvailableChainFGCompose.Statements.Restart -- shake: keep (#print axioms)
+public import AvailableChainFGCompose.Proofs.Restart -- shake: keep (#print axioms)
+
 #print axioms AvailableChain.FGCompose.ChainRowsBefore
 #print axioms AvailableChain.FGCompose.ChainRowsBefore_def
 #print axioms AvailableChain.FGCompose.FGCore
@@ -58,3 +61,12 @@ public import AvailableChainFGCompose.Proofs.SourceHead -- shake: keep (#print a
 #print axioms AvailableChain.FGCompose.chainRows_of_head
 #print axioms AvailableChain.FGCompose.source_height_entry
 #print axioms AvailableChain.FGCompose.action_source_capped
+
+#print axioms AvailableChain.FGCompose.FGTreeKeepLaws
+#print axioms AvailableChain.FGCompose.FGTreeKeepLaws.restart_keep
+#print axioms AvailableChain.FGCompose.FGTreeRestoreLaws
+#print axioms AvailableChain.FGCompose.FGTreeRestoreLaws.restart_eq
+#print axioms AvailableChain.FGCompose.tf_cumulative_all
+#print axioms AvailableChain.FGCompose.head_held_from_all
+#print axioms AvailableChain.FGCompose.tf_before_tick_eq_beforeTime
+#print axioms AvailableChain.FGCompose.chainRows_of_head_all
