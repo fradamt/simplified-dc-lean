@@ -127,8 +127,22 @@ private noncomputable abbrev do_step (kind : FGDependencyStepKind) (_ : Bool) (a
 private noncomputable abbrev do_driver : FGDependencyDriver Bool (Fin 4) do_protocol where
   enter st wire _ := if st = 0 ∧ wire.payload = 2 then 1
     else if st = 1 ∧ wire.payload = 1 then 2 else st
+  enterProgram st wire _ := .finish (if st = 0 ∧ wire.payload = 2 then 1
+    else if st = 1 ∧ wire.payload = 1 then 2 else st)
+  hookProgram st op := match op with
+    | .leaf b _ _ => .finish (do_leafProtocol.process st (do_wire b))
+    | .notification b _ =>
+        let z := if st = 4 ∧ b = 1 then 5 else if st = 5 ∧ b = 2 then 6 else st
+        if st = 5 ∧ b = 2 then .read .ac z .finish else .finish z
+    | _ => .finish st
   drain st := if 2 ≤ st ∧ st ≤ 5 then 6 else st
-  readKinds _ _ := []
+  retry st b _ _ := do_leafProtocol.process st (do_wire b)
+  work st e := if st = 2 then
+    [.step (.leaf 1 do_parent .accepted), .step (.leaf 2 do_child .accepted),
+      .step (.notification 1 do_parent), .step (.notification 2 do_child)]
+    else match e with
+      | .deliver _ _ _ => if st = 1 then [.step .idle] else []
+      | _ => []
   inheritRefusal st _ _ := st
   notify st b _ := if st = 4 ∧ b = 1 then 5 else if st = 5 ∧ b = 2 then 6 else st
 
@@ -154,8 +168,10 @@ private noncomputable abbrev do_trace : FGDependencyTrace Nat where
   readCut _ := 12
   entryCut j := [1, 4, 6, 12][j]?.getD 12
   dutyCut j := [2, 4, 10, 12][j]?.getD 12
+  hookRead j index kind cut st := j = 2 ∧ index = 0 ∧ kind = .ac ∧ cut = 10 ∧ st = 6
 
-private noncomputable abbrev do_read (_ : Bool) (i st : Nat) : Prop := 12 ≤ i ∧ i < 16 ∧ st = 6
+private noncomputable abbrev do_read (_ : Bool) (i st : Nat) : Prop :=
+  12 ≤ i ∧ i < 16 ∧ st = 6
 
 private theorem do_child_origin :
     FGReceiptOrigin do_env do_run do_history do_wireReads false 2 do_child := by
@@ -319,6 +335,14 @@ private theorem do_micro_steps (k : Nat) (hk : k < do_trace.length) :
     | exact ⟨.notification, Or.inr (Or.inr (Or.inr ⟨rfl, Or.inr ⟨rfl, rfl⟩⟩))⟩
     | exact ⟨.ordinary, Or.inl rfl⟩
 
+private theorem do_entry_steps (x : Bool) : FGDependencySteps do_step x 2 6 := by
+  have s1 : do_step .leafRetry x 2 3 := by simp [do_step]
+  have s2 : do_step .leafRetry x 3 4 := by simp [do_step]
+  have s3 : do_step .notification x 4 5 := by simp [do_step]
+  have s4 : do_step .notification x 5 6 := by simp [do_step]
+  exact .tail .notification (.tail .notification
+    (.tail .leafRetry (.tail .leafRetry (.refl 2) s1) s2) s3) s4
+
 private theorem do_trace_laws :
     FGDependencyTraceLaws do_env do_run false do_history do_wireReads do_reads do_leaf
       do_step do_trace do_driver do_op do_arrival do_notify
@@ -341,6 +365,48 @@ private theorem do_trace_laws :
       | exact ⟨Or.inl ⟨rfl, rfl, rfl, rfl⟩, rfl, do_child_origin, rfl⟩
       | exact ⟨Or.inr ⟨rfl, rfl, rfl, rfl⟩, rfl, do_parent_origin, rfl⟩
       | simp [dependencyResolved, dependencyRefused, do_notify]
+  delivery_entry j wire t h := by
+    have hj := do_events_bound h
+    interval_cases j <;> simp only [List.getElem?_cons_zero,
+      List.getElem?_cons_succ, Option.some.injEq] at h
+    all_goals cases h <;> rfl
+  work_execution j e h := by
+    have hj := do_events_bound h
+    interval_cases j <;> simp only [List.getElem?_cons_zero,
+      List.getElem?_cons_succ, Option.some.injEq] at h <;> subst e <;> exact ⟨rfl, rfl⟩
+  work_step j e k h lo hi := by
+    have hj := do_events_bound h
+    interval_cases j <;> simp only [List.getElem?_cons_zero,
+      List.getElem?_cons_succ, Option.some.injEq] at h <;> subst e <;>
+      norm_num [do_trace] at lo hi <;> interval_cases k <;> rfl
+  hook_correspondence j e index kind cut st h := by
+    have hj := do_events_bound h
+    interval_cases j <;> simp only [List.getElem?_cons_zero,
+      List.getElem?_cons_succ, Option.some.injEq] at h <;> subst e
+    · change (0 = 2 ∧ _) ↔ ∃ r, ([] : List (FGDependencyWorkRead Nat))[index]? = some r ∧ _
+      simp
+    · change (1 = 2 ∧ _) ↔ ∃ r, ([] : List (FGDependencyWorkRead Nat))[index]? = some r ∧ _
+      simp
+    · change (2 = 2 ∧ index = 0 ∧ kind = .ac ∧ cut = 10 ∧ st = 6) ↔
+        ∃ r, ([⟨4, .ac, 6⟩] : List (FGDependencyWorkRead Nat))[index]? = some r ∧
+          r.kind = kind ∧ cut = 6 + r.offset ∧ st = r.consumed
+      cases index <;> simp [eq_comm]
+    · change (3 = 2 ∧ _) ↔ ∃ r, ([] : List (FGDependencyWorkRead Nat))[index]? = some r ∧ _
+      simp
+  hook_reads j e r h member := by
+    have hj := do_events_bound h
+    interval_cases j <;> simp only [List.getElem?_cons_zero,
+      List.getElem?_cons_succ, Option.some.injEq] at h <;> subst e
+    · change r ∈ ([] : List (FGDependencyWorkRead Nat)) at member
+      cases member
+    · change r ∈ ([] : List (FGDependencyWorkRead Nat)) at member
+      cases member
+    · change r ∈ ([⟨4, .ac, 6⟩] : List (FGDependencyWorkRead Nat)) at member
+      have hr := List.mem_singleton.mp member
+      subst r
+      exact ⟨by decide, rfl, do_entry_steps false, do_closed 6 (Or.inr rfl)⟩
+    · change r ∈ ([] : List (FGDependencyWorkRead Nat)) at member
+      cases member
   receipt_entry j wire t b h awake valid decoded := by
     have hj := do_events_bound h
     interval_cases j <;> simp only [List.getElem?_cons_zero,
@@ -504,6 +570,11 @@ private theorem do_trace_laws :
           Option.some.injEq] at hi h <;> subst ei <;> subst e <;>
         norm_num [do_trace] at before <;>
         exact lt_of_le_of_lt (by decide) strict
+  tick_records j t h := by
+    have hj := do_events_bound h
+    interval_cases j <;> simp only [List.getElem?_cons_zero,
+      List.getElem?_cons_succ, Option.some.injEq] at h
+    all_goals cases h <;> rfl
   atomic_tick j t h := by
     have hj := do_events_bound h
     interval_cases j <;> simp only [List.getElem?_cons_zero,
@@ -698,19 +769,27 @@ private theorem do_retained_only_path_consumer :
       exact Or.inl ⟨do_child, Or.inl ⟨rfl, by decide, rfl⟩,
         Or.inr (Or.inl (Or.inr (Or.inr ⟨rfl, by decide⟩)))⟩
 
+private noncomputable def do_site (i : Nat) : FGDependencyReadSite Nat :=
+  ⟨i / 4, match i % 4 with
+    | 0 => .fg | 1 => .proposer | 2 => .head | _ => .ac,
+    do_trace.entryCut (i / 4), do_trace.readCut i, 6⟩
+
 private theorem do_read_closure_laws :
-    FGDependencyReadClosureLaws do_history do_reads do_step do_trace.state
-      (fun i => ⟨i / 4, .ac, do_trace.entryCut (i / 4), do_trace.readCut i, 6⟩) do_read where
-  read_closed x i st h := by
-    rcases h with ⟨_, _, rfl⟩
-    exact do_closed 6 (Or.inr rfl)
-  finite_completion x i st h := by
+    FGDependencyReadClosureLaws do_env do_run false do_history do_reads do_step
+      do_trace do_driver do_site do_read do_wireReads do_leaf do_op do_arrival do_notify
+      (Leaf := do_leafProtocol) id id where
+  trace_bound := do_trace_laws
+  actual_read := do_trace_laws.actual_read
+  site_correspondence i st h := by
     rcases h with ⟨lo, hi, rfl⟩
-    have div : i / 4 = 3 := by omega
-    change do_trace.entryCut (i / 4) ≤ 12 ∧ 6 = 6 ∧ 6 = 6 ∧
-      FGDependencySteps do_step x (do_trace.state (do_trace.entryCut (i / 4))) 6 ∧ _
-    rw [div]
-    exact ⟨by decide, rfl, rfl, .refl _, do_closed 6 (Or.inr rfl)⟩
+    interval_cases i <;> exact ⟨.tick false 4, rfl, ⟨rfl, rfl⟩, rfl, rfl, rfl, rfl⟩
+  hook_correspondence := do_trace_laws.hook_correspondence
+  hook_completion := do_trace_laws.hook_reads
+  read_closed i st h := (do_trace_laws.read_correspondence i st h).2.2
+  finite_completion i st h := by
+    rcases h with ⟨lo, hi, rfl⟩
+    interval_cases i <;>
+      exact ⟨by decide, by decide, rfl, rfl, .refl _, do_closed 6 (Or.inr rfl)⟩
 
 private theorem do_bridge_original_child_rows : ∃ o,
     FGReceiptOrigin do_env do_run do_history do_wireReads false 2 o ∧
@@ -776,12 +855,16 @@ private noncomputable abbrev do_emptyTrace : FGDependencyTrace Nat where
   readCut _ := 1
   entryCut _ := 1
   dutyCut _ := 1
+  hookRead _ _ _ _ _ := False
 
 private noncomputable abbrev do_sendDriver (body : Fin 4) :
     FGDependencyDriver Bool (Fin 4) (do_sending body) where
   enter st _ _ := st
+  enterProgram st _ _ := .finish st
+  hookProgram st _ := .finish st
   drain := id
-  readKinds _ _ := []
+  retry st _ _ _ := st
+  work _ _ := []
   inheritRefusal st _ _ := st
   notify st _ _ := st
 
@@ -956,6 +1039,259 @@ private theorem do_nonempty_entry_segment :
   have s4 : do_step .notification false 5 6 := by simp [do_step]
   exact .tail .notification (.tail .notification
     (.tail .leafRetry (.tail .leafRetry (.refl 2) s1) s2) s3) s4
+
+private noncomputable abbrev do_ordinaryProtocol : V2.ProtocolSpecD Unit :=
+  { do_protocol with process := fun st wire =>
+      if wire.payload = 0 then st + 1 else do_protocol.process st wire }
+
+private noncomputable abbrev do_ordinaryRun : V2.D.Run Bool do_ordinaryProtocol :=
+  { do_run with events := [.deliver false (do_wire 0) 0] }
+
+private noncomputable abbrev do_ordinaryWireReads :
+    FGDependencyWireReads do_ordinaryProtocol (Fin 4) Nat :=
+  { do_wireReads with decodeBody := fun wire =>
+      if wire.payload = 0 then none else some wire.payload }
+
+private noncomputable abbrev do_ordinaryDriver :
+    FGDependencyDriver Bool (Fin 4) do_ordinaryProtocol :=
+  { do_driver with enter := do_driver.enter }
+
+/-- The actual standalone input changes knowledge. An idle entry is rejected. -/
+private theorem do_silent_ordinary_rejected :
+    do_ordinaryProtocol.process 0 (do_wire 0) = 1 ∧
+    ¬ FGDependencyTraceLaws do_env do_ordinaryRun false do_history do_ordinaryWireReads
+      do_reads do_leaf do_step do_trace do_ordinaryDriver (fun _ => .idle) do_arrival do_notify
+      (Leaf := do_leafProtocol) id id do_read := by
+  refine ⟨rfl, ?_⟩
+  intro laws
+  have bad := laws.delivery_entry 0 (do_wire 0) 0 rfl
+  change FGDependencyOperation.idle = .ordinary (do_wire 0) at bad
+  cases bad
+
+private noncomputable abbrev do_otherOrdinary : do_protocol.Object := ⟨.none, 0⟩
+
+private theorem do_substituted_ordinary_wire_rejected :
+    do_ordinaryWireReads.decodeBody (do_wire 0) = none ∧
+    do_ordinaryWireReads.decodeBody do_otherOrdinary = none ∧
+    do_ordinaryProtocol.wellFormed do_otherOrdinary = true ∧
+    ¬ FGDependencyTraceLaws do_env do_ordinaryRun false do_history do_ordinaryWireReads
+      do_reads do_leaf do_step do_trace do_ordinaryDriver (fun _ => .ordinary do_otherOrdinary)
+      do_arrival do_notify (Leaf := do_leafProtocol) id id do_read := by
+  refine ⟨rfl, rfl, rfl, ?_⟩
+  intro laws
+  have bad := laws.delivery_entry 0 (do_wire 0) 0 rfl
+  change FGDependencyOperation.ordinary do_otherOrdinary = .ordinary (do_wire 0) at bad
+  have auth := congrArg V2.Signed.auth (FGDependencyOperation.ordinary.inj bad)
+  cases auth
+
+private noncomputable abbrev do_rejectedRun : V2.D.Run Bool do_protocol :=
+  { do_run with events := [.deliver false (do_wire 3) 0] }
+
+private theorem do_rejected_delivery_bound :
+    ¬ FGDependencyTraceLaws do_env do_rejectedRun false do_history do_wireReads
+      do_reads do_leaf do_step do_trace do_driver (fun _ => .idle) do_arrival do_notify
+      (Leaf := do_leafProtocol) id id do_read := by
+  intro laws
+  have bad := laws.delivery_entry 0 (do_wire 3) 0 rfl
+  change FGDependencyOperation.idle = .rejected (do_wire 3) at bad
+  cases bad
+
+private theorem do_omitted_hook_read_rejected :
+    ¬ FGDependencyTraceLaws do_env do_run false do_history do_wireReads do_reads do_leaf
+      do_step { do_trace with hookRead := fun _ _ _ _ _ => False } do_driver do_op
+      do_arrival do_notify (Leaf := do_leafProtocol) id id do_read := by
+  intro laws
+  have actual := (laws.hook_correspondence 2 (.deliver false (do_wire 1) 1)
+    0 .ac 10 6 rfl).mpr ⟨⟨4, .ac, 6⟩, rfl, rfl, rfl, rfl⟩
+  exact actual
+
+private noncomputable abbrev do_entryReadDriver : FGDependencyDriver Bool (Fin 4) do_protocol :=
+  { do_driver with
+    enterProgram := fun st wire o => .read .ac (do_driver.enter st wire o) .finish }
+
+private theorem do_omitted_entry_read_rejected :
+    ¬ FGDependencyTraceLaws do_env do_run false do_history do_wireReads do_reads do_leaf
+      do_step do_trace do_entryReadDriver do_op do_arrival do_notify
+      (Leaf := do_leafProtocol) id id do_read := by
+  intro laws
+  have actual := (laws.hook_correspondence 0 (.deliver false (do_wire 2) 0)
+    0 .ac 1 1 rfl).mpr ⟨⟨0, .ac, 1⟩, rfl, rfl, rfl, rfl⟩
+  cases actual.1
+
+#print axioms do_omitted_entry_read_rejected
+
+private theorem do_hook_read_nonempty_completion :
+    do_trace.hookRead 2 0 .ac 10 6 ∧ do_trace.entryCut 2 < 10 ∧
+    FGDependencySteps do_step false (do_trace.state (do_trace.entryCut 2)) 6 ∧
+    dependencyClosed do_history do_reads 6 := by
+  have completed := dependency_hook_read_completion do_trace_laws
+    (e := .deliver false (do_wire 1) 1) rfl
+    (show do_trace.hookRead 2 0 .ac 10 6 from ⟨rfl, rfl, rfl, rfl, rfl⟩)
+  exact ⟨⟨rfl, rfl, rfl, rfl, rfl⟩, by decide, completed.2.2.2⟩
+
+/-- The public record rejects the former reflexive witness at a substituted closed cut. -/
+private theorem do_substituted_closed_start_rejected :
+    dependencyClosed do_history do_reads (do_trace.state 10) ∧
+    ¬ FGDependencyReadClosureLaws do_env do_run false do_history do_reads do_step
+      do_trace do_driver (fun i => { do_site i with entryCut := 10 }) do_read
+      do_wireReads do_leaf do_op do_arrival do_notify (Leaf := do_leafProtocol) id id := by
+  refine ⟨do_closed 6 (Or.inr rfl), ?_⟩
+  intro laws
+  obtain ⟨e, event, _, _, entry, _⟩ :=
+    laws.site_correspondence 12 6 ⟨by decide, by decide, rfl⟩
+  change 10 = 12 at entry
+  omega
+
+private theorem do_substituted_hook_start_rejected :
+    FGDependencyEnabled do_history do_reads (do_trace.state (do_trace.entryCut 2)) ∧
+    dependencyClosed do_history do_reads (do_trace.state 10) ∧
+    ¬ FGDependencyReadClosureLaws do_env do_run false do_history do_reads do_step
+      { do_trace with entryCut := fun j => if j = 2 then 10 else do_trace.entryCut j }
+      do_driver do_site do_read do_wireReads do_leaf do_op do_arrival do_notify
+      (Leaf := do_leafProtocol) id id := by
+  refine ⟨?_, do_closed 6 (Or.inr rfl), ?_⟩
+  · exact .retry 1 do_parent (Or.inr ⟨rfl, rfl, rfl⟩) (by decide)
+      (Or.inl ⟨rfl, rfl⟩) trivial (Or.inl rfl)
+      (by simp [dependencyResolved, dependencyRefused])
+  · intro laws
+    have wrong := (laws.trace_bound.entry_boundary 2 (.deliver false (do_wire 1) 1) rfl).1
+    change 10 = 6 at wrong
+    omega
+
+#print axioms do_substituted_hook_start_rejected
+
+private theorem do_wrong_read_kind_rejected :
+    ¬ FGDependencyReadClosureLaws do_env do_run false do_history do_reads do_step
+      do_trace do_driver (fun i => { do_site i with kind := .ac }) do_read
+      do_wireReads do_leaf do_op do_arrival do_notify (Leaf := do_leafProtocol) id id := by
+  intro laws
+  obtain ⟨e, event, _, index, _⟩ :=
+    laws.site_correspondence 12 6 ⟨by decide, by decide, rfl⟩
+  change 12 = 15 at index
+  omega
+
+private theorem do_silence_fresh_refusal_rejected :
+    ¬ FGDependencyTraceLaws do_env do_run false do_history do_wireReads
+      do_badRefusalReads do_hypotheticalLeaf do_step do_trace do_driver
+      (fun _ => .idle) do_arrival do_notify (Leaf := do_leafProtocol) id id do_read := by
+  intro laws
+  have created := laws.refusal_creation 7 2 (by decide)
+    ⟨by decide, rfl, rfl, rfl⟩ (by simp [dependencyRefused])
+  rcases created with ⟨o, operation, _⟩ | ⟨o, operation, _⟩
+  · cases operation
+  · rcases operation with operation | operation <;> cases operation
+
+/-- A standalone PC-like object changes a latest key and enables a retained-body companion. -/
+private noncomputable abbrev do_pcProtocol : V2.ProtocolSpecD Unit :=
+  { do_protocol with process := fun st wire =>
+      if st = 6 ∧ wire.payload = 0 then 7 else do_protocol.process st wire }
+
+private noncomputable abbrev do_pcRun : V2.D.Run Bool do_pcProtocol :=
+  { do_run with events := do_run.events ++ [.deliver false (do_wire 0) 5] }
+
+private noncomputable abbrev do_pcReads : FGDependencyReads Nat (Fin 4)
+    (FGReceiptToken Bool do_protocol.Object) Nat :=
+  { do_reads with
+    companionHeld := fun st b => b = 2 ∧ 6 ≤ st ∧ st ≠ 7
+    latestKey := fun st _ => some (if 7 ≤ st then 3 else 2, do_history.root 2)
+    latestCompanion := fun st _ => if 6 ≤ st ∧ st ≠ 7 then some 2 else none }
+
+private noncomputable abbrev do_pcDriver : FGDependencyDriver Bool (Fin 4) do_pcProtocol :=
+  { do_driver with
+    enter := fun st wire o => if wire.payload = 0 then do_pcProtocol.process st wire
+      else do_driver.enter st wire o
+    enterProgram := fun st wire o => if wire.payload = 0 then
+      .finish (do_pcProtocol.process st wire) else do_driver.enterProgram st wire o
+    hookProgram := fun st op => match op with
+      | .notification b _ => if st = 7 ∧ b = 2 then .read .ac 8 .finish
+          else do_driver.hookProgram st op
+      | _ => do_driver.hookProgram st op
+    drain := fun st => if st = 7 then 8 else do_driver.drain st
+    notify := fun st b o => if st = 7 ∧ b = 2 then 8 else do_driver.notify st b o
+    work := fun st e => if st = 7 then [.step (.notification 2 do_child)]
+      else do_driver.work st e }
+
+private noncomputable abbrev do_pcWireReads : FGDependencyWireReads do_pcProtocol (Fin 4) Nat :=
+  { do_wireReads with decodeBody := do_ordinaryWireReads.decodeBody }
+
+private noncomputable abbrev do_pcNotify (a : Nat) (b : Fin 4) (z : Nat) : Prop :=
+  do_notify a b z ∨ (a = 7 ∧ b = 2 ∧ z = 8)
+
+private theorem do_pc_hook_laws :
+    FGDependencyArrivalLeafLaws do_history do_pcReads do_leaf do_arrival do_pcNotify :=
+  { do_arrival_laws with
+    notification_resolved := by
+      intro a z b h
+      rcases h with (⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩) | ⟨rfl, rfl, rfl⟩ <;>
+        simp [dependencyResolved, dependencyRefused]
+    notification_keys := by
+      intro a z b h
+      rcases h with (⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩) | ⟨rfl, rfl, rfl⟩ <;> rfl
+    notification_fields := by
+      intro a z b i h unmatched
+      rcases h with (⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩) | ⟨rfl, rfl, rfl⟩
+      · rfl
+      · simp at unmatched
+      · simp at unmatched
+    notification_matching := by
+      intro a z b i slot h held matching
+      rcases h with (⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩) | ⟨rfl, rfl, rfl⟩
+      · have bad : (2 : Nat) = 1 :=
+          congrArg BlockId.value (congrArg Prod.snd (Option.some.inj matching))
+        omega
+      · rfl
+      · rfl
+    refused_notification := by intro _ _ _ _ h; exact h.elim
+    callback_latest := by
+      intro a z b h held
+      rcases h with (⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩) | ⟨rfl, rfl, rfl⟩ <;>
+        decide +kernel }
+
+private theorem do_retained_processing_hook_effect :
+    do_pcNotify 7 2 8 ∧
+    do_pcReads.latestKey 7 0 = some (3, do_history.root 2) ∧
+    do_pcReads.latestKey 8 0 = do_pcReads.latestKey 7 0 ∧
+    do_pcReads.latestCompanion 7 0 = none ∧ do_pcReads.latestCompanion 8 0 = some 2 ∧
+    (dependencyExecuteWork do_pcDriver 7
+      (do_pcDriver.work 7 (.deliver false (do_wire 0) 5))).reads = [⟨1, .ac, 8⟩] :=
+  ⟨Or.inr ⟨rfl, rfl, rfl⟩, rfl, rfl, rfl, rfl, rfl⟩
+
+#print axioms do_pc_hook_laws
+#print axioms do_retained_processing_hook_effect
+
+private theorem do_retained_processing_enables_and_completes :
+    dependencyStateBefore do_env do_pcRun do_pcDriver false 4 = 6 ∧
+    FGReceiptOrigin do_env do_pcRun do_history do_pcWireReads false 2 do_child ∧
+    Effect do_history do_pcReads 6 1 do_parent ∧
+    Effect do_history do_pcReads 6 2 do_child ∧
+    do_pcProtocol.process 6 (do_wire 0) = 7 ∧
+    dependencyEventEntry do_pcRun do_pcDriver false 4 6
+      (.deliver false (do_wire 0) 5) = 7 ∧
+    FGDependencyEnabled do_history do_pcReads 7 ∧
+    (dependencyExecuteWork do_pcDriver 7
+      (do_pcDriver.work 7 (.deliver false (do_wire 0) 5))).operations =
+      [.notification 2 do_child] ∧
+    dependencyStateBefore do_env do_pcRun do_pcDriver false 5 = 8 ∧
+    dependencyClosed do_history do_pcReads 8 ∧
+    do_pcReads.companionHeld (do_pcReads.latest 8) 2 := by
+  refine ⟨rfl, ?_, ?_, ?_, rfl, rfl, ?_, rfl, rfl, ?_, ?_⟩
+  · constructor <;> rfl
+  · simp [Effect, dependencyResolved, dependencyRefused]
+  · simp [Effect, dependencyResolved, dependencyRefused]
+  · exact .companion 2 (Or.inr (Or.inr ⟨rfl, by decide⟩)) rfl (by simp)
+  · intro work
+    cases work <;> simp_all [dependencyResolved, dependencyRefused]
+  · exact ⟨rfl, by decide, by decide⟩
+
+#print axioms do_silent_ordinary_rejected
+#print axioms do_substituted_ordinary_wire_rejected
+#print axioms do_rejected_delivery_bound
+#print axioms do_omitted_hook_read_rejected
+#print axioms do_hook_read_nonempty_completion
+#print axioms do_substituted_closed_start_rejected
+#print axioms do_wrong_read_kind_rejected
+#print axioms do_silence_fresh_refusal_rejected
+#print axioms do_retained_processing_enables_and_completes
 
 #print axioms do_status_flag_without_hook_rejected
 #print axioms do_notification_key_change_rejected
