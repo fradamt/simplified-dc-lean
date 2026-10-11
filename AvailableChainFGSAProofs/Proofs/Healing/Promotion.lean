@@ -226,14 +226,17 @@ theorem healing_promotion_bounded_rows (E : Generic.Env V)
         (heightView p K).h = height ∧ (heightView p K).T_h = U ∧
         rSent ≤ r ∧ HonestRowAt p c E rho j x rSent a ∧
         NamesEntry p .progress a height U := by
-  have batch := healing_promotion_fixed_rows E rho hrec hentry hcovered
-  simp only [← p0d3_fixed_batch_eq E rho r height Q] at batch
   have h := FGCompose.healing_promotion_bounded_rows
     (p0d3_fixed_core p c) (p0d3_fixed_safety p c) E rho
     (heightView p) (p0d3_fixed_timing p) (fun a => a.payload.height_pair)
-    (promotion_honest_nonempty E rho hrec)
-    batch
-    (fun x K U hx hK hU => healing_promotion_entry_slot E rho hrec hx hK hU)
+    p.E (fgCertificateLaws p).height (promotion_honest_nonempty E rho hrec)
+    hentry ((p0d3_fixed_covered_eq E rho r Q).mpr hcovered)
+    (fun x y K L hx hy hK hL he =>
+      rootScope_eq hrec.base.idealization
+        (rootScope_entry (rootScope_source hx hK))
+        (rootScope_entry (rootScope_source hy hL)) he)
+    (fun x K hx hK => healing_source_slot p c E rho hx hK)
+    (fun x K A _ hK hAK => p0d3_fixed_ancestor E rho hrec hK hAK)
   simp only [p0d3_fixed_batch_eq, FGCompose.EntryAt] at h
   exact h
 

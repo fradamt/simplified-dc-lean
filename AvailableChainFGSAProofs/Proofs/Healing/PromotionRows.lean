@@ -58,6 +58,76 @@ private theorem p0d3_rows_frame_mem (E : Generic.Env V)
   exact (Finset.mem_filter.mp (pickPair_some_spec _ _ hs).1).1
 
 omit [Fintype V] in
+private theorem p0d3_rows_covered_eq (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) (r : Nat) (Q : Block) :
+    FGCompose.OpeningCovered (p0d3_rows_core p c) (p0d3_rows_safety p c) E rho
+      (heightView p) (p0d3_rows_timing p) (fun a => a.payload.height_pair) r Q =
+        OpeningCovered p c E rho r Q := by
+  apply propext
+  constructor
+  · intro h x hx
+    obtain ⟨K, nd, j, rSent, a, hnd, hK, _, hQ, hr, ha, hn⟩ := h x hx
+    exact ⟨K, nd, j, rSent, a, hnd, hK, p0d3_rows_frame_mem E rho hnd hK,
+      hQ, hr, ha, hn⟩
+  · intro h x hx
+    obtain ⟨K, nd, j, rSent, a, hnd, hK, hm, hQ, hr, ha, hn⟩ := h x hx
+    have htf : K ∈ nd.st.fg.TF := (KitFG.mem_filteredFromView _ _ _ _).mp hm |>.1
+    exact ⟨K, nd, j, rSent, a, hnd, hK, htf, hQ, hr, ha, hn⟩
+
+omit [Fintype V] in
+private theorem p0d3_rows_stored_parent_slot (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) (hv : V2.D.ExecutionValid E rho)
+    (i : Nat) (x : V) (W : FGBlock (Fin p.n))
+    (hW : W ∈ (storeAt p c E rho i x).fg.TF) (hne : W ≠ .genesis) :
+    W.parent.slot < W.slot := by
+  have hm := ((cstoreInv_stateBefore E rho i x).baseTree (eraseFG W)).mpr ⟨W, hW, rfl⟩
+  obtain ⟨w, hw, hb, j, o, t, _, hd, ho, _⟩ :=
+    fgsa_stored_block_origin E rho i x (eraseFG W) hm (by
+      intro he; exact hne (eraseFG_eq_genesis.mp he))
+  obtain ⟨s, N, rfl, _, _, _⟩ :=
+    (metaInv_stateBefore E rho i x).wireTree w hw
+  have hQ : N.erase = eraseFG W := Option.some.inj hb
+  have hf := hv.wire j x o t hd
+  change FGSA.wellFormed p (toWire p o) = true at hf
+  rw [ho] at hf
+  have hlt : N.erase.parent.slot < N.erase.slot := of_decide_eq_true
+    (Bool.and_eq_true_iff.mp (Bool.and_eq_true_iff.mp (Bool.and_eq_true_iff.mp
+      (Bool.and_eq_true_iff.mp (Bool.and_eq_true_iff.mp hf).1).1).1).1).2
+  rwa [hQ, eraseFG_parent, eraseFG_slot, eraseFG_slot] at hlt
+
+omit [Fintype V] in
+private theorem p0d3_rows_stored_ancestor_slot (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) (hv : V2.D.ExecutionValid E rho)
+    (i : Nat) (x : V) {U K : FGBlock (Fin p.n)}
+    (hK : K ∈ (storeAt p c E rho i x).fg.TF) (hUK : FGBlock.Preceq U K) :
+    U.slot ≤ K.slot := by
+  induction K with
+  | genesis => obtain rfl := KitFG.preceq_genesis.mp hUK; exact le_rfl
+  | node P s root body rows ih =>
+      by_cases he : U = .node P s root body rows
+      · subst U; exact le_rfl
+      · have hUP := KitFG.preceq_parent_of_preceq_node hUK he
+        have hP := (cstoreInv_stateBefore E rho i x).fg.closed _ hK
+        exact (ih hP hUP).trans
+          (p0d3_rows_stored_parent_slot E rho hv i x _ hK (by intro h; cases h)).le
+
+private theorem p0d3_rows_ancestor (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    {x : V} {r : Nat} {K U : FGBlock (Fin p.n)}
+    (hK : actionSourceFG p c E rho x r = some (some K))
+    (hUK : FGBlock.Preceq U K) : U.slot ≤ K.slot := by
+  rw [actionSourceFG_def, postClock_def, preTick_def] at hK
+  cases hi : V2.D.Run.tickIdx? rho x (p.actionTime r) with
+  | none => simp only [hi, Option.map_none, reduceCtorEq] at hK
+  | some i =>
+    simp only [hi, Option.map_some, Option.some.injEq] at hK
+    have hm := (Finset.mem_filter.mp (pickPair_some_spec _ _ hK).1).1
+    have hs := ((KitFG.mem_filteredFromView _ _ _ _).mp hm).1
+    change K ∈ (clock p (storeAt p c E rho i x) (p.actionTime r)).fg.TF at hs
+    rw [clock_fg] at hs
+    exact p0d3_rows_stored_ancestor_slot E rho hrec.base.valid i x hs hUK
+
+omit [Fintype V] in
 private theorem p0d3_rows_batch_eq (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) (r height : Nat) (Q : Block) (U : FGBlock (Fin p.n)) :
     FGCompose.FixedRows (p0d3_rows_core p c) (p0d3_rows_safety p c) E rho
@@ -244,8 +314,6 @@ theorem healing_promotion_same_rows (E : Generic.Env V)
         ((heightView p X.parent).h = height →
           ValidForParent p c E rho X.slot (eraseFG X) a ∧
           HeightMatch p c E rho X.slot (eraseFG X) a) := by
-  have batch := healing_promotion_bounded_rows E rho hrec hentry hcovered
-  simp only [← p0d3_rows_batch_eq E rho r height Q] at batch
   have parents : ∀ x K, x ∈ rho.honest →
       actionSourceFG p c E rho x r = some (some K) → FGBlock.Preceq K X.parent := by
     intro x K hx hK
@@ -257,7 +325,14 @@ theorem healing_promotion_same_rows (E : Generic.Env V)
     p0d3_rows_parent p0d3_rows_height p0d3_rows_valid p0d3_rows_fold
     p.E (fgCertificateLaws p).height
     (p0d3_rows_nonempty E rho hrec)
-    batch parents hslot
+    hentry ((p0d3_rows_covered_eq E rho r Q).mpr hcovered)
+    (fun x y K L hx hy hK hL he =>
+      rootScope_eq hrec.base.idealization
+        (rootScope_entry (rootScope_source hx hK))
+        (rootScope_entry (rootScope_source hy hL)) he)
+    (fun x K hx hK => healing_source_slot p c E rho hx hK)
+    (fun x K A _ hK hAK => p0d3_rows_ancestor E rho hrec hK hAK)
+    parents hslot
     (by
       obtain ⟨nd, hread, hparent, hh, ht, hph, hv⟩ := p0d3_rows_read E rho hrec hnew
       refine ⟨nd, hread, hparent, hh, ht, hph, ?_⟩
@@ -301,8 +376,6 @@ theorem healing_promotion_same_rows_on (E : Generic.Env V)
         ((heightView p X.parent).h = height →
           ValidForParent p c E rho X.slot (eraseFG X) a ∧
           HeightMatch p c E rho X.slot (eraseFG X) a) := by
-  obtain ⟨U, hU, hUslot, hrows⟩ := healing_promotion_bounded_rows E rho hrec hentry hcovered
-  rw [← p0d3_rows_batch_eq E rho r height Q U] at hrows
   have parents : ∀ x K, x ∈ rho.honest →
       actionSourceFG p c E rho x r = some (some K) → FGBlock.Preceq K X.parent := by
     intro x K hx hK
@@ -314,14 +387,22 @@ theorem healing_promotion_same_rows_on (E : Generic.Env V)
     (heightView p) (p0d3_rows_timing p) (fgsaInterface p c) (fun a => a.payload.height_pair)
     p0d3_rows_parent p0d3_rows_height p0d3_rows_valid p0d3_rows_fold
     p.E (fgCertificateLaws p).height
-    (p0d3_rows_nonempty E rho hrec) hU hrows parents hslot
+    (p0d3_rows_nonempty E rho hrec)
+    hentry ((p0d3_rows_covered_eq E rho r Q).mpr hcovered)
+    (fun x y K L hx hy hK hL he =>
+      rootScope_eq hrec.base.idealization
+        (rootScope_entry (rootScope_source hx hK))
+        (rootScope_entry (rootScope_source hy hL)) he)
+    (fun x K hx hK => healing_source_slot p c E rho hx hK)
+    (fun x K A _ hK hAK => p0d3_rows_ancestor E rho hrec hK hAK)
+    parents hslot
     (by
       obtain ⟨nd, hread, hparent, hh, ht, hph, hv⟩ := p0d3_rows_read E rho hrec hnew
       refine ⟨nd, hread, hparent, hh, ht, hph, ?_⟩
       intro a
       cases hd : (p0d3_rows_safety p c).decode a <;> simpa only [hd] using hv a)
     (fun j x rSent a ha => promotion_honest_row_decode E rho hrec ha)
-  obtain ⟨hUP, rows⟩ := h
+  obtain ⟨U, hU, hUslot, hUP, rows⟩ := h
   refine ⟨U, hU, hUslot, hUP, ?_⟩
   intro x hx
   obtain ⟨K, nd, j, rSent, a, hnd, hK, _, hQ, hUK, hsK, hhK, hKU, hr, ha, hn, hv⟩ :=

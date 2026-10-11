@@ -63,7 +63,7 @@ theorem healing_promotion_entry_slot {x : V} {r : Nat} {K U : FGBlock (Fin n)}
   exact (ancestorSlot x K U hx hK hUK).trans (sourceSlot x K hx hK)
 
 /-- SAME: add the slot bound to the same entry and the same selected batch. -/
-theorem healing_promotion_bounded_rows {r height : Nat} {Q : Block}
+theorem p0d3_bound_batch {r height : Nat} {Q : Block}
     (hne : rho.honest.Nonempty)
     (batch : ∃ U, EntryAt H U height ∧ FixedRows R S E rho H T pair r height Q U)
     (entrySlot : ∀ x K U, x ∈ rho.honest →
@@ -75,6 +75,29 @@ theorem healing_promotion_bounded_rows {r height : Nat} {Q : Block}
   obtain ⟨x, hx⟩ := hne
   obtain ⟨K, _, _, _, _, _, hK, _, _, _, _, _, he, _⟩ := hrows x hx
   exact ⟨U, hU, entrySlot x K U hx hK he, hrows⟩
+
+include laws in
+/-- SAME: construct the bounded batch from the opening and its original coverage. -/
+theorem healing_promotion_bounded_rows {r height : Nat} {Q : Block}
+    (hne : rho.honest.Nonempty)
+    (hentry : OpeningEntry R E rho H T r height)
+    (hcovered : OpeningCovered R S E rho H T pair r Q)
+    (entryAgreement : ∀ x y K L, x ∈ rho.honest → y ∈ rho.honest →
+      actionSourceFG R E rho T x r = some (some K) →
+      actionSourceFG R E rho T y r = some (some L) →
+      (H K).T_h.root = (H L).T_h.root → (H K).T_h = (H L).T_h)
+    (sourceSlot : ∀ x K, x ∈ rho.honest →
+      actionSourceFG R E rho T x r = some (some K) → K.slot ≤ r * T.roundSlots)
+    (ancestorSlot : ∀ x K A, x ∈ rho.honest →
+      actionSourceFG R E rho T x r = some (some K) → FGBlock.Preceq A K →
+      A.slot ≤ K.slot) :
+    ∃ U, EntryAt H U height ∧ U.slot ≤ r * T.roundSlots ∧
+      FixedRows R S E rho H T pair r height Q U := by
+  have batch := healing_promotion_fixed_rows R S E rho H T pair Ef laws
+    hne hentry hcovered entryAgreement sourceSlot
+  exact p0d3_bound_batch R S E rho H T pair hne batch
+    (fun x K U hx hK hU => healing_promotion_entry_slot R E rho H T Ef laws
+      hx hK hU sourceSlot ancestorSlot)
 
 end AvailableChain.FGCompose
 end
