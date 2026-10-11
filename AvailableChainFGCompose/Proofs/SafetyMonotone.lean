@@ -94,5 +94,18 @@ theorem safety_finalized_monotone
   exact O.erase_prefix _ _
     (safety_F_mono R S E rho C O hnr (V2.D.Engine.read_length_mono t t' htt) x)
 
+/-- DC: SAME. Sorted inclusive time reads preserve finalized output across restarts. -/
+theorem safety_finalized_monotone_all
+    (C : FGCoreLaws R) (O : FGSafetyOrderLaws R S) (L : FGSafetyRestartLaws R)
+    (hs : rho.events.Pairwise (fun a b => a.key ≤ b.key)) :
+    ∀ x ∈ rho.honest, ∀ t t' : Time, t ≤ t' →
+      Block.Preceq (S.finalizedOut (V2.D.Run.readAt E rho t x))
+        (S.finalizedOut (V2.D.Run.readAt E rho t' x)) := by
+  intro x _ t t' htt
+  rw [safety_readAt_prefix E rho hs t, safety_readAt_prefix E rho hs t', O.output_eq,
+    O.output_eq]
+  exact O.erase_prefix _ _
+    (safety_F_mono_all R S E rho C O L (V2.D.Engine.read_length_mono t t' htt) x)
+
 end AvailableChain.FGCompose
 end

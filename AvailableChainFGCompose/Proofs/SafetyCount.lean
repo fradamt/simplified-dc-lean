@@ -68,5 +68,56 @@ theorem safety_fault_count_bound [Fintype V]
   rw [Gen.Pure.qF_def] at hcount
   omega
 
+/-- DC: SAME. The strict paper threshold excludes accountable evidence. -/
+theorem safety_fault_count_bound_lt [Fintype V]
+    (U : FGSafetyUnitLaws Ef) (linked : P.Label → Prop)
+    (hfg : linked S.fgLabel) (hL : V2.D.Linked linked rho)
+    (hc : ∀ B, safetyRunBlock R S E rho B → safetyCarriage S E rho (chainRows B))
+    (he : ∀ x ∈ rho.honest, safetyNoSlash S E rho x)
+    (hf : (Gen.V2.Duty.faulty rho).card < 2 * Gen.Pure.qF n - n) :
+    safetyBound R S Ef E rho := by
+  intro K W hK hW hev
+  exact Nat.not_lt_of_ge
+    (safety_slashable_faulty_count S Ef E rho U linked hfg hL he
+      (hc K hK) (hc W hW) hev) hf
+
+/-- DC: INTENTIONAL. Count FG evidence seats, independently of other run nodes.
+Each evidence seat has a faulty holder. No population identification is needed. -/
+theorem safety_slashable_fg_faulty_count (U : FGSafetyUnitLaws Ef)
+    (he : ∀ x ∈ rho.honest, safetyNoSlash S E rho x)
+    {A B : Finset (Row (Fin n))} (hA : safetyCarriage S E rho A)
+    (hB : safetyCarriage S E rho B) (hev : HasSlashableWeightBetween Ef A B) :
+    2 * Gen.Pure.qF n - n ≤
+      (Finset.univ.filter (fun i : Fin n => safetyHolder S rho i ∉ rho.honest)).card := by
+  classical
+  obtain ⟨I, hw, hs⟩ := hev
+  have hsub : I ⊆ Finset.univ.filter (fun i : Fin n => safetyHolder S rho i ∉ rho.honest) := by
+    intro i hi
+    refine Finset.mem_filter.mpr ⟨Finset.mem_univ _, ?_⟩
+    obtain ⟨u, hu, v, hv, hui, hvi, huv⟩ := hs i hi
+    obtain ⟨a, hau, hea⟩ := hA u hu
+    obtain ⟨b, hbv, heb⟩ := hB v hv
+    intro hh
+    have hhu : safetyHolder S rho u.signer ∈ rho.honest := by rw [hui]; exact hh
+    have hhv : safetyHolder S rho v.signer ∈ rho.honest := by rw [hvi]; exact hh
+    have hemv := heb hhv
+    rw [hvi, ← hui] at hemv
+    exact he _ hhu a b (hea hhu) hemv u v hau hbv huv
+  have hcard := Finset.card_le_card hsub
+  change 2 * Ef.q ≤ Ef.totalWeight + Ef.weightOf I at hw
+  rw [U.quorum, U.total, U.weight] at hw
+  omega
+
+/-- DC: INTENTIONAL. The paper fault premise concerns only the finite FG seats. -/
+theorem safety_fault_count_bound_fg_lt
+    (U : FGSafetyUnitLaws Ef)
+    (hc : ∀ B, safetyRunBlock R S E rho B → safetyCarriage S E rho (chainRows B))
+    (he : ∀ x ∈ rho.honest, safetyNoSlash S E rho x)
+    (hf : (Finset.univ.filter (fun i : Fin n => safetyHolder S rho i ∉ rho.honest)).card <
+      2 * Gen.Pure.qF n - n) : safetyBound R S Ef E rho := by
+  intro K W hK hW hev
+  exact Nat.not_lt_of_ge
+    (safety_slashable_fg_faulty_count S Ef E rho U he (hc K hK) (hc W hW) hev) hf
+
 end AvailableChain.FGCompose
 end
