@@ -48,6 +48,7 @@ import re
 import shutil
 import subprocess
 import tempfile
+import textwrap
 
 REPO = Path(__file__).resolve().parents[1]
 MAP = 'docs/FGSA-BLUEPRINT-LEAN.json'
@@ -313,7 +314,12 @@ def open_document(data):
         lines.append(f'## {e["id"]} ({e["lean_status"]})')
         lines.append('')
         for o in e['open']:
-            lines.append(f'- `{o["id"]}`: {o["missing"]}')
+            line = f'- `{o["id"]}`: {o["missing"]}'
+            if e['id'].startswith('bp.finalityLiveness.v2#FF'):
+                lines.extend(textwrap.wrap(line, width=100, subsequent_indent='  ',
+                                           break_long_words=False, break_on_hyphens=False))
+            else:
+                lines.append(line)
         lines.append('')
     return '\n'.join(lines).rstrip('\n')
 
