@@ -775,6 +775,36 @@ and [P-Cl1.handoff.md](../scripts/dev-pkg/P-Cl1.handoff.md).
 
 ## 5. Milestones
 
+### P0 shared FG extraction
+
+P0 uses the approved 2026-10-11 plan. Its snapshot rule applies to this extraction.
+Start with P0z0 baseline records. Then complete P0a restart/read/count laws and P0b1
+window definitions/transport. P0b2H precedes P0b2C; P0b3 follows P0b2. P0c1 fixes
+observations after P0a/P0b1; P0c2 fixes reset/service laws, and P0c4 fixes historical
+reads. P0c3 follows P0c4 and adds the dependency contract. Healing consumers follow
+P0d1/P0d2 and P0d6a, then P0d3, P0d4, P0d5a–P0d5d, and P0d6b. Finality starts
+at P0d7a1 after P0b3 and P0d6a, then follows P0d7a2–P0d7a5 and P0d7b.
+P0d7b also waits for P0d6b reset assembly.
+P0zI supplies exact central entries at each landing; P0zF checks combined closure.
+
+Keep every old FG-SA public name, owner, kind, complete type, binder name,
+visibility, definition body, structure constructor, equation, and definition
+closure. Add shared definitions and proofs; change only old theorem proof bodies
+to use generic results through private fieldwise conversions and correspondence
+proofs. Generic snapshots and inventories permit additions only. A changed old
+snapshot entry is a STOP. Keep the frozen FG-SA window representation and prove
+its correspondence with the shared representation. SimplexFG holds executable
+window definitions; KitFG holds pure views, contracts, correspondence, and proofs;
+FGCompose holds protocol-parametric statements and shared run consumers. Generic
+modules must not import protocol models, runs, Claims, or lane Export modules.
+
+Keep the reset time separate from the service start. Historical high sources
+must remain in scope; gate label qR and action HEAD label qR+1 remain separate.
+Historical accepted-body reads use the cumulative store. P0c3 closes the dependency
+contract, its pure consequences, controls, and real FG-SA accepted-tree/leaf
+projection. P1-Driver supplies the full queue/refusal driver and timed completion
+proofs. PC-SA remains UNPORTED until its later suppliers and implementation close.
+
 ```text
 ┌────┬──────────────────────────────────────┬──────────────────────────┐
 │ M  │ Content                              │ Status 2026-09-30        │

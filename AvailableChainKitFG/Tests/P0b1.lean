@@ -75,7 +75,7 @@ private theorem weighted_target :
 #print axioms weighted_target
 #print axioms WindowFoldMap.fold_eq
 #print axioms WindowFoldMap.view_eq
-#print axioms WindowFoldMap.height_eq
-#print axioms WindowFoldMap.finality_eq
+#print axioms WindowFoldMap.foldMap_height_eq
+#print axioms WindowFoldMap.foldMap_finality_eq
 
 end AvailableChain.KitFG.Tests.P0b1

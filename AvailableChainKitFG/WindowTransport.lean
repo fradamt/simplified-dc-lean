@@ -30,11 +30,11 @@ theorem view_eq {A : Sort*} (read : SimplexFG.Window.State V → A) (B : FGBlock
     read (toWindow (oldFold B)) = read (SimplexFG.Window.derive E cfg K B) :=
   congrArg read (m.fold_eq B)
 
-theorem height_eq (B : FGBlock V) :
+theorem foldMap_height_eq (B : FGBlock V) :
     Window.projectHeight (toWindow (oldFold B)) = Window.heightView E cfg K B :=
   m.view_eq Window.projectHeight B
 
-theorem finality_eq (B : FGBlock V) :
+theorem foldMap_finality_eq (B : FGBlock V) :
     Window.projectFinality (toWindow (oldFold B)) = Window.finalityView E cfg K B :=
   m.view_eq Window.projectFinality B
 

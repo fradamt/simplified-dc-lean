@@ -55,7 +55,7 @@ private theorem empty_quorum_control :
     decide
 
 /-- All four refinement fields are supplied, including the arbitrary-state step. -/
-private theorem complete_refinement :
+private theorem p0b2h_generic_complete_refinement :
     HeightFoldRefinement E cfg Window.projectHeight initial
       (transition E cfg 2) (derive E cfg 2) where
   initial_height := (Window.heightRefinement E cfg 2 (by decide)).initial_height
@@ -64,7 +64,7 @@ private theorem complete_refinement :
   step_height := (Window.heightRefinement E cfg 2 (by decide)).step_height
 
 /-- Reconstruct the complete existing record, including both row origins and certificates. -/
-private theorem complete_height :
+private theorem p0b2h_generic_complete_height :
     FGHeightLaws E (fun B => Window.projectHeight (derive E cfg 2 B)) where
   one_le_h := (Window.windowHeightLaws E cfg 2 (by decide)).one_le_h
   h_mono := (Window.windowHeightLaws E cfg 2 (by decide)).h_mono
@@ -86,7 +86,7 @@ private theorem complete_height :
 #print axioms inhabited_window
 #print axioms inhabited_cover
 #print axioms empty_quorum_control
-#print axioms complete_refinement
-#print axioms complete_height
+#print axioms p0b2h_generic_complete_refinement
+#print axioms p0b2h_generic_complete_height
 
 end AvailableChain.KitFG.Tests.P0b2H

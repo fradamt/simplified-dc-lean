@@ -73,7 +73,7 @@ private theorem ordered_le {xs : List (Entry V)}
   · exact False.elim (Nat.not_lt_of_ge hj h.1)
 
 omit [DecidableEq V] [RowCodec V] in
-private theorem final_fields (E : Electorate V) (w : State V) :
+private theorem windowInv_final_fields (E : Electorate V) (w : State V) :
     (finalizeWindow E w).h = w.h ∧ (finalizeWindow E w).T_h = w.T_h ∧
     (finalizeWindow E w).h_j = w.h_j ∧ (finalizeWindow E w).J = w.J ∧
     (finalizeWindow E w).W ⊆ w.W := by
@@ -166,7 +166,8 @@ private theorem inv_append (K : Nat) (w : State V) (hw : Inv K w)
     omega
 
 omit [DecidableEq V] [RowCodec V] in
-private theorem events_finality (E : Electorate V) (cfg : FGConfig) (K : Nat) (w : State V) :
+private theorem windowInv_events_finality (E : Electorate V) (cfg : FGConfig) (K : Nat)
+    (w : State V) :
     (process_height_events E cfg K w).F = (finalizeWindow E w).F ∧
     (process_height_events E cfg K w).h_F = (finalizeWindow E w).h_F := by
   rw [process_height_events_def]
@@ -180,7 +181,7 @@ private theorem inv_events (E : Electorate V) (cfg : FGConfig) (K : Nat) (w : St
     Inv K (process_height_events E cfg K w) ∧
       ∀ e ∈ (process_height_events E cfg K w).W, ¬ E.IsQuorum e.Q := by
   have hf := inv_final E K w hw
-  have ff := final_fields E w
+  have ff := windowInv_final_fields E w
   have hi := inv_append K _ hf.1 (by simpa only [ff.1, ff.2.2.1] using hj)
     (by simpa only [ff.2.1, ff.2.2.2.1] using hJT)
   rw [process_height_events_def]
@@ -281,7 +282,7 @@ private theorem node_mono (E : Electorate V) (cfg : FGConfig) (K : Nat) (hne : �
       with L := .node P s r_s x rs }
     ⟨hi.ordered, hi.bounds, hi.capacity, hi.finality, hi.heights, hi.zero⟩).2.2
   simp only [derive_def E cfg K (.node P s r_s x rs), transition_def]
-  rw [(events_finality E cfg K _).1, (events_finality E cfg K _).2]
+  rw [(windowInv_events_finality E cfg K _).1, (windowInv_events_finality E cfg K _).2]
   simpa only [ff.2.2.2.2.2.1, ff.2.2.2.2.2.2] using hm
 
 private theorem ancestor_mono (E : Electorate V) (cfg : FGConfig) (K : Nat) (hne : ¬ E.IsQuorum
@@ -319,7 +320,7 @@ omit [DecidableEq V] [RowCodec V] in
 private theorem events_old (E : Electorate V) (cfg : FGConfig) (K : Nat) (w : State V)
     (d : Entry V) (hd : d ∈ (process_height_events E cfg K w).W) (hj : d.j < w.h) :
     d ∈ w.W := by
-  have ff := final_fields E w
+  have ff := windowInv_final_fields E w
   rw [process_height_events_def] at hd
   dsimp only at hd
   split_ifs at hd
@@ -428,7 +429,7 @@ theorem window_finality_of_cover (E : Electorate V) (cfg : FGConfig) (K : Nat) (
   have hsub : Q ⊆ d.Q := fun i hi => ((window_fold_entry rs e).2.2 i).mpr (hcover i hi)
   have hc := final_cover E K u hu d hd (isQuorum_of_subset E hQ hsub)
   simp only [derive_def E cfg K (.node P s r_s x rs), transition_def]
-  rw [(events_finality E cfg K _).1, (events_finality E cfg K _).2]
+  rw [(windowInv_events_finality E cfg K _).1, (windowInv_events_finality E cfg K _).2]
   simpa only [d, (window_fold_entry rs e).1, (window_fold_entry rs e).2.1] using hc
 
 end AvailableChain.KitFG.Window

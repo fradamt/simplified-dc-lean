@@ -22,7 +22,7 @@ private def B3 : FGBlock (Fin p.n) :=
   .node B2 3 ⟨12⟩ 0 [⟨0, .vote 3 B2.root false, some ⟨2, B1.root⟩⟩]
 
 /-- The unchanged FG-SA premises supply the full refinement record. -/
-private theorem complete_refinement (p : Params) (K : Nat) (hK : 2 ≤ K) :
+private theorem p0b2h_fgsa_complete_refinement (p : Params) (K : Nat) (hK : 2 ≤ K) :
     HeightFoldRefinement p.E p.cfg FGSA.Window.projectHeight FGSA.Window.initial
       (FGSA.Window.transition p K) (FGSA.Window.derive p K) where
   initial_height := (FGSA.Window.heightRefinement p K hK).initial_height
@@ -57,7 +57,7 @@ private theorem closed_cover :
       exact Or.inr ⟨_, List.mem_singleton_self _, rfl, rfl⟩)
 
 /-- Every field of the existing height law record remains available. -/
-private theorem complete_height (p : Params) (K : Nat) (hK : 2 ≤ K) :
+private theorem p0b2h_fgsa_complete_height (p : Params) (K : Nat) (hK : 2 ≤ K) :
     FGHeightLaws p.E (fun B => FGSA.Window.projectHeight (FGSA.Window.derive p K B)) where
   one_le_h := (FGSA.Window.windowHeightLaws p K hK).one_le_h
   h_mono := (FGSA.Window.windowHeightLaws p K hK).h_mono
@@ -74,10 +74,10 @@ private theorem complete_height (p : Params) (K : Nat) (hK : 2 ≤ K) :
   height_crossing := (FGSA.Window.windowHeightLaws p K hK).height_crossing
   justification_certificate := (FGSA.Window.windowHeightLaws p K hK).justification_certificate
 
-#print axioms complete_refinement
+#print axioms p0b2h_fgsa_complete_refinement
 #print axioms height_projection
 #print axioms inhabited_adapter
 #print axioms closed_cover
-#print axioms complete_height
+#print axioms p0b2h_fgsa_complete_height
 
 end AvailableChain.FGSA.Tests.P0b2

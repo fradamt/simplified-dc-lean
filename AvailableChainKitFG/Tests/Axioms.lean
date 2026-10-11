@@ -212,8 +212,8 @@ public import AvailableChainKitFG
 #print axioms AvailableChain.KitFG.WindowFoldMap_def
 #print axioms AvailableChain.KitFG.WindowFoldMap.fold_eq
 #print axioms AvailableChain.KitFG.WindowFoldMap.view_eq
-#print axioms AvailableChain.KitFG.WindowFoldMap.height_eq
-#print axioms AvailableChain.KitFG.WindowFoldMap.finality_eq
+#print axioms AvailableChain.KitFG.WindowFoldMap.foldMap_height_eq
+#print axioms AvailableChain.KitFG.WindowFoldMap.foldMap_finality_eq
 
 #print axioms AvailableChain.KitFG.Window.heightRefinement
 #print axioms AvailableChain.KitFG.Window.windowHeightBridge
