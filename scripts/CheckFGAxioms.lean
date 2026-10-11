@@ -142,6 +142,8 @@ def composeImportAllowed (m dep : Name) : Bool :=
      `AvailableChainFGCompose.Statements.Finality,
      `AvailableChainFGCompose.Statements.FinalityReceipts,
      `AvailableChainFGCompose.Proofs.ServiceTransport,
+     `AvailableChainFGCompose.Statements.HistoricalReads,
+     `AvailableChainFGCompose.Proofs.HistoricalReads,
      `AvailableChainFGCompose.Statements.Observations,
      `AvailableChainFGCompose.Statements.Selection,
      `AvailableChainFGCompose.Statements.Timing,
@@ -168,6 +170,8 @@ def composeImportAllowed (m dep : Name) : Bool :=
       -- Lead ruling 2026-10-07 (P2, S3a): the two exact SafetyClient pairs.
       [(`AvailableChainFGCompose.Proofs.SafetyAccountable,
         `AvailableChainKitFG.AccountableCore),
+       (`AvailableChainFGCompose.Proofs.HistoricalReads,
+        `AvailableChainGeneric.Proofs.Pure.CommonAncestor),
        (`AvailableChainFGCompose.Proofs.SafetyClient, `AvailableChainKitFG.ClientOnceSafety),
        (`AvailableChainFGCompose.Proofs.SafetyClient,
         `AvailableChainGeneric.Proofs.V2.Duty.Fields)].contains (m, dep)

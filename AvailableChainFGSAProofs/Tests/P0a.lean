@@ -1,7 +1,5 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Finality.MiddleSupport
 public import AvailableChainFGSAProofs.Proofs.Finality.Rows -- shake: keep (#print axioms)
-public import AvailableChainFGSAProofs.Proofs.Foundations.FGSafetyBridge
 
 set_option linter.privateModule false
 

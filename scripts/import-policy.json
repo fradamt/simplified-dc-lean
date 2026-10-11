@@ -109,7 +109,9 @@
       "AvailableChainFGCompose.Proofs.SafetyAccountable",
       "AvailableChainFGCompose.Proofs.SafetyCount",
       "AvailableChainFGCompose.Proofs.SafetyMonotone",
-      "AvailableChainFGCompose.Proofs.SafetySlashing"
+      "AvailableChainFGCompose.Proofs.SafetySlashing",
+      "AvailableChainFGCompose.Statements.HistoricalReads",
+      "AvailableChainFGCompose.Proofs.HistoricalReads"
     ]
   },
   "profiles": {

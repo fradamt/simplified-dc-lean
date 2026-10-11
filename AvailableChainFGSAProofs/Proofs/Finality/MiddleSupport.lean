@@ -1,9 +1,8 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Shared.FGCompose
-public import AvailableChainFGCompose.Proofs.SourceHead
 public import AvailableChainFGCompose.Proofs.Restart
 public import AvailableChainFGSAProofs.Proofs.Finality.RecoveryScope
-public import AvailableChainFGSAProofs.Proofs.Finality.TickRead
+public import AvailableChainFGSAProofs.Proofs.Finality.TickRead -- shake: keep (facade coverage)
 public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowthProposal
 public import AvailableChainFGSAProofs.Proofs.Shared.ProposalRead
 public import AvailableChainFGSAProofs.Proofs.Shared.BoundsW

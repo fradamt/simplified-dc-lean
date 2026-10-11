@@ -352,7 +352,7 @@ with tempfile.TemporaryDirectory(prefix='compose-gate-policy-') as tmp:
     scripts.mkdir()
     (tree / '.lake').mkdir()
     for name in ('gate.sh', 'gate-common.sh', 'checker_scope.py', 'checker-paths.txt',
-                 'unported.py', 'unported-libraries.txt'):
+                 'unported.py', 'unported-libraries.txt', 'gate_timing.py'):
         shutil.copy2(REPO / 'scripts' / name, scripts / name)
     # Keep the real tier dispatch. The unrelated steps have local stub commands.
     with (scripts / 'gate-common.sh').open('a') as out:

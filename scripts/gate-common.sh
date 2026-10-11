@@ -218,11 +218,50 @@ gate_parallel_failfast() {
 # Do not use this function in an if/|| test when the command needs set -e.
 gate_with_slot() (
   # Nested check drivers share the caller's slot, including with GATE_SLOTS=1.
-  if [ "${GATE_SLOT_HELD:-0}" = 1 ]; then "$@"; exit $?; fi
+  if [ "${GATE_SLOT_HELD:-0}" = 1 ]; then
+    gate_timing_slot
+    "$@"; exit $?
+  fi
   gate_slots_init || exit $?
   gate_slot_acquire || exit $?
+  gate_timing_slot
   export GATE_SLOT_HELD=1
   "$@"
+)
+
+gate_timing_slot() {
+  [ -z "${GATE_TIMING_RECORD:-}" ] ||
+    python3 -B "$GATE_TIMING_HELPER" slot "$GATE_TIMING_RECORD"
+  if [ -n "${GATE_STEP_TIMING_RECORD:-}" ] &&
+      [ "$GATE_STEP_TIMING_RECORD" != "${GATE_TIMING_RECORD:-}" ]; then
+    python3 -B "$GATE_TIMING_HELPER" slot "$GATE_STEP_TIMING_RECORD"
+  fi
+}
+
+gate_measure_command() {
+  [ -n "${GATE_TIMING_RECORD:-}" ] || { "$@"; return $?; }
+  local flag=-v rc=0 output=$GATE_TIMING_RECORD.time
+  [ "$(uname -s)" != Darwin ] || flag=-l
+  /usr/bin/time "$flag" -o "$output" "$@" || rc=$?
+  python3 -B "$GATE_TIMING_HELPER" finish "$GATE_TIMING_RECORD" "$rc" "$output"
+  return "$rc"
+}
+
+# Record shell functions without putting timing output into command stdout.
+gate_timed() (
+  local label=$1; shift
+  [ -n "${GATE_LOG_DIR:-}" ] || { "$@"; exit $?; }
+  local record=$GATE_LOG_DIR/timings/${GATE_STEP:-standalone}/$label.json
+  local resource=$record.cpu rc
+  export GATE_TIMING_HELPER=${GATE_TIMING_HELPER:-$PWD/scripts/gate_timing.py}
+  export GATE_TIMING_RECORD=$record
+  if [ "$label" = "${GATE_STEP:-}" ]; then export GATE_STEP_TIMING_RECORD=$record; fi
+  python3 -B "$GATE_TIMING_HELPER" start "$record" "$label" "$@"
+  trap 'rc=$?; trap - EXIT; python3 -B "$GATE_TIMING_HELPER" finish "$record" "$rc" "$resource"; exit "$rc"' EXIT
+  trap 'exit 130' INT
+  trap 'exit 143' TERM
+  TIMEFORMAT='GATE_CPU %U %S'
+  { time ( "$@" 2>&3 ); } 3>&2 2> "$resource"
 )
 
 # A signal exit, or a failure with empty output, is not a valid rejection.

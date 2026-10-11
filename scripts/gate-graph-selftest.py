@@ -15,8 +15,8 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / 'scripts'))
 from audit_pool import AuditPool
 
-HEAVY = ('fgsa-claims', 'check-fg-compose', 'check-fgsa', 'check-build',
-         'check-fgsa-run', 'fgsa-manifest')
+HEAVY = ('fgsa-claims', 'check-fg-compose', 'fgsa-manifest', 'check-fgsa-run',
+         'check-fgsa', 'check-build')
 CHEAP = ('build', 'fg-finality-coverage', 'catalog-lock',
          'v2-manifest', 'gen-manifest', 'fgsa-old-reads', 'proof-audit-coverage',
          'Generic-axioms', 'FGSA-axioms', 'FGSARun-axioms', 'FGCompose-axioms',
@@ -43,7 +43,7 @@ def event(kind):
         out.write(json.dumps(dict(name=name, kind=kind, time=time.monotonic(),
                                  neg=os.environ.get('NEG'))) + '\n')
 event('start')
-delay = 8 if name == 'check-fg-compose' and os.environ.get('STUB_FAIL') else 0.8
+delay = 8 if heavy and os.environ.get('STUB_FAIL') and name != os.environ['STUB_FAIL'] else 0.8
 time.sleep(delay if heavy else 0.01)
 event('end')
 if name.endswith('-axioms'):
@@ -82,12 +82,14 @@ def peak(events, names):
     return maximum
 
 
-def graph(root, tier, slots, fail='', change='', force=False, env_neg='0'):
+def graph(root, tier, slots, fail='', change='', force=False, env_neg='0', integration=False,
+          reviewed=(), old_stamp=False):
     scripts = root / 'scripts'
     scripts.mkdir(parents=True)
     (root / '.lake').mkdir()
     for name in ('gate.sh', 'gate-common.sh', 'checker_scope.py', 'checker-paths.txt',
-                 'unported.py', 'unported-libraries.txt'):
+                 'unported.py', 'unported-libraries.txt', 'gate_timing.py',
+                 'integration_scope.py', 'full-pass.py', 'check_inventory.py'):
         shutil.copy2(REPO / 'scripts' / name, scripts / name)
     # Test the driver after precheck. Real source prechecks run separately.
     with (scripts / 'gate-common.sh').open('a') as out:
@@ -106,6 +108,11 @@ def graph(root, tier, slots, fail='', change='', force=False, env_neg='0'):
                          ('check-fgsa-blueprint.py', 'fgsa-blueprint')):
         write(scripts / script, f'import runpy,sys\nsys.argv = ["stub", {name!r}]\n'
               'runpy.run_path("scripts/stub.py")\n')
+    write(scripts / 'integration_g0.py',
+          'import json,os,runpy,sys\nfrom pathlib import Path\n'
+          'Path(os.environ["GATE_LOG_DIR"]).joinpath("package-g0.json").write_text('
+          'json.dumps({"results": [{"module": "Stub.Tests.G0", "rc": 0}]}))\n'
+          'sys.argv = ["stub", "package-g0"]\nrunpy.run_path("scripts/stub.py")\n')
     for path in AXIOMS.values():
         write(root / path, '#print axioms Stub\n')
     # Lake only selects stub checks. No toolchain is called.
@@ -121,9 +128,17 @@ def graph(root, tier, slots, fail='', change='', force=False, env_neg='0'):
           '    name = "gen-manifest" if "gen" in a else "v2-manifest"\n'
           'else: name = next(k + "-axioms" for k,v in axioms.items() if v in a)\n'
           'sys.exit(subprocess.call([sys.executable,"scripts/stub.py",name]))\n', True)
-    # Portable harness: no Linux scope is needed for these stub commands.
-    write(root / 'bin/uname', '#!/usr/bin/env bash\necho Darwin\n', True)
+    # Stub commands need no Linux scope; retain the real platform's time flags.
+    platform = 'Darwin' if sys.platform == 'darwin' else 'Linux'
+    write(root / 'bin/uname', f'#!/usr/bin/env bash\necho {platform}\n', True)
+    write(root / '.gitignore', '.lake/\nevents\n')
+    write(root / 'scripts/gly-f13-allow.txt', 'Old.allowed\n')
+    write(root / 'scripts/fgsa-claims-expected.txt', "('Old.name',)\n")
+    snapshot = {'entries': {'Old.name': {'digest': 'old'}}, 'nodes': {},
+                'node_order': [], 'format_version': 1, 'pins': {}}
+    write(root / 'docs/api/gen-deep.json', json.dumps(snapshot))
     subprocess.run(['git', 'init', '-q', str(root)], check=True)
+    subprocess.run(['git', 'symbolic-ref', 'HEAD', 'refs/heads/p0-control'], cwd=root, check=True)
     subprocess.run(['git', 'add', '.'], cwd=root, check=True)
     tree = subprocess.check_output(['git', 'write-tree'], cwd=root, text=True).strip()
     base = subprocess.check_output(['git', '-c', 'user.name=Control', '-c',
@@ -131,7 +146,13 @@ def graph(root, tier, slots, fail='', change='', force=False, env_neg='0'):
         input='graph base\n', text=True).strip()
     subprocess.run(['git', 'update-ref', 'HEAD', base], cwd=root, check=True)
     if change:
-        write(root / change, 'changed\n')
+        changed_text = 'Old.allowed\nNew.allowed\n' if reviewed else 'changed\n'
+        if integration and change == 'scripts/fgsa-claims-expected.txt':
+            changed_text = "('Old.name', 'New.name')\n"
+        if integration and change == 'docs/api/gen-deep.json':
+            snapshot['entries']['New.name'] = {'digest': 'new'}
+            changed_text = json.dumps(snapshot)
+        write(root / change, changed_text)
         subprocess.run(['git', 'add', '.'], cwd=root, check=True)
         tree = subprocess.check_output(['git', 'write-tree'], cwd=root, text=True).strip()
         head = subprocess.check_output(['git', '-c', 'user.name=Control', '-c',
@@ -140,20 +161,29 @@ def graph(root, tier, slots, fail='', change='', force=False, env_neg='0'):
         subprocess.run(['git', 'update-ref', 'HEAD', head], cwd=root, check=True)
     else:
         head = base
-    selected = force or env_neg == '1' or not change or change.startswith(('scripts/', 'docs/'))
+    selected = bool(reviewed) if integration else (force or env_neg == '1' or not change or change.startswith(('scripts/', 'docs/')))
+    stamp = root / '.lake/gate-last-full'
+    if old_stamp:
+        stamp.write_text('prior FULL evidence\n')
+        stamp_before = stamp.stat().st_mtime_ns
     events = root / 'events'
     env = dict(os.environ, PATH=str(root / 'bin') + os.pathsep + os.environ['PATH'],
                GATE_SLOTS=str(slots), LEAN_SLOTS=str(slots), GATE_FF_GRACE='2',
+               GATE_MEM_SCOPED='1',
                STUB_EVENTS=str(events), STUB_HEAVY=json.dumps(HEAVY), STUB_FAIL=fail,
                SOURCE_ONLY='0', NEG=env_neg, SKIP_CONE='1')
     for key in ('GATE_SLOT_DIR', 'GATE_SLOT_HELD', 'GATE_NO_BUILD'):
         env.pop(key, None)
     result = subprocess.run(['bash', 'scripts/gate.sh', '--tier', tier, '--base', base] +
-                            (['--neg'] if force else []), cwd=root,
+                            (['--neg'] if force else []) + (['--integration'] if integration else []) +
+                            [arg for path in reviewed for arg in ('--reviewed-allow', path)], cwd=root,
                             env=env, capture_output=True, text=True)
+    assert events.exists(), result
     seen = records(events)
     starts = [e['name'] for e in seen if e['kind'] == 'start']
     expected = list(CHEAP if tier == 'full' else CHEAP[:-1])
+    if integration:
+        expected.insert(1, 'package-g0')
     if selected:
         expected.append('checker-self-tests')
     early = fail in expected
@@ -162,13 +192,23 @@ def graph(root, tier, slots, fail='', change='', force=False, env_neg='0'):
     maximum = peak(seen, HEAVY)
     assert maximum <= slots, (maximum, result)
     heavy_starts = starts[len(expected):] if not early else []
-    if slots == 1:
+    if slots == 1 and not fail:
         assert heavy_starts == list(HEAVY), heavy_starts
     elif not early:
-        assert set(heavy_starts[:2]) == set(HEAVY[:2]), heavy_starts
+        assert set(heavy_starts[:slots]) == set(HEAVY[:slots]), heavy_starts
     logs = next((root / '.lake').glob('gate-logs.*'))
+    assert not list((root / '.lake').glob('gate-slots.*/slot.*'))
+    if not early:
+        for name in HEAVY:
+            record = json.loads((logs / f'timings/{name}/{name}.json').read_text())
+            assert record['queued'] <= record['end'] and record['rc'] is not None, record
+            if record['start'] is not None:
+                assert record['queued'] <= record['start'] <= record['end'], record
+            if not fail:
+                assert record['slot_acquired'] is not None, record
+                assert record['peak_rss_bytes'] is not None, record
     if fail:
-        assert result.returncode == 1 and f'GATE FAIL tier={tier}' in result.stdout, result
+        assert result.returncode == 1 and ('PROVISIONAL INTEGRATION FAIL' if integration else f'GATE FAIL tier={tier}') in result.stdout, result
         if fail != 'build':
             assert 'fail-fast:' in result.stdout, result
         assert not (root / '.lake/gate-last-full').exists()
@@ -177,16 +217,36 @@ def graph(root, tier, slots, fail='', change='', force=False, env_neg='0'):
         else:
             assert 'stopped:' in result.stdout, result
             assert not all((logs / (n + '.result')).exists() for n in HEAVY), result
-            assert set(heavy_starts) == set(HEAVY[:2]), heavy_starts
+            assert set(heavy_starts) == set(HEAVY[:slots]), heavy_starts
             assert not any(e['name'] == 'check-fg-compose' and e['kind'] == 'end'
                            for e in seen), seen
     else:
-        assert result.returncode == 0 and f'GATE PASS tier={tier}' in result.stdout, result
+        assert result.returncode == 0 and ('PROVISIONAL INTEGRATION PASS' if integration else f'GATE PASS tier={tier}') in result.stdout, result
         assert set(starts[len(expected):]) == set(HEAVY), starts
         assert maximum == slots, (maximum, result)
         assert all(e['neg'] == ('1' if selected else '0')
                    for e in seen if e['name'] in HEAVY)
-        if tier == 'full':
+        if integration:
+            if old_stamp:
+                assert stamp.read_text() == 'prior FULL evidence\n' and stamp.stat().st_mtime_ns == stamp_before
+            else:
+                assert not stamp.exists()
+            assert not (logs / 'full-pass.json').exists()
+            completed = json.loads((logs / 'integration-result.json').read_text())
+            assert completed['result'] == 'PROVISIONAL PASS'
+            assert bool(completed['deferred_controls']) == (not reviewed)
+            if change.startswith(('scripts/', 'docs/api/')):
+                assert completed['matched_checker_paths'] == [change]
+            assert completed['package_g0']['results'][0]['rc'] == 0
+            assert set(completed['positive_steps']) == (set(CHEAP) - {'fgsa-old-reads'} | set(HEAVY) |
+                                                       {'package-g0'} | ({'checker-self-tests'} if selected else set()))
+            assert 'GATE PASS tier=full' not in result.stdout
+            for forbidden in (['--attest-key', 'key'], ['--neg'], ['--tier', 'merge'], ['--critical-path']):
+                refusal = subprocess.run(['bash', 'scripts/gate.sh', '--integration', '--base', base, *forbidden],
+                                         cwd=root, env=env, capture_output=True, text=True)
+                assert refusal.returncode == 2 and 'INTEGRATION REFUSED' in refusal.stderr, refusal
+            assert records(events) == seen
+        elif tier == 'full':
             spec = importlib.util.spec_from_file_location('receipt', REPO / 'scripts/full-pass.py')
             receipt = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(receipt)
@@ -291,7 +351,9 @@ with tempfile.TemporaryDirectory(prefix='gate-graph-') as temp:
     subprocess.run([sys.executable, '-B', 'scripts/fgsa-deep-controls.py', '--source-only'],
                    cwd=REPO, check=True)
     root = Path(temp)
-    for tier, slots, fail in (('full', 1, ''), ('full', 2, ''), ('full', 2, 'build'),
+    for tier, slots, fail in (('full', 1, ''), ('full', 2, ''), ('full', 3, ''),
+                              ('full', 1, 'fgsa-claims'), ('full', 3, 'fgsa-claims'),
+                              ('full', 2, 'build'),
                               ('full', 2, 'fg-finality-coverage'),
                               ('full', 2, 'fgsa-claims'), ('merge', 2, '')):
         graph(root / f'{tier}-{slots}-{fail or "pass"}', tier, slots, fail,
@@ -304,7 +366,17 @@ with tempfile.TemporaryDirectory(prefix='gate-graph-') as temp:
                 ('override', '', True, '0'), ('env-override', '', False, '1')):
             graph(root / (tier + '-' + label), tier, 2, change=change, force=force,
                   env_neg=env_neg)
+    for slots in (1, 2, 3):
+        graph(root / f'integration-{slots}', 'full', slots,
+              change='AvailableChainFGSAProofs/Proofs/Shared/New.lean', integration=True, old_stamp=slots == 3)
+    graph(root / 'integration-reviewed', 'full', 2, change='scripts/gly-f13-allow.txt',
+          integration=True, reviewed=['scripts/gly-f13-allow.txt'])
+    for label, change in (('inventory', 'scripts/fgsa-claims-expected.txt'),
+                          ('snapshot', 'docs/api/gen-deep.json')):
+        graph(root / ('integration-' + label), 'full', 2, change=change, integration=True)
+    graph(root / 'integration-g0-fail', 'full', 2, fail='package-g0',
+          change='AvailableChainFGSAProofs/Proofs/Shared/New.lean', integration=True)
     copy_control(root / 'copy')
-    for slots in (1, 2):
+    for slots in (1, 2, 3):
         pool_slots(root / f'pool-{slots}', slots)
 print('gate-graph-selftest: PASS')

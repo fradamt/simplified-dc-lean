@@ -16,10 +16,27 @@ if [ "${AUDIT_SERIAL:-0}" = 1 ]; then workers=1; fi
 JOBS=$workers
 manifest_run() {
   local label=$1; shift
+  gate_timed "$label" gate_with_slot manifest_command "$label" "$@"
+}
+manifest_command() {
+  local label=$1; shift
   if [ "${AUDIT_TIMING:-0}" = 1 ]; then
     local flag=-v
     if [ "$(uname -s)" = Darwin ]; then flag=-l; fi
-    /usr/bin/time "$flag" -o "$timing_dir/$label.time" "$@"
+    local output=$timing_dir/$label.time rc=0
+    if [ -n "${GATE_LOG_DIR:-}" ]; then
+      output=$GATE_TIMING_RECORD.time
+    fi
+    if [ -n "${GATE_LOG_DIR:-}" ]; then
+      /usr/bin/time "$flag" -o "$output" "$@" > "$GATE_TIMING_RECORD.stdout" \
+        2> "$GATE_TIMING_RECORD.stderr" || rc=$?
+      python3 -B "$GATE_TIMING_HELPER" finish "$GATE_TIMING_RECORD" "$rc" "$output"
+      cat "$GATE_TIMING_RECORD.stdout"
+      cat "$GATE_TIMING_RECORD.stderr" >&2
+    else
+      /usr/bin/time "$flag" -o "$output" "$@" || rc=$?
+    fi
+    return "$rc"
   else
     "$@"
   fi
@@ -31,25 +48,25 @@ trap 'rm -rf "$tmp" "$timing_dir"' EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
 timing_dir=$(mktemp -d "$PWD/.lake/fgsa-manifest-times.XXXXXX")
-gate_with_slot manifest_run main lake env lean --run scripts/V2Manifest.lean --scope fgsa --check
+manifest_run main lake env lean --run scripts/V2Manifest.lean --scope fgsa --check
 # The current deep snapshot is required at both tiers, after complete D15.
-gate_with_slot manifest_run deep lake env lean --run scripts/V2Manifest.lean \
+manifest_run deep lake env lean --run scripts/V2Manifest.lean \
   --scope fgsa --deep --check
-gate_with_slot manifest_run legacy python3 -B scripts/api-snapshot.py --scope legacy --check
+manifest_run legacy python3 -B scripts/api-snapshot.py --scope legacy --check
 # Every committed review product is compared with compiled state at both tiers.
 # UNPORTED PC-SA is excluded by scripts/unported-libraries.txt in api-snapshot.py.
 # Its last shallow/deep snapshots stay in the tree; active scopes remain mandatory.
-gate_with_slot manifest_run v2-deep python3 -B scripts/api-snapshot.py --scope v2 \
+manifest_run v2-deep python3 -B scripts/api-snapshot.py --scope v2 \
   --output docs/api/v2-deep.json --check
-gate_with_slot manifest_run gen-deep python3 -B scripts/api-snapshot.py --scope gen \
+manifest_run gen-deep python3 -B scripts/api-snapshot.py --scope gen \
   --output docs/api/gen-deep.json --check
-gate_with_slot manifest_run compose-api python3 -B scripts/api-snapshot.py --scope compose --check
-gate_with_slot manifest_run claims-api python3 -B scripts/api-snapshot.py \
+manifest_run compose-api python3 -B scripts/api-snapshot.py --scope compose --check
+manifest_run claims-api python3 -B scripts/api-snapshot.py \
   --scope fgsa-claims --check
 # NEG=0 skips controls when no checker path changed.
 if [ "${NEG:-1}" != 1 ]; then echo "controls skipped (NEG=0)"; exit 0; fi
 mkdir -p .lake
 tmp=$(mktemp -d "$PWD/.lake/fgsa-manifest.XXXXXX")
 
-gate_with_slot manifest_run snapshot-controls python3 -B scripts/api-snapshot-controls.py
-gate_with_slot manifest_run deep-controls python3 -B scripts/fgsa-deep-controls.py
+manifest_run snapshot-controls python3 -B scripts/api-snapshot-controls.py
+manifest_run deep-controls python3 -B scripts/fgsa-deep-controls.py

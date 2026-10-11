@@ -3,6 +3,7 @@
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 import os
+import json
 import signal
 import shutil
 import subprocess
@@ -13,6 +14,9 @@ import time
 from unittest.mock import patch
 
 from audit_pool import AuditPool, positive_seconds
+
+# Fake audit fixtures must not use the calling FULL gate's persistent log path.
+os.environ.pop('GATE_LOG_DIR', None)
 
 
 def command(body):
@@ -134,6 +138,35 @@ with tempfile.TemporaryDirectory(prefix='audit-pool-control-') as temp:
             else:
                 raise AssertionError('unsupported timer accepted')
     print('CONTROL timer preflight and output: PASS')
+
+    retained = Path(temp) / 'gate-logs'
+    with patch.dict(os.environ, GATE_LOG_DIR=str(retained), GATE_STEP='claims',
+                    AUDIT_TIMING='1'):
+        measured = AuditPool(Path(temp), 1, temp_prefix='retained.')
+        scratch = measured.work
+        output = measured.run('json', command(
+            'import sys; print("{\\"ok\\": true}"); print("diagnostic", file=sys.stderr)'))
+        measured.cleanup()
+        assert not scratch.exists()
+        path = retained / 'substeps/claims/01-json'
+        assert json.loads(path.with_suffix('.stdout').read_text()) == {'ok': True}
+        assert path.with_suffix('.stderr').read_text().strip() == 'diagnostic'
+        assert 'diagnostic' in output
+        record = json.loads(path.with_suffix('.json').read_text())
+        assert record['queued'] <= record['start'] <= record['end']
+        assert record['rc'] == 0 and record['cpu_user_s'] is not None
+        assert record['peak_rss_bytes'] is not None
+    print('CONTROL retained timing and separate JSON/stderr after cleanup: PASS')
+    with patch.dict(os.environ, AUDIT_TIMING='0'):
+        spawning = AuditPool(Path(temp) / 'spawn-failure', 1)
+        try:
+            spawning.run('missing-command', ['/nonexistent/audit-command'])
+        except FileNotFoundError:
+            record = json.loads(next(spawning.work.glob('*-missing-command.json')).read_text())
+            assert record['rc'] == 127 and record['end'] >= record['start']
+        else:
+            raise AssertionError('missing command accepted')
+    print('CONTROL spawn failure has a completed timing record: PASS')
 
     # A live slot owner must not consume a waiting command's one-second budget.
     repo = Path(__file__).resolve().parents[1]
