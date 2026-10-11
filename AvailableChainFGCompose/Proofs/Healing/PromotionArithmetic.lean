@@ -30,7 +30,8 @@ private theorem p0d3_kappa_ceiling (T : FGTiming) (hT : FGTimingLaws T)
   have hn : 0 ≤ 6 * T.delta + ΔF + 4 * T.delta - 1 := by
     have hd1 : (1 : Time) ≤ T.delta := hT.delta_pos
     linarith
-  rw [kappaF, Int.toNat_of_nonneg (Int.ediv_nonneg hn hd.le)]
+  delta kappaF
+  rw [Int.toNat_of_nonneg (Int.ediv_nonneg hn hd.le)]
   have hhi := Int.lt_ediv_add_one_mul_self (6 * T.delta + ΔF + 4 * T.delta - 1) hd
   nlinarith
 
@@ -45,17 +46,18 @@ private theorem p0d3_kappa_two (T : FGTiming) (hT : FGTimingLaws T)
 private theorem p0d3_beta_period (T : FGTiming) (hT : FGTimingLaws T)
     (ΔF : Time) (hbound : LivenessBoundW T ΔF) : betaF T ΔF ≤ FGCompose.P T := by
   have hk : (kappaF T ΔF : Time) ≤ T.roundSlots := by exact_mod_cast hbound.kappa_le_R
-  unfold betaF FGCompose.P
+  delta betaF FGCompose.P
   nlinarith [hT.delta_pos]
 
 private theorem p0d3_delivery_bounds (T : FGTiming) (hT : FGTimingLaws T)
     (ΔF : Time) (r : Nat) (hF : 0 ≤ ΔF) (hbound : LivenessBoundW T ΔF) :
     ActionDeliveryBoundsW T ΔF r := by
-  unfold ActionDeliveryBoundsW carrierTimeW
+  unfold ActionDeliveryBoundsW
+  delta carrierTimeW
   rw [p0d3_action_period T hT]
   have hbeta : 6 * T.delta + ΔF ≤ betaF T ΔF := by
     have := p0d3_kappa_ceiling T hT ΔF hF
-    unfold betaF
+    delta betaF
     nlinarith
   have hperiod := p0d3_beta_period T hT ΔF hbound
   exact ⟨rfl, by linarith, by nlinarith⟩
@@ -182,7 +184,8 @@ theorem healing_promotion_row_deadline (T : FGTiming) (hT : FGTimingLaws T) (E :
   have hdeadline := hb.2.1.trans hs
   have hk : (2 : Time) ≤ kappaF T ΔF := by exact_mod_cast p0d3_kappa_two T hT ΔF hF
   have hcast : ((r * T.roundSlots + 2 : Nat) : Time) ≤ s := by
-    rw [carrierTimeW, betaF, p0d3_proposal T hT] at hs
+    delta carrierTimeW betaF at hs
+    rw [p0d3_proposal T hT] at hs
     change (r : Time) * (4 * (T.roundSlots : Time) * T.delta) +
       4 * (kappaF T ΔF : Time) * T.delta ≤ 4 * T.delta * (s : Time) at hs
     push_cast
@@ -202,7 +205,7 @@ theorem healing_promotion_row_deadline_strict (T : FGTiming) (hT : FGTimingLaws 
     carrierTimeW T ΔF r ≤ ((r : Time) + 1) * FGCompose.P T ∧
     ((r : Time) + 1) * FGCompose.P T < T.proposal s := by
   have hc : carrierTimeW T ΔF r ≤ T.proposal s := by
-    rw [carrierTimeW]
+    delta carrierTimeW
     have := p0d3_beta_period T hT ΔF hbound
     have := p0d3_period_pos T hT
     linarith
@@ -339,20 +342,22 @@ theorem healing_promotion_age_gap (T : FGTiming) (hT : FGTimingLaws T) (I : V2.D
   have hk : (2 : Time) ≤ kappaF T ΔF := by exact_mod_cast p0d3_kappa_two T hT ΔF hF
   have ha : E.t_GST ≤ a := by
     dsimp only [a]
-    rw [betaF]
+    delta betaF
     nlinarith [hT.delta_pos]
   have hstart : E.t_GST ≤ U_F := ha.trans (le_max_left a b)
   have hgate : max (T.action r + Γ T G + 4 * T.delta + epsF T ΔF)
       (T.proposal q + 2 * FGCompose.P T + Γ T G + 2 * T.delta) =
       U_F + Γ T G + 6 * T.delta := by
-    rw [p0d3_action_period T hT, epsF]
+    rw [p0d3_action_period T hT]
+    delta epsF
     change max _ _ = max a b + _ + _
     rw [← max_add_add_right, ← max_add_add_right]
     congr 1 <;> dsimp only [a, b] <;> ring
   have hterminal : max (T.action r + Γ T G - T.delta + epsF T ΔF)
       (T.proposal q + 2 * FGCompose.P T + Γ T G - 3 * T.delta) =
       U_F + Γ T G + T.delta := by
-    rw [p0d3_action_period T hT, epsF]
+    rw [p0d3_action_period T hT]
+    delta epsF
     change max _ _ = max a b + _ + _
     rw [← max_add_add_right, ← max_add_add_right]
     congr 1 <;> dsimp only [a, b] <;> ring
@@ -364,7 +369,8 @@ theorem healing_promotion_age_gap (T : FGTiming) (hT : FGTimingLaws T) (I : V2.D
     rw [mul_max_of_nonneg _ _ (by linarith [hT.delta_pos])]
     congr 1
     · change (r : Time) * (4 * (T.roundSlots : Time) * T.delta) + betaF T ΔF - 4 * T.delta = _
-      rw [betaF]; ring
+      delta betaF
+      ring
     · rw [p0d3_proposal T hT]
       change 4 * T.delta * (q : Time) + 2 * (4 * (T.roundSlots : Time) * T.delta) - 4 * T.delta = _
       ring
