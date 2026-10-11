@@ -126,6 +126,8 @@ def composeImportAllowed (m dep : Name) : Bool :=
       !under `AvailableChainGeneric.Statements.Pure.Walk) ||
     [`AvailableChainSimplexFG.Store, `AvailableChainKitFG.HeightLawsDef].contains dep
   let safety := [(`AvailableChainFGCompose.Statements.SafetyReads, `AvailableChainKitFG.ClientOnce),
+    (`AvailableChainFGCompose.Statements.Observations, `AvailableChainKitFG.TreeFrameDef),
+    (`AvailableChainFGCompose.Statements.Observations, `AvailableChainKitFG.CertificateCoreDef),
     (`AvailableChainFGCompose.Statements.SafetyReads, `AvailableChainSimplexFG.Evidence),
     (`AvailableChainFGCompose.Statements.SafetyReads, `AvailableChainKitFG.CertificateCoreDef),
     (`AvailableChainFGCompose.Statements.SafetyReads, `AvailableChainGeneric.Statements.V2.Duty.Slashing),
@@ -134,6 +136,13 @@ def composeImportAllowed (m dep : Name) : Bool :=
   if dep == `Init then true
   else if m == `AvailableChainFGCompose then
     [`AvailableChainFGCompose.Statements.EventReads, `AvailableChainFGCompose.Statements.CoreReads,
+     `AvailableChainFGCompose.Statements.Observations,
+     `AvailableChainFGCompose.Statements.Selection,
+     `AvailableChainFGCompose.Statements.Timing,
+     `AvailableChainFGCompose.Statements.Channels,
+     `AvailableChainFGCompose.Statements.ChannelLaws,
+     `AvailableChainFGCompose.Proofs.ObservationTransport,
+     `AvailableChainFGCompose.Proofs.Timing,
      `AvailableChainFGCompose.Proofs.SourceHead,
      `AvailableChainFGCompose.Statements.Restart, `AvailableChainFGCompose.Proofs.Restart,
      `AvailableChainFGCompose.Statements.SafetyReads, `AvailableChainFGCompose.Statements.SafetyStore,

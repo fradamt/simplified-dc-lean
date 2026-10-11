@@ -1343,3 +1343,20 @@ manifest passes the FG-SA, legacy, V2, generic and Compose snapshots. Its claim
 snapshot needed H1 test callers and P-As Assembly/NonVacuity ports at that
 checkpoint. P-H2 Round 10 and P-As Round 9 close those ports. The final P-As
 handoff records full Root closure and the inherited PC-SA manifest blocker.
+
+
+### P0c1 — observations, paired selection, channels, and timing
+
+`AvailableChainFGCompose.Statements.Observations` reads the cumulative FG store.
+`Selection` pairs source and head at one post-clock state and equates those inputs
+with the signing client. Its FG-SA private instance uses `Reachable`; its separate
+joined law uses the actual fresh action under `ExecutionValid`.
+`Timing` preserves the 0/1/2/3/5/6 delta offsets and signed slot arithmetic.
+`Channels` preserves raw authentication, exact wire witnesses, and nested Options.
+`ChannelLaws` translates RXing, RCap, RStrat, and all three RQCOrigin cases.
+The source-service leaf retains the old gate, ancestry, and fastAt conjunction.
+`Proofs.ObservationTransport` connects the paired read to `tick_rows`.
+`Proofs.Timing` supplies the unchanged FG-SA action-time theorem through a private
+clock instance. Private adapters are in `FGSAProofs.Proofs.Shared.FGCompose`.
+Both `Tests.P0c1` modules check inhabited reads and reject the weaker interfaces.
+FG-SA public definitions and snapshots stay fixed. PC-SA remains UNPORTED.

@@ -45,3 +45,4 @@ F-13 dup targetQuorum_def AvailableChainFGSA AvailableChainSimplexFG # P0: gener
 F-13 dup transition_def AvailableChainFGSA AvailableChainSimplexFG # P0: generic home; FG-SA copy frozen (plan v3 §1)
 F-13 dup update_finality_def AvailableChainFGSA AvailableChainSimplexFG # P0: generic home; FG-SA copy frozen (plan v3 §1)
 F-13 dup windowMatch_def AvailableChainFGSA AvailableChainSimplexFG # P0: generic home; FG-SA copy frozen (plan v3 §1)
+F-13 dup finality_action_time_bounds AvailableChainFGCompose AvailableChainFGSAProofs # P0: generic home; FG-SA copy frozen (plan v3 §1)
