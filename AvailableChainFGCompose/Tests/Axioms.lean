@@ -22,6 +22,10 @@ public import AvailableChainFGCompose.Proofs.ServiceTransport -- shake: keep (#p
 public import AvailableChainFGCompose.Statements.HistoricalReads -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Proofs.HistoricalReads -- shake: keep (#print axioms)
 
+public import AvailableChainFGCompose.Statements.ResetCut -- shake: keep (#print axioms)
+
+public import AvailableChainFGCompose.Proofs.Healing.ResetCut -- shake: keep (#print axioms)
+
 #print axioms AvailableChain.FGCompose.ChainRowsBefore
 #print axioms AvailableChain.FGCompose.ChainRowsBefore_def
 #print axioms AvailableChain.FGCompose.FGCore
@@ -371,3 +375,25 @@ public import AvailableChainFGCompose.Proofs.HistoricalReads -- shake: keep (#pr
 #print axioms AvailableChain.FGCompose.historical_read_restore_eq
 #print axioms AvailableChain.FGCompose.historical_read_sound
 #print axioms AvailableChain.FGCompose.historical_read_step
+
+#print axioms AvailableChain.FGCompose.period
+#print axioms AvailableChain.FGCompose.resetFirstRound
+#print axioms AvailableChain.FGCompose.resetCutTime
+#print axioms AvailableChain.FGCompose.frontierAtIdx
+#print axioms AvailableChain.FGCompose.resetCutFrontier
+
+#print axioms AvailableChain.FGCompose.reset_period_lower
+#print axioms AvailableChain.FGCompose.reset_action_exists
+#print axioms AvailableChain.FGCompose.reset_rG_after
+#print axioms AvailableChain.FGCompose.reset_rG_first
+#print axioms AvailableChain.FGCompose.reset_cut
+#print axioms AvailableChain.FGCompose.reset_first_action_upper
+#print axioms AvailableChain.FGCompose.reset_cut_lower
+#print axioms AvailableChain.FGCompose.reset_cut_upper
+#print axioms AvailableChain.FGCompose.reset_frontier
+#print axioms AvailableChain.FGCompose.reset_inclusive_frontier
+#print axioms AvailableChain.FGCompose.reset_inclusive_start_iff
+#print axioms AvailableChain.FGCompose.reset_row_cap
+#print axioms AvailableChain.FGCompose.reset_old_row_before_cut
+#print axioms AvailableChain.FGCompose.reset_old_height_sup_le
+#print axioms AvailableChain.FGCompose.reset_mu_le_iff

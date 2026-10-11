@@ -84,6 +84,8 @@
       "AvailableChainGeneric.Statements.**"
     ],
     "laneUpstream": [
+      "AvailableChainFGCompose.Proofs.Healing.ResetCut",
+      "AvailableChainFGCompose.Statements.ResetCut",
       "AvailableChainFGCompose.Statements.ResetHistory",
       "AvailableChainFGCompose.Statements.Service",
       "AvailableChainFGCompose.Statements.Bounds",

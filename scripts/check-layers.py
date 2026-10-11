@@ -780,6 +780,18 @@ COMPOSE_EDGES |= frozenset({
     (PROOFS + ".Tests.P0HistoricalReads", COMPOSE + ".Proofs.HistoricalReads"),
 })
 
+# P0d6a: causal reset-cut statement home.
+COMPOSE_MODULES += (COMPOSE + ".Statements.ResetCut",)
+
+# P0d6a: direct b2 store bound and the frozen FG-SA adapter.
+COMPOSE_MODULES += (COMPOSE + ".Proofs.Healing.ResetCut",)
+COMPOSE_PROOF_IMPORTS |= frozenset({
+    (COMPOSE + ".Proofs.Healing.ResetCut", KITFG + ".StoreBounds"),
+})
+COMPOSE_EDGES |= frozenset({
+    (PROOFS + ".Proofs.Healing.ResetCut", COMPOSE + ".Proofs.Healing.ResetCut"),
+})
+
 def compose_base(dep: str) -> bool:
     return (foundation(dep) or under(dep, "AvailableChainModel.Objects")
             or any_under(dep, ("AvailableChainEngineV2.Engine",

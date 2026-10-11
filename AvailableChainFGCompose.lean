@@ -30,3 +30,6 @@ public import AvailableChainFGCompose.Proofs.SafetySlashing
 
 public import AvailableChainFGCompose.Statements.HistoricalReads
 public import AvailableChainFGCompose.Proofs.HistoricalReads
+
+public import AvailableChainFGCompose.Statements.ResetCut
+public import AvailableChainFGCompose.Proofs.Healing.ResetCut

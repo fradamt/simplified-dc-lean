@@ -2,6 +2,30 @@
 # Review changes. Normal checks never regenerate this file.
 {
     'AvailableChainFGCompose.Tests.Axioms': {
+        'AvailableChainFGCompose.Proofs.Healing.ResetCut': (
+            'AvailableChain.FGCompose.reset_action_exists',
+            'AvailableChain.FGCompose.reset_cut',
+            'AvailableChain.FGCompose.reset_cut_lower',
+            'AvailableChain.FGCompose.reset_cut_upper',
+            'AvailableChain.FGCompose.reset_first_action_upper',
+            'AvailableChain.FGCompose.reset_frontier',
+            'AvailableChain.FGCompose.reset_inclusive_frontier',
+            'AvailableChain.FGCompose.reset_inclusive_start_iff',
+            'AvailableChain.FGCompose.reset_mu_le_iff',
+            'AvailableChain.FGCompose.reset_old_height_sup_le',
+            'AvailableChain.FGCompose.reset_old_row_before_cut',
+            'AvailableChain.FGCompose.reset_period_lower',
+            'AvailableChain.FGCompose.reset_rG_after',
+            'AvailableChain.FGCompose.reset_rG_first',
+            'AvailableChain.FGCompose.reset_row_cap',
+        ),
+        'AvailableChainFGCompose.Statements.ResetCut': (
+            'AvailableChain.FGCompose.period',
+            'AvailableChain.FGCompose.resetFirstRound',
+            'AvailableChain.FGCompose.resetCutTime',
+            'AvailableChain.FGCompose.frontierAtIdx',
+            'AvailableChain.FGCompose.resetCutFrontier',
+        ),
         'AvailableChainFGCompose.Statements.ResetHistory': (
             'AvailableChain.FGCompose.FGResetHistory',
             'AvailableChain.FGCompose.FGResetHistory.M',
