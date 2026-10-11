@@ -154,3 +154,11 @@ F-13 dup terminal_retained_birthsW AvailableChainFGSA AvailableChainKitFG # P0: 
 F-13 dup terminal_retained_or_coveredW AvailableChainFGSA AvailableChainKitFG # P0: generic home; FG-SA copy frozen (plan v3 §1)
 F-13 dup terminalRetentionW AvailableChainFGSA AvailableChainKitFG # P0: generic home; FG-SA copy frozen (plan v3 §1)
 F-13 dup heightMatch_progress_first AvailableChainFGSA AvailableChainKitFG # P0: generic home; FG-SA copy frozen (plan v3 §1)
+
+# P0 generic extraction plus frozen FG-SA wrapper (plan v3 §1)
+# P0d7a1
+F-13 dup noMixedPreBatchParent AvailableChainFGCompose AvailableChainFGSAProofs # P0: generic home; FG-SA copy frozen (plan v3 §1)
+F-13 dup justifyFresh_W AvailableChainFGCompose AvailableChainFGSAProofs # P0: generic home; FG-SA copy frozen (plan v3 §1)
+F-13 dup raw_causal_cap_before AvailableChainFGCompose AvailableChainFGSAProofs # P0: generic home; FG-SA copy frozen (plan v3 §1)
+F-13 dup raw_causal_cap_at_tick AvailableChainFGCompose AvailableChainFGSAProofs # P0: generic home; FG-SA copy frozen (plan v3 §1)
+F-13 dup raw_causal_cap_through_action AvailableChainFGCompose AvailableChainFGSAProofs # P0: generic home; FG-SA copy frozen (plan v3 §1)

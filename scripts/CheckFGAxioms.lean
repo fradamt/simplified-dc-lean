@@ -126,6 +126,7 @@ def composeImportAllowed (m dep : Name) : Bool :=
       !under `AvailableChainGeneric.Statements.Pure.Walk) ||
     [`AvailableChainSimplexFG.Store, `AvailableChainKitFG.HeightLawsDef].contains dep
   let safety := [(`AvailableChainFGCompose.Statements.SafetyReads, `AvailableChainKitFG.ClientOnce),
+    (`AvailableChainFGCompose.Statements.FinalityHistory, `AvailableChainKitFG.WindowEntriesDef),
     (`AvailableChainFGCompose.Statements.Observations, `AvailableChainKitFG.TreeFrameDef),
     (`AvailableChainFGCompose.Statements.Observations, `AvailableChainKitFG.CertificateCoreDef),
     (`AvailableChainFGCompose.Statements.SafetyReads, `AvailableChainSimplexFG.Evidence),
@@ -137,6 +138,8 @@ def composeImportAllowed (m dep : Name) : Bool :=
   else if m == `AvailableChainFGCompose then
     [`AvailableChainFGCompose.Statements.EventReads, `AvailableChainFGCompose.Statements.CoreReads,
      `AvailableChainFGCompose.Statements.ResetCut,
+     `AvailableChainFGCompose.Statements.FinalityHistory,
+     `AvailableChainFGCompose.Proofs.Finality.History,
      `AvailableChainFGCompose.Proofs.Healing.ResetCut,
      `AvailableChainFGCompose.Statements.ResetHistory,
      `AvailableChainFGCompose.Statements.Service,
@@ -172,6 +175,13 @@ def composeImportAllowed (m dep : Name) : Bool :=
       -- Lead ruling 2026-10-07 (P2, S3a): the two exact SafetyClient pairs.
       [(`AvailableChainFGCompose.Proofs.SafetyAccountable,
         `AvailableChainKitFG.AccountableCore),
+       (`AvailableChainFGCompose.Proofs.Finality.History, `AvailableChainKitFG.CausalCapCore),
+       (`AvailableChainFGCompose.Proofs.Finality.History,
+        `AvailableChainKitFG.HeightHistoryTransfer),
+       (`AvailableChainFGCompose.Proofs.Finality.History, `AvailableChainKitFG.WindowRetention),
+       (`AvailableChainFGCompose.Proofs.Finality.History, `AvailableChainKitFG.WindowSelection),
+       (`AvailableChainFGCompose.Proofs.Finality.History,
+        `AvailableChainGeneric.Proofs.V2.Duty.Reads),
        (`AvailableChainFGCompose.Proofs.Healing.ResetCut, `AvailableChainKitFG.StoreBounds),
        (`AvailableChainFGCompose.Proofs.HistoricalReads,
         `AvailableChainGeneric.Proofs.Pure.CommonAncestor),

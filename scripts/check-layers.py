@@ -795,6 +795,33 @@ COMPOSE_EDGES |= frozenset({
     (PROOFS + ".Proofs.Healing.ResetCut", COMPOSE + ".Proofs.Healing.ResetCut"),
 })
 
+# P0d7a1: exact causal history consumers and frozen wrapper.
+COMPOSE_MODULES += (
+    'AvailableChainFGCompose.Statements.FinalityHistory',
+    'AvailableChainFGCompose.Proofs.Finality.History',
+)
+COMPOSE_SAFETY_IMPORTS |= frozenset({
+    ('AvailableChainFGCompose.Statements.FinalityHistory', 'AvailableChainKitFG.WindowEntriesDef'),
+})
+COMPOSE_PROOF_IMPORTS |= frozenset({
+    ('AvailableChainFGCompose.Proofs.Finality.History', 'AvailableChainKitFG.CausalCapCore'),
+    ('AvailableChainFGCompose.Proofs.Finality.History',
+     'AvailableChainKitFG.HeightHistoryTransfer'),
+    ('AvailableChainFGCompose.Proofs.Finality.History', 'AvailableChainKitFG.WindowRetention'),
+})
+COMPOSE_EDGES |= frozenset({
+    ('AvailableChainFGSAProofs.Proofs.Finality.History',
+     'AvailableChainFGCompose.Proofs.Finality.History'),
+})
+
+COMPOSE_PROOF_IMPORTS |= frozenset({
+    (COMPOSE + ".Proofs.Finality.History", "AvailableChainGeneric.Proofs.V2.Duty.Reads"),
+})
+
+COMPOSE_PROOF_IMPORTS |= frozenset({
+    (COMPOSE + ".Proofs.Finality.History", KITFG + ".WindowSelection"),
+})
+
 def compose_base(dep: str) -> bool:
     return (foundation(dep) or under(dep, "AvailableChainModel.Objects")
             or any_under(dep, ("AvailableChainEngineV2.Engine",

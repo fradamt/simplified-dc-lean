@@ -33,3 +33,5 @@ public import AvailableChainFGCompose.Proofs.HistoricalReads
 
 public import AvailableChainFGCompose.Statements.ResetCut
 public import AvailableChainFGCompose.Proofs.Healing.ResetCut
+public import AvailableChainFGCompose.Statements.FinalityHistory
+public import AvailableChainFGCompose.Proofs.Finality.History

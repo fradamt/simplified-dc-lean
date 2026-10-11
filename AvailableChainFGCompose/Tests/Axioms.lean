@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGCompose.Proofs.Finality.History -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Proofs.ObservationTransport -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Proofs.Timing -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Statements.Observations -- shake: keep (#print axioms)
@@ -397,3 +398,46 @@ public import AvailableChainFGCompose.Proofs.Healing.ResetCut -- shake: keep (#p
 #print axioms AvailableChain.FGCompose.reset_old_row_before_cut
 #print axioms AvailableChain.FGCompose.reset_old_height_sup_le
 #print axioms AvailableChain.FGCompose.reset_mu_le_iff
+#print axioms AvailableChain.FGCompose.justifyFresh_W
+#print axioms AvailableChain.FGCompose.noMixedPreBatchParent
+#print axioms AvailableChain.FGCompose.raw_causal_cap_at_tick
+#print axioms AvailableChain.FGCompose.raw_causal_cap_before
+#print axioms AvailableChain.FGCompose.raw_causal_cap_through_action
+#print axioms AvailableChain.FGCompose.EntryAt
+#print axioms AvailableChain.FGCompose.FGHistoryWireReads
+#print axioms AvailableChain.FGCompose.FGHistoryWireReads.decode_finality
+#print axioms AvailableChain.FGCompose.FGHistoryWireReads.decode_height
+#print axioms AvailableChain.FGCompose.FGHistoryWireReads.decode_signer
+#print axioms AvailableChain.FGCompose.FGHistoryWireReads.finalityPair
+#print axioms AvailableChain.FGCompose.FGHistoryWireReads.heightPair
+#print axioms AvailableChain.FGCompose.FGHistoryWireReads.mk
+#print axioms AvailableChain.FGCompose.FGHistoryWireReads.signer
+#print axioms AvailableChain.FGCompose.FreshPrem
+#print axioms AvailableChain.FGCompose.FreshPrem.cut
+#print axioms AvailableChain.FGCompose.FreshPrem.early
+#print axioms AvailableChain.FGCompose.FreshPrem.fault_weight
+#print axioms AvailableChain.FGCompose.FreshPrem.mk
+#print axioms AvailableChain.FGCompose.FreshPrem.noFinRow
+#print axioms AvailableChain.FGCompose.FreshPrem.noNextRow
+#print axioms AvailableChain.FGCompose.FreshPrem.rows
+#print axioms AvailableChain.FGCompose.FreshPrem.schedule
+#print axioms AvailableChain.FGCompose.JustifiedCross
+#print axioms AvailableChain.FGCompose.MixedCross
+#print axioms AvailableChain.FGCompose.NoMixedOnPath
+#print axioms AvailableChain.FGCompose.PreBatchPrem
+#print axioms AvailableChain.FGCompose.PreBatchPrem.cut
+#print axioms AvailableChain.FGCompose.PreBatchPrem.early
+#print axioms AvailableChain.FGCompose.PreBatchPrem.entry
+#print axioms AvailableChain.FGCompose.PreBatchPrem.fault_weight
+#print axioms AvailableChain.FGCompose.PreBatchPrem.mk
+#print axioms AvailableChain.FGCompose.PreBatchPrem.noRow
+#print axioms AvailableChain.FGCompose.PreBatchPrem.path
+#print axioms AvailableChain.FGCompose.PreBatchPrem.rows
+#print axioms AvailableChain.FGCompose.PreBatchPrem.schedule
+#print axioms AvailableChain.FGCompose.RawHistoryOrigin
+#print axioms AvailableChain.FGCompose.TargetCoveredByChild
+#print axioms AvailableChain.FGCompose.TargetJustification
+#print axioms AvailableChain.FGCompose.eventTime
+#print axioms AvailableChain.FGCompose.historyFaulty
+#print axioms AvailableChain.FGCompose.historyFinHeight
+#print axioms AvailableChain.FGCompose.historyRowHeight
