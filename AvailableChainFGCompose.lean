@@ -32,3 +32,8 @@ public import AvailableChainFGCompose.Statements.HistoricalReads
 public import AvailableChainFGCompose.Proofs.HistoricalReads
 public import AvailableChainFGCompose.Statements.RowPermission
 public import AvailableChainFGCompose.Proofs.RowPermission
+public import AvailableChainFGCompose.Statements.Promotion
+public import AvailableChainFGCompose.Proofs.Healing.PromotionArithmetic
+public import AvailableChainFGCompose.Proofs.Healing.CommonEntry
+public import AvailableChainFGCompose.Proofs.Healing.Promotion
+public import AvailableChainFGCompose.Proofs.Healing.PromotionRows

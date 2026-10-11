@@ -790,6 +790,33 @@ COMPOSE_EDGES |= frozenset({
 })
 
 
+
+# P0d3: promotion consumers and exact wrapper edges.
+COMPOSE_MODULES += (
+    'AvailableChainFGCompose.Statements.Promotion',
+    'AvailableChainFGCompose.Proofs.Healing.PromotionArithmetic',
+    'AvailableChainFGCompose.Proofs.Healing.CommonEntry',
+    'AvailableChainFGCompose.Proofs.Healing.Promotion',
+    'AvailableChainFGCompose.Proofs.Healing.PromotionRows',
+)
+COMPOSE_PROOF_IMPORTS |= frozenset({
+    ("AvailableChainFGCompose.Proofs.Healing.PromotionRows",
+     "AvailableChainSimplexFG.Window"),
+})
+COMPOSE_EDGES |= frozenset({
+    ('AvailableChainFGSAProofs.Proofs.Healing.PromotionArithmetic',
+     'AvailableChainFGCompose.Proofs.Healing.PromotionArithmetic'),
+    ('AvailableChainFGSAProofs.Proofs.Healing.CommonEntryFacts',
+     'AvailableChainFGCompose.Proofs.Healing.CommonEntry'),
+    ('AvailableChainFGSAProofs.Proofs.Healing.CommonEntryHeight',
+     'AvailableChainFGCompose.Proofs.Healing.CommonEntry'),
+    ('AvailableChainFGSAProofs.Proofs.Healing.Promotion',
+     'AvailableChainFGCompose.Proofs.Healing.Promotion'),
+    ('AvailableChainFGSAProofs.Proofs.Healing.PromotionRows',
+     'AvailableChainFGCompose.Proofs.Healing.PromotionRows'),
+})
+
+
 def compose_base(dep: str) -> bool:
     return (foundation(dep) or under(dep, "AvailableChainModel.Objects")
             or any_under(dep, ("AvailableChainEngineV2.Engine",

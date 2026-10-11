@@ -1,4 +1,9 @@
 module
+public import AvailableChainFGCompose.Statements.Promotion -- shake: keep (#print axioms)
+public import AvailableChainFGCompose.Proofs.Healing.PromotionArithmetic -- shake: keep (#print axioms)
+public import AvailableChainFGCompose.Proofs.Healing.CommonEntry -- shake: keep (#print axioms)
+public import AvailableChainFGCompose.Proofs.Healing.Promotion -- shake: keep (#print axioms)
+public import AvailableChainFGCompose.Proofs.Healing.PromotionRows -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Proofs.ObservationTransport -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Proofs.Timing -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Statements.Observations -- shake: keep (#print axioms)
@@ -385,3 +390,36 @@ public import AvailableChainFGCompose.Proofs.RowPermission -- shake: keep (#prin
 #print axioms AvailableChain.FGCompose.p0d2_pair_of_lock
 #print axioms AvailableChain.FGCompose.rowPermission_covered
 #print axioms AvailableChain.FGCompose.rowPermission_pair
+#print axioms AvailableChain.FGCompose.common_entry_of_plateau
+#print axioms AvailableChain.FGCompose.common_low_or_high
+#print axioms AvailableChain.FGCompose.common_sources_extend_and_cap
+#print axioms AvailableChain.FGCompose.common_entry_at_high
+#print axioms AvailableChain.FGCompose.common_next_sources_extend_and_cap
+#print axioms AvailableChain.FGCompose.common_next_entry
+#print axioms AvailableChain.FGCompose.common_entry_at_low
+#print axioms AvailableChain.FGCompose.healing_promotion_fixed_rows
+#print axioms AvailableChain.FGCompose.healing_promotion_entry_slot
+#print axioms AvailableChain.FGCompose.healing_promotion_bounded_rows
+#print axioms AvailableChain.FGCompose.healing_promotion_gap_remainder
+#print axioms AvailableChain.FGCompose.healing_promotion_held_mono
+#print axioms AvailableChain.FGCompose.healing_promotion_gap
+#print axioms AvailableChain.FGCompose.healing_promotion_row_deadline
+#print axioms AvailableChain.FGCompose.healing_promotion_row_deadline_strict
+#print axioms AvailableChain.FGCompose.healing_promotion_row_receipt
+#print axioms AvailableChain.FGCompose.healing_promotion_row_receipt_strict
+#print axioms AvailableChain.FGCompose.healing_promotion_maturity
+#print axioms AvailableChain.FGCompose.healing_promotion_maturity_of_action
+#print axioms AvailableChain.FGCompose.healing_promotion_age_gap
+#print axioms AvailableChain.FGCompose.p0d3_same_row
+#print axioms AvailableChain.FGCompose.healing_promotion_same_rows_on
+#print axioms AvailableChain.FGCompose.healing_promotion_same_rows
+#print axioms AvailableChain.FGCompose.RowKind
+#print axioms AvailableChain.FGCompose.EntryAt
+#print axioms AvailableChain.FGCompose.NamesEntry
+#print axioms AvailableChain.FGCompose.OpeningEntry
+#print axioms AvailableChain.FGCompose.OpeningCovered
+#print axioms AvailableChain.FGCompose.FixedRows
+#print axioms AvailableChain.FGCompose.PromotionGap
+#print axioms AvailableChain.FGCompose.PromotionRowDeadline
+#print axioms AvailableChain.FGCompose.PromotionRowDeadlineStrict
+#print axioms AvailableChain.FGCompose.PromotionAgeGap

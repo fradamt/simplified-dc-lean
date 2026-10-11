@@ -84,6 +84,11 @@
       "AvailableChainGeneric.Statements.**"
     ],
     "laneUpstream": [
+      "AvailableChainFGCompose.Statements.Promotion",
+      "AvailableChainFGCompose.Proofs.Healing.PromotionArithmetic",
+      "AvailableChainFGCompose.Proofs.Healing.CommonEntry",
+      "AvailableChainFGCompose.Proofs.Healing.Promotion",
+      "AvailableChainFGCompose.Proofs.Healing.PromotionRows",
       "AvailableChainFGCompose.Statements.ResetHistory",
       "AvailableChainFGCompose.Statements.Service",
       "AvailableChainFGCompose.Statements.Bounds",
