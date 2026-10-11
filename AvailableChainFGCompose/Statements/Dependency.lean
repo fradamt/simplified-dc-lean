@@ -28,6 +28,8 @@ structure FGDependencyReads (State Body Origin Latest : Type) where
   notified : State → Body → Prop
   matching : Latest → Body → Prop
   companionHeld : Latest → Body → Prop
+  latestKey : Latest → Fin 5 → Option (Slot × BlockId)
+  latestCompanion : Latest → Fin 5 → Option Body
 
 variable {State Body Origin Latest V : Type}
 
@@ -52,15 +54,21 @@ structure FGDependencyLeaf (State Body Origin : Type) where
   initial : State
   genesis : Body
 
-/-- Refusal evidence has an authenticated chain ending at a direct leaf refusal. -/
+/-- Evidence is indexed by actual transition boundaries. Inheritance uses an earlier parent. -/
 inductive FGDependencyRefusalEvidence (H : FGHistoricalReads State Body)
     (D : FGDependencyReads State Body Origin Latest)
-    (L : FGDependencyLeaf State Body Origin) : Body → Prop
-  | direct (st st' b o) : D.validBody b → D.priorChecks st b →
-      D.accepted st (H.parent b) → D.conflictsFinal st b →
-      L.step st b o .definitiveRefused st' → FGDependencyRefusalEvidence H D L b
-  | inherited (b) : D.validBody b → FGDependencyRefusalEvidence H D L (H.parent b) →
-      FGDependencyRefusalEvidence H D L b
+    (L : FGDependencyLeaf State Body Origin) (state : Nat → State)
+    (Direct Inherit : Nat → Body → Origin → Prop) : Nat → Body → Origin → Prop
+  | direct (k b o) : Direct k b o → D.validBody b → D.priorChecks (state k) b →
+      D.accepted (state k) (H.parent b) → D.conflictsFinal (state k) b →
+      L.step (state k) b o .definitiveRefused (state (k + 1)) →
+      L.report (state k) b o (state (k + 1)) →
+      FGDependencyRefusalEvidence H D L state Direct Inherit (k + 1) b o
+  | inherited (k p b o po) : Inherit k b o → p ≤ k → D.validBody b →
+      D.originAvailable (state (k + 1)) b o → dependencyRefused H D (state k) (H.parent b) →
+      FGDependencyRefusalEvidence H D L state Direct Inherit p (H.parent b) po →
+      dependencyRefused H D (state (k + 1)) b →
+      FGDependencyRefusalEvidence H D L state Direct Inherit (k + 1) b o
 
 structure FGDependencyStateLaws (H : FGHistoricalReads State Body)
     (D : FGDependencyReads State Body Origin Latest)
@@ -71,7 +79,7 @@ structure FGDependencyStateLaws (H : FGHistoricalReads State Body)
   pending_valid : ∀ st b o, D.pending st b o → D.validBody b ∧ D.originAvailable st b o
   refused_valid : ∀ st b r pr, D.refused st b r pr → ∃ o,
     D.validBody b ∧ H.root b = r ∧ H.root (H.parent b) = pr ∧
-    D.originAvailable st b o ∧ FGDependencyRefusalEvidence H D L b
+    D.originAvailable st b o
   genesis_accepted : D.accepted L.initial L.genesis
   initial_pending : ∀ b o, ¬ D.pending L.initial b o
   initial_refused : ∀ b r pr, ¬ D.refused L.initial b r pr
@@ -114,6 +122,8 @@ structure FGDependencyArrivalLeafLaws (H : FGHistoricalReads State Body)
     D.validBody b ∧ D.priorChecks st b ∧ D.timely st b ∧ ¬ D.accepted st b ∧
     D.accepted st (H.parent b) ∧ D.conflictsFinal st b ∧
     dependencyRefused H D st' b ∧ D.originAvailable st' b o ∧ L.report st b o st')
+  arrival_effect : ∀ st st' b o, Arrival st b o st' → D.validBody b →
+    D.timely st b → Effect H D st' b o
   arrival_inherits : ∀ st st' b o, Arrival st b o st' → D.validBody b →
     dependencyRefused H D st (H.parent b) →
     dependencyRefused H D st' b ∧ D.originAvailable st' b o ∧ L.report st b o st'
@@ -134,6 +144,18 @@ structure FGDependencyArrivalLeafLaws (H : FGHistoricalReads State Body)
   rejected_no_refusal : ∀ st st' b o result, L.step st b o result st' →
     (result = .invalid ∨ result = .future ∨ result = .duplicate ∨ result = .pending) →
     dependencyRefused H D st' b → dependencyRefused H D st b
+  notification_resolved : ∀ st st' b, Notify st b st' → dependencyResolved H D st b
+  notification_keys : ∀ st st' b, Notify st b st' →
+    D.latestKey (D.latest st') = D.latestKey (D.latest st)
+  notification_fields : ∀ st st' b i, Notify st b st' →
+    (¬ D.accepted st b ∨
+      ¬ ∃ slot, D.latestKey (D.latest st) i = some (slot, H.root b)) →
+    D.latestCompanion (D.latest st') i = D.latestCompanion (D.latest st) i
+  notification_matching : ∀ st st' b i slot, Notify st b st' → D.accepted st b →
+    D.latestKey (D.latest st) i = some (slot, H.root b) →
+    D.latestCompanion (D.latest st') i = some b
+  refused_notification : ∀ st st' b, Notify st b st' → dependencyRefused H D st b →
+    D.notified st' b ∧ D.latest st' = D.latest st
   callback_latest : ∀ st st' b, Notify st b st' → D.accepted st b →
     D.notified st' b ∧
     (∀ c, D.matching (D.latest st) c → c = b → D.companionHeld (D.latest st') c) ∧
@@ -163,13 +185,28 @@ inductive FGDependencySteps
   | tail {a b c} (k) : FGDependencySteps Step x a b → Step k x b c →
       FGDependencySteps Step x a c
 
+inductive FGDependencyReadKind where
+  | fg | proposer | head | ac
+  deriving DecidableEq
+
+/-- Each read names its actual entry and consumed cut, not an existential start state. -/
+structure FGDependencyReadSite (State : Type) where
+  eventIndex : Nat
+  kind : FGDependencyReadKind
+  entryCut : Nat
+  consumedCut : Nat
+  consumed : State
+
 structure FGDependencyReadClosureLaws (H : FGHistoricalReads State Body)
     (D : FGDependencyReads State Body Origin Latest)
     (Step : FGDependencyStepKind → V → State → State → Prop)
+    (state : Nat → State) (site : Nat → FGDependencyReadSite State)
     (Read : V → Nat → State → Prop) : Prop where
   read_closed : ∀ x i st, Read x i st → dependencyClosed H D st
-  finite_completion : ∀ x i st, Read x i st → ∃ entry,
-    FGDependencySteps Step x entry st ∧ dependencyClosed H D st
+  finite_completion : ∀ x i st, Read x i st →
+    (site i).entryCut ≤ (site i).consumedCut ∧
+    (site i).consumed = st ∧ state (site i).consumedCut = st ∧
+    FGDependencySteps Step x (state (site i).entryCut) st ∧ dependencyClosed H D st
 
 /-- A finite named parent path, with genesis as its held base. -/
 inductive FGDependencyPath (H : FGHistoricalReads State Body) (genesis : Body) :
