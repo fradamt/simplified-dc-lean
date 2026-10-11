@@ -1,5 +1,6 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.PhaseFrame
+-- Phase.lean uses the native height and frontier theorems through this import.
+public import AvailableChainFGSAProofs.Proofs.Healing.PhaseFrame -- shake: keep (Phase API)
 public import AvailableChainFGSAProofs.Proofs.Shared.StoreRun
 
 public import AvailableChainFGCompose.Proofs.Healing.PhaseOrder

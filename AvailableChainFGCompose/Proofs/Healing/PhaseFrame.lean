@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGCompose.Statements.ChannelLaws
 public import AvailableChainFGCompose.Statements.Phase
 public import AvailableChainKitFG.StoreBounds
 public import AvailableChainKitFG.FrameGeometry

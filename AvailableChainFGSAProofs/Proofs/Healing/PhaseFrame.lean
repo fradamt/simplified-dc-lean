@@ -1,11 +1,8 @@
 module
-public import AvailableChainKitFG.StoreBounds
-public import AvailableChainFGSARun.Proofs.ReadFacts
 public import AvailableChainFGSAClaims.Statements.ComposeStmt
 public import AvailableChainFGSARun.Proofs.Reachable -- shake: keep (reach API)
 
 public import AvailableChainFGCompose.Proofs.Healing.PhaseFrame
-public import AvailableChainFGSAProofs.Proofs.Shared.FGCompose
 
 public section
 

@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Shared.FGCompose
 public import AvailableChainFGSAProofs.Proofs.Healing.Phase
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseRelay
 
