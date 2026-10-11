@@ -2,7 +2,6 @@ module
 public import AvailableChainFGSAProofs.Proofs.Foundations.Carrier
 public import AvailableChainFGSAProofs.Proofs.Foundations.Client
 public import AvailableChainFGSAProofs.Proofs.Foundations.FGSafetyBridge
-public import AvailableChainFGSARun.Proofs.Receipts
 
 public section
 

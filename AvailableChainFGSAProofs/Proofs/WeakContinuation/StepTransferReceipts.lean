@@ -2,7 +2,6 @@ module
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Epoch
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.AnchorCoverage
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepTransferFrame
-public import AvailableChainFGSAProofs.Proofs.Shared.Count
 
 public section
 

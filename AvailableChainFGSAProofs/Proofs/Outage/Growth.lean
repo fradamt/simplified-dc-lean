@@ -2,7 +2,8 @@ module
 public import AvailableChainFGSAClaims.Statements.Regimes
 public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowthCausal
 public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowthProposal
-public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowth
+-- shake keep reason: source declarations
+public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowth -- shake: keep
 
 public section
 

@@ -1,6 +1,8 @@
 module
-public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepGateBatch
-public import AvailableChainFGSAProofs.Proofs.Shared.ExactService
+-- shake keep reason: source declarations
+public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepGateBatch -- shake: keep
+-- shake keep reason: source declarations
+public import AvailableChainFGSAProofs.Proofs.Shared.ExactService -- shake: keep
 
 public section
 namespace AvailableChain.FGSA.Run

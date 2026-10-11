@@ -1,7 +1,5 @@
 module
 public import AvailableChainFGSAClaims.Statements.Regimes
-public import AvailableChainFGSAClaims.Statements.BoundsW
-public import AvailableChainFGSAClaims.Statements.Reads
 
 @[expose] public section
 

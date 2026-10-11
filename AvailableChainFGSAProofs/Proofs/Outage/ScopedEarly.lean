@@ -1,6 +1,6 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Outage.ScopedBridge
-public import AvailableChainFGSAProofs.Proofs.Shared.Regimes
+-- shake keep reason: source declarations
+public import AvailableChainFGSAProofs.Proofs.Outage.ScopedBridge -- shake: keep
 
 public section
 

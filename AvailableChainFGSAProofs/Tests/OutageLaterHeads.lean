@@ -1,7 +1,6 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Outage.ScopedEarly
-public import AvailableChainFGSAProofs.Proofs.Outage.ScopedPaths
-public import AvailableChainFGSAProofs.Proofs.Outage.ScopedCatchUp
+-- shake keep reason: source declarations
+public import AvailableChainFGSAProofs.Proofs.Outage.ScopedCatchUp -- shake: keep
 public import AvailableChainFGSAProofs.Proofs.Foundations.Store
 
 public section

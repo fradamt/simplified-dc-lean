@@ -1,9 +1,9 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Finality.Export
-public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Export
+public import AvailableChainFGSAProofs.Proofs.Finality.Export -- shake: keep (source declarations)
+-- shake keep reason: source declarations
+public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Export -- shake: keep
 public import AvailableChainFGSAProofs.Statements.WeakContinuation -- shake: keep (WC interface)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Export -- shake: keep (P10 producers)
-public import AvailableChainFGSARun.Proofs.Receipts
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Export -- shake: keep (P10 WC Export)
 public import AvailableChainFGSAProofs.Proofs.Shared.Claims -- shake: keep (P10 claim adapter)
 

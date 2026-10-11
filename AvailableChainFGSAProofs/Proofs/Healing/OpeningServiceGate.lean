@@ -1,9 +1,7 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.RepairGate
 public import AvailableChainFGSAProofs.Proofs.Healing.OpeningGateRead
 public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
 public import AvailableChainFGSAProofs.Proofs.Healing.OpeningGateSupport
-public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryScope
 
 public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryProducers
 

@@ -1,6 +1,7 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.RiseOne
-public import AvailableChainFGSAProofs.Proofs.Healing.PromotionReceipt
+-- shake keep reason: source declarations
+public import AvailableChainFGSAProofs.Proofs.Healing.PromotionReceipt -- shake: keep
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionPhase
 
 public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope

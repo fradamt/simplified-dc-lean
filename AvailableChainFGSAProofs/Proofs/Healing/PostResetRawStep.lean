@@ -1,5 +1,4 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.PostResetRaw
 public import AvailableChainFGSAProofs.Proofs.Healing.OpeningTicks
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetLeaseStep
 public import AvailableChainFGSAProofs.Proofs.Healing.ReleaseScope

@@ -1,7 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Statements.CleanInvariant
 public import AvailableChainFGSAProofs.Proofs.Clean.GateEpoch
-public import AvailableChainGeneric.Proofs.Pure.BlockOrder
 
 public section
 

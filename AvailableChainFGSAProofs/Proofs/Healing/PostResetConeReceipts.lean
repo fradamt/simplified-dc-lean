@@ -1,6 +1,5 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetJoint2 -- shake: keep J6
-public import AvailableChainFGSAProofs.Proofs.Healing.FrameZero
 public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
 
 public section

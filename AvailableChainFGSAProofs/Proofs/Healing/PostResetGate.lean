@@ -1,7 +1,8 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetInvariant
 public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
-public import AvailableChainFGSAProofs.Proofs.Healing.OpeningServiceGate
+-- shake keep reason: source declarations
+public import AvailableChainFGSAProofs.Proofs.Healing.OpeningServiceGate -- shake: keep
 
 public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryProducers
 

@@ -4,7 +4,6 @@ public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepGateHistory
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepTransferReceipts
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.HeadRelay
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.ReceiptOrigins
-public import AvailableChainFGSAProofs.Proofs.Shared.Relay
 public import AvailableChainFGSA.Proofs.Head.Transfer -- shake: keep (fgsa_headInTree_covers_of_transfer proof reference)
 
 public section

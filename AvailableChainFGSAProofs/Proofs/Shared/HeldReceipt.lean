@@ -1,8 +1,6 @@
 module
 public import AvailableChainFGSARun.Proofs.ReadFacts
 public import AvailableChainFGSAClaims.Statements.ComposeStmt -- shake: keep (ports)
-public import AvailableChainFGSARun.Proofs.Receipts
-public import AvailableChainFGSAProofs.Proofs.Shared.StoreRun
 
 public import AvailableChainFGSAProofs.Proofs.Shared.CatchUp
 

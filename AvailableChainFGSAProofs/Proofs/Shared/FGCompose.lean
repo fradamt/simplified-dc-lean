@@ -1,7 +1,6 @@
 module
 public import AvailableChainFGCompose.Statements.CoreReads
 public import AvailableChainFGSAClaims.Statements.Fold
-public import AvailableChainFGSAClaims.Statements.Channels
 public import AvailableChainFGSARun.Proofs.Reachable
 public import AvailableChainFGSA.Proofs.Head
 

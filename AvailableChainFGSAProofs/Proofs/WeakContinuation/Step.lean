@@ -1,5 +1,4 @@
 module
-public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepReconcile
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepOutput
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepRestart
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepTransfer

@@ -1,92 +1,49 @@
 module
-public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Empty
-public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Live
-public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Growth
-public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Inclusion
-public import AvailableChainFGSAProofs.Proofs.WeakContinuation.InclusionGate
-public import AvailableChainFGSAProofs.Proofs.WeakContinuation.ExactReceipts
-public import AvailableChainFGSAProofs.Proofs.WeakContinuation.ExactProposal
-public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Proposal
-public import AvailableChainFGSAProofs.Proofs.WeakContinuation.ProposalService
-public import AvailableChainFGSAProofs.Proofs.WeakContinuation.HeadRelay
-public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.HeadRelay
-public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Induction
-public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Dynamics
-public import AvailableChainFGSAProofs.Statements.WeakContinuation
-public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Epoch
-public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Replay
-public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepInit
-public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Interfaces
-public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Epoch
-public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Counts
-public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Replay
-public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepInit
+-- shake keep reason: #print axioms targets
+public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Empty -- shake: keep
+-- shake keep reason: #print axioms targets
+public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Live -- shake: keep
+-- shake keep reason: #print axioms targets
+public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Dynamics -- shake: keep
+-- shake keep reason: #print axioms targets
+public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Replay -- shake: keep
+-- shake keep reason: #print axioms targets
+public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Counts -- shake: keep
 
-public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Frame
 
-public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepInputs
 
-public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Frame
 
-public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.EventReplay
 
-public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.AnchorCoverage
 
-public import AvailableChainFGSAProofs.Proofs.WeakContinuation.AnchorCoverage
 
-public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Safety
 
-public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepInputs
 
-public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepGateBatch
 
-public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepGateHistory
 
-public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepService
 
-public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepTransferFrame
 
-public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepTransferReceipts
 
-public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Safety
 
-public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepService
 
-public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepGateBatch
 
-public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepGateHistory
 
-public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepTransferFrame
 
-public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepTransferReceipts
 
-public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Seed
 
-public import AvailableChainFGSAProofs.Proofs.WeakContinuation.ReceiptOrigins
 
-public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.ReceiptOrigins
 
-public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepFacts
 
-public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepFacts
 
-public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepReconcile
+-- shake keep reason: #print axioms targets
+public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepReconcile -- shake: keep
 
-public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepOutput
 
-public import AvailableChainFGSAProofs.Proofs.WeakContinuation.FinalBelow
 
-public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepRestart
 
-public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepRestart
 
-public import AvailableChainFGSAProofs.Proofs.WeakContinuation.ProposalHistory
 
-public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepOutput
 
-public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepReconcile
 
-public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.FinalBelow
 
 public section
 

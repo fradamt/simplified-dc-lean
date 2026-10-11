@@ -1,12 +1,10 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Clean.Action
-public import AvailableChainFGSAProofs.Proofs.Clean.Interface
-public import AvailableChainFGSAProofs.Proofs.Clean.GateOutput
-public import AvailableChainFGSAProofs.Proofs.Clean.StateEpoch
-public import AvailableChainFGSAProofs.Proofs.Clean.Zero
+public import AvailableChainFGSAProofs.Proofs.Clean.Interface -- shake: keep (#print axioms targets)
+public import AvailableChainFGSAProofs.Proofs.Clean.Zero -- shake: keep (#print axioms targets)
 
-public import AvailableChainFGSAProofs.Proofs.Clean.Safety
-public import AvailableChainFGSAProofs.Proofs.Clean.EpochSaved
+public import AvailableChainFGSAProofs.Proofs.Clean.Safety -- shake: keep (#print axioms targets)
+-- shake keep reason: #print axioms targets
+public import AvailableChainFGSAProofs.Proofs.Clean.EpochSaved -- shake: keep
 
 public section
 

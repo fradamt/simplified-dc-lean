@@ -1,7 +1,5 @@
 module
 public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Epoch
-public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Origins
-public import AvailableChainFGSAProofs.Proofs.Shared.Roots
 
 public section
 namespace AvailableChain.FGSA.Run

@@ -1,8 +1,7 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.Reset
-public import AvailableChainFGSAProofs.Proofs.Healing.RiseOne
-public import AvailableChainFGSAProofs.Proofs.Healing.RiseOneAccept
-public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSeedDefs
+public import AvailableChainFGSAProofs.Proofs.Healing.Reset -- shake: keep (#print axioms targets)
+-- shake keep reason: #print axioms targets
+public import AvailableChainFGSAProofs.Proofs.Healing.RiseOneAccept -- shake: keep
 
 public section
 

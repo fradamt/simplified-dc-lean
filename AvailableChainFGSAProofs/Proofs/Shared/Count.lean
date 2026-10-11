@@ -3,8 +3,6 @@ public import AvailableChainFGSAProofs.Proofs.Shared.CatchUp
 public import AvailableChainFGSARun.Proofs.ReceiptCoverageReady
 public import AvailableChainFGSARun.Proofs.RootResolution
 public import AvailableChainFGSARun.Proofs.HeadHistory
-public import AvailableChainFGSAClaims.Statements.Reads
-public import AvailableChainGeneric.Statements.V2.Duty.Counts
 
 public section
 

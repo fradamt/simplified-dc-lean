@@ -1,5 +1,6 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.RepairLeaseRecovery
+-- shake keep reason: #print axioms targets
+public import AvailableChainFGSAProofs.Proofs.Healing.RepairLeaseRecovery -- shake: keep
 
 #print axioms AvailableChain.FGSA.Run.healing_fast_support_scope_recovery
 #print axioms AvailableChain.FGSA.Run.healing_slow_support_scope_recovery

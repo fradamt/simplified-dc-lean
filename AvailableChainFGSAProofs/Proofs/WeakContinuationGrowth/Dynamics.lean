@@ -1,25 +1,18 @@
 module
-public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.FinalBelow
+-- shake keep reason: facade coverage
+public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.FinalBelow -- shake: keep
 public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepOutput
-public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepReconcile
+-- shake keep reason: facade coverage
+public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepReconcile -- shake: keep
 public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepTransferReceipts
-public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepGateHistory
-public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepService
 public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepFacts
 public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepRestart
-public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepGateBatch
 public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Epoch
 public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.StepInit
-public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Frame
 public import AvailableChainFGSAProofs.Proofs.Shared.Roots
 public import AvailableChainFGSAProofs.Proofs.Shared.Reads
-public import AvailableChainFGSARun.Proofs.Receipts
-public import AvailableChainFGSARun.Proofs.AC
-public import AvailableChainFGSAProofs.Proofs.Shared.Count
-public import AvailableChainFGSAProofs.Proofs.Shared.SameLabel
 public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.HeadRelay
 public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.ReceiptOrigins
-public import AvailableChainFGSAProofs.Proofs.Shared.Relay
 public import AvailableChainFGSA.Proofs.Head.Transfer -- shake: keep (fgsa_headInTree_covers_of_transfer proof reference)
 
 namespace AvailableChain.GridCO

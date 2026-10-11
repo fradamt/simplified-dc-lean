@@ -2,7 +2,6 @@ module
 public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Seed
 public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Epoch
 public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowthReads
-public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowth
 public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowthProposal
 public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowthCausal
 

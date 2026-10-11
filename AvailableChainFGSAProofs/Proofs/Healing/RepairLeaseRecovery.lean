@@ -1,6 +1,7 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryPerm
-public import AvailableChainFGSAProofs.Proofs.Healing.RepairH6S
+-- shake keep reason: source declarations
+public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryPerm -- shake: keep
+public import AvailableChainFGSAProofs.Proofs.Healing.RepairH6S -- shake: keep (source declarations)
 
 public section
 

@@ -4,7 +4,6 @@ public import AvailableChainFGSARun.Proofs.RootResolution
 public import AvailableChainFGSA.Proofs.Head.Walk -- shake: keep (prefix lift)
 public import AvailableChainFGSAClaims.Statements.ComposeStmt
 public import AvailableChainFGSAProofs.Proofs.Shared.Reads
-public import AvailableChainFGSARun.Proofs.Receipts
 
 public section
 

@@ -1,14 +1,9 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Shared.CatchUp
-public import AvailableChainFGSA.Model.Store
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingPending
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingBatch
 public import AvailableChainFGSAProofs.Proofs.Shared.AnchorService
 public import AvailableChainFGSAProofs.Statements.CleanInvariant
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingReceipt
-public import AvailableChainGeneric.Proofs.V2.Duty.Sleep
-public import AvailableChainGeneric.Proofs.V2.Duty.DeliveryBy
-public import AvailableChainFGSARun.Proofs.Interface
 
 public section
 

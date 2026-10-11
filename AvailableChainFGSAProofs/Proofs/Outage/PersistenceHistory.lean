@@ -1,8 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceDefs
-public import AvailableChainFGSAProofs.Proofs.Outage.ArmingHistory
 public import AvailableChainFGSAProofs.Proofs.Shared.Roots
-public import AvailableChainFGSAProofs.Proofs.Shared.Channels
 
 public section
 

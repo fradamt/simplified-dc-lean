@@ -1,9 +1,8 @@
 module
-public import AvailableChainFGSAClaims.Statements.Fold
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSeedDefs
-public import AvailableChainFGSAClaims.Statements.ComposeStmt
 
-public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryService
+-- shake keep reason: source declarations
+public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryService -- shake: keep
 
 public section
 

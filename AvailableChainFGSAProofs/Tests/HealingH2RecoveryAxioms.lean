@@ -1,7 +1,8 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryScope
-public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryService
-public import AvailableChainFGSAProofs.Proofs.Healing.ResetCut
+-- shake keep reason: #print axioms targets
+public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryService -- shake: keep
+-- shake keep reason: #print axioms targets
+public import AvailableChainFGSAProofs.Proofs.Healing.ResetCut -- shake: keep
 
 public section
 

@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Interfaces -- shake: keep (companion interface export)
-public import AvailableChainFGSARun.Proofs.NamedDelivery
+public import AvailableChainFGSARun.Proofs.NamedDelivery -- shake: keep (source declarations)
 public import AvailableChainKitFG.StoreSafety -- shake: keep (no-evidence finality API)
 public import AvailableChainGeneric.Proofs.Pure.BlockOrder
 

@@ -4,7 +4,6 @@ public import AvailableChainFGSAProofs.Proofs.Healing.Frame
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseRelay
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSupportFrame
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionAbove
-public import AvailableChainFGSAProofs.Proofs.Healing.SupportRecovery
 
 public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
 

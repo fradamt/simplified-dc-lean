@@ -2,7 +2,6 @@ module
 public import AvailableChainFGSAProofs.Proofs.Shared.HeldReceipt
 public import AvailableChainFGSAClaims.Statements.ComposeStmt
 public import AvailableChainFGSARun.Proofs.Receipts -- shake: keep (receipt API)
-public import AvailableChainFGSAProofs.Proofs.Shared.StoreRun
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseFrame
 
 public section

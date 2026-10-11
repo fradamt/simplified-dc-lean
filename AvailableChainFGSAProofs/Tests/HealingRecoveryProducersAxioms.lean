@@ -1,6 +1,6 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryProducers
-public import AvailableChainFGSAProofs.Proofs.Healing.DeliveryReset
+-- shake keep reason: #print axioms targets
+public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryProducers -- shake: keep
 
 #print axioms AvailableChain.FGSA.Run.fgsa_proposal_service_at_anchor
 #print axioms AvailableChain.FGSA.Run.fgsa_clock_before_time_le

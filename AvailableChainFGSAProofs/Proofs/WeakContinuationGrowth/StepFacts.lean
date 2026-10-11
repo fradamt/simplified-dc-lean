@@ -1,9 +1,7 @@
 module
 public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Epoch
-public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Origins
 public import AvailableChainFGSAProofs.Proofs.Shared.Roots
 public import AvailableChainFGSAProofs.Proofs.Shared.Reads
-public import AvailableChainFGSARun.Proofs.Receipts
 public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.ReceiptOrigins
 
 namespace AvailableChain.FGSA

@@ -6,7 +6,6 @@ public import AvailableChainFGSAProofs.Proofs.Finality.RestoreReads
 public import AvailableChainFGSARun.Proofs.ProposalHistory
 public import AvailableChainFGSAProofs.Proofs.Shared.Channels
 public import AvailableChainFGSAProofs.Proofs.Shared.BoundsW
-public import AvailableChainFGSARun.Proofs.Receipts
 public import AvailableChainFGSAClaims.Statements.FinalityApi
 public import AvailableChainFGSAClaims.Statements.Packages.Safety
 

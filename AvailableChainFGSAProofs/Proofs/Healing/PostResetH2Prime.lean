@@ -2,8 +2,6 @@ module
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetProject
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetRead
 public import AvailableChainFGSAProofs.Proofs.Healing.DescentLossUnanimous
-public import AvailableChainFGSAProofs.Proofs.Healing.RepairGate
-public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryService
 
 public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryProducers
 

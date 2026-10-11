@@ -1,5 +1,6 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.SupportRecovery
+-- shake keep reason: source declarations
+public import AvailableChainFGSAProofs.Proofs.Healing.SupportRecovery -- shake: keep
 public import AvailableChainFGSAProofs.Proofs.Healing.RegressionFixture
 
 @[expose] public section

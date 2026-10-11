@@ -1,8 +1,7 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSeedDefs
-public import AvailableChainFGSAProofs.Proofs.Healing.RepairCover
+public import AvailableChainFGSAProofs.Proofs.Healing.RepairCover -- shake: keep (facade coverage)
 public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryService
-public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumersH6S
 
 public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
 

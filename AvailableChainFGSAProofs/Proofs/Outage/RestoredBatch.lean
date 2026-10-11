@@ -1,5 +1,4 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Shared.CatchUp
 public import AvailableChainFGSAProofs.Proofs.Outage.RestoredReceipt
 
 public section

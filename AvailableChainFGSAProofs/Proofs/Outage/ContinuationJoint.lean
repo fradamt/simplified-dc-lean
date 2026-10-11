@@ -1,7 +1,5 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Outage.ScopedJoint
-public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationInduction
-public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationReceipt
+public import AvailableChainFGSAProofs.Proofs.Outage.ScopedJoint -- shake: keep (facade coverage)
 
 /-! The scoped continuation body is supplied by ScopedJoint. The old
 all-honest body has no current production caller and does not compile under

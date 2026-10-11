@@ -1,7 +1,6 @@
 module
 public import AvailableChainFGSAClaims.Statements.Packages.Safety
 public import AvailableChainFGSAClaims.Statements.Channels
-public import AvailableChainFGSARun.Proofs.Receipts
 public import AvailableChainFGSAProofs.Proofs.Shared.CatchUp
 
 public section

@@ -1,6 +1,6 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.SupportTicks
-public import AvailableChainFGSAClaims.Statements.Regimes
+-- shake keep reason: source declarations
+public import AvailableChainFGSAProofs.Proofs.Healing.SupportTicks -- shake: keep
 
 public section
 

@@ -1,5 +1,4 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Shared.RowReads
 public import AvailableChainFGSAProofs.Proofs.Finality.TailSplit
 public import AvailableChainFGSAProofs.Proofs.Finality.TailReceipt
 public import AvailableChainFGSAProofs.Proofs.Finality.Accept

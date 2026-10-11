@@ -1,10 +1,7 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.SupportPerm
 public import AvailableChainFGSAProofs.Proofs.Healing.RelayProducers
-public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryScope
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierRead
 public import AvailableChainFGSAProofs.Proofs.Healing.RepairGate
-public import AvailableChainFGSAProofs.Proofs.Healing.DescentLossCause
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetRaw
 
 public section

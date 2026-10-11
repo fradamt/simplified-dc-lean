@@ -2,7 +2,6 @@ module
 public import AvailableChainFGSAProofs.Proofs.Shared.Channels
 public import AvailableChainFGSAProofs.Proofs.Clean.TransferFrame
 public import AvailableChainFGSAProofs.Proofs.Clean.Service
-public import AvailableChainFGSAProofs.Proofs.Shared.Relay
 public import AvailableChainFGSA.Proofs.Head.Transfer -- shake: keep (fgsa_headInTree_covers_of_transfer proof reference)
 
 public section

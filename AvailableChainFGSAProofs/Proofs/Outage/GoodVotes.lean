@@ -378,11 +378,12 @@ the joint proof must still supply result compatibility at every actual gate. -/
 theorem outage_gate_writeKeys_compatible {n : Nat} (params : GridCO.Params)
     (st : GridCO.State n .root) (s : Slot) (C B : Block) (lim : Time)
     (hCB : Block.Compatible C B) :
-    ∀ row ∈ (GridCO.writeKeys st (GridCO.gateWriteKeys params st s C) lim).obligations,
+    ∀ row ∈ (GridCO.writeKeys st
+      (@GridCO.gateWriteKeys GridCO.slowLeasePolicy .root params n st s C) lim).obligations,
       row ∈ st.obligations ∨ Block.Compatible row.1 B := by
   apply outage_writeKeys_new_compatible
   intro key hk
-  rw [GridCO.gateWriteKeys_def] at hk
+  rw [@GridCO.gateWriteKeys_def GridCO.slowLeasePolicy] at hk
   obtain ⟨X, hX, hk⟩ := List.mem_flatMap.mp hk
   obtain ⟨g, _, he⟩ := List.mem_map.mp hk
   subst key
@@ -399,11 +400,11 @@ theorem outage_all_honest_late_gate_keys (E : Generic.Env V)
       Block.Compatible C B) :
     ∀ i x s C, x ∈ rho.honest → r < s → enabledGateAt p c E rho i x s →
       gateResultAt p c E rho i = some (some C) →
-      ∀ key ∈ GridCO.gateWriteKeys p.toParams.engine
+      ∀ key ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
         (actView (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s))) s C,
         Block.Compatible key.1 B := by
   intro i x s C hx hrs hG hC key hk
-  rw [GridCO.gateWriteKeys_def] at hk
+  rw [@GridCO.gateWriteKeys_def GridCO.slowLeasePolicy] at hk
   obtain ⟨X, hX, hk⟩ := List.mem_flatMap.mp hk
   obtain ⟨g, _, he⟩ := List.mem_map.mp hk
   subst key

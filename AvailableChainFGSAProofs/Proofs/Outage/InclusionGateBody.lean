@@ -1,6 +1,5 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Outage.InclusionGateService
-public import AvailableChainGeneric.Statements.Pure.Props
 public import AvailableChainFGSAProofs.Proofs.Outage.GrowthConsumer
 
 public section

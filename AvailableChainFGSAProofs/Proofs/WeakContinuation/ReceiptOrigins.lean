@@ -1,6 +1,4 @@
 module
-public import AvailableChainFGSARun.Proofs.Reachable
-public import AvailableChainFGSARun.Proofs.Acceptance
 public import AvailableChainFGSARun.Proofs.Schedule
 public import AvailableChainFGSAProofs.Statements.WeakContinuation
 

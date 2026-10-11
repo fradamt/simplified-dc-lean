@@ -1,7 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierOpen
 
-public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
 
 public section
 

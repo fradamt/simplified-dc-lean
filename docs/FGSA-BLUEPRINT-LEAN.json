@@ -1343,7 +1343,7 @@
    "kind": "facet",
    "parent": "bp.finalityLiveness.v2",
    "statement_sha256": "7becc0e4808d56f24895cb59004bcfe8133b56a6e431849d47b1c68d48d5cb2b",
-   "lean_status": "PROVED",
+   "lean_status": "PARTIAL",
    "clauses": [
     {
      "clause": "local FF5 under Rec_FE_W",
@@ -1352,20 +1352,26 @@
      "type_fingerprint": "0096b18a5c939aa4"
     },
     {
-     "clause": "GST export of FF5 for triggers with GST+B_HF ≤ t",
+     "clause": "GST export of FF5 for triggers with recoveryStart p E + B_HF ≤ t",
      "theorem": "AvailableChain.FGSA.Run.fgsa_finalityLivenessGST_recFE",
      "module": "AvailableChainFGSAProofs.Proofs.Shared.Claims",
      "type_fingerprint": "eb6a1d83660357ae"
     }
    ],
-   "open": []
+   "open": [
+    {
+     "id": "OPEN.bp.finalityLiveness.v2#FF5 Rec_FE_W.1",
+     "missing": "paper 22-finality.md:1420 states GST+B_HF; sleep threshold is recoveryStart"
+    }
+   ],
+   "note": "Sleep threshold approved in commit 7538ca0f."
   },
   {
    "id": "bp.finalityLiveness.v2#FF5 Rec_F4_W",
    "kind": "facet",
    "parent": "bp.finalityLiveness.v2",
    "statement_sha256": "7becc0e4808d56f24895cb59004bcfe8133b56a6e431849d47b1c68d48d5cb2b",
-   "lean_status": "PROVED",
+   "lean_status": "PARTIAL",
    "clauses": [
     {
      "clause": "local FF5 under Rec_F4_W",
@@ -1374,13 +1380,19 @@
      "type_fingerprint": "173a598664ba7aba"
     },
     {
-     "clause": "GST export of FF5 for triggers with GST+B_HF ≤ t",
+     "clause": "GST export of FF5 for triggers with recoveryStart p E + B_HF ≤ t",
      "theorem": "AvailableChain.FGSA.Run.fgsa_finalityLivenessGST_recF4",
      "module": "AvailableChainFGSAProofs.Proofs.Shared.Claims",
      "type_fingerprint": "65f58f79b67db07e"
     }
    ],
-   "open": []
+   "open": [
+    {
+     "id": "OPEN.bp.finalityLiveness.v2#FF5 Rec_F4_W.1",
+     "missing": "paper 22-finality.md:1420 states GST+B_HF; sleep threshold is recoveryStart"
+    }
+   ],
+   "note": "Sleep threshold approved in commit 7538ca0f."
   },
   {
    "id": "bp.finalityLiveness.v2#FF6 Rec_FE_W",
@@ -1388,7 +1400,7 @@
    "parent": "bp.finalityLiveness.v2",
    "anchor": "**FF6 / FF7 window instances.**",
    "statement_sha256": "d0bc81aac50af4925b30573e0250898217c865dcee0e744fc5da1111032825cf",
-   "lean_status": "PROVED",
+   "lean_status": "PARTIAL",
    "clauses": [
     {
      "clause": "local FF6 under Rec_FE_W",
@@ -1397,13 +1409,19 @@
      "type_fingerprint": "782a6f46d30eae8c"
     },
     {
-     "clause": "GST export of FF6 for triggers with GST+B_HF ≤ t",
+     "clause": "GST export of FF6 for triggers with recoveryStart p E + B_HF ≤ t",
      "theorem": "AvailableChain.FGSA.Run.fgsa_proposalFinalGST_recFE",
      "module": "AvailableChainFGSAProofs.Proofs.Shared.Claims",
      "type_fingerprint": "819d396f889bbeaf"
     }
    ],
-   "open": []
+   "open": [
+    {
+     "id": "OPEN.bp.finalityLiveness.v2#FF6 Rec_FE_W.1",
+     "missing": "paper 22-finality.md:1420 states GST+B_HF; sleep threshold is recoveryStart"
+    }
+   ],
+   "note": "Sleep threshold approved in commit 7538ca0f."
   },
   {
    "id": "bp.finalityLiveness.v2#FF6 Rec_F4_W",
@@ -1411,7 +1429,7 @@
    "parent": "bp.finalityLiveness.v2",
    "anchor": "**FF6 / FF7 window instances.**",
    "statement_sha256": "d0bc81aac50af4925b30573e0250898217c865dcee0e744fc5da1111032825cf",
-   "lean_status": "PROVED",
+   "lean_status": "PARTIAL",
    "clauses": [
     {
      "clause": "local FF6 under Rec_F4_W",
@@ -1420,13 +1438,19 @@
      "type_fingerprint": "07aed350d08ecfc2"
     },
     {
-     "clause": "GST export of FF6 for triggers with GST+B_HF ≤ t",
+     "clause": "GST export of FF6 for triggers with recoveryStart p E + B_HF ≤ t",
      "theorem": "AvailableChain.FGSA.Run.fgsa_proposalFinalGST_recF4",
      "module": "AvailableChainFGSAProofs.Proofs.Shared.Claims",
      "type_fingerprint": "8da38951e5704e67"
     }
    ],
-   "open": []
+   "open": [
+    {
+     "id": "OPEN.bp.finalityLiveness.v2#FF6 Rec_F4_W.1",
+     "missing": "paper 22-finality.md:1420 states GST+B_HF; sleep threshold is recoveryStart"
+    }
+   ],
+   "note": "Sleep threshold approved in commit 7538ca0f."
   },
   {
    "id": "bp.finalityLiveness.v2#FF7 Rec_FE_W",
@@ -1434,7 +1458,7 @@
    "parent": "bp.finalityLiveness.v2",
    "anchor": "**FF6 / FF7 window instances.**",
    "statement_sha256": "d0bc81aac50af4925b30573e0250898217c865dcee0e744fc5da1111032825cf",
-   "lean_status": "PROVED",
+   "lean_status": "PARTIAL",
    "clauses": [
     {
      "clause": "local FF7 under Rec_FE_W",
@@ -1443,13 +1467,19 @@
      "type_fingerprint": "3b2a61f5b13be931"
     },
     {
-     "clause": "GST export of FF7 for triggers with GST+B_HF ≤ t",
+     "clause": "GST export of FF7 for triggers with recoveryStart p E + B_HF ≤ t",
      "theorem": "AvailableChain.FGSA.Run.fgsa_aboveFrontierGST_recFE",
      "module": "AvailableChainFGSAProofs.Proofs.Shared.Claims",
      "type_fingerprint": "2277e0d3ba2c1837"
     }
    ],
-   "open": []
+   "open": [
+    {
+     "id": "OPEN.bp.finalityLiveness.v2#FF7 Rec_FE_W.1",
+     "missing": "paper 22-finality.md:1420 states GST+B_HF; sleep threshold is recoveryStart"
+    }
+   ],
+   "note": "Sleep threshold approved in commit 7538ca0f."
   },
   {
    "id": "bp.finalityLiveness.v2#FF7 Rec_F4_W",
@@ -1457,7 +1487,7 @@
    "parent": "bp.finalityLiveness.v2",
    "anchor": "**FF6 / FF7 window instances.**",
    "statement_sha256": "d0bc81aac50af4925b30573e0250898217c865dcee0e744fc5da1111032825cf",
-   "lean_status": "PROVED",
+   "lean_status": "PARTIAL",
    "clauses": [
     {
      "clause": "local FF7 under Rec_F4_W",
@@ -1466,13 +1496,19 @@
      "type_fingerprint": "80ce1abb5063c73f"
     },
     {
-     "clause": "GST export of FF7 for triggers with GST+B_HF ≤ t",
+     "clause": "GST export of FF7 for triggers with recoveryStart p E + B_HF ≤ t",
      "theorem": "AvailableChain.FGSA.Run.fgsa_aboveFrontierGST_recF4",
      "module": "AvailableChainFGSAProofs.Proofs.Shared.Claims",
      "type_fingerprint": "d226d5cdc5d58bf7"
     }
    ],
-   "open": []
+   "open": [
+    {
+     "id": "OPEN.bp.finalityLiveness.v2#FF7 Rec_F4_W.1",
+     "missing": "paper 22-finality.md:1420 states GST+B_HF; sleep threshold is recoveryStart"
+    }
+   ],
+   "note": "Sleep threshold approved in commit 7538ca0f."
   },
   {
    "id": "bp.finalityLiveness.v2#strong alternatives",

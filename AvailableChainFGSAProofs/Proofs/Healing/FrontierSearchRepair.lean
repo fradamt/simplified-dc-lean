@@ -8,7 +8,6 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PhaseSettle
 
 public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSeed
-public import AvailableChainFGSAProofs.Proofs.Healing.SupportFrame
 
 public section
 

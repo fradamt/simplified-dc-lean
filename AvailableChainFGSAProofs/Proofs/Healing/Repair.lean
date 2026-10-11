@@ -2,8 +2,6 @@ module
 public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowthProposal
 public import AvailableChainFGSAProofs.Proofs.Healing.RepairGate
 public import AvailableChainFGSAProofs.Proofs.Healing.RepairH6S
-public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryScope
-public import AvailableChainFGSAProofs.Proofs.Shared.BoundsW
 
 public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
 

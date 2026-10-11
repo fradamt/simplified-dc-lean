@@ -1,6 +1,5 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Finality.ActionTime
-public import AvailableChainFGSARun.Proofs.Schedule
 public import AvailableChainFGSAProofs.Proofs.Finality.RowsFrame
 public import AvailableChainFGSAProofs.Proofs.Shared.HeadAdmit
 

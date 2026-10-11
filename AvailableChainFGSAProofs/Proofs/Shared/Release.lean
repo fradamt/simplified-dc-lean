@@ -1,5 +1,4 @@
 module
-public import AvailableChainFGSARun.Proofs.Receipts
 public import AvailableChainFGSARun.Proofs.HeadIdentity
 public import AvailableChainFGSARun.Proofs.HeadHistory
 public import AvailableChainFGSAClaims.Statements.Reads

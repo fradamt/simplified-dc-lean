@@ -1,7 +1,6 @@
 module
 public import AvailableChainFGSAClaims.Statements.Reads
 public import AvailableChainFGSARun.Statements.Interface
-public import AvailableChainFGSARun.Proofs.Schedule
 public import AvailableChainFGSAProofs.Proofs.Shared.CatchUp
 
 public section

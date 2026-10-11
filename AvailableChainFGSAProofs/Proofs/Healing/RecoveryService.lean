@@ -1,6 +1,5 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryScope
-public import AvailableChainFGSAProofs.Proofs.Healing.SupportRecovery
 public import AvailableChainFGSAProofs.Proofs.Shared.AnchorService
 
 public import AvailableChainFGSAProofs.Proofs.Healing.Frame

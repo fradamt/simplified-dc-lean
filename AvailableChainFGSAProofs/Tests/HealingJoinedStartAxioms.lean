@@ -1,58 +1,19 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
-public import AvailableChainFGSAProofs.Proofs.Healing.DescentTiming
-public import AvailableChainFGSAProofs.Proofs.Healing.Frame
-public import AvailableChainFGSAProofs.Proofs.Healing.FramePaths
-public import AvailableChainFGSAProofs.Proofs.Healing.FrameRelay
-public import AvailableChainFGSAProofs.Proofs.Healing.FrameSource
-public import AvailableChainFGSAProofs.Proofs.Healing.FrameZero
-public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSupportFrame
-public import AvailableChainFGSAProofs.Proofs.Healing.LiveDC
-public import AvailableChainFGSAProofs.Proofs.Healing.PhaseOrder
-public import AvailableChainFGSAProofs.Proofs.Healing.PhaseRelay
-public import AvailableChainFGSAProofs.Proofs.Healing.PostResetRead
-public import AvailableChainFGSAProofs.Proofs.Healing.PromotionArithmetic
-public import AvailableChainFGSAProofs.Proofs.Healing.PromotionCarrier
-public import AvailableChainFGSAProofs.Proofs.Healing.PromotionReceipt
-public import AvailableChainFGSAProofs.Proofs.Healing.SupportFrame
-public import AvailableChainFGSAProofs.Proofs.Healing.SupportGate
-public import AvailableChainFGSAProofs.Proofs.Healing.SupportRecovery
-public import AvailableChainFGSAProofs.Proofs.Healing.SupportRelay
-public import AvailableChainFGSAProofs.Proofs.Healing.SupportRelease
-public import AvailableChainFGSAProofs.Proofs.Healing.SupportSaved
-public import AvailableChainFGSAProofs.Proofs.Healing.SupportTicks
-public import AvailableChainFGSAProofs.Proofs.Healing.SupportLease
-public import AvailableChainFGSAProofs.Proofs.Healing.SupportOutput
-public import AvailableChainFGSAProofs.Proofs.Healing.SupportProposal
-public import AvailableChainFGSAProofs.Proofs.Healing.SupportSlow
-public import AvailableChainFGSAProofs.Proofs.Healing.SupportPerm
-public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryProducers
-public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSupportHeads
-public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSupportTransfer
-public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSupportProposal
-public import AvailableChainFGSAProofs.Proofs.Healing.RepairH6
-public import AvailableChainFGSAProofs.Proofs.Healing.RepairH6S
-public import AvailableChainFGSAProofs.Proofs.Healing.SourceTiming
-public import AvailableChainFGSAProofs.Proofs.Healing.Delivery
-public import AvailableChainFGSAProofs.Proofs.Healing.DeliveryReset
-public import AvailableChainFGSAProofs.Proofs.Healing.DescentLoss
-public import AvailableChainFGSAProofs.Proofs.Healing.DescentLossFirst
-public import AvailableChainFGSAProofs.Proofs.Healing.DescentLossNext
-public import AvailableChainFGSAProofs.Proofs.Healing.DescentLossLease
-public import AvailableChainFGSAProofs.Proofs.Healing.RepairGate
-public import AvailableChainFGSAProofs.Proofs.Healing.FrontierRead
-public import AvailableChainFGSAProofs.Proofs.Healing.SupportHeads
-public import AvailableChainFGSAProofs.Proofs.Healing.SupportTransfer
-public import AvailableChainFGSAProofs.Proofs.Healing.SupportWrite
-public import AvailableChainFGSAProofs.Proofs.Healing.Time
-public import AvailableChainFGSAProofs.Proofs.Healing.DescentLossCause
-public import AvailableChainFGSAProofs.Proofs.Healing.DescentLossUnanimous
-public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCompat
-public import AvailableChainFGSAProofs.Proofs.Healing.PostResetHigh
-public import AvailableChainFGSAProofs.Proofs.Healing.PostResetKeep
-public import AvailableChainFGSAProofs.Proofs.Healing.PostResetLease
-public import AvailableChainFGSAProofs.Proofs.Healing.PostResetRaw
-public import AvailableChainFGSAProofs.Proofs.Healing.ResetTransfer
+public import AvailableChainFGSAProofs.Proofs.Healing.LiveDC -- shake: keep (#print axioms targets)
+-- shake keep reason: #print axioms targets
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetRead -- shake: keep
+-- shake keep reason: #print axioms targets
+public import AvailableChainFGSAProofs.Proofs.Healing.PromotionReceipt -- shake: keep
+-- shake keep reason: #print axioms targets
+public import AvailableChainFGSAProofs.Proofs.Healing.RecoveryProducers -- shake: keep
+-- shake keep reason: #print axioms targets
+public import AvailableChainFGSAProofs.Proofs.Healing.RepairH6S -- shake: keep
+-- shake keep reason: #print axioms targets
+public import AvailableChainFGSAProofs.Proofs.Healing.DescentLossUnanimous -- shake: keep
+-- shake keep reason: #print axioms targets
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetHigh -- shake: keep
+-- shake keep reason: #print axioms targets
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetLease -- shake: keep
 
 public section
 

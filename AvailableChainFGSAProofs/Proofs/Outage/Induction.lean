@@ -1,5 +1,6 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Outage.ScopedInduction
+-- shake keep reason: source declarations
+public import AvailableChainFGSAProofs.Proofs.Outage.ScopedInduction -- shake: keep
 
 public section
 

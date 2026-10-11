@@ -1,5 +1,6 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.SupportRecovery
+-- shake keep reason: test environment
+public import AvailableChainFGSAProofs.Proofs.Healing.SupportRecovery -- shake: keep
 
 public section
 

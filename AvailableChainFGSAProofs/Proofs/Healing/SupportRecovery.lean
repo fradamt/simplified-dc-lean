@@ -1,11 +1,9 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
-public import AvailableChainFGSAClaims.Statements.Regimes
 public import AvailableChainFGSAClaims.Statements.FrameNext
 public import AvailableChainFGSARun.Proofs.Join
 public import AvailableChainFGSAProofs.Proofs.Shared.RegimesService
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumers
-public import AvailableChainGeneric.Proofs.V2.Duty.Sleep
 
 public section
 
@@ -18,7 +16,7 @@ open AvailableChain.SimplexFG
   back ≤ s ∧ E.t_GST ≤ slotStartZ p ((s : Int) - (back : Int))
 
 /-- A stronger cutoff also puts the saved labels after the recovery start. -/
-@[expose] def StrongHealingWindow (p : Params) {V : Type} (E : Generic.Env V)
+def StrongHealingWindow (p : Params) {V : Type} (E : Generic.Env V)
     (back : Nat) (s : Slot) : Prop :=
   back ≤ s ∧ max E.t_GST (recoveryStart p E) ≤
     slotStartZ p ((s : Int) - (back : Int))

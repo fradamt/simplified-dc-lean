@@ -1,5 +1,6 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.RepairLeaseRecovery
+-- shake keep reason: facade coverage
+public import AvailableChainFGSAProofs.Proofs.Healing.RepairLeaseRecovery -- shake: keep
 
 public section
 

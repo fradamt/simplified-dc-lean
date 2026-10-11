@@ -1,6 +1,4 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Shared.StoreRun
-public import AvailableChainFGSARun.Proofs.Receipts
 
 public import AvailableChainFGSAProofs.Proofs.Shared.CatchUp
 

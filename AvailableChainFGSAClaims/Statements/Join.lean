@@ -5,7 +5,6 @@ public import AvailableChainFGSAClaims.Statements.Reads
 public import AvailableChainFGSAClaims.Statements.Counts
 public import AvailableChainFGSAClaims.Statements.BoundsW
 public import AvailableChainFGSARun.Statements.Emission
-public import AvailableChainGeneric.Statements.V2.Duty.DeliveryBy
 
 @[expose] public section
 

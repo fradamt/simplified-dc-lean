@@ -1,6 +1,5 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSupportHeads
-public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumers
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportProposal
 
 public section

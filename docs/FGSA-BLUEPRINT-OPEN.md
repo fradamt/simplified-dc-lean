@@ -79,6 +79,36 @@ any item remains.
 
 - `OPEN.bp.firstFinality.v2#qualified search B_best^F.1`: The qualified healing-search bound B_best^F is a deferred companion; only B_H^F is exported.
 
+## bp.finalityLiveness.v2#FF5 Rec_FE_W (PARTIAL)
+
+- `OPEN.bp.finalityLiveness.v2#FF5 Rec_FE_W.1`: paper 22-finality.md:1420 states GST+B_HF; sleep
+  threshold is recoveryStart
+
+## bp.finalityLiveness.v2#FF5 Rec_F4_W (PARTIAL)
+
+- `OPEN.bp.finalityLiveness.v2#FF5 Rec_F4_W.1`: paper 22-finality.md:1420 states GST+B_HF; sleep
+  threshold is recoveryStart
+
+## bp.finalityLiveness.v2#FF6 Rec_FE_W (PARTIAL)
+
+- `OPEN.bp.finalityLiveness.v2#FF6 Rec_FE_W.1`: paper 22-finality.md:1420 states GST+B_HF; sleep
+  threshold is recoveryStart
+
+## bp.finalityLiveness.v2#FF6 Rec_F4_W (PARTIAL)
+
+- `OPEN.bp.finalityLiveness.v2#FF6 Rec_F4_W.1`: paper 22-finality.md:1420 states GST+B_HF; sleep
+  threshold is recoveryStart
+
+## bp.finalityLiveness.v2#FF7 Rec_FE_W (PARTIAL)
+
+- `OPEN.bp.finalityLiveness.v2#FF7 Rec_FE_W.1`: paper 22-finality.md:1420 states GST+B_HF; sleep
+  threshold is recoveryStart
+
+## bp.finalityLiveness.v2#FF7 Rec_F4_W (PARTIAL)
+
+- `OPEN.bp.finalityLiveness.v2#FF7 Rec_F4_W.1`: paper 22-finality.md:1420 states GST+B_HF; sleep
+  threshold is recoveryStart
+
 ## bp.finalityLiveness.v2#strong alternatives (OPEN)
 
 - `OPEN.bp.finalityLiveness.v2#strong alternatives.1`: The strong alternatives remain old-fold proofs, PORT PENDING, with no Lean statement.

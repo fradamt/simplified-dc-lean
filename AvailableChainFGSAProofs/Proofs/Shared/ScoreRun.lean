@@ -1,9 +1,7 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Shared.StoreRun
 public import AvailableChainFGSA.Proofs.Head.Score
 public import AvailableChainFGSA.Proofs.Port.Tree
 public import AvailableChainFGSA.Proofs.Head.Walk -- shake: keep (prefix lift)
-public import AvailableChainFGSARun.Proofs.Receipts
 public import AvailableChainFGSARun.Proofs.RootResolution
 public import AvailableChainFGSARun.Proofs.ReadFacts
 

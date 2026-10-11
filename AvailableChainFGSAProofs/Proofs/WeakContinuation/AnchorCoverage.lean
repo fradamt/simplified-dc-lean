@@ -1,7 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Shared.AnchorService
 public import AvailableChainFGSAProofs.Proofs.Shared.Count
-public import AvailableChainFGSAProofs.Proofs.Shared.SameLabel
 
 public section
 

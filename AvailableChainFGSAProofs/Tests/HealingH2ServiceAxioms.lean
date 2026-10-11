@@ -1,36 +1,12 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.OpeningServiceGate
-public import AvailableChainFGSAProofs.Proofs.Healing.OpeningService
-public import AvailableChainFGSAProofs.Proofs.Healing.OpeningServiceBody
-public import AvailableChainFGSAProofs.Proofs.Healing.OpeningServiceOne
-public import AvailableChainFGSAProofs.Proofs.Healing.CommonEntryFacts
-public import AvailableChainFGSAProofs.Proofs.Healing.CommonEntryHeight
-public import AvailableChainFGSAProofs.Proofs.Healing.CommonEntry
-public import AvailableChainFGSAProofs.Proofs.Healing.FrontierOpen
-public import AvailableChainFGSAProofs.Proofs.Healing.FrontierOpenAll
-public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSeed
-public import AvailableChainFGSAProofs.Proofs.Healing.FrontierServiceGate
-public import AvailableChainFGSAProofs.Proofs.Healing.FrontierServiceSupport
-public import AvailableChainFGSAProofs.Proofs.Healing.FrontierServiceCover
-public import AvailableChainFGSAProofs.Proofs.Healing.FrontierService
-public import AvailableChainFGSAProofs.Proofs.Healing.Repair
-public import AvailableChainFGSAProofs.Proofs.Healing.RiseOne
-public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchStop
-public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchTail
-public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchHG2a
-public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchRise
 
-public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchRepair
 
-public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchGap
 
-public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchTop
 
-public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchCompose
 
-public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchTasks
 
-public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchFull
+-- shake keep reason: #print axioms targets
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchFull -- shake: keep
 
 public section
 

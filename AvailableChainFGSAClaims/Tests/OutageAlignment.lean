@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSAClaims.FGSAClaims
+public import AvailableChainFGSAClaims.FGSAClaims -- shake: keep (test environment)
 
 public section
 

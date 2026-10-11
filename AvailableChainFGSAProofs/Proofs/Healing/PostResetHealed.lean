@@ -1,7 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetService
 public import AvailableChainFGSAProofs.Proofs.Healing.Repair
-public import AvailableChainFGSAProofs.Proofs.Healing.SupportSlow
 public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
 
 public section

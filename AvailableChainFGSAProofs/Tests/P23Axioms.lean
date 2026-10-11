@@ -1,6 +1,6 @@
 module
-public import AvailableChainFGSAProofs.Statements.WeakContinuation
-public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Interfaces
+-- shake keep reason: #print axioms targets
+public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Interfaces -- shake: keep
 
 #print axioms AvailableChain.FGSA.Run.WCInitStatement
 #print axioms AvailableChain.FGSA.Run.WCStepDeliveryStatement

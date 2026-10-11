@@ -1,45 +1,26 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Outage.ScopedClose
-public import AvailableChainFGSAProofs.Proofs.Outage.ScopedEarly
-public import AvailableChainFGSAProofs.Proofs.Outage.RestoredReceipt
-public import AvailableChainFGSAProofs.Proofs.Outage.GrowthConsumer
-public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationPaths
-public import AvailableChainFGSAProofs.Proofs.Outage.GoodVotes
-public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceSleep
-public import AvailableChainFGSAProofs.Proofs.Outage.GateCount
-public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposal
-public import AvailableChainFGSAProofs.Proofs.Outage.InclusionGateBody
-public import AvailableChainFGSAProofs.Proofs.Outage.Suppliers
-public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalHistory
-public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceRelease
-public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceHistory
-public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceFrame
+-- shake keep reason: #print axioms targets
+public import AvailableChainFGSAProofs.Proofs.Outage.ScopedClose -- shake: keep
+-- shake keep reason: #print axioms targets
+public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationPaths -- shake: keep
+-- shake keep reason: #print axioms targets
+public import AvailableChainFGSAProofs.Proofs.Outage.InclusionGateBody -- shake: keep
+-- shake keep reason: #print axioms targets
+public import AvailableChainFGSAProofs.Proofs.Outage.Suppliers -- shake: keep
 
-public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceStep
 
-public import AvailableChainFGSAProofs.Proofs.Outage.InclusionOrigins
 
-public import AvailableChainFGSAProofs.Proofs.Outage.RestoredBatch
 
-public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationTiming
 
-public import AvailableChainFGSAProofs.Proofs.Outage.ReceiverInputs
 
-public import AvailableChainFGSAProofs.Proofs.Outage.PersistenceDeadlines
-public import AvailableChainFGSAProofs.Proofs.Outage.Induction
+-- shake keep reason: #print axioms targets
+public import AvailableChainFGSAProofs.Proofs.Outage.Induction -- shake: keep
 
-public import AvailableChainFGSAProofs.Proofs.Outage.LaterHeads
-public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationGate
 
-public import AvailableChainFGSAProofs.Proofs.Outage.ScopedContinuation
-public import AvailableChainFGSAProofs.Proofs.Outage.ScopedPrefix
-public import AvailableChainFGSAProofs.Proofs.Outage.ScopedCatchUp
+-- shake keep reason: #print axioms targets
+public import AvailableChainFGSAProofs.Proofs.Outage.ScopedCatchUp -- shake: keep
 
-public import AvailableChainFGSAProofs.Proofs.Outage.ScopedScores
-public import AvailableChainFGSAProofs.Proofs.Outage.ScopedRoots
-public import AvailableChainFGSAProofs.Proofs.Outage.ScopedPaths
 
-public import AvailableChainFGSAProofs.Proofs.Outage.ScopedBridge
 
 #print axioms AvailableChain.FGSA.Run.outage_restored_service
 #print axioms AvailableChain.FGSA.Run.outage_restored_proposal_receipt

@@ -1,7 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Proposal
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.ExactReceipts
-public import AvailableChainFGSAProofs.Proofs.Shared.RetainedEndpoint
 
 public section
 

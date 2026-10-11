@@ -1,9 +1,5 @@
 module
-public import AvailableChainFGSAClaims.Statements.Join
-public import AvailableChainFGSAClaims.Statements.BoundsW
-public import AvailableChainFGSAClaims.Statements.Reads
 public import AvailableChainFGSAClaims.Statements.Regimes
-public import AvailableChainGeneric.Statements.Pure.Props
 
 @[expose] public section
 

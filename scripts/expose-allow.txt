@@ -12,7 +12,5 @@ AvailableChainFGSAProofs/Proofs/Healing/SupportFrame.lean HealingJoinedTick
 AvailableChainFGSAProofs/Proofs/Healing/SupportFrame.lean HealingCarriersAt
 # HealingWindow: Recovery and post-reset modules unfold the selected window.
 AvailableChainFGSAProofs/Proofs/Healing/SupportRecovery.lean HealingWindow
-# StrongHealingWindow: Recovery modules unfold the strong selected window.
-AvailableChainFGSAProofs/Proofs/Healing/SupportRecovery.lean StrongHealingWindow
 # OutageScopedRegression: ScopedPaths and OutageLaterHeads unfold the regression premise.
 AvailableChainFGSAProofs/Proofs/Outage/ScopedPrefix.lean OutageScopedRegression

@@ -1,8 +1,8 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationJoint
+-- shake keep reason: source declarations
+public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationJoint -- shake: keep
 public import AvailableChainFGSAProofs.Proofs.Shared.Claims
 public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationTiming
-public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationInduction
 public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationFrame
 public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationGate
 public import AvailableChainFGSAProofs.Proofs.Outage.ContinuationReceipt

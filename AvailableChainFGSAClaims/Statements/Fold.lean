@@ -1,7 +1,6 @@
 module
 public import AvailableChainFGSAClaims.Statements.ChannelProps
 public import AvailableChainFGSAClaims.Statements.Regimes
-public import AvailableChainFGSAClaims.Statements.BoundsW
 public import AvailableChainFGSA.Statements.WindowEntries
 
 @[expose] public section

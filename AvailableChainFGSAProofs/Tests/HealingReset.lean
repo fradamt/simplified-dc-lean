@@ -1,6 +1,7 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.Reset -- shake: keep (R1–R3 tests)
-public import AvailableChainFGSAProofs.Proofs.Healing.HealingInputExport
+-- shake keep reason: source declarations
+public import AvailableChainFGSAProofs.Proofs.Healing.HealingInputExport -- shake: keep
 public import AvailableChainFGSAProofs.Proofs.Foundations.Sources
 public import AvailableChainFGSAProofs.Proofs.Foundations.Store
 public import AvailableChainFGSAProofs.Proofs.Foundations.Crossing

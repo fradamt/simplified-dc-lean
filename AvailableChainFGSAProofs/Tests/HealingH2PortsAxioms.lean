@@ -1,22 +1,9 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.PhaseService
-public import AvailableChainFGSAProofs.Proofs.Healing.FrontierService
-public import AvailableChainFGSAProofs.Proofs.Healing.RepairCover
-public import AvailableChainFGSAProofs.Proofs.Healing.Attempt
-public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchFull
-public import AvailableChainFGSAProofs.Proofs.Healing.PostReset
-public import AvailableChainFGSAProofs.Proofs.Healing.PostResetGate
-public import AvailableChainFGSAProofs.Proofs.Healing.PostResetH2Prime
-public import AvailableChainFGSAProofs.Proofs.Healing.PostResetTHigh
+public import AvailableChainFGSAProofs.Proofs.Healing.Attempt -- shake: keep (#print axioms targets)
 
-public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCone
-public import AvailableChainFGSAProofs.Proofs.Healing.PostResetJointStep2
 
-public import AvailableChainFGSAProofs.Proofs.Healing.PostResetLeaseMove
-public import AvailableChainFGSAProofs.Proofs.Healing.PostResetLeaseStep
-public import AvailableChainFGSAProofs.Proofs.Healing.PostResetRawStep
-public import AvailableChainFGSAProofs.Proofs.Healing.ReleaseScope
-public import AvailableChainFGSAProofs.Proofs.Healing.HealingInputExport
+-- shake keep reason: #print axioms targets
+public import AvailableChainFGSAProofs.Proofs.Healing.HealingInputExport -- shake: keep
 
 public section
 

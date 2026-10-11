@@ -3,8 +3,10 @@ public import AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuationGrowth --
 
 public import AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuationGrowthSeed -- shake: keep (seed axiom audit)
 
-public import AvailableChainFGSAProofs.Proofs.Assembly.ContinuationReplay
-public import AvailableChainFGSAProofs.Proofs.Assembly.ContinuationService
+-- shake keep reason: #print axioms targets
+public import AvailableChainFGSAProofs.Proofs.Assembly.ContinuationReplay -- shake: keep
+-- shake keep reason: #print axioms targets
+public import AvailableChainFGSAProofs.Proofs.Assembly.ContinuationService -- shake: keep
 
 public section
 

@@ -1,6 +1,5 @@
 module
 public import AvailableChainFGSAProofs.Proofs.WeakContinuationGrowth.Export -- shake: keep
-public import AvailableChainFGSAProofs.Proofs.Shared.Reads
 
 public section
 

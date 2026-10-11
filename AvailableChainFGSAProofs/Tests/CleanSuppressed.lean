@@ -1,6 +1,6 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Clean.StateGate
-public import Mathlib.Tactic.IntervalCases
+public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (source declarations)
+public import Mathlib.Tactic.IntervalCases -- shake: keep (interval_cases tests)
 
 @[expose] public section
 
