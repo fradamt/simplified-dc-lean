@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGCompose.Proofs.Healing.Promotion
+public import AvailableChainKitFG.WindowInvariant
 public import AvailableChainFGCompose.Proofs.Healing.CommonEntry
 public import AvailableChainFGCompose.Proofs.Healing.PromotionArithmetic
 public import AvailableChainFGCompose.Proofs.Healing.PromotionRows
@@ -243,6 +243,372 @@ private theorem d3_parent_transfer :
 #print axioms d3_reject_deadline_equality
 #print axioms d3_finality_useful
 #print axioms d3_reject_finality_mismatch
+
+-- Real window heights on a chain; two honest readers select different sources.
+-- This fixture specifies interface reads. It does not assert ExecutionValid.
+private noncomputable abbrev d3n_entry : FGBlock (Fin 1) :=
+  .node .genesis 1 ⟨10⟩ 0 [⟨0, .vote 1 genesisRoot false, none⟩]
+private noncomputable abbrev d3n_source2 : FGBlock (Fin 1) :=
+  .node d3n_entry 2 ⟨11⟩ 0 []
+private noncomputable abbrev d3n_parent_block : FGBlock (Fin 1) :=
+  .node d3n_source2 3 ⟨12⟩ 0 []
+private noncomputable abbrev d3n_child : FGBlock (Fin 1) :=
+  .node d3n_parent_block 8 ⟨13⟩ 0 []
+private noncomputable abbrev d3n_wrong : FGBlock (Fin 1) :=
+  .node .genesis 3 ⟨19⟩ 0 []
+private def d3n_erase : FGBlock (Fin 1) → Block
+  | .genesis => .genesis
+  | .node P s root body _ => .node (d3n_erase P) s root body
+private noncomputable abbrev d3n_row : Row (Fin 1) :=
+  ⟨0, .vote 2 d3n_entry.root false, some ⟨0, genesisRoot⟩⟩
+private noncomputable abbrev d3n_later : Row (Fin 1) :=
+  { d3n_row with finality_pair := some ⟨1, ⟨99⟩⟩ }
+private noncomputable abbrev d3n_protocol : V2.ProtocolSpecD Unit :=
+  { d3_protocol with gossip := fun _ t => if t < 22 then [d3n_row] else [d3n_later] }
+private noncomputable abbrev d3n_env : Generic.Env Bool :=
+  ⟨1, by decide, 0, by decide, fun _ _ => true⟩
+private noncomputable abbrev d3n_trace : V2.D.Run Bool d3n_protocol where
+  honest := {false, true}
+  horizon := 40
+  events := [.deliver true ⟨.none, d3_row⟩ 1, .tick false 14, .tick true 14,
+    .deliver false ⟨.none, d3_row⟩ 16, .tick false 22, .tick true 22, .tick false 32]
+  seatOf _ _ := false
+  input _ _ := ()
+private noncomputable abbrev d3n_core :
+    FGCoreReads d3n_protocol 1 Unit Unit (Row (Fin 1)) where
+  core st := ⟨(), ⟨{.genesis, d3n_entry, d3n_source2, d3n_parent_block},
+    .genesis, .genesis, 0, 2⟩, [], st⟩
+  erase := d3n_erase
+  source st := some (if st = [] then d3n_entry else d3n_source2)
+  headVote _ _ := d3n_erase d3n_parent_block
+  finalityHead _ := some d3n_parent_block
+  proposalFG _ _ := some d3n_child
+private noncomputable abbrev d3n_safety : FGSafetyReads d3n_protocol 1 (Row (Fin 1)) where
+  proposalErase _ := none
+  proposalRows _ := []
+  encode a := ⟨.none, a⟩
+  decode := some
+  decodeObject o := some o.payload
+  fgLabel := 0
+  fgSeats := Equiv.refl _
+  record _ := RecordOnce.initial
+  inputs _ := (some .genesis, ⟨0, genesisRoot, 0⟩)
+  enabled _ := true
+  finalizedOut _ := .genesis
+private noncomputable abbrev d3n_height : FGHeightView (Fin 1) :=
+  fun B => Window.projectHeight (Window.derive d3_electorate ⟨0⟩ 2 B)
+private theorem d3n_height_laws : FGHeightLaws d3_electorate d3n_height :=
+  Window.windowHeightLaws d3_electorate ⟨0⟩ 2 (by decide)
+private noncomputable abbrev d3n_selected (x : Bool) : FGBlock (Fin 1) :=
+  if x then d3n_source2 else d3n_entry
+private theorem d3n_sources (x : Bool) :
+    actionSourceFG d3n_core d3n_env d3n_trace d3_clock x 1 =
+      some (some (d3n_selected x)) := by cases x <;> decide +kernel
+private theorem d3n_next_sources (x : Bool) :
+    actionSourceFG d3n_core d3n_env d3n_trace d3_clock x 2 =
+      some (some d3n_source2) := by cases x <;> decide +kernel
+private theorem d3n_source_eq {x : Bool} {K : FGBlock (Fin 1)}
+    (hK : actionSourceFG d3n_core d3n_env d3n_trace d3_clock x 1 = some (some K)) :
+    K = d3n_selected x := Option.some.inj (Option.some.inj (hK.symm.trans (d3n_sources x)))
+private theorem d3n_geometry : d3n_entry ≠ .genesis ∧ d3n_entry ≠ d3n_source2 ∧
+    FGBlock.Preceq d3n_entry d3n_source2 ∧
+    FGBlock.Preceq d3n_source2 d3n_parent_block ∧
+    d3n_parent_block ≠ d3n_source2 ∧ EntryAt d3n_height d3n_entry 2 := by
+  unfold EntryAt
+  decide +kernel
+private theorem d3n_caps : ∀ x K, x ∈ d3n_trace.honest →
+    actionSourceFG d3n_core d3n_env d3n_trace d3_clock x 1 = some (some K) →
+    FGBlock.Preceq d3n_entry K ∧ (d3n_height K).h ≤ 2 := by
+  intro x K _ hK
+  rw [d3n_source_eq hK]
+  cases x <;> decide +kernel
+private theorem d3n_opening : OpeningEntry d3n_core d3n_env d3n_trace d3n_height
+    d3_clock 1 2 := common_entry_at_high d3n_core d3n_env d3n_trace d3n_height
+      d3_clock d3_electorate d3n_height_laws d3n_caps (by decide +kernel)
+private theorem d3n_low_arm : OpeningEntry d3n_core d3n_env d3n_trace d3n_height
+    d3_clock 1 (3 - 1) := by
+  rcases common_low_or_high d3n_core d3n_env d3n_trace d3n_height d3_clock
+      d3_electorate d3n_height_laws 1 3 d3n_entry (by decide +kernel)
+      (fun x K hx hK => ⟨(d3n_caps x K hx hK).1, (d3n_caps x K hx hK).2.trans
+        (by decide)⟩) with low | high
+  · exact low
+  · obtain ⟨x, K, _, hK, hh⟩ := high
+    rw [d3n_source_eq hK] at hh
+    cases x <;> change 2 = 3 at hh <;> contradiction
+private theorem d3n_genesis_caps : ∀ x K, x ∈ d3n_trace.honest →
+    actionSourceFG d3n_core d3n_env d3n_trace d3_clock x 1 = some (some K) →
+    FGBlock.Preceq .genesis K ∧ (d3n_height K).h ≤ 2 :=
+  fun x K hx hK => ⟨genesis_preceq K, (d3n_caps x K hx hK).2⟩
+private theorem d3n_not_low : ¬ OpeningEntry d3n_core d3n_env d3n_trace d3n_height
+    d3_clock 1 1 := by
+  rintro ⟨e, he⟩
+  have hh := (he false d3n_entry (by decide) (d3n_sources false)).1
+  change 2 = 1 at hh
+  contradiction
+private theorem d3n_high_arm : ∃ x K, x ∈ d3n_trace.honest ∧
+    actionSourceFG d3n_core d3n_env d3n_trace d3_clock x 1 = some (some K) ∧
+    (d3n_height K).h = 2 := by
+  rcases common_low_or_high d3n_core d3n_env d3n_trace d3n_height d3_clock
+    d3_electorate d3n_height_laws 1 2 .genesis (by decide +kernel)
+    d3n_genesis_caps with low | high
+  · exact (d3n_not_low low).elim
+  · exact high
+private noncomputable abbrev d3n_obs : FGObservationReads d3n_core where
+  height := d3n_height
+  finality _ := ⟨.genesis, 0⟩
+  controls _ := ⟨.genesis, 2, 0, .genesis, false⟩
+  viable _ X := X
+private theorem d3n_phase : PhaseInterval d3n_core d3n_env d3n_trace d3n_obs
+    14 (d3_clock.action (1 + 1)) 2 none false := by
+  refine ⟨by decide, by decide, by decide, ?_⟩
+  intro i x _ _ _
+  exact ⟨rfl, rfl, rfl⟩
+private theorem d3n_conditional_next : OpeningEntry d3n_core d3n_env d3n_trace
+    d3n_height d3_clock 2 2 := by
+  have route := common_entry_at_low d3n_core d3n_env d3n_trace d3n_height d3_clock
+    d3_electorate d3n_height_laws d3n_obs (u := 14) (J := none) (contested := false)
+    (r := 1) (m := 2) (Qfg := .genesis) (by decide +kernel) d3n_genesis_caps (by
+      intro y K _ hK _ x L _ hL
+      have hLK : L = d3n_source2 :=
+        Option.some.inj (Option.some.inj (hL.symm.trans (d3n_next_sources x)))
+      rw [d3n_source_eq hK, hLK]
+      cases y <;> decide +kernel)
+  rcases route with low | high
+  · exact (d3n_not_low low).elim
+  · exact high.2 d3n_phase
+private theorem d3n_sent (x : Bool) : HonestRowAt d3n_safety d3n_env d3n_trace
+    d3_clock (if x then 2 else 1) x 1 d3n_row := by
+  cases x <;> unfold HonestRowAt <;> decide +kernel
+private theorem d3n_covered : OpeningCovered d3n_core d3n_safety d3n_env d3n_trace
+    d3n_height d3_clock Row.height_pair 1 (d3n_erase d3n_entry) := by
+  intro x _
+  refine ⟨d3n_selected x, (if x then [d3_row] else []), (if x then 2 else 1),
+    1, d3n_row, ?_, d3n_sources x, ?_, ?_, le_rfl, d3n_sent x, ?_⟩ <;>
+    cases x <;> decide +kernel
+private theorem d3n_agreement : ∀ x y K L, x ∈ d3n_trace.honest →
+    y ∈ d3n_trace.honest →
+    actionSourceFG d3n_core d3n_env d3n_trace d3_clock x 1 = some (some K) →
+    actionSourceFG d3n_core d3n_env d3n_trace d3_clock y 1 = some (some L) →
+    (d3n_height K).T_h.root = (d3n_height L).T_h.root →
+    (d3n_height K).T_h = (d3n_height L).T_h := by
+  intro x y K L _ _ hK hL _
+  rw [d3n_source_eq hK, d3n_source_eq hL]
+  cases x <;> cases y <;> decide +kernel
+private theorem d3n_slots : ∀ x K, x ∈ d3n_trace.honest →
+    actionSourceFG d3n_core d3n_env d3n_trace d3_clock x 1 = some (some K) →
+    K.slot ≤ 1 * d3_clock.roundSlots := by
+  intro x K _ hK
+  rw [d3n_source_eq hK]
+  cases x <;> decide
+private theorem d3n_ancestor_slots : ∀ x K A, x ∈ d3n_trace.honest →
+    actionSourceFG d3n_core d3n_env d3n_trace d3_clock x 1 = some (some K) →
+    FGBlock.Preceq A K → A.slot ≤ K.slot := by
+  intro x K A _ hK hAK
+  rw [d3n_source_eq hK] at hAK ⊢
+  cases x <;>
+    simp only [d3n_selected, Bool.false_eq_true, ite_false, ite_true,
+      d3n_source2, d3n_entry, FGBlock.Preceq, FGBlock.preceq,
+      Bool.or_eq_true, decide_eq_true_eq] at hAK ⊢
+  · rcases hAK with rfl | rfl <;> decide
+  · rcases hAK with rfl | rfl | rfl <;> decide
+private theorem d3n_bounded : ∃ U, EntryAt d3n_height U 2 ∧
+    U.slot ≤ 1 * d3_clock.roundSlots ∧ FixedRows d3n_core d3n_safety d3n_env
+      d3n_trace d3n_height d3_clock Row.height_pair 1 2 (d3n_erase d3n_entry) U :=
+  healing_promotion_bounded_rows d3n_core d3n_safety d3n_env d3n_trace d3n_height
+    d3_clock Row.height_pair d3_electorate d3n_height_laws (by simp)
+    d3n_opening d3n_covered d3n_agreement d3n_slots d3n_ancestor_slots
+private noncomputable abbrev d3n_interface : V2.D.Interface d3n_protocol where
+  confirmed _ := .genesis
+  stable _ := .genesis
+  block _ := some (d3n_erase d3n_child)
+  opening _ := True
+  propLabel s := 4 * s
+  propDuty s := 4 * s
+  propDuty_label _ := rfl
+  propLabel_single _ := rfl
+  propLabel_injective := by
+    intro a b h
+    exact Nat.eq_of_mul_eq_mul_left (by decide : 0 < 4) h
+private noncomputable abbrev d3n_parent (_ : List (Row (Fin 1))) (key : Block) :=
+  if key = d3n_erase d3n_parent_block then some d3n_parent_block else none
+private noncomputable abbrev d3n_fold (_ : List (Row (Fin 1))) (_ : Slot)
+    (B : FGBlock (Fin 1)) := Window.derive d3_electorate ⟨0⟩ 2 B
+private noncomputable abbrev d3n_parent_height (nd : List (Row (Fin 1))) (s : Slot)
+    (B : FGBlock (Fin 1)) := ((d3n_fold nd s B).h, (d3n_fold nd s B).T_h.root)
+private noncomputable abbrev d3n_valid (nd : List (Row (Fin 1))) (s : Slot)
+    (B : FGBlock (Fin 1)) (a : Row (Fin 1)) := Window.r6w (d3n_fold nd s B) a
+private theorem d3n_parents : ∀ x K, x ∈ d3n_trace.honest →
+    actionSourceFG d3n_core d3n_env d3n_trace d3_clock x 1 = some (some K) →
+    FGBlock.Preceq K d3n_child.parent := by
+  intro x K _ hK
+  rw [d3n_source_eq hK]
+  cases x <;> decide
+private theorem d3n_proposal : HonestProposal d3n_env d3n_trace d3n_interface
+    8 (d3n_erase d3n_child) := by
+  refine ⟨⟨by decide, by decide⟩, ⟨.none, d3n_later⟩, ⟨6, ?_, ?_⟩, rfl⟩
+  · decide +kernel
+  · decide +kernel
+
+private theorem d3n_read : ∃ nd,
+    proposalStateAt d3n_env d3n_trace d3n_interface 8 = some nd ∧
+    d3n_parent nd (d3n_core.erase d3n_child).parent = some d3n_child.parent ∧
+    (d3n_fold nd 8 d3n_child.parent).h = (d3n_height d3n_child.parent).h ∧
+    (d3n_fold nd 8 d3n_child.parent).T_h = (d3n_height d3n_child.parent).T_h ∧
+    d3n_parent_height nd 8 d3n_child.parent =
+      ((d3n_fold nd 8 d3n_child.parent).h, (d3n_fold nd 8 d3n_child.parent).T_h.root) ∧
+    ∀ a, d3n_valid nd 8 d3n_child.parent a =
+      match d3n_safety.decode a with
+      | none => false
+      | some b => Window.r6w (d3n_fold nd 8 d3n_child.parent) b := by
+  exact ⟨[d3_row], by decide +kernel, by decide, rfl, rfl, rfl, fun _ => rfl⟩
+
+private theorem d3n_complete_on :
+    ∃ U, EntryAt d3n_height U 2 ∧ U.slot ≤ 1 * d3_clock.roundSlots
+      ∧ FGBlock.Preceq U d3n_child.parent ∧
+    ∀ x ∈ d3n_trace.honest, ∃ K nd j rSent a,
+      postClock d3n_env d3n_trace x (d3_clock.action 1) = some nd ∧
+      actionSourceFG d3n_core d3n_env d3n_trace d3_clock x 1 = some (some K)
+      ∧ K ∈ (d3n_core.core nd).fg.TF ∧
+      Block.Preceq (d3n_erase d3n_entry) (d3n_core.erase K) ∧ FGBlock.Preceq U K
+      ∧ K.slot ≤ 1 * d3_clock.roundSlots ∧
+      (d3n_height K).h = 2 ∧ (d3n_height K).T_h = U ∧ rSent ≤ 1
+      ∧ HonestRowAt d3n_safety d3n_env d3n_trace d3_clock j x rSent a ∧
+      NamesEntry Row.height_pair .progress a 2 U ∧
+      ((d3n_height d3n_child.parent).h = 2 →
+        ValidForParent d3n_env d3n_trace d3n_interface d3n_parent d3n_valid d3n_child.slot
+      (d3n_core.erase d3n_child) a ∧
+        HeightMatch d3n_env d3n_trace d3n_interface (fun a => namedEntry (Row.height_pair a))
+      d3n_parent d3n_parent_height
+          d3n_child.slot (d3n_core.erase d3n_child) a) := by
+  exact healing_promotion_same_rows_on d3n_core d3n_safety d3n_env d3n_trace d3n_height
+    d3_clock d3n_interface Row.height_pair d3n_parent d3n_parent_height d3n_valid
+    d3n_fold d3_electorate d3n_height_laws (by simp) d3n_opening d3n_covered
+    d3n_agreement d3n_slots d3n_ancestor_slots d3n_parents rfl d3n_read
+    (fun _ _ _ a _ => ⟨a, rfl, rfl⟩)
+
+private theorem d3n_complete_service :
+    ∃ U, EntryAt d3n_height U 2 ∧ U.slot ≤ 1 * d3_clock.roundSlots
+      ∧ FGBlock.Preceq U d3n_child.parent ∧
+    ∀ x ∈ d3n_trace.honest, ∃ K nd j rSent a,
+      postClock d3n_env d3n_trace x (d3_clock.action 1) = some nd ∧
+      actionSourceFG d3n_core d3n_env d3n_trace d3_clock x 1 = some (some K)
+      ∧ K ∈ (d3n_core.core nd).fg.TF ∧
+      Block.Preceq (d3n_erase d3n_entry) (d3n_core.erase K) ∧ FGBlock.Preceq U K
+      ∧ K.slot ≤ 1 * d3_clock.roundSlots ∧
+      (d3n_height K).h = 2 ∧ (d3n_height K).T_h = U ∧ rSent ≤ 1
+      ∧ HonestRowAt d3n_safety d3n_env d3n_trace d3_clock j x rSent a ∧
+      NamesEntry Row.height_pair .progress a 2 U ∧
+      ((d3n_height d3n_child.parent).h = 2 →
+        ValidForParent d3n_env d3n_trace d3n_interface d3n_parent d3n_valid d3n_child.slot
+      (d3n_core.erase d3n_child) a ∧
+        HeightMatch d3n_env d3n_trace d3n_interface (fun a => namedEntry (Row.height_pair a))
+      d3n_parent d3n_parent_height
+          d3n_child.slot (d3n_core.erase d3n_child) a) := by
+  exact healing_promotion_same_rows d3n_core d3n_safety d3n_env d3n_trace d3n_height
+    d3_clock d3n_interface Row.height_pair d3n_parent d3n_parent_height d3n_valid
+    d3n_fold d3_electorate d3n_height_laws (by simp) d3n_opening d3n_covered
+    d3n_agreement d3n_slots d3n_ancestor_slots d3n_parents rfl d3n_read
+    (fun _ _ _ a _ => ⟨a, rfl, rfl⟩)
+
+#print axioms d3n_height_laws
+#print axioms d3n_sources
+#print axioms d3n_next_sources
+#print axioms d3n_source_eq
+#print axioms d3n_geometry
+#print axioms d3n_caps
+#print axioms d3n_opening
+#print axioms d3n_low_arm
+#print axioms d3n_genesis_caps
+#print axioms d3n_not_low
+#print axioms d3n_high_arm
+#print axioms d3n_phase
+#print axioms d3n_conditional_next
+#print axioms d3n_sent
+#print axioms d3n_covered
+#print axioms d3n_agreement
+#print axioms d3n_slots
+#print axioms d3n_ancestor_slots
+#print axioms d3n_bounded
+#print axioms d3n_parents
+#print axioms d3n_proposal
+#print axioms d3n_read
+#print axioms d3n_complete_on
+#print axioms d3n_complete_service
+
+-- Only the two round-1 sends can supply the opening batch.
+private theorem d3n_tick_identity {x : Bool} {j rSent : Nat} (hr : rSent ≤ 1)
+    (he : d3n_trace.events[j]? = some (.tick x (d3_clock.action rSent))) :
+    j = (if x then 2 else 1) ∧ rSent = 1 := by
+  have hj : j < 7 := by
+    by_contra hn
+    have hh : d3n_trace.events[j]? = none := List.getElem?_eq_none (by
+      change 7 ≤ j
+      omega)
+    rw [hh] at he
+    contradiction
+  revert he
+  interval_cases j <;> interval_cases rSent <;> cases x <;> decide +kernel
+private theorem d3n_wire_identity {x : Bool} {j rSent : Nat} {a : Row (Fin 1)}
+    (hr : rSent ≤ 1) (ha : HonestRowAt d3n_safety d3n_env d3n_trace
+      d3_clock j x rSent a) :
+    j = (if x then 2 else 1) ∧ rSent = 1 ∧ a = d3n_row := by
+  obtain ⟨hj, hrSent⟩ := d3n_tick_identity hr ha.2.1
+  refine ⟨hj, hrSent, ?_⟩
+  subst j
+  have hem := ha.2.2
+  cases x <;>
+    change (⟨.none, a⟩ : d3n_protocol.Object) ∈ [⟨.none, d3n_row⟩] at hem <;>
+    exact congrArg (fun o : d3n_protocol.Object => o.payload) (List.mem_singleton.mp hem)
+
+-- The complete consumer keeps j, rSent and a through the terminal-parent call.
+private theorem d3n_terminal_identity : ∀ x ∈ d3n_trace.honest,
+    ∃ j rSent a, j = (if x then 2 else 1) ∧ rSent = 1 ∧ a = d3n_row ∧
+      HonestRowAt d3n_safety d3n_env d3n_trace d3_clock j x rSent a ∧
+      ValidForParent d3n_env d3n_trace d3n_interface d3n_parent d3n_valid
+        d3n_child.slot (d3n_erase d3n_child) a ∧
+      HeightMatch d3n_env d3n_trace d3n_interface (fun a => namedEntry a.height_pair)
+        d3n_parent d3n_parent_height d3n_child.slot (d3n_erase d3n_child) a := by
+  obtain ⟨U, _, _, _, rows⟩ := d3n_complete_on
+  intro x hx
+  obtain ⟨K, nd, j, rSent, a, _, _, _, _, _, _, _, _, hr, ha, _, hv⟩ := rows x hx
+  obtain ⟨hj, hrSent, hwire⟩ := d3n_wire_identity hr ha
+  exact ⟨j, rSent, a, hj, hrSent, hwire, ha, hv (by decide +kernel)⟩
+private theorem d3n_later_matching :
+    HonestRowAt d3n_safety d3n_env d3n_trace d3_clock 4 false 2 d3n_later ∧
+    NamesEntry Row.height_pair .progress d3n_later 2 d3n_entry ∧
+    d3n_later ≠ d3n_row ∧ d3n_later.finality_pair ≠ d3n_row.finality_pair := by
+  exact ⟨by unfold HonestRowAt; decide +kernel, ⟨false, rfl⟩, by decide, by decide⟩
+private theorem d3n_no_replacement :
+    ¬ HonestRowAt d3n_safety d3n_env d3n_trace d3_clock 1 false 1 d3n_later ∧
+    ¬ HonestRowAt d3n_safety d3n_env d3n_trace d3_clock 4 false 1 d3n_row ∧
+    ¬ (2 ≤ (1 : Nat)) := by
+  unfold HonestRowAt
+  decide +kernel
+private noncomputable abbrev d3n_missing (_ : List (Row (Fin 1))) (key : Block) :=
+  if key = d3n_erase d3n_wrong then some d3n_wrong else none
+private theorem d3n_lookup_control :
+    proposalStateAt d3n_env d3n_trace d3n_interface 8 = some [d3_row] ∧
+    d3n_parent [d3_row] (d3n_erase d3n_child).parent = some d3n_parent_block ∧
+    d3n_parent [d3_row] (d3n_erase d3n_wrong) = none ∧
+    d3n_missing [d3_row] (d3n_erase d3n_child).parent = none ∧
+    ¬ FGBlock.Preceq d3n_entry d3n_wrong := by decide +kernel
+private theorem d3n_missing_parent_rejected :
+    ¬ ValidForParent d3n_env d3n_trace d3n_interface d3n_missing d3n_valid
+      d3n_child.slot (d3n_erase d3n_child) d3n_row := by
+  rintro ⟨nd, P, _, hp, _⟩
+  have hn : d3n_missing nd (d3n_erase d3n_child).parent = none := by
+    change (if d3n_erase d3n_parent_block = d3n_erase d3n_wrong then _ else _) = none
+    decide
+  rw [hn] at hp
+  contradiction
+
+#print axioms d3n_tick_identity
+#print axioms d3n_wire_identity
+#print axioms d3n_terminal_identity
+#print axioms d3n_later_matching
+#print axioms d3n_no_replacement
+#print axioms d3n_lookup_control
+#print axioms d3n_missing_parent_rejected
 
 end AvailableChain.FGCompose.Tests.P0d3
 end
