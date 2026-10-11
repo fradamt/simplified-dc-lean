@@ -414,6 +414,7 @@
     'AvailableChain.KitFG.Window.EntryOriginAt_def',
     'AvailableChain.KitFG.Window.RetainedW',
     'AvailableChain.KitFG.Window.RetainedW_def',
+    'AvailableChain.KitFG.Window.acceptViable_eq',
     'AvailableChain.KitFG.Window.certificateFinality',
     'AvailableChain.KitFG.Window.certificateFinality_def',
     'AvailableChain.KitFG.Window.certificateFolded',
@@ -426,9 +427,12 @@
     'AvailableChain.KitFG.Window.finalityView_def',
     'AvailableChain.KitFG.Window.headFields',
     'AvailableChain.KitFG.Window.headFields_def',
+    'AvailableChain.KitFG.Window.headFields_eq_certificateHeadFields',
     'AvailableChain.KitFG.Window.heightRefinement',
     'AvailableChain.KitFG.Window.heightView',
     'AvailableChain.KitFG.Window.heightView_def',
+    'AvailableChain.KitFG.Window.justificationBirth_window_iff_simplex',
+    'AvailableChain.KitFG.Window.on_block_TF_eq',
     'AvailableChain.KitFG.Window.parentState',
     'AvailableChain.KitFG.Window.parentState_def',
     'AvailableChain.KitFG.Window.projectCertEntry',
@@ -437,8 +441,18 @@
     'AvailableChain.KitFG.Window.projectFinality_def',
     'AvailableChain.KitFG.Window.projectHeight',
     'AvailableChain.KitFG.Window.projectHeight_def',
+    'AvailableChain.KitFG.Window.update_finality_J_eq',
+    'AvailableChain.KitFG.Window.update_finality_h_j_eq',
+    'AvailableChain.KitFG.Window.update_finality_h_max_eq',
+    'AvailableChain.KitFG.Window.windowCertificateLaws',
+    'AvailableChain.KitFG.Window.windowChainCertificate',
     'AvailableChain.KitFG.Window.windowHeightBridge',
     'AvailableChain.KitFG.Window.windowHeightLaws',
+    'AvailableChain.KitFG.Window.windowSelectionLaws',
+    'AvailableChain.KitFG.Window.windowStoreInvariant_accept',
+    'AvailableChain.KitFG.Window.windowStoreInvariant_init',
+    'AvailableChain.KitFG.Window.windowStoreInvariant_on_block',
+    'AvailableChain.KitFG.Window.windowStoreSafety',
     'AvailableChain.KitFG.Window.window_F_mono',
     'AvailableChain.KitFG.Window.window_F_preceq_J',
     'AvailableChain.KitFG.Window.window_addBit',
@@ -448,19 +462,43 @@
     'AvailableChain.KitFG.Window.window_bit_retained',
     'AvailableChain.KitFG.Window.window_bounds',
     'AvailableChain.KitFG.Window.window_capacity',
+    'AvailableChain.KitFG.Window.window_entry_origin',
+    'AvailableChain.KitFG.Window.window_exists_crossing_quorum_ne_justified',
+    'AvailableChain.KitFG.Window.window_exists_honest_timeout_of_crossing',
+    'AvailableChain.KitFG.Window.window_filteredFrom_eq',
     'AvailableChain.KitFG.Window.window_finality_of_cover',
     'AvailableChain.KitFG.Window.window_finalized_zero',
+    'AvailableChain.KitFG.Window.window_fjControls_eq',
+    'AvailableChain.KitFG.Window.window_fjFrame_eq',
     'AvailableChain.KitFG.Window.window_fold_entry',
     'AvailableChain.KitFG.Window.window_fold_fields',
     'AvailableChain.KitFG.Window.window_fold_sources',
+    'AvailableChain.KitFG.Window.window_frontier_eq',
     'AvailableChain.KitFG.Window.window_greatest_spec',
     'AvailableChain.KitFG.Window.window_hF_le_hj',
     'AvailableChain.KitFG.Window.window_hF_mono',
+    'AvailableChain.KitFG.Window.window_hOf_eq',
+    'AvailableChain.KitFG.Window.window_headFields_latest',
+    'AvailableChain.KitFG.Window.window_lexMax_eq',
     'AvailableChain.KitFG.Window.window_no_reentry',
+    'AvailableChain.KitFG.Window.window_on_block_F_mono',
+    'AvailableChain.KitFG.Window.window_on_block_TF_subset',
+    'AvailableChain.KitFG.Window.window_on_block_of_accepted',
+    'AvailableChain.KitFG.Window.window_on_block_of_refused',
     'AvailableChain.KitFG.Window.window_ordered',
     'AvailableChain.KitFG.Window.window_post_not_ready',
+    'AvailableChain.KitFG.Window.window_prefinal_entry_origin',
+    'AvailableChain.KitFG.Window.window_provenance_entry',
+    'AvailableChain.KitFG.Window.window_provenance_finalityQC',
+    'AvailableChain.KitFG.Window.window_provenance_finalityRow',
     'AvailableChain.KitFG.Window.window_row_fields',
+    'AvailableChain.KitFG.Window.window_storeControls_eq',
+    'AvailableChain.KitFG.Window.window_storeFrame_eq',
     'AvailableChain.KitFG.Window.window_strict_node',
+    'AvailableChain.KitFG.Window.window_update_finality_F_cases',
+    'AvailableChain.KitFG.Window.window_update_finality_TF',
+    'AvailableChain.KitFG.Window.window_update_finality_h_max',
+    'AvailableChain.KitFG.Window.window_update_finality_pair',
     'AvailableChain.KitFG.WindowFoldMap',
     'AvailableChain.KitFG.WindowFoldMap.foldMap_finality_eq',
     'AvailableChain.KitFG.WindowFoldMap.foldMap_height_eq',
@@ -1320,42 +1358,3 @@
     'AvailableChain.SimplexFG.transition',
     'AvailableChain.SimplexFG.update_finality',
 )
-
-AvailableChain.KitFG.Window.justificationBirth_window_iff_simplex
-AvailableChain.KitFG.Window.window_entry_origin
-AvailableChain.KitFG.Window.window_prefinal_entry_origin
-AvailableChain.KitFG.Window.windowSelectionLaws
-AvailableChain.KitFG.Window.windowCertificateLaws
-AvailableChain.KitFG.Window.windowChainCertificate
-AvailableChain.KitFG.Window.acceptViable_eq
-AvailableChain.KitFG.Window.window_update_finality_TF
-AvailableChain.KitFG.Window.window_update_finality_h_max
-AvailableChain.KitFG.Window.window_update_finality_pair
-AvailableChain.KitFG.Window.window_update_finality_F_cases
-AvailableChain.KitFG.Window.update_finality_h_max_eq
-AvailableChain.KitFG.Window.update_finality_J_eq
-AvailableChain.KitFG.Window.update_finality_h_j_eq
-AvailableChain.KitFG.Window.on_block_TF_eq
-AvailableChain.KitFG.Window.windowStoreInvariant_init
-AvailableChain.KitFG.Window.windowStoreInvariant_accept
-AvailableChain.KitFG.Window.window_on_block_of_refused
-AvailableChain.KitFG.Window.window_on_block_of_accepted
-AvailableChain.KitFG.Window.window_on_block_F_mono
-AvailableChain.KitFG.Window.windowStoreInvariant_on_block
-AvailableChain.KitFG.Window.window_on_block_TF_subset
-AvailableChain.KitFG.Window.windowStoreSafety
-AvailableChain.KitFG.Window.window_hOf_eq
-AvailableChain.KitFG.Window.window_frontier_eq
-AvailableChain.KitFG.Window.window_lexMax_eq
-AvailableChain.KitFG.Window.window_filteredFrom_eq
-AvailableChain.KitFG.Window.window_storeControls_eq
-AvailableChain.KitFG.Window.window_storeFrame_eq
-AvailableChain.KitFG.Window.window_fjControls_eq
-AvailableChain.KitFG.Window.window_fjFrame_eq
-AvailableChain.KitFG.Window.headFields_eq_certificateHeadFields
-AvailableChain.KitFG.Window.window_provenance_entry
-AvailableChain.KitFG.Window.window_provenance_finalityRow
-AvailableChain.KitFG.Window.window_provenance_finalityQC
-AvailableChain.KitFG.Window.window_exists_crossing_quorum_ne_justified
-AvailableChain.KitFG.Window.window_exists_honest_timeout_of_crossing
-AvailableChain.KitFG.Window.window_headFields_latest

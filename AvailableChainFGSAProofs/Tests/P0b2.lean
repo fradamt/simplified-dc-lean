@@ -1,7 +1,5 @@
 module
-public import AvailableChainFGSA.Proofs.WindowSelection
 public import AvailableChainFGSA.Proofs.WindowStore
-public import AvailableChainFGSA.Proofs.WindowInvariant
 
 set_option linter.privateModule false
 
