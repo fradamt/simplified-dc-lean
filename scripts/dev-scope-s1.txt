@@ -484,6 +484,9 @@ AvailableChainKitV2.Tests.Counterexamples
 AvailableChainKitV2.Tests.Duties
 AvailableChainKitV2.Tests.Toy
 
+AvailableChainFGCompose.Statements.RowPermission
+AvailableChainFGCompose.Proofs.RowPermission
+AvailableChainFGCompose.Tests.P0d2
 [DEFERRED]
 AvailableChainFGSAProofs.Proofs.Shared.Claims P-ShA
 

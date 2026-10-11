@@ -21,3 +21,5 @@ public import AvailableChainFGCompose.Proofs.SafetyClient
 public import AvailableChainFGCompose.Proofs.SafetyCount
 public import AvailableChainFGCompose.Proofs.SafetyMonotone
 public import AvailableChainFGCompose.Proofs.SafetySlashing
+public import AvailableChainFGCompose.Statements.RowPermission
+public import AvailableChainFGCompose.Proofs.RowPermission

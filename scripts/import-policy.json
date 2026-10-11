@@ -84,6 +84,7 @@
       "AvailableChainGeneric.Statements.**"
     ],
     "laneUpstream": [
+      "AvailableChainFGCompose.Proofs.RowPermission",
       "AvailableChainFGCompose.Proofs.ObservationTransport",
       "AvailableChainFGCompose.Proofs.Timing",
       "AvailableChainFGCompose.Statements.ChannelLaws",

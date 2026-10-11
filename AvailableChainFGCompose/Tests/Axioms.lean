@@ -13,6 +13,9 @@ public import AvailableChainFGCompose.Proofs.SourceHead -- shake: keep (#print a
 public import AvailableChainFGCompose.Statements.Restart -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Proofs.Restart -- shake: keep (#print axioms)
 
+public import AvailableChainFGCompose.Statements.RowPermission -- shake: keep (#print axioms)
+public import AvailableChainFGCompose.Proofs.RowPermission -- shake: keep (#print axioms)
+
 #print axioms AvailableChain.FGCompose.ChainRowsBefore
 #print axioms AvailableChain.FGCompose.ChainRowsBefore_def
 #print axioms AvailableChain.FGCompose.FGCore
@@ -157,3 +160,16 @@ public import AvailableChainFGCompose.Proofs.Restart -- shake: keep (#print axio
 #print axioms AvailableChain.FGCompose.action_source_at_read
 #print axioms AvailableChain.FGCompose.action_eq_early_next
 #print axioms AvailableChain.FGCompose.finality_action_time_bounds
+
+#print axioms AvailableChain.FGCompose.FGRowPermissionInputs
+#print axioms AvailableChain.FGCompose.FGRowPermissionInputs.permitted_lock
+#print axioms AvailableChain.FGCompose.FGRowPermissionInputs.source_eq
+#print axioms AvailableChain.FGCompose.FGRowPermissionWireLaws
+#print axioms AvailableChain.FGCompose.FGRowPermissionWireLaws.decoded_wire
+#print axioms AvailableChain.FGCompose.FGRowRecordHistory
+#print axioms AvailableChain.FGCompose.FGRowRecordHistory.invariant
+#print axioms AvailableChain.FGCompose.FGRowRecordHistory.sent_history
+#print axioms AvailableChain.FGCompose.p0d2_once_coverage
+#print axioms AvailableChain.FGCompose.p0d2_pair_of_lock
+#print axioms AvailableChain.FGCompose.rowPermission_covered
+#print axioms AvailableChain.FGCompose.rowPermission_pair
