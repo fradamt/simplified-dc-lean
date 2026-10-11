@@ -87,7 +87,7 @@ def graph(root, tier, slots, fail='', change='', force=False, env_neg='0'):
     scripts.mkdir(parents=True)
     (root / '.lake').mkdir()
     for name in ('gate.sh', 'gate-common.sh', 'checker_scope.py', 'checker-paths.txt',
-                 'unported.py', 'unported-libraries.txt'):
+                 'unported.py', 'unported-libraries.txt', 'gate_timing.py'):
         shutil.copy2(REPO / 'scripts' / name, scripts / name)
     # Test the driver after precheck. Real source prechecks run separately.
     with (scripts / 'gate-common.sh').open('a') as out:
@@ -167,6 +167,16 @@ def graph(root, tier, slots, fail='', change='', force=False, env_neg='0'):
     elif not early:
         assert set(heavy_starts[:2]) == set(HEAVY[:2]), heavy_starts
     logs = next((root / '.lake').glob('gate-logs.*'))
+    assert not list((root / '.lake').glob('gate-slots.*/slot.*'))
+    if not early:
+        for name in HEAVY:
+            record = json.loads((logs / f'timings/{name}/{name}.json').read_text())
+            assert record['queued'] <= record['end'] and record['rc'] is not None, record
+            if record['start'] is not None:
+                assert record['queued'] <= record['start'] <= record['end'], record
+            if not fail:
+                assert record['slot_acquired'] is not None, record
+                assert record['peak_rss_bytes'] is not None, record
     if fail:
         assert result.returncode == 1 and f'GATE FAIL tier={tier}' in result.stdout, result
         if fail != 'build':

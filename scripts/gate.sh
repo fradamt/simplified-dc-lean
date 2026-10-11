@@ -104,6 +104,7 @@ GATE_SLOT_DIR=$(mktemp -d "$PWD/.lake/gate-slots.XXXXXX")
 gate_slots_init
 export AUDIT_WORKERS=${AUDIT_WORKERS:-$((GATE_SLOTS < 2 ? GATE_SLOTS : 2))}
 logs=$(mktemp -d "$PWD/.lake/gate-logs.XXXXXX")
+export GATE_LOG_DIR=$logs GATE_TIMING_HELPER=$PWD/scripts/gate_timing.py AUDIT_TIMING=1
 printf '%s\n' "$GATE_NEG_SCOPE" > "$logs/negative-controls.json"
 started=$(date +%s)
 failed=0
@@ -161,8 +162,9 @@ echo "reminder: run bash scripts/check-fg.sh on the Mac (research files required
 step() (
   set +e
   name=$1; shift
+  export GATE_STEP=$name
   start=$(date +%s)
-  (set -e; "$@") > "$logs/$name.log" 2>&1
+  (set -e; gate_timed "$name" "$@") > "$logs/$name.log" 2>&1
   rc=$?
   end=$(date +%s)
   printf '%s %s\n' "$rc" "$((end-start))" > "$logs/$name.result"
@@ -222,21 +224,28 @@ export SKIP_CONE=0
 # Every check step by name. Heavy steps share the gate slots (GATE_SLOTS cap).
 run_check() {
   case "$1" in
-    check-build) step "$1" bash scripts/check-build.sh --checks-only ;;
-    check-fgsa|check-fgsa-run) step "$1" bash "scripts/$1.sh" ;;
-    check-fg-compose) step "$1" gate_with_slot bash scripts/check-fg-compose.sh ;;
+    check-build) step "$1" gate_measure_command bash scripts/check-build.sh --checks-only ;;
+    check-fgsa|check-fgsa-run) step "$1" gate_measure_command bash "scripts/$1.sh" ;;
+    check-fg-compose) step "$1" gate_with_slot gate_measure_command bash scripts/check-fg-compose.sh ;;
     catalog-lock) step "$1" gate_with_slot lake env lean --run scripts/CatalogLock.lean --check ;;
     v2-manifest) step "$1" gate_with_slot lake env lean --run scripts/V2Manifest.lean --check ;;
     gen-manifest) step "$1" gate_with_slot lake env lean --run scripts/V2Manifest.lean --scope gen --check ;;
     # Includes mandatory frame/deep checks at both tiers; NEG only selects controls.
-    fgsa-manifest) step "$1" bash scripts/check-fgsa-manifest.sh ;;
-    fgsa-claims) step "$1" bash scripts/check-fgsa-claims.sh ;;
+    fgsa-manifest) step "$1" gate_measure_command bash scripts/check-fgsa-manifest.sh ;;
+    fgsa-claims) step "$1" gate_measure_command bash scripts/check-fgsa-claims.sh ;;
     *) echo "unknown gate step: $1" >&2; return 2 ;;
   esac
 }
 # Fail-fast group: the first failing step stops the others (their own process groups).
 run_group() {
+  local queued
+  for queued in "$@"; do
+    python3 -B "$GATE_TIMING_HELPER" queue "$logs/timings/$queued/$queued.json" "$queued"
+  done
   if ! gate_parallel_failfast run_check "$logs" --width "$GATE_SLOTS" "$@"; then
+    for queued in "$@"; do
+      python3 -B "$GATE_TIMING_HELPER" cancel "$logs/timings/$queued/$queued.json"
+    done
     summary "$GATE_FF_FAILED"
     echo "fail-fast: $GATE_FF_FAILED failed; stopped:${GATE_FF_KILLED:- none}; later steps skipped"
     finish; exit 1

@@ -53,7 +53,7 @@ def check_wiring(root=Path('.'), shell=None):
     assert shell.index('--scope legacy --check') < boundary
     for scope, label in [('v2', 'v2-deep'), ('gen', 'gen-deep'),
                          ('compose', 'compose-api'), ('fgsa-claims', 'claims-api')]:
-        call = 'gate_with_slot manifest_run ' + label + ' python3 -B scripts/api-snapshot.py'
+        call = 'manifest_run ' + label + ' python3 -B scripts/api-snapshot.py'
         start = shell.index(call)
         assert start < boundary
         command = shell[start:shell.index('\n', start)]
@@ -61,7 +61,7 @@ def check_wiring(root=Path('.'), shell=None):
             assert '--output docs/api/' + label + '.json --check' in command
         assert '--scope ' + scope in command and '--check' in command
     gate = (root / 'scripts/gate.sh').read_text()
-    assert 'fgsa-manifest) step "$1" bash scripts/check-fgsa-manifest.sh ;;' in gate
+    assert 'fgsa-manifest) step "$1" gate_measure_command bash scripts/check-fgsa-manifest.sh ;;' in gate
     group = ('run_group fgsa-claims check-fg-compose check-fgsa check-build check-fgsa-run '
              '\\\n  fgsa-manifest\n')
     assert group in gate
