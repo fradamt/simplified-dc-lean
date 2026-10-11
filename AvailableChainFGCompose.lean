@@ -30,3 +30,9 @@ public import AvailableChainFGCompose.Proofs.SafetySlashing
 
 public import AvailableChainFGCompose.Statements.HistoricalReads
 public import AvailableChainFGCompose.Proofs.HistoricalReads
+
+public import AvailableChainFGCompose.Statements.Phase
+public import AvailableChainFGCompose.Statements.PhaseReceipts
+public import AvailableChainFGCompose.Proofs.Healing.PhaseFrame
+public import AvailableChainFGCompose.Proofs.Healing.PhaseOrder
+public import AvailableChainFGCompose.Proofs.Healing.PhaseSettle

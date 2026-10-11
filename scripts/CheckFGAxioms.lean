@@ -136,6 +136,11 @@ def composeImportAllowed (m dep : Name) : Bool :=
   if dep == `Init then true
   else if m == `AvailableChainFGCompose then
     [`AvailableChainFGCompose.Statements.EventReads, `AvailableChainFGCompose.Statements.CoreReads,
+     `AvailableChainFGCompose.Statements.Phase,
+     `AvailableChainFGCompose.Statements.PhaseReceipts,
+     `AvailableChainFGCompose.Proofs.Healing.PhaseFrame,
+     `AvailableChainFGCompose.Proofs.Healing.PhaseOrder,
+     `AvailableChainFGCompose.Proofs.Healing.PhaseSettle,
      `AvailableChainFGCompose.Statements.ResetHistory,
      `AvailableChainFGCompose.Statements.Service,
      `AvailableChainFGCompose.Statements.Bounds,
@@ -170,6 +175,12 @@ def composeImportAllowed (m dep : Name) : Bool :=
       -- Lead ruling 2026-10-07 (P2, S3a): the two exact SafetyClient pairs.
       [(`AvailableChainFGCompose.Proofs.SafetyAccountable,
         `AvailableChainKitFG.AccountableCore),
+       (`AvailableChainFGCompose.Proofs.Healing.PhaseFrame,
+        `AvailableChainKitFG.StoreBounds),
+       (`AvailableChainFGCompose.Proofs.Healing.PhaseFrame,
+        `AvailableChainKitFG.FrameGeometry),
+       (`AvailableChainFGCompose.Proofs.Healing.PhaseSettle,
+        `AvailableChainGeneric.Proofs.V2.Duty.Reads),
        (`AvailableChainFGCompose.Proofs.HistoricalReads,
         `AvailableChainGeneric.Proofs.Pure.CommonAncestor),
        (`AvailableChainFGCompose.Proofs.SafetyClient, `AvailableChainKitFG.ClientOnceSafety),

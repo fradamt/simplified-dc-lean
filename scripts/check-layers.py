@@ -780,6 +780,33 @@ COMPOSE_EDGES |= frozenset({
     (PROOFS + ".Tests.P0HistoricalReads", COMPOSE + ".Proofs.HistoricalReads"),
 })
 
+# P0d1: exact phase modules.
+COMPOSE_MODULES += (
+    'AvailableChainFGCompose.Statements.Phase',
+    'AvailableChainFGCompose.Statements.PhaseReceipts',
+    'AvailableChainFGCompose.Proofs.Healing.PhaseFrame',
+    'AvailableChainFGCompose.Proofs.Healing.PhaseOrder',
+    'AvailableChainFGCompose.Proofs.Healing.PhaseSettle',
+)
+
+COMPOSE_PROOF_IMPORTS |= frozenset({
+    ('AvailableChainFGCompose.Proofs.Healing.PhaseFrame',
+     'AvailableChainKitFG.StoreBounds'),
+    ('AvailableChainFGCompose.Proofs.Healing.PhaseFrame',
+     'AvailableChainKitFG.FrameGeometry'),
+    ('AvailableChainFGCompose.Proofs.Healing.PhaseSettle',
+     'AvailableChainGeneric.Proofs.V2.Duty.Reads'),
+})
+
+COMPOSE_EDGES |= frozenset({
+    ('AvailableChainFGSAProofs.Proofs.Healing.PhaseFrame',
+     'AvailableChainFGCompose.Proofs.Healing.PhaseFrame'),
+    ('AvailableChainFGSAProofs.Proofs.Healing.PhaseOrder',
+     'AvailableChainFGCompose.Proofs.Healing.PhaseOrder'),
+    ('AvailableChainFGSAProofs.Proofs.Healing.PhaseSettle',
+     'AvailableChainFGCompose.Proofs.Healing.PhaseSettle'),
+})
+
 def compose_base(dep: str) -> bool:
     return (foundation(dep) or under(dep, "AvailableChainModel.Objects")
             or any_under(dep, ("AvailableChainEngineV2.Engine",

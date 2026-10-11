@@ -84,6 +84,9 @@
       "AvailableChainGeneric.Statements.**"
     ],
     "laneUpstream": [
+      "AvailableChainFGCompose.Proofs.Healing.PhaseSettle",
+      "AvailableChainFGCompose.Proofs.Healing.PhaseOrder",
+      "AvailableChainFGCompose.Proofs.Healing.PhaseFrame",
       "AvailableChainFGCompose.Statements.ResetHistory",
       "AvailableChainFGCompose.Statements.Service",
       "AvailableChainFGCompose.Statements.Bounds",

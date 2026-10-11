@@ -22,6 +22,12 @@ public import AvailableChainFGCompose.Proofs.ServiceTransport -- shake: keep (#p
 public import AvailableChainFGCompose.Statements.HistoricalReads -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Proofs.HistoricalReads -- shake: keep (#print axioms)
 
+public import AvailableChainFGCompose.Statements.Phase -- shake: keep (#print axioms)
+public import AvailableChainFGCompose.Statements.PhaseReceipts -- shake: keep (#print axioms)
+public import AvailableChainFGCompose.Proofs.Healing.PhaseFrame -- shake: keep (#print axioms)
+public import AvailableChainFGCompose.Proofs.Healing.PhaseOrder -- shake: keep (#print axioms)
+public import AvailableChainFGCompose.Proofs.Healing.PhaseSettle -- shake: keep (#print axioms)
+
 #print axioms AvailableChain.FGCompose.ChainRowsBefore
 #print axioms AvailableChain.FGCompose.ChainRowsBefore_def
 #print axioms AvailableChain.FGCompose.FGCore
@@ -371,3 +377,40 @@ public import AvailableChainFGCompose.Proofs.HistoricalReads -- shake: keep (#pr
 #print axioms AvailableChain.FGCompose.historical_read_restore_eq
 #print axioms AvailableChain.FGCompose.historical_read_sound
 #print axioms AvailableChain.FGCompose.historical_read_step
+
+#print axioms AvailableChain.FGCompose.AttemptPhaseAt
+#print axioms AvailableChain.FGCompose.ContestEvidence
+#print axioms AvailableChain.FGCompose.EffectiveEvent
+#print axioms AvailableChain.FGCompose.PhaseInterval
+#print axioms AvailableChain.FGCompose.PhaseKind
+#print axioms AvailableChain.FGCompose.RPhase
+#print axioms AvailableChain.FGCompose.SettledPhaseFrame
+#print axioms AvailableChain.FGCompose.TopEvidence
+#print axioms AvailableChain.FGCompose.frontierAtIdx
+#print axioms AvailableChain.FGCompose.PhaseWitnessReceiptScope
+#print axioms AvailableChain.FGCompose.PhaseWitnessReceiptScope.contest
+#print axioms AvailableChain.FGCompose.PhaseWitnessReceiptScope.frontier
+#print axioms AvailableChain.FGCompose.PhaseWitnessReceiptScope.top
+#print axioms AvailableChain.FGCompose.WitnessReceiptScope
+#print axioms AvailableChain.FGCompose.WitnessReceiptScope.atRead
+#print axioms AvailableChain.FGCompose.healing_frontier_mem
+#print axioms AvailableChain.FGCompose.healing_phase_finality_le
+#print axioms AvailableChain.FGCompose.healing_phase_frame
+#print axioms AvailableChain.FGCompose.healing_phase_frontier_root
+#print axioms AvailableChain.FGCompose.healing_phase_frontier_witness
+#print axioms AvailableChain.FGCompose.healing_phase_height_le
+#print axioms AvailableChain.FGCompose.healing_phase_justified_lt
+#print axioms AvailableChain.FGCompose.healing_settled_frame
+#print axioms AvailableChain.FGCompose.healing_settled_frame_ready
+#print axioms AvailableChain.FGCompose.healing_phase_contest_persist_of_crossing
+#print axioms AvailableChain.FGCompose.healing_phase_contest_persist_of_crossing_all
+#print axioms AvailableChain.FGCompose.healing_phase_entries_eq
+#print axioms AvailableChain.FGCompose.healing_phase_local_le_frontier
+#print axioms AvailableChain.FGCompose.healing_phase_order_of_crossing
+#print axioms AvailableChain.FGCompose.healing_phase_order_of_crossing_all
+#print axioms AvailableChain.FGCompose.healing_phase_top_persist
+#print axioms AvailableChain.FGCompose.healing_phase_top_persist_all
+#print axioms AvailableChain.FGCompose.healing_phase_window_all
+#print axioms AvailableChain.FGCompose.healing_settle_start_on
+#print axioms AvailableChain.FGCompose.phase_settle_from_carriers
+#print axioms AvailableChain.FGCompose.phase_top_carrier
