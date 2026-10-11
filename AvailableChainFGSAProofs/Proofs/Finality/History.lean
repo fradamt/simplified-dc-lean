@@ -530,5 +530,15 @@ theorem raw_causal_cap_through_action (base : BaseSet p c E rho)
   · intro j z a H hj ha
     exact haction j z a H ((d7a_row_eq p c E rho j q z a).mp hj) ha
 
+#print axioms d7a_foldMap
+#print axioms d7a_height_eq
+#print axioms d7a_finality_eq
+#print axioms d7a_retained_eq
+#print axioms d7a_wire
+#print axioms d7a_origin
+#print axioms d7a_pre
+#print axioms d7a_fresh
+#print axioms d7a_target
+
 end AvailableChain.FGSA.Run
 end
