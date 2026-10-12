@@ -5,6 +5,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.Descent
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSupportFrame
 
 public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
+public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchTop
 
 public section
 
@@ -14,7 +15,239 @@ accepted carrier at the actual start, including the inclusive cut. -/
 namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
 
+private def p0d5cTopCore (p : Params) {In : Type} (c : AppCodec In) :
+    FGCompose.FGCoreReads (fgsa p c) p.n (GridCO.State p.n .root) (Wire p.n) (RowWire p.n) :=
+  { core := fun nd => ⟨nd.st.base, nd.st.fg, nd.st.proposals, nd.st.rowPool⟩
+    erase := eraseFG
+    source := fun nd => FGSA.fgSource p nd.st
+    headVote := fun nd s => FGSA.headVote p nd.st s
+    finalityHead := fun nd => FGSA.fgBlockOf nd.st (FGSA.fgHead p nd.st)
+    proposalFG := fun nd o => match (toWire p o).decode with
+      | some (.block _ N) => (parentFG nd.st N.erase).map (fun P => fgBlock P N.erase N.rows)
+      | some (.vote _ _ _) => none
+      | some (.row _ _) => none
+      | none => none }
+
+private theorem p0d5cTopCoreLaws (p : Params) {In : Type} (c : AppCodec In) :
+    FGCompose.FGCoreLaws (p0d5cTopCore p c) := by
+  have h : p0d5cTopCore p c = fgsaCoreReads p c := (fgsaCoreReads_def p c).symm
+  rw [h]
+  exact fgsaCoreLaws p c
+
+private def p0d5cTopTiming (p : Params) : FGCompose.FGTiming where
+  delta := p.Δ
+  roundSlots := p.R
+  proposal := SA.proposalTime p.toParams
+  vote := SA.voteTime p.toParams
+  early := SA.earlyTime p.toParams
+  freeze := SA.freezeTime p.toParams
+  release := SA.releaseTime p.toParams
+  gate := SA.gateTime p.toParams
+  action := p.actionTime
+
+private theorem p0d5cTopTimingLaws (p : Params) :
+    FGCompose.FGTimingLaws (p0d5cTopTiming p) where
+  delta_pos := p.deltaPos
+  rounds := p.RLarge
+  proposal_eq s := by
+    change 4 * p.Δ * (s : Time) = 4 * (s : Time) * p.Δ
+    ring
+  vote_eq _ := rfl
+  early_eq _ := rfl
+  freeze_eq _ := rfl
+  release_eq _ := rfl
+  gate_eq _ := rfl
+  action_eq _ := rfl
+
+private def p0d5cTopObs (p : Params) {In : Type} (c : AppCodec In) :
+    FGCompose.FGObservationReads (p0d5cTopCore p c) where
+  height := heightView p
+  finality := finalityView p
+  controls nd := FGSA.controls p nd.st
+  viable nd X := domainR p nd.st X
+
+private theorem p0d5cTopObsLaws (p : Params) {In : Type} (c : AppCodec In) :
+    FGCompose.FGObservationLaws (p0d5cTopCore p c) (p0d5cTopObs p c) where
+  controls_eq _ := rfl
+  viable_eq _ _ := rfl
+
+private def p0d5cTopSafety (p : Params) {In : Type} (c : AppCodec In) :
+    FGCompose.FGSafetyReads (fgsa p c) p.n (RowWire p.n) where
+  proposalErase := safetyProposalErase p
+  proposalRows := safetyProposalRows p
+  encode := ofRow p
+  decode := RowWire.toRow?
+  decodeObject := decodeRowObject p
+  fgLabel := .base .fg
+  fgSeats := Equiv.refl _
+  record := Node.record
+  inputs := fun nd => fgInputs p nd.st
+  enabled := fun t => decide (p.actionTime ((p.slotOf t - 1) / p.R) = t)
+  finalizedOut := finalizedOut
+
+private def p0d5cTopSigner {p : Params} (a : RowWire p.n) : Option (Fin p.n) := match a.auth with
+  | .seat .fg i => some i
+  | _ => none
+
+private theorem p0d5cTopDecodeRow {p : Params} {a : RowWire p.n} {u : Row (Fin p.n)}
+    (ha : a.toRow? = some u) :
+    a = ⟨.seat .fg u.signer, .vote ⟨u.height_pair, u.finality_pair⟩⟩ := by
+  rcases a with ⟨auth, ⟨⟨ah, af⟩⟩⟩
+  cases auth with
+  | none => cases ha
+  | proposer s => cases ha
+  | seat label k =>
+    cases label with
+    | head s => cases ha
+    | fg =>
+      have he : (⟨k, ah, af⟩ : Row (Fin p.n)) = u := Option.some.inj ha
+      subst u
+      rfl
+
+private def p0d5cTopWire (p : Params) {In : Type} (c : AppCodec In) :
+    FGCompose.FGHistoryWireReads (p0d5cTopSafety p c) where
+  heightPair a := a.payload.height_pair
+  finalityPair a := a.payload.finality_pair
+  signer := p0d5cTopSigner
+  decode_height a u ha := by
+    delta p0d5cTopSafety at ha
+    rw [p0d5cTopDecodeRow ha]
+    rfl
+  decode_finality a u ha := by
+    delta p0d5cTopSafety at ha
+    rw [p0d5cTopDecodeRow ha]
+    rfl
+  decode_signer a u ha := by
+    delta p0d5cTopSafety at ha
+    rw [p0d5cTopDecodeRow ha]
+    rfl
+
+private def p0d5cTopDecode {p : Params} (o : Obj p) : Option (Slot × NamedProposal p.n) :=
+  match (toWire p o).decode with
+  | some (.block s N) => some (s, N)
+  | _ => none
+
+private theorem p0d5cTopDecode_iff {p : Params} (o : Obj p) (s : Slot) (N : NamedProposal p.n) :
+    p0d5cTopDecode o = some (s, N) ↔ (toWire p o).decode = some (.block s N) := by
+  unfold p0d5cTopDecode
+  cases hd : (toWire p o).decode with
+  | none => simp
+  | some wire => cases wire <;> simp
+
+private theorem p0d5cTopPayload {p : Params} (o : Obj p) (s : Slot) (N : NamedProposal p.n)
+    (hd : (toWire p o).decode = some (.block s N)) :
+    o = ofWire p ⟨.proposer s, .proposal N⟩ := by
+  apply toWire_injective
+  rw [toWire_ofWire]
+  exact decode_eq_block.mp hd
+
+private theorem p0d5cTopSigner_iff {p : Params} (a : RowWire p.n) (i : Fin p.n) :
+    p0d5cTopSigner a = some i ↔ a.auth = .seat .fg i := by
+  rcases a with ⟨auth, payload⟩
+  cases auth with
+  | none => delta p0d5cTopSigner; simp
+  | proposer s => delta p0d5cTopSigner; simp
+  | seat label j => cases label <;> delta p0d5cTopSigner <;> simp
+
+private def p0d5cTopWindow {p : Params} (w : Window.State (Fin p.n)) :
+    SimplexFG.Window.State (Fin p.n) :=
+  ⟨w.L, w.s, w.h, w.T_h, w.target_participation, w.progress,
+    w.W.map (fun e => ⟨e.j, e.X, e.Q⟩), w.J, w.h_j, w.F, w.h_F⟩
+
+private theorem p0d5cTopR6 {p : Params} (w : Window.State (Fin p.n)) (a : RowWire p.n) :
+    Window.rowValidW w a =
+      match a.toRow? with
+      | none => false
+      | some b => SimplexFG.Window.r6w (p0d5cTopWindow w) b := by
+  rw [Window.rowValidW_def]
+  cases a.toRow? with
+  | none => rfl
+  | some b =>
+    delta p0d5cTopWindow
+    cases hp : b.height_pair <;> cases hf : b.finality_pair <;>
+      simp only [Window.r6w_def, Window.heightMatch_def, Window.staleUseful_def,
+      Window.windowMatch_def, SimplexFG.Window.r6w_def, SimplexFG.Window.heightMatch_def,
+      SimplexFG.Window.staleUseful_def, SimplexFG.Window.windowMatch_def,
+      List.any_map, Function.comp_def, hp, hf]
+
+
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
+
+section p0d5cTopD5b
+variable [Fintype V]
+
+omit [Fintype V] in
+private theorem p0d5cTopParentSlot (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) (hv : V2.D.ExecutionValid E rho)
+    (i : Nat) (x : V) (W : FGBlock (Fin p.n))
+    (hW : W ∈ (storeAt p c E rho i x).fg.TF) (hne : W ≠ .genesis) :
+    W.parent.slot < W.slot := by
+  have hm := ((cstoreInv_stateBefore E rho i x).baseTree (eraseFG W)).mpr ⟨W, hW, rfl⟩
+  obtain ⟨w, hw, hb, j, o, t, _, hd, ho, _⟩ :=
+    fgsa_stored_block_origin E rho i x (eraseFG W) hm (by
+      intro he; exact hne (eraseFG_eq_genesis.mp he))
+  obtain ⟨s, N, rfl, _, _, _⟩ :=
+    (metaInv_stateBefore E rho i x).wireTree w hw
+  have hQ : N.erase = eraseFG W := Option.some.inj hb
+  have hf := hv.wire j x o t hd
+  change FGSA.wellFormed p (toWire p o) = true at hf
+  rw [ho] at hf
+  have hlt : N.erase.parent.slot < N.erase.slot := of_decide_eq_true
+    (Bool.and_eq_true_iff.mp (Bool.and_eq_true_iff.mp (Bool.and_eq_true_iff.mp
+      (Bool.and_eq_true_iff.mp (Bool.and_eq_true_iff.mp hf).1).1).1).1).2
+  rwa [hQ, eraseFG_parent, eraseFG_slot, eraseFG_slot] at hlt
+
+omit [Fintype V] in
+private theorem p0d5cTopAncestorSlot (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) (hv : V2.D.ExecutionValid E rho)
+    (i : Nat) (x : V) {U K : FGBlock (Fin p.n)}
+    (hK : K ∈ (storeAt p c E rho i x).fg.TF) (hUK : FGBlock.Preceq U K) :
+    U.slot ≤ K.slot := by
+  induction K with
+  | genesis => obtain rfl := KitFG.preceq_genesis.mp hUK; exact le_rfl
+  | node P s root body rows ih =>
+      by_cases he : U = .node P s root body rows
+      · subst U; exact le_rfl
+      · have hUP := KitFG.preceq_parent_of_preceq_node hUK he
+        have hP := (cstoreInv_stateBefore E rho i x).fg.closed _ hK
+        exact (ih hP hUP).trans
+          (p0d5cTopParentSlot E rho hv i x _ hK (by intro h; cases h)).le
+
+private theorem p0d5cTopAncestor (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    {x : V} {r : Nat} {K U : FGBlock (Fin p.n)}
+    (hK : actionSourceFG p c E rho x r = some (some K))
+    (hUK : FGBlock.Preceq U K) : U.slot ≤ K.slot := by
+  rw [actionSourceFG_def, postClock_def, preTick_def] at hK
+  cases hi : V2.D.Run.tickIdx? rho x (p.actionTime r) with
+  | none => simp only [hi, Option.map_none, reduceCtorEq] at hK
+  | some i =>
+    simp only [hi, Option.map_some, Option.some.injEq] at hK
+    have hm := (Finset.mem_filter.mp (pickPair_some_spec _ _ hK).1).1
+    have hs := ((KitFG.mem_filteredFromView _ _ _ _).mp hm).1
+    change K ∈ (clock p (storeAt p c E rho i x) (p.actionTime r)).fg.TF at hs
+    rw [clock_fg] at hs
+    exact p0d5cTopAncestorSlot E rho hrec.base.valid i x hs hUK
+
+
+
+end p0d5cTopD5b
+
+-- Justified-source leaf: the frozen QC origin (Descent).
+private theorem p0d5cTopJustified [Fintype V] (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF) (origin : RQCOrigin p c E rho) :
+    ∀ i x, x ∈ rho.honest → ((p0d5cTopCore p c).core (rho.stateBefore E i x)).fg.h_j ≠ 0 →
+      ∃ j y r a K, j < i ∧ FGCompose.HonestRowAt (p0d5cTopSafety p c) E rho (p0d5cTopTiming p) j y
+        r a ∧
+        actionSourceFG p c E rho y r = some (some K) ∧
+        (heightView p K).T_h = ((p0d5cTopCore p c).core (rho.stateBefore E i x)).fg.J := by
+  intro i x hx hj
+  obtain ⟨K, _, ⟨j, y, r, a, hji, ha, hK, _⟩, _, hT, _⟩ :=
+    healing_justified_source (hroots := hrec.base.idealization) p c E rho
+      hrec.base.valid.toScheduleWellFormed origin hx hj
+  exact ⟨j, y, r, a, K, hji, ha, hK, hT⟩
+
+
 
 private theorem frontierSearch_top_lift {A B : FGBlock (Fin p.n)}
     (h : Block.Preceq (eraseFG A) (eraseFG B)) : FGBlock.Preceq A B :=
@@ -31,27 +264,12 @@ theorem frontierSearch_initial_J_age [Fintype V] (E : Generic.Env V)
     (hj : (storeAt p c E rho (i + 1) x).fg.h_j ≠ 0) :
     SA.proposalTime p.toParams (storeAt p c E rho (i + 1) x).fg.J.slot ≤
       ev.time - 6 * p.Δ := by
-  have hs := hrec.base.valid.toScheduleWellFormed
-  obtain ⟨K, s, hsrc, _, hT, _⟩ := healing_justified_source (hroots := hrec.base.idealization) p c
-    E rho hs origin hx hj
-  obtain ⟨j, y, r, a, hji, ha, hK, rfl⟩ := hsrc
-  have hmem := repair_source_mem E rho hs ha.2.1 hK
-  have hbase : eraseFG K ∈ (rho.stateBefore E j y).st.base.blocks :=
-    (cstoreInv_stateBefore E rho j y).baseTree _ |>.mpr ⟨K, hmem, rfl⟩
-  have hle := repair_stored_slot_le E rho hrec.base.valid j y _ hbase
-    (eraseFG (heightView p K).T_h)
-    (eraseFG_preceq ((fgCertificateLaws p).height.entry_preceq K))
-  rw [eraseFG_slot, eraseFG_slot, hT] at hle
-  have hslot := healing_source_slot p c E rho ha.1 hK
-  have htime : p.actionTime r ≤ ev.time := by
-    by_contra hn
-    have hlt := repair_idx_lt E rho hs hi ha.2.1 (lt_of_not_ge hn)
-    omega
-  have hslotI : ((storeAt p c E rho (i + 1) x).fg.J.slot : Time) ≤
-      ((r * p.R : Nat) : Time) := by exact_mod_cast hle.trans hslot
-  change 4 * p.Δ * ((storeAt p c E rho (i + 1) x).fg.J.slot : Time) ≤ _
-  change 4 * p.Δ * ((r * p.R : Nat) : Time) + 6 * p.Δ ≤ ev.time at htime
-  nlinarith [p.deltaPos]
+  exact FGCompose.frontierSearch_initial_J_age (p0d5cTopCore p c) (p0d5cTopSafety p c)
+      (p0d5cTopObs p c)
+    (p0d5cTopTiming p) E rho p.E (fgCertificateLaws p) (p0d5cTopTimingLaws p)
+    hrec.base.valid.toScheduleWellFormed (p0d5cTopJustified E rho hrec origin)
+    (fun r x K hx hK => healing_source_slot p c E rho hx hK)
+    (fun r x K A _ hK hAK => p0d5cTopAncestor E rho hrec.toRecovery₂ hK hAK) hi hx hj
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
  ROOT-DIGEST W2b. Blueprint 21 HG.3 top J. DC: SAME a low proposal in this phase

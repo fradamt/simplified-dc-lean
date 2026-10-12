@@ -385,9 +385,20 @@ private theorem p0d5aAuditFrontierRoute [Fintype V] (E : Generic.Env V)
       hrec.base.valid.toScheduleWellFormed i x row hr)
     (rowPermission_covered E rho hrec.base hrec.fault)
 
-/-- The inhabited fixture run of Tests.NonVacuity.HealingRun (same events, 311 batches). -/
+/-- The run of Tests.NonVacuity.HealingRun.run, written out: the same params, env, gap,
+deltaF and the same 311-batch events (ticks 0..310), with horizon 310 (HealingRun.horizon).
+HealingRun.nvRecovery and nvPerm are stated for exactly this run; HealingFixture.mkRun alone keeps
+horizon 304, which no schedule with tick 310 satisfies. -/
 private abbrev p0d5aFixtureRun : V2.D.Run (Fin 1) (fgsa HealingFixture.params unitCodec) :=
-  HealingFixture.mkRun (HealingFixture.runPrefix 311).1
+  { HealingFixture.mkRun (HealingFixture.runPrefix 311).1 with horizon := 310 }
+
+-- Guard: the horizon is 310, and the last batch index of the 311-prefix (tick time 310) is
+-- within it; the 304-horizon pairing fails the same check.
+private theorem p0d5aFixtureRunHorizon :
+    p0d5aFixtureRun.horizon = 310 ∧ (List.range 311).getLast? = some 310 ∧
+      ((310 : Nat) : Time) ≤ p0d5aFixtureRun.horizon ∧ ¬ ((310 : Nat) : Time) ≤
+        HealingFixture.horizon :=
+  ⟨rfl, by decide, by decide, by decide⟩
 
 -- Ruling 8(b), strongest proved partial: on the fixture run, the recovery regime
 -- (proved there as Tests.NonVacuity.HealingRun.nvRecovery; a Tests module cannot be
@@ -427,5 +438,6 @@ private theorem p0d5aAuditFixtureFrontier
 #print axioms p0d5aAuditTerminal
 #print axioms p0d5aAuditFrontierRoute
 #print axioms p0d5aAuditFixtureFrontier
+#print axioms p0d5aFixtureRunHorizon
 end AvailableChain.FGSA.Run
 end

@@ -528,9 +528,20 @@ private theorem p0d5bTstFoldProduced (p : Params) :
     FGCompose.ProgressFoldAdvance p.E (heightView p) p.δt :=
   p0d5bTstFoldAdvance (fgsa_foldTrichotomy_progress p)
 
-/-- The inhabited fixture run of Tests.NonVacuity.HealingRun (same events, 311 batches). -/
+/-- The run of Tests.NonVacuity.HealingRun.run, written out: the same params, env, gap,
+deltaF and the same 311-batch events (ticks 0..310), with horizon 310 (HealingRun.horizon).
+HealingRun.nvRecovery and nvPerm are stated for exactly this run; HealingFixture.mkRun alone keeps
+horizon 304, which no schedule with tick 310 satisfies. -/
 private abbrev p0d5bFixtureRun : V2.D.Run (Fin 1) (fgsa HealingFixture.params unitCodec) :=
-  HealingFixture.mkRun (HealingFixture.runPrefix 311).1
+  { HealingFixture.mkRun (HealingFixture.runPrefix 311).1 with horizon := 310 }
+
+-- Guard: the horizon is 310, and the last batch index of the 311-prefix (tick time 310) is
+-- within it; the 304-horizon pairing fails the same check.
+private theorem p0d5bFixtureRunHorizon :
+    p0d5bFixtureRun.horizon = 310 ∧ (List.range 311).getLast? = some 310 ∧
+      ((310 : Nat) : Time) ≤ p0d5bFixtureRun.horizon ∧ ¬ ((310 : Nat) : Time) ≤
+        HealingFixture.horizon :=
+  ⟨rfl, by decide, by decide, by decide⟩
 
 -- G0 (strongest proved partial): on the fixture run, with its recovery regime (proved as
 -- Tests.NonVacuity.HealingRun.nvRecovery; a Tests module cannot be imported, TEST-USE),
@@ -553,14 +564,14 @@ private theorem p0d5bTstFixtureProposal
   obtain ⟨s, hlo, hhi, hslot⟩ := hrec.gap
     (HealingFixture.env.t_GST + 4 * HealingFixture.params.Δ) (by linarith)
     (by
-      change 0 + 4 * HealingFixture.params.Δ + 4 ≤ 304
+      change 0 + 4 * HealingFixture.params.Δ + 4 ≤ 310
       have : HealingFixture.params.Δ = 1 := rfl
       rw [this]
       decide)
   rw [proposalTime_fgsa] at hlo hhi
   have hhor : SA.proposalTime HealingFixture.params.toParams s ≤ p0d5bFixtureRun.horizon := by
     have : HealingFixture.params.Δ = 1 := rfl
-    change _ ≤ 304
+    change _ ≤ 310
     change _ ≤ 0 + 4 * HealingFixture.params.Δ + 4 at hhi
     rw [this] at hhi
     linarith
@@ -597,5 +608,6 @@ private theorem p0d5bTstFixtureLeaves
 #print axioms p0d5bTstFoldProduced
 #print axioms p0d5bTstFixtureProposal
 #print axioms p0d5bTstFixtureLeaves
+#print axioms p0d5bFixtureRunHorizon
 end AvailableChain.FGSA.Run
 end

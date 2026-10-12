@@ -1346,5 +1346,25 @@ COMPOSE_EDGES |= frozenset({
     ('AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchHG2a',
      'AvailableChainFGCompose.Proofs.Healing.FrontierSearchHG2a'),
 })
+# P0d5c: exact generic homes.
+COMPOSE_MODULES += ('AvailableChainFGCompose.Proofs.Healing.FrontierSearchRepair',
+                    'AvailableChainFGCompose.Proofs.Healing.FrontierSearchGap',
+                    'AvailableChainFGCompose.Proofs.Healing.FrontierSearchTop',
+                    'AvailableChainFGCompose.Proofs.Healing.FrontierSearchTail',
+                    'AvailableChainFGCompose.Proofs.Healing.FrontierSearchRise',)
+
+# P0d5c: exact frozen-wrapper edges.
+COMPOSE_EDGES |= frozenset({
+    ('AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchRepair',
+     'AvailableChainFGCompose.Proofs.Healing.FrontierSearchRepair'),
+    ('AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchGap',
+     'AvailableChainFGCompose.Proofs.Healing.FrontierSearchGap'),
+    ('AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchTop',
+     'AvailableChainFGCompose.Proofs.Healing.FrontierSearchTop'),
+    ('AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchTail',
+     'AvailableChainFGCompose.Proofs.Healing.FrontierSearchTail'),
+    ('AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchRise',
+     'AvailableChainFGCompose.Proofs.Healing.FrontierSearchRise'),
+})
 if __name__ == "__main__":
     sys.exit(main())
