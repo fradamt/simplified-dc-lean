@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionAbove
-public import AvailableChainFGSAProofs.Proofs.Healing.PromotionRows -- shake: keep (frozen API)
+public import AvailableChainFGSAProofs.Proofs.Healing.PromotionRows -- shake: keep (leaf producers)
 public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchAge
 public import AvailableChainFGSAProofs.Proofs.Shared.HonestQuorum
 

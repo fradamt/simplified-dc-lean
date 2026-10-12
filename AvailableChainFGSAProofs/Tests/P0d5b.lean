@@ -572,9 +572,30 @@ private theorem p0d5bTstFixtureProposal
   rw [← hXs, hg] at h0
   exact absurd h0 (by decide)
 
+-- G0 (fixture leaves): on the same run, the row-order and row-signer leaves come from
+-- the recovery regime, and the source-transfer leaf from the run's proved TPerm
+-- (Tests.NonVacuity.HealingRun.nvPerm; a premise here for the same TEST-USE reason).
+private theorem p0d5bTstFixtureLeaves
+    (hrec : RecoverySleep₂ HealingFixture.params unitCodec HealingFixture.env
+      p0d5bFixtureRun HealingFixture.gap HealingFixture.deltaF)
+    (perm : TPerm HealingFixture.params unitCodec HealingFixture.env p0d5bFixtureRun) :
+    FGCompose.PromotionRowOrder (p0d5bTstCore HealingFixture.params unitCodec)
+      HealingFixture.env p0d5bFixtureRun (p0d5bTstObs HealingFixture.params unitCodec)
+      (fgsaInterface HealingFixture.params unitCodec) ∧
+    FGCompose.PromotionRowSigner (p0d5bTstSafety HealingFixture.params unitCodec)
+      HealingFixture.env p0d5bFixtureRun (p0d5bTstTiming HealingFixture.params)
+      (p0d5bTstWire HealingFixture.params unitCodec) ∧
+    FGCompose.PromotionSourceParent (p0d5bTstCore HealingFixture.params unitCodec)
+      HealingFixture.env p0d5bFixtureRun (p0d5bTstObs HealingFixture.params unitCodec)
+      (p0d5bTstTiming HealingFixture.params) (fgsaInterface HealingFixture.params unitCodec)
+      (recoveryStart HealingFixture.params HealingFixture.env) :=
+  ⟨p0d5bTstOrder _ _ hrec.toRecovery₂, p0d5bTstRowSigner _ _ hrec.base,
+    p0d5bTstSourceParent _ _ perm⟩
+
 #print axioms p0d5bTstLeaves
 #print axioms p0d5bTstBatchFrom
 #print axioms p0d5bTstFoldProduced
 #print axioms p0d5bTstFixtureProposal
+#print axioms p0d5bTstFixtureLeaves
 end AvailableChain.FGSA.Run
 end

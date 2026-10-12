@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.PromotionSource -- shake: keep (frozen API)
+public import AvailableChainFGSAProofs.Proofs.Healing.PromotionSource -- shake: keep (leaf producers)
 public import AvailableChainFGCompose.Proofs.Healing.PromotionAge
 
 public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope

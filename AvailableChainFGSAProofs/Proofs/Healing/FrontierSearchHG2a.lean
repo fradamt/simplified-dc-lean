@@ -1,7 +1,6 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchDefs -- shake: keep (frozen API)
-public import AvailableChainFGSAProofs.Proofs.Healing.PromotionAge -- shake: keep (frozen API)
-public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchStop -- shake: keep (frozen API)
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchDefs
+public import AvailableChainFGSAProofs.Proofs.Healing.PromotionAge -- shake: keep (receipt producers)
 public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchHG2a
 
 public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
