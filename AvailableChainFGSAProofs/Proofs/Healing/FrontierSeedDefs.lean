@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchStop
 
 public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
 
@@ -8,6 +9,32 @@ public section
 
 namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
+
+private def p0d5aSeedTiming (p : Params) : FGCompose.FGTiming where
+  delta := p.Δ
+  roundSlots := p.R
+  proposal := SA.proposalTime p.toParams
+  vote := SA.voteTime p.toParams
+  early := SA.earlyTime p.toParams
+  freeze := SA.freezeTime p.toParams
+  release := SA.releaseTime p.toParams
+  gate := SA.gateTime p.toParams
+  action := p.actionTime
+
+private theorem p0d5aSeedTimingLaws (p : Params) :
+    FGCompose.FGTimingLaws (p0d5aSeedTiming p) where
+  delta_pos := p.deltaPos
+  rounds := p.RLarge
+  proposal_eq s := by
+    change 4 * p.Δ * (s : Time) = 4 * (s : Time) * p.Δ
+    ring
+  vote_eq _ := rfl
+  early_eq _ := rfl
+  freeze_eq _ := rfl
+  release_eq _ := rfl
+  gate_eq _ := rfl
+  action_eq _ := rfl
+
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.6:915–944 and H.6-S:988–1025.
@@ -39,42 +66,20 @@ theorem frontierSeedQualification_iff (p : Params) {V : Type} (E : Generic.Env V
     (∀ i, u ≤ SA.voteTime p.toParams i → b ≤ i) ∧
     p.k ≤ b + 1 ∧
     E.t_GST ≤ SA.voteTime p.toParams (b + 1 - p.k) ∧
-    SA.proposalTime p.toParams (b + p.k) < SA.proposalTime p.toParams q) := Iff.rfl
+    SA.proposalTime p.toParams (b + p.k) < SA.proposalTime p.toParams q) := by
+  exact FGCompose.FrontierSeedQualification_def (p0d5aSeedTiming p) p.k E.t_GST u q
+
 
 /-- A qualified seed has the earlier cutoff needed by its prior-slot readers. -/
 theorem frontier_seed_prior_cut {p : Params} {V : Type} {E : Generic.Env V}
     {u : Time} {q : Slot} (hready : recoveryStart p E ≤ u)
     (hseed : FrontierSeedQualification p E u q) :
     E.t_GST ≤ slotStartZ p ((q : Int) - 1) := by
-  have hGST : E.t_GST ≤ u := by
-    have := healing_recovery_start_lower (p := p) E
-    linarith [p.deltaPos]
-  have hk : (2 : Int) ≤ p.k := by exact_mod_cast p.kLarge
-  have hd := p.deltaPos
-  rcases hseed with ⟨β, hβ, _, hlate⟩ | ⟨b, hb, _, _, _, hlate⟩
-  · have hq : β + 2 * p.k - 1 < q := by
-      by_contra hn
-      have hle : (q : Int) ≤ (β + 2 * p.k - 1 : Nat) := by exact_mod_cast Nat.le_of_not_gt hn
-      change 4 * p.Δ * ((β + 2 * p.k - 1 : Nat) : Int) < 4 * p.Δ * (q : Int) at hlate
-      nlinarith
-    have hcast : ((β + 2 * p.k - 1 : Nat) : Int) = (β : Int) + 2 * p.k - 1 := by
-      have hkNat := p.kLarge
-      omega
-    have hqI : ((β + 2 * p.k - 1 : Nat) : Int) < (q : Int) := by exact_mod_cast hq
-    rw [hcast] at hqI
-    change u < 4 * p.Δ * (β : Int) at hβ
-    change E.t_GST ≤ 4 * p.Δ * ((q : Int) - 1)
-    nlinarith
-  · have hq : b + p.k < q := by
-      by_contra hn
-      have hle : (q : Int) ≤ (b + p.k : Nat) := by exact_mod_cast Nat.le_of_not_gt hn
-      change 4 * p.Δ * ((b + p.k : Nat) : Int) < 4 * p.Δ * (q : Int) at hlate
-      nlinarith
-    have hqI : ((b + p.k : Nat) : Int) < (q : Int) := by exact_mod_cast hq
-    push_cast at hqI
-    change u ≤ 4 * p.Δ * (b : Int) + p.Δ at hb
-    change E.t_GST ≤ 4 * p.Δ * ((q : Int) - 1)
-    nlinarith
+  apply FGCompose.frontier_seed_prior_cut (p0d5aSeedTiming p)
+    (p0d5aSeedTimingLaws p) p.k p.kLarge E.t_GST (recoveryStart p E) ?_ hready hseed
+  have := healing_recovery_start_lower (p := p) E
+  linarith [p.deltaPos]
+
 
 end AvailableChain.FGSA.Run
 end

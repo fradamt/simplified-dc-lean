@@ -1,4 +1,7 @@
 module
+public import AvailableChainFGCompose.Statements.FrontierSearch -- shake: keep (#print axioms)
+public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchBudget -- shake: keep (audit)
+public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchStop -- shake: keep (audit)
 public import AvailableChainFGCompose.Proofs.Healing.Attempt -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Proofs.Healing.AttemptRows -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Proofs.Healing.AttemptSettle -- shake: keep (#print axioms)
@@ -838,6 +841,75 @@ public import AvailableChainFGCompose.Proofs.Healing.ResetCut -- shake: keep (#p
 #print axioms AvailableChain.FGCompose.dependency_hook_origin_at_read
 #print axioms AvailableChain.FGCompose.FGDependencyDriver.replay
 
+#print axioms AvailableChain.FGCompose.FrontierSeedQualification
+#print axioms AvailableChain.FGCompose.FrontierSeedQualification_def
+#print axioms AvailableChain.FGCompose.FrontierProposalService
+#print axioms AvailableChain.FGCompose.FrontierLocalService
+#print axioms AvailableChain.FGCompose.StrongServed
+#print axioms AvailableChain.FGCompose.StrongServed_def
+#print axioms AvailableChain.FGCompose.FrontierRepairStart
+#print axioms AvailableChain.FGCompose.FrontierRepairAllowance
+#print axioms AvailableChain.FGCompose.TerminalPromotionFact
+#print axioms AvailableChain.FGCompose.PhaseTransfers
+#print axioms AvailableChain.FGCompose.PhaseTransfers_def
+#print axioms AvailableChain.FGCompose.PhasePermanence
+#print axioms AvailableChain.FGCompose.PhasePermanence_def
+#print axioms AvailableChain.FGCompose.ProgressCoveredByChild
+#print axioms AvailableChain.FGCompose.ProgressCoveredByChild_def
+#print axioms AvailableChain.FGCompose.ProgressFoldAdvance
+#print axioms AvailableChain.FGCompose.ProgressFoldAdvance_def
+#print axioms AvailableChain.FGCompose.FrontierSearchStart
+#print axioms AvailableChain.FGCompose.FrontierSearchStart_def
+#print axioms AvailableChain.FGCompose.FirstPhaseStopBy
+#print axioms AvailableChain.FGCompose.FirstPhaseStopBy_def
+#print axioms AvailableChain.FGCompose.FirstRiseStopBy
+#print axioms AvailableChain.FGCompose.FirstRiseStopBy_def
+#print axioms AvailableChain.FGCompose.FrontierHG3Result
+#print axioms AvailableChain.FGCompose.FrontierHG3Result_def
+#print axioms AvailableChain.FGCompose.interruptedRepairBudget
+#print axioms AvailableChain.FGCompose.interruptedRepairBudget_gap_def
+#print axioms AvailableChain.FGCompose.interruptedRepairBudget_topJ_def
+#print axioms AvailableChain.FGCompose.interruptedRepairBudget_contest_def
+#print axioms AvailableChain.FGCompose.FirstEffectiveBy
+#print axioms AvailableChain.FGCompose.FirstEffectiveBy_def
+#print axioms AvailableChain.FGCompose.FrontierRiseBy
+#print axioms AvailableChain.FGCompose.FrontierRiseBy_def
+#print axioms AvailableChain.FGCompose.FirstHeightRowBy
+#print axioms AvailableChain.FGCompose.FirstHeightRowBy_def
+#print axioms AvailableChain.FGCompose.InterruptedRepairStatement
+#print axioms AvailableChain.FGCompose.FrontierTailStatement
+#print axioms AvailableChain.FGCompose.frontierSearchRiseBudget
+#print axioms AvailableChain.FGCompose.frontierSearchRowBudget
+#print axioms AvailableChain.FGCompose.FrontierSearchStatement
+#print axioms AvailableChain.FGCompose.FrontierTailStatement_def
+#print axioms AvailableChain.FGCompose.FrontierSearchStatement_def
+#print axioms AvailableChain.FGCompose.frontierSearchRiseBudget_def
+#print axioms AvailableChain.FGCompose.frontierSearchRowBudget_def
+#print axioms AvailableChain.FGCompose.frontierSearch_phaseRank
+#print axioms AvailableChain.FGCompose.frontierSearch_phaseRank_gap_def
+#print axioms AvailableChain.FGCompose.frontierSearch_phaseRank_topJ_def
+#print axioms AvailableChain.FGCompose.frontierSearch_phaseRank_contest_def
+#print axioms AvailableChain.FGCompose.FrontierRepairStart.two
+#print axioms AvailableChain.FGCompose.FrontierRepairStart.one
+
+#print axioms AvailableChain.FGCompose.frontierSearch_contest_rise_cost
+#print axioms AvailableChain.FGCompose.frontierSearch_contest_row_cost
+#print axioms AvailableChain.FGCompose.frontierSearch_terminal_opening_cost
+#print axioms AvailableChain.FGCompose.frontierSearch_terminal_horizon_gap8
+#print axioms AvailableChain.FGCompose.frontierSearch_terminal_horizon_gap12
+#print axioms AvailableChain.FGCompose.frontierSearch_event_time_le
+#print axioms AvailableChain.FGCompose.frontierSearch_first_effective_split
+#print axioms AvailableChain.FGCompose.frontierSearch_classify_stop
+#print axioms AvailableChain.FGCompose.frontierSearch_first_rise
+#print axioms AvailableChain.FGCompose.frontierSearch_first_row
+#print axioms AvailableChain.FGCompose.frontierSearch_first_row_unique
+#print axioms AvailableChain.FGCompose.frontierSearch_skipped_row
+#print axioms AvailableChain.FGCompose.frontierSearch_phase_step_of_crossing
+#print axioms AvailableChain.FGCompose.frontierSearch_strict_cap_or_rise
+#print axioms AvailableChain.FGCompose.frontierSearch_timeIdx_le_idxBefore
+#print axioms AvailableChain.FGCompose.frontierSearch_rise_mono
+#print axioms AvailableChain.FGCompose.frontierSearch_rise_of_receipt
+#print axioms AvailableChain.FGCompose.frontier_seed_prior_cut
 #print axioms AvailableChain.FGCompose.highRecordEntry
 #print axioms AvailableChain.FGCompose.HighRecordInvariant
 #print axioms AvailableChain.FGCompose.HighRecordFresh
