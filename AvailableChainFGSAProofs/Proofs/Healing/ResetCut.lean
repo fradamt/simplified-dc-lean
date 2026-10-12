@@ -186,7 +186,10 @@ theorem reset_frontier :
 theorem reset_inclusive_frontier (hs : V2.D.ScheduleWellFormed E rho) (t : Time) :
     honestFrontier p c E rho t = frontierAtIdx p c E rho (timeIdx rho t) := by
   have h := FGCompose.reset_inclusive_frontier (fgsaCoreReads p c) E rho hs t
-  rw [p0d6a_honest_frontier_eq, FGCompose.frontierAtIdx, fgsaCoreReads_def] at h
+  change FGCompose.honestFrontier (fgsaCoreReads p c) E rho t =
+    FGCompose.frontierAtIdx (fgsaCoreReads p c) E rho (FGCompose.timeIdx rho t) at h
+  delta FGCompose.frontierAtIdx at h
+  rw [p0d6a_honest_frontier_eq, fgsaCoreReads_def] at h
   exact h
 
 

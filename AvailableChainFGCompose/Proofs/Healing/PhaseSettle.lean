@@ -125,10 +125,8 @@ private theorem phase_frame_store_eq {nd nd' : P.State}
     {m : Nat} {J : Option (FGBlock (Fin n))} {contested : Bool}
     (hf : SettledPhaseFrame R O nd m J contested) :
     SettledPhaseFrame R O nd' m J contested := by
-  unfold SettledPhaseFrame at *
-  simp only [obs.controls_eq] at *
-  rw [← h]
-  exact hf
+  cases J <;> delta SettledPhaseFrame at * <;>
+    simp only [obs.controls_eq] at * <;> rw [← h] <;> exact hf
 
 include obs cert inv positive coreLaws in
 private theorem phase_finish (crossing : RXing R E rho O)

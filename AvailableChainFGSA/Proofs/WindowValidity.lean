@@ -2,7 +2,7 @@ module
 public import AvailableChainFGSA.Model.WindowViews
 
 public import AvailableChainKitFG.WindowValidity
-public import AvailableChainKitFG.WindowTransport
+public import AvailableChainKitFG.WindowTransport -- shake: keep (re-export)
 
 public section
 
@@ -60,16 +60,15 @@ private theorem b3validity_row_eq (w : b3validity_Old V) (a : Row V) :
     funext e
     by_cases he : a.finality_pair = some ⟨e.j, e.X.root⟩ <;>
       simp [b3validity_entry_eq, he]
+  delta FGSA.Window.process_row SimplexFG.Window.process_row
+  delta NamedHeightPair.matchesEntry
   rcases a with ⟨i, hp, fp⟩
   cases hp with
   | empty =>
-      simpa only [FGSA.Window.process_row_def, SimplexFG.Window.process_row_def,
-        NamedHeightPair.matchesEntry, Bool.false_eq_true, ↓reduceIte, b3validity_state_eq] using
+      simpa only [Bool.false_eq_true, ↓reduceIte, b3validity_state_eq] using
         congrArg (fun es => ({ b3validity_toWindow w with W := es } : b3validity_New V)) bits
   | vote h X t =>
-      cases t <;>
-        simp only [FGSA.Window.process_row_def, SimplexFG.Window.process_row_def,
-          NamedHeightPair.matchesEntry] <;>
+      cases t <;> dsimp only <;>
         split_ifs <;> dsimp [b3validity_state_eq] <;> rw [bits] <;> simp_all [b3validity_state_eq]
       all_goals
         exfalso
@@ -156,12 +155,12 @@ theorem rowValidW_fold {n : Nat} (σ : State (Fin n))
       have result := KitFG.Window.r6w_fold (b3validity_toWindow σ) rows b
       have validity (w : State (Fin n)) :
           SimplexFG.Window.r6w (b3validity_toWindow w) b = r6w w b := by
-        simp only [SimplexFG.Window.r6w_def, r6w_def,
-          SimplexFG.Window.heightMatch_def, heightMatch_def,
-          SimplexFG.Window.staleUseful_def, staleUseful_def,
-          SimplexFG.Window.windowMatch_def, windowMatch_def,
-          b3validity_state_eq, List.any_map, Function.comp_def, b3validity_entry_eq]
-        rfl
+        delta SimplexFG.Window.r6w r6w SimplexFG.Window.heightMatch heightMatch
+          SimplexFG.Window.staleUseful staleUseful SimplexFG.Window.windowMatch windowMatch
+        rcases b with ⟨i, hp, fp⟩
+        cases hp <;> cases fp <;> dsimp only <;>
+          simp only [b3validity_state_eq, List.any_map, Function.comp_def, b3validity_entry_eq]
+        all_goals rfl
       rw [← b3validity_rows_eq, validity, validity] at result
       exact result
 

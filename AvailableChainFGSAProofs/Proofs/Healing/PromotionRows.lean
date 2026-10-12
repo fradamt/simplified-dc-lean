@@ -183,11 +183,12 @@ private theorem p0d3_rows_r6 (w : Window.State (Fin p.n)) (a : RowWire p.n) :
   cases a.toRow? with
   | none => rfl
   | some b =>
+    delta p0d3_rows_window
     cases hp : b.height_pair <;> cases hf : b.finality_pair <;>
       simp only [Window.r6w_def, Window.heightMatch_def, Window.staleUseful_def,
       Window.windowMatch_def, SimplexFG.Window.r6w_def, SimplexFG.Window.heightMatch_def,
       SimplexFG.Window.staleUseful_def, SimplexFG.Window.windowMatch_def,
-      p0d3_rows_window, List.any_map, Function.comp_def, hp, hf]
+      List.any_map, Function.comp_def, hp, hf]
 
 omit [Fintype V] in
 private theorem p0d3_rows_valid_eq (E : Generic.Env V)
