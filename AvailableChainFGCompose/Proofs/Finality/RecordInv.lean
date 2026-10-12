@@ -311,6 +311,83 @@ theorem high_entry_record_invariant :
   exact ⟨highRecordEntry R O T E rho, d7r_entry_source hh cert hreflect,
     d7r_all hh cert hreflect hqc hhead J emission hown hnames⟩
 
+private theorem d7s_target_sign (Λ : Record) (y : Nat) (U : BlockId)
+    (fp : Option FinalityPair) (timeout : Bool)
+    (ht : Λ.target y = none ∨ Λ.target y = some U) (hn : Λ.timeout y = false)
+    (hp : height_pair Λ (some (y, U)) fp = .vote y U timeout) : timeout = false := by
+  cases hl : own_lock Λ y fp with
+  | some locked => exact (height_pair_of_own_lock hn hl hp).1
+  | none =>
+    rcases ht with ht | ht <;>
+      simp only [d7r_height_pair_some_def, hn, Bool.false_eq_true, ite_false, hl, ht,
+        ite_true] at hp <;> cases hp <;> rfl
+
+include J emission hown in
+/-- The old shield alone derives the seed guards, including exclusion of the first timeout.
+The premise ranges over actual emitted rows, including private and delayed rows. -/
+theorem shield_record_before_cut (X : FGBlock (Fin n)) (b : Nat) (cutoff : Time)
+    (hb : 1 ≤ b) (shield : HighRecordShieldRows R S O T E rho D X b cutoff)
+    (i : Nat) (x : V) (hx : x ∈ rho.honest)
+    (hold : ∀ j r a, j < i → HonestRowAt S E rho T j x r a → T.action r < cutoff) :
+    HighRecordInvariant (b - 1) (fun _ => (O.height X).T_h.root)
+      (S.record (V2.D.Run.stateBefore E rho i x)) := by
+  induction i with
+  | zero =>
+    rw [d7r_record_fold J, V2.D.Engine.ownReleased_self]
+    intro y _
+    exact ⟨Or.inl rfl, rfl, Or.inl rfl, fun _ h => (List.not_mem_nil h).elim⟩
+  | succ i ih =>
+    have prior := ih (fun j r a hj ha => hold j r a (Nat.lt_succ_of_lt hj) ha)
+    have hstep := Gen.V2.Duty.ownRecord_fold_restart S.record (safetyRecordStep S)
+      J.clock_record J.process_record J.own_record E rho (Nat.le_succ i) x
+      (fun _ t _ _ _ => J.restart_record _ t)
+    rw [V2.D.Engine.ownReleased_succ E rho x (le_refl i), V2.D.Engine.ownReleased_self,
+      List.nil_append] at hstep
+    rw [hstep]
+    have preserve : ∀ o ∈ V2.D.Engine.ownReleasedAt E rho x i, ∀ Λ,
+        HighRecordInvariant (b - 1) (fun _ => (O.height X).T_h.root) Λ →
+        HighRecordInvariant (b - 1) (fun _ => (O.height X).T_h.root)
+          (safetyRecordStep S Λ o) := by
+      intro o ho Λ hg
+      unfold safetyRecordStep
+      cases hd : S.decodeObject o with
+      | none => exact hg
+      | some u =>
+        obtain ⟨r, a, ha, hdecode⟩ := (HighRecordOwnOrigin_def.mp hown) i x o u hx ho hd
+        obtain ⟨g, U, timeout, hpair, he, _, _, _⟩ :=
+          createRowOnce_released Ef cfg _ u.signer _ _ (emission i x r a u ha hdecode)
+        have hp := congrArg Row.height_pair he
+        have hs := shield i x r a g U timeout ha (hold i r a (Nat.lt_succ_self i) ha)
+          ((D.decode_height a u hdecode).trans hp)
+        have hcap := hs.1
+        apply d7r_write _ _ Λ u hg
+        · intro y W sign hpy hy
+          rw [hp] at hpy
+          cases hpy
+          have hgb : g = b := by simp only [Height] at *; omega
+          have hU := hs.2 hgb
+          refine ⟨hU, ?_⟩
+          obtain ⟨ht, hn, _, _⟩ := prior g hy
+          rw [height_pair_vote_fields hpair] at hpair
+          exact d7s_target_sign _ g U _ timeout (by simpa only [hU] using ht) hn hpair
+        · intro f hf hy
+          have hfp := congrArg Row.finality_pair he
+          rw [hf] at hfp
+          have hfg := of_decide_eq_true (Option.filter_eq_some_iff.mp hfp.symm).2
+          simp only [Height] at *
+          omega
+    have foldGood (ls : List P.Object) (hls : ls ⊆ V2.D.Engine.ownReleasedAt E rho x i)
+        (Λ : RecordOnce)
+        (hg : HighRecordInvariant (b - 1) (fun _ => (O.height X).T_h.root) Λ) :
+        HighRecordInvariant (b - 1) (fun _ => (O.height X).T_h.root)
+          (ls.foldl (safetyRecordStep S) Λ) := by
+      induction ls generalizing Λ with
+      | nil => exact hg
+      | cons o ls ih =>
+        exact ih (fun _ h => hls (List.mem_cons_of_mem _ h)) _
+          (preserve o (hls List.mem_cons_self) Λ hg)
+    exact foldGood _ (List.Subset.refl _) _ prior
+
 private theorem d7r_fresh_write (y : Nat) (Λ : RecordOnce)
     (a : Row (Fin n)) (hg : HighRecordFresh y Λ)
     (hh : ∃ g T timeout, a.height_pair = .vote g T timeout ∧ g < y)
@@ -404,6 +481,40 @@ theorem high_record_fresh_at_cut (i : Nat) (x : V) (y : Nat) (hx : x ∈ rho.hon
         (preserve o (hls List.mem_cons_self) Λ hg)
   exact foldFresh _ (List.Subset.refl _) RecordOnce.initial
     ⟨rfl, rfl, rfl, fun _ h => (List.not_mem_nil h).elim⟩
+
+include hh cert hreflect hqc hhead J emission hown hnames in
+/-- The seed shield derives old records; complete historical compatibility covers every
+later prefix, including the cutoff and the interval before service starts. For the full
+reset threshold, `hh` also covers the earlier history, as required by the PC history leaf. -/
+theorem shield_high_entry_record_invariant (X : FGBlock (Fin n)) (b : Nat) (cutoff : Time)
+    (seed : HighRecordSeedLeaves R S O T E rho D pt X b cutoff) :
+    ∃ entry : Nat → BlockId,
+      (∀ x r C, x ∈ rho.honest → actionSourceFG R E rho T x r = some (some C) →
+        high R O pt.reset C → entry (O.height C).h = (O.height C).T_h.root) ∧
+      (∀ i x, x ∈ rho.honest →
+        HighRecordInvariant pt.reset.M entry (S.record (V2.D.Run.stateBefore E rho i x))) ∧
+      (∀ i x, x ∈ rho.honest →
+        (∀ j r a, j < i → HonestRowAt S E rho T j x r a → T.action r < cutoff) →
+        HighRecordInvariant (b - 1) (fun _ => (O.height X).T_h.root)
+          (S.record (V2.D.Run.stateBefore E rho i x)) ∧
+        ∀ y, b < y → HighRecordFresh y (S.record (V2.D.Run.stateBefore E rho i x))) := by
+  obtain ⟨entry, sources, records⟩ :=
+    high_entry_record_invariant hh cert hreflect hqc hhead J emission hown hnames
+  refine ⟨entry, sources, records, ?_⟩
+  intro i x hx hold
+  have hb : 1 ≤ b := (Nat.le_add_left 1 pt.reset.M).trans seed.2.2.1
+  have shield := seed.2.2.2.2
+  refine ⟨shield_record_before_cut J emission hown X b cutoff hb shield i x hx hold, ?_⟩
+  intro y hy
+  apply high_record_fresh_at_cut (D := D) J emission hown i x y hx
+  intro j r a h hj ha hh
+  cases hp : D.heightPair a with
+  | empty => simp [historyRowHeight, hp] at hh
+  | vote g U timeout =>
+    have hgh : g = h := Option.some.inj (by simpa only [historyRowHeight, hp] using hh)
+    have hcap := (shield j x r a g U timeout ha (hold j r a hj ha) hp).1
+    simp only [Height] at *
+    omega
 
 include J emission hown in
 /-- The inclusive reset cut uses the published c2 emission cap. -/
