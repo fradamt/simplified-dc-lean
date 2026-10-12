@@ -119,7 +119,7 @@ theorem rowsPrem_anchor_retained_or_covered
 
 
 /-- Combine the proved action source, pending head, and record guards at one action. -/
-theorem rowsPrem_fresh_rows (CL : FGCoreLaws R) (height : FGHeightLaws Ef O.height)
+theorem rowsPrem_fresh_rows (height : FGHeightLaws Ef O.height)
     (bridge : HeightBridge Ef cfg O.height)
     (makeWire : Row (Fin n) → Wire)
     (wireDecode : ∀ row, S.decode (makeWire row) = some row)
@@ -132,17 +132,16 @@ theorem rowsPrem_fresh_rows (CL : FGCoreLaws R) (height : FGHeightLaws Ef O.heig
       (createRowOnce Ef cfg (S.record nd) i (S.inputs nd).1 (S.inputs nd).2).1 = some row →
       ∃ j, rho.events[j]? = some (.tick (safetyHolder S rho i) (T.action q)) ∧
         S.encode (makeWire row) ∈ V2.D.Run.emitsAt E rho j)
-    (read : ∀ x nd, postClock E rho x (T.action (pt.r + 2)) = some nd →
-      (R.core (V2.D.Run.stateBefore E rho (afterTicksIdx rho (T.action (pt.r + 2))) x)).fg =
-        (R.core nd).fg)
-    (head : ∀ x nd, x ∈ rho.honest → postClock E rho x (T.action (pt.r + 2)) = some nd →
-      ∃ H, R.finalityHead nd = some H ∧ H ∈ (R.core nd).fg.TF)
-    (walk : ∀ x nd, x ∈ rho.honest → postClock E rho x (T.action (pt.r + 2)) = some nd →
-      ∀ H, R.finalityHead nd = some H → Block.Preceq (R.erase m.X_D) (R.erase H))
-    (reflect : ∀ nd A B, A ∈ (R.core nd).fg.TF → B ∈ (R.core nd).fg.TF →
-      Block.Preceq (R.erase A) (R.erase B) → FGBlock.Preceq A B)
-    (service : ∀ x, x ∈ rho.honest → FGSourceService R E rho x (T.action (pt.r + 2))
-      m.cD ((pt.r + 2) * T.roundSlots) m.X_D)
+    (sources : ∀ x ∈ rho.honest, ∃ nd C,
+      postClock E rho x (T.action (pt.r + 2)) = some nd ∧ R.source nd = some C ∧
+      FGBlock.Preceq m.X_D C ∧ (O.height C).h = m.d + 2 ∧
+      (O.height C).T_h = (O.height m.X_D).T_h)
+    (heads : ∀ x nd, x ∈ rho.honest →
+      postClock E rho x (T.action (pt.r + 2)) = some nd →
+      ∃ H, R.finalityHead nd = some H ∧ FGBlock.Preceq m.X_D H ∧
+        (O.height H).h = m.d + 2 ∧ (O.height H).J = m.U ∧
+        (O.height H).h_j = m.d + 1 ∧ (O.finality H).h_F < m.d + 1 ∧
+        (O.height H).T_h = (O.height m.X_D).T_h)
     (fields : ∀ nd H, R.finalityHead nd = some H →
       (S.inputs nd).2 = certificateHeadFields O.height O.finality H)
     (records : ∀ x nd, x ∈ rho.honest →
@@ -162,11 +161,11 @@ theorem rowsPrem_fresh_rows (CL : FGCoreLaws R) (height : FGHeightLaws Ef O.heig
     wireDecode wireValid client release (pt.r + 2) (m.d + 1) m.X_D m.U seats hS hQ m.heightD
   · intro i hi
     obtain ⟨nd, C, hnd, hsrc, hDC, hCh, _⟩ :=
-      rowsPrem_action_source m CL height read service _ (hS i hi)
+      sources _ (hS i hi)
     exact ⟨nd, C, hnd, awake _ (hS i hi), hsrc, hDC, hCh⟩
   · intro i hi nd hnd
     obtain ⟨H, hH, _, _, hJ, hj, hF, _⟩ :=
-      rowsPrem_pending_head m height bridge read head walk reflect _ nd (hS i hi) hnd
+      heads _ nd (hS i hi) hnd
     rw [fields nd H hH]
     exact ⟨hj, congrArg FGBlock.root hJ, hF⟩
   · intro i hi nd hnd
