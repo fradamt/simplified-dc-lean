@@ -300,11 +300,157 @@ private theorem aRestore :
       (V2.D.Run.stateBefore aEnv (aRun false) 3 ())) 4)).fg.F :=
   finality_restore_preceq_F aR aDurable aU _ 4 (by decide +kernel)
 
-/-- Exact root/body association after restart (c4 lookup over the delivered bodies). -/
+/-- The c4 lookup domain: the accepted tree read from the actual execution. -/
+private abbrev aBodies : List (FGBlock (Fin 1)) := [.genesis, aU, aD, aX]
+
+/-- The actual cumulative domain equals the lookup list after the receipt and after restart. -/
+private theorem aDomainActual :
+    (V2.D.Run.stateBefore aEnv (aRun false) 3 ()).TF = aBodies.toFinset ∧
+      (V2.D.Run.stateBefore aEnv (aRun false) 4 ()).TF = aBodies.toFinset := by
+  decide +kernel
+
+/-- Exact root/body association on that domain, also when an active frame drops X. -/
 private theorem aHistorical :
-    historicalLookup FGBlock.root [aU, aD, aX] aX.root = some aX ∧
-      historicalLookup FGBlock.root [aU, aD, aX] aX.parent.root = some aD ∧
-      aErase aX ≠ aErase aD := by decide +kernel
+    historicalLookup FGBlock.root aBodies aX.root = some aX ∧
+      aX.rows = [aSigned] ∧ aX.slot = 6 ∧
+      historicalLookup FGBlock.root aBodies aX.parent.root = some aD ∧
+      aX ∉ aBodies.filter (fun B => decide (B.slot < 6)) ∧
+      historicalLookup FGBlock.root aBodies ⟨99⟩ = none := by
+  decide +kernel
+
+/-- A malformed domain with distinct full content at X's root resolves nothing. -/
+private abbrev aXAlias : FGBlock (Fin 1) := .node aD 6 ⟨6⟩ 0 []
+
+private theorem aAmbiguous :
+    aXAlias ≠ aX ∧ aXAlias.root = aX.root ∧
+      historicalLookup FGBlock.root (aBodies ++ [aXAlias]) aX.root = none := by
+  decide +kernel
+
+/-! Receiver floor and F guard. The receiver's own clock sets the slot floor (the FG-SA
+admission `slot ≤ receiver slot`); a tick is the only clock source. Both variants have the
+same receiver, bodies, delivery events and times; they differ only in the earlier tick. -/
+
+private abbrev aZ : FGBlock (Fin 1) := .node .genesis 7 ⟨7⟩ 0 []
+
+private abbrev aQ : V2.ProtocolSpecD Unit where
+  State := SimplexFG.Store (Fin 1) × Time
+  Label := Nat
+  Duty := Nat
+  signLabel := id
+  seats _ := 1
+  Payload := FGBlock (Fin 1)
+  Durable := SimplexFG.Store (Fin 1)
+  init := (SimplexFG.Store.init, 0)
+  clock st t := (st.1, t)
+  actTime s := (s : Time)
+  duties t := if 0 ≤ t then [t.toNat] else []
+  duties_spec s t := by
+    split
+    · next ht =>
+      simp only [List.mem_singleton]
+      constructor
+      · intro hs; subst s; exact Int.toNat_of_nonneg ht
+      · intro hs; subst t; simp
+    · next ht =>
+      constructor
+      · intro hm; cases hm
+      · intro hs; exact False.elim (ht (hs ▸ Int.natCast_nonneg s))
+  duties_nodup t := by split <;> simp
+  act _ _ _ := none
+  gossip _ _ := []
+  process st o := if (o.payload.slot : Time) ≤ st.2 then
+      (SimplexFG.Window.on_block aE aCfg 2 st.1 o.payload, st.2) else st
+  selfVisible _ := true
+  recordOwn st _ := st
+  durable st := st.1
+  restore st t := (st, t)
+  wellFormed _ := true
+  depsPresent _ _ := true
+  processed _ _ := false
+  excludes _ _ := false
+  handles _ _ _ := False
+  carries _ _ := False
+
+private noncomputable abbrev qObj (B : FGBlock (Fin 1)) : aQ.Object := ⟨.none, B⟩
+
+/-- `late`: the receiver ticks at 10 (floor 10); otherwise at 2 (floor 2). -/
+private noncomputable abbrev qRun (late : Bool) : V2.D.Run Unit aQ where
+  honest := {()}
+  horizon := 20
+  events := [.tick () (if late then 10 else 2), .deliver () (qObj aU) 11,
+    .deliver () (qObj aD) 12, .deliver () (qObj aX) 13, .deliver () (qObj aZ) 14]
+  seatOf _ _ := ()
+  input _ _ := ()
+
+/-- The receipt check at the receiver: the exact delivered body, every store admission
+check, and the receiver's slot floor. -/
+private def qReady (late : Bool) (i : Nat) (x : Unit) (W : FGBlock (Fin 1)) (t : Time) : Prop :=
+  ∃ o, (qRun late).events[i]? = some (.deliver x o t) ∧ o.payload = W ∧
+    ¬ (W ∈ (V2.D.Run.stateBefore aEnv (qRun late) i x).1.TF ∨
+      W.parent ∉ (V2.D.Run.stateBefore aEnv (qRun late) i x).1.TF ∨
+      FGBlock.preceq (V2.D.Run.stateBefore aEnv (qRun late) i x).1.F W = false ∨
+      W.slot ≤ W.parent.slot) ∧
+    (W.slot : Time) ≤ (V2.D.Run.stateBefore aEnv (qRun late) i x).2
+
+private theorem qSchedule (late : Bool) : V2.D.ScheduleWellFormed aEnv (qRun late) := by
+  refine ⟨by cases late <;> decide, ?_, ?_, ?_, ?_, ?_, ?_⟩
+  · cases late <;> decide
+  · cases late <;> decide
+  · cases late <;> decide
+  · cases late <;> decide
+  · intro v t h
+    cases late <;> simp at h <;> obtain ⟨_, rfl⟩ := h
+    · exact ⟨2, by decide⟩
+    · exact ⟨10, by decide⟩
+  · intro v _ t _ _ _ ha
+    cases ha
+
+/-- POSITIVE floor: the same delivery of X (index 3, time 13) is ready and accepted. -/
+private theorem qFloorAccepted : qReady true 3 () aX 13 ∧
+    aX ∈ (V2.D.Run.stateBefore aEnv (qRun true) 4 ()).1.TF ∧
+    (V2.D.Run.stateBefore aEnv (qRun true) 4 ()).1.F = aU :=
+  ⟨⟨qObj aX, rfl, rfl, by decide +kernel, by decide +kernel⟩, by decide +kernel,
+    by decide +kernel⟩
+
+/-- NEGATIVE floor: the same event passes every store check (parent held, fresh, F below,
+slot order) and fails only the receiver floor; X is not accepted and F stays genesis. -/
+private theorem qFloorRefused :
+    ¬ ((aX ∈ (V2.D.Run.stateBefore aEnv (qRun false) 3 ()).1.TF ∨
+      aX.parent ∉ (V2.D.Run.stateBefore aEnv (qRun false) 3 ()).1.TF ∨
+      FGBlock.preceq (V2.D.Run.stateBefore aEnv (qRun false) 3 ()).1.F aX = false ∨
+      aX.slot ≤ aX.parent.slot)) ∧
+    ¬ ((aX.slot : Time) ≤ (V2.D.Run.stateBefore aEnv (qRun false) 3 ()).2) ∧
+    ¬ qReady false 3 () aX 13 ∧
+    aX ∉ (V2.D.Run.stateBefore aEnv (qRun false) 4 ()).1.TF ∧
+    (V2.D.Run.stateBefore aEnv (qRun false) 5 ()).1.F = .genesis := by
+  refine ⟨by decide +kernel, by decide +kernel, ?_, by decide +kernel, by decide +kernel⟩
+  rintro ⟨o, he, ho, _, hf⟩
+  cases he
+  exact absurd hf (by decide +kernel)
+
+/-- NEGATIVE F guard: after non-genesis finality U, a delivery of Z conflicting with U has
+its parent held, is fresh, ordered and within the floor, and fails only `F ⪯ Z`; it is
+refused and F stays U. -/
+private theorem qFGuardRefused :
+    (V2.D.Run.stateBefore aEnv (qRun true) 4 ()).1.F = aU ∧ aU ≠ .genesis ∧
+    aZ ∉ (V2.D.Run.stateBefore aEnv (qRun true) 4 ()).1.TF ∧
+    aZ.parent ∈ (V2.D.Run.stateBefore aEnv (qRun true) 4 ()).1.TF ∧
+    aZ.parent.slot < aZ.slot ∧
+    (aZ.slot : Time) ≤ (V2.D.Run.stateBefore aEnv (qRun true) 4 ()).2 ∧
+    FGBlock.preceq (V2.D.Run.stateBefore aEnv (qRun true) 4 ()).1.F aZ = false ∧
+    ¬ qReady true 4 () aZ 14 ∧
+    aZ ∉ (V2.D.Run.stateBefore aEnv (qRun true) 5 ()).1.TF ∧
+    (V2.D.Run.stateBefore aEnv (qRun true) 5 ()).1.F = aU := by
+  refine ⟨by decide +kernel, by decide, by decide +kernel, by decide +kernel, by decide,
+    by decide +kernel, by decide +kernel, ?_, by decide +kernel, by decide +kernel⟩
+  rintro ⟨o, he, ho, hc, _⟩
+  cases he
+  exact hc (Or.inr (Or.inr (Or.inl (by decide +kernel))))
+
+/-- The index read used by acceptance, instantiated directly (events 0-2 before time 4). -/
+private theorem aIdx : AcceptsFinalBefore aR aEnv (aRun false) () aU 4 :=
+  finality_acceptsFinalBefore_of_idx aR aEnv (aRun false) aDurable (aSchedule false)
+    ⟨3, by decide, by decide +kernel, by decide +kernel⟩
 
 /-- Prior coverage: a receiver whose selected event is after acceptance (the restart). -/
 private theorem aNotReady3 (W : FGBlock (Fin 1)) (t : Time) : ¬ aReady false 3 () W t := by
@@ -369,7 +515,14 @@ private theorem aEarlyRefused : ¬ aReady true 0 () aX 1 ∧
 #print axioms aAccepted
 #print axioms aAcceptedInspected
 #print axioms aAfterRestart
+#print axioms aDomainActual
 #print axioms aHistorical
+#print axioms aAmbiguous
+#print axioms qSchedule
+#print axioms qFloorAccepted
+#print axioms qFloorRefused
+#print axioms qFGuardRefused
+#print axioms aIdx
 #print axioms aAncestor
 #print axioms aRestore
 #print axioms aCoveredAccepted
