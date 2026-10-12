@@ -8,15 +8,14 @@ public section
 namespace AvailableChain.FGCompose.Tests.P0d7a2
 open AvailableChain.SimplexFG AvailableChain.KitFG
 
--- The proposed layer repair is an exact expansion, with no semantic change.
+-- The approved layer repair is equal to the original own-release predicate.
 private theorem d7g_own_origin_expansion
     {In V : Type} {P : V2.ProtocolSpecD In} [DecidableEq V]
     {n : Nat} {Wire : Type} (S : FGSafetyReads P n Wire) (T : FGTiming)
     (E : Generic.Env V) (rho : V2.D.Run V P) :
     HighRecordOwnOrigin S T E rho =
       (∀ j x o u, x ∈ rho.honest →
-        o ∈ (if (rho.events[j]?).map V2.Event.node = some x then
-          (V2.D.Run.emitsAt E rho j).filter P.objSelfVisible else []) →
+        o ∈ V2.D.Engine.ownReleasedAt E rho x j →
         S.decodeObject o = some u →
         ∃ r a, HonestRowAt S E rho T j x r a ∧ S.decode a = some u) := by
   simp only [HighRecordOwnOrigin, V2.D.Engine.ownReleasedAt_def]
@@ -287,6 +286,7 @@ private theorem d7t_emission :
   exact d7g_current
 
 private theorem d7t_own : HighRecordOwnOrigin d7t_S d7t_T d7t_env d7t_run := by
+  rw [HighRecordOwnOrigin_def]
   intro j x o u _hx ho hd
   have hx : x = 0 := Subsingleton.elim _ _
   subst x

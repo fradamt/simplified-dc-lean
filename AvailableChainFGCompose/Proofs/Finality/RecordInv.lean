@@ -33,6 +33,14 @@ variable (emission : HighRecordEmission S T E rho Ef cfg)
 variable (hown : HighRecordOwnOrigin S T E rho)
 variable (hnames : HighRecordNames R S O T E rho D)
 
+/-- The statement predicate uses the exact self-visible emission list. -/
+theorem HighRecordOwnOrigin_def : HighRecordOwnOrigin S T E rho =
+    (∀ j x o u, x ∈ rho.honest → o ∈ V2.D.Engine.ownReleasedAt E rho x j →
+      S.decodeObject o = some u →
+      ∃ r a, HonestRowAt S E rho T j x r a ∧ S.decode a = some u) := by
+  delta HighRecordOwnOrigin
+  simp only [V2.D.Engine.ownReleasedAt_def]
+
 include hh cert hreflect in
 /-- High sources at equal height have the same entry, including before service starts. -/
 theorem high_source_entry_eq (x z : V) (r s : Nat) (C B : FGBlock (Fin n))
@@ -271,7 +279,7 @@ private theorem d7r_all (i : Nat) (x : V) (hx : x ∈ rho.honest) :
       cases hd : S.decodeObject o with
       | none => exact hg
       | some u =>
-        obtain ⟨r, a, ha, hdecode⟩ := hown i x o u hx ho hd
+        obtain ⟨r, a, ha, hdecode⟩ := (HighRecordOwnOrigin_def.mp hown) i x o u hx ho hd
         apply d7r_write _ _ Λ u hg
         · intro y U timeout hp hy
           have hn : namedEntry (D.heightPair a) = some (y, U) := by
@@ -348,7 +356,7 @@ private theorem d7r_own_origin (i : Nat) (x : V) (o : P.Object) (u : Row (Fin n)
   rw [V2.D.Engine.ownReleased_def] at ho
   obtain ⟨j, hj, ho⟩ := List.mem_flatMap.mp ho
   have hji : j < i := by simpa using hj
-  obtain ⟨r, a, ha, hd⟩ := hown j x o u hx ho hd
+  obtain ⟨r, a, ha, hd⟩ := (HighRecordOwnOrigin_def.mp hown) j x o u hx ho hd
   exact ⟨j, r, a, hji, ha, hd⟩
 
 private theorem d7r_row_height_eq (a : Wire) (pair : NamedHeightPair)

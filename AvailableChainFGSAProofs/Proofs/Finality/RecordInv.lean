@@ -206,6 +206,7 @@ private theorem d7f_own_row (i : Nat) (x : V) (seat : Fin p.n) (body : RowPayloa
 
 private theorem d7f_own :
     FGCompose.HighRecordOwnOrigin (fgsaSafetyReads p c) (d7f_timing p) E rho := by
+  rw [FGCompose.HighRecordOwnOrigin_def]
   intro j x o u hx ho hd
   rw [fgsaSafetyReads_def p c] at hd
   rcases o with ⟨auth, msg⟩

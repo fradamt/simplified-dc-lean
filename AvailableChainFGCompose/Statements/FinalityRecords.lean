@@ -3,7 +3,6 @@ public import AvailableChainFGCompose.Statements.FinalityHistory
 public import AvailableChainFGCompose.Statements.RowPermission -- shake: keep (checkpoint API)
 public import AvailableChainFGCompose.Statements.Service -- shake: keep (checkpoint API)
 public import AvailableChainFGCompose.Statements.ChannelLaws -- shake: keep (checkpoint API)
-public import AvailableChainKitV2.DutyRecord
 public import AvailableChainKitFG.ProvenanceCoreDef
 
 @[expose] public section
@@ -58,7 +57,9 @@ def HighRecordEmission (Ef : Electorate (Fin n)) (cfg : FGConfig) : Prop :=
 
 /-- An actual own write retains its node, event, wire, and decoded content. -/
 def HighRecordOwnOrigin : Prop :=
-  ∀ j x o u, x ∈ rho.honest → o ∈ V2.D.Engine.ownReleasedAt E rho x j →
+  ∀ j x o u, x ∈ rho.honest →
+    o ∈ (if (rho.events[j]?).map V2.Event.node = some x then
+      (V2.D.Run.emitsAt E rho j).filter P.objSelfVisible else []) →
     S.decodeObject o = some u →
     ∃ r a, HonestRowAt S E rho T j x r a ∧ S.decode a = some u
 
