@@ -2,7 +2,6 @@ module
 public import AvailableChainFGCompose.Statements.ExecutionObs
 public import AvailableChainFGCompose.Statements.Restart
 public import AvailableChainFGCompose.Statements.SafetyStore
-public import AvailableChainKitFG.Correspondence
 
 public section
 
