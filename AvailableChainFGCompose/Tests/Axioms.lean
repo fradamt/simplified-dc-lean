@@ -844,6 +844,14 @@ public import AvailableChainFGCompose.Proofs.Healing.ResetCut -- shake: keep (#p
 #print axioms AvailableChain.FGCompose.FrontierRepairStart
 #print axioms AvailableChain.FGCompose.FrontierRepairAllowance
 #print axioms AvailableChain.FGCompose.TerminalPromotionFact
+#print axioms AvailableChain.FGCompose.PhaseTransfers
+#print axioms AvailableChain.FGCompose.PhaseTransfers_def
+#print axioms AvailableChain.FGCompose.PhasePermanence
+#print axioms AvailableChain.FGCompose.PhasePermanence_def
+#print axioms AvailableChain.FGCompose.ProgressCoveredByChild
+#print axioms AvailableChain.FGCompose.ProgressCoveredByChild_def
+#print axioms AvailableChain.FGCompose.ProgressFoldAdvance
+#print axioms AvailableChain.FGCompose.ProgressFoldAdvance_def
 #print axioms AvailableChain.FGCompose.FrontierSearchStart
 #print axioms AvailableChain.FGCompose.FrontierSearchStart_def
 #print axioms AvailableChain.FGCompose.FirstPhaseStopBy

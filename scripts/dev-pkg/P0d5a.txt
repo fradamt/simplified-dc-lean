@@ -545,4 +545,11 @@ AvailableChainKitV2.Tests.Duties
 AvailableChainKitV2.Tests.Sleep
 AvailableChainKitV2.Tests.Toy
 
+AvailableChainFGCompose.Proofs.Finality.Middle
+AvailableChainFGCompose.Proofs.Finality.MiddleSupport
+AvailableChainFGCompose.Proofs.Finality.RecordInv
+AvailableChainFGCompose.Statements.FinalityKernel
+AvailableChainFGCompose.Statements.FinalityRecords
+AvailableChainFGCompose.Tests.P0d7a2
+AvailableChainFGCompose.Tests.P0d7a3
 [EXPECTED-FAIL]
