@@ -71,5 +71,18 @@ def HighRecordHead : Prop :=
       (S.inputs (P.clock (V2.D.Run.stateBefore E rho i x) t)).2 =
         certificateHeadFields O.height O.finality K
 
+/-- The shield bounds actual signed rows strictly before its cutoff, of either sign. -/
+def HighRecordShieldRows (D : FGHistoryWireReads S) (X : FGBlock (Fin n))
+    (b : Nat) (cutoff : Time) : Prop :=
+  ∀ j x r a y U timeout, HonestRowAt S E rho T j x r a → T.action r < cutoff →
+    D.heightPair a = .vote y U timeout →
+    y ≤ b ∧ (y = b → U = (O.height X).T_h.root)
+
+/-- Explicit seed leaves. The shield cutoff can precede the service start. -/
+def HighRecordSeedLeaves (D : FGHistoryWireReads S) (pt : FGServicePoint)
+    (X : FGBlock (Fin n)) (b : Nat) (cutoff : Time) : Prop :=
+  R.erase X = pt.seed ∧ (O.height X).h = b ∧ pt.reset.M + 1 ≤ b ∧
+    cutoff ≤ pt.serviceStart ∧ HighRecordShieldRows R S O T E rho D X b cutoff
+
 end AvailableChain.FGCompose
 end
