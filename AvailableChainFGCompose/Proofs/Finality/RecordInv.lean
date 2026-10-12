@@ -508,11 +508,13 @@ theorem shield_high_entry_record_invariant (X : FGBlock (Fin n)) (b : Nat) (cuto
   intro y hy
   apply high_record_fresh_at_cut (D := D) J emission hown i x y hx
   intro j r a h hj ha hh
-  delta historyRowHeight at hh
   cases hp : D.heightPair a with
-  | empty => simp [hp] at hh
+  | empty =>
+    have he := d7r_row_height_eq a _ hp
+    rw [he] at hh
+    cases hh
   | vote g U timeout =>
-    have hgh : g = h := Option.some.inj (by simpa only [hp] using hh)
+    have hgh : g = h := Option.some.inj ((d7r_row_height_eq a _ hp).symm.trans hh)
     have hcap := (shield j x r a g U timeout ha (hold j r a hj ha) hp).1
     simp only [Height] at *
     omega
