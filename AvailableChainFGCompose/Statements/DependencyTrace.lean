@@ -311,7 +311,8 @@ structure FGDependencyTraceLaws (E : Generic.Env V) (rho : V2.D.Run V P)
         ∃ j, rho.events[j]? = some (.restart x t) ∧ k = T.entryCut j
     | .rebuild t =>
         T.state (k + 1) = F.rebuild (T.state k) t ∧
-        ∃ j, rho.events[j]? = some (.restart x t) ∧ T.dutyCut j ≤ k ∧ k < T.done j
+        ∃ j, rho.events[j]? = some (.restart x t) ∧ T.dutyCut j ≤ k ∧ k < T.done j ∧
+          ∀ q, T.dutyCut j ≤ q → q < k → ∃ b o, Op q = .replay b o
     | .idle => T.state (k + 1) = T.state k
   delivery_entry : ∀ j wire t, rho.events[j]? = some (.deliver x wire t) →
     let o : FGReceiptToken V P.Object := ⟨x, j, wire, t, dependencyReceiverEpoch rho x j⟩
@@ -365,7 +366,8 @@ structure FGDependencyTraceLaws (E : Generic.Env V) (rho : V2.D.Run V P)
       wire ∈ dependencyReleased E rho (T.state (T.dutyCut j)) x t ∧
       P.objSelfVisible wire = true) ∨ Op k = .idle ∨
     (∃ t, e = .restart x t ∧ k = T.entryCut j ∧ Op k = .reconstruct t) ∨
-    (∃ t, e = .restart x t ∧ T.dutyCut j ≤ k ∧ Op k = .rebuild t)
+    (∃ t, e = .restart x t ∧ T.dutyCut j ≤ k ∧ Op k = .rebuild t ∧
+      ∀ q, T.dutyCut j ≤ q → q < k → ∃ b o, Op q = .replay b o)
   boundary_idle : ∀ k, k < T.length →
     (¬ ∃ j e, rho.events[j]? = some e ∧ T.start j ≤ k ∧ k < T.done j) →
     Op k = .idle
@@ -414,15 +416,17 @@ structure FGDependencyTraceLaws (E : Generic.Env V) (rho : V2.D.Run V P)
     (∀ b, D.notified z b ↔ D.notified st b) ∧
     (∀ b o, ¬ L.callback st b o z) ∧
     (∀ b o, ¬ L.report st b o z)
-  /-- One whole-state rebuild per restart: after every replay, then only the final drain. -/
+  /-- Every local restart has one rebuild cut r: replays only in [dutyCut, r), then the
+  final dependency drain only in [r+1, done). Both intervals may be empty. -/
   restart_rebuild : ∀ j t,
     rho.events[j]? = some (.restart x t) →
-    ∃ k, T.dutyCut j ≤ k ∧ k < T.done j ∧ Op k = .rebuild t ∧
-      (∀ k' t', T.entryCut j ≤ k' → k' < T.done j → Op k' = .rebuild t' → k' = k) ∧
-      (∀ k' b o, T.entryCut j ≤ k' → k' < T.done j → Op k' = .replay b o → k' < k) ∧
-      (∀ k', k < k' → k' < T.done j →
-        (∃ b o result, Op k' = .leaf b o result) ∨ (∃ b o, Op k' = .inheritRefusal b o) ∨
-        (∃ b o, Op k' = .notification b o) ∨ Op k' = .idle)
+    ∃ r, T.dutyCut j ≤ r ∧ r < T.done j ∧ Op r = .rebuild t ∧
+      (∀ q t', T.entryCut j ≤ q → q < T.done j → Op q = .rebuild t' → q = r) ∧
+      (∀ q, T.dutyCut j ≤ q → q < r → ∃ b o, Op q = .replay b o) ∧
+      (∀ q, r < q → q < T.done j →
+        (∃ b o result, Op q = .leaf b o result) ∨ (∃ b o, Op q = .inheritRefusal b o) ∨
+        (∃ b o, Op q = .notification b o) ∨ Op q = .idle) ∧
+      T.state (T.done j) = F.drain (T.state (r + 1))
   clock_no_insert : ∀ st t,
     H.acceptedBlocks (P.clock st t) = H.acceptedBlocks st ∧
     H.acceptedBodies (P.clock st t) = H.acceptedBodies st
