@@ -466,6 +466,10 @@ public import AvailableChainFGCompose.Proofs.RowPermission -- shake: keep (#prin
 #print axioms AvailableChain.FGCompose.HighRecordOwnOrigin
 #print axioms AvailableChain.FGCompose.HighRecordOwnOrigin_def
 #print axioms AvailableChain.FGCompose.HighRecordHead
+#print axioms AvailableChain.FGCompose.HighRecordShieldRows
+#print axioms AvailableChain.FGCompose.HighRecordSeedLeaves
+#print axioms AvailableChain.FGCompose.shield_record_before_cut
+#print axioms AvailableChain.FGCompose.shield_high_entry_record_invariant
 #print axioms AvailableChain.FGCompose.high_source_entry_eq
 #print axioms AvailableChain.FGCompose.high_record_target_choice
 #print axioms AvailableChain.FGCompose.high_entry_record_invariant
