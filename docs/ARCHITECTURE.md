@@ -1423,3 +1423,8 @@ public statements. `PhaseService` keeps the concrete receipt factories.
 `Tests.P0d1` in Compose checks phase and deadline controls; the FG-SA adapter
 test checks all five clauses and the actual recovery receipt producer.
 PC-SA remains UNPORTED and must supply its own service and receipt proofs.
+P0d7a3 owns FGCompose Statements/FinalityKernel and Proofs/Finality/MiddleSupport
+and Middle. FG-SA keeps its public middle record and theorem signatures. Private
+fieldwise adapters bind the same service point, selected early carrier, fresh entry,
+and through-action caps. The conditional shield route uses the published d7a2 seed
+leaves and historical transfer, including the cutoff-to-service-start gap.

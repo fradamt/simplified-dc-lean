@@ -931,3 +931,9 @@ edit 8ef4ed3b. Other inputs: fgsa-lean's OPEN 7 draft with its Astra review
 │ Hash and citation drift in S3/T7/P3/GLY      │ owners         │ next revision      │
 └──────────────────────────────────────────────┴────────────────┴────────────────────┘
 ```
+
+P0d7a3 owns FGCompose Statements/FinalityKernel and Proofs/Finality/MiddleSupport
+and Middle. FG-SA keeps its public middle record and theorem signatures. Private
+fieldwise adapters bind the same service point, selected early carrier, fresh entry,
+and through-action caps. The conditional shield route uses the published d7a2 seed
+leaves and historical transfer, including the cutoff-to-service-start gap.

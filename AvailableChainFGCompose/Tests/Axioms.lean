@@ -12,6 +12,11 @@ public import AvailableChainFGCompose.Proofs.Healing.PromotionRows -- shake: kee
 public import AvailableChainFGCompose.Statements.Dependency -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Statements.DependencyTrace -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Proofs.Dependency -- shake: keep (#print axioms)
+public import AvailableChainFGCompose.Statements.FinalityKernel -- shake: keep (axiom audit)
+public import AvailableChainFGCompose.Proofs.Finality.MiddleSupport -- shake: keep (axiom audit)
+public import AvailableChainFGCompose.Proofs.Finality.Middle -- shake: keep (axiom audit)
+public import AvailableChainFGCompose.Proofs.Finality.RecordInv -- shake: keep (#print axioms)
+public import AvailableChainFGCompose.Proofs.Finality.History -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Proofs.ObservationTransport -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Proofs.Timing -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Statements.Observations -- shake: keep (#print axioms)
@@ -42,9 +47,9 @@ public import AvailableChainFGCompose.Statements.PhaseReceipts -- shake: keep (#
 public import AvailableChainFGCompose.Proofs.Healing.PhaseFrame -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Proofs.Healing.PhaseOrder -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Proofs.Healing.PhaseSettle -- shake: keep (#print axioms)
-public import AvailableChainFGCompose.Proofs.Finality.History -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Statements.ResetCut -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Proofs.Healing.ResetCut -- shake: keep (#print axioms)
+
 #print axioms AvailableChain.FGCompose.ChainRowsBefore
 #print axioms AvailableChain.FGCompose.ChainRowsBefore_def
 #print axioms AvailableChain.FGCompose.FGCore
@@ -826,3 +831,153 @@ public import AvailableChainFGCompose.Proofs.Healing.ResetCut -- shake: keep (#p
 #print axioms AvailableChain.FGCompose.dependency_hook_accepted_origin_bridge
 #print axioms AvailableChain.FGCompose.dependency_hook_origin_at_read
 #print axioms AvailableChain.FGCompose.FGDependencyDriver.replay
+
+#print axioms AvailableChain.FGCompose.highRecordEntry
+#print axioms AvailableChain.FGCompose.HighRecordInvariant
+#print axioms AvailableChain.FGCompose.HighRecordFresh
+#print axioms AvailableChain.FGCompose.HighRecordGuard_W
+#print axioms AvailableChain.FGCompose.HighRecordNames
+#print axioms AvailableChain.FGCompose.HighRecordEmission
+#print axioms AvailableChain.FGCompose.HighRecordOwnOrigin
+#print axioms AvailableChain.FGCompose.HighRecordOwnOrigin_def
+#print axioms AvailableChain.FGCompose.HighRecordHead
+#print axioms AvailableChain.FGCompose.HighRecordShieldRows
+#print axioms AvailableChain.FGCompose.HighRecordSeedLeaves
+#print axioms AvailableChain.FGCompose.shield_record_before_cut
+#print axioms AvailableChain.FGCompose.shield_high_entry_record_invariant
+#print axioms AvailableChain.FGCompose.high_source_entry_eq
+#print axioms AvailableChain.FGCompose.high_record_target_choice
+#print axioms AvailableChain.FGCompose.high_entry_record_invariant
+#print axioms AvailableChain.FGCompose.high_record_fresh_at_cut
+#print axioms AvailableChain.FGCompose.high_record_reset_fresh
+#print axioms AvailableChain.FGCompose.high_record_guards_and_fresh
+#print axioms AvailableChain.FGCompose.high_action_target_choice
+#print axioms AvailableChain.FGCompose.high_record_guards_and_fresh_at_action
+#print axioms AvailableChain.FGCompose.ff2_stored_high_qc_identity
+#print axioms AvailableChain.FGCompose.ff2_high_qc_identity
+#print axioms AvailableChain.FGCompose.ff2_no_high_contest
+#print axioms AvailableChain.FGCompose.HighRecordGuard_W_def
+#print axioms AvailableChain.FGCompose.ff2_high_record_guards
+#print axioms AvailableChain.FGCompose.high_target_row_covered
+#print axioms AvailableChain.FGCompose.high_target_first_row
+#print axioms AvailableChain.FGCompose.high_target_honest_quorum
+#print axioms AvailableChain.FGCompose.high_target_quorum_covered
+
+-- P0d7a3: exact generic middle surface.
+#print axioms AvailableChain.FGCompose.BatchPrem
+#print axioms AvailableChain.FGCompose.BatchPrem.above
+#print axioms AvailableChain.FGCompose.BatchPrem.after
+#print axioms AvailableChain.FGCompose.BatchPrem.carrier
+#print axioms AvailableChain.FGCompose.BatchPrem.deltaF
+#print axioms AvailableChain.FGCompose.BatchPrem.entry
+#print axioms AvailableChain.FGCompose.BatchPrem.fault_weight
+#print axioms AvailableChain.FGCompose.BatchPrem.horizon
+#print axioms AvailableChain.FGCompose.BatchPrem.mk
+#print axioms AvailableChain.FGCompose.BatchPrem.path
+#print axioms AvailableChain.FGCompose.BatchPrem.rowsReceipt
+#print axioms AvailableChain.FGCompose.BatchPrem.schedule
+#print axioms AvailableChain.FGCompose.BatchPrem.valid
+#print axioms AvailableChain.FGCompose.KernelExactService
+#print axioms AvailableChain.FGCompose.KernelMiddleWitness_W
+#print axioms AvailableChain.FGCompose.KernelMiddleWitness_W.A₀
+#print axioms AvailableChain.FGCompose.KernelMiddleWitness_W.B
+#print axioms AvailableChain.FGCompose.KernelMiddleWitness_W.U
+#print axioms AvailableChain.FGCompose.KernelMiddleWitness_W.X_D
+#print axioms AvailableChain.FGCompose.KernelMiddleWitness_W.actionsInRun
+#print axioms AvailableChain.FGCompose.KernelMiddleWitness_W.batchB
+#print axioms AvailableChain.FGCompose.KernelMiddleWitness_W.batchD
+#print axioms AvailableChain.FGCompose.KernelMiddleWitness_W.cD
+#print axioms AvailableChain.FGCompose.KernelMiddleWitness_W.capThroughBAction
+#print axioms AvailableChain.FGCompose.KernelMiddleWitness_W.capThroughFinalAction
+#print axioms AvailableChain.FGCompose.KernelMiddleWitness_W.carrierA
+#print axioms AvailableChain.FGCompose.KernelMiddleWitness_W.carrierB
+#print axioms AvailableChain.FGCompose.KernelMiddleWitness_W.carrierD
+#print axioms AvailableChain.FGCompose.KernelMiddleWitness_W.chainA
+#print axioms AvailableChain.FGCompose.KernelMiddleWitness_W.chainB
+#print axioms AvailableChain.FGCompose.KernelMiddleWitness_W.chainD
+#print axioms AvailableChain.FGCompose.KernelMiddleWitness_W.d
+#print axioms AvailableChain.FGCompose.KernelMiddleWitness_W.earlySlot
+#print axioms AvailableChain.FGCompose.KernelMiddleWitness_W.entryB
+#print axioms AvailableChain.FGCompose.KernelMiddleWitness_W.eraseA
+#print axioms AvailableChain.FGCompose.KernelMiddleWitness_W.finalityThroughFinalAction
+#print axioms AvailableChain.FGCompose.KernelMiddleWitness_W.freshD
+#print axioms AvailableChain.FGCompose.KernelMiddleWitness_W.freshEntry
+#print axioms AvailableChain.FGCompose.KernelMiddleWitness_W.freshSlot
+#print axioms AvailableChain.FGCompose.KernelMiddleWitness_W.heightA
+#print axioms AvailableChain.FGCompose.KernelMiddleWitness_W.heightB
+#print axioms AvailableChain.FGCompose.KernelMiddleWitness_W.heightD
+#print axioms AvailableChain.FGCompose.KernelMiddleWitness_W.heldAAtEnd
+#print axioms AvailableChain.FGCompose.KernelMiddleWitness_W.heldDAtFinalAction
+#print axioms AvailableChain.FGCompose.KernelMiddleWitness_W.highA
+#print axioms AvailableChain.FGCompose.KernelMiddleWitness_W.honestB
+#print axioms AvailableChain.FGCompose.KernelMiddleWitness_W.honestD
+#print axioms AvailableChain.FGCompose.KernelMiddleWitness_W.justifiedD
+#print axioms AvailableChain.FGCompose.KernelMiddleWitness_W.justifiedHeightD
+#print axioms AvailableChain.FGCompose.KernelMiddleWitness_W.mk
+#print axioms AvailableChain.FGCompose.KernelMiddleWitness_W.noEarlyFinality
+#print axioms AvailableChain.FGCompose.KernelMiddleWitness_W.noFirstHeight
+#print axioms AvailableChain.FGCompose.KernelMiddleWitness_W.noMixedD
+#print axioms AvailableChain.FGCompose.KernelMiddleWitness_W.noSecondHeight
+#print axioms AvailableChain.FGCompose.KernelMiddleWitness_W.opening
+#print axioms AvailableChain.FGCompose.KernelMiddleWitness_W.parentAB
+#print axioms AvailableChain.FGCompose.KernelMiddleWitness_W.parentBD
+#print axioms AvailableChain.FGCompose.KernelMiddleWitness_W.pathUB
+#print axioms AvailableChain.FGCompose.KernelMiddleWitness_W.pendingD
+#print axioms AvailableChain.FGCompose.KernelMiddleWitness_W.retainedD
+#print axioms AvailableChain.FGCompose.KernelMiddleWitness_W.serviceD
+#print axioms AvailableChain.FGCompose.KernelMiddleWitness_W.slotA
+#print axioms AvailableChain.FGCompose.KernelMiddleWitness_W.slotB
+#print axioms AvailableChain.FGCompose.KernelMiddleWitness_W.slotD
+#print axioms AvailableChain.FGCompose.KernelMiddleWitness_W.sourceA
+#print axioms AvailableChain.FGCompose.KernelMiddleWitness_W.sourceB
+#print axioms AvailableChain.FGCompose.KernelMiddleWitness_W.strictAU
+#print axioms AvailableChain.FGCompose.KernelMiddleWitness_W.targetsB
+#print axioms AvailableChain.FGCompose.RowNames
+#print axioms AvailableChain.FGCompose.SlotChain
+#print axioms AvailableChain.FGCompose.kernelCarrier
+#print axioms AvailableChain.FGCompose.kmid_actionTime_eq
+#print axioms AvailableChain.FGCompose.kmid_action_strictMono
+#print axioms AvailableChain.FGCompose.kmid_batchPrem
+#print axioms AvailableChain.FGCompose.kmid_batch_horizon
+#print axioms AvailableChain.FGCompose.kmid_chainRows_of_head
+#print axioms AvailableChain.FGCompose.kmid_delivery_before_afterTicks
+#print axioms AvailableChain.FGCompose.kmid_event_time
+#print axioms AvailableChain.FGCompose.kmid_faulty_weight
+#print axioms AvailableChain.FGCompose.kmid_fin_cut
+#print axioms AvailableChain.FGCompose.kmid_head_held_from
+#print axioms AvailableChain.FGCompose.kmid_held_cap_afterTicks
+#print axioms AvailableChain.FGCompose.kmid_held_finality_afterTicks
+#print axioms AvailableChain.FGCompose.kmid_held_height_le
+#print axioms AvailableChain.FGCompose.kmid_honest_seat
+#print axioms AvailableChain.FGCompose.kmid_kappa_cover
+#print axioms AvailableChain.FGCompose.kmid_kernel_bounds
+#print axioms AvailableChain.FGCompose.kmid_lift_preceq
+#print axioms AvailableChain.FGCompose.kmid_matching_height
+#print axioms AvailableChain.FGCompose.kmid_parentFold_height
+#print axioms AvailableChain.FGCompose.kmid_parent_preceq
+#print axioms AvailableChain.FGCompose.kmid_period_eq
+#print axioms AvailableChain.FGCompose.kmid_proposal_le_action
+#print axioms AvailableChain.FGCompose.kmid_row_action
+#print axioms AvailableChain.FGCompose.kmid_row_fin_lt
+#print axioms AvailableChain.FGCompose.kmid_row_source_height
+#print axioms AvailableChain.FGCompose.kmid_rows_above_entry
+#print axioms AvailableChain.FGCompose.kmid_rows_at_source
+#print axioms AvailableChain.FGCompose.kmid_rows_below_opening
+#print axioms AvailableChain.FGCompose.kmid_rows_cut
+#print axioms AvailableChain.FGCompose.kmid_slot_gst
+#print axioms AvailableChain.FGCompose.kmid_slot_horizon
+#print axioms AvailableChain.FGCompose.kmid_slot_le_of_preceq
+#print axioms AvailableChain.FGCompose.kmid_slot_lt_of_strict
+#print axioms AvailableChain.FGCompose.kmid_slot_scale_le
+#print axioms AvailableChain.FGCompose.kmid_slot_scale_lt
+#print axioms AvailableChain.FGCompose.kmid_source_held_at_tick
+#print axioms AvailableChain.FGCompose.kmid_source_of_exact
+#print axioms AvailableChain.FGCompose.kmid_tick_lt_afterTicks
+#print axioms AvailableChain.FGCompose.kmid_vote_lt_action
+#print axioms AvailableChain.FGCompose.middle_seed_opening_height
+#print axioms AvailableChain.FGCompose.middle_shield_rows_below_opening
+#print axioms AvailableChain.FGCompose.kernel_middle_early_justification
+#print axioms AvailableChain.FGCompose.kernel_middle_fresh_U
+#print axioms AvailableChain.FGCompose.kernel_middle_source_cap
+#print axioms AvailableChain.FGCompose.kernel_opening_and_middle
+#print axioms AvailableChain.FGCompose.middle_reset_opening_height

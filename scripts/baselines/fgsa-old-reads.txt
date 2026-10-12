@@ -45,6 +45,8 @@ height AvailableChain.FGSA.Run.client_step # pre-J4 baseline 2026-10-02 (Availab
 height AvailableChain.FGSA.Run.consumer_band_agrees # G11 job 7 bridge: heights through heightView_bridge / heightBridge_fields; heights only (AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumers)
 height AvailableChain.FGSA.Run.consumer_height_mono # G11 job 7 bridge: heights through heightView_bridge / heightBridge_fields; heights only (AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumers)
 height AvailableChain.FGSA.Run.consumer_parent_height # G11 job 7 bridge: heights through heightView_bridge / heightBridge_fields; heights only (AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumers)
+height AvailableChain.FGSA.Run.d7f_emission # P0 extraction 2026-10-12: FG-SA wrapper of a generic consumer whose statement reads KitFG window heights (lead ruling; class of the 2026-10-11 user-approved lines)
+height AvailableChain.FGSA.Run.d7f_height # P0 extraction 2026-10-12: FG-SA wrapper of a generic consumer whose statement reads KitFG window heights (lead ruling; class of the 2026-10-11 user-approved lines)
 height AvailableChain.FGSA.Run.eligible_lo_live # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.Channels)
 height AvailableChain.FGSA.Run.emission_attest_valid # pre-J4 baseline 2026-10-02 (AvailableChainFGSARun.Proofs.EmissionWellFormed)
 height AvailableChain.FGSA.Run.fgsaSafetyClientLaws # fg-fin P4b: tick_rows height-only read via shared client; lead ruling 2026-10-07; J6 removes
@@ -74,10 +76,11 @@ height AvailableChain.FGSA.Run.fgsa_walkRun_eligible_iff_view # G11 job 5a bridg
 height AvailableChain.FGSA.Run.fgsa_walkRun_full_domain # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.ScoreRun)
 height AvailableChain.FGSA.Run.fgsa_walkRun_full_domain_view # G11 job 5a bridge: view form of the landed SR full-domain adapter via heightView_bridge; heights only (AvailableChainFGSAProofs.Proofs.Shared.RetainedReflect)
 height AvailableChain.FGSA.Run.fgsa_walkRun_path_domain_view # G11 job 5a bridge: view form of the landed SR path-domain adapter via heightView_bridge; heights only (AvailableChainFGSAProofs.Proofs.Shared.RetainedReflect)
-height AvailableChain.FGSA.Run.high_record_fresh_at_cut # height-only, through the shared client (hOf/createRowOnce); bridge-equal
+height AvailableChain.FGSA.Run.high_target_first_row # P0 extraction 2026-10-12: FG-SA wrapper of a generic consumer whose statement reads KitFG window heights (lead ruling; class of the 2026-10-11 user-approved lines)
+height AvailableChain.FGSA.Run.high_target_quorum_covered # P0 extraction 2026-10-12: FG-SA wrapper of a generic consumer whose statement reads KitFG window heights (lead ruling; class of the 2026-10-11 user-approved lines)
+height AvailableChain.FGSA.Run.high_target_row_covered # P0 extraction 2026-10-12: FG-SA wrapper of a generic consumer whose statement reads KitFG window heights (lead ruling; class of the 2026-10-11 user-approved lines)
 height AvailableChain.FGSA.Run.kept_or_cause # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.KeepExact)
 height AvailableChain.FGSA.Run.kept_or_conflict # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.KeepExact)
-height AvailableChain.FGSA.Run.kmid_row_fin_lt # height-only, through the shared client (hOf/createRowOnce); bridge-equal
 height AvailableChain.FGSA.Run.ktail_release # height-only, through the shared client (hOf/createRowOnce); bridge-equal
 height AvailableChain.FGSA.Run.openingSource_domain_of_kept_or_cause # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.OpeningSource)
 height AvailableChain.FGSA.Run.openingSource_firstOpening # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.OpeningSource)
@@ -87,6 +90,7 @@ height AvailableChain.FGSA.Run.recordInv_once_target # height-only, through the 
 height AvailableChain.FGSA.Run.recordInv_released_finality # height-only, through the shared client (hOf/createRowOnce); bridge-equal
 height AvailableChain.FGSA.Run.recordInv_released_pair # height-only, through the shared client (hOf/createRowOnce); bridge-equal
 height AvailableChain.FGSA.Run.rowPermission_client_record # height-only, through the shared client (hOf/createRowOnce); bridge-equal
+height AvailableChain.FGSA.Run.rowPermission_covered # P0 extraction 2026-10-12: FG-SA wrapper of a generic consumer whose statement reads KitFG window heights (lead ruling; class of the 2026-10-11 user-approved lines)
 height AvailableChain.FGSA.Run.rowPermission_once_coverage # height-only, through the shared client (hOf/createRowOnce); bridge-equal
 height AvailableChain.FGSA.Run.rowPermission_record_carrier # height-only, through the shared client (hOf/createRowOnce); bridge-equal
 height AvailableChain.FGSA.Run.rows_release # height-only, through the shared client (hOf/createRowOnce); bridge-equal
@@ -255,4 +259,8 @@ height AvailableChain.FGSA.Run.wcg_heightSeed_of_finite # sleep landing: old hei
 height AvailableChain.FGSA.Run.wcg_inclusion6_result # sleep landing: old height pair in WC/WCG/arming interface; bridge-equal; public root; user approval 2026-10-11
 height AvailableChain.FGSA.Run.wcg_retainedSeed_of_finite # sleep landing: old height pair in WC/WCG/arming interface; bridge-equal; public root; user approval 2026-10-11
 height AvailableChain.FGSA.Run.wcg_service4OfSeed # sleep landing: old height pair in WC/WCG/arming interface; bridge-equal; public root; user approval 2026-10-11
-height AvailableChain.FGSA.Run.rowPermission_covered # P0 extraction 2026-10-12: FG-SA wrapper of a generic consumer whose statement reads KitFG window heights (lead ruling; class of the 2026-10-11 user-approved lines)
+
+# P0d7a3 generic client-height transport; same published leaf as d7f_emission.
+height AvailableChain.FGSA.Run.d7m_emission # P0 extraction 2026-10-12, class of the 2026-10-11 user-approved lines
+height AvailableChain.FGSA.Run.d7n_emission # P0 extraction 2026-10-12, class of the 2026-10-11 user-approved lines
+height AvailableChain.FGSA.Run.kmid_row_action # P0 extraction 2026-10-12, class of the 2026-10-11 user-approved lines
