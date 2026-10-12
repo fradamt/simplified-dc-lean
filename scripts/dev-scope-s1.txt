@@ -549,6 +549,12 @@ AvailableChainFGCompose.Statements.FrontierSearch
 AvailableChainFGCompose.Proofs.Healing.FrontierSearchBudget
 AvailableChainFGCompose.Proofs.Healing.FrontierSearchStop
 AvailableChainFGCompose.Tests.P0d5a
+AvailableChainFGCompose.Statements.FrontierMaturity
+AvailableChainFGCompose.Proofs.Healing.PromotionSource
+AvailableChainFGCompose.Proofs.Healing.PromotionAge
+AvailableChainFGCompose.Proofs.Healing.FrontierSearchAge
+AvailableChainFGCompose.Proofs.Healing.FrontierSearchHG2a
+AvailableChainFGCompose.Tests.P0d5b
 [DEFERRED]
 AvailableChainFGSAProofs.Proofs.Shared.Claims P-ShA
 

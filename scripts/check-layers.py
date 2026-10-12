@@ -1328,5 +1328,23 @@ COMPOSE_EDGES |= frozenset({
      'AvailableChainFGCompose.Proofs.Finality.Accept'),
 })
 
+# P0d5b: exact generic homes.
+COMPOSE_MODULES += ('AvailableChainFGCompose.Statements.FrontierMaturity',
+                    'AvailableChainFGCompose.Proofs.Healing.PromotionSource',
+                    'AvailableChainFGCompose.Proofs.Healing.PromotionAge',
+                    'AvailableChainFGCompose.Proofs.Healing.FrontierSearchAge',
+                    'AvailableChainFGCompose.Proofs.Healing.FrontierSearchHG2a',)
+
+# P0d5b: exact frozen-wrapper edges.
+COMPOSE_EDGES |= frozenset({
+    ('AvailableChainFGSAProofs.Proofs.Healing.PromotionSource',
+     'AvailableChainFGCompose.Proofs.Healing.PromotionSource'),
+    ('AvailableChainFGSAProofs.Proofs.Healing.PromotionAge',
+     'AvailableChainFGCompose.Proofs.Healing.PromotionAge'),
+    ('AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchAge',
+     'AvailableChainFGCompose.Proofs.Healing.FrontierSearchAge'),
+    ('AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchHG2a',
+     'AvailableChainFGCompose.Proofs.Healing.FrontierSearchHG2a'),
+})
 if __name__ == "__main__":
     sys.exit(main())
