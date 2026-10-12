@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchRepair
-public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchHG2a -- shake: keep (generic leaf statements re-exported)
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchHG2a -- shake: keep (leaf defs)
 public import AvailableChainFGSAProofs.Proofs.Healing.Promotion
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionCarrier
 public import AvailableChainFGSAProofs.Proofs.Healing.Descent
@@ -913,9 +913,20 @@ private theorem p0d5cTstServedRoundTrip [Fintype V] (E : Generic.Env V)
       p0d5cTstLocal E rho frontier hgst hQ he hh hexact hseed hu hp t hqt hth hcap⟩
   exact ⟨g, p0d5cTstServedBack E rho hrec repair g⟩
 
-/-- The inhabited fixture run of Tests.NonVacuity.HealingRun (same events, 311 batches). -/
+/-- The run of Tests.NonVacuity.HealingRun.run, written out: the same params, env, gap,
+deltaF and the same 311-batch events (ticks 0..310), with horizon 310 (HealingRun.horizon).
+HealingRun.nvRecovery and nvPerm are stated for exactly this run; HealingFixture.mkRun alone keeps
+horizon 304, which no schedule with tick 310 satisfies. -/
 private abbrev p0d5cTstFixtureRun : V2.D.Run (Fin 1) (fgsa HealingFixture.params unitCodec) :=
-  HealingFixture.mkRun (HealingFixture.runPrefix 311).1
+  { HealingFixture.mkRun (HealingFixture.runPrefix 311).1 with horizon := 310 }
+
+-- Guard: the horizon is 310, and the last batch index of the 311-prefix (tick time 310) is
+-- within it; the 304-horizon pairing fails the same check.
+private theorem p0d5cTstFixtureRunHorizon :
+    p0d5cTstFixtureRun.horizon = 310 ∧ (List.range 311).getLast? = some 310 ∧
+      ((310 : Nat) : Time) ≤ p0d5cTstFixtureRun.horizon ∧ ¬ ((310 : Nat) : Time) ≤
+        HealingFixture.horizon :=
+  ⟨rfl, by decide, by decide, by decide⟩
 
 -- G0 (strongest proved partial): on the fixture run, with its recovery regime (proved as
 -- Tests.NonVacuity.HealingRun.nvRecovery; a Tests module cannot be imported, TEST-USE),
@@ -946,14 +957,14 @@ private theorem p0d5cTstFixtureFrame
   obtain ⟨s, hlo, hhi, hslot⟩ := hrec.gap
     (HealingFixture.env.t_GST + 4 * HealingFixture.params.Δ) (by linarith)
     (by
-      change 0 + 4 * HealingFixture.params.Δ + 4 ≤ 304
+      change 0 + 4 * HealingFixture.params.Δ + 4 ≤ 310
       have : HealingFixture.params.Δ = 1 := rfl
       rw [this]
       decide)
   rw [proposalTime_fgsa] at hlo hhi
   have hhor : SA.proposalTime HealingFixture.params.toParams s ≤ p0d5cTstFixtureRun.horizon := by
     have : HealingFixture.params.Δ = 1 := rfl
-    change _ ≤ 304
+    change _ ≤ 310
     change _ ≤ 0 + 4 * HealingFixture.params.Δ + 4 at hhi
     rw [this] at hhi
     linarith
@@ -968,6 +979,7 @@ private theorem p0d5cTstFixtureFrame
 #print axioms p0d5cTstLeaves
 #print axioms p0d5cTstLeavesMore
 #print axioms p0d5cTstServedRoundTrip
+#print axioms p0d5cTstFixtureRunHorizon
 #print axioms p0d5cTstFixtureFrame
 end AvailableChain.FGSA.Run
 end
