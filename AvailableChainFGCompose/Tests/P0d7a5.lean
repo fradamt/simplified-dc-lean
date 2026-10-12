@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGCompose.Proofs.Finality.Accept
+public import AvailableChainFGCompose.Proofs.Finality.Receipt
 public import AvailableChainFGCompose.Statements.HistoricalReads
 
 set_option linter.privateModule false
@@ -259,7 +260,7 @@ private theorem aGuards :
     dsimp only
     intro _ _
     exact (by decide +kernel : (receiptInsert_W aR aEnv (aRun false) aE aCfg 2 2 () aX).h_max ≤
-      (KitFG.Window.certificateHeight aE aCfg 2 aX).h + 1)
+      (SimplexFG.Window.derive aE aCfg 2 aX).h + 1)
 
 private def aPrem : AcceptPrem_W aR aEnv (aRun false) aE aCfg 2 (aReady false) aX aU 0 4 where
   schedule := aSchedule false

@@ -2,7 +2,6 @@ module
 public import AvailableChainFGCompose.Statements.Service
 public import AvailableChainGeneric.Statements.V2.Duty.Receipt -- shake: keep (re-export)
 public import AvailableChainGeneric.Statements.V2.Duty.DeliveryBy
-public import AvailableChainKitFG.WindowViewsDef
 public import AvailableChainSimplexFG.WindowStore
 
 @[expose] public section
@@ -114,7 +113,7 @@ def receiptInsert_W (i : Nat) (x : V) (W : FGBlock (Fin n)) : Store (Fin n) :=
   let st := (R.core (V2.D.Run.stateBefore E rho i x)).fg
   { st with
     TF := insert W st.TF
-    h_max := max st.h_max (KitFG.Window.certificateHeight Ef cfg K W).h }
+    h_max := max st.h_max (SimplexFG.Window.derive Ef cfg K W).h }
 
 /-- One selected event per honest receiver: prior coverage or the selected receipt. -/
 structure BlockDelivery_W (W U : FGBlock (Fin n)) (a₀ d : Time) where
@@ -145,7 +144,7 @@ structure AcceptGuards_W (W U : FGBlock (Fin n)) (a₀ d : Time)
     ready w.index x W w.time →
     ¬ FGBlock.Preceq U (R.core (V2.D.Run.stateBefore E rho w.index x)).fg.F →
     (receiptInsert_W R E rho Ef cfg K w.index x W).h_max ≤
-      (KitFG.Window.certificateHeight Ef cfg K W).h + 1
+      (SimplexFG.Window.derive Ef cfg K W).h + 1
 
 /-- The selected receipt, its guards and the carrier finality. The aggregate
 execution input is split: only the schedule is read. -/

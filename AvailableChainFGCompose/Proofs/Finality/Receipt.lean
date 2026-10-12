@@ -1,7 +1,7 @@
 module
 public import AvailableChainFGCompose.Proofs.Finality.Carry
 public import AvailableChainFGCompose.Proofs.Finality.Rows
-public import AvailableChainFGCompose.Proofs.Finality.RestoreReads
+public import AvailableChainGeneric.Proofs.V2.Duty.Reads
 public import AvailableChainFGCompose.Proofs.Finality.MiddleSupport
 public import AvailableChainKitFG.FrameGeometry
 
@@ -201,7 +201,7 @@ theorem receipt_cap (O : FGObservationReads R)
       S.decode a = some row → row.height_pair = .vote h B timeout →
       T.action r < T.action (q + 1) → h ≤ y + 1) :
     (receiptInsert_W R E rho Ef cfg K i x X).h_max ≤
-      (KitFG.Window.certificateHeight Ef cfg K X).h + 1 := by
+      (SimplexFG.Window.derive Ef cfg K X).h + 1 := by
   have hi := Nat.le_of_lt (d7a5g_index_before T E rho L hs ΔF q i t hbound ht hbefore)
   have hcap : ∀ W ∈ (R.core (V2.D.Run.stateBefore E rho i x)).fg.TF,
       (O.height W).h ≤ y + 2 := by
@@ -210,10 +210,12 @@ theorem receipt_cap (O : FGObservationReads R)
   have hm : (R.core (V2.D.Run.stateBefore E rho i x)).fg.h_max ≤ y + 2 := by
     rw [inv.hmax]
     exact max_le (Finset.sup_le hcap) (Nat.succ_le_succ (Nat.zero_le (y + 1)))
+  have hX : (O.height X).h = (SimplexFG.Window.derive Ef cfg K X).h := by
+    rw [height_eq]
+    rfl
   change max (R.core (V2.D.Run.stateBefore E rho i x)).fg.h_max
-    (KitFG.Window.certificateHeight Ef cfg K X).h ≤
-      (KitFG.Window.certificateHeight Ef cfg K X).h + 1
-  rw [← height_eq]
+    (SimplexFG.Window.derive Ef cfg K X).h ≤ (SimplexFG.Window.derive Ef cfg K X).h + 1
+  rw [← hX]
   exact max_le (hm.trans (Nat.add_le_add_right hheight 1)) (Nat.le_succ _)
 
 /-- Paper 22:1294–1296: the separate finality lag excludes a higher receiver certificate.

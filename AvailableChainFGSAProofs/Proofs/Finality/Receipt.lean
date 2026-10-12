@@ -1,11 +1,14 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Shared.ReceiptFacts
-public import AvailableChainFGSAProofs.Proofs.Finality.Carry
-public import AvailableChainFGSAProofs.Proofs.Finality.Rows
+public import AvailableChainFGSAProofs.Proofs.Finality.Carry -- shake: keep (Kernel re-export)
 public import AvailableChainFGSAProofs.Proofs.Finality.RestoreReads
 public import AvailableChainFGSARun.Proofs.ProposalHistory
-public import AvailableChainFGSAProofs.Proofs.Shared.Channels
-public import AvailableChainFGSAProofs.Proofs.Shared.BoundsW
+public import AvailableChainFGSAProofs.Proofs.Finality.MiddleSupport
+public import AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient
+public import AvailableChainFGSAProofs.Proofs.Shared.GridSchedule
+public import AvailableChainFGSAProofs.Proofs.Shared.HonestQuorum
+public import AvailableChainFGSAProofs.Proofs.Shared.Roots
+public import AvailableChainFGSARun.Proofs.WindowExclusion
 public import AvailableChainFGSAClaims.Statements.FinalityApi
 public import AvailableChainFGSAClaims.Statements.Packages.Safety
 public import AvailableChainFGCompose.Proofs.Finality.Receipt
@@ -673,10 +676,9 @@ private theorem d7a5r_transfer (w : HealingWitness) (h : TCarrier p c E rho w)
 private theorem d7a5r_insert (i : Nat) (x : V) (X : FGBlock (Fin p.n)) :
     (FGCompose.receiptInsert_W (fgsaCoreReads p c) E rho p.E p.cfg p.K_W i x X).h_max =
       max (storeAt p c E rho i x).fg.h_max (heightView p X).h := by
-  rw [d7a5r_w_height_eq]
   change max ((fgsaCoreReads p c).core (V2.D.Run.stateBefore E rho i x)).fg.h_max
-    (KitFG.Window.certificateHeight p.E p.cfg p.K_W X).h = _
-  rw [d7a5r_core_fg]
+    (SimplexFG.Window.derive p.E p.cfg p.K_W X).h = _
+  rw [d7a5r_core_fg, ← d7a5r_w_derive_eq]
   rfl
 
 end
@@ -850,7 +852,7 @@ theorem receipt_cap (ΔF : Time) (q y i : Nat) (x : V) (X : FGBlock (Fin p.n))
       intro j z r a row h B timeout ha hd hp hlt
       exact hrows j z r a row h B timeout ((d7a5r_row_eq p c E rho j r z a).mp ha)
         (by rw [fgsaSafetyReads_def] at hd; exact hd) hp hlt)
-  rw [d7a5r_insert, ← d7a5r_w_height_eq] at r
+  rw [d7a5r_insert, ← d7a5r_w_derive_eq] at r
   rw [receiptInsert_W_def]
   exact r
 

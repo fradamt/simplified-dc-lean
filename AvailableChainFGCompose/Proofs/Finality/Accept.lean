@@ -1,6 +1,7 @@
 module
-public import AvailableChainFGCompose.Proofs.Finality.Receipt
+public import AvailableChainFGCompose.Proofs.Finality.RestoreReads
 public import AvailableChainKitFG.WindowStore
+public import AvailableChainKitFG.FrameGeometry
 
 public section
 
@@ -56,8 +57,8 @@ private theorem d7a5a_update (hne : ¬ Ef.IsQuorum ∅) (hK : 2 ≤ K)
     (hF : FGBlock.Preceq st.F (SimplexFG.Window.derive Ef cfg K W).F)
     (hmem : (SimplexFG.Window.derive Ef cfg K W).F ∈ insert W st.TF)
     (hj : FGBlock.Preceq st.J W ∨ st.h_j < (SimplexFG.Window.derive Ef cfg K W).h_j)
-    (hcap : max st.h_max ((KitFG.Window.certificateHeight Ef cfg K W).h) ≤
-      (KitFG.Window.certificateHeight Ef cfg K W).h + 1) :
+    (hcap : max st.h_max ((SimplexFG.Window.derive Ef cfg K W).h) ≤
+      (SimplexFG.Window.derive Ef cfg K W).h + 1) :
     FGBlock.Preceq (SimplexFG.Window.derive Ef cfg K W).F
       (SimplexFG.Window.update_finality Ef cfg K { st with TF := insert W st.TF } W).F := by
   classical
@@ -69,8 +70,6 @@ private theorem d7a5a_update (hne : ¬ Ef.IsQuorum ∅) (hK : 2 ≤ K)
     rcases hj with hj | hj
     · exact d7a5a_J_path Ef cfg K hne hK st hI W hj
     · exact Or.inr hj
-  have hread : (KitFG.Window.certificateHeight Ef cfg K W).h =
-      (SimplexFG.Window.derive Ef cfg K W).h := rfl
   have hJW : FGBlock.Preceq (SimplexFG.Window.derive Ef cfg K W).J W :=
     KitFG.preceq_trans
       ((KitFG.Window.windowCertificateLaws Ef cfg K hne hK).height.justified_preceq_entry W)
@@ -106,7 +105,6 @@ private theorem d7a5a_update (hne : ¬ Ef.IsQuorum ∅) (hK : 2 ≤ K)
     · exact h2F.symm ▸ hF
     · refine ⟨W, h2T.symm ▸ Finset.mem_insert_self _ _, KitFG.preceq_trans hσJ hJW, ?_⟩
       rw [h2H]
-      rw [hread] at hcap
       simp only [Height] at hcap ⊢
       omega
   rw [SimplexFG.Window.update_finality_def]

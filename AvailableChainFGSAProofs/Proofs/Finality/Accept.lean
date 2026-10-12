@@ -1,6 +1,7 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Shared.Channels
-public import AvailableChainFGSAProofs.Proofs.Finality.RestoreReads
+public import AvailableChainFGSAProofs.Proofs.Shared.FGCompose
+public import AvailableChainFGSARun.Proofs.Reachable
+public import AvailableChainFGSAClaims.Statements.Phases
 public import AvailableChainFGCompose.Proofs.Finality.Accept
 
 public section
@@ -331,9 +332,9 @@ private theorem d7a5a_guards [Fintype V] {W U : FGBlock (Fin p.n)} {a₀ d : Tim
     have hcap := g.cap x hx hr (by rw [d7a5a_reads_eq] at hc; exact hc)
     rw [receiptInsert_W_def] at hcap
     change max ((fgsaCoreReads p c).core (V2.D.Run.stateBefore E rho _ x)).fg.h_max
-      (KitFG.Window.certificateHeight p.E p.cfg p.K_W W).h ≤
-        (KitFG.Window.certificateHeight p.E p.cfg p.K_W W).h + 1
-    rw [d7a5a_reads_eq, ← d7a5a_w_height_eq]
+      (SimplexFG.Window.derive p.E p.cfg p.K_W W).h ≤
+        (SimplexFG.Window.derive p.E p.cfg p.K_W W).h + 1
+    rw [d7a5a_reads_eq, ← d7a5a_w_derive_eq]
     exact hcap
 
 private def d7a5a_prem [Fintype V] {W U : FGBlock (Fin p.n)} {a₀ d : Time}

@@ -1,7 +1,7 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Finality.Accept
-public import AvailableChainFGSAProofs.Proofs.Finality.Receipt
-public import AvailableChainFGSAProofs.Proofs.Finality.ReceiptSuppliers
+public import AvailableChainFGSAProofs.Proofs.Finality.Accept -- shake: keep (axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Finality.Receipt -- shake: keep (axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Finality.ReceiptSuppliers -- shake: keep (axiom audit)
 
 set_option linter.privateModule false
 
