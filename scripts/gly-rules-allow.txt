@@ -68,3 +68,11 @@ F-3 AvailableChain.KitFG.finalizedOccurrence_preceq_of_crossing
 F-3 AvailableChain.KitFG.Window.window_exists_crossing_quorum_ne_justified
 F-3 AvailableChain.KitFG.Window.window_exists_honest_timeout_of_crossing
 F-3 AvailableChain.KitFG.Window.store_window_pair_iff
+
+# P0d7a2 generic root-uniqueness premise (lead ruling 2026-10-12; FG-SA wrapper discharges it from viewRootInj_TF)
+F-3 AvailableChain.FGCompose.ff2_no_high_contest
+
+# P0d7a3 generic root-uniqueness premise (lead ruling 2026-10-12; FG-SA wrapper discharges it from viewRootInj_TF)
+F-3 AvailableChain.FGCompose.kmid_rows_above_entry
+F-3 AvailableChain.FGCompose.kmid_batchPrem
+F-3 AvailableChain.FGCompose.kernel_opening_and_middle

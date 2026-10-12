@@ -959,6 +959,74 @@ COMPOSE_MODULES += (
     "AvailableChainFGCompose.Statements.DependencyTrace",
     "AvailableChainFGCompose.Proofs.Dependency",
 )
+# P0d2: exact row permission homes and wrapper imports.
+COMPOSE_MODULES += (COMPOSE + ".Statements.RowPermission", COMPOSE + ".Proofs.RowPermission")
+COMPOSE_PROOF_IMPORTS |= frozenset({
+    (COMPOSE + ".Proofs.RowPermission", KITFG + ".ClientOnceSafety"),
+})
+COMPOSE_EDGES |= frozenset({
+    (PROOFS + ".Proofs.Foundations.RowPermission", COMPOSE + ".Proofs.RowPermission"),
+})
+
+# P0d7a2: high-record consumers and the frozen wrapper.
+COMPOSE_MODULES += (
+    'AvailableChainFGCompose.Statements.FinalityRecords',
+    'AvailableChainFGCompose.Proofs.Finality.RecordInv',
+)
+COMPOSE_SAFETY_IMPORTS |= frozenset({
+    ('AvailableChainFGCompose.Statements.FinalityRecords',
+     'AvailableChainKitFG.ProvenanceCoreDef'),
+})
+COMPOSE_PROOF_IMPORTS |= frozenset({
+    ('AvailableChainFGCompose.Proofs.Finality.RecordInv',
+     'AvailableChainKitFG.ProvenanceCore'),
+    ('AvailableChainFGCompose.Proofs.Finality.RecordInv',
+     'AvailableChainKitFG.StoreSafetyDef'),
+    ('AvailableChainFGCompose.Proofs.Finality.RecordInv',
+     'AvailableChainGeneric.Proofs.V2.Duty.Fields'),
+})
+COMPOSE_EDGES |= frozenset({
+    (PROOFS + ".Proofs.Finality.RecordInv", COMPOSE + ".Proofs.Finality.RecordInv"),
+})
+
+
+# P0d7a3 middle support and construction.
+COMPOSE_MODULES += (
+    'AvailableChainFGCompose.Statements.FinalityKernel',
+    'AvailableChainFGCompose.Proofs.Finality.MiddleSupport',
+    'AvailableChainFGCompose.Proofs.Finality.Middle',
+)
+COMPOSE_SAFETY_IMPORTS |= frozenset({
+    ('AvailableChainFGCompose.Statements.FinalityKernel',
+     'AvailableChainKitFG.WindowEntriesDef'),
+})
+COMPOSE_EDGES |= frozenset({
+    ('AvailableChainFGCompose.Statements.FinalityKernel',
+     'AvailableChainFGCompose.Statements.Promotion'),
+    ('AvailableChainFGCompose.Statements.FinalityKernel',
+     'AvailableChainFGCompose.Statements.Finality'),
+    ('AvailableChainFGCompose.Statements.FinalityKernel',
+     'AvailableChainFGCompose.Statements.FinalityRecords'),
+    ('AvailableChainFGCompose.Proofs.Finality.MiddleSupport',
+     'AvailableChainFGCompose.Statements.FinalityKernel'),
+    ('AvailableChainFGCompose.Proofs.Finality.MiddleSupport',
+     'AvailableChainFGCompose.Proofs.Finality.History'),
+    ('AvailableChainFGCompose.Proofs.Finality.MiddleSupport',
+     'AvailableChainFGCompose.Proofs.Finality.RecordInv'),
+    ('AvailableChainFGCompose.Proofs.Finality.MiddleSupport',
+     'AvailableChainFGCompose.Proofs.Timing'),
+    ('AvailableChainFGCompose.Proofs.Finality.MiddleSupport',
+     'AvailableChainFGCompose.Proofs.Healing.ResetCut'),
+    ('AvailableChainFGCompose.Proofs.Finality.Middle',
+     'AvailableChainFGCompose.Proofs.Finality.MiddleSupport'),
+    ('AvailableChainFGCompose.Tests.P0d7a3',
+     'AvailableChainFGCompose.Proofs.Finality.Middle'),
+    ('AvailableChainFGSAProofs.Proofs.Finality.MiddleSupport',
+     'AvailableChainFGCompose.Proofs.Finality.MiddleSupport'),
+    ('AvailableChainFGSAProofs.Proofs.Finality.Middle',
+     'AvailableChainFGCompose.Proofs.Finality.Middle'),
+})
+
 
 def compose_base(dep: str) -> bool:
     return (foundation(dep) or under(dep, "AvailableChainModel.Objects")

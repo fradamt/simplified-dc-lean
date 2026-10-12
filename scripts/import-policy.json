@@ -135,7 +135,12 @@
       "AvailableChainFGCompose.Statements.FinalityHistory",
       "AvailableChainFGCompose.Proofs.Finality.History",
       "AvailableChainFGCompose.Proofs.Healing.ResetCut",
-      "AvailableChainFGCompose.Statements.ResetCut"
+      "AvailableChainFGCompose.Statements.ResetCut",
+      "AvailableChainFGCompose.Statements.FinalityKernel",
+      "AvailableChainFGCompose.Proofs.Finality.MiddleSupport",
+      "AvailableChainFGCompose.Proofs.Finality.Middle",
+      "AvailableChainFGCompose.Statements.FinalityRecords",
+      "AvailableChainFGCompose.Proofs.Finality.RecordInv"
     ]
   },
   "profiles": {
