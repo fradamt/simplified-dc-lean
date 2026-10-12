@@ -57,6 +57,7 @@ inductive FGDependencyOperation (Body Origin Wire : Type) where
   | ownRecord (wire : Wire)
   | clock (t : Time)
   | restore (t : Time)
+  | reconstruct (t : Time)
   | idle
 
 def dependencyOperationKind {Origin Wire : Type} :
@@ -71,6 +72,7 @@ def dependencyOperationKind {Origin Wire : Type} :
   | .ownRecord _ => .ownRecord
   | .clock _ => .clock
   | .restore _ => .restore
+  | .reconstruct _ => .ordinary
   | .idle => .ordinary
 
 /-- Reads are commands in the executable handler, not a separate selectable read list. -/
@@ -108,6 +110,7 @@ structure FGDependencyDriver (V Body : Type) (P : V2.ProtocolSpecD In) where
   hookProgram : P.State → FGDependencyOperation Body (FGReceiptToken V P.Object) P.Object →
     FGDependencyProgram P.State
   drain : P.State → P.State
+  reconstruct : P.State → Time → P.State
   retry : P.State → Body → FGReceiptToken V P.Object → FGDependencyOutcome → P.State
   work : P.State → V2.Event V P.Object →
     List (FGDependencyCommand Body (FGReceiptToken V P.Object) P.Object)
@@ -182,10 +185,17 @@ def dependencyStateBefore (E : Generic.Env V) (rho : V2.D.Run V P)
   ((rho.events.take j).zipIdx).foldl
     (fun st pair => dependencyEventStep E rho F x pair.2 st pair.1) P.init
 
+def dependencyDrainInput (F : FGDependencyDriver V Body P)
+    (x : V) (st : P.State) (e : V2.Event V P.Object) : P.State :=
+  match e with
+  | .restart y t => if y = x then F.reconstruct st t else st
+  | _ => st
+
 def dependencyDutyState (E : Generic.Env V) (rho : V2.D.Run V P)
     (F : FGDependencyDriver V Body P) (x : V) (j : Nat) (e : V2.Event V P.Object) :
     P.State :=
-  F.drain (dependencyEventEntry rho F x j (dependencyStateBefore E rho F x j) e)
+  let entry := dependencyEventEntry rho F x j (dependencyStateBefore E rho F x j) e
+  F.drain (dependencyDrainInput F x entry e)
 
 def dependencyEmits (E : Generic.Env V) (rho : V2.D.Run V P)
     (F : FGDependencyDriver V Body P) (x : V) (wire : P.Object) (t : Time) : Prop :=
@@ -293,6 +303,9 @@ structure FGDependencyTraceLaws (E : Generic.Env V) (rho : V2.D.Run V P)
     | .ownRecord wire => T.state (k + 1) = P.recordOwn (T.state k) wire
     | .clock t => T.state (k + 1) = P.clock (T.state k) t
     | .restore t => T.state (k + 1) = P.restore (P.durable (T.state k)) t
+    | .reconstruct t =>
+        T.state (k + 1) = F.reconstruct (T.state k) t ∧
+        ∃ j, rho.events[j]? = some (.restart x t) ∧ k = T.entryCut j
     | .idle => T.state (k + 1) = T.state k
   delivery_entry : ∀ j wire t, rho.events[j]? = some (.deliver x wire t) →
     let o : FGReceiptToken V P.Object := ⟨x, j, wire, t, dependencyReceiverEpoch rho x j⟩
@@ -334,7 +347,8 @@ structure FGDependencyTraceLaws (E : Generic.Env V) (rho : V2.D.Run V P)
     T.dutyCut j ≤ T.done j ∧
     T.state (T.entryCut j) =
       dependencyEventEntry rho F x j (T.state (T.start j)) e ∧
-    T.state (T.dutyCut j) = F.drain (T.state (T.entryCut j))
+    T.state (T.dutyCut j) =
+      F.drain (dependencyDrainInput F x (T.state (T.entryCut j)) e)
   drain_operations : ∀ j e k, rho.events[j]? = some e →
     T.entryCut j ≤ k → k < T.done j →
     (∃ b o result, Op k = .leaf b o result) ∨
@@ -343,7 +357,8 @@ structure FGDependencyTraceLaws (E : Generic.Env V) (rho : V2.D.Run V P)
     (∃ b o, Op k = .replay b o) ∨
     (∃ wire t, e = .tick x t ∧ T.dutyCut j ≤ k ∧ Op k = .ownRecord wire ∧
       wire ∈ dependencyReleased E rho (T.state (T.dutyCut j)) x t ∧
-      P.objSelfVisible wire = true) ∨ Op k = .idle
+      P.objSelfVisible wire = true) ∨ Op k = .idle ∨
+    (∃ t, e = .restart x t ∧ k = T.entryCut j ∧ Op k = .reconstruct t)
   boundary_idle : ∀ k, k < T.length →
     (¬ ∃ j e, rho.events[j]? = some e ∧ T.start j ≤ k ∧ k < T.done j) →
     Op k = .idle
@@ -356,6 +371,29 @@ structure FGDependencyTraceLaws (E : Generic.Env V) (rho : V2.D.Run V P)
     (∀ b r pr, D.refused (P.restore (P.durable st) t) b r pr ↔ D.refused st b r pr) ∧
     (∀ b o, D.pending (P.restore (P.durable st) t) b o ↔ D.pending st b o) ∧
     (∀ b o, D.originAvailable (P.restore (P.durable st) t) b o ↔ D.originAvailable st b o)
+  reconstruct_program : ∀ st t,
+    F.hookProgram st (.reconstruct t) = .finish (F.reconstruct st t)
+  reconstruct_data : ∀ st t,
+    let z := F.reconstruct st t
+    H.acceptedBlocks z = H.acceptedBlocks st ∧
+    H.acceptedBodies z = H.acceptedBodies st ∧
+    (∀ b, D.accepted z b ↔ D.accepted st b) ∧
+    (∀ b r pr, D.refused z b r pr ↔ D.refused st b r pr) ∧
+    (∀ b o, D.pending z b o ↔ D.pending st b o) ∧
+    (∀ b o, D.originAvailable z b o ↔ D.originAvailable st b o) ∧
+    (∀ b, D.notified z b ↔ D.notified st b) ∧
+    (∀ b o, ¬ L.callback st b o z) ∧
+    (∀ b o, ¬ L.report st b o z)
+  restart_reconstruct : ∀ j t,
+    rho.events[j]? = some (.restart x t) →
+    T.entryCut j < T.dutyCut j ∧ Op (T.entryCut j) = .reconstruct t
+  restart_drain_closed : ∀ j t,
+    rho.events[j]? = some (.restart x t) →
+    dependencyClosed H D (T.state (T.dutyCut j))
+  restart_replay_order : ∀ j t k b o,
+    rho.events[j]? = some (.restart x t) →
+    T.entryCut j ≤ k → k < T.done j → Op k = .replay b o →
+    T.dutyCut j ≤ k
   clock_no_insert : ∀ st t,
     H.acceptedBlocks (P.clock st t) = H.acceptedBlocks st ∧
     H.acceptedBodies (P.clock st t) = H.acceptedBodies st

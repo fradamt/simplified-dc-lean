@@ -113,6 +113,19 @@ variable (traceLaws : FGDependencyTraceLaws E rho x H W D L Step T
 variable {restore : P.State → Time → P.State} {signs : P.State → P.State → Prop}
 variable (stepLaws : FGDependencyStepLaws H D L Step restore signs)
 
+include traceLaws stepLaws in
+/-- Reconstruction is an ordinary metadata step and emits no signing duty. -/
+theorem dependency_reconstruct_metadata {k t} (bound : k < T.length)
+    (operation : Op k = .reconstruct t) :
+    Step .ordinary x (T.state k) (T.state (k + 1)) ∧
+    H.acceptedBlocks (T.state (k + 1)) = H.acceptedBlocks (T.state k) ∧
+    ¬ signs (T.state k) (T.state (k + 1)) := by
+  have step := traceLaws.step_kind k bound
+  rw [operation] at step
+  change Step .ordinary x (T.state k) (T.state (k + 1)) at step
+  exact ⟨step, stepLaws.metadata_fg_eq _ _ _ _ step (by decide) (by decide),
+    stepLaws.no_signing _ _ _ _ step⟩
+
 theorem dependency_origin_same_receiver {b o} (origin : FGReceiptOrigin E rho H W x b o) :
     o.receiver = x ∧ rho.events[o.eventIndex]? = some (.deliver x o.wire o.receiptTime) :=
   ⟨origin.receiver_eq, origin.delivered⟩
