@@ -48,7 +48,8 @@ theorem kmid_kappa_cover (T : FGTiming) (L : FGTimingLaws T)
   have hn : 0 ≤ 6 * T.delta + ΔF + 4 * T.delta - 1 := by
     have hd1 : (1 : Time) ≤ T.delta := L.delta_pos
     linarith
-  rw [kappaF, Int.toNat_of_nonneg (Int.ediv_nonneg hn hd.le)]
+  delta kappaF
+  rw [Int.toNat_of_nonneg (Int.ediv_nonneg hn hd.le)]
   have hhi := Int.lt_ediv_add_one_mul_self (6 * T.delta + ΔF + 4 * T.delta - 1) hd
   nlinarith
 
@@ -312,7 +313,8 @@ theorem kmid_matching_height {u : Row (Fin n)} {a : Wire} {y : Nat} {root : Bloc
 theorem kmid_honest_seat (u : Row (Fin n))
     (hf : u.signer ∉ historyFaulty S rho) : safetyHolder S rho u.signer ∈ rho.honest := by
   classical
-  simpa only [historyFaulty, Finset.mem_filter, Finset.mem_univ, true_and,
+  delta historyFaulty at hf
+  simpa only [Finset.mem_filter, Finset.mem_univ, true_and,
     not_not] using hf
 
 omit [DecidableEq V] in
@@ -560,7 +562,8 @@ theorem kmid_faulty_weight [Fintype V]
   have hc : (historyFaulty S rho).card ≤ (Gen.V2.Duty.faulty rho).card :=
     (Finset.card_image_of_injective _ linked).symm.trans_le (Finset.card_le_card hsub)
   have hw : Ef.weightOf (historyFaulty S rho) = (historyFaulty S rho).card := by
-    simp only [Electorate.weightOf, unit, Finset.sum_const, smul_eq_mul, mul_one]
+    delta Electorate.weightOf
+    simp only [unit, Finset.sum_const, smul_eq_mul, mul_one]
   rw [hw]
   exact hc.trans_lt fault
 
@@ -669,13 +672,15 @@ theorem kmid_batchPrem {Body : Type} (cfg : FGConfig) (K : Nat)
   refine ⟨hs, hweight, deltaF, receipt, horizon, carrier, after, ?_, entry, path, ?_⟩
   · refine ⟨Finset.univ \ historyFaulty S rho, ?_, quorum, ?_⟩
     · intro i hi
-      have hn := (Finset.mem_sdiff.mp hi).2
-      simpa only [historyFaulty, Finset.mem_filter, Finset.mem_univ, true_and,
+      have hn : i ∉ historyFaulty S rho := (Finset.mem_sdiff.mp hi).2
+      delta historyFaulty at hn
+      simpa only [Finset.mem_filter, Finset.mem_univ, true_and,
         not_not] using hn
     · intro i hi
       have honest : safetyHolder S rho i ∈ rho.honest := by
-        have hn := (Finset.mem_sdiff.mp hi).2
-        simpa only [historyFaulty, Finset.mem_filter, Finset.mem_univ, true_and,
+        have hn : i ∉ historyFaulty S rho := (Finset.mem_sdiff.mp hi).2
+        delta historyFaulty at hn
+        simpa only [Finset.mem_filter, Finset.mem_univ, true_and,
           not_not] using hn
       obtain ⟨j, r, a, hr, ha, hcomp, hnames⟩ := rows _ honest
       obtain ⟨i', hauth, hseat⟩ := hcomp.2
