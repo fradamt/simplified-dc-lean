@@ -1122,3 +1122,9 @@ public import AvailableChainFGCompose.Proofs.Healing.ResetCut -- shake: keep (#p
 #print axioms AvailableChain.FGCompose.rowsPrem_pending_head
 #print axioms AvailableChain.FGCompose.terminalCarriage_W_of_tRowsSelect
 #print axioms AvailableChain.FGCompose.terminalCarriage_general_W
+
+#print axioms AvailableChain.FGCompose.FGDependencyOperation.rebuild
+#print axioms AvailableChain.FGCompose.FGDependencyDriver.rebuild
+#print axioms AvailableChain.FGCompose.FGDependencyTraceLaws.rebuild_program
+#print axioms AvailableChain.FGCompose.FGDependencyTraceLaws.rebuild_data
+#print axioms AvailableChain.FGCompose.FGDependencyTraceLaws.restart_rebuild

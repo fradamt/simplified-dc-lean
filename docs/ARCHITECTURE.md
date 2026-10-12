@@ -810,6 +810,11 @@ The step keeps body, refusal, pending, notification, and original-receipt observ
 The drain closes before body replay. P1 supplies the trace and step laws; P2d supplies
 saved M and the missed freezes, including the `lastCompleted` equal-cut rule.
 
+P0c3b (A11) adds one read-free `rebuild` step per local restart, also with no replays.
+It runs after the post-drain replays and before the final drain, at the wake time, and
+keeps the same five observations as reconstruction. P1 c1 appends it to `runEvent`;
+PC2RestartBinding binds it to the cumulative scan and normalization.
+
 ```text
 ┌────┬──────────────────────────────────────┬──────────────────────────┐
 │ M  │ Content                              │ Status 2026-09-30        │

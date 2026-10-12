@@ -1327,4 +1327,9 @@
     'AvailableChain.FGCompose.rowsPrem_pending_head',
     'AvailableChain.FGCompose.terminalCarriage_W_of_tRowsSelect',
     'AvailableChain.FGCompose.terminalCarriage_general_W',
+    'AvailableChain.FGCompose.FGDependencyDriver.rebuild',
+    'AvailableChain.FGCompose.FGDependencyOperation.rebuild',
+    'AvailableChain.FGCompose.FGDependencyTraceLaws.rebuild_data',
+    'AvailableChain.FGCompose.FGDependencyTraceLaws.rebuild_program',
+    'AvailableChain.FGCompose.FGDependencyTraceLaws.restart_rebuild',
 )
