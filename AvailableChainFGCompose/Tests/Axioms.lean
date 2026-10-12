@@ -2,6 +2,11 @@ module
 public import AvailableChainFGCompose.Statements.FrontierSearch -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchBudget -- shake: keep (audit)
 public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchStop -- shake: keep (audit)
+public import AvailableChainFGCompose.Statements.FrontierMaturity -- shake: keep (audit)
+public import AvailableChainFGCompose.Proofs.Healing.PromotionSource -- shake: keep (audit)
+public import AvailableChainFGCompose.Proofs.Healing.PromotionAge -- shake: keep (audit)
+public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchAge -- shake: keep (audit)
+public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchHG2a -- shake: keep (audit)
 public import AvailableChainFGCompose.Proofs.Healing.Attempt -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Proofs.Healing.AttemptRows -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Proofs.Healing.AttemptSettle -- shake: keep (#print axioms)
@@ -1053,3 +1058,41 @@ public import AvailableChainFGCompose.Proofs.Healing.ResetCut -- shake: keep (#p
 #print axioms AvailableChain.FGCompose.kernel_middle_source_cap
 #print axioms AvailableChain.FGCompose.kernel_opening_and_middle
 #print axioms AvailableChain.FGCompose.middle_reset_opening_height
+
+#print axioms AvailableChain.FGCompose.PromotionSourceAt
+#print axioms AvailableChain.FGCompose.PromotionSourceAt.age
+#print axioms AvailableChain.FGCompose.PromotionSourceAt.carrier
+#print axioms AvailableChain.FGCompose.PromotionSourceAt.entry
+#print axioms AvailableChain.FGCompose.PromotionSourceAt.horizon
+#print axioms AvailableChain.FGCompose.PromotionSourceAt.mk
+#print axioms AvailableChain.FGCompose.PromotionSourceAt.parentPath
+#print axioms AvailableChain.FGCompose.PromotionSourceAt.proposal
+#print axioms AvailableChain.FGCompose.PromotionSourceAt.rows
+#print axioms AvailableChain.FGCompose.PromotionSourceAt.slot
+#print axioms AvailableChain.FGCompose.PromotionSourceAt.sync
+#print axioms AvailableChain.FGCompose.FrontierHG2aResult
+#print axioms AvailableChain.FGCompose.FrontierHG2aResult_def
+#print axioms AvailableChain.FGCompose.PromotionSlotProposal
+#print axioms AvailableChain.FGCompose.PromotionSlotProposal_def
+#print axioms AvailableChain.FGCompose.PromotionProposalRead
+#print axioms AvailableChain.FGCompose.PromotionProposalRead_def
+#print axioms AvailableChain.FGCompose.PromotionRowOrder
+#print axioms AvailableChain.FGCompose.PromotionRowOrder_def
+#print axioms AvailableChain.FGCompose.PromotionRowSigner
+#print axioms AvailableChain.FGCompose.PromotionRowSigner_def
+#print axioms AvailableChain.FGCompose.PromotionSourceParent
+#print axioms AvailableChain.FGCompose.PromotionSourceParent_def
+#print axioms AvailableChain.FGCompose.PromotionPhaseReceipt
+#print axioms AvailableChain.FGCompose.PromotionPhaseReceipt_def
+#print axioms AvailableChain.FGCompose.PromotionCapReceipt
+#print axioms AvailableChain.FGCompose.PromotionCapReceipt_def
+#print axioms AvailableChain.FGCompose.promotion_age_advance_of_source
+#print axioms AvailableChain.FGCompose.promotion_age_grid
+#print axioms AvailableChain.FGCompose.healing_promotion_age_receipt
+#print axioms AvailableChain.FGCompose.healing_promotion_age_service_tail
+#print axioms AvailableChain.FGCompose.healing_promotion_age_service
+#print axioms AvailableChain.FGCompose.frontierSearch_age_service
+#print axioms AvailableChain.FGCompose.frontierSearch_hg2a_bound
+#print axioms AvailableChain.FGCompose.frontierSearch_hg2a_gate_cost
+#print axioms AvailableChain.FGCompose.frontierSearch_hg2a_gap
+#print axioms AvailableChain.FGCompose.frontier_hg2a_receipt

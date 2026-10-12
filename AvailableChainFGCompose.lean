@@ -63,6 +63,11 @@ public import AvailableChainFGCompose.Proofs.Finality.History
 public import AvailableChainFGCompose.Statements.FrontierSearch
 public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchBudget
 public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchStop
+public import AvailableChainFGCompose.Statements.FrontierMaturity
+public import AvailableChainFGCompose.Proofs.Healing.PromotionSource
+public import AvailableChainFGCompose.Proofs.Healing.PromotionAge
+public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchAge
+public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchHG2a
 public import AvailableChainFGCompose.Statements.FinalityRecords
 public import AvailableChainFGCompose.Proofs.Finality.RecordInv
 
