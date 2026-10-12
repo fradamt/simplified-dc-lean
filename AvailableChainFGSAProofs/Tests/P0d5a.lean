@@ -1,7 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchDefs
 public import AvailableChainFGCompose.Statements.FrontierSearch
-public import AvailableChainFGSAProofs.Proofs.Shared.CatchUp
 public import AvailableChainFGSAProofs.Proofs.Shared.HonestQuorum
 public import AvailableChainFGSAProofs.Proofs.Finality.Height
 
