@@ -58,7 +58,7 @@ set -euo pipefail
 export LC_ALL=C
 cd "$(dirname "$0")/.."
 source scripts/gate-common.sh
-ETH=/Users/francesco/ethereum
+ETH=${ETH:-$HOME/ethereum}
 REG=${FGREG:-docs/FG-COMPOSITION.md}
 # The allowlist of hist pins, one per line: <id> <date YYYY-MM-DD> <reason>.
 HIST='
