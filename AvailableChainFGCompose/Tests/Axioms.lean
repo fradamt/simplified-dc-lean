@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGCompose.Proofs.Finality.RecordInv -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Proofs.Finality.History -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Proofs.ObservationTransport -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Proofs.Timing -- shake: keep (#print axioms)
@@ -455,3 +456,30 @@ public import AvailableChainFGCompose.Proofs.RowPermission -- shake: keep (#prin
 #print axioms AvailableChain.FGCompose.p0d2_pair_of_lock
 #print axioms AvailableChain.FGCompose.rowPermission_covered
 #print axioms AvailableChain.FGCompose.rowPermission_pair
+
+#print axioms AvailableChain.FGCompose.highRecordEntry
+#print axioms AvailableChain.FGCompose.HighRecordInvariant
+#print axioms AvailableChain.FGCompose.HighRecordFresh
+#print axioms AvailableChain.FGCompose.HighRecordGuard_W
+#print axioms AvailableChain.FGCompose.HighRecordNames
+#print axioms AvailableChain.FGCompose.HighRecordEmission
+#print axioms AvailableChain.FGCompose.HighRecordOwnOrigin
+#print axioms AvailableChain.FGCompose.HighRecordOwnOrigin_def
+#print axioms AvailableChain.FGCompose.HighRecordHead
+#print axioms AvailableChain.FGCompose.high_source_entry_eq
+#print axioms AvailableChain.FGCompose.high_record_target_choice
+#print axioms AvailableChain.FGCompose.high_entry_record_invariant
+#print axioms AvailableChain.FGCompose.high_record_fresh_at_cut
+#print axioms AvailableChain.FGCompose.high_record_reset_fresh
+#print axioms AvailableChain.FGCompose.high_record_guards_and_fresh
+#print axioms AvailableChain.FGCompose.high_action_target_choice
+#print axioms AvailableChain.FGCompose.high_record_guards_and_fresh_at_action
+#print axioms AvailableChain.FGCompose.ff2_stored_high_qc_identity
+#print axioms AvailableChain.FGCompose.ff2_high_qc_identity
+#print axioms AvailableChain.FGCompose.ff2_no_high_contest
+#print axioms AvailableChain.FGCompose.HighRecordGuard_W_def
+#print axioms AvailableChain.FGCompose.ff2_high_record_guards
+#print axioms AvailableChain.FGCompose.high_target_row_covered
+#print axioms AvailableChain.FGCompose.high_target_first_row
+#print axioms AvailableChain.FGCompose.high_target_honest_quorum
+#print axioms AvailableChain.FGCompose.high_target_quorum_covered

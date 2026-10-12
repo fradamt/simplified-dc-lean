@@ -830,6 +830,27 @@ COMPOSE_EDGES |= frozenset({
     (PROOFS + ".Proofs.Foundations.RowPermission", COMPOSE + ".Proofs.RowPermission"),
 })
 
+# P0d7a2: high-record consumers and the frozen wrapper.
+COMPOSE_MODULES += (
+    'AvailableChainFGCompose.Statements.FinalityRecords',
+    'AvailableChainFGCompose.Proofs.Finality.RecordInv',
+)
+COMPOSE_SAFETY_IMPORTS |= frozenset({
+    ('AvailableChainFGCompose.Statements.FinalityRecords',
+     'AvailableChainKitFG.ProvenanceCoreDef'),
+})
+COMPOSE_PROOF_IMPORTS |= frozenset({
+    ('AvailableChainFGCompose.Proofs.Finality.RecordInv',
+     'AvailableChainKitFG.ProvenanceCore'),
+    ('AvailableChainFGCompose.Proofs.Finality.RecordInv',
+     'AvailableChainKitFG.StoreSafetyDef'),
+    ('AvailableChainFGCompose.Proofs.Finality.RecordInv',
+     'AvailableChainGeneric.Proofs.V2.Duty.Fields'),
+})
+COMPOSE_EDGES |= frozenset({
+    (PROOFS + ".Proofs.Finality.RecordInv", COMPOSE + ".Proofs.Finality.RecordInv"),
+})
+
 
 def compose_base(dep: str) -> bool:
     return (foundation(dep) or under(dep, "AvailableChainModel.Objects")

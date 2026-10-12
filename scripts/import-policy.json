@@ -84,6 +84,8 @@
       "AvailableChainGeneric.Statements.**"
     ],
     "laneUpstream": [
+      "AvailableChainFGCompose.Statements.FinalityRecords",
+      "AvailableChainFGCompose.Proofs.Finality.RecordInv",
       "AvailableChainFGCompose.Statements.FinalityHistory",
       "AvailableChainFGCompose.Proofs.Finality.History",
       "AvailableChainFGCompose.Proofs.Healing.ResetCut",

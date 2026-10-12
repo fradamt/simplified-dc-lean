@@ -126,6 +126,8 @@ def composeImportAllowed (m dep : Name) : Bool :=
       !under `AvailableChainGeneric.Statements.Pure.Walk) ||
     [`AvailableChainSimplexFG.Store, `AvailableChainKitFG.HeightLawsDef].contains dep
   let safety := [(`AvailableChainFGCompose.Statements.SafetyReads, `AvailableChainKitFG.ClientOnce),
+    (`AvailableChainFGCompose.Statements.FinalityRecords,
+     `AvailableChainKitFG.ProvenanceCoreDef),
     (`AvailableChainFGCompose.Statements.FinalityHistory, `AvailableChainKitFG.WindowEntriesDef),
     (`AvailableChainFGCompose.Statements.Observations, `AvailableChainKitFG.TreeFrameDef),
     (`AvailableChainFGCompose.Statements.Observations, `AvailableChainKitFG.CertificateCoreDef),
@@ -138,6 +140,8 @@ def composeImportAllowed (m dep : Name) : Bool :=
   else if m == `AvailableChainFGCompose then
     [`AvailableChainFGCompose.Statements.EventReads, `AvailableChainFGCompose.Statements.CoreReads,
      `AvailableChainFGCompose.Statements.ResetCut,
+     `AvailableChainFGCompose.Statements.FinalityRecords,
+     `AvailableChainFGCompose.Proofs.Finality.RecordInv,
      `AvailableChainFGCompose.Statements.FinalityHistory,
      `AvailableChainFGCompose.Proofs.Finality.History,
      `AvailableChainFGCompose.Proofs.Healing.ResetCut,
@@ -177,6 +181,12 @@ def composeImportAllowed (m dep : Name) : Bool :=
       -- Lead ruling 2026-10-07 (P2, S3a): the two exact SafetyClient pairs.
       [(`AvailableChainFGCompose.Proofs.SafetyAccountable,
         `AvailableChainKitFG.AccountableCore),
+       (`AvailableChainFGCompose.Proofs.Finality.RecordInv,
+        `AvailableChainKitFG.ProvenanceCore),
+       (`AvailableChainFGCompose.Proofs.Finality.RecordInv,
+        `AvailableChainKitFG.StoreSafetyDef),
+       (`AvailableChainFGCompose.Proofs.Finality.RecordInv,
+        `AvailableChainGeneric.Proofs.V2.Duty.Fields),
        (`AvailableChainFGCompose.Proofs.Finality.History, `AvailableChainKitFG.CausalCapCore),
        (`AvailableChainFGCompose.Proofs.Finality.History,
         `AvailableChainKitFG.HeightHistoryTransfer),

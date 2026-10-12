@@ -2,6 +2,36 @@
 # Review changes. Normal checks never regenerate this file.
 {
     'AvailableChainFGCompose.Tests.Axioms': {
+        'AvailableChainFGCompose.Statements.FinalityRecords': (
+            'AvailableChain.FGCompose.HighRecordEmission',
+            'AvailableChain.FGCompose.HighRecordFresh',
+            'AvailableChain.FGCompose.HighRecordGuard_W',
+            'AvailableChain.FGCompose.HighRecordHead',
+            'AvailableChain.FGCompose.HighRecordInvariant',
+            'AvailableChain.FGCompose.HighRecordNames',
+            'AvailableChain.FGCompose.HighRecordOwnOrigin',
+            'AvailableChain.FGCompose.highRecordEntry',
+        ),
+        'AvailableChainFGCompose.Proofs.Finality.RecordInv': (
+            'AvailableChain.FGCompose.HighRecordGuard_W_def',
+            'AvailableChain.FGCompose.HighRecordOwnOrigin_def',
+            'AvailableChain.FGCompose.ff2_high_qc_identity',
+            'AvailableChain.FGCompose.ff2_high_record_guards',
+            'AvailableChain.FGCompose.ff2_no_high_contest',
+            'AvailableChain.FGCompose.ff2_stored_high_qc_identity',
+            'AvailableChain.FGCompose.high_action_target_choice',
+            'AvailableChain.FGCompose.high_entry_record_invariant',
+            'AvailableChain.FGCompose.high_record_fresh_at_cut',
+            'AvailableChain.FGCompose.high_record_guards_and_fresh',
+            'AvailableChain.FGCompose.high_record_guards_and_fresh_at_action',
+            'AvailableChain.FGCompose.high_record_reset_fresh',
+            'AvailableChain.FGCompose.high_record_target_choice',
+            'AvailableChain.FGCompose.high_source_entry_eq',
+            'AvailableChain.FGCompose.high_target_first_row',
+            'AvailableChain.FGCompose.high_target_honest_quorum',
+            'AvailableChain.FGCompose.high_target_quorum_covered',
+            'AvailableChain.FGCompose.high_target_row_covered',
+        ),
         'AvailableChainFGCompose.Proofs.Finality.History': (
             'AvailableChain.FGCompose.justifyFresh_W',
             'AvailableChain.FGCompose.noMixedPreBatchParent',
