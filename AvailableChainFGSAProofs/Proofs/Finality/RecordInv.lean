@@ -2,7 +2,6 @@ module
 public import AvailableChainFGSAClaims.Statements.Fold
 public import AvailableChainFGSARun.Proofs.ClientTrace
 public import AvailableChainFGSARun.Proofs.Schedule
-public import AvailableChainKitFG.ProvenanceCore
 public import AvailableChainFGSA.Proofs.EmissionFields
 public import AvailableChainFGSAClaims.Statements.ComposeStmt
 public import AvailableChainFGCompose.Proofs.Finality.RecordInv
