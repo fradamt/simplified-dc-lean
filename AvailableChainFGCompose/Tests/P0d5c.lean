@@ -1,7 +1,7 @@
 module
 public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchGap
 public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchTail
-public import AvailableChainFGCompose.Proofs.Finality.History
+public import AvailableChainFGCompose.Proofs.Finality.History -- shake: keep (window views)
 
 set_option linter.privateModule false
 
