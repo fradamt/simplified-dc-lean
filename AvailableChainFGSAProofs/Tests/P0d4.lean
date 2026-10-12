@@ -309,5 +309,220 @@ private theorem p0d4AuditValidBack (E : Generic.Env V) (rho : V2.D.Run V (fgsa p
 #print axioms AvailableChain.FGSA.Run.healing_attempt_raise_other
 #print axioms AvailableChain.FGSA.Run.healing_progressAttempt_of
 #print axioms AvailableChain.FGSA.Run.healing_progressAttempt
+-- Actual FG-SA producer route. Each row wrapper constructs the certificate, store,
+-- settlement, repair, opening, receipt, and promotion inputs of its extracted consumer.
+-- These tests retain the original recovery premises and require an actual valid start.
+section ProducerApplications
+variable [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF)
+    (mono : RMonoAll p c E rho)
+    (crossing : RXing p c E rho)
+    (qc : RQCOrigin p c E rho)
+    (repairScopes : RepairServiceScopes E rho)
+    (openingScopes : OpeningServiceScopes E rho)
+    (writes : ∀ i x (row : Block × Nat × Time),
+      row ∈ (storeAt p c E rho i x).base.obligations →
+      ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
+        gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
+          (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
+        row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
+        row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
+        ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
+          let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          joinedNow p pre = true →
+          GridCO.savedGenuine pre.base w = none →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
+            (actView pre) w C)
+    (rowCoverage : ∀ x, x ∈ rho.honest → ∀ r nd,
+      postClock E rho x (p.actionTime r) = some nd → ∀ C,
+      actionSourceFG p c E rho x r = some (some C) →
+      C ∈ FGSA.fullTree p nd.st →
+      (FGSA.controls p nd.st).lo ≤ (heightView p C).h →
+      E.awake x (p.actionTime r) = true →
+      ∃ j rSent a, rSent ≤ r ∧ HonestRowAt p c E rho j x rSent a ∧
+        namedEntry a.payload.height_pair =
+          some ((heightView p C).h, (heightView p C).T_h.root))
+
+variable
+    (hδ : p.δt = 2 * p.R) (hbound : LivenessBoundW p ΔF)
+    (rowsReceipt : ∀ j y r (a : RowWire p.n), HonestRowAt p c E rho j y r a →
+      max (p.actionTime r) E.t_GST + ΔF ≤ rho.horizon →
+      ∀ x ∈ rho.honest, HeldBefore p c E rho x a (max (p.actionTime r) E.t_GST + ΔF))
+    (progressCoverage : ∀ (r height : Nat) (U X : FGBlock (Fin p.n)),
+      BatchPrem p c E rho ΔF .progress r height U X →
+      (heightView p X.parent).h = height → CoveredByChild p .progress X U height)
+    (hfold : foldTrichotomy p .progress)
+    (faultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
+    (honestQuorum : p.E.q ≤ p.E.weightOf (honestSeats p c rho))
+
+include hrec mono crossing qc repairScopes openingScopes writes rowCoverage
+  hδ hbound rowsReceipt progressCoverage hfold faultQ honestQuorum
+
+private theorem p0d4AuditRaiseContest
+    (k : FGCompose.AttemptKey) (ev : V2.Event V (Obj p))
+    (hv : FGCompose.AttemptValid (p0d4AuditCore p c) (p0d4AuditSafety p c) E rho
+      (p0d4AuditObs p c) (p0d4AuditTiming p) (fgsaInterface p c) (p0d4AuditGate p c)
+      (fun a => a.payload.height_pair) (recoveryStart p E) k)
+    (hs : rho.events[k.start]? = some ev)
+    (hh : ev.time + FGCompose.attemptBudget (p0d4AuditTiming p) G (ρΓ p G) k ≤ rho.horizon)
+    (ht : k.task = .raise) (hp : k.phase = .contest) :
+    FGCompose.AttemptEndsBy (p0d4AuditCore p c) (p0d4AuditSafety p c) E rho
+      (p0d4AuditObs p c) (p0d4AuditTiming p) (fun a => a.payload.height_pair) k
+      (FGCompose.attemptBudget (p0d4AuditTiming p) G (ρΓ p G) k) := by
+  let ko := p0d4AuditOldKey k
+  have hk := p0d4AuditKeyBack k
+  have hb := p0d4AuditBudget (p := p) G ko
+  change p0d4AuditKey ko = k at hk
+  rw [hk] at hb
+  have htask : ko.task = .raise := by
+    change p0d4AuditOldTask k.task = .raise
+    rw [ht]; rfl
+  have hphase : ko.phase = .contest := by
+    change p0d4AuditOldKind k.phase = .contest
+    rw [hp]; rfl
+  have result := healing_attempt_raise_contest E rho hrec mono crossing qc repairScopes
+    openingScopes writes rowCoverage
+    hδ hbound rowsReceipt progressCoverage hfold faultQ honestQuorum
+    (p0d4AuditValidBack E rho hv) hs (by rwa [← hb]) htask hphase
+  have he : AttemptEndsBy p c E rho ko
+      (FGCompose.attemptBudget (p0d4AuditTiming p) G (ρΓ p G) k) := by
+    rw [hb]
+    exact result
+  have h := (p0d4AuditEnds E rho).mpr he
+  rwa [hk] at h
+
+private theorem p0d4AuditRaiseOther
+    (k : FGCompose.AttemptKey) (ev : V2.Event V (Obj p))
+    (hv : FGCompose.AttemptValid (p0d4AuditCore p c) (p0d4AuditSafety p c) E rho
+      (p0d4AuditObs p c) (p0d4AuditTiming p) (fgsaInterface p c) (p0d4AuditGate p c)
+      (fun a => a.payload.height_pair) (recoveryStart p E) k)
+    (hs : rho.events[k.start]? = some ev)
+    (hh : ev.time + FGCompose.attemptBudget (p0d4AuditTiming p) G (ρΓ p G) k ≤ rho.horizon)
+    (ht : k.task = .raise) (hp : k.phase ≠ .contest) :
+    FGCompose.AttemptEndsBy (p0d4AuditCore p c) (p0d4AuditSafety p c) E rho
+      (p0d4AuditObs p c) (p0d4AuditTiming p) (fun a => a.payload.height_pair) k
+      (FGCompose.attemptBudget (p0d4AuditTiming p) G (ρΓ p G) k) := by
+  let ko := p0d4AuditOldKey k
+  have hk := p0d4AuditKeyBack k
+  have hb := p0d4AuditBudget (p := p) G ko
+  change p0d4AuditKey ko = k at hk
+  rw [hk] at hb
+  have htask : ko.task = .raise := by
+    change p0d4AuditOldTask k.task = .raise
+    rw [ht]; rfl
+  have hphase : ko.phase ≠ .contest := by
+    change p0d4AuditOldKind k.phase ≠ .contest
+    cases hkind : k.phase <;> first | exact (hp hkind).elim | intro h; cases h
+  have result := healing_attempt_raise_other E rho hrec mono crossing qc repairScopes
+    openingScopes writes rowCoverage
+    hδ hbound rowsReceipt progressCoverage hfold faultQ honestQuorum
+    (p0d4AuditValidBack E rho hv) hs (by rwa [← hb]) htask hphase
+  have he : AttemptEndsBy p c E rho ko
+      (FGCompose.attemptBudget (p0d4AuditTiming p) G (ρΓ p G) k) := by
+    rw [hb]
+    exact result
+  have h := (p0d4AuditEnds E rho).mpr he
+  rwa [hk] at h
+
+omit hδ hbound rowsReceipt progressCoverage hfold faultQ honestQuorum in
+private theorem p0d4AuditFirstContest
+    (k : FGCompose.AttemptKey) (ev : V2.Event V (Obj p))
+    (hv : FGCompose.AttemptValid (p0d4AuditCore p c) (p0d4AuditSafety p c) E rho
+      (p0d4AuditObs p c) (p0d4AuditTiming p) (fgsaInterface p c) (p0d4AuditGate p c)
+      (fun a => a.payload.height_pair) (recoveryStart p E) k)
+    (hs : rho.events[k.start]? = some ev)
+    (hh : ev.time + FGCompose.attemptBudget (p0d4AuditTiming p) G (ρΓ p G) k ≤ rho.horizon)
+    (ht : k.task = .firstRow) (hp : k.phase = .contest) :
+    FGCompose.AttemptEndsBy (p0d4AuditCore p c) (p0d4AuditSafety p c) E rho
+      (p0d4AuditObs p c) (p0d4AuditTiming p) (fun a => a.payload.height_pair) k
+      (FGCompose.attemptBudget (p0d4AuditTiming p) G (ρΓ p G) k) := by
+  let ko := p0d4AuditOldKey k
+  have hk := p0d4AuditKeyBack k
+  have hb := p0d4AuditBudget (p := p) G ko
+  change p0d4AuditKey ko = k at hk
+  rw [hk] at hb
+  have htask : ko.task = .firstRow := by
+    change p0d4AuditOldTask k.task = .firstRow
+    rw [ht]; rfl
+  have hphase : ko.phase = .contest := by
+    change p0d4AuditOldKind k.phase = .contest
+    rw [hp]; rfl
+  have result := healing_attempt_firstRow_contest E rho hrec mono crossing qc repairScopes
+    openingScopes writes rowCoverage
+    (p0d4AuditValidBack E rho hv) hs (by rwa [← hb]) htask hphase
+  have he : AttemptEndsBy p c E rho ko
+      (FGCompose.attemptBudget (p0d4AuditTiming p) G (ρΓ p G) k) := by
+    rw [hb]
+    exact result
+  have h := (p0d4AuditEnds E rho).mpr he
+  rwa [hk] at h
+
+private theorem p0d4AuditFirstOther
+    (k : FGCompose.AttemptKey) (ev : V2.Event V (Obj p))
+    (hv : FGCompose.AttemptValid (p0d4AuditCore p c) (p0d4AuditSafety p c) E rho
+      (p0d4AuditObs p c) (p0d4AuditTiming p) (fgsaInterface p c) (p0d4AuditGate p c)
+      (fun a => a.payload.height_pair) (recoveryStart p E) k)
+    (hs : rho.events[k.start]? = some ev)
+    (hh : ev.time + FGCompose.attemptBudget (p0d4AuditTiming p) G (ρΓ p G) k ≤ rho.horizon)
+    (ht : k.task = .firstRow) (hp : k.phase ≠ .contest) :
+    FGCompose.AttemptEndsBy (p0d4AuditCore p c) (p0d4AuditSafety p c) E rho
+      (p0d4AuditObs p c) (p0d4AuditTiming p) (fun a => a.payload.height_pair) k
+      (FGCompose.attemptBudget (p0d4AuditTiming p) G (ρΓ p G) k) := by
+  let ko := p0d4AuditOldKey k
+  have hk := p0d4AuditKeyBack k
+  have hb := p0d4AuditBudget (p := p) G ko
+  change p0d4AuditKey ko = k at hk
+  rw [hk] at hb
+  have htask : ko.task = .firstRow := by
+    change p0d4AuditOldTask k.task = .firstRow
+    rw [ht]; rfl
+  have hphase : ko.phase ≠ .contest := by
+    change p0d4AuditOldKind k.phase ≠ .contest
+    cases hkind : k.phase <;> first | exact (hp hkind).elim | intro h; cases h
+  have result := healing_attempt_firstRow_other E rho hrec mono crossing qc repairScopes
+    openingScopes writes rowCoverage
+    hδ hbound rowsReceipt progressCoverage hfold faultQ honestQuorum
+    (p0d4AuditValidBack E rho hv) hs (by rwa [← hb]) htask hphase
+  have he : AttemptEndsBy p c E rho ko
+      (FGCompose.attemptBudget (p0d4AuditTiming p) G (ρΓ p G) k) := by
+    rw [hb]
+    exact result
+  have h := (p0d4AuditEnds E rho).mpr he
+  rwa [hk] at h
+
+private theorem p0d4AuditProducerDispatch
+    (k : FGCompose.AttemptKey) (ev : V2.Event V (Obj p))
+    (hv : FGCompose.AttemptValid (p0d4AuditCore p c) (p0d4AuditSafety p c) E rho
+      (p0d4AuditObs p c) (p0d4AuditTiming p) (fgsaInterface p c) (p0d4AuditGate p c)
+      (fun a => a.payload.height_pair) (recoveryStart p E) k)
+    (hs : rho.events[k.start]? = some ev)
+    (hh : ev.time + FGCompose.attemptBudget (p0d4AuditTiming p) G (ρΓ p G) k ≤ rho.horizon) :
+    FGCompose.AttemptEndsBy (p0d4AuditCore p c) (p0d4AuditSafety p c) E rho
+      (p0d4AuditObs p c) (p0d4AuditTiming p) (fun a => a.payload.height_pair) k
+      (FGCompose.attemptBudget (p0d4AuditTiming p) G (ρΓ p G) k) := by
+  exact FGCompose.progressAttempt_of (p0d4AuditCore p c) (p0d4AuditSafety p c) E rho
+    (p0d4AuditObs p c) (p0d4AuditTiming p) (fgsaInterface p c) (p0d4AuditGate p c)
+    (fun a => a.payload.height_pair) (recoveryStart p E) G (ρΓ p G)
+    (p0d4AuditRaiseContest E rho hrec mono crossing qc repairScopes openingScopes writes
+      rowCoverage hδ hbound rowsReceipt progressCoverage hfold faultQ honestQuorum)
+    (p0d4AuditRaiseOther E rho hrec mono crossing qc repairScopes openingScopes writes
+      rowCoverage hδ hbound rowsReceipt progressCoverage hfold faultQ honestQuorum)
+    (p0d4AuditFirstContest E rho hrec mono crossing qc repairScopes openingScopes writes
+      rowCoverage)
+    (p0d4AuditFirstOther E rho hrec mono crossing qc repairScopes openingScopes writes
+      rowCoverage hδ hbound rowsReceipt progressCoverage hfold faultQ honestQuorum)
+    k ev hv hs hh
+
+#print axioms p0d4AuditRaiseContest
+#print axioms p0d4AuditRaiseOther
+#print axioms p0d4AuditFirstContest
+#print axioms p0d4AuditFirstOther
+#print axioms p0d4AuditProducerDispatch
+end ProducerApplications
+
 end AvailableChain.FGSA.Run
 end

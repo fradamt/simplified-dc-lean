@@ -1,6 +1,6 @@
 module
-public import AvailableChainFGCompose.Proofs.Healing.Attempt
-public import AvailableChainFGCompose.Proofs.Healing.AttemptRows -- shake: keep (#check branches)
+public import AvailableChainFGCompose.Proofs.Healing.AttemptStop
+public import AvailableChainFGCompose.Proofs.Healing.AttemptRows -- shake: keep (height laws)
 
 set_option linter.privateModule false
 
@@ -9,20 +9,49 @@ namespace AvailableChain.FGCompose.Tests.P0d4
 open AvailableChain.SimplexFG AvailableChain.KitFG
 
 -- Inhabited event-fold interface models. They do not assert ExecutionValid.
--- Each start has a non-genesis frontier and a later emitted row with its full payload.
-private def d4A : FGBlock (Fin 1) := .node .genesis 1 ⟨41⟩ 7 []
-private def d4B : FGBlock (Fin 1) := .node .genesis 1 ⟨42⟩ 8 []
-private def d4C : FGBlock (Fin 1) := .node d4A 2 ⟨43⟩ 9 []
-private def d4D : FGBlock (Fin 1) := .node d4B 2 ⟨44⟩ 10 []
-private def d4E : FGBlock (Fin 1) := .node d4C 3 ⟨45⟩ 11 []
-private def d4F : FGBlock (Fin 1) := .node d4D 3 ⟨46⟩ 12 []
+-- Certified heights apply to all blocks, including fresh children.
+-- Row-consumer and dispatcher applications use the FG-SA producer in its test file.
+private def d4A : FGBlock (Fin 1) := .node .genesis 1 ⟨41⟩ 7 [⟨0, .vote 1 genesisRoot false, none⟩]
+private def d4B : FGBlock (Fin 1) := .node .genesis 1 ⟨42⟩ 8 [⟨0, .vote 1 genesisRoot false, none⟩]
+private def d4C : FGBlock (Fin 1) := .node d4A 2 ⟨43⟩ 9 [⟨0, .vote 2 d4A.root false, none⟩]
+private def d4D : FGBlock (Fin 1) := .node d4B 2 ⟨44⟩ 10 [⟨0, .vote 2 d4B.root false, none⟩]
+private def d4E : FGBlock (Fin 1) := .node d4C 3 ⟨45⟩ 11 [⟨0, .vote 3 d4C.root false, none⟩]
+private def d4F : FGBlock (Fin 1) := .node d4D 3 ⟨46⟩ 12 [⟨0, .vote 3 d4D.root false, none⟩]
 private def d4Row : Row (Fin 1) := ⟨0, .vote 3 d4C.root false, some ⟨0, genesisRoot⟩⟩
 private def d4StopRow : Row (Fin 1) := ⟨0, .vote 4 d4E.root true, some ⟨1, d4A.root⟩⟩
-private def d4Height (W : FGBlock (Fin 1)) : FGHeight (Fin 1) :=
-  if W = d4E ∨ W = d4F then ⟨W, W.slot, 4, W, ∅, ∅, 3, W.parent⟩
-  else if W = d4C ∨ W = d4D then ⟨W, W.slot, 3, W, ∅, ∅, 2, W.parent⟩
-  else if W = d4A ∨ W = d4B then ⟨W, W.slot, 2, W, ∅, ∅, 0, .genesis⟩
-  else ⟨W, W.slot, 1, .genesis, ∅, ∅, 0, .genesis⟩
+private def d4Electorate : Electorate (Fin 1) := ⟨fun _ => 1, fun _ => by decide⟩
+private def d4Height : FGHeightView (Fin 1) := simplexHeightView d4Electorate ⟨0⟩
+private theorem d4HeightLaws : FGHeightLaws d4Electorate d4Height := by
+  let E := d4Electorate
+  let cfg : FGConfig := ⟨0⟩
+  refine {
+    one_le_h := one_le_h E cfg
+    h_mono := h_mono E cfg
+    node_cases := derive_node_height_entry_cases E cfg
+    entry_preceq := entry_preceq E cfg
+    entry_same_height := entry_same_height E cfg
+    entry_idem := entry_idem E cfg
+    entry_plateau := entry_eq_on_plateau E cfg
+    justified_preceq_entry := fun B => (chainOrder_derive E cfg B).justified_preceq_target
+    justified_below_height := justified_below_height E cfg
+    target_sub_progress := fun B => (derive_witnesses E cfg B).target_sub
+    target_origin := ?_
+    progress_origin := ?_
+    height_crossing := height_crossing E cfg
+    justification_certificate := justification_certificate E cfg }
+  · intro B i hi
+    obtain ⟨a, ⟨W, hW, ha⟩, hs, hm⟩ := (derive_witnesses E cfg B).target i hi
+    exact ⟨W, a, hW, ha, hs, hm⟩
+  · intro B i hi
+    obtain ⟨a, ⟨W, hW, ha⟩, hs, hm⟩ := (derive_witnesses E cfg B).progress i hi
+    exact ⟨W, a, hW, ha, hs, hm⟩
+private theorem d4FreshChild :
+    let Z : FGBlock (Fin 1) := .node d4E 4 ⟨47⟩ 13
+      [⟨0, .vote 4 d4E.root false, none⟩]
+    FGBlock.Preceq d4E Z ∧ (d4Height d4E).h < (d4Height Z).h := by
+  decide +kernel
+#print axioms d4HeightLaws
+#print axioms d4FreshChild
 private def d4Erase : FGBlock (Fin 1) → Block
   | .genesis => .genesis
   | .node P s root body _ => .node (d4Erase P) s root body
@@ -289,14 +318,8 @@ private theorem d4Dispatch (b : Bool) (task : AttemptTask) :
     AttemptEndsBy (d4Core b Store.init) (d4Safety b Store.init) d4Env (d4Trace b)
       (d4Obs b Store.init) d4Timing Row.height_pair (d4Key b task)
       (attemptBudget d4Timing 4 10 (d4Key b task)) := by
-  apply progressAttempt_of (d4Core b Store.init) (d4Safety b Store.init)
-    d4Env (d4Trace b) (d4Obs b Store.init) d4Timing (d4Interface b Store.init)
-    (d4Gate b Store.init) Row.height_pair 0 4 10
-    (fun _ _ hv hs hh _ _ => d4End hv hs hh)
-    (fun _ _ hv hs hh _ _ => d4End hv hs hh)
-    (fun _ _ hv hs hh _ _ => d4End hv hs hh)
-    (fun _ _ hv hs hh _ _ => d4End hv hs hh)
-    (d4Key b task) (.deliver () ⟨.none, d4Row⟩ 1) (d4Valid b task) rfl
+  -- A stop-constructor control; the four consumer functions are tested on the real producer.
+  apply d4End (d4Valid b task) rfl
   cases b <;> cases task <;> decide +kernel
 
 private theorem d4RaiseContest :
@@ -424,6 +447,30 @@ private theorem d4InclusiveRowStop (b : Bool) :
     exact List.mem_singleton_self _
   · rfl
 
+private def d4EarlyTrace (b : Bool) : V2.D.Run Unit (d4Protocol b Store.init) where
+  honest := {()}
+  horizon := 80
+  events := [.deliver () ⟨.none, d4Row⟩ 1, .deliver () ⟨.none, d4StopRow⟩ 2]
+  seatOf _ _ := ()
+  input _ _ := ()
+
+private theorem d4EarliestEvent (b : Bool) :
+    EffectiveEvent (d4Core b Store.init) d4Env (d4EarlyTrace b) (d4Obs b Store.init)
+      ((d4Key b .raise).start + 1) := by
+  apply Or.inl
+  cases b <;> decide +kernel
+
+private theorem d4EarliestEventStop (b : Bool) :
+    AttemptEndsBy (d4Core b Store.init) (d4Safety b Store.init) d4Env (d4EarlyTrace b)
+      (d4Obs b Store.init) d4Timing Row.height_pair (d4Key b .raise) 1 := by
+  exact healing_attempt_ends_of_event (d4Core b Store.init) (d4Safety b Store.init)
+    d4Env (d4EarlyTrace b) (d4Obs b Store.init) d4Timing Row.height_pair
+    rfl (by change 0 < (1 : Nat); decide) rfl (by change (2 : Time) ≤ 1 + 1; decide)
+    (d4EarliestEvent b)
+
+#print axioms d4EarliestEvent
+#print axioms d4EarliestEventStop
+
 private theorem d4NoStartAsStop : ¬ (d4Key true .raise).start < 0 := by decide
 
 #print axioms d4EarliestRow
@@ -436,9 +483,5 @@ private theorem d4NoStartAsStop : ¬ (d4Key true .raise).start < 0 := by decide
 #print axioms d4InclusiveRowStop
 #print axioms d4NoStartAsStop
 
-#check @healing_attempt_firstRow_contest
-#check @healing_attempt_firstRow_other
-#check @healing_attempt_raise_contest
-#check @healing_attempt_raise_other
 end AvailableChain.FGCompose.Tests.P0d4
 end
