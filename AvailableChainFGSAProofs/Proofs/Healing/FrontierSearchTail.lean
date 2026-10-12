@@ -1,7 +1,6 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchStop
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchDefs
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierService
-public import AvailableChainFGSAProofs.Proofs.Healing.CommonEntryFacts
 public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchTail
 
 public section

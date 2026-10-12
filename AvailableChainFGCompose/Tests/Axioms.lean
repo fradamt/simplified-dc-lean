@@ -7,6 +7,11 @@ public import AvailableChainFGCompose.Proofs.Healing.PromotionSource -- shake: k
 public import AvailableChainFGCompose.Proofs.Healing.PromotionAge -- shake: keep (audit)
 public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchAge -- shake: keep (audit)
 public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchHG2a -- shake: keep (audit)
+public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchRepair -- shake: keep (audit)
+public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchGap -- shake: keep (audit)
+public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchTop -- shake: keep (audit)
+public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchTail -- shake: keep (audit)
+public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchRise -- shake: keep (audit)
 public import AvailableChainFGCompose.Proofs.Healing.Attempt -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Proofs.Healing.AttemptRows -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Proofs.Healing.AttemptSettle -- shake: keep (#print axioms)
@@ -1096,3 +1101,22 @@ public import AvailableChainFGCompose.Proofs.Healing.ResetCut -- shake: keep (#p
 #print axioms AvailableChain.FGCompose.frontierSearch_hg2a_gate_cost
 #print axioms AvailableChain.FGCompose.frontierSearch_hg2a_gap
 #print axioms AvailableChain.FGCompose.frontier_hg2a_receipt
+#print axioms AvailableChain.FGCompose.frontierSearch_timeIdx_mono
+#print axioms AvailableChain.FGCompose.frontierSearch_phase_cut
+#print axioms AvailableChain.FGCompose.frontierSearch_seed_after
+#print axioms AvailableChain.FGCompose.frontierSearch_seed_of_start
+#print axioms AvailableChain.FGCompose.frontierSearch_seed_later
+#print axioms AvailableChain.FGCompose.frontierSearch_phase_hmax
+#print axioms AvailableChain.FGCompose.frontierSearch_phase_cap
+#print axioms AvailableChain.FGCompose.frontierSearch_proposal_heights
+#print axioms AvailableChain.FGCompose.frontierSearch_save_seed
+#print axioms AvailableChain.FGCompose.frontier_hg3_contest
+#print axioms AvailableChain.FGCompose.frontierSearch_period_bound
+#print axioms AvailableChain.FGCompose.frontierSearch_gap_phase
+#print axioms AvailableChain.FGCompose.frontier_hg3_gap
+#print axioms AvailableChain.FGCompose.frontierSearch_initial_J_age
+#print axioms AvailableChain.FGCompose.frontier_hg3_topJ
+#print axioms AvailableChain.FGCompose.healing_frontierTail_row
+#print axioms AvailableChain.FGCompose.healing_frontierTail_rise_of_seed
+#print axioms AvailableChain.FGCompose.healing_frontierTail_rise
+#print axioms AvailableChain.FGCompose.healing_frontierTail

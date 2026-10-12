@@ -20,6 +20,35 @@
             'AvailableChain.FGCompose.frontierSearch_hg2a_gap',
             'AvailableChain.FGCompose.frontier_hg2a_receipt',
         ),
+        'AvailableChainFGCompose.Proofs.Healing.FrontierSearchRepair': (
+            'AvailableChain.FGCompose.frontierSearch_timeIdx_mono',
+            'AvailableChain.FGCompose.frontierSearch_phase_cut',
+            'AvailableChain.FGCompose.frontierSearch_seed_after',
+            'AvailableChain.FGCompose.frontierSearch_seed_of_start',
+            'AvailableChain.FGCompose.frontierSearch_seed_later',
+            'AvailableChain.FGCompose.frontierSearch_phase_hmax',
+            'AvailableChain.FGCompose.frontierSearch_phase_cap',
+            'AvailableChain.FGCompose.frontierSearch_proposal_heights',
+            'AvailableChain.FGCompose.frontierSearch_save_seed',
+            'AvailableChain.FGCompose.frontier_hg3_contest',
+        ),
+        'AvailableChainFGCompose.Proofs.Healing.FrontierSearchGap': (
+            'AvailableChain.FGCompose.frontierSearch_period_bound',
+            'AvailableChain.FGCompose.frontierSearch_gap_phase',
+            'AvailableChain.FGCompose.frontier_hg3_gap',
+        ),
+        'AvailableChainFGCompose.Proofs.Healing.FrontierSearchTop': (
+            'AvailableChain.FGCompose.frontierSearch_initial_J_age',
+            'AvailableChain.FGCompose.frontier_hg3_topJ',
+        ),
+        'AvailableChainFGCompose.Proofs.Healing.FrontierSearchTail': (
+            'AvailableChain.FGCompose.healing_frontierTail_row',
+        ),
+        'AvailableChainFGCompose.Proofs.Healing.FrontierSearchRise': (
+            'AvailableChain.FGCompose.healing_frontierTail_rise_of_seed',
+            'AvailableChain.FGCompose.healing_frontierTail_rise',
+            'AvailableChain.FGCompose.healing_frontierTail',
+        ),
         'AvailableChainFGCompose.Statements.FrontierMaturity': (
             'AvailableChain.FGCompose.PromotionSourceAt',
             'AvailableChain.FGCompose.PromotionSourceAt.age',

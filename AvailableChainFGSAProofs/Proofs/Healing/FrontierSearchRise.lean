@@ -1,8 +1,10 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchHG2a
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchHG2a -- shake: keep (re-export read by Tests/HealingH2ServiceAxioms)
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchTail
 public import AvailableChainFGSAProofs.Proofs.Healing.RepairGate
 public import AvailableChainFGSAProofs.Proofs.Healing.RiseOne
+public import AvailableChainFGSAProofs.Proofs.Healing.Promotion
+public import AvailableChainFGSAProofs.Proofs.Healing.PromotionCarrier
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionAbove
 public import AvailableChainFGSAProofs.Proofs.Shared.HonestQuorum
 public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchRise

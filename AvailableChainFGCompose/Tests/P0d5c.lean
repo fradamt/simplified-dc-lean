@@ -1,6 +1,5 @@
 module
-public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchTop
-public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchRise
+public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchGap
 
 set_option linter.privateModule false
 

@@ -1,6 +1,12 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchTop
-public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchRise
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchRepair
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchHG2a -- shake: keep (generic leaf statements re-exported)
+public import AvailableChainFGSAProofs.Proofs.Healing.Promotion
+public import AvailableChainFGSAProofs.Proofs.Healing.PromotionCarrier
+public import AvailableChainFGSAProofs.Proofs.Healing.Descent
+public import AvailableChainFGSAProofs.Proofs.Healing.CommonEntryFacts
+public import AvailableChainFGSAProofs.Proofs.Healing.PromotionAbove
+public import AvailableChainFGSAProofs.Proofs.Shared.HonestQuorum
 public import AvailableChainFGSAProofs.Proofs.Foundations.Crossing
 public import AvailableChainFGSAProofs.Proofs.Foundations.Counts
 public import AvailableChainFGSAProofs.Proofs.Foundations.Store
