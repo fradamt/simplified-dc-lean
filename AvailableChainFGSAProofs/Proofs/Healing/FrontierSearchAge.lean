@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionAbove
-public import AvailableChainFGSAProofs.Proofs.Healing.PromotionRows
+public import AvailableChainFGSAProofs.Proofs.Healing.PromotionRows -- shake: keep (frozen API)
 public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchAge
 public import AvailableChainFGSAProofs.Proofs.Shared.HonestQuorum
 
@@ -333,8 +333,7 @@ private theorem p0d5bFsaPhase_iff (E : Generic.Env V) (rho : V2.D.Run V (fgsa p 
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool} :
     FGCompose.PhaseInterval (p0d5bFsaCore p c) E rho (p0d5bFsaObs p c) u v m J
       contested ↔ PhaseInterval p c E rho u v m J contested := by
-  cases J <;> simp only [FGCompose.PhaseInterval, PhaseInterval, R_at, frameR_def,
-    p0d5bFsaObs, storeAt, FGCompose.timeIdx_def, timeIdx]
+  cases J <;> exact Iff.rfl
 
 -- Construction leaf: healing_promotion_slot_proposal with the restart bound.
 private theorem p0d5bFsaSlot (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
