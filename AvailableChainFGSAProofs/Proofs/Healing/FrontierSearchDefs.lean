@@ -1,4 +1,6 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Shared.FGCompose
+public import AvailableChainFGCompose.Statements.FrontierSearch
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSeedDefs
 
 -- shake keep reason: source declarations
@@ -14,6 +16,52 @@ The two search tasks in H.11 are sequential: rise from M, then row at M+1. -/
 
 namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
+
+private def p0d5aDefsCore (p : Params) {In : Type} (c : AppCodec In) :
+    FGCompose.FGCoreReads (fgsa p c) p.n (GridCO.State p.n .root) (Wire p.n) (RowWire p.n) :=
+  { core := fun nd => ⟨nd.st.base, nd.st.fg, nd.st.proposals, nd.st.rowPool⟩
+    erase := eraseFG
+    source := fun nd => FGSA.fgSource p nd.st
+    headVote := fun nd s => FGSA.headVote p nd.st s
+    finalityHead := fun nd => FGSA.fgBlockOf nd.st (FGSA.fgHead p nd.st)
+    proposalFG := fun nd o => match (toWire p o).decode with
+      | some (.block _ N) => (parentFG nd.st N.erase).map (fun P => fgBlock P N.erase N.rows)
+      | some (.vote _ _ _) => none
+      | some (.row _ _) => none
+      | none => none }
+
+
+private def p0d5aDefsTiming (p : Params) : FGCompose.FGTiming where
+  delta := p.Δ
+  roundSlots := p.R
+  proposal := SA.proposalTime p.toParams
+  vote := SA.voteTime p.toParams
+  early := SA.earlyTime p.toParams
+  freeze := SA.freezeTime p.toParams
+  release := SA.releaseTime p.toParams
+  gate := SA.gateTime p.toParams
+  action := p.actionTime
+
+private def p0d5aDefsObs (p : Params) {In : Type} (c : AppCodec In) :
+    FGCompose.FGObservationReads (p0d5aDefsCore p c) where
+  height := heightView p
+  finality := finalityView p
+  controls nd := FGSA.controls p nd.st
+  viable nd X := domainR p nd.st X
+
+private def p0d5aDefsSafety (p : Params) {In : Type} (c : AppCodec In) :
+    FGCompose.FGSafetyReads (fgsa p c) p.n (RowWire p.n) where
+  proposalErase := safetyProposalErase p
+  proposalRows := safetyProposalRows p
+  encode := ofRow p
+  decode := RowWire.toRow?
+  decodeObject := decodeRowObject p
+  fgLabel := .base .fg
+  fgSeats := Equiv.refl _
+  record := Node.record
+  inputs := fun nd => fgInputs p nd.st
+  enabled := fun t => decide (p.actionTime ((p.slotOf t - 1) / p.R) = t)
+  finalizedOut := finalizedOut
 
 variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
@@ -70,7 +118,21 @@ theorem frontierSearchStart_iff (i : Nat) (ev : V2.Event V (Obj p)) (m : Nat)
       (∀ r, recoveryStart p E ≤ p.actionTime r → rG ≤ r) ∧
       ev.time = p.actionTime (rG + 2) ∧ timeIdx rho ev.time = i + 1) ∧
   frontierAtIdx p c E rho (i + 1) = m ∧ 1 ≤ m ∧
-  AttemptPhaseAt p c E rho (i + 1) m kind := Iff.rfl
+  AttemptPhaseAt p c E rho (i + 1) m kind := by
+  cases kind with
+  | gap =>
+    exact FGCompose.FrontierSearchStart_def
+      (R := p0d5aDefsCore p c) (E := E) (rho := rho) (O := p0d5aDefsObs p c)
+      (T := p0d5aDefsTiming p) (Jst := recoveryStart p E) i ev m .gap
+  | topJ =>
+    exact FGCompose.FrontierSearchStart_def
+      (R := p0d5aDefsCore p c) (E := E) (rho := rho) (O := p0d5aDefsObs p c)
+      (T := p0d5aDefsTiming p) (Jst := recoveryStart p E) i ev m .topJ
+  | contest =>
+    exact FGCompose.FrontierSearchStart_def
+      (R := p0d5aDefsCore p c) (E := E) (rho := rho) (O := p0d5aDefsObs p c)
+      (T := p0d5aDefsTiming p) (Jst := recoveryStart p E) i ev m .contest
+
 
 /-- Blueprint 21 HG.3:1639--1696, H.6/H.6-S.
 DC: SAME the one-lease arm retains its synchronous first-HEAD window. -/
@@ -105,7 +167,10 @@ theorem firstPhaseStopBy_iff (i m : Nat) (deadline : Time) :
     FirstPhaseStopBy p c E rho i m deadline ↔
   ∃ j ev, i < j ∧ rho.events[j]? = some ev ∧ ev.time ≤ deadline ∧
     EffectiveEvent p c E rho j ∧ frontierAtIdx p c E rho (j + 1) = m ∧
-    (∀ k, i < k → k < j → ¬ EffectiveEvent p c E rho k) := Iff.rfl
+    (∀ k, i < k → k < j → ¬ EffectiveEvent p c E rho k) := by
+  exact FGCompose.FirstPhaseStopBy_def (R := p0d5aDefsCore p c) (E := E) (rho := rho)
+    (O := p0d5aDefsObs p c) i m deadline
+
 
 /-- Blueprint 21 H.10/HG.3; HG.3 plan Q1.
 DC: SAME a rise is the first effective event of the interrupted phase. -/
@@ -118,7 +183,10 @@ def FirstRiseStopBy (i m : Nat) (deadline : Time) : Prop :=
 theorem firstRiseStopBy_iff (i m : Nat) (deadline : Time) : FirstRiseStopBy p c E rho i m deadline ↔
   ∃ j ev, i < j ∧ rho.events[j]? = some ev ∧ ev.time ≤ deadline ∧
     EffectiveEvent p c E rho j ∧ m < frontierAtIdx p c E rho (j + 1) ∧
-    (∀ k, i < k → k < j → ¬ EffectiveEvent p c E rho k) := Iff.rfl
+    (∀ k, i < k → k < j → ¬ EffectiveEvent p c E rho k) := by
+  exact FGCompose.FirstRiseStopBy_def (R := p0d5aDefsCore p c) (E := E) (rho := rho)
+    (O := p0d5aDefsObs p c) i m deadline
+
 
 /-- Blueprint 21 HG.3; HG.3 plan Q1.
 DC: SAME the two first-stop arms and a complete saved seed. -/
@@ -179,17 +247,23 @@ def interruptedRepairBudget (G ΔF ρbar : Time) (kind : PhaseKind) : Time :=
 omit [DecidableEq V] in
 /-- Blueprint 21 HG.3. DC: SAME gap deadline. -/
 theorem interruptedRepairBudget_gap (G ΔF ρbar : Time) :
-    interruptedRepairBudget p G ΔF ρbar .gap = E_gF p ΔF G ρbar := by rfl
+    interruptedRepairBudget p G ΔF ρbar .gap = E_gF p ΔF G ρbar := by
+  exact FGCompose.interruptedRepairBudget_gap_def (p0d5aDefsTiming p) G ΔF ρbar
+
 
 omit [DecidableEq V] in
 /-- Blueprint 21 HG.3. DC: SAME top-J deadline, including epsF. -/
 theorem interruptedRepairBudget_topJ (G ΔF ρbar : Time) :
-    interruptedRepairBudget p G ΔF ρbar .topJ = E_jF p ΔF G ρbar := by rfl
+    interruptedRepairBudget p G ΔF ρbar .topJ = E_jF p ΔF G ρbar := by
+  exact FGCompose.interruptedRepairBudget_topJ_def (p0d5aDefsTiming p) G ΔF ρbar
+
 
 omit [DecidableEq V] in
 /-- Blueprint 21 HG.3. DC: SAME contest deadline. -/
 theorem interruptedRepairBudget_contest (G ΔF ρbar : Time) :
-    interruptedRepairBudget p G ΔF ρbar .contest = ρbar + 3 * p.Δ := by rfl
+    interruptedRepairBudget p G ΔF ρbar .contest = ρbar + 3 * p.Δ := by
+  exact FGCompose.interruptedRepairBudget_contest_def (p0d5aDefsTiming p) G ΔF ρbar
+
 
 /-- Blueprint 21 H.10; plan gap 6.
 DC: SAME the first actual effective event strictly after the start index. -/
@@ -203,7 +277,10 @@ theorem firstEffectiveBy_iff (i : Nat) (deadline : Time) :
     FirstEffectiveBy p c E rho i deadline ↔
   ∃ j ev, i < j ∧ rho.events[j]? = some ev ∧ ev.time ≤ deadline ∧
     EffectiveEvent p c E rho j ∧
-    (∀ k, i < k → k < j → ¬ EffectiveEvent p c E rho k) := Iff.rfl
+    (∀ k, i < k → k < j → ¬ EffectiveEvent p c E rho k) := by
+  exact FGCompose.FirstEffectiveBy_def (R := p0d5aDefsCore p c) (E := E) (rho := rho)
+    (O := p0d5aDefsObs p c) i deadline
+
 
 /-- Blueprint 21 HG.1 and HG.4; plan §4.
 DC: SAME a first frontier rise. Same-frontier events are permitted before it. -/
@@ -217,7 +294,9 @@ theorem frontierRiseBy_iff (i m : Nat) (deadline : Time) :
     FrontierRiseBy p c E rho i m deadline ↔
   ∃ j ev, i < j ∧ rho.events[j]? = some ev ∧ ev.time ≤ deadline ∧
     m < frontierAtIdx p c E rho (j + 1) ∧
-    (∀ k, i + 1 ≤ k → k ≤ j → frontierAtIdx p c E rho k ≤ m) := Iff.rfl
+    (∀ k, i + 1 ≤ k → k ≤ j → frontierAtIdx p c E rho k ≤ m) := by
+  exact FGCompose.FrontierRiseBy_def (R := p0d5aDefsCore p c) (E := E) (rho := rho) i m deadline
+
 
 /-- Blueprint 21 HG.4--HG.5 and H.11.
 DC: SAME actual first honest row, including an earlier SO-COV emission. -/
@@ -229,7 +308,10 @@ def FirstHeightRowBy (m : Nat) (deadline : Time) : Prop :=
 theorem firstHeightRowBy_iff (m : Nat) (deadline : Time) :
     FirstHeightRowBy p c E rho m deadline ↔
   ∃ r, HeightRow p c E rho r m ∧
-    (∀ r', HeightRow p c E rho r' m → r ≤ r') ∧ p.actionTime r ≤ deadline := Iff.rfl
+    (∀ r', HeightRow p c E rho r' m → r ≤ r') ∧ p.actionTime r ≤ deadline := by
+  exact FGCompose.FirstHeightRowBy_def (S := p0d5aDefsSafety p c) (E := E) (rho := rho)
+    (T := p0d5aDefsTiming p) (pair := fun a => a.payload.height_pair) m deadline
+
 
 /-- Blueprint 21 HG.3; plan §3.3.
 DC: SAME generic event start, full phase deadline and complete horizon guard. -/
@@ -348,14 +430,16 @@ DC: SAME expose the frozen rise budget for arithmetic composition. -/
 theorem frontierSearchRiseBudget_eq (G ΔF ρbar : Time) :
     frontierSearchRiseBudget p G ΔF ρbar =
       E_gF p ΔF G ρbar + E_jF p ΔF G ρbar + B_cF p ΔF G ρbar := by
-  exact Eq.refl _
+  exact FGCompose.frontierSearchRiseBudget_def (p0d5aDefsTiming p) G ΔF ρbar
+
 
 /-- Blueprint 21:1722–1800; S5 F3.
 DC: SAME expose the frozen row budget for arithmetic composition. -/
 theorem frontierSearchRowBudget_eq (G ΔF ρbar : Time) :
     frontierSearchRowBudget p G ΔF ρbar =
       E_gF p ΔF G ρbar + E_jF p ΔF G ρbar + D_cF p ρbar := by
-  exact Eq.refl _
+  exact FGCompose.frontierSearchRowBudget_def (p0d5aDefsTiming p) G ΔF ρbar
+
 
 end AvailableChain.FGSA.Run
 end
