@@ -84,13 +84,15 @@ private theorem p0c3_accepted_leaf_fragment (p : Params) {In : Type} (c : AppCod
 private theorem p0c3_missing_parent_noop (p : Params) (st : State p.n) (s : Slot)
     (N : NamedProposal p.n) (missing : namedParentHeld st N = false) :
     admitBlock p st s N = st := by
-  simp [admitBlock, missing]
+  delta admitBlock
+  simp [missing]
 
 private theorem p0c3_refused_leaf_noop (p : Params) (st : State p.n) (s : Slot)
     (N : NamedProposal p.n) (parent : FGBlock (Fin p.n))
     (held : parentFG st N.erase = some parent)
     (refused : blockAccepted p st s N parent = false) : admitBlock p st s N = st := by
-  simp [admitBlock, held, refused]
+  delta admitBlock
+  simp [held, refused]
 
 #print axioms p0c3_accepted_leaf_fragment
 #print axioms p0c3_missing_parent_noop
