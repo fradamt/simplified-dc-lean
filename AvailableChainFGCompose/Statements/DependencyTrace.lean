@@ -58,6 +58,7 @@ inductive FGDependencyOperation (Body Origin Wire : Type) where
   | clock (t : Time)
   | restore (t : Time)
   | reconstruct (t : Time)
+  | rebuild (t : Time)
   | idle
 
 def dependencyOperationKind {Origin Wire : Type} :
@@ -73,6 +74,7 @@ def dependencyOperationKind {Origin Wire : Type} :
   | .clock _ => .clock
   | .restore _ => .restore
   | .reconstruct _ => .ordinary
+  | .rebuild _ => .ordinary
   | .idle => .ordinary
 
 /-- Reads are commands in the executable handler, not a separate selectable read list. -/
@@ -111,6 +113,7 @@ structure FGDependencyDriver (V Body : Type) (P : V2.ProtocolSpecD In) where
     FGDependencyProgram P.State
   drain : P.State → P.State
   reconstruct : P.State → Time → P.State
+  rebuild : P.State → Time → P.State
   retry : P.State → Body → FGReceiptToken V P.Object → FGDependencyOutcome → P.State
   work : P.State → V2.Event V P.Object →
     List (FGDependencyCommand Body (FGReceiptToken V P.Object) P.Object)
@@ -306,6 +309,9 @@ structure FGDependencyTraceLaws (E : Generic.Env V) (rho : V2.D.Run V P)
     | .reconstruct t =>
         T.state (k + 1) = F.reconstruct (T.state k) t ∧
         ∃ j, rho.events[j]? = some (.restart x t) ∧ k = T.entryCut j
+    | .rebuild t =>
+        T.state (k + 1) = F.rebuild (T.state k) t ∧
+        ∃ j, rho.events[j]? = some (.restart x t) ∧ T.dutyCut j ≤ k ∧ k < T.done j
     | .idle => T.state (k + 1) = T.state k
   delivery_entry : ∀ j wire t, rho.events[j]? = some (.deliver x wire t) →
     let o : FGReceiptToken V P.Object := ⟨x, j, wire, t, dependencyReceiverEpoch rho x j⟩
@@ -358,7 +364,8 @@ structure FGDependencyTraceLaws (E : Generic.Env V) (rho : V2.D.Run V P)
     (∃ wire t, e = .tick x t ∧ T.dutyCut j ≤ k ∧ Op k = .ownRecord wire ∧
       wire ∈ dependencyReleased E rho (T.state (T.dutyCut j)) x t ∧
       P.objSelfVisible wire = true) ∨ Op k = .idle ∨
-    (∃ t, e = .restart x t ∧ k = T.entryCut j ∧ Op k = .reconstruct t)
+    (∃ t, e = .restart x t ∧ k = T.entryCut j ∧ Op k = .reconstruct t) ∨
+    (∃ t, e = .restart x t ∧ T.dutyCut j ≤ k ∧ Op k = .rebuild t)
   boundary_idle : ∀ k, k < T.length →
     (¬ ∃ j e, rho.events[j]? = some e ∧ T.start j ≤ k ∧ k < T.done j) →
     Op k = .idle
@@ -394,6 +401,28 @@ structure FGDependencyTraceLaws (E : Generic.Env V) (rho : V2.D.Run V P)
     rho.events[j]? = some (.restart x t) →
     T.entryCut j ≤ k → k < T.done j → Op k = .replay b o →
     T.dutyCut j ≤ k
+  rebuild_program : ∀ st t,
+    F.hookProgram st (.rebuild t) = .finish (F.rebuild st t)
+  rebuild_data : ∀ st t,
+    let z := F.rebuild st t
+    H.acceptedBlocks z = H.acceptedBlocks st ∧
+    H.acceptedBodies z = H.acceptedBodies st ∧
+    (∀ b, D.accepted z b ↔ D.accepted st b) ∧
+    (∀ b r pr, D.refused z b r pr ↔ D.refused st b r pr) ∧
+    (∀ b o, D.pending z b o ↔ D.pending st b o) ∧
+    (∀ b o, D.originAvailable z b o ↔ D.originAvailable st b o) ∧
+    (∀ b, D.notified z b ↔ D.notified st b) ∧
+    (∀ b o, ¬ L.callback st b o z) ∧
+    (∀ b o, ¬ L.report st b o z)
+  /-- One whole-state rebuild per restart: after every replay, then only the final drain. -/
+  restart_rebuild : ∀ j t,
+    rho.events[j]? = some (.restart x t) →
+    ∃ k, T.dutyCut j ≤ k ∧ k < T.done j ∧ Op k = .rebuild t ∧
+      (∀ k' t', T.entryCut j ≤ k' → k' < T.done j → Op k' = .rebuild t' → k' = k) ∧
+      (∀ k' b o, T.entryCut j ≤ k' → k' < T.done j → Op k' = .replay b o → k' < k) ∧
+      (∀ k', k < k' → k' < T.done j →
+        (∃ b o result, Op k' = .leaf b o result) ∨ (∃ b o, Op k' = .inheritRefusal b o) ∨
+        (∃ b o, Op k' = .notification b o) ∨ Op k' = .idle)
   clock_no_insert : ∀ st t,
     H.acceptedBlocks (P.clock st t) = H.acceptedBlocks st ∧
     H.acceptedBodies (P.clock st t) = H.acceptedBodies st
