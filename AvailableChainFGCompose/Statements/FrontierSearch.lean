@@ -1,0 +1,390 @@
+module
+public import AvailableChainFGCompose.Statements.Attempt
+
+@[expose] public section
+
+namespace AvailableChain.FGCompose
+open AvailableChain.SimplexFG AvailableChain.KitFG
+
+variable {In V : Type} {Prot : V2.ProtocolSpecD In} [DecidableEq V]
+variable {n : Nat} {Base Proposal Wire : Type}
+variable (R : FGCoreReads Prot n Base Proposal Wire) (S : FGSafetyReads Prot n Wire)
+variable (E : Generic.Env V) (rho : V2.D.Run V Prot)
+variable (O : FGObservationReads R) (T : FGTiming) (I : V2.D.Interface Prot)
+variable (pair : Wire → NamedHeightPair) (Jst : Time) (leaseSlots deltaT : Nat)
+
+def FrontierSeedQualification (T : FGTiming) (leaseSlots : Nat) (GST : Time)
+    (u : Time) (q : Slot) : Prop :=
+  (∃ β : Slot,
+    u < T.proposal β ∧
+    (∀ b, u < T.proposal b → β ≤ b) ∧
+    T.proposal (β + 2 * leaseSlots - 1) < T.proposal q) ∨
+  (∃ b : Slot,
+    u ≤ T.vote b ∧
+    (∀ i, u ≤ T.vote i → b ≤ i) ∧
+    leaseSlots ≤ b + 1 ∧
+    GST ≤ T.vote (b + 1 - leaseSlots) ∧
+    T.proposal (b + leaseSlots) < T.proposal q)
+
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:1333–1350; TF-SEED Q4.
+DC: SAME an explicit equation adapter for the frozen two-arm seed premise. -/
+theorem frontierSeedQualification_iff (T : FGTiming) (leaseSlots : Nat) (GST : Time)
+    (u : Time) (q : Slot) : FrontierSeedQualification T leaseSlots GST u q ↔
+  (∃ β : Slot,
+    u < T.proposal β ∧
+    (∀ b, u < T.proposal b → β ≤ b) ∧
+    T.proposal (β + 2 * leaseSlots - 1) < T.proposal q) ∨
+  (∃ b : Slot,
+    u ≤ T.vote b ∧
+    (∀ i, u ≤ T.vote i → b ≤ i) ∧
+    leaseSlots ≤ b + 1 ∧
+    GST ≤ T.vote (b + 1 - leaseSlots) ∧
+    T.proposal (b + leaseSlots) < T.proposal q) := Iff.rfl
+
+/-- The selected proposal supplies HEAD service on the actual joined reader scope.
+The protocol keeps its lock, write, and exact-output clauses in its own producer. -/
+def FrontierProposalService (q : Slot) (Q : Block) : Prop :=
+  T.vote q ≤ rho.horizon → ∀ x ∈ rho.honest,
+    AttemptJoinedAt E rho T x q (T.vote q) → headAtLabel R E rho T x q = some Q
+
+/-- Continuing service stops at this endpoint, including covered opening sources. -/
+def FrontierLocalService (q : Slot) (Q : Block) (Qfg : FGBlock (Fin n))
+    (m : Nat) (v : Time) : Prop :=
+  (∀ x s H, x ∈ rho.honest → q + 1 ≤ s → T.vote s ≤ v →
+    headAtLabel R E rho T x s = some H → Block.Preceq Q H) ∧
+  (∀ s B, q + 2 ≤ s → T.proposal s ≤ v → HonestProposal E rho I s B →
+    Block.Preceq Q B.parent) ∧
+  (∀ i x, x ∈ rho.honest → T.gate q + 4 * T.delta ≤ v →
+    afterTicksIdx rho (T.gate q + 4 * T.delta) ≤ i → i ≤ timeIdx rho v →
+    Block.Preceq Q (I.stable (rho.stateBefore E i x))) ∧
+  (∀ s B, T.proposal q < T.proposal s → T.gate s ≤ v →
+    HonestProposal E rho I s B → FrontierProposalService R E rho T s B) ∧
+  (∀ r, q ≤ r * T.roundSlots → T.action r ≤ v →
+    OpeningCovered R S E rho O.height T pair r Q ∧
+    OpeningEntry R E rho O.height T r m ∧
+    (∀ x K, x ∈ rho.honest → actionSourceFG R E rho T x r = some (some K) →
+      (O.height K).T_h = (O.height Qfg).T_h) ∧
+    ((∀ r', q ≤ r' * T.roundSlots → r ≤ r') →
+      T.action r - T.gate q ≤ FGCompose.P T - 4 * T.delta))
+
+/-- A saved seed keeps the actual proposal, phase, read cutoff, and local service. -/
+def StrongServed (m : Nat) (t : Time) : Prop :=
+  ∃ u J contested q Q Qfg,
+    Jst ≤ u ∧ HonestProposal E rho I q Q ∧ R.erase Qfg = Q ∧
+    (O.height Qfg).h = m ∧ FrontierProposalService R E rho T q Q ∧
+    FrontierSeedQualification T leaseSlots E.t_GST u q ∧ u ≤ T.proposal q ∧
+    PhaseInterval R E rho O u (T.gate q) m J contested ∧ T.gate q ≤ t ∧
+    t ≤ rho.horizon ∧
+    (∀ i x, timeIdx rho u ≤ i → i ≤ timeIdx rho t → x ∈ rho.honest →
+      (R.core (rho.stateBefore E i x)).fg.h_max ≤ m) ∧
+    FrontierLocalService R S E rho O T I pair q Q Qfg m t
+
+theorem strongServed_iff (m : Nat) (t : Time) :
+    StrongServed R S E rho O T I pair Jst leaseSlots m t ↔
+  ∃ u J contested q Q Qfg,
+    Jst ≤ u ∧ HonestProposal E rho I q Q ∧ R.erase Qfg = Q ∧
+    (O.height Qfg).h = m ∧ FrontierProposalService R E rho T q Q ∧
+    FrontierSeedQualification T leaseSlots E.t_GST u q ∧ u ≤ T.proposal q ∧
+    PhaseInterval R E rho O u (T.gate q) m J contested ∧ T.gate q ≤ t ∧
+    t ≤ rho.horizon ∧
+    (∀ i x, timeIdx rho u ≤ i → i ≤ timeIdx rho t → x ∈ rho.honest →
+      (R.core (rho.stateBefore E i x)).fg.h_max ≤ m) ∧
+    FrontierLocalService R S E rho O T I pair q Q Qfg m t := Iff.rfl
+
+/-- The repair threshold retains the strict proposal or inclusive first HEAD label. -/
+inductive FrontierRepairStart (u : Time) : Slot → Prop where
+  | two (β : Slot) (after : u < T.proposal β)
+      (least : ∀ b, u < T.proposal b → β ≤ b) :
+      FrontierRepairStart u (β + 2 * leaseSlots - 1)
+  | one (b : Slot) (after : u ≤ T.vote b)
+      (least : ∀ i, u ≤ T.vote i → b ≤ i) (window : leaseSlots ≤ b + 1)
+      (sync : E.t_GST ≤ T.vote (b + 1 - leaseSlots)) :
+      FrontierRepairStart u (b + leaseSlots)
+
+/-- An arbitrary nonnegative allowance with its produced local repair service. -/
+def FrontierRepairAllowance (G allowance u : Time) : Prop :=
+  0 ≤ allowance ∧ ∃ l, FrontierRepairStart E T leaseSlots u l ∧
+    (4 * T.delta ≤ G → ∀ v m J contested,
+    Jst ≤ u → PhaseInterval R E rho O u v m J contested →
+      (∀ s Q, T.proposal l < T.proposal s → T.gate s ≤ v →
+        HonestProposal E rho I s Q → FrontierProposalService R E rho T s Q) ∧
+      (u + allowance ≤ v → ∃ s Q,
+        T.proposal l < T.proposal s ∧ T.gate s ≤ u + allowance ∧
+        HonestProposal E rho I s Q ∧ FrontierProposalService R E rho T s Q))
+
+/-- This is the intermediate terminal-promotion goal. A later package proves it. -/
+def TerminalPromotionFact (G : Time) : Prop :=
+  ∀ r, T.action r + 2 * FGCompose.P T + Γ T G - 9 * T.delta ≤ rho.horizon →
+  ∀ u m J contested q Q height, Jst ≤ u →
+    PhaseInterval R E rho O u (T.action r) m J contested →
+    u ≤ T.proposal q → q ≤ r * T.roundSlots →
+    HonestProposal E rho I q Q → FrontierProposalService R E rho T q Q →
+    OpeningEntry R E rho O.height T r height →
+    OpeningCovered R S E rho O.height T pair r Q →
+    (∃ i ev, afterTicksIdx rho (T.action r) ≤ i ∧ rho.events[i]? = some ev ∧
+      EffectiveEvent R E rho O i ∧
+      ev.time ≤ T.action r + 2 * FGCompose.P T + Γ T G - 9 * T.delta) ∨
+    (∃ s X, HonestProposal E rho I s (R.erase X) ∧ X.slot = s ∧
+      (r : Time) * FGCompose.P T + 2 * FGCompose.P T ≤ T.proposal s ∧
+      T.proposal s ≤ T.action r + 2 * FGCompose.P T + Γ T G - 10 * T.delta ∧
+      height + 1 ≤ (O.height X).h ∧
+      (∃ y, y ∈ rho.honest ∧ Gen.V2.Duty.HoldsBefore E rho
+        (fun nd => X ∈ (R.core nd).fg.TF) (T.proposal s + T.delta) y))
+
+def FrontierSearchStart (i : Nat) (ev : V2.Event V Prot.Object) (m : Nat)
+    (kind : PhaseKind) : Prop :=
+  rho.events[i]? = some ev ∧ Jst ≤ ev.time ∧
+  (EffectiveEvent R E rho O i ∨
+    ∃ rG, Jst ≤ T.action rG ∧
+      (∀ r, Jst ≤ T.action r → rG ≤ r) ∧
+      ev.time = T.action (rG + 2) ∧ timeIdx rho ev.time = i + 1) ∧
+  frontierAtIdx R E rho (i + 1) = m ∧ 1 ≤ m ∧
+  AttemptPhaseAt R E rho O (i + 1) m kind
+
+/-- Blueprint 21 HG.3. DC: SAME the public conclusion interface. -/
+theorem frontierSearchStart_iff (i : Nat) (ev : V2.Event V Prot.Object) (m : Nat)
+    (kind : PhaseKind) : FrontierSearchStart R E rho O T Jst i ev m kind ↔
+  rho.events[i]? = some ev ∧ Jst ≤ ev.time ∧
+  (EffectiveEvent R E rho O i ∨
+    ∃ rG, Jst ≤ T.action rG ∧
+      (∀ r, Jst ≤ T.action r → rG ≤ r) ∧
+      ev.time = T.action (rG + 2) ∧ timeIdx rho ev.time = i + 1) ∧
+  frontierAtIdx R E rho (i + 1) = m ∧ 1 ≤ m ∧
+  AttemptPhaseAt R E rho O (i + 1) m kind := Iff.rfl
+
+def FirstPhaseStopBy (i m : Nat) (deadline : Time) : Prop :=
+  ∃ j ev, i < j ∧ rho.events[j]? = some ev ∧ ev.time ≤ deadline ∧
+    EffectiveEvent R E rho O j ∧ frontierAtIdx R E rho (j + 1) = m ∧
+    (∀ k, i < k → k < j → ¬ EffectiveEvent R E rho O k)
+
+/-- Blueprint 21 HG.3. DC: SAME the public conclusion interface. -/
+theorem firstPhaseStopBy_iff (i m : Nat) (deadline : Time) :
+    FirstPhaseStopBy R E rho O i m deadline ↔
+  ∃ j ev, i < j ∧ rho.events[j]? = some ev ∧ ev.time ≤ deadline ∧
+    EffectiveEvent R E rho O j ∧ frontierAtIdx R E rho (j + 1) = m ∧
+    (∀ k, i < k → k < j → ¬ EffectiveEvent R E rho O k) := Iff.rfl
+
+/-- Blueprint 21 H.10/HG.3; HG.3 plan Q1.
+DC: SAME a rise is the first effective event of the interrupted phase. -/
+def FirstRiseStopBy (i m : Nat) (deadline : Time) : Prop :=
+  ∃ j ev, i < j ∧ rho.events[j]? = some ev ∧ ev.time ≤ deadline ∧
+    EffectiveEvent R E rho O j ∧ m < frontierAtIdx R E rho (j + 1) ∧
+    (∀ k, i < k → k < j → ¬ EffectiveEvent R E rho O k)
+
+/-- Blueprint 21 HG.3. DC: SAME the public conclusion interface. -/
+theorem firstRiseStopBy_iff (i m : Nat) (deadline : Time) : FirstRiseStopBy R E rho O i m deadline ↔
+  ∃ j ev, i < j ∧ rho.events[j]? = some ev ∧ ev.time ≤ deadline ∧
+    EffectiveEvent R E rho O j ∧ m < frontierAtIdx R E rho (j + 1) ∧
+    (∀ k, i < k → k < j → ¬ EffectiveEvent R E rho O k) := Iff.rfl
+
+/-- Blueprint 21 HG.3; HG.3 plan Q1.
+DC: SAME the two first-stop arms and a complete saved seed. -/
+def FrontierHG3Result (i m : Nat) (start deadline : Time) : Prop :=
+  FirstPhaseStopBy R E rho O i m deadline ∨
+  FirstRiseStopBy R E rho O i m deadline ∨
+  ∃ t, start ≤ t ∧ t ≤ deadline ∧ StrongServed R S E rho O T I pair Jst leaseSlots m t
+
+/-- Blueprint 21 HG.3. DC: SAME the public conclusion interface. -/
+theorem frontierHG3Result_iff (i m : Nat) (start deadline : Time) :
+    FrontierHG3Result R S E rho O T I pair Jst leaseSlots i m start deadline ↔
+  FirstPhaseStopBy R E rho O i m deadline ∨
+  FirstRiseStopBy R E rho O i m deadline ∨
+  ∃ t, start ≤ t ∧ t ≤ deadline ∧ StrongServed R S E rho O T I pair Jst leaseSlots m t := Iff.rfl
+
+def interruptedRepairBudget (G ΔF ρbar : Time) (kind : PhaseKind) : Time :=
+  match kind with
+  | .gap => E_gF T ΔF G ρbar
+  | .topJ => E_jF T ΔF G ρbar
+  | .contest => ρbar + 3 * T.delta
+
+/-- Blueprint 21 HG.3. DC: SAME gap deadline. -/
+theorem interruptedRepairBudget_gap (G ΔF ρbar : Time) :
+    interruptedRepairBudget T G ΔF ρbar .gap = E_gF T ΔF G ρbar := by rfl
+
+/-- Blueprint 21 HG.3. DC: SAME top-J deadline, including epsF. -/
+theorem interruptedRepairBudget_topJ (G ΔF ρbar : Time) :
+    interruptedRepairBudget T G ΔF ρbar .topJ = E_jF T ΔF G ρbar := by rfl
+
+/-- Blueprint 21 HG.3. DC: SAME contest deadline. -/
+theorem interruptedRepairBudget_contest (G ΔF ρbar : Time) :
+    interruptedRepairBudget T G ΔF ρbar .contest = ρbar + 3 * T.delta := by rfl
+
+/-- Blueprint 21 H.10; plan gap 6.
+DC: SAME the first actual effective event strictly after the start index. -/
+def FirstEffectiveBy (i : Nat) (deadline : Time) : Prop :=
+  ∃ j ev, i < j ∧ rho.events[j]? = some ev ∧ ev.time ≤ deadline ∧
+    EffectiveEvent R E rho O j ∧
+    (∀ k, i < k → k < j → ¬ EffectiveEvent R E rho O k)
+
+/-- Blueprint 21 H.10; plan gap 6. DC: SAME actual first-event interface. -/
+theorem firstEffectiveBy_iff (i : Nat) (deadline : Time) :
+    FirstEffectiveBy R E rho O i deadline ↔
+  ∃ j ev, i < j ∧ rho.events[j]? = some ev ∧ ev.time ≤ deadline ∧
+    EffectiveEvent R E rho O j ∧
+    (∀ k, i < k → k < j → ¬ EffectiveEvent R E rho O k) := Iff.rfl
+
+/-- Blueprint 21 HG.1 and HG.4; plan §4.
+DC: SAME a first frontier rise. Same-frontier events are permitted before it. -/
+def FrontierRiseBy (i m : Nat) (deadline : Time) : Prop :=
+  ∃ j ev, i < j ∧ rho.events[j]? = some ev ∧ ev.time ≤ deadline ∧
+    m < frontierAtIdx R E rho (j + 1) ∧
+    (∀ k, i + 1 ≤ k → k ≤ j → frontierAtIdx R E rho k ≤ m)
+
+/-- Blueprint 21 HG.1/HG.4. DC: SAME first-rise interface. -/
+theorem frontierRiseBy_iff (i m : Nat) (deadline : Time) :
+    FrontierRiseBy R E rho i m deadline ↔
+  ∃ j ev, i < j ∧ rho.events[j]? = some ev ∧ ev.time ≤ deadline ∧
+    m < frontierAtIdx R E rho (j + 1) ∧
+    (∀ k, i + 1 ≤ k → k ≤ j → frontierAtIdx R E rho k ≤ m) := Iff.rfl
+
+/-- Blueprint 21 HG.4--HG.5 and H.11.
+DC: SAME actual first honest row, including an earlier SO-COV emission. -/
+def FirstHeightRowBy (m : Nat) (deadline : Time) : Prop :=
+  ∃ r, HeightRow S E rho T (fun a => namedEntry (pair a)) r m ∧
+    (∀ r', HeightRow S E rho T (fun a => namedEntry (pair a)) r' m → r ≤ r') ∧ T.action r ≤ deadline
+
+/-- Blueprint 21 HG.4/H.11. DC: SAME first-row interface. -/
+theorem firstHeightRowBy_iff (m : Nat) (deadline : Time) :
+    FirstHeightRowBy S E rho T pair m deadline ↔
+  ∃ r, HeightRow S E rho T (fun a => namedEntry (pair a)) r m ∧
+    (∀ r', HeightRow S E rho T (fun a => namedEntry (pair a)) r' m → r ≤ r') ∧
+    T.action r ≤ deadline := Iff.rfl
+
+/-- Blueprint 21 HG.3; plan §3.3.
+DC: SAME generic event start, full phase deadline and complete horizon guard. -/
+def InterruptedRepairStatement (G ΔF ρbar : Time) : Prop :=
+  deltaT = 2 * T.roundSlots → LivenessBoundW T ΔF →
+  ∀ i ev m kind, FrontierSearchStart R E rho O T Jst i ev m kind →
+    FrontierRepairAllowance R E rho O T I Jst leaseSlots G ρbar (ev.time + 3 * T.delta) →
+    ev.time + interruptedRepairBudget T G ΔF ρbar kind ≤ rho.horizon →
+    FirstEffectiveBy R E rho O i
+      (ev.time + interruptedRepairBudget T G ΔF ρbar kind) ∨
+    FrontierRiseBy R E rho i m
+      (ev.time + interruptedRepairBudget T G ΔF ρbar kind) ∨
+    (∃ t, ev.time ≤ t ∧ t ≤ ev.time + interruptedRepairBudget T G ΔF ρbar kind ∧
+      StrongServed R S E rho O T I pair Jst leaseSlots m t)
+
+/-- Blueprint 21 HG.4; plan §3.3.
+DC: SAME two independently guarded tasks from the current served start.
+There is no no-effective-event premise and no second repair allowance. -/
+def FrontierTailStatement (G ΔF : Time) : Prop :=
+  deltaT = 2 * T.roundSlots → LivenessBoundW T ΔF →
+  ∀ i ev m kind, FrontierSearchStart R E rho O T Jst i ev m kind →
+    StrongServed R S E rho O T I pair Jst leaseSlots m ev.time →
+    (ev.time + (2 * FGCompose.P T + Γ T G - 9 * T.delta) ≤ rho.horizon →
+      FrontierRiseBy R E rho i m (ev.time + (2 * FGCompose.P T + Γ T G - 9 * T.delta))) ∧
+    (ev.time + (FGCompose.P T - 4 * T.delta) ≤ rho.horizon →
+      FirstHeightRowBy S E rho T pair m (ev.time + (FGCompose.P T - 4 * T.delta)))
+
+/-- Blueprint 21 HG.5; plan §3.3.
+DC: SAME one-frontier rise task, before the H.11 second task. -/
+def frontierSearchRiseBudget (G ΔF ρbar : Time) : Time :=
+  E_gF T ΔF G ρbar + E_jF T ΔF G ρbar + B_cF T ΔF G ρbar
+
+/-- Blueprint 21 HG.5; plan §3.3.
+DC: SAME one-frontier first-row task. -/
+def frontierSearchRowBudget (G ΔF ρbar : Time) : Time :=
+  E_gF T ΔF G ρbar + E_jF T ΔF G ρbar + D_cF T ρbar
+
+/-- Blueprint 21 HG.5/H.11; plan §3.3.
+DC: SAME inline cut/frontier/row cap. The second task is at M+1.
+One rStar is quantified before both allowances, with each full horizon guard.
+The first task also has its own independent rise horizon guard.
+No reset witness, phase package, or downstream healing service is assumed. -/
+def FrontierSearchStatement (G ΔF : Time) : Prop :=
+  deltaT = 2 * T.roundSlots → LivenessBoundW T ΔF →
+  ∀ rG u₀ M, Jst ≤ T.action rG →
+    (∀ r, Jst ≤ T.action r → rG ≤ r) → u₀ = T.action (rG + 2) →
+    Jst + 2 * FGCompose.P T ≤ u₀ → M = honestFrontier R E rho u₀ →
+    (∀ j y r a h e t, HonestRowAt S E rho T j y r a →
+      rho.events[j]? = some (.tick y t) → t ≤ u₀ →
+      namedEntry (pair a) = some (h, e) → h ≤ M) →
+    (∀ ρbar, (FrontierRepairAllowance R E rho O T I Jst leaseSlots G ρbar u₀) →
+      u₀ + frontierSearchRiseBudget T G ΔF ρbar ≤ rho.horizon →
+      ∃ j ev, timeIdx rho u₀ ≤ j ∧ rho.events[j]? = some ev ∧
+        ev.time ≤ u₀ + frontierSearchRiseBudget T G ΔF ρbar ∧
+        M < frontierAtIdx R E rho (j + 1) ∧
+        (∀ k, timeIdx rho u₀ ≤ k → k ≤ j → frontierAtIdx R E rho k ≤ M)) ∧
+    ((∃ ρbar, (FrontierRepairAllowance R E rho O T I Jst leaseSlots G ρbar u₀) ∧
+      u₀ + frontierSearchRiseBudget T G ΔF ρbar +
+        frontierSearchRowBudget T G ΔF ρbar ≤ rho.horizon) →
+    ∃ rStar, HeightRow S E rho T (fun a => namedEntry (pair a)) rStar (M + 1) ∧
+      (∀ r, HeightRow S E rho T (fun a => namedEntry (pair a)) r (M + 1) → rStar ≤ r) ∧
+      ∀ ρbar, (FrontierRepairAllowance R E rho O T I Jst leaseSlots G ρbar u₀) →
+        u₀ + frontierSearchRiseBudget T G ΔF ρbar +
+          frontierSearchRowBudget T G ΔF ρbar ≤ rho.horizon →
+        ∃ j ev, timeIdx rho u₀ ≤ j ∧ rho.events[j]? = some ev ∧
+          ev.time ≤ u₀ + frontierSearchRiseBudget T G ΔF ρbar ∧
+          M < frontierAtIdx R E rho (j + 1) ∧
+          (∀ k, timeIdx rho u₀ ≤ k → k ≤ j → frontierAtIdx R E rho k ≤ M) ∧
+          T.action rStar ≤ ev.time + frontierSearchRowBudget T G ΔF ρbar)
+
+/-- Blueprint 21:1695–1800; S5 F2, full HG.4.
+DC: SAME expose the frozen conclusion contract for its producer. -/
+theorem frontierTailStatement_iff (G ΔF : Time) :
+    FrontierTailStatement R S E rho O T I pair Jst leaseSlots deltaT G ΔF ↔
+  deltaT = 2 * T.roundSlots → LivenessBoundW T ΔF →
+  ∀ i ev m kind, FrontierSearchStart R E rho O T Jst i ev m kind →
+    StrongServed R S E rho O T I pair Jst leaseSlots m ev.time →
+    (ev.time + (2 * FGCompose.P T + Γ T G - 9 * T.delta) ≤ rho.horizon →
+      FrontierRiseBy R E rho i m (ev.time + (2 * FGCompose.P T + Γ T G - 9 * T.delta))) ∧
+    (ev.time + (FGCompose.P T - 4 * T.delta) ≤ rho.horizon →
+      FirstHeightRowBy S E rho T pair m (ev.time + (FGCompose.P T - 4 * T.delta))) := Iff.rfl
+
+/-- Blueprint 21:1695–1800; S5 F3, full HG.5.
+DC: SAME expose the frozen conclusion contract for its producer. -/
+theorem frontierSearchStatement_iff (G ΔF : Time) :
+    FrontierSearchStatement R S E rho O T I pair Jst leaseSlots deltaT G ΔF ↔
+  deltaT = 2 * T.roundSlots → LivenessBoundW T ΔF →
+  ∀ rG u₀ M, Jst ≤ T.action rG →
+    (∀ r, Jst ≤ T.action r → rG ≤ r) → u₀ = T.action (rG + 2) →
+    Jst + 2 * FGCompose.P T ≤ u₀ → M = honestFrontier R E rho u₀ →
+    (∀ j y r a h e t, HonestRowAt S E rho T j y r a →
+      rho.events[j]? = some (.tick y t) → t ≤ u₀ →
+      namedEntry (pair a) = some (h, e) → h ≤ M) →
+    (∀ ρbar, (FrontierRepairAllowance R E rho O T I Jst leaseSlots G ρbar u₀) →
+      u₀ + frontierSearchRiseBudget T G ΔF ρbar ≤ rho.horizon →
+      ∃ j ev, timeIdx rho u₀ ≤ j ∧ rho.events[j]? = some ev ∧
+        ev.time ≤ u₀ + frontierSearchRiseBudget T G ΔF ρbar ∧
+        M < frontierAtIdx R E rho (j + 1) ∧
+        (∀ k, timeIdx rho u₀ ≤ k → k ≤ j → frontierAtIdx R E rho k ≤ M)) ∧
+    ((∃ ρbar, (FrontierRepairAllowance R E rho O T I Jst leaseSlots G ρbar u₀) ∧
+      u₀ + frontierSearchRiseBudget T G ΔF ρbar +
+        frontierSearchRowBudget T G ΔF ρbar ≤ rho.horizon) →
+    ∃ rStar, HeightRow S E rho T (fun a => namedEntry (pair a)) rStar (M + 1) ∧
+      (∀ r, HeightRow S E rho T (fun a => namedEntry (pair a)) r (M + 1) → rStar ≤ r) ∧
+      ∀ ρbar, (FrontierRepairAllowance R E rho O T I Jst leaseSlots G ρbar u₀) →
+        u₀ + frontierSearchRiseBudget T G ΔF ρbar +
+          frontierSearchRowBudget T G ΔF ρbar ≤ rho.horizon →
+        ∃ j ev, timeIdx rho u₀ ≤ j ∧ rho.events[j]? = some ev ∧
+          ev.time ≤ u₀ + frontierSearchRiseBudget T G ΔF ρbar ∧
+          M < frontierAtIdx R E rho (j + 1) ∧
+          (∀ k, timeIdx rho u₀ ≤ k → k ≤ j → frontierAtIdx R E rho k ≤ M) ∧
+          T.action rStar ≤ ev.time + frontierSearchRowBudget T G ΔF ρbar) := Iff.rfl
+
+/-- Blueprint 21:1722–1800; S5 F3.
+DC: SAME expose the frozen rise budget for arithmetic composition. -/
+theorem frontierSearchRiseBudget_eq (G ΔF ρbar : Time) :
+    frontierSearchRiseBudget T G ΔF ρbar =
+      E_gF T ΔF G ρbar + E_jF T ΔF G ρbar + B_cF T ΔF G ρbar := by
+  exact Eq.refl _
+
+/-- Blueprint 21:1722–1800; S5 F3.
+DC: SAME expose the frozen row budget for arithmetic composition. -/
+theorem frontierSearchRowBudget_eq (G ΔF ρbar : Time) :
+    frontierSearchRowBudget T G ΔF ρbar =
+      E_gF T ΔF G ρbar + E_jF T ΔF G ρbar + D_cF T ρbar := by
+  exact Eq.refl _
+
+
+/-- Each frontier has at most these three phase charges. -/
+def frontierSearch_phaseRank (kind : PhaseKind) : Nat :=
+  match kind with | .gap => 0 | .topJ => 1 | .contest => 2
+
+theorem frontierSearch_phaseRank_gap : frontierSearch_phaseRank .gap = 0 := rfl
+theorem frontierSearch_phaseRank_topJ : frontierSearch_phaseRank .topJ = 1 := rfl
+theorem frontierSearch_phaseRank_contest : frontierSearch_phaseRank .contest = 2 := rfl
+
+end AvailableChain.FGCompose
+end
