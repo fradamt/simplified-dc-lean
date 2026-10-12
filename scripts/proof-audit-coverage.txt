@@ -930,6 +930,8 @@
             'AvailableChain.FGCompose.high_target_honest_quorum',
             'AvailableChain.FGCompose.high_target_quorum_covered',
             'AvailableChain.FGCompose.high_target_row_covered',
+            'AvailableChain.FGCompose.shield_high_entry_record_invariant',
+            'AvailableChain.FGCompose.shield_record_before_cut',
         ),
         'AvailableChainFGCompose.Statements.FinalityKernel': (
             'AvailableChain.FGCompose.BatchPrem',
@@ -1015,8 +1017,6 @@
             'AvailableChain.FGCompose.HighRecordSeedLeaves',
             'AvailableChain.FGCompose.HighRecordShieldRows',
             'AvailableChain.FGCompose.highRecordEntry',
-            'AvailableChain.FGCompose.shield_high_entry_record_invariant',
-            'AvailableChain.FGCompose.shield_record_before_cut',
         ),
     },
     'AvailableChainFGCompose.Tests.SafetyAxioms': {
