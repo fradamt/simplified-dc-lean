@@ -537,9 +537,76 @@ source = source.replace('  for m in ← sourceModules dir do',
 source = source.replace('  if cs.isEmpty then\n    IO.eprintln "NO CONSTANTS FOUND"\n    return 2\n',
     '  -- Empty libraries are valid only with successful source/build coverage.\n')
 # Change only the generated claims auditor. The T7 template and its users
-# keep their existing behavior. Each call has a fresh CoreM state; tasks
-# share the imported, read-only Environment and return data without output.
-parallel_axioms = '''def auditWorkerCount : IO Nat := do
+# keep their existing behavior. Tasks share the imported, read-only
+# Environment and return data without output. Each task keeps ONE axiom
+# state for its chunk (P0int4, 2026-10-12): a fresh `collectAxioms` call per
+# constant walked the shared dependencies again for every constant.
+# `AuditAxioms.visit` walks the same kernel terms with the same edges as
+# `Lean.CollectAxioms.collect` (v4.34.1), without the imported axiom data
+# (the import does not load it). It caches a result only for a complete
+# strongly connected component (Tarjan), so each cached set is exactly the
+# set of axioms reachable from that constant: the value of a fresh call.
+parallel_axioms = '''namespace AuditAxioms
+
+structure St where
+  /-- Exact, sorted axiom sets of finished components. -/
+  done : NameMap (Array Name) := {}
+  /-- Visit index of each constant on the component stack. -/
+  index : NameMap Nat := {}
+  stack : Array Name := #[]
+  next : Nat := 0
+
+abbrev M := ReaderT Kernel.Environment (StateM St)
+
+/-- The axioms that `c` reaches through the constants it visits now, and the
+lowest index of a stack constant it reaches (`none`: no such constant). The
+edges are those of `Lean.CollectAxioms.collect`. -/
+partial def visit (c : Name) : M (NameSet × Option Nat) := do
+  let s ← get
+  if let some axs := s.done.find? c then
+    return (axs.foldl (·.insert ·) {}, none)
+  if let some i := s.index.find? c then
+    return ({}, some i)
+  let me := s.next
+  set { s with index := s.index.insert c me, stack := s.stack.push c, next := me + 1 }
+  let (own, exprs, ctors) : Bool × List Expr × List Name :=
+    match (← read).find? c with
+    | some (.axiomInfo v)  => (true, [v.type], [])
+    | some (.defnInfo v)   => (false, [v.type, v.value], [])
+    | some (.thmInfo v)    => (false, [v.type, v.value], [])
+    | some (.opaqueInfo v) => (false, [v.type, v.value], [])
+    | some (.quotInfo _)   => (false, [], [])
+    | some (.ctorInfo v)   => (false, [v.type], [])
+    | some (.recInfo v)    => (false, [v.type], [])
+    | some (.inductInfo v) => (false, [v.type], v.ctors)
+    | none                 => (false, [], [])
+  let mut acc : NameSet := if own then ({} : NameSet).insert c else {}
+  let mut low := me
+  for d in exprs.flatMap (fun e => e.getUsedConstants.toList) ++ ctors do
+    let (axs, l) ← visit d
+    acc := axs.foldl (·.insert ·) acc
+    if let some l := l then low := min low l
+  unless low == me do return (acc, some low)
+  -- `c` is the root of its component: every member reaches the same axioms.
+  let result := acc.toArray.qsort Name.lt
+  modify fun s => Id.run do
+    let mut s := s
+    repeat
+      let some w := s.stack.back? | break
+      s := { s with stack := s.stack.pop, index := s.index.erase w,
+                    done := s.done.insert w result }
+      if w == c then break
+    return s
+  return (acc, none)
+
+/-- The sorted axioms of `n`, as a fresh `collectAxioms n` returns them. -/
+def axiomsOf (n : Name) : M (Option (Array Name)) := do
+  discard <| visit n
+  return (← get).done.find? n
+
+end AuditAxioms
+
+def auditWorkerCount : IO Nat := do
   let mut count := 2
   for key in ["AUDIT_WORKERS", "LEAN_SLOTS", "GATE_SLOTS"] do
     if let some value ← IO.getEnv key then
@@ -551,9 +618,14 @@ parallel_axioms = '''def auditWorkerCount : IO Nat := do
 
 def auditAxiomChunk (env : Environment) (chunk : Array (Nat × Name)) :
     IO (Array (Nat × Name × Array Name)) := do
+  let kenv := env.checked.get
+  let mut st : AuditAxioms.St := {}
   let mut rows := #[]
   for (i, n) in chunk do
-    let bad := (← axiomsOf env n).filter (fun a => !allowed.contains a)
+    let (axs?, st') := ((AuditAxioms.axiomsOf n).run kenv).run st
+    st := st'
+    let some axs := axs? | throw (IO.userError s!"AXIOM AUDIT: no result for {n}")
+    let bad := axs.filter (fun a => !allowed.contains a)
     unless bad.isEmpty do rows := rows.push (i, n, bad)
   return rows
 
@@ -592,6 +664,26 @@ source = source.replace(serial_loop, '''  let axiomRows ← auditAxioms env (cs.
   for (_, n, bad) in axiomRows do
     IO.println s!"BAD AXIOMS {n}: {bad}"
     badAxioms := true
+''', 1)
+# P0int4: look the expected names up in a set of all name suffixes of the
+# checked constants instead of a scan of all constants per name. `s` is a
+# suffix of `n` (`Name.isSuffixOf`) iff `s` is the last |s| components of
+# `n` with the same kinds; the empty name is a suffix of every name.
+expect_loop = '''  for s in expected do
+    unless cs.any (fun (n, _) => s.toName.isSuffixOf n) do
+'''
+assert source.count(expect_loop) == 1, 'STOP: claims expect loop changed'
+source = source.replace(expect_loop, '''  let mut suffixes : NameHashSet := {}
+  for (n, _) in cs do
+    let parts := n.components
+    for k in [:parts.length + 1] do
+      suffixes := suffixes.insert ((parts.drop k).foldl (fun p c =>
+        match c with
+        | .str _ s => .str p s
+        | .num _ i => .num p i
+        | .anonymous => p) .anonymous)
+  for s in expected do
+    unless suffixes.contains s.toName do
 ''', 1)
 # P10/Q-10: each theorem in a lane Export has a matching Claims/<Lane>
 # proposition as its type head (after binders). Helpers belong in lane files.
