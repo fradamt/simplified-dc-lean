@@ -14,6 +14,10 @@ AvailableChainFGCompose.Proofs.Finality.RowsRecords
 AvailableChainFGCompose.Proofs.Finality.RowsPrem
 AvailableChainFGCompose.Proofs.Finality.Batch
 AvailableChainFGCompose.Proofs.Finality.Carry
+AvailableChainFGCompose.Tests.P0d7a5
+AvailableChainFGCompose.Proofs.Finality.RestoreReads
+AvailableChainFGCompose.Proofs.Finality.Receipt
+AvailableChainFGCompose.Proofs.Finality.Accept
 AvailableChainFGCompose.Statements.FinalityKernel
 AvailableChainFGCompose.Proofs.Finality.MiddleSupport
 AvailableChainFGCompose.Proofs.Finality.Middle

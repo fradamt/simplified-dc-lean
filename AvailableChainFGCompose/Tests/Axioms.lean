@@ -21,6 +21,9 @@ public import AvailableChainFGCompose.Proofs.Finality.RowsRecords -- shake: keep
 public import AvailableChainFGCompose.Proofs.Finality.RowsPrem -- shake: keep (axiom audit)
 public import AvailableChainFGCompose.Proofs.Finality.Batch -- shake: keep (axiom audit)
 public import AvailableChainFGCompose.Proofs.Finality.Carry -- shake: keep (axiom audit)
+public import AvailableChainFGCompose.Proofs.Finality.RestoreReads -- shake: keep (axiom audit)
+public import AvailableChainFGCompose.Proofs.Finality.Receipt -- shake: keep (axiom audit)
+public import AvailableChainFGCompose.Proofs.Finality.Accept -- shake: keep (axiom audit)
 public import AvailableChainFGCompose.Statements.FinalityKernel -- shake: keep (axiom audit)
 public import AvailableChainFGCompose.Proofs.Finality.MiddleSupport -- shake: keep (axiom audit)
 public import AvailableChainFGCompose.Proofs.Finality.Middle -- shake: keep (axiom audit)
@@ -1122,3 +1125,58 @@ public import AvailableChainFGCompose.Proofs.Healing.ResetCut -- shake: keep (#p
 #print axioms AvailableChain.FGCompose.rowsPrem_pending_head
 #print axioms AvailableChain.FGCompose.terminalCarriage_W_of_tRowsSelect
 #print axioms AvailableChain.FGCompose.terminalCarriage_general_W
+
+-- P0d7a5: exact selected receipt and acceptance surface.
+#print axioms AvailableChain.FGCompose.AcceptGuards_W
+#print axioms AvailableChain.FGCompose.AcceptGuards_W.cap
+#print axioms AvailableChain.FGCompose.AcceptGuards_W.finCmp
+#print axioms AvailableChain.FGCompose.AcceptGuards_W.jPath
+#print axioms AvailableChain.FGCompose.AcceptGuards_W.mk
+#print axioms AvailableChain.FGCompose.AcceptPrem_W
+#print axioms AvailableChain.FGCompose.AcceptPrem_W.deliver
+#print axioms AvailableChain.FGCompose.AcceptPrem_W.finalized
+#print axioms AvailableChain.FGCompose.AcceptPrem_W.guards
+#print axioms AvailableChain.FGCompose.AcceptPrem_W.horizon
+#print axioms AvailableChain.FGCompose.AcceptPrem_W.mk
+#print axioms AvailableChain.FGCompose.AcceptPrem_W.schedule
+#print axioms AvailableChain.FGCompose.AcceptStep_W
+#print axioms AvailableChain.FGCompose.BlockDelivery_W
+#print axioms AvailableChain.FGCompose.BlockDelivery_W.mk
+#print axioms AvailableChain.FGCompose.BlockDelivery_W.selected
+#print axioms AvailableChain.FGCompose.BlockDelivery_W.witness
+#print axioms AvailableChain.FGCompose.FGFinalityDurableLaws
+#print axioms AvailableChain.FGCompose.FGFinalityDurableLaws.mk
+#print axioms AvailableChain.FGCompose.FGFinalityDurableLaws.mono
+#print axioms AvailableChain.FGCompose.FGFinalityDurableLaws.restore
+#print axioms AvailableChain.FGCompose.FinalizePrem_W
+#print axioms AvailableChain.FGCompose.FinalizePrem_W.deliver
+#print axioms AvailableChain.FGCompose.FinalizePrem_W.fold
+#print axioms AvailableChain.FGCompose.FinalizePrem_W.guards
+#print axioms AvailableChain.FGCompose.FinalizePrem_W.horizon
+#print axioms AvailableChain.FGCompose.FinalizePrem_W.mk
+#print axioms AvailableChain.FGCompose.FinalizePrem_W.schedule
+#print axioms AvailableChain.FGCompose.PendingFold_W
+#print axioms AvailableChain.FGCompose.PendingFold_W.child
+#print axioms AvailableChain.FGCompose.PendingFold_W.cover
+#print axioms AvailableChain.FGCompose.PendingFold_W.mk
+#print axioms AvailableChain.FGCompose.ReceiptWitness_W
+#print axioms AvailableChain.FGCompose.ReceiptWitness_W.index
+#print axioms AvailableChain.FGCompose.ReceiptWitness_W.mk
+#print axioms AvailableChain.FGCompose.ReceiptWitness_W.time
+#print axioms AvailableChain.FGCompose.acceptBefore_W
+#print axioms AvailableChain.FGCompose.finality_acceptsFinalBefore_mono_ancestor
+#print axioms AvailableChain.FGCompose.finality_acceptsFinalBefore_mono_deadline
+#print axioms AvailableChain.FGCompose.finality_acceptsFinalBefore_of_idx
+#print axioms AvailableChain.FGCompose.finality_heldBefore_at_proposal
+#print axioms AvailableChain.FGCompose.finality_restore_preceq_F
+#print axioms AvailableChain.FGCompose.finalizePending_W
+#print axioms AvailableChain.FGCompose.receiptInsert_W
+#print axioms AvailableChain.FGCompose.receipt_acceptPrem_W
+#print axioms AvailableChain.FGCompose.receipt_cap
+#print axioms AvailableChain.FGCompose.receipt_finCmp
+#print axioms AvailableChain.FGCompose.receipt_finCmp_of_block
+#print axioms AvailableChain.FGCompose.receipt_finalized_of_carriage
+#print axioms AvailableChain.FGCompose.receipt_jPath
+#print axioms AvailableChain.FGCompose.receipt_jPath_of_cached_anchor
+#print axioms AvailableChain.FGCompose.receipt_kernel_fields
+#print axioms AvailableChain.FGCompose.receipt_receiver_finalityLag
