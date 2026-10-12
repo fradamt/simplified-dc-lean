@@ -255,4 +255,3 @@ height AvailableChain.FGSA.Run.wcg_heightSeed_of_finite # sleep landing: old hei
 height AvailableChain.FGSA.Run.wcg_inclusion6_result # sleep landing: old height pair in WC/WCG/arming interface; bridge-equal; public root; user approval 2026-10-11
 height AvailableChain.FGSA.Run.wcg_retainedSeed_of_finite # sleep landing: old height pair in WC/WCG/arming interface; bridge-equal; public root; user approval 2026-10-11
 height AvailableChain.FGSA.Run.wcg_service4OfSeed # sleep landing: old height pair in WC/WCG/arming interface; bridge-equal; public root; user approval 2026-10-11
-height AvailableChain.FGSA.Run.rowPermission_covered # P0 extraction 2026-10-12: FG-SA wrapper of a generic consumer whose statement reads KitFG window heights (lead ruling; class of the 2026-10-11 user-approved lines)

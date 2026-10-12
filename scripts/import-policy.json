@@ -84,6 +84,9 @@
       "AvailableChainGeneric.Statements.**"
     ],
     "laneUpstream": [
+      "AvailableChainFGCompose.Proofs.Healing.FrontierSearchStop",
+      "AvailableChainFGCompose.Proofs.Healing.FrontierSearchBudget",
+      "AvailableChainFGCompose.Statements.FrontierSearch",
       "AvailableChainFGCompose.Proofs.Healing.Attempt",
       "AvailableChainFGCompose.Proofs.Healing.AttemptRows",
       "AvailableChainFGCompose.Proofs.Healing.AttemptSettle",

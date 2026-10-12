@@ -620,6 +620,7 @@ def test_use(ctx: Context, m: Module, dep: str) -> bool:
 def test_scope(ctx: Context, m: Module, dep: str) -> bool:
     # P0b1: private fieldwise correspondence, with exact external suppliers.
     if (m.name, dep) in {
+        (PROOFS + ".Tests.P0d5a", COMPOSE + ".Statements.FrontierSearch"),
         (PROOFS + ".Tests.P0d4", COMPOSE + ".Proofs.Healing.AttemptStop"),
         (COMPOSE + ".Tests.P0d3", KITFG + ".WindowHeightBridge"),
         (PROOFS + ".Tests.P0c1", COMPOSE + ".Proofs.ObservationTransport"),
@@ -1155,5 +1156,28 @@ def main() -> int:
         return 2
 
 
+# P0d5a: exact generic home.
+COMPOSE_MODULES += ('AvailableChainFGCompose.Statements.FrontierSearch',)
+
+# P0d5a: exact frozen-wrapper edges and generic read proof input.
+COMPOSE_EDGES |= frozenset({
+    ('AvailableChainFGSAProofs.Tests.P0d5a',
+     'AvailableChainFGCompose.Statements.FrontierSearch'),
+    ('AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchDefs',
+     'AvailableChainFGCompose.Statements.FrontierSearch'),
+    ('AvailableChainFGSAProofs.Proofs.Healing.FrontierSeedDefs',
+     'AvailableChainFGCompose.Proofs.Healing.FrontierSearchStop'),
+    ('AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchStop',
+     'AvailableChainFGCompose.Proofs.Healing.FrontierSearchStop'),
+    ('AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchBudget',
+     'AvailableChainFGCompose.Proofs.Healing.FrontierSearchBudget'),
+})
+COMPOSE_PROOF_IMPORTS |= frozenset({
+    ('AvailableChainFGCompose.Proofs.Healing.FrontierSearchStop',
+     'AvailableChainGeneric.Proofs.V2.Duty.Reads'),
+})
+
+COMPOSE_MODULES += ('AvailableChainFGCompose.Proofs.Healing.FrontierSearchBudget',)
+COMPOSE_MODULES += ('AvailableChainFGCompose.Proofs.Healing.FrontierSearchStop',)
 if __name__ == "__main__":
     sys.exit(main())

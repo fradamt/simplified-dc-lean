@@ -60,3 +60,6 @@ public import AvailableChainFGCompose.Statements.ResetCut
 public import AvailableChainFGCompose.Proofs.Healing.ResetCut
 public import AvailableChainFGCompose.Statements.FinalityHistory
 public import AvailableChainFGCompose.Proofs.Finality.History
+public import AvailableChainFGCompose.Statements.FrontierSearch
+public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchBudget
+public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchStop
