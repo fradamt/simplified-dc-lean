@@ -98,7 +98,7 @@ theorem terminalCarriage_general_W
       have hp := D.decode_height (rows i) row hd
       have hf : row.finality_pair = some ⟨y, U.root⟩ :=
         (D.decode_finality (rows i) row hd).symm.trans hn
-      have admit : SimplexFG.Window.r6w
+      have hvalid_r6w : SimplexFG.Window.r6w
           (KitFG.Window.parentState Ef cfg K X.parent X.slot) row = true →
           ValidForParent E rho I parentFG validFor X.slot (R.erase X) (rows i) := by
         intro hv
@@ -121,7 +121,7 @@ theorem terminalCarriage_general_W
             rw [hr] at hm
             have keys := Prod.mk.inj (Option.some.inj hm)
             simp only [NamedHeightPair.matchesEntry, keys.1, keys.2, and_self, decide_true]
-        refine ⟨admit ?_, Or.inl ⟨hsame, nd, X.parent, hnd, hpar, ?_⟩⟩
+        refine ⟨hvalid_r6w ?_, Or.inl ⟨hsame, nd, X.parent, hnd, hpar, ?_⟩⟩
         · simp only [SimplexFG.Window.r6w_def, matchRow, Bool.true_or]
         · rw [parentHeight_eq, hsame, ← hentry]
           exact heightEntry i hi
@@ -142,7 +142,7 @@ theorem terminalCarriage_general_W
             have hh := Option.some.inj hh
             simp only [hh, hparentHeight, hbelow, crossed, and_self, decide_true, wm,
               Bool.true_and]
-        refine ⟨admit ?_, Or.inr ⟨row, sourceH, hd, ?_, hbelow, crossed,
+        refine ⟨hvalid_r6w ?_, Or.inr ⟨row, sourceH, hd, ?_, hbelow, crossed,
           useful, hf, e, he, hej, heX⟩⟩
         · simp only [SimplexFG.Window.r6w_def, useful, Bool.or_true]
         · exact (emitted i hi).choose_spec.2.2.1
