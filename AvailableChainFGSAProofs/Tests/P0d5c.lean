@@ -3,6 +3,10 @@ public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchTop
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchRise
 public import AvailableChainFGSAProofs.Proofs.Foundations.Crossing
 public import AvailableChainFGSAProofs.Proofs.Foundations.Counts
+public import AvailableChainFGSAProofs.Proofs.Foundations.Store
+public import AvailableChainFGSAProofs.Proofs.Foundations.Leases
+public import AvailableChainFGSAProofs.Proofs.Foundations.RowPermission
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierService
 public import AvailableChainFGSAProofs.Proofs.Shared.HealingFixture -- shake: keep (fixture)
 
 set_option linter.privateModule false
