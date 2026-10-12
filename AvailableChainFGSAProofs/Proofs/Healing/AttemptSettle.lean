@@ -2,7 +2,6 @@ module
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseSettle
 public import AvailableChainFGCompose.Proofs.Healing.AttemptSettle
 
-public section
 
 namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
@@ -91,12 +90,14 @@ private theorem p0d4SettGateResult (E : Generic.Env V) (rho : V2.D.Run V (fgsa p
     (x : V) (s : Slot) :
     FGCompose.AttemptGateResult E rho (p0d4SettTiming p) (p0d4SettGate p c) x s =
       gateResult p c E rho x s := by
+  classical
   rw [FGCompose.p0d4_AttemptGateResult_def, gateResult_def, gateIn_def]
   change (preTick E rho x (SA.gateTime p.toParams s)).map _ = _
-  simp only [Option.map_map]
+  rw [Option.map_map]
   apply congrArg (fun f : Node p → Option Block =>
     (preTick E rho x (SA.gateTime p.toParams s)).map f)
   funext nd
+  rw [Function.comp_apply]
   change (match (clockPre p nd.st (SA.gateTime p.toParams s)).restartTime with
       | none => SA.Root.confirmationFrom p.toParams
           (eraseFG (clockPre p nd.st (SA.gateTime p.toParams s)).fg.F)
@@ -104,9 +105,19 @@ private theorem p0d4SettGateResult (E : Generic.Env V) (rho : V2.D.Run V (fgsa p
       | some w => if w ≤ slotStartZ p s then SA.Root.confirmationFrom p.toParams
           (eraseFG (clockPre p nd.st (SA.gateTime p.toParams s)).fg.F)
           (actView (clockPre p nd.st (SA.gateTime p.toParams s))) s else none) = _
-  cases hr : (clockPre p nd.st (SA.gateTime p.toParams s)).restartTime <;>
-    simp only [Function.comp_apply, hr, ite_true]
-  all_goals rfl
+  split_ifs with hg
+  · cases hr : (clockPre p nd.st (SA.gateTime p.toParams s)).restartTime with
+    | none => rfl
+    | some w =>
+      rw [hr] at hg
+      change w ≤ slotStartZ p s at hg
+      exact ite_eq_left hg
+  · cases hr : (clockPre p nd.st (SA.gateTime p.toParams s)).restartTime with
+    | none => rw [hr] at hg; exact (hg True.intro).elim
+    | some w =>
+      rw [hr] at hg
+      change ¬ w ≤ slotStartZ p s at hg
+      exact ite_eq_right hg
 
 private theorem p0d4SettSource (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (x : V) (r : Nat) :
@@ -117,35 +128,78 @@ private theorem p0d4SettSource (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   change _ = (actionSourceFG p c E rho x r).map (Option.map eraseFG)
   rw [actionSourceFG_def]
 
+private theorem p0d4SettEnabled (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (j : Nat) (x : V) (s : Slot) :
+    FGCompose.AttemptEnabledGate E rho (p0d4SettTiming p) (p0d4SettGate p c) j x s ↔
+      enabledGateAt p c E rho j x s := by
+  rw [FGCompose.p0d4_AttemptEnabledGate_def]
+  have reads : (p0d4SettGate p c).restartTime (rho.stateBefore E j x) =
+      (storeAt p c E rho j x).restartTime := rfl
+  rw [reads]
+  constructor <;> rintro ⟨ht, hw⟩ <;> refine ⟨ht, ?_⟩
+  all_goals
+    cases hr : (storeAt p c E rho j x).restartTime <;>
+      first | trivial | (rw [hr] at hw; exact hw)
+
+private theorem p0d4SettCaught (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (x : V) (i : Nat) (t : Time) :
+    FGCompose.AttemptCaughtUp E rho (p0d4SettTiming p) (p0d4SettGate p c) x i t ↔
+      caughtUpAtIdx p c E rho x i t := by
+  rw [FGCompose.p0d4_AttemptCaughtUp_def]
+  have reads : (p0d4SettGate p c).restartTime (rho.stateBefore E i x) =
+      (storeAt p c E rho i x).restartTime := rfl
+  rw [reads]
+  constructor <;> rintro ⟨ha, hc⟩ <;> refine ⟨ha, ?_⟩
+  · cases hr : (storeAt p c E rho i x).restartTime with
+    | none => trivial
+    | some w =>
+      rw [hr] at hc
+      obtain ⟨s, j, hw, ht, hj, hg, hawake, hn⟩ := hc
+      exact ⟨s, j, hw, ht, hj, (p0d4SettEnabled E rho j x s).mp hg, hawake, hn⟩
+  · cases hr : (storeAt p c E rho i x).restartTime with
+    | none => trivial
+    | some w =>
+      rw [hr] at hc
+      obtain ⟨s, j, hw, ht, hj, hg, hawake, hn⟩ := hc
+      exact ⟨s, j, hw, ht, hj, (p0d4SettEnabled E rho j x s).mpr hg, hawake, hn⟩
+
 private theorem p0d4SettPassed (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (j : Nat) : FGCompose.AttemptGatePassed E rho (p0d4SettTiming p)
       (p0d4SettGate p c) j ↔ gatePassedAt p c E rho j := by
   constructor
   · rintro ⟨x, s, hg, hs, h⟩
-    refine ⟨x, s, hg, ?_, h⟩
+    refine ⟨x, s, (p0d4SettEnabled E rho j x s).mp hg, ?_, h⟩
     exact Option.map_eq_none_iff.mp hs
   · rintro ⟨x, s, hg, hs, h⟩
-    refine ⟨x, s, hg, ?_, h⟩
+    refine ⟨x, s, (p0d4SettEnabled E rho j x s).mpr hg, ?_, h⟩
     exact Option.map_eq_none_iff.mpr hs
 
 private theorem p0d4SettExact (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (s : Slot) (Q : Block) :
     FGCompose.AttemptExactService (p0d4SettCore p c) E rho (p0d4SettTiming p)
-      (fgsaInterface p c) (p0d4SettGate p c) s Q ↔ ExactService p c E rho s Q := by
+      (fgsaInterface p c) (p0d4SettGate p c) s Q ↔ ExactService p c E rho s Q  := by
   constructor
   · intro h
     refine ⟨h.1, ?_⟩
     intro hh x hx hr
-    obtain ⟨hg, hp, hw, hs, ha⟩ := h.2 hh x hx hr
-    exact ⟨(p0d4SettGateResult E rho x s) ▸ hg,
-      (by obtain ⟨j, hj, hp⟩ := hp; exact ⟨j, hj, (p0d4SettPassed E rho j).mp hp⟩), hw, hs,
+    obtain ⟨hg, hp, hw, hs, ha⟩ := h.2 hh x hx
+      ⟨hr.1, (p0d4SettCaught E rho x _ _).mpr hr.2⟩
+    have gates : ∃ j, enabledGateAt p c E rho j x s ∧ gatePassedAt p c E rho j := by
+      obtain ⟨j, hj, hp⟩ := hp
+      exact ⟨j, (p0d4SettEnabled E rho j x s).mp hj, (p0d4SettPassed E rho j).mp hp⟩
+    exact ⟨(p0d4SettGateResult E rho x s) ▸ hg, gates, hw, hs,
       fun r he => (p0d4SettSource E rho x r) ▸ ha r he⟩
   · intro h
     refine ⟨h.1, ?_⟩
     intro hh x hx hr
-    obtain ⟨hg, hp, hw, hs, ha⟩ := h.2 hh x hx hr
-    exact ⟨(p0d4SettGateResult E rho x s).symm ▸ hg,
-      (by obtain ⟨j, hj, hp⟩ := hp; exact ⟨j, hj, (p0d4SettPassed E rho j).mpr hp⟩), hw, hs,
+    obtain ⟨hg, hp, hw, hs, ha⟩ := h.2 hh x hx
+      ⟨hr.1, (p0d4SettCaught E rho x _ _).mp hr.2⟩
+    have gates : ∃ j, FGCompose.AttemptEnabledGate E rho (p0d4SettTiming p)
+        (p0d4SettGate p c) j x s ∧
+        FGCompose.AttemptGatePassed E rho (p0d4SettTiming p) (p0d4SettGate p c) j := by
+      obtain ⟨j, hj, hp⟩ := hp
+      exact ⟨j, (p0d4SettEnabled E rho j x s).mpr hj, (p0d4SettPassed E rho j).mpr hp⟩
+    exact ⟨(p0d4SettGateResult E rho x s).symm ▸ hg, gates, hw, hs,
       fun r he => (p0d4SettSource E rho x r).symm ▸ ha r he⟩
 
 omit [DecidableEq V] in
@@ -234,6 +288,8 @@ private theorem p0d4SettReceipts {i m : Nat} {deadline : Time}
       p0d4SettWitness p c E rho hrC, p0d4SettWitness p c E rho hrW⟩
 
 end P0d4SettLaws
+
+public section
 
 include mono readyCut heldServices
 
@@ -463,5 +519,5 @@ theorem healing_attempt_firstRow_other_settle
   rcases k with ⟨i, m, phase, task, served⟩
   cases phase <;> exact result
 
-end AvailableChain.FGSA.Run
 end
+end AvailableChain.FGSA.Run
