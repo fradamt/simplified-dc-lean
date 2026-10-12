@@ -136,12 +136,14 @@ private noncomputable abbrev do_driver : FGDependencyDriver Bool (Fin 4) do_prot
         if st = 5 ∧ b = 2 then .read .ac z .finish else .finish z
     | _ => .finish st
   drain st := if 2 ≤ st ∧ st ≤ 5 then 6 else st
+  reconstruct st _ := st
   retry st b _ _ := do_leafProtocol.process st (do_wire b)
   work st e := if st = 2 then
     [.step (.leaf 1 do_parent .accepted), .step (.leaf 2 do_child .accepted),
       .step (.notification 1 do_parent), .step (.notification 2 do_child)]
     else match e with
       | .deliver _ _ _ => if st = 1 then [.step .idle] else []
+      | .restart _ t => [.step (.reconstruct t)]
       | _ => []
   inheritRefusal st _ _ := st
   notify st b _ := if st = 4 ∧ b = 1 then 5 else if st = 5 ∧ b = 2 then 6 else st
@@ -152,24 +154,25 @@ private noncomputable abbrev do_op (k : Nat) :
   match k with
   | 0 => .arrival 2 do_child
   | 3 => .restore 1
-  | 5 => .arrival 1 do_parent
-  | 6 => .leaf 1 do_parent .accepted
-  | 7 => .leaf 2 do_child .accepted
-  | 8 => .notification 1 do_parent
-  | 9 => .notification 2 do_child
-  | 11 => .clock 4
+  | 4 => .reconstruct 1
+  | 6 => .arrival 1 do_parent
+  | 7 => .leaf 1 do_parent .accepted
+  | 8 => .leaf 2 do_child .accepted
+  | 9 => .notification 1 do_parent
+  | 10 => .notification 2 do_child
+  | 12 => .clock 4
   | _ => .idle
 
 private noncomputable abbrev do_trace : FGDependencyTrace Nat where
-  length := 12
-  state k := [0, 1, 1, 1, 1, 1, 2, 3, 4, 5, 6, 6, 6][k]?.getD 6
-  time k := [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 4, 4][k]?.getD 4
-  start j := [0, 3, 5, 11][j]?.getD 12
-  done j := [2, 4, 10, 12][j]?.getD 12
-  readCut _ := 12
-  entryCut j := [1, 4, 6, 12][j]?.getD 12
-  dutyCut j := [2, 4, 10, 12][j]?.getD 12
-  hookRead j index kind cut st := j = 2 ∧ index = 0 ∧ kind = .ac ∧ cut = 10 ∧ st = 6
+  length := 13
+  state k := [0, 1, 1, 1, 1, 1, 1, 2, 3, 4, 5, 6, 6, 6][k]?.getD 6
+  time k := [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 4][k]?.getD 4
+  start j := [0, 3, 6, 12][j]?.getD 13
+  done j := [2, 5, 11, 13][j]?.getD 13
+  readCut _ := 13
+  entryCut j := [1, 4, 7, 13][j]?.getD 13
+  dutyCut j := [2, 5, 11, 13][j]?.getD 13
+  hookRead j index kind cut st := j = 2 ∧ index = 0 ∧ kind = .ac ∧ cut = 11 ∧ st = 6
 
 private noncomputable abbrev do_read (_ : Bool) (i st : Nat) : Prop :=
   12 ≤ i ∧ i < 16 ∧ st = 6
@@ -326,7 +329,7 @@ private theorem do_arrival_laws :
 
 private theorem do_micro_steps (k : Nat) (hk : k < do_trace.length) :
     ∃ kind, do_step kind false (do_trace.state k) (do_trace.state (k + 1)) := by
-  change k < 12 at hk
+  change k < 13 at hk
   interval_cases k <;> first
     | exact ⟨.arrival, Or.inr (Or.inl ⟨rfl, Or.inl ⟨rfl, rfl⟩⟩)⟩
     | exact ⟨.arrival, Or.inr (Or.inl ⟨rfl, Or.inr ⟨rfl, rfl⟩⟩)⟩
@@ -357,14 +360,15 @@ private theorem do_trace_laws :
     interval_cases j <;> simp only [List.getElem?_cons_zero,
       List.getElem?_cons_succ, Option.some.injEq] at h <;> subst e <;> exact ⟨rfl, rfl⟩
   step_kind k hk := by
-    change k < 12 at hk
+    change k < 13 at hk
     interval_cases k <;> simp [dependencyOperationKind, do_op, do_step]
   operation_bound k hk := by
-    change k < 12 at hk
+    change k < 13 at hk
     interval_cases k <;> simp only [do_op]
     all_goals first
       | exact ⟨Or.inl ⟨rfl, rfl, rfl, rfl⟩, rfl, do_child_origin, rfl⟩
       | exact ⟨Or.inr ⟨rfl, rfl, rfl, rfl⟩, rfl, do_parent_origin, rfl⟩
+      | exact ⟨rfl, 1, rfl, rfl⟩
       | simp [dependencyResolved, dependencyRefused, do_notify]
   delivery_entry j wire t h := by
     have hj := do_events_bound h
@@ -388,9 +392,9 @@ private theorem do_trace_laws :
       simp
     · change (1 = 2 ∧ _) ↔ ∃ r, ([] : List (FGDependencyWorkRead Nat))[index]? = some r ∧ _
       simp
-    · change (2 = 2 ∧ index = 0 ∧ kind = .ac ∧ cut = 10 ∧ st = 6) ↔
+    · change (2 = 2 ∧ index = 0 ∧ kind = .ac ∧ cut = 11 ∧ st = 6) ↔
         ∃ r, ([⟨4, .ac, 6⟩] : List (FGDependencyWorkRead Nat))[index]? = some r ∧
-          r.kind = kind ∧ cut = 6 + r.offset ∧ st = r.consumed
+          r.kind = kind ∧ cut = 7 + r.offset ∧ st = r.consumed
       cases index <;> simp [eq_comm]
     · change (3 = 2 ∧ _) ↔ ∃ r, ([] : List (FGDependencyWorkRead Nat))[index]? = some r ∧ _
       simp
@@ -435,7 +439,7 @@ private theorem do_trace_laws :
       List.getElem?_cons_succ, Option.some.injEq] at h <;> subst e <;>
       norm_num [do_trace] at lo hi <;> interval_cases k <;> simp [do_op]
   boundary_idle k hk outside := by
-    change k < 12 at hk
+    change k < 13 at hk
     interval_cases k <;> simp only [do_op]
     all_goals exfalso; apply outside
     all_goals first
@@ -455,15 +459,39 @@ private theorem do_trace_laws :
     all_goals cases h <;> rfl
   restore_data _ _ := ⟨rfl, rfl, fun _ _ _ => Iff.rfl,
     fun _ _ => Iff.rfl, fun _ _ => Iff.rfl⟩
+  reconstruct_program _ _ := rfl
+  reconstruct_data st _ := by
+    refine ⟨rfl, rfl, fun _ => Iff.rfl, fun _ _ _ => Iff.rfl,
+      fun _ _ => Iff.rfl, fun _ _ => Iff.rfl, fun _ => Iff.rfl, ?_, ?_⟩
+    · intro b o h
+      rcases h with (⟨rfl, rfl, rfl, hz⟩ | ⟨rfl, rfl, rfl, hz⟩) <;> cases hz
+    · intro b o h; exact h.elim
+  restart_reconstruct j t h := by
+    have hj := do_events_bound h
+    interval_cases j <;> simp only [List.getElem?_cons_zero,
+      List.getElem?_cons_succ, Option.some.injEq] at h
+    all_goals cases h <;> exact ⟨by decide, rfl⟩
+  restart_drain_closed j t h := by
+    have hj := do_events_bound h
+    interval_cases j <;> simp only [List.getElem?_cons_zero,
+      List.getElem?_cons_succ, Option.some.injEq] at h
+    all_goals cases h
+    exact do_closed 1 (Or.inl rfl)
+  restart_replay_order j t k b o h lo hi op := by
+    have hj := do_events_bound h
+    interval_cases j <;> simp only [List.getElem?_cons_zero,
+      List.getElem?_cons_succ, Option.some.injEq] at h
+    all_goals cases h <;> norm_num [do_trace] at lo hi ⊢
+    all_goals interval_cases k; simp_all [do_op]
   clock_no_insert _ _ := ⟨rfl, rfl⟩
   refusal_creation _ _ _ refused _ := refused.elim
   refusal_history _ _ _ refused := refused.elim
   notification_creation k b hk notified fresh := by
-    change k < 12 at hk
+    change k < 13 at hk
     interval_cases k <;> simp_all
     all_goals rcases notified with rfl | ⟨rfl, _⟩ | ⟨rfl, _⟩
-    · exact ⟨rfl, Or.inl ⟨rfl, rfl, rfl⟩, 6, by decide, by simp [do_op]⟩
-    · exact ⟨rfl, Or.inr ⟨rfl, rfl, rfl⟩, 7, by decide, by simp [do_op]⟩
+    · exact ⟨rfl, Or.inl ⟨rfl, rfl, rfl⟩, 7, by decide, by simp [do_op]⟩
+    · exact ⟨rfl, Or.inr ⟨rfl, rfl, rfl⟩, 8, by decide, by simp [do_op]⟩
   actual_read i st := by
     constructor
     · rintro ⟨lo, hi, rfl⟩
@@ -483,19 +511,19 @@ private theorem do_trace_laws :
     interval_cases j <;> simp only [List.getElem?_cons_zero,
       List.getElem?_cons_succ, Option.some.injEq] at h <;> subst e
     all_goals simp [dependencyReadRequired] at required
-    all_goals exact ⟨Nat.le_refl 12, Nat.le_refl 12, rfl, .refl _⟩
+    all_goals exact ⟨Nat.le_refl 13, Nat.le_refl 13, rfl, .refl _⟩
   wire_validation wire b valid decoded := by
     have hb : wire.payload = b := Option.some.inj decoded
     simpa [do_protocol, do_reads, hb] using valid
   origin_valid k b o hk origin := by
-    change k ≤ 12 at hk
+    change k ≤ 13 at hk
     rcases origin with ⟨rfl, h, rfl⟩ | ⟨rfl, h, rfl⟩
     · refine ⟨do_child_origin, ?_⟩
       interval_cases k <;> simp_all
     · refine ⟨do_parent_origin, ?_⟩
       interval_cases k <;> simp_all
   leaf_step k b o z hk leaf hz := by
-    change k < 12 at hk
+    change k < 13 at hk
     rcases leaf with ⟨_, (⟨ha, rfl, rfl, rfl⟩ | ⟨ha, rfl, rfl, rfl⟩)⟩
     · refine ⟨do_parent_origin, ?_, ?_⟩
       · clear hz
@@ -515,15 +543,15 @@ private theorem do_trace_laws :
     rcases leaf with ⟨_, (⟨ha, rfl, rfl, hz⟩ | ⟨ha, rfl, rfl, hz⟩)⟩
     · exact ⟨do_parent, ⟨rfl, Or.inl ⟨ha, rfl, rfl, hz⟩⟩,
         Or.inr ⟨rfl, by omega, rfl⟩, by
-          change k < 12 at hk
+          change k < 13 at hk
           interval_cases k <;> simp_all [do_op], rfl, rfl⟩
     · exact ⟨do_child, ⟨rfl, Or.inr ⟨ha, rfl, rfl, hz⟩⟩,
         Or.inl ⟨rfl, by omega, rfl⟩, by
-          change k < 12 at hk
+          change k < 13 at hk
           interval_cases k <;> simp_all [do_op], rfl, rfl⟩
   read_correspondence i st read := by
     rcases read with ⟨_, _, rfl⟩
-    exact ⟨Nat.le_refl 12, rfl, do_closed 6 (Or.inr rfl)⟩
+    exact ⟨Nat.le_refl 13, rfl, do_closed 6 (Or.inr rfl)⟩
   order_and_time i j ei ej hi hj le := by
     have bi := do_events_bound hi
     have bj := do_events_bound hj
@@ -676,11 +704,11 @@ private theorem do_strict_completion_without_any_read :
 #print axioms do_strict_completion_without_any_read
 
 private theorem do_same_time_positive :
-    do_trace.time 7 = 1 ∧ do_trace.time 8 = 1 ∧ do_trace.time 9 = 1 ∧
-    do_trace.time 10 = 1 ∧ do_trace.done 2 = 10 ∧
-    dependencyResolved do_history do_reads (do_trace.state 10) 2 ∧
-    do_reads.notified (do_trace.state 10) 2 ∧
-    do_reads.companionHeld (do_reads.latest (do_trace.state 10)) 2 := by
+    do_trace.time 8 = 1 ∧ do_trace.time 9 = 1 ∧ do_trace.time 10 = 1 ∧
+    do_trace.time 11 = 1 ∧ do_trace.done 2 = 11 ∧
+    dependencyResolved do_history do_reads (do_trace.state 11) 2 ∧
+    do_reads.notified (do_trace.state 11) 2 ∧
+    do_reads.companionHeld (do_reads.latest (do_trace.state 11)) 2 := by
   unfold dependencyResolved dependencyRefused
   decide +kernel
 
@@ -728,8 +756,8 @@ private theorem do_delayed_notification_enabled :
     (by simp)
 
 private theorem do_later_read_closed_but_late :
-    dependencyClosed do_history do_reads (do_trace.state 12) ∧
-    ¬ do_trace.time 12 < (3 : Time) :=
+    dependencyClosed do_history do_reads (do_trace.state 13) ∧
+    ¬ do_trace.time 13 < (3 : Time) :=
   ⟨do_closed 6 (Or.inr rfl), by decide⟩
 
 private theorem do_retained_only_entry :
@@ -763,16 +791,16 @@ private theorem do_weak_delayed_model (firstLate : Nat) :
 
 private theorem do_delayed_child_countermodel :
     ¬ FGDependencyTraceLaws do_env do_run false do_history do_wireReads do_reads do_leaf
-      do_step (do_delayed 8) do_driver do_op do_arrival do_notify
+      do_step (do_delayed 9) do_driver do_op do_arrival do_notify
       (Leaf := do_leafProtocol) id id do_read := by
   intro laws
   have cutoff := laws.completion_cut 2 (.deliver false (do_wire 1) 1) 3 rfl (by decide)
   exact (by decide : ¬ (4 : Time) < 3) cutoff.2.1
 
 private theorem do_delayed_notification_countermodel :
-    do_trace.time 8 = 1 ∧
+    do_trace.time 9 = 1 ∧
     ¬ FGDependencyTraceLaws do_env do_run false do_history do_wireReads do_reads do_leaf
-      do_step (do_delayed 9) do_driver do_op do_arrival do_notify
+      do_step (do_delayed 10) do_driver do_op do_arrival do_notify
       (Leaf := do_leafProtocol) id id do_read := by
   refine ⟨rfl, ?_⟩
   intro laws
@@ -781,7 +809,7 @@ private theorem do_delayed_notification_countermodel :
 
 private theorem do_early_read_countermodel :
     ¬ FGDependencyTraceLaws do_env do_run false do_history do_wireReads do_reads do_leaf
-      do_step { do_trace with readCut := fun _ => 7 }
+      do_step { do_trace with readCut := fun _ => 8 }
       do_driver do_op do_arrival do_notify
       (Leaf := do_leafProtocol) id id do_read := by
   intro laws
@@ -952,6 +980,7 @@ private noncomputable abbrev do_sendDriver (body : Fin 4) :
   enterProgram st _ _ := .finish st
   hookProgram st _ := .finish st
   drain := id
+  reconstruct st _ := st
   retry st _ _ _ := st
   work _ _ := []
   inheritRefusal st _ _ := st
@@ -1062,14 +1091,14 @@ private theorem do_hypothetical_refusal_rejected :
     do_hypotheticalLeaf.step 99 2 do_child .definitiveRefused 100 ∧
     do_badRefusalReads.accepted 99 (do_history.parent 2) ∧
     do_badRefusalReads.conflictsFinal 99 2 ∧
-    ¬ do_badRefusalReads.conflictsFinal (do_trace.state 7) 2 ∧
+    ¬ do_badRefusalReads.conflictsFinal (do_trace.state 8) 2 ∧
     ¬ FGDependencyTraceLaws do_env do_run false do_history do_wireReads
       do_badRefusalReads do_hypotheticalLeaf do_step do_trace do_driver do_op
       do_arrival do_notify (Leaf := do_leafProtocol) id id do_read := by
   refine ⟨do_child_origin, Or.inr ⟨rfl, rfl, rfl, rfl, rfl⟩,
     Or.inr ⟨rfl, by decide⟩, rfl, by decide, ?_⟩
   intro laws
-  have created := laws.refusal_creation 7 2 (by decide)
+  have created := laws.refusal_creation 8 2 (by decide)
     ⟨by decide, rfl, rfl, rfl⟩ (by simp [dependencyRefused])
   rcases created with ⟨o, operation, _⟩ | ⟨o, operation, _⟩
   · cases operation
@@ -1087,7 +1116,7 @@ private theorem do_status_flag_without_hook_rejected :
       do_silentNotificationReads do_leaf do_step do_trace do_driver do_op
       do_arrival do_notify (Leaf := do_leafProtocol) id id do_read := by
   intro laws
-  obtain ⟨o, operation, _⟩ := laws.notification_creation 6 1 (by decide)
+  obtain ⟨o, operation, _⟩ := laws.notification_creation 7 1 (by decide)
     (by simp) (by simp)
   cases operation
 
@@ -1114,7 +1143,7 @@ private theorem do_future_origin_at_run_cut_rejected :
   intro laws
   have order := (laws.origin_valid 1 1 do_parent (by decide)
     (Or.inr ⟨rfl, rfl, rfl⟩)).2
-  change 5 < 1 at order
+  change 6 < 1 at order
   omega
 
 /-- The parent receipt has four real work transitions after its entry boundary. -/
@@ -1148,6 +1177,7 @@ private noncomputable abbrev do_silentOrdinaryDriver :
   enterProgram st _ _ := .finish st
   hookProgram st _ := .finish st
   drain := id
+  reconstruct st _ := st
   retry st _ _ _ := st
   work _ _ := []
   inheritRefusal st _ _ := st
@@ -1223,7 +1253,7 @@ private theorem do_omitted_hook_read_rejected :
       do_arrival do_notify (Leaf := do_leafProtocol) id id do_read := by
   intro laws
   have actual := (laws.hook_correspondence 2 (.deliver false (do_wire 1) 1)
-    0 .ac 10 6 rfl).mpr ⟨⟨4, .ac, 6⟩, rfl, rfl, rfl, rfl⟩
+    0 .ac 11 6 rfl).mpr ⟨⟨4, .ac, 6⟩, rfl, rfl, rfl, rfl⟩
   exact actual
 
 private noncomputable abbrev do_entryReadDriver : FGDependencyDriver Bool (Fin 4) do_protocol :=
@@ -1242,12 +1272,12 @@ private theorem do_omitted_entry_read_rejected :
 #print axioms do_omitted_entry_read_rejected
 
 private theorem do_hook_read_nonempty_completion :
-    do_trace.hookRead 2 0 .ac 10 6 ∧ do_trace.entryCut 2 < 10 ∧
+    do_trace.hookRead 2 0 .ac 11 6 ∧ do_trace.entryCut 2 < 11 ∧
     FGDependencySteps do_step false (do_trace.state (do_trace.entryCut 2)) 6 ∧
     dependencyClosed do_history do_reads 6 := by
   have completed := dependency_hook_read_completion do_trace_laws
     (e := .deliver false (do_wire 1) 1) rfl
-    (show do_trace.hookRead 2 0 .ac 10 6 from ⟨rfl, rfl, rfl, rfl, rfl⟩)
+    (show do_trace.hookRead 2 0 .ac 11 6 from ⟨rfl, rfl, rfl, rfl, rfl⟩)
   exact ⟨⟨rfl, rfl, rfl, rfl, rfl⟩, by decide, completed.2.2.2⟩
 
 private theorem do_hook_original_receipt_and_rows :
@@ -1255,8 +1285,8 @@ private theorem do_hook_original_receipt_and_rows :
       do_wireReads.proposalErase o.wire = some (do_body 2) ∧
       do_wireReads.decodedRows o.wire = [2]) ∧
     FGReceiptOrigin do_env do_run do_history do_wireReads false 2 do_child ∧
-    do_trace.start do_child.eventIndex < 10 := by
-  have read : do_trace.hookRead 2 0 .ac 10 6 := ⟨rfl, rfl, rfl, rfl, rfl⟩
+    do_trace.start do_child.eventIndex < 11 := by
+  have read : do_trace.hookRead 2 0 .ac 11 6 := ⟨rfl, rfl, rfl, rfl, rfl⟩
   exact ⟨dependency_hook_accepted_origin_bridge do_trace_laws
       (e := .deliver false (do_wire 1) 1) rfl read
       (Or.inr (Or.inr ⟨rfl, by decide⟩)) (by decide),
@@ -1267,22 +1297,22 @@ private theorem do_hook_original_receipt_and_rows :
 
 /-- The public record rejects the former reflexive witness at a substituted closed cut. -/
 private theorem do_substituted_closed_start_rejected :
-    dependencyClosed do_history do_reads (do_trace.state 10) ∧
+    dependencyClosed do_history do_reads (do_trace.state 11) ∧
     ¬ FGDependencyReadClosureLaws do_env do_run false do_history do_reads do_step
-      do_trace do_driver (fun i => { do_site i with entryCut := 10 }) do_read
+      do_trace do_driver (fun i => { do_site i with entryCut := 11 }) do_read
       do_wireReads do_leaf do_op do_arrival do_notify (Leaf := do_leafProtocol) id id := by
   refine ⟨do_closed 6 (Or.inr rfl), ?_⟩
   intro laws
   obtain ⟨e, event, _, _, entry, _⟩ :=
     laws.site_correspondence 12 6 ⟨by decide, by decide, rfl⟩
-  change 10 = 12 at entry
+  change 11 = 13 at entry
   omega
 
 private theorem do_substituted_hook_start_rejected :
     FGDependencyEnabled do_history do_reads (do_trace.state (do_trace.entryCut 2)) ∧
-    dependencyClosed do_history do_reads (do_trace.state 10) ∧
+    dependencyClosed do_history do_reads (do_trace.state 11) ∧
     ¬ FGDependencyReadClosureLaws do_env do_run false do_history do_reads do_step
-      { do_trace with entryCut := fun j => if j = 2 then 10 else do_trace.entryCut j }
+      { do_trace with entryCut := fun j => if j = 2 then 11 else do_trace.entryCut j }
       do_driver do_site do_read do_wireReads do_leaf do_op do_arrival do_notify
       (Leaf := do_leafProtocol) id id := by
   refine ⟨?_, do_closed 6 (Or.inr rfl), ?_⟩
@@ -1291,7 +1321,7 @@ private theorem do_substituted_hook_start_rejected :
       (by simp [dependencyResolved, dependencyRefused])
   · intro laws
     have wrong := (laws.trace_bound.entry_boundary 2 (.deliver false (do_wire 1) 1) rfl).1
-    change 10 = 6 at wrong
+    change 11 = 7 at wrong
     omega
 
 #print axioms do_substituted_hook_start_rejected
@@ -1311,7 +1341,7 @@ private theorem do_silence_fresh_refusal_rejected :
       do_badRefusalReads do_hypotheticalLeaf do_step do_trace do_driver
       (fun _ => .idle) do_arrival do_notify (Leaf := do_leafProtocol) id id do_read := by
   intro laws
-  have created := laws.refusal_creation 7 2 (by decide)
+  have created := laws.refusal_creation 8 2 (by decide)
     ⟨by decide, rfl, rfl, rfl⟩ (by simp [dependencyRefused])
   rcases created with ⟨o, operation, _⟩ | ⟨o, operation, _⟩
   · cases operation
@@ -1502,7 +1532,8 @@ private noncomputable abbrev dr4_driver : FGDependencyDriver Bool (Fin 4) dr4_pr
       | _ => do_driver.hookProgram st op
     notify := fun st b o => if st = 8 ∧ b = 2 then 9 else do_driver.notify st b o
     work := fun st e => if st = 7 then
-      [.step (.replay 1 do_parent), .step (.notification 2 do_child), .step (.replay 2 do_child)]
+      [.step (.reconstruct 5), .step (.replay 1 do_parent),
+        .step (.notification 2 do_child), .step (.replay 2 do_child)]
       else do_driver.work st e }
 
 private noncomputable abbrev dr4_notify (a : Nat) (b : Fin 4) (z : Nat) : Prop :=
@@ -1519,30 +1550,32 @@ private noncomputable abbrev dr4_op (k : Nat) :
   match k with
   | 0 => .arrival 2 do_child
   | 3 => .restore 1
-  | 5 => .arrival 1 do_parent
-  | 6 => .leaf 1 do_parent .accepted
-  | 7 => .leaf 2 do_child .accepted
-  | 8 => .notification 1 do_parent
-  | 9 => .notification 2 do_child
-  | 11 => .clock 4
-  | 13 => .restore 5
-  | 14 => .replay 1 do_parent
-  | 15 => .notification 2 do_child
-  | 16 => .replay 2 do_child
+  | 4 => .reconstruct 1
+  | 6 => .arrival 1 do_parent
+  | 7 => .leaf 1 do_parent .accepted
+  | 8 => .leaf 2 do_child .accepted
+  | 9 => .notification 1 do_parent
+  | 10 => .notification 2 do_child
+  | 12 => .clock 4
+  | 14 => .restore 5
+  | 15 => .reconstruct 5
+  | 16 => .replay 1 do_parent
+  | 17 => .notification 2 do_child
+  | 18 => .replay 2 do_child
   | _ => .idle
 
 private noncomputable abbrev dr4_trace : FGDependencyTrace Nat where
-  length := 17
-  state k := [0, 1, 1, 1, 1, 1, 2, 3, 4, 5, 6, 6, 6, 6, 7, 8, 9, 9][k]?.getD 9
-  time k := [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 4, 4, 5, 5, 5, 5, 5][k]?.getD 5
-  start j := [0, 3, 5, 11, 13][j]?.getD 17
-  done j := [2, 4, 10, 12, 17][j]?.getD 17
-  readCut _ := 12
-  entryCut j := [1, 4, 6, 12, 14][j]?.getD 17
-  dutyCut j := [2, 4, 10, 12, 14][j]?.getD 17
+  length := 19
+  state k := [0, 1, 1, 1, 1, 1, 1, 2, 3, 4, 5, 6, 6, 6, 6, 7, 7, 8, 9, 9][k]?.getD 9
+  time k := [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 4, 5, 5, 5, 5, 5, 5][k]?.getD 5
+  start j := [0, 3, 6, 12, 14][j]?.getD 19
+  done j := [2, 5, 11, 13, 19][j]?.getD 19
+  readCut _ := 13
+  entryCut j := [1, 4, 7, 13, 15][j]?.getD 19
+  dutyCut j := [2, 5, 11, 13, 16][j]?.getD 19
   hookRead j index kind cut st := do_trace.hookRead j index kind cut st ∨
     (j = 4 ∧ kind = .ac ∧ st = 9 ∧
-      ((index = 0 ∧ cut = 16) ∨ (index = 1 ∧ cut = 17)))
+      ((index = 0 ∧ cut = 18) ∨ (index = 1 ∧ cut = 19)))
 
 private theorem dr4_child_origin :
     FGReceiptOrigin do_env dr4_run do_history dr4_wireReads false 2 do_child := by
@@ -1563,7 +1596,7 @@ private theorem dr4_events_bound {j : Nat} {e : V2.Event Bool dr4_protocol.Objec
 
 private theorem dr4_micro_steps (k : Nat) (hk : k < dr4_trace.length) :
     ∃ kind, dr4_step kind false (dr4_trace.state k) (dr4_trace.state (k + 1)) := by
-  change k < 17 at hk
+  change k < 19 at hk
   interval_cases k <;> solve
     | exact ⟨.ordinary, Or.inl (Or.inl rfl)⟩
     | (refine ⟨.arrival, ?_⟩; simp [dr4_step, do_step])
@@ -1665,7 +1698,7 @@ private theorem dr4_step_laws :
 
 
 set_option maxHeartbeats 800000 in
--- Finite cases cover 17 microsteps, five events, and two reads in the restart segment.
+-- Finite cases cover 19 microsteps, five events, and two reads in the restart segment.
 private theorem dr4_trace_laws :
     FGDependencyTraceLaws do_env dr4_run false do_history dr4_wireReads dr4_reads do_leaf
       dr4_step dr4_trace dr4_driver dr4_op do_arrival dr4_notify
@@ -1679,14 +1712,16 @@ private theorem dr4_trace_laws :
     interval_cases j <;> simp only [List.getElem?_cons_zero,
       List.getElem?_cons_succ, Option.some.injEq] at h <;> subst e <;> exact ⟨rfl, rfl⟩
   step_kind k hk := by
-    change k < 17 at hk
+    change k < 19 at hk
     interval_cases k <;> simp [dependencyOperationKind, dr4_op, dr4_step, do_step]
   operation_bound k hk := by
-    change k < 17 at hk
+    change k < 19 at hk
     interval_cases k <;> simp only [dr4_op]
     all_goals first
       | exact ⟨Or.inl ⟨rfl, rfl, rfl, rfl⟩, rfl, dr4_child_origin, rfl⟩
       | exact ⟨Or.inr ⟨rfl, rfl, rfl, rfl⟩, rfl, dr4_parent_origin, rfl⟩
+      | exact ⟨rfl, 1, rfl, rfl⟩
+      | exact ⟨rfl, 4, rfl, rfl⟩
       | simp [dependencyResolved, dependencyRefused, dr4_notify, do_notify]
   delivery_entry j wire t h := by
     have hj := dr4_events_bound h
@@ -1712,19 +1747,19 @@ private theorem dr4_trace_laws :
     · change ((1 = 2 ∧ _) ∨ (1 = 4 ∧ _)) ↔
         ∃ r, ([] : List (FGDependencyWorkRead Nat))[index]? = some r ∧ _
       simp
-    · change ((2 = 2 ∧ index = 0 ∧ kind = .ac ∧ cut = 10 ∧ st = 6) ∨
+    · change ((2 = 2 ∧ index = 0 ∧ kind = .ac ∧ cut = 11 ∧ st = 6) ∨
         (2 = 4 ∧ _)) ↔
         ∃ r, ([⟨4, .ac, 6⟩] : List (FGDependencyWorkRead Nat))[index]? = some r ∧
-          r.kind = kind ∧ cut = 6 + r.offset ∧ st = r.consumed
+          r.kind = kind ∧ cut = 7 + r.offset ∧ st = r.consumed
       cases index <;> simp [eq_comm]
     · change ((3 = 2 ∧ _) ∨ (3 = 4 ∧ _)) ↔
         ∃ r, ([] : List (FGDependencyWorkRead Nat))[index]? = some r ∧ _
       simp
     · change ((4 = 2 ∧ _) ∨ (4 = 4 ∧ kind = .ac ∧ st = 9 ∧
-        ((index = 0 ∧ cut = 16) ∨ (index = 1 ∧ cut = 17)))) ↔
-        ∃ r, ([⟨2, .ac, 9⟩, ⟨3, .ac, 9⟩] :
+        ((index = 0 ∧ cut = 18) ∨ (index = 1 ∧ cut = 19)))) ↔
+        ∃ r, ([⟨3, .ac, 9⟩, ⟨4, .ac, 9⟩] :
           List (FGDependencyWorkRead Nat))[index]? = some r ∧
-          r.kind = kind ∧ cut = 14 + r.offset ∧ st = r.consumed
+          r.kind = kind ∧ cut = 15 + r.offset ∧ st = r.consumed
       rcases index with _ | (_ | index) <;> simp [eq_comm] <;> tauto
   hook_reads j e r h member := by
     have hj := dr4_events_bound h
@@ -1740,7 +1775,7 @@ private theorem dr4_trace_laws :
       exact ⟨by decide, rfl, dr4_entry_steps false, dr4_closed 6 (Or.inr (Or.inl rfl))⟩
     · change r ∈ ([] : List (FGDependencyWorkRead Nat)) at member
       cases member
-    · change r ∈ ([⟨2, .ac, 9⟩, ⟨3, .ac, 9⟩] :
+    · change r ∈ ([⟨3, .ac, 9⟩, ⟨4, .ac, 9⟩] :
         List (FGDependencyWorkRead Nat)) at member
       simp only [List.mem_cons, List.not_mem_nil, or_false] at member
       rcases member with rfl | rfl <;>
@@ -1774,7 +1809,7 @@ private theorem dr4_trace_laws :
       List.getElem?_cons_succ, Option.some.injEq] at h <;> subst e <;>
       norm_num [dr4_trace] at lo hi <;> interval_cases k <;> simp [dr4_op]
   boundary_idle k hk outside := by
-    change k < 17 at hk
+    change k < 19 at hk
     interval_cases k <;> simp only [dr4_op]
     all_goals exfalso; apply outside
     all_goals first
@@ -1794,15 +1829,40 @@ private theorem dr4_trace_laws :
       List.getElem?_cons_succ, Option.some.injEq] at h
     all_goals cases h <;> rfl
   restore_data := dr4_step_laws.restore_exact
+  reconstruct_program _ _ := rfl
+  reconstruct_data st _ := by
+    refine ⟨rfl, rfl, fun _ => Iff.rfl, fun _ _ _ => Iff.rfl,
+      fun _ _ => Iff.rfl, fun _ _ => Iff.rfl, fun _ => Iff.rfl, ?_, ?_⟩
+    · intro b o h
+      rcases h with (⟨rfl, rfl, rfl, hz⟩ | ⟨rfl, rfl, rfl, hz⟩) <;> cases hz
+    · intro b o h; exact h.elim
+  restart_reconstruct j t h := by
+    have hj := dr4_events_bound h
+    interval_cases j <;> simp only [List.getElem?_cons_zero,
+      List.getElem?_cons_succ, Option.some.injEq] at h
+    all_goals cases h <;> exact ⟨by decide, rfl⟩
+  restart_drain_closed j t h := by
+    have hj := dr4_events_bound h
+    interval_cases j <;> simp only [List.getElem?_cons_zero,
+      List.getElem?_cons_succ, Option.some.injEq] at h
+    all_goals cases h
+    · exact dr4_closed 1 (Or.inl rfl)
+    · exact dr4_closed 7 (Or.inr (Or.inr (Or.inl rfl)))
+  restart_replay_order j t k b o h lo hi op := by
+    have hj := dr4_events_bound h
+    interval_cases j <;> simp only [List.getElem?_cons_zero,
+      List.getElem?_cons_succ, Option.some.injEq] at h
+    all_goals cases h <;> norm_num [dr4_trace] at lo hi ⊢
+    all_goals interval_cases k <;> simp_all [dr4_op]
   clock_no_insert _ _ := ⟨rfl, rfl⟩
   refusal_creation _ _ _ refused _ := refused.elim
   refusal_history _ _ _ refused := refused.elim
   notification_creation k b hk notified fresh := by
-    change k < 17 at hk
+    change k < 19 at hk
     interval_cases k <;> simp_all
     all_goals rcases notified with rfl | ⟨rfl, _⟩ | ⟨rfl, _⟩
-    · exact ⟨rfl, Or.inl (Or.inl ⟨rfl, rfl, rfl⟩), 6, by decide, by simp [dr4_op]⟩
-    · exact ⟨rfl, Or.inl (Or.inr ⟨rfl, rfl, rfl⟩), 7, by decide, by simp [dr4_op]⟩
+    · exact ⟨rfl, Or.inl (Or.inl ⟨rfl, rfl, rfl⟩), 7, by decide, by simp [dr4_op]⟩
+    · exact ⟨rfl, Or.inl (Or.inr ⟨rfl, rfl, rfl⟩), 8, by decide, by simp [dr4_op]⟩
   actual_read i st := by
     constructor
     · rintro ⟨lo, hi, rfl⟩
@@ -1822,19 +1882,19 @@ private theorem dr4_trace_laws :
     interval_cases j <;> simp only [List.getElem?_cons_zero,
       List.getElem?_cons_succ, Option.some.injEq] at h <;> subst e
     all_goals simp [dependencyReadRequired] at required
-    all_goals exact ⟨Nat.le_refl 12, Nat.le_refl 12, rfl, .refl _⟩
+    all_goals exact ⟨Nat.le_refl 13, Nat.le_refl 13, rfl, .refl _⟩
   wire_validation wire b valid decoded := by
     have hb : wire.payload = b := Option.some.inj decoded
     simpa [do_protocol, dr4_reads, hb] using valid
   origin_valid k b o hk origin := by
-    change k ≤ 17 at hk
+    change k ≤ 19 at hk
     rcases origin with ⟨rfl, h, rfl⟩ | ⟨rfl, h, rfl⟩
     · refine ⟨dr4_child_origin, ?_⟩
       interval_cases k <;> simp_all
     · refine ⟨dr4_parent_origin, ?_⟩
       interval_cases k <;> simp_all
   leaf_step k b o z hk leaf hz := by
-    change k < 17 at hk
+    change k < 19 at hk
     rcases leaf with ⟨_, (⟨ha, rfl, rfl, rfl⟩ | ⟨ha, rfl, rfl, rfl⟩)⟩
     · refine ⟨dr4_parent_origin, ?_, ?_⟩
       · clear hz
@@ -1854,15 +1914,15 @@ private theorem dr4_trace_laws :
     rcases leaf with ⟨_, (⟨ha, rfl, rfl, hz⟩ | ⟨ha, rfl, rfl, hz⟩)⟩
     · exact ⟨do_parent, ⟨rfl, Or.inl ⟨ha, rfl, rfl, hz⟩⟩,
         Or.inr ⟨rfl, by omega, rfl⟩, by
-          change k < 17 at hk
+          change k < 19 at hk
           interval_cases k <;> simp_all [dr4_op], rfl, rfl⟩
     · exact ⟨do_child, ⟨rfl, Or.inr ⟨ha, rfl, rfl, hz⟩⟩,
         Or.inl ⟨rfl, by omega, rfl⟩, by
-          change k < 17 at hk
+          change k < 19 at hk
           interval_cases k <;> simp_all [dr4_op], rfl, rfl⟩
   read_correspondence i st read := by
     rcases read with ⟨_, _, rfl⟩
-    exact ⟨by change 12 ≤ 17; decide, rfl, dr4_closed 6 (Or.inr (Or.inl rfl))⟩
+    exact ⟨by change 13 ≤ 19; decide, rfl, dr4_closed 6 (Or.inr (Or.inl rfl))⟩
   order_and_time i j ei ej hi hj le := by
     have bi := dr4_events_bound hi
     have bj := dr4_events_bound hj
@@ -1949,8 +2009,8 @@ private theorem dr4_restart_replay_completes :
 
 private theorem dr4_replay_reads_and_provenance :
     (dependencyEventReads dr4_run dr4_driver false 4 6 (.restart false 5)) =
-      [⟨2, .ac, 9⟩, ⟨3, .ac, 9⟩] ∧
-    dr4_trace.hookRead 4 1 .ac 17 9 ∧
+      [⟨3, .ac, 9⟩, ⟨4, .ac, 9⟩] ∧
+    dr4_trace.hookRead 4 1 .ac 19 9 ∧
     FGReceiptOrigin do_env dr4_run do_history dr4_wireReads false 1 do_parent ∧
     FGReceiptOrigin do_env dr4_run do_history dr4_wireReads false 2 do_child ∧
     ¬ do_leaf.callback 7 1 do_parent 8 ∧
@@ -1959,7 +2019,7 @@ private theorem dr4_replay_reads_and_provenance :
     dr4_parent_origin, dr4_child_origin, by simp, by simp⟩
 
 private noncomputable abbrev dr4_omittedTrace : FGDependencyTrace Nat :=
-  { dr4_trace with done := fun j => if j = 4 then 14 else dr4_trace.done j }
+  { dr4_trace with done := fun j => if j = 4 then 16 else dr4_trace.done j }
 
 private theorem dr4_omitted_replay_rejected :
     ¬ FGDependencyTraceLaws do_env dr4_run false do_history dr4_wireReads dr4_reads do_leaf
@@ -1970,14 +2030,14 @@ private theorem dr4_omitted_replay_rejected :
   omega
 
 private noncomputable abbrev dr4_substitutedOp (k : Nat) :=
-  if k = 14 then FGDependencyOperation.replay 2 do_child else dr4_op k
+  if k = 16 then FGDependencyOperation.replay 2 do_child else dr4_op k
 
 private theorem dr4_substituted_carrier_rejected :
     ¬ FGDependencyTraceLaws do_env dr4_run false do_history dr4_wireReads dr4_reads do_leaf
       dr4_step dr4_trace dr4_driver dr4_substitutedOp do_arrival dr4_notify
       (Leaf := do_leafProtocol) id id do_read := by
   intro laws
-  have bad : (8 : Nat) = 7 := (laws.operation_bound 14 (by decide)).2.2.2.2.1
+  have bad : (8 : Nat) = 7 := (laws.operation_bound 16 (by decide)).2.2.2.2.1
   omega
 
 private noncomputable abbrev dr4_omittedReadTrace : FGDependencyTrace Nat :=
@@ -1989,8 +2049,8 @@ private theorem dr4_omitted_replay_read_rejected :
       dr4_step dr4_omittedReadTrace dr4_driver dr4_op do_arrival dr4_notify
       (Leaf := do_leafProtocol) id id do_read := by
   intro laws
-  have read := (laws.hook_correspondence 4 (.restart false 5) 1 .ac 17 9 rfl).mpr
-    ⟨⟨3, .ac, 9⟩, rfl, rfl, rfl, rfl⟩
+  have read := (laws.hook_correspondence 4 (.restart false 5) 1 .ac 19 9 rfl).mpr
+    ⟨⟨4, .ac, 9⟩, rfl, rfl, rfl, rfl⟩
   exact read.2 ⟨rfl, rfl⟩
 
 #print axioms dr4_state_laws
@@ -2002,6 +2062,535 @@ private theorem dr4_omitted_replay_read_rejected :
 #print axioms dr4_omitted_replay_rejected
 #print axioms dr4_substituted_carrier_rejected
 #print axioms dr4_omitted_replay_read_rejected
+
+/-- Saved standalone knowledge and a labelled freeze in a finite interface model. -/
+private structure sr_State where
+  mLatest : Nat := 0
+  mHeld : Nat := 0
+  freezeLabel : Nat := 0
+  freezeLatest : Nat := 0
+  freezeHeld : Nat := 0
+  sleepTime : Time := 2
+  lastCompleted : Time := 1
+  restartTime : Time := 0
+  signed : Nat := 0
+  bodyToken : Bool := false
+  deriving DecidableEq
+
+private def sr_receive (st : sr_State) : sr_State := { st with mLatest := 7 }
+
+private def sr_reconstruct (st : sr_State) (wake : Time) : sr_State :=
+  if st.lastCompleted < 2 ∧ st.sleepTime ≤ 2 ∧ 2 ≤ wake then
+    { st with
+      freezeLabel := 2
+      freezeLatest := st.mLatest
+      freezeHeld := st.mHeld
+      lastCompleted := 2
+      restartTime := wake }
+  else { st with restartTime := wake }
+
+private noncomputable abbrev sr_protocol : V2.ProtocolSpecD Unit where
+  State := sr_State
+  Label := Unit
+  Duty := Empty
+  signLabel := Empty.elim
+  seats := fun _ => 1
+  Payload := Unit
+  Durable := sr_State
+  init := {}
+  clock := fun st _ => st
+  actTime := Empty.elim
+  duties := fun _ => []
+  duties_spec := by intro d; cases d
+  duties_nodup := by intro _; exact List.nodup_nil
+  act := fun _ d _ => Empty.elim d
+  gossip := fun _ _ => []
+  process := fun st _ => sr_receive st
+  selfVisible := fun _ => false
+  recordOwn := fun st _ => st
+  durable := id
+  restore := fun st _ => st
+  wellFormed := fun _ => true
+  depsPresent := fun _ _ => true
+  processed := fun _ _ => false
+  excludes := fun _ _ => false
+  handles := fun _ _ _ => False
+  carries := fun _ _ => False
+
+private noncomputable abbrev sr_wire : sr_protocol.Object := ⟨.none, ()⟩
+
+private noncomputable abbrev sr_run : V2.D.Run Bool sr_protocol where
+  honest := {false}
+  horizon := 3
+  events := [.deliver false sr_wire 0, .restart false 2]
+  seatOf := fun _ _ => false
+  input := fun _ _ => ()
+
+private noncomputable abbrev sr_history : FGHistoricalReads sr_State Unit where
+  acceptedBlocks := fun _ => {Block.genesis}
+  acceptedBodies := fun _ => [()]
+  erase := fun _ => .genesis
+  root := fun _ => Block.genesis.root
+  parent := id
+  slot := fun _ => 0
+  readBlock := fun _ _ => none
+  preceq := fun _ _ => True
+  depth := fun _ => 0
+  lca := fun _ _ => .genesis
+
+private noncomputable abbrev sr_wireReads : FGDependencyWireReads sr_protocol Unit Unit where
+  decodeBody := fun _ => none
+  namedRoots := fun _ => none
+  proposalErase := fun _ => none
+  decodedRows := fun _ => []
+  bodyRows := fun _ => []
+
+private noncomputable abbrev sr_reads : FGDependencyReads sr_State Unit
+    (FGReceiptToken Bool sr_protocol.Object) Unit where
+  accepted := fun _ _ => True
+  refused := fun _ _ _ _ => False
+  pending := fun _ _ _ => False
+  originAvailable := fun _ _ _ => False
+  validBody := fun _ => True
+  priorChecks := fun _ _ => True
+  timely := fun _ _ => True
+  conflictsFinal := fun _ _ => False
+  latest := fun _ => ()
+  notified := fun _ _ => True
+  matching := fun _ _ => False
+  companionHeld := fun _ _ => True
+  latestKey := fun _ _ => none
+  latestCompanion := fun _ _ => none
+
+private noncomputable abbrev sr_leaf : FGDependencyLeaf sr_State Unit
+    (FGReceiptToken Bool sr_protocol.Object) where
+  step := fun _ _ _ _ _ => False
+  callback := fun _ _ _ _ => False
+  report := fun _ _ _ _ => False
+  initial := {}
+  genesis := ()
+
+private def sr_step (kind : FGDependencyStepKind) (_ : Bool) (a z : sr_State) : Prop :=
+  (z = a ∧ (kind = .ordinary ∨ kind = .restore)) ∨
+  (kind = .ordinary ∧ z = sr_receive a) ∨
+  (kind = .ordinary ∧ z = sr_reconstruct a 2)
+
+private noncomputable abbrev sr_driver : FGDependencyDriver Bool Unit sr_protocol where
+  enter := fun st _ _ => sr_receive st
+  enterProgram := fun st _ _ => .finish (sr_receive st)
+  hookProgram st op := match op with
+    | .reconstruct t => .finish (sr_reconstruct st t)
+    | _ => .finish st
+  drain := id
+  reconstruct := sr_reconstruct
+  retry := fun st _ _ _ => st
+  work _ e := match e with
+    | .restart _ t => [.step (.reconstruct t), .step .idle]
+    | _ => []
+  inheritRefusal := fun st _ _ => st
+  notify := fun st _ _ => st
+  replay := fun st _ _ => st
+
+private noncomputable abbrev sr_saved : sr_State := sr_receive {}
+private noncomputable abbrev sr_rebuilt : sr_State := sr_reconstruct sr_saved 2
+
+private noncomputable abbrev sr_trace : FGDependencyTrace sr_State where
+  length := 5
+  state k := [{}, sr_saved, sr_saved, sr_saved, sr_rebuilt, sr_rebuilt][k]?.getD sr_rebuilt
+  time k := [0, 0, 2, 2, 2, 2][k]?.getD 2
+  start j := [0, 2][j]?.getD 5
+  entryCut j := [1, 3][j]?.getD 5
+  dutyCut j := [1, 5][j]?.getD 5
+  done j := [1, 5][j]?.getD 5
+  readCut := fun _ => 5
+  hookRead := fun _ _ _ _ _ => False
+
+private noncomputable abbrev sr_op (k : Nat) :
+    FGDependencyOperation Unit (FGReceiptToken Bool sr_protocol.Object) sr_protocol.Object :=
+  match k with
+  | 0 => .ordinary sr_wire
+  | 2 => .restore 2
+  | 3 => .reconstruct 2
+  | _ => .idle
+
+private theorem sr_closed (st : sr_State) : dependencyClosed sr_history sr_reads st := by
+  intro work
+  cases work <;> simp_all
+
+private theorem sr_step_laws :
+    FGDependencyStepLaws sr_history sr_reads sr_leaf sr_step (fun st _ => st)
+      (fun a z => a.signed < z.signed) where
+  accepted_keep := by intros; trivial
+  refused_keep := by intros; contradiction
+  pending_effect := by intros; contradiction
+  origin_keep := by intros; contradiction
+  metadata_fg_eq := by intros; rfl
+  insertion_leaf := by intros; contradiction
+  one_body := by intros; contradiction
+  restore_exact := by intros; exact ⟨rfl, rfl, fun _ _ _ => Iff.rfl,
+    fun _ _ => Iff.rfl, fun _ _ => Iff.rfl⟩
+  no_signing := by
+    intro k x a z step
+    rcases step with ⟨rfl, _⟩ | ⟨_, rfl⟩ | ⟨_, rfl⟩
+    · exact Nat.lt_irrefl _
+    · exact Nat.lt_irrefl _
+    · simp only [sr_reconstruct]; split <;> exact Nat.lt_irrefl _
+
+private theorem sr_arrival_laws :
+    FGDependencyArrivalLeafLaws sr_history sr_reads sr_leaf
+      (fun _ _ _ _ => False) (fun _ _ _ => False) := by
+  constructor <;> simp
+
+private theorem sr_events_bound {j : Nat} {e : V2.Event Bool sr_protocol.Object}
+    (h : sr_run.events[j]? = some e) : j < 2 :=
+  (List.getElem?_eq_some_iff.mp h).1
+
+private theorem sr_trace_laws :
+    FGDependencyTraceLaws do_env sr_run false sr_history sr_wireReads sr_reads sr_leaf
+      sr_step sr_trace sr_driver sr_op (fun _ _ _ _ => False) (fun _ _ _ => False)
+      (Leaf := sr_protocol) id id (fun _ _ _ => False) where
+  arrival_laws := sr_arrival_laws
+  initial := rfl
+  initial_accepted := by intros; rfl
+  micro_step k hk := by
+    change k < 5 at hk
+    interval_cases k <;> first
+      | exact ⟨.ordinary, Or.inr (Or.inl ⟨rfl, rfl⟩)⟩
+      | exact ⟨.ordinary, Or.inl ⟨rfl, Or.inl rfl⟩⟩
+      | exact ⟨.ordinary, Or.inr (Or.inr ⟨rfl, rfl⟩)⟩
+  external_step j e h := by
+    have hj := sr_events_bound h
+    interval_cases j <;> simp only [List.getElem?_cons_zero,
+      List.getElem?_cons_succ, Option.some.injEq] at h <;> subst e <;> exact ⟨rfl, rfl⟩
+  step_kind k hk := by
+    change k < 5 at hk
+    interval_cases k <;> first
+      | exact Or.inr (Or.inl ⟨rfl, rfl⟩)
+      | exact Or.inl ⟨rfl, Or.inl rfl⟩
+      | exact Or.inl ⟨rfl, Or.inr rfl⟩
+      | exact Or.inr (Or.inr ⟨rfl, rfl⟩)
+  operation_bound k hk := by
+    change k < 5 at hk
+    interval_cases k <;> first
+      | exact ⟨rfl, rfl, rfl⟩
+      | exact ⟨rfl, 1, rfl, rfl⟩
+      | rfl
+  delivery_entry j wire t h := by
+    have hj := sr_events_bound h
+    interval_cases j <;> simp only [List.getElem?_cons_zero,
+      List.getElem?_cons_succ, Option.some.injEq] at h
+    all_goals cases h <;> rfl
+  work_execution j e h := by
+    have hj := sr_events_bound h
+    interval_cases j <;> simp only [List.getElem?_cons_zero,
+      List.getElem?_cons_succ, Option.some.injEq] at h <;> subst e <;> exact ⟨rfl, rfl⟩
+  work_step j e k h lo hi := by
+    have hj := sr_events_bound h
+    interval_cases j <;> norm_num [sr_trace] at lo hi <;> first | omega | (interval_cases k <;> rfl)
+  hook_correspondence j e index kind cut st h := by
+    have hj := sr_events_bound h
+    interval_cases j <;> simp only [List.getElem?_cons_zero,
+      List.getElem?_cons_succ, Option.some.injEq] at h <;> subst e
+    all_goals change False ↔ ∃ r,
+      ([] : List (FGDependencyWorkRead sr_State))[index]? = some r ∧ _
+    all_goals simp
+  hook_reads j e r h member := by
+    have hj := sr_events_bound h
+    interval_cases j <;> simp only [List.getElem?_cons_zero,
+      List.getElem?_cons_succ, Option.some.injEq] at h <;> subst e
+    all_goals change r ∈ ([] : List (FGDependencyWorkRead sr_State)) at member
+    all_goals cases member
+  receipt_entry := by intros; contradiction
+  entry_boundary j e h := by
+    have hj := sr_events_bound h
+    interval_cases j <;> simp only [List.getElem?_cons_zero,
+      List.getElem?_cons_succ, Option.some.injEq] at h <;> subst e <;>
+      exact ⟨rfl, by decide, by decide, rfl, rfl⟩
+  drain_operations j e k h lo hi := by
+    have hj := sr_events_bound h
+    interval_cases j <;> simp only [List.getElem?_cons_zero,
+      List.getElem?_cons_succ, Option.some.injEq] at h <;> subst e <;>
+      norm_num [sr_trace] at lo hi <;> first | omega | (interval_cases k <;> simp [sr_op])
+  boundary_idle k hk outside := by
+    change k < 5 at hk
+    interval_cases k <;> simp only [sr_op]
+    all_goals exfalso; apply outside
+    all_goals first
+      | exact ⟨0, _, rfl, by decide, by decide⟩
+      | exact ⟨1, _, rfl, by decide, by decide⟩
+  raw_restore j t h := by
+    have hj := sr_events_bound h
+    interval_cases j <;> simp only [List.getElem?_cons_zero,
+      List.getElem?_cons_succ, Option.some.injEq] at h
+    all_goals cases h <;> rfl
+  raw_clock j t h := by
+    have hj := sr_events_bound h
+    interval_cases j <;> simp at h
+  restore_data := by intros; exact ⟨rfl, rfl, fun _ _ _ => Iff.rfl,
+    fun _ _ => Iff.rfl, fun _ _ => Iff.rfl⟩
+  reconstruct_program := by intros; rfl
+  reconstruct_data := by intros; simp
+  restart_reconstruct j t h := by
+    have hj := sr_events_bound h
+    interval_cases j <;> simp only [List.getElem?_cons_zero,
+      List.getElem?_cons_succ, Option.some.injEq] at h
+    all_goals cases h <;> exact ⟨by decide, rfl⟩
+  restart_drain_closed := by intros; exact sr_closed _
+  restart_replay_order j t k b o h lo hi op := by
+    have hj := sr_events_bound h
+    interval_cases j <;> simp only [List.getElem?_cons_zero,
+      List.getElem?_cons_succ, Option.some.injEq] at h
+    all_goals cases h <;> norm_num [sr_trace] at lo hi ⊢
+    all_goals interval_cases k <;> cases op
+  clock_no_insert := by intros; exact ⟨rfl, rfl⟩
+  wire_validation := by intros; trivial
+  origin_valid := by intros; contradiction
+  leaf_step := by intros; contradiction
+  refusal_creation := by intros; contradiction
+  refusal_history := by intros; contradiction
+  notification_creation := by intros; contradiction
+  origin_attribution := by intros; contradiction
+  actual_read i st := by
+    constructor
+    · intro h; cases h
+    · rintro ⟨j, e, kind, h, required, _⟩
+      have hj := sr_events_bound h
+      interval_cases j <;> simp only [List.getElem?_cons_zero,
+        List.getElem?_cons_succ, Option.some.injEq] at h <;> subst e <;> cases required
+  read_order j e kind h required := by
+    have hj := sr_events_bound h
+    interval_cases j <;> simp only [List.getElem?_cons_zero,
+      List.getElem?_cons_succ, Option.some.injEq] at h <;> subst e <;> cases required
+  read_correspondence := by intros; contradiction
+  order_and_time i j ei ej hi hj order := by
+    have bi := sr_events_bound hi
+    have bj := sr_events_bound hj
+    interval_cases i <;> interval_cases j <;>
+      simp_all only [List.getElem?_cons_zero, List.getElem?_cons_succ, Option.some.injEq]
+    all_goals subst ei; subst ej; norm_num [V2.Event.time] at order ⊢
+  finite_segment j e h := by
+    have hj := sr_events_bound h
+    interval_cases j <;> exact ⟨by decide, by decide⟩
+  event_drain := by intros; exact sr_closed _
+  entry_drain := by intros; exact sr_closed _
+  segment_time j e k h lo hi := by
+    have hj := sr_events_bound h
+    interval_cases j <;> simp only [List.getElem?_cons_zero,
+      List.getElem?_cons_succ, Option.some.injEq] at h <;> subst e <;>
+      norm_num [sr_trace] at lo hi <;> first | omega | (interval_cases k <;> rfl)
+  event_order i j ei ej hi hj order := by
+    have bi := sr_events_bound hi
+    have bj := sr_events_bound hj
+    interval_cases i <;> interval_cases j; norm_num at order ⊢
+  completion_cut j e deadline h before := by
+    have hj := sr_events_bound h
+    interval_cases j <;> simp only [List.getElem?_cons_zero,
+      List.getElem?_cons_succ, Option.some.injEq] at h <;> subst e
+    all_goals refine ⟨by decide, before, ?_⟩
+    all_goals intro i ei event starts
+    all_goals have bi := sr_events_bound event
+    all_goals interval_cases i <;> simp only [List.getElem?_cons_zero,
+      List.getElem?_cons_succ, Option.some.injEq] at event <;> subst ei
+    all_goals solve
+      | exact before
+      | norm_num [sr_trace] at starts
+      | exact lt_trans (by decide : (0 : Time) < 2) before
+  tick_records j t h := by
+    have hj := sr_events_bound h
+    interval_cases j <;> simp at h
+  atomic_tick j t h := by
+    have hj := sr_events_bound h
+    interval_cases j <;> simp at h
+
+/-- A standalone receipt supplies M; the equal-time missed freeze is reconstructed after raw. -/
+private theorem sr_positive :
+    FGDependencyTraceLaws do_env sr_run false sr_history sr_wireReads sr_reads sr_leaf
+      sr_step sr_trace sr_driver sr_op (fun _ _ _ _ => False) (fun _ _ _ => False)
+      (Leaf := sr_protocol) id id (fun _ _ _ => False) ∧
+    FGDependencyStepLaws sr_history sr_reads sr_leaf sr_step (fun st _ => st)
+      (fun a z => a.signed < z.signed) ∧
+    sr_run.events[0]? = some (.deliver false sr_wire 0) ∧
+    (∀ wire, sr_wireReads.decodeBody wire = none) ∧
+    sr_trace.start 1 < sr_trace.entryCut 1 ∧
+    sr_trace.entryCut 1 < 4 ∧ 4 < sr_trace.dutyCut 1 ∧
+    sr_op 3 = .reconstruct 2 ∧
+    (sr_trace.state 3).mLatest = 7 ∧ (sr_trace.state 3).mHeld = 0 ∧
+    (sr_trace.state 3).lastCompleted = 1 ∧
+    (sr_trace.state 3).freezeLabel = 0 ∧ (sr_trace.state 4).freezeLabel = 2 ∧
+    (sr_trace.state 4).freezeLatest = 7 ∧ (sr_trace.state 4).freezeHeld = 0 ∧
+    (sr_trace.state 4).lastCompleted = 2 ∧ (sr_trace.state 4).restartTime = 2 ∧
+    sr_protocol.restore (sr_protocol.durable sr_saved) 2 = sr_saved ∧
+    dependencyStateBefore do_env sr_run sr_driver false 2 = sr_rebuilt ∧
+    sr_history.acceptedBlocks sr_rebuilt = sr_history.acceptedBlocks sr_saved ∧
+    sr_history.acceptedBodies sr_rebuilt = sr_history.acceptedBodies sr_saved ∧
+    (∀ b r pr, sr_reads.refused sr_rebuilt b r pr ↔ sr_reads.refused sr_saved b r pr) ∧
+    (∀ b o, sr_reads.pending sr_rebuilt b o ↔ sr_reads.pending sr_saved b o) ∧
+    (∀ b o, sr_reads.originAvailable sr_rebuilt b o ↔
+      sr_reads.originAvailable sr_saved b o) ∧
+    sr_step .ordinary false (sr_trace.state 3) (sr_trace.state 4) ∧
+    ¬ (sr_trace.state 3).signed < (sr_trace.state 4).signed := by
+  refine ⟨sr_trace_laws, sr_step_laws, rfl, fun _ => rfl,
+    by decide, by decide, by decide, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl,
+    rfl, rfl, rfl, rfl, fun _ _ _ => Iff.rfl, fun _ _ => Iff.rfl,
+    fun _ _ => Iff.rfl, ?_, ?_⟩
+  · exact (dependency_reconstruct_metadata sr_trace_laws sr_step_laws
+      (k := 3) (t := 2) (by decide) rfl).1
+  · exact (dependency_reconstruct_metadata sr_trace_laws sr_step_laws
+      (k := 3) (t := 2) (by decide) rfl).2.2
+
+private noncomputable abbrev sr_wakeToken : FGReceiptToken Bool sr_protocol.Object :=
+  ⟨false, 1, sr_wire, 2, 2⟩
+
+private def sr_badHook (st : sr_State) (t : Time) : sr_State :=
+  { sr_reconstruct st t with bodyToken := true }
+
+private noncomputable abbrev sr_badDriver : FGDependencyDriver Bool Unit sr_protocol :=
+  { sr_driver with
+    reconstruct := sr_badHook
+    hookProgram := fun st op => match op with
+      | .reconstruct t => .finish (sr_badHook st t)
+      | _ => .finish st }
+
+private noncomputable abbrev sr_badReads : FGDependencyReads sr_State Unit
+    (FGReceiptToken Bool sr_protocol.Object) Unit :=
+  { sr_reads with originAvailable := fun st _ o => st.bodyToken = true ∧ o = sr_wakeToken }
+
+private noncomputable abbrev sr_badTrace : FGDependencyTrace sr_State :=
+  { sr_trace with state := fun k => if 4 ≤ k then sr_badHook sr_saved 2 else sr_trace.state k }
+
+private noncomputable abbrev sr_replayOp (k : Nat) :=
+  if k = 3 then .replay () sr_wakeToken else sr_op k
+
+/-- The explicit bad hook invents a wake token from a standalone wire. Replay also fails. -/
+private theorem sr_negative :
+    dependencyStateBefore do_env sr_run sr_badDriver false 2 = sr_badHook sr_saved 2 ∧
+    sr_badReads.originAvailable (sr_badTrace.state 4) () sr_wakeToken ∧
+    ¬ sr_badReads.originAvailable sr_saved () sr_wakeToken ∧
+    ¬ (∀ st t b o, sr_badReads.originAvailable (sr_badDriver.reconstruct st t) b o ↔
+      sr_badReads.originAvailable st b o) ∧
+    ¬ FGDependencyTraceLaws do_env sr_run false sr_history sr_wireReads sr_badReads sr_leaf
+      sr_step sr_badTrace sr_badDriver sr_op (fun _ _ _ _ => False) (fun _ _ _ => False)
+      (Leaf := sr_protocol) id id (fun _ _ _ => False) ∧
+    ¬ FGDependencyTraceLaws do_env sr_run false sr_history sr_wireReads sr_reads sr_leaf
+      sr_step sr_trace sr_driver sr_replayOp (fun _ _ _ _ => False) (fun _ _ _ => False)
+      (Leaf := sr_protocol) id id (fun _ _ _ => False) := by
+  refine ⟨rfl, ⟨rfl, rfl⟩, ?_, ?_, ?_, ?_⟩
+  · rintro ⟨bad, _⟩; cases bad
+  · intro law
+    have bad := (law sr_saved 2 () sr_wakeToken).mp ⟨rfl, rfl⟩
+    cases bad.1
+  · intro laws
+    have data := (laws.reconstruct_data sr_saved 2).2.2.2.2.2.1 () sr_wakeToken
+    have bad := data.mp ⟨rfl, rfl⟩
+    cases bad.1
+  · intro laws
+    have bad : sr_reads.originAvailable (sr_trace.state 3) () sr_wakeToken :=
+      (laws.operation_bound 3 (by decide)).2.2.1
+    exact bad.elim
+
+private theorem sr_bad_origin_invalid :
+    ¬ FGDependencyTraceLaws do_env sr_run false sr_history sr_wireReads sr_badReads sr_leaf
+      sr_step sr_badTrace sr_badDriver sr_op (fun _ _ _ _ => False) (fun _ _ _ => False)
+      (Leaf := sr_protocol) id id (fun _ _ _ => False) := by
+  intro laws
+  have bad := (laws.origin_valid 4 () sr_wakeToken (by decide) ⟨rfl, rfl⟩).1.decoded
+  cases bad
+
+#print axioms sr_step_laws
+#print axioms sr_arrival_laws
+#print axioms sr_trace_laws
+#print axioms sr_bad_origin_invalid
+#print axioms sr_positive
+#print axioms sr_negative
+
+
+/-- Sleep and wake both equal the cut. Only an unfinished cut is reconstructed. -/
+private theorem sr_equal_cut_last_completed :
+    sr_saved.sleepTime = 2 ∧ sr_saved.lastCompleted = 1 ∧
+    (sr_reconstruct sr_saved 2).freezeLabel = 2 ∧
+    (sr_reconstruct { sr_saved with lastCompleted := 2 } 2).freezeLabel = 0 := by
+  exact ⟨rfl, rfl, rfl, rfl⟩
+
+#print axioms sr_equal_cut_last_completed
+
+/-- An inhabited standalone history has distinct raw, reconstruction and drain cuts. -/
+theorem dependency_standalone_reconstruct_nontrivial :
+    ∃ (P : V2.ProtocolSpecD Unit) (E : Generic.Env Bool) (wire : P.Object)
+      (rho : V2.D.Run Bool P) (H : FGHistoricalReads P.State Unit)
+      (W : FGDependencyWireReads P Unit Unit)
+      (D : FGDependencyReads P.State Unit (FGReceiptToken Bool P.Object) Unit)
+      (L : FGDependencyLeaf P.State Unit (FGReceiptToken Bool P.Object))
+      (Step : FGDependencyStepKind → Bool → P.State → P.State → Prop)
+      (T : FGDependencyTrace P.State) (F : FGDependencyDriver Bool Unit P)
+      (Op : Nat → FGDependencyOperation Unit (FGReceiptToken Bool P.Object) P.Object)
+      (m label frozen : P.State → Nat) (sleepTime lastCompleted : P.State → Time)
+      (signs : P.State → P.State → Prop),
+    FGDependencyTraceLaws E rho false H W D L Step T F Op
+      (fun _ _ _ _ => False) (fun _ _ _ => False)
+      (Leaf := P) id id (fun _ _ _ => False) ∧
+    FGDependencyStepLaws H D L Step (fun st t => P.restore (P.durable st) t) signs ∧
+    rho.events = [.deliver false wire 0, .restart false 2] ∧
+    (∀ w, W.decodeBody w = none) ∧
+    T.start 1 < T.entryCut 1 ∧ T.entryCut 1 < 4 ∧ 4 < T.dutyCut 1 ∧
+    Op (T.entryCut 1) = .reconstruct 2 ∧
+    m (T.state (T.start 1)) = 7 ∧ m (T.state (T.entryCut 1)) = 7 ∧
+    sleepTime (T.state (T.entryCut 1)) = 2 ∧
+    lastCompleted (T.state (T.entryCut 1)) = 1 ∧
+    label (T.state (T.entryCut 1)) = 0 ∧ label (T.state 4) = 2 ∧
+    frozen (T.state 4) = 7 ∧
+    lastCompleted (T.state 4) = 2 ∧
+    dependencyStateBefore E rho F false 2 = T.state (T.done 1) ∧
+    H.acceptedBlocks (T.state 4) = H.acceptedBlocks (T.state (T.entryCut 1)) ∧
+    H.acceptedBodies (T.state 4) = H.acceptedBodies (T.state (T.entryCut 1)) ∧
+    (∀ b r pr, D.refused (T.state 4) b r pr ↔ D.refused (T.state (T.entryCut 1)) b r pr) ∧
+    (∀ b o, D.pending (T.state 4) b o ↔ D.pending (T.state (T.entryCut 1)) b o) ∧
+    (∀ b o, D.originAvailable (T.state 4) b o ↔
+      D.originAvailable (T.state (T.entryCut 1)) b o) ∧
+    ¬ signs (T.state (T.entryCut 1)) (T.state 4) := by
+  refine ⟨sr_protocol, do_env, sr_wire, sr_run, sr_history, sr_wireReads, sr_reads, sr_leaf,
+    sr_step, sr_trace, sr_driver, sr_op, sr_State.mLatest, sr_State.freezeLabel,
+    sr_State.freezeLatest, sr_State.sleepTime, sr_State.lastCompleted,
+    fun a z => a.signed < z.signed,
+    sr_positive.1, sr_positive.2.1, rfl, fun _ => rfl, by decide, by decide, by decide,
+    rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl,
+    fun _ _ _ => Iff.rfl, fun _ _ => Iff.rfl, fun _ _ => Iff.rfl, ?_⟩
+  exact (dependency_reconstruct_metadata sr_trace_laws sr_step_laws
+    (k := 3) (t := 2) (by decide) rfl).2.2
+
+/-- A concrete wake-token insertion and a concrete replay tag fail the amended laws. -/
+theorem dependency_reconstruct_wrong_origin_rejected :
+    ∃ (P : V2.ProtocolSpecD Unit) (E : Generic.Env Bool) (wire : P.Object)
+      (rho : V2.D.Run Bool P) (H : FGHistoricalReads P.State Unit)
+      (W : FGDependencyWireReads P Unit Unit)
+      (D badD : FGDependencyReads P.State Unit (FGReceiptToken Bool P.Object) Unit)
+      (L : FGDependencyLeaf P.State Unit (FGReceiptToken Bool P.Object))
+      (Step : FGDependencyStepKind → Bool → P.State → P.State → Prop)
+      (T badT : FGDependencyTrace P.State) (F badF : FGDependencyDriver Bool Unit P)
+      (Op replayOp : Nat → FGDependencyOperation Unit (FGReceiptToken Bool P.Object) P.Object)
+      (o : FGReceiptToken Bool P.Object),
+    rho.events = [.deliver false wire 0, .restart false 2] ∧
+    (∀ w, W.decodeBody w = none) ∧
+    o.eventIndex = 1 ∧ o.receiptTime = 2 ∧ o.receiptEpoch = 2 ∧
+    dependencyStateBefore E rho badF false 2 = badT.state (badT.done 1) ∧
+    badD.originAvailable (badT.state 4) () o ∧
+    ¬ badD.originAvailable (badT.state 3) () o ∧
+    ¬ (∀ st t b token, badD.originAvailable (badF.reconstruct st t) b token ↔
+      badD.originAvailable st b token) ∧
+    ¬ FGDependencyTraceLaws E rho false H W badD L Step badT badF Op
+      (fun _ _ _ _ => False) (fun _ _ _ => False)
+      (Leaf := P) id id (fun _ _ _ => False) ∧
+    replayOp 3 = .replay () o ∧
+    ¬ FGDependencyTraceLaws E rho false H W D L Step T F replayOp
+      (fun _ _ _ _ => False) (fun _ _ _ => False)
+      (Leaf := P) id id (fun _ _ _ => False) := by
+  refine ⟨sr_protocol, do_env, sr_wire, sr_run, sr_history, sr_wireReads,
+    sr_reads, sr_badReads, sr_leaf, sr_step, sr_trace, sr_badTrace, sr_driver, sr_badDriver,
+    sr_op, sr_replayOp, sr_wakeToken, rfl, fun _ => rfl, rfl, rfl, rfl,
+    sr_negative.1, sr_negative.2.1, sr_negative.2.2.1, sr_negative.2.2.2.1,
+    sr_negative.2.2.2.2.1, rfl, sr_negative.2.2.2.2.2⟩
+
+#print axioms dependency_standalone_reconstruct_nontrivial
+#print axioms dependency_reconstruct_wrong_origin_rejected
 
 end AvailableChain.FGCompose.Tests.DependencyOrigins
 end
