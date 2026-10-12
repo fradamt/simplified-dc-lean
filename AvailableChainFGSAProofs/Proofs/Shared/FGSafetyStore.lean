@@ -74,5 +74,27 @@ theorem fgsaSafetyOrderLaws (p : Params) {In : Type} (c : AppCodec In) :
       erase_prefix := fun _ _ h => eraseFG_preceq h
       output_eq := fun _ => rfl }
 
+/-- P0c3 partial projection. FG-SA has no retained missing-parent queue. -/
+private theorem p0c3_accepted_leaf_fragment (p : Params) {In : Type} (c : AppCodec In) :
+    FGCoreLaws (fgsaCoreReads p c) ∧
+    FGSafetyStoreLaws (fgsaCoreReads p c) (fgsaSafetyReads p c)
+      (heightView p) (finalityView p) (fun nd => Reachable p nd.st) :=
+  ⟨fgsaCoreLaws p c, fgsaSafetyStoreLaws p c⟩
+
+private theorem p0c3_missing_parent_noop (p : Params) (st : State p.n) (s : Slot)
+    (N : NamedProposal p.n) (missing : namedParentHeld st N = false) :
+    admitBlock p st s N = st := by
+  simp [admitBlock, missing]
+
+private theorem p0c3_refused_leaf_noop (p : Params) (st : State p.n) (s : Slot)
+    (N : NamedProposal p.n) (parent : FGBlock (Fin p.n))
+    (held : parentFG st N.erase = some parent)
+    (refused : blockAccepted p st s N parent = false) : admitBlock p st s N = st := by
+  simp [admitBlock, held, refused]
+
+#print axioms p0c3_accepted_leaf_fragment
+#print axioms p0c3_missing_parent_noop
+#print axioms p0c3_refused_leaf_noop
+
 end AvailableChain.FGSA.Run
 end

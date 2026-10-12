@@ -901,6 +901,13 @@ COMPOSE_PROOF_IMPORTS |= frozenset({
     (COMPOSE + ".Proofs.Finality.History", KITFG + ".WindowSelection"),
 })
 
+# P0c3: exact dependency contract and proof modules.
+COMPOSE_MODULES += (
+    "AvailableChainFGCompose.Statements.Dependency",
+    "AvailableChainFGCompose.Statements.DependencyTrace",
+    "AvailableChainFGCompose.Proofs.Dependency",
+)
+
 def compose_base(dep: str) -> bool:
     return (foundation(dep) or under(dep, "AvailableChainModel.Objects")
             or any_under(dep, ("AvailableChainEngineV2.Engine",
