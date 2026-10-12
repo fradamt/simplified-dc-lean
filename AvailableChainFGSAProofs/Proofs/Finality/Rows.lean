@@ -1,15 +1,15 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Shared.FGCompose
 public import AvailableChainFGCompose.Proofs.Finality.Rows
-public import AvailableChainKitFG.WindowTransport
-public import AvailableChainKitFG.ClientOnceSafety
+public import AvailableChainKitFG.WindowTransport -- shake: keep (RowsPrem fold_eq route)
+public import AvailableChainKitFG.ClientOnceSafety -- shake: keep (RowsPrem release route)
 public import AvailableChainFGCompose.Proofs.SourceHead
 public import AvailableChainFGCompose.Proofs.ServiceTransport
 public import AvailableChainFGSAProofs.Proofs.Shared.Gate
 public import AvailableChainFGSAClaims.Statements.ComposeStmt
 public import AvailableChainFGSA.Proofs.EmissionFields
-public import AvailableChainKitFG.HeightHistoryTransfer
-public import AvailableChainFGSA.Proofs.WindowRetention
+public import AvailableChainKitFG.HeightHistoryTransfer -- shake: keep (height history route)
+public import AvailableChainFGSA.Proofs.WindowRetention -- shake: keep (Receipt window route)
 
 public section
 

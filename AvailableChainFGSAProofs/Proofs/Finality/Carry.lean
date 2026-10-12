@@ -1,6 +1,6 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Finality.Batch
-public import AvailableChainFGSAClaims.Statements.Phases
+public import AvailableChainFGSAProofs.Proofs.Finality.Batch -- shake: keep (batch wrappers)
+public import AvailableChainFGSAClaims.Statements.Phases -- shake: keep (carriage statements)
 
 public import AvailableChainFGCompose.Proofs.Finality.Carry
 

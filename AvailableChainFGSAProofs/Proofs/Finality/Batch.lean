@@ -1,9 +1,9 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Shared.RowReads
 public import AvailableChainFGSARun.Proofs.WindowExclusion
-public import AvailableChainFGSAClaims.Statements.Fold
+public import AvailableChainFGSAClaims.Statements.Fold -- shake: keep (FinRowNames statement)
 
-public import AvailableChainFGSAProofs.Proofs.Finality.RowsRecords
+public import AvailableChainFGSAProofs.Proofs.Finality.RowsRecords -- shake: keep (record wrappers)
 public import AvailableChainFGCompose.Proofs.Finality.Batch
 
 public section

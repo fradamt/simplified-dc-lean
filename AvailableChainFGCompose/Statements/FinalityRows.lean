@@ -1,6 +1,6 @@
 module
-public import AvailableChainFGCompose.Statements.FinalityKernel
-public import AvailableChainFGCompose.Statements.FinalityReceipts
+public import AvailableChainFGCompose.Statements.FinalityKernel -- shake: keep (kernel premises)
+public import AvailableChainFGCompose.Statements.FinalityReceipts -- shake: keep (receipt services)
 public import AvailableChainKitFG.WindowViewsDef
 
 @[expose] public section

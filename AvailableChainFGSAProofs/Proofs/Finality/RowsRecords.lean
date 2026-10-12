@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Finality.Middle
-public import AvailableChainFGSAProofs.Proofs.Finality.RecordInv
+public import AvailableChainFGSAProofs.Proofs.Finality.RecordInv -- shake: keep (record guards)
 
 public import AvailableChainFGCompose.Proofs.Finality.RowsRecords
 

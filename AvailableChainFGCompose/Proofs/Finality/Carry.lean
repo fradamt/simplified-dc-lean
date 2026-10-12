@@ -1,7 +1,7 @@
 module
 public import AvailableChainFGCompose.Proofs.Finality.Batch
-public import AvailableChainKitFG.WindowValidity
-public import AvailableChainKitFG.WindowHeightBridge
+public import AvailableChainKitFG.WindowValidity -- shake: keep (r6w validity route for carriage)
+public import AvailableChainKitFG.WindowHeightBridge -- shake: keep (P0d7a4 test bridge)
 
 public section
 
