@@ -43,3 +43,13 @@ public import AvailableChainFGCompose.Proofs.Healing.PromotionArithmetic
 public import AvailableChainFGCompose.Proofs.Healing.CommonEntry
 public import AvailableChainFGCompose.Proofs.Healing.Promotion
 public import AvailableChainFGCompose.Proofs.Healing.PromotionRows
+
+public import AvailableChainFGCompose.Statements.Attempt
+
+public import AvailableChainFGCompose.Proofs.Healing.AttemptStop
+
+public import AvailableChainFGCompose.Proofs.Healing.AttemptSettle
+
+public import AvailableChainFGCompose.Proofs.Healing.AttemptRows
+
+public import AvailableChainFGCompose.Proofs.Healing.Attempt

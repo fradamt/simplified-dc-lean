@@ -1,4 +1,9 @@
 module
+public import AvailableChainFGCompose.Proofs.Healing.Attempt -- shake: keep (#print axioms)
+public import AvailableChainFGCompose.Proofs.Healing.AttemptRows -- shake: keep (#print axioms)
+public import AvailableChainFGCompose.Proofs.Healing.AttemptSettle -- shake: keep (#print axioms)
+public import AvailableChainFGCompose.Proofs.Healing.AttemptStop -- shake: keep (#print axioms)
+public import AvailableChainFGCompose.Statements.Attempt -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Statements.Promotion -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Proofs.Healing.PromotionArithmetic -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Proofs.Healing.CommonEntry -- shake: keep (#print axioms)
@@ -472,3 +477,74 @@ public import AvailableChainFGCompose.Proofs.Healing.PhaseSettle -- shake: keep 
 #print axioms AvailableChain.FGCompose.p0d3_bound_batch
 #print axioms AvailableChain.FGCompose.p0d3_same_batch_on
 #print axioms AvailableChain.FGCompose.p0d3_same_batch
+
+#print axioms AvailableChain.FGCompose.AttemptCaughtUp
+#print axioms AvailableChain.FGCompose.AttemptEnabledGate
+#print axioms AvailableChain.FGCompose.AttemptEndsBy
+#print axioms AvailableChain.FGCompose.AttemptExactService
+#print axioms AvailableChain.FGCompose.AttemptGateCopy
+#print axioms AvailableChain.FGCompose.AttemptGatePassed
+#print axioms AvailableChain.FGCompose.AttemptGateResult
+#print axioms AvailableChain.FGCompose.AttemptJoinedAt
+#print axioms AvailableChain.FGCompose.AttemptKey
+#print axioms AvailableChain.FGCompose.AttemptKey.frontier
+#print axioms AvailableChain.FGCompose.AttemptKey.mk
+#print axioms AvailableChain.FGCompose.AttemptKey.phase
+#print axioms AvailableChain.FGCompose.AttemptKey.served
+#print axioms AvailableChain.FGCompose.AttemptKey.start
+#print axioms AvailableChain.FGCompose.AttemptKey.task
+#print axioms AvailableChain.FGCompose.AttemptNextOpeningService
+#print axioms AvailableChain.FGCompose.AttemptOpeningService
+#print axioms AvailableChain.FGCompose.AttemptProposalFloor
+#print axioms AvailableChain.FGCompose.AttemptRenewedPromotion
+#print axioms AvailableChain.FGCompose.AttemptRepairAfter
+#print axioms AvailableChain.FGCompose.AttemptRepairService
+#print axioms AvailableChain.FGCompose.AttemptTask
+#print axioms AvailableChain.FGCompose.AttemptTask.firstRow
+#print axioms AvailableChain.FGCompose.AttemptTask.raise
+#print axioms AvailableChain.FGCompose.AttemptTerminalPromotion
+#print axioms AvailableChain.FGCompose.AttemptValid
+#print axioms AvailableChain.FGCompose.FGAttemptGateReads
+#print axioms AvailableChain.FGCompose.FGAttemptGateReads.blocked
+#print axioms AvailableChain.FGCompose.FGAttemptGateReads.confirmation
+#print axioms AvailableChain.FGCompose.FGAttemptGateReads.mk
+#print axioms AvailableChain.FGCompose.FGAttemptGateReads.preClock
+#print axioms AvailableChain.FGCompose.FGAttemptGateReads.restartTime
+#print axioms AvailableChain.FGCompose.FGAttemptGateReads.saved
+#print axioms AvailableChain.FGCompose.FGAttemptGateReads.writes
+#print axioms AvailableChain.FGCompose.ServedFrontier
+#print axioms AvailableChain.FGCompose.attemptBudget
+#print axioms AvailableChain.FGCompose.healing_attempt_ends_mono
+#print axioms AvailableChain.FGCompose.healing_attempt_ends_of_event
+#print axioms AvailableChain.FGCompose.healing_attempt_ends_of_row
+#print axioms AvailableChain.FGCompose.healing_attempt_firstRow_contest_settle
+#print axioms AvailableChain.FGCompose.healing_attempt_firstRow_other_settle
+#print axioms AvailableChain.FGCompose.healing_attempt_inclusive_start
+#print axioms AvailableChain.FGCompose.healing_attempt_no_event
+#print axioms AvailableChain.FGCompose.healing_attempt_raise_contest_settle
+#print axioms AvailableChain.FGCompose.healing_attempt_raise_other_settle
+#print axioms AvailableChain.FGCompose.healing_attempt_settle_start
+#print axioms AvailableChain.FGCompose.p0d4_AttemptCaughtUp_def
+#print axioms AvailableChain.FGCompose.p0d4_AttemptEnabledGate_def
+#print axioms AvailableChain.FGCompose.p0d4_AttemptEndsBy_def
+#print axioms AvailableChain.FGCompose.p0d4_AttemptExactService_def
+#print axioms AvailableChain.FGCompose.p0d4_AttemptGateCopy_def
+#print axioms AvailableChain.FGCompose.p0d4_AttemptGatePassed_def
+#print axioms AvailableChain.FGCompose.p0d4_AttemptGateResult_def
+#print axioms AvailableChain.FGCompose.p0d4_AttemptJoinedAt_def
+#print axioms AvailableChain.FGCompose.p0d4_AttemptNextOpeningService_def
+#print axioms AvailableChain.FGCompose.p0d4_AttemptOpeningService_def
+#print axioms AvailableChain.FGCompose.p0d4_AttemptProposalFloor_def
+#print axioms AvailableChain.FGCompose.p0d4_AttemptRenewedPromotion_def
+#print axioms AvailableChain.FGCompose.p0d4_AttemptRepairAfter_def
+#print axioms AvailableChain.FGCompose.p0d4_AttemptRepairService_def
+#print axioms AvailableChain.FGCompose.p0d4_AttemptTerminalPromotion_def
+#print axioms AvailableChain.FGCompose.p0d4_AttemptValid_def
+#print axioms AvailableChain.FGCompose.p0d4_ServedFrontier_def
+#print axioms AvailableChain.FGCompose.p0d4_attemptBudget_def
+
+#print axioms AvailableChain.FGCompose.progressAttempt_of
+#print axioms AvailableChain.FGCompose.healing_attempt_firstRow_contest
+#print axioms AvailableChain.FGCompose.healing_attempt_firstRow_other
+#print axioms AvailableChain.FGCompose.healing_attempt_raise_contest
+#print axioms AvailableChain.FGCompose.healing_attempt_raise_other

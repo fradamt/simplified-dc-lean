@@ -620,6 +620,7 @@ def test_use(ctx: Context, m: Module, dep: str) -> bool:
 def test_scope(ctx: Context, m: Module, dep: str) -> bool:
     # P0b1: private fieldwise correspondence, with exact external suppliers.
     if (m.name, dep) in {
+        (PROOFS + ".Tests.P0d4", COMPOSE + ".Proofs.Healing.AttemptStop"),
         (COMPOSE + ".Tests.P0d3", KITFG + ".WindowHeightBridge"),
         (PROOFS + ".Tests.P0c1", COMPOSE + ".Proofs.ObservationTransport"),
         (PROOFS + ".Tests.P0HistoricalReads", COMPOSE + ".Proofs.HistoricalReads"),
@@ -857,6 +858,39 @@ COMPOSE_PROOF_IMPORTS |= frozenset({
      "AvailableChainKitFG.Ancestry"),
     ("AvailableChainFGCompose.Proofs.Healing.PromotionRows",
      "AvailableChainKitFG.Ancestry"),
+})
+
+# P0d4: exact attempt home.
+COMPOSE_MODULES += ('AvailableChainFGCompose.Statements.Attempt',)
+
+# P0d4: exact attempt home.
+COMPOSE_MODULES += ('AvailableChainFGCompose.Proofs.Healing.AttemptStop',)
+
+# P0d4: exact attempt home.
+COMPOSE_MODULES += ('AvailableChainFGCompose.Proofs.Healing.AttemptSettle',)
+
+# P0d4: exact attempt home.
+COMPOSE_MODULES += ('AvailableChainFGCompose.Proofs.Healing.AttemptRows',)
+
+# P0d4: exact attempt home.
+COMPOSE_MODULES += ('AvailableChainFGCompose.Proofs.Healing.Attempt',)
+
+# P0d4: private correspondence test.
+COMPOSE_EDGES |= frozenset({
+    ('AvailableChainFGSAProofs.Tests.P0d4',
+     'AvailableChainFGCompose.Proofs.Healing.AttemptStop'),
+})
+
+# P0d4: exact frozen-wrapper edges.
+COMPOSE_EDGES |= frozenset({
+    ('AvailableChainFGSAProofs.Proofs.Healing.AttemptStop',
+     'AvailableChainFGCompose.Proofs.Healing.AttemptStop'),
+    ('AvailableChainFGSAProofs.Proofs.Healing.AttemptSettle',
+     'AvailableChainFGCompose.Proofs.Healing.AttemptSettle'),
+    ('AvailableChainFGSAProofs.Proofs.Healing.AttemptRows',
+     'AvailableChainFGCompose.Proofs.Healing.AttemptRows'),
+    ('AvailableChainFGSAProofs.Proofs.Healing.Attempt',
+     'AvailableChainFGCompose.Proofs.Healing.Attempt'),
 })
 
 def compose_base(dep: str) -> bool:
