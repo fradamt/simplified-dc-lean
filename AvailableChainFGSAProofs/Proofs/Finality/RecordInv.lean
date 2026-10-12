@@ -126,6 +126,13 @@ private theorem d7f_reflect (A B : FGBlock (Fin p.n))
   rw [fgsaCoreReads_def p c] at h
   exact eraseFG_preceq_iff.mp h
 
+private theorem d7f_fg (nd : (fgsa p c).State) : ((fgsaCoreReads p c).core nd).fg = nd.st.fg := by
+  rw [fgsaCoreReads_def p c]
+
+private theorem d7f_erase (C : FGBlock (Fin p.n)) :
+    (fgsaCoreReads p c).erase C = eraseFG C := by
+  rw [fgsaCoreReads_def p c]
+
 private theorem d7f_qc (h : RQCOrigin p c E rho) :
     FGCompose.RQCOrigin (fgsaCoreReads p c) (fgsaSafetyReads p c) E rho
       (d7f_observations p c) (d7f_timing p) (d7f_stored_carrier p)
@@ -133,8 +140,8 @@ private theorem d7f_qc (h : RQCOrigin p c E rho) :
   have heq : FGCompose.RQCOrigin (fgsaCoreReads p c) (fgsaSafetyReads p c) E rho
       (d7f_observations p c) (d7f_timing p) (d7f_stored_carrier p)
       (d7f_source_service p c E rho) p.E = RQCOrigin p c E rho := by
-    simp only [FGCompose.RQCOrigin, RQCOrigin, d7f_stored_carrier,
-      d7f_source_service, exists_and_left, fgsaCoreReads_def p c, fgsaSafetyReads_def p c]
+    dsimp only [FGCompose.RQCOrigin, RQCOrigin, d7f_stored_carrier, d7f_source_service]
+    simp only [d7f_fg, d7f_source_eq, fgsaSafetyReads_def p c, exists_and_left]
     rfl
   exact heq.symm ▸ h
 
@@ -236,7 +243,7 @@ private theorem d7f_names
 
 private theorem d7f_rowHeight_eq (a : RowWire p.n) :
     FGCompose.historyRowHeight (fgsaSafetyReads p c) (d7f_wire p c) a = rowHeight a := by
-  rw [rowHeight_def, FGCompose.historyRowHeight]
+  rw [rowHeight_def]
   rfl
 
 private theorem d7f_record (nd : Node p) : (fgsaSafetyReads p c).record nd = nd.record := by
@@ -247,9 +254,6 @@ private theorem d7f_clock (nd : (fgsa p c).State) (t : Time) :
 
 omit [DecidableEq V] in
 private theorem d7f_cut (t : Time) : FGCompose.afterTicksIdx rho t = afterTicksIdx rho t := rfl
-
-private theorem d7f_fg (nd : (fgsa p c).State) : ((fgsaCoreReads p c).core nd).fg = nd.st.fg := by
-  rw [fgsaCoreReads_def p c]
 
 private theorem d7f_high (w : HealingWitness) (C : FGBlock (Fin p.n)) :
     FGCompose.high (fgsaCoreReads p c) (d7f_observations p c) (d7f_point p w).reset C =
@@ -280,7 +284,8 @@ private theorem d7f_height_row_eq (r h : Nat) :
     FGCompose.HeightRow (fgsaSafetyReads p c) E rho (d7f_timing p)
       (fun a => FGCompose.namedEntry a.payload.height_pair) r h =
       HeightRow p c E rho r h := by
-  simp only [FGCompose.HeightRow, HeightRow, d7f_row_eq, d7f_entry_eq]
+  dsimp only [FGCompose.HeightRow, HeightRow] at *
+  simp only [d7f_row_eq, d7f_entry_eq]
 
 private theorem d7f_mu_eq :
     FGCompose.muOf (fgsaSafetyReads p c) E rho (d7f_timing p)
@@ -297,15 +302,22 @@ private theorem d7f_reset (w : HealingWitness) (h : H0Reset p c E rho w) :
       (d7f_point p w).reset := by
   refine ⟨h.rG_after, h.rG_first, h.cut, ?_, ?_, ?_,
     h.cut_lower, h.cut_upper, ?_, ?_, h.label, ?_, h.synchronous⟩
-  · simpa only [d7f_point, FGCompose.honestFrontier, honestFrontier,
-      fgsaCoreReads_def p c] using h.frontier
-  · simpa only [d7f_point, d7f_row_eq, d7f_entry_eq] using h.rowCap
-  · simpa only [d7f_point, d7f_mu_eq] using h.mu_le
-  · simpa only [d7f_point, d7f_height_row_eq] using h.reset_row
-  · simpa only [d7f_point, d7f_height_row_eq] using h.reset_first
+  · have hf := h.frontier
+    dsimp only [d7f_point, FGCompose.honestFrontier, honestFrontier] at hf ⊢
+    simpa only [d7f_fg] using hf
+  · dsimp only [d7f_point] at *
+    simpa only [d7f_row_eq, d7f_entry_eq] using h.rowCap
+  · dsimp only [d7f_point] at *
+    simpa only [d7f_mu_eq] using h.mu_le
+  · dsimp only [d7f_point] at *
+    simpa only [d7f_height_row_eq] using h.reset_row
+  · dsimp only [d7f_point] at *
+    simpa only [d7f_height_row_eq] using h.reset_first
   · have hf := h.fresh
-    simp only [d7f_point, d7f_row_eq, d7f_entry_eq, d7f_source_eq] at hf ⊢
-    simpa only [d7f_observations, fgsaCoreReads_def p c] using hf
+    dsimp only [d7f_point] at *
+    simp only [d7f_row_eq, d7f_entry_eq, d7f_source_eq] at hf ⊢
+    dsimp only [d7f_observations] at *
+    simpa only [d7f_erase] using hf
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. Paper 22:841–879: high honest sources at one height have one entry.
@@ -666,7 +678,8 @@ theorem high_entry_record_invariant (w : HealingWitness)
     (d7f_qc p c E rho hqc) (d7f_head p c E rho) (fgsaSafetyClientLaws p c)
     (d7f_emission p c E rho) (d7f_own p c E rho) (d7f_names p c E rho hnames)
   refine ⟨entry, ?_, ?_⟩
-  · simpa only [d7f_source_eq, FGCompose.high, d7f_observations, d7f_point, high_def]
+  · dsimp only [d7f_observations, d7f_point, FGCompose.high] at *
+    simpa only [d7f_source_eq, high_def]
       using hsource
   · intro i x y hx hy
     simpa only [fgsaSafetyReads_def p c] using hrecord i x hx y hy
@@ -741,8 +754,9 @@ theorem high_record_fresh_at_cut (i : Nat) (x : V) (y : Nat) (hx : x ∈ rho.hon
       ∀ b ∈ Λ.sent, ∀ T timeout, b.1 ≠ .vote y T timeout := by
   have h := FGCompose.high_record_fresh_at_cut (D := d7f_wire p c)
     (fgsaSafetyClientLaws p c) (d7f_emission p c E rho) (d7f_own p c E rho) i x y hx
-    (by simpa only [d7f_row_eq, d7f_rowHeight_eq, d7f_observations] using hbefore)
-  simpa only [FGCompose.HighRecordFresh, fgsaSafetyReads_def p c] using h
+    (by simpa only [d7f_row_eq, d7f_rowHeight_eq] using hbefore)
+  dsimp only [FGCompose.HighRecordFresh] at *
+  simpa only [fgsaSafetyReads_def p c] using h
 
 private theorem recordInv_once_target (st : State p.n) (Λ : RecordOnce)
     (seat : Fin p.n) (y : Nat) (T : BlockId)
@@ -854,11 +868,12 @@ private theorem d7f_signer_eq (a : RowWire p.n) (x : V) :
       RowSigner p c rho a x := by
   rcases a with ⟨auth, payload⟩
   cases auth with
-  | none => simp [FGCompose.RowSigner, d7f_signer, RowSigner]
-  | proposer s => simp [FGCompose.RowSigner, d7f_signer, RowSigner]
+  | none => dsimp only [FGCompose.RowSigner, RowSigner, d7f_signer]; simp
+  | proposer s => dsimp only [FGCompose.RowSigner, RowSigner, d7f_signer]; simp
   | seat label i =>
-    cases label <;> simp [FGCompose.RowSigner, d7f_signer, RowSigner,
-      FGCompose.safetyHolder]
+    cases label
+    all_goals dsimp only [FGCompose.RowSigner, RowSigner, d7f_signer]
+    all_goals simp [FGCompose.safetyHolder]
     rw [fgsaSafetyReads_def p c]
     rfl
 
@@ -1012,8 +1027,8 @@ theorem high_target_row_covered (w : HealingWitness)
     e (by intro k; rw [fgsaSafetyReads_def p c]; exact he k) (d7f_timing_laws p) hS
     (d7f_enabled p c)
     x hx r C ((d7f_source_eq p c E rho x r).symm ▸ hsource) hhigh hawake
-  simpa only [d7f_row_eq, d7f_complete_eq p c rho, d7f_observations,
-    d7f_wire] using h
+  dsimp only [d7f_observations, d7f_wire] at *
+  simpa only [d7f_row_eq, d7f_complete_eq p c rho] using h
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Paper 22:841–879: the raw H0 cut has no high target, timeout, lock, or sent row.
@@ -1027,7 +1042,8 @@ theorem high_record_reset_fresh (w : HealingWitness) (h0 : H0Reset p c E rho w)
   have h := FGCompose.high_record_reset_fresh (D := d7f_wire p c)
     (fgsaSafetyClientLaws p c) (d7f_emission p c E rho) (d7f_own p c E rho)
     (d7f_point p w).reset (recoveryStart p E) (d7f_reset p c E rho w h0) hs x hx y hy
-  simpa only [FGCompose.HighRecordFresh, fgsaSafetyReads_def p c, d7f_point, d7f_cut] using h
+  dsimp only [FGCompose.HighRecordFresh, d7f_point] at *
+  simpa only [fgsaSafetyReads_def p c, d7f_cut] using h
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Paper 22:841–879,1228–1254: the exact K-ROWS record premise at a prefix cut.
@@ -1055,9 +1071,9 @@ theorem high_record_guards_and_fresh (w : HealingWitness)
     (d7f_qc p c E rho hqc) (d7f_head p c E rho) (fgsaSafetyClientLaws p c)
     (d7f_emission p c E rho) (d7f_own p c E rho) (d7f_names p c E rho hnames)
     z r C hz ((d7f_source_eq p c E rho z r).symm ▸ hsource) y hheight hy i x hx
-    (by simpa only [d7f_row_eq, d7f_rowHeight_eq, d7f_observations] using hbefore)
-  simpa only [FGCompose.HighRecordGuard_W, FGCompose.HighRecordFresh, fgsaSafetyReads_def p c,
-    d7f_observations, and_assoc] using h
+    (by simpa only [d7f_row_eq, d7f_rowHeight_eq] using hbefore)
+  dsimp only [FGCompose.HighRecordFresh, d7f_observations] at *
+  simpa only [FGCompose.HighRecordGuard_W, fgsaSafetyReads_def p c, and_assoc] using h
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Paper 22:886–909,1208–1211: the first high target cannot be suppressed.
@@ -1086,9 +1102,11 @@ theorem high_target_first_row (w : HealingWitness)
     e (by intro k; rw [fgsaSafetyReads_def p c]; exact he k) (d7f_timing_laws p) hS
     (d7f_enabled p c)
     x hx r C ((d7f_source_eq p c E rho x r).symm ▸ hsource) hhigh hawake
-    (by simpa only [d7f_row_eq, d7f_rowHeight_eq, d7f_observations] using hbefore)
-  simpa only [d7f_row_eq, d7f_complete_eq p c rho, d7f_observations,
-    d7f_wire] using h
+    (by
+      dsimp only [d7f_observations]
+      simpa only [d7f_row_eq, d7f_rowHeight_eq] using hbefore)
+  dsimp only [d7f_observations, d7f_wire] at *
+  simpa only [d7f_row_eq, d7f_complete_eq p c rho] using h
 
 private theorem recordInv_honestSeats_mem (i : Fin p.n) :
     i ∈ honestSeats p c rho ↔ rho.seatOf (.base .fg) i ∈ rho.honest := by
@@ -1118,16 +1136,18 @@ private theorem d7f_held_before_eq (x : V) (a : RowWire p.n) (d : Time) :
 private theorem d7f_receipt (deltaF : Time) (h : TRowsReceipt p c E rho deltaF) :
     FGCompose.TRowsReceipt (fgsaCoreReads p c) (fgsaSafetyReads p c) E rho (d7f_timing p)
       (fun nd => FGSA.blockWireRows nd.st) deltaF := by
-  simp only [FGCompose.TRowsReceipt, d7f_row_eq, d7f_held_before_eq]
-  simpa only [TRowsReceipt, d7f_timing] using h
+  dsimp only [FGCompose.TRowsReceipt] at *
+  simp only [d7f_row_eq, d7f_held_before_eq]
+  dsimp only [TRowsReceipt, d7f_timing] at *
+  simpa only [] using h
 
 private theorem d7f_signer_seat (a : RowWire p.n) (k : Fin p.n) :
     d7f_signer p a = some k ↔ a.auth = .seat .fg k := by
   rcases a with ⟨auth, body⟩
   cases auth with
-  | none => simp [d7f_signer]
-  | proposer s => simp [d7f_signer]
-  | seat label j => cases label <;> simp [d7f_signer]
+  | none => dsimp only [d7f_signer] at *; simp []
+  | proposer s => dsimp only [d7f_signer] at *; simp []
+  | seat label j => cases label <;> (dsimp only [d7f_signer] at *; simp [])
 
 private theorem d7f_fault_weight [Fintype V]
     (hL : V2.D.Linked (fgsaFamilies p c).linked rho)
@@ -1139,8 +1159,9 @@ private theorem d7f_fault_weight [Fintype V]
     (d7f_holder p c rho k).trans (he k)
   have hset : FGCompose.historyFaulty (fgsaSafetyReads p c) rho =
       (Gen.V2.Duty.faulty rho).map e.symm.toEmbedding := by
+    delta FGCompose.historyFaulty
     ext k
-    simp only [FGCompose.historyFaulty, Finset.mem_filter, Finset.mem_univ, true_and,
+    simp only [Finset.mem_filter, Finset.mem_univ, true_and,
       Finset.mem_map]
     rw [holder k]
     constructor
@@ -1228,7 +1249,8 @@ theorem high_action_target_choice (w : HealingWitness)
     (d7f_emission p c E rho) (d7f_own p c E rho) (d7f_names p c E rho hnames)
     z r C hz ((d7f_source_eq p c E rho z r).symm ▸ hsource) hhigh i x t hx
   change _ at h
-  simpa only [fgsaSafetyReads_def p c, d7f_observations, d7f_clock] using h
+  dsimp only [d7f_observations] at *
+  simpa only [fgsaSafetyReads_def p c, d7f_clock] using h
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Paper 22:841–879,1256–1263: the K-ROWS record guards at the actual action read.
@@ -1260,9 +1282,10 @@ theorem high_record_guards_and_fresh_at_action (w : HealingWitness)
     (d7f_emission p c E rho) (d7f_own p c E rho) (d7f_names p c E rho hnames)
     (d7f_timing_laws p) hs z r C hz ((d7f_source_eq p c E rho z r).symm ▸ hsource)
     y hheight hy q x hx
-    (by simpa only [d7f_row_eq, d7f_rowHeight_eq, d7f_observations] using hbefore)
-  simpa only [FGCompose.HighRecordGuard_W, FGCompose.HighRecordFresh, fgsaSafetyReads_def p c,
-    d7f_observations, d7f_timing, d7f_postClock_eq, and_assoc] using h
+    (by simpa only [d7f_row_eq, d7f_rowHeight_eq] using hbefore)
+  dsimp only [FGCompose.HighRecordFresh, d7f_observations, d7f_timing] at *
+  simpa only [FGCompose.HighRecordGuard_W, fgsaSafetyReads_def p c, d7f_postClock_eq,
+    and_assoc] using h
 
 private theorem recordInv_honest_pair (w : HealingWitness)
     (hh : THigh p c E rho w) (hqc : RQCOrigin p c E rho)
@@ -1422,7 +1445,8 @@ theorem ff2_stored_high_qc_identity [Fintype V] (w : HealingWitness)
             (d7f_timing p) i z r wire := by
     intro i x W hW a ha
     have hW' : HeldAt p c E rho i x W := by
-      simpa only [FGCompose.HeldAt, fgsaCoreReads_def p c, HeldAt, storeAt] using hW
+      dsimp only [FGCompose.HeldAt, HeldAt, storeAt] at *
+      simpa only [d7f_fg] using hW
     obtain ⟨wire, r, hd, hauth, ho⟩ := hOrigin i x W hW' a ha
     refine ⟨wire, r, ?_, ?_, ?_⟩
     · rw [fgsaSafetyReads_def p c]; exact hd
@@ -1438,8 +1462,8 @@ theorem ff2_stored_high_qc_identity [Fintype V] (w : HealingWitness)
     (d7f_emission p c E rho) (d7f_own p c E rho) (d7f_names p c E rho hnames)
     (d7f_fault_weight p c rho hL hf) horigin
   simp only [d7f_source_eq, d7f_high] at h
-  simpa only [FGCompose.HeldAt, HeldAt, fgsaCoreReads_def p c,
-    d7f_observations, d7f_point, storeAt] using h
+  dsimp only [FGCompose.HeldAt, HeldAt, d7f_observations, d7f_point, storeAt] at *
+  simpa only [d7f_fg] using h
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Paper 22:876–879: selected high progress, target, and finality QCs have one identity.
@@ -1485,7 +1509,8 @@ theorem ff2_high_qc_identity (w : HealingWitness)
     (d7f_qc p c E rho hqc) (d7f_head p c E rho) (fgsaSafetyClientLaws p c)
     (d7f_emission p c E rho) (d7f_own p c E rho) (d7f_names p c E rho hnames) (d7f_store p c E rho)
   simp only [d7f_source_eq, d7f_high] at h
-  simpa only [fgsaCoreReads_def p c, d7f_observations, d7f_point, storeAt] using h
+  dsimp only [d7f_observations, d7f_point, storeAt] at *
+  simpa only [d7f_fg] using h
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. Paper 22:876–879,917–921: a high contest is impossible at every honest prefix.
@@ -1505,7 +1530,8 @@ theorem ff2_no_high_contest (w : HealingWitness)
     (d7f_qc p c E rho hqc) (d7f_head p c E rho) (fgsaSafetyClientLaws p c)
     (d7f_emission p c E rho) (d7f_own p c E rho) (d7f_names p c E rho hnames)
     (d7f_store p c E rho) (d7f_observation_laws p c) (d7f_roots p c E rho)
-  simpa only [d7f_observations, d7f_point, storeAt] using h
+  dsimp only [d7f_observations, d7f_point, storeAt] at *
+  simpa only [] using h
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Paper 22:841–879: the three high record guards used by K-MID and K-ROWS.
@@ -1554,8 +1580,8 @@ theorem ff2_high_record_guards [Fintype V] (G ΔF : Time) (pt : KernelPt)
     (d7f_chain p c E rho pt.w hK.input.t.h1) (fgCertificateLaws p) (d7f_reflect p c)
     (d7f_qc p c E rho hQC) (d7f_head p c E rho) (fgsaSafetyClientLaws p c)
     (d7f_emission p c E rho) (d7f_own p c E rho) (d7f_names p c E rho hnames)
-  simpa only [d7f_source_eq, FGCompose.high, high_def, d7f_point,
-    fgsaSafetyReads_def p c, d7f_observations,
+  dsimp only [d7f_point, d7f_observations, FGCompose.high] at *
+  simpa only [d7f_source_eq, high_def, fgsaSafetyReads_def p c,
     FGCompose.HighRecordGuard_W, HighRecordGuard_W] using h
 
 end AvailableChain.FGSA.Run

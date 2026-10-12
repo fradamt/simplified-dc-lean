@@ -61,7 +61,7 @@ private theorem d7r_entry_source (x : V) (r : Nat) (C : FGBlock (Fin n))
   · obtain ⟨hz, hB, heq⟩ := Classical.choose_spec
       (Classical.choose_spec (Classical.choose_spec h))
     exact congrArg FGBlock.root (high_source_entry_eq hh cert hreflect _ x _ r _ C
-      hz hx hB hs (by simpa only [high, heq] using hhigh) hhigh heq)
+      hz hx hB hs (by delta high at *; simpa only [heq] using hhigh) hhigh heq)
   · exact (h ⟨x, r, C, hx, hs, rfl⟩).elim
 
 private theorem d7r_height_pair_some_def (Λ : Record) (y : Nat) (T : BlockId)
@@ -106,7 +106,8 @@ private theorem d7r_finality_source (i : Nat) (x : V) (t : Time)
   classical
   rcases hhead i x t hx with hzero | ⟨K, hK, hfields⟩
   · rw [hzero] at hf
-    simp only [finality_pair, Nat.lt_irrefl, false_and, ite_false] at hf
+    delta finality_pair at *
+    simp only [Nat.lt_irrefl, false_and, ite_false] at hf
     cases hf
   · rw [hfields] at hf
     obtain ⟨hheight, hroot, _, _⟩ := provenance_finalityRow_of_heightLaws Ef
@@ -133,7 +134,7 @@ private theorem d7r_finality_source (i : Nat) (x : V) (t : Time)
     have hTC : (O.height K).J.root = (O.height C).T_h.root := congrArg Prod.snd heq
     obtain ⟨j, _, hj⟩ := hb
     have hentry := d7r_entry_source hh cert hreflect z r C hj.1 hC
-      (by rw [high, hyC]; exact hy)
+      (by change _ ≤ _; rw [hyC]; exact hy)
     rw [hyC] at hentry
     exact hroot.trans (hTC.trans hentry.symm)
 
@@ -207,7 +208,7 @@ private theorem d7r_released_pair (j : Nat) (x : V) (r : Nat) (a : Wire)
   rw [hfields] at hpair
   obtain ⟨C, hs, hC, ht⟩ := hsource
   have hentry := d7r_entry_source hh cert hreflect x r C ha.1 hs
-    (by rw [high, hC]; exact hy)
+    (by change _ ≤ _; rw [hC]; exact hy)
   rw [hC, ht] at hentry
   obtain ⟨htr, hto, hlock, _⟩ := hg y hy
   have hchoice := high_record_target_choice Λ.toRecord y U
@@ -350,6 +351,13 @@ private theorem d7r_own_origin (i : Nat) (x : V) (o : P.Object) (u : Row (Fin n)
   obtain ⟨r, a, ha, hd⟩ := hown j x o u hx ho hd
   exact ⟨j, r, a, hji, ha, hd⟩
 
+private theorem d7r_row_height_eq (a : Wire) (pair : NamedHeightPair)
+    (hp : D.heightPair a = pair) :
+    historyRowHeight S D a = (fun value : NamedHeightPair =>
+      match value with | .empty => none | .vote h _ _ => some h) pair := by
+  exact congrArg (fun pair : NamedHeightPair =>
+    match pair with | .empty => none | .vote h _ _ => some h) hp
+
 include J emission hown in
 /-- Strict bounds on all earlier rows leave the target, timeout, lock and sent fields fresh. -/
 theorem high_record_fresh_at_cut (i : Nat) (x : V) (y : Nat) (hx : x ∈ rho.honest)
@@ -369,7 +377,7 @@ theorem high_record_fresh_at_cut (i : Nat) (x : V) (y : Nat) (hx : x ∈ rho.hon
         createRowOnce_released Ef cfg _ u.signer _ _ (emission j x r a u ha hdecode)
       have hp := congrArg Row.height_pair he
       have hrow : historyRowHeight S D a = some g := by
-        rw [historyRowHeight, D.decode_height a u hdecode, hp]
+        exact d7r_row_height_eq a _ ((D.decode_height a u hdecode).trans hp)
       have hgy := hbefore j r a g hji ha hrow
       apply d7r_fresh_write y Λ u hg
       · exact ⟨g, U, timeout, hp, hgy⟩
@@ -414,11 +422,13 @@ theorem high_record_reset_fresh (w : FGResetHistory) (start : Time)
     rcases Prod.Lex.toLex_le_toLex.mp hkey with h | ⟨h, _⟩
     · exact h.le
     · exact h.le
-  unfold historyRowHeight at hh
   cases hp : D.heightPair a with
-  | empty => rw [hp] at hh; cases hh
+  | empty =>
+    have he := d7r_row_height_eq a _ hp
+    rw [he] at hh
+    cases hh
   | vote g U timeout =>
-    have hgh : g = h := by rw [hp] at hh; exact Option.some.inj hh
+    have hgh : g = h := Option.some.inj ((d7r_row_height_eq a _ hp).symm.trans hh)
     have hcap := h0.rowCap j x r a g U (T.action r) ha ha.2.1 ht (by rw [hp]; rfl)
     simp only [Height] at *
     omega
@@ -435,7 +445,7 @@ theorem high_record_guards_and_fresh
     HighRecordGuard_W (S.record (V2.D.Run.stateBefore E rho i x)) y (O.height C).T_h ∧
       HighRecordFresh (y + 1) (S.record (V2.D.Run.stateBefore E rho i x)) := by
   have hentry := d7r_entry_source hh cert hreflect z r C hz hsource
-    (by rw [high, hheight]; exact hy)
+    (by change _ ≤ _; rw [hheight]; exact hy)
   rw [hheight] at hentry
   obtain ⟨ht, hn, hl, _⟩ := d7r_all hh cert hreflect hqc hhead J emission hown hnames i x hx y hy
   rw [hentry] at ht hl
@@ -558,7 +568,7 @@ private theorem d7r_qc_source
   have he := Option.some.inj (hn.symm.trans hp)
   have hc : (O.height C).h = y := congrArg Prod.fst he
   have ht : U = (O.height C).T_h.root := (congrArg Prod.snd he).symm
-  have hhigh : high R O pt.reset C := by rw [high, hc]; exact hy
+  have hhigh : high R O pt.reset C := by change _ ≤ _; rw [hc]; exact hy
   have hentry := d7r_entry_source hh cert hreflect z r C ha.1 hs hhigh
   rw [hc] at hentry
   exact ⟨ha.1, hhigh, hc, ht, ht.trans hentry.symm⟩
@@ -568,8 +578,8 @@ private theorem d7r_quorum_honest (hweight : Ef.weightOf (historyFaulty S rho) <
     ∃ k ∈ Q, safetyHolder S rho k ∈ rho.honest := by
   classical
   obtain ⟨k, hk, hn⟩ := honest_in_quorum Ef (historyFaulty S rho) hQ hweight
-  exact ⟨k, hk, by simpa only [historyFaulty, Finset.mem_filter,
-    Finset.mem_univ, true_and, not_not] using hn⟩
+  exact ⟨k, hk, by delta historyFaulty at *; simpa only [Finset.mem_filter, Finset.mem_univ,
+    true_and, not_not] using hn⟩
 
 include hh cert hreflect hqc hhead J emission hown hnames in
 /-- Every stored high quorum has the identity constructed by the record induction. -/
@@ -669,7 +679,6 @@ theorem ff2_high_qc_identity
   refine ⟨highRecordEntry R O T E rho, d7r_entry_source hh cert hreflect, ?_⟩
   intro i x W hx hW
   have ho := hqc
-  rw [RQCOrigin] at ho
   have hoW := ho i x W hx hW
   refine ⟨?_, ?_, ?_⟩
   · intro y X Q rows hy hlt hX hheight hQ hrows
@@ -938,7 +947,7 @@ theorem high_target_first_row (x : V) (hx : x ∈ rho.honest) (r : Nat)
   have hq : q = r := by
     by_contra hne
     have hlt := hbefore j q a _ (lt_of_le_of_ne hqr hne) ha (by
-      rw [historyRowHeight, hp])
+      exact d7r_row_height_eq a _ hp)
     exact (Nat.lt_irrefl _ hlt).elim
   subst q
   exact ⟨j, a, ha, hcomplete, hp⟩
