@@ -1027,6 +1027,54 @@ COMPOSE_EDGES |= frozenset({
 })
 
 
+# P0d7a4: exact action-row, batch, and carriage entries.
+COMPOSE_MODULES += (
+    'AvailableChainFGCompose.Statements.FinalityRows',
+    'AvailableChainFGCompose.Proofs.Finality.Rows',
+    'AvailableChainFGCompose.Proofs.Finality.RowsRecords',
+    'AvailableChainFGCompose.Proofs.Finality.RowsPrem',
+    'AvailableChainFGCompose.Proofs.Finality.Batch',
+    'AvailableChainFGCompose.Proofs.Finality.Carry',
+)
+COMPOSE_SAFETY_IMPORTS |= frozenset({
+    ('AvailableChainFGCompose.Statements.FinalityRows',
+     'AvailableChainKitFG.WindowViewsDef'),
+})
+COMPOSE_PROOF_IMPORTS |= frozenset({
+    ('AvailableChainFGCompose.Proofs.Finality.Rows',
+     'AvailableChainKitFG.HeightHistoryTransfer'),
+    ('AvailableChainFGCompose.Proofs.Finality.Rows',
+     'AvailableChainKitFG.WindowTerminal'),
+    ('AvailableChainFGCompose.Proofs.Finality.Batch',
+     'AvailableChainKitFG.WindowRetention'),
+    ('AvailableChainFGCompose.Proofs.Finality.Carry',
+     'AvailableChainKitFG.WindowValidity'),
+    ('AvailableChainFGCompose.Proofs.Finality.Carry',
+     'AvailableChainKitFG.WindowHeightBridge'),
+})
+COMPOSE_EDGES |= frozenset({
+    ('AvailableChainFGSAProofs.Proofs.Finality.Rows',
+     'AvailableChainFGCompose.Proofs.Finality.Rows'),
+    ('AvailableChainFGSAProofs.Proofs.Finality.RowsRecords',
+     'AvailableChainFGCompose.Proofs.Finality.RowsRecords'),
+    ('AvailableChainFGSAProofs.Proofs.Finality.RowsPrem',
+     'AvailableChainFGCompose.Proofs.Finality.RowsPrem'),
+    ('AvailableChainFGSAProofs.Proofs.Finality.Batch',
+     'AvailableChainFGCompose.Proofs.Finality.Batch'),
+    ('AvailableChainFGSAProofs.Proofs.Finality.Carry',
+     'AvailableChainFGCompose.Proofs.Finality.Carry'),
+})
+
+# P0d7a4: the inhabited interface test uses the owned consumers.
+COMPOSE_EDGES |= frozenset({
+    ('AvailableChainFGCompose.Tests.P0d7a4',
+     'AvailableChainFGCompose.Proofs.Finality.Rows'),
+    ('AvailableChainFGCompose.Tests.P0d7a4',
+     'AvailableChainFGCompose.Proofs.Finality.Carry'),
+    ('AvailableChainFGCompose.Tests.P0d7a4',
+     'AvailableChainFGCompose.Proofs.Finality.RowsRecords'),
+})
+
 def compose_base(dep: str) -> bool:
     return (foundation(dep) or under(dep, "AvailableChainModel.Objects")
             or any_under(dep, ("AvailableChainEngineV2.Engine",

@@ -12,6 +12,12 @@ public import AvailableChainFGCompose.Proofs.Healing.PromotionRows -- shake: kee
 public import AvailableChainFGCompose.Statements.Dependency -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Statements.DependencyTrace -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Proofs.Dependency -- shake: keep (#print axioms)
+public import AvailableChainFGCompose.Statements.FinalityRows -- shake: keep (axiom audit)
+public import AvailableChainFGCompose.Proofs.Finality.Rows -- shake: keep (axiom audit)
+public import AvailableChainFGCompose.Proofs.Finality.RowsRecords -- shake: keep (axiom audit)
+public import AvailableChainFGCompose.Proofs.Finality.RowsPrem -- shake: keep (axiom audit)
+public import AvailableChainFGCompose.Proofs.Finality.Batch -- shake: keep (axiom audit)
+public import AvailableChainFGCompose.Proofs.Finality.Carry -- shake: keep (axiom audit)
 public import AvailableChainFGCompose.Statements.FinalityKernel -- shake: keep (axiom audit)
 public import AvailableChainFGCompose.Proofs.Finality.MiddleSupport -- shake: keep (axiom audit)
 public import AvailableChainFGCompose.Proofs.Finality.Middle -- shake: keep (axiom audit)
@@ -991,3 +997,56 @@ public import AvailableChainFGCompose.Proofs.Healing.ResetCut -- shake: keep (#p
 #print axioms AvailableChain.FGCompose.FGDependencyTraceLaws.restart_drain_closed
 #print axioms AvailableChain.FGCompose.FGDependencyTraceLaws.restart_replay_order
 #print axioms AvailableChain.FGCompose.dependency_reconstruct_metadata
+
+-- P0d7a4: exact action-row, batch, and carriage surface.
+#print axioms AvailableChain.FGCompose.FinRowNames
+#print axioms AvailableChain.FGCompose.FinalityBatchPrem_W
+#print axioms AvailableChain.FGCompose.FinalityBatchPrem_W.after
+#print axioms AvailableChain.FGCompose.FinalityBatchPrem_W.batch
+#print axioms AvailableChain.FGCompose.FinalityBatchPrem_W.birth
+#print axioms AvailableChain.FGCompose.FinalityBatchPrem_W.carrier
+#print axioms AvailableChain.FGCompose.FinalityBatchPrem_W.deltaF
+#print axioms AvailableChain.FGCompose.FinalityBatchPrem_W.fault_weight
+#print axioms AvailableChain.FGCompose.FinalityBatchPrem_W.horizon
+#print axioms AvailableChain.FGCompose.FinalityBatchPrem_W.mk
+#print axioms AvailableChain.FGCompose.FinalityBatchPrem_W.parent
+#print axioms AvailableChain.FGCompose.FinalityBatchPrem_W.retainedOrCovered
+#print axioms AvailableChain.FGCompose.FinalityBatchPrem_W.rowsReceipt
+#print axioms AvailableChain.FGCompose.FinalityBatchPrem_W.schedule
+#print axioms AvailableChain.FGCompose.FinalityCoveredByChild_W
+#print axioms AvailableChain.FGCompose.FinalityNames
+#print axioms AvailableChain.FGCompose.FreshFinalityRows_W
+#print axioms AvailableChain.FGCompose.TerminalCarriagePrem_W
+#print axioms AvailableChain.FGCompose.TerminalCarriagePrem_W.carrier
+#print axioms AvailableChain.FGCompose.TerminalCarriagePrem_W.deltaF
+#print axioms AvailableChain.FGCompose.TerminalCarriagePrem_W.fault_weight
+#print axioms AvailableChain.FGCompose.TerminalCarriagePrem_W.fresh
+#print axioms AvailableChain.FGCompose.TerminalCarriagePrem_W.freshHeight
+#print axioms AvailableChain.FGCompose.TerminalCarriagePrem_W.heightEntry
+#print axioms AvailableChain.FGCompose.TerminalCarriagePrem_W.horizon
+#print axioms AvailableChain.FGCompose.TerminalCarriagePrem_W.mk
+#print axioms AvailableChain.FGCompose.TerminalCarriagePrem_W.parent
+#print axioms AvailableChain.FGCompose.TerminalCarriagePrem_W.path
+#print axioms AvailableChain.FGCompose.TerminalCarriagePrem_W.receipt
+#print axioms AvailableChain.FGCompose.TerminalCarriagePrem_W.retainedOrCovered
+#print axioms AvailableChain.FGCompose.TerminalCarriagePrem_W.rows
+#print axioms AvailableChain.FGCompose.TerminalCarriagePrem_W.schedule
+#print axioms AvailableChain.FGCompose.TerminalCarriagePrem_W.seats
+#print axioms AvailableChain.FGCompose.actual_anchor_cap
+#print axioms AvailableChain.FGCompose.actual_anchor_retained_or_covered
+#print axioms AvailableChain.FGCompose.finalityBatchCoverage_W_of_tRowsSelect
+#print axioms AvailableChain.FGCompose.finalityRow_bit_or_carried_W
+#print axioms AvailableChain.FGCompose.finality_action_source
+#print axioms AvailableChain.FGCompose.fresh_unanimous_rows
+#print axioms AvailableChain.FGCompose.pending_action_domain_cap
+#print axioms AvailableChain.FGCompose.pending_action_head
+#print axioms AvailableChain.FGCompose.pending_action_head_capped
+#print axioms AvailableChain.FGCompose.rowsPrem_action_record
+#print axioms AvailableChain.FGCompose.rowsPrem_action_source
+#print axioms AvailableChain.FGCompose.rowsPrem_anchor_cap
+#print axioms AvailableChain.FGCompose.rowsPrem_anchor_retained_or_covered
+#print axioms AvailableChain.FGCompose.rowsPrem_earlier_height
+#print axioms AvailableChain.FGCompose.rowsPrem_fresh_rows
+#print axioms AvailableChain.FGCompose.rowsPrem_pending_head
+#print axioms AvailableChain.FGCompose.terminalCarriage_W_of_tRowsSelect
+#print axioms AvailableChain.FGCompose.terminalCarriage_general_W

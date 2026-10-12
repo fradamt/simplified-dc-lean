@@ -84,6 +84,12 @@
       "AvailableChainGeneric.Statements.**"
     ],
     "laneUpstream": [
+      "AvailableChainFGCompose.Statements.FinalityRows",
+      "AvailableChainFGCompose.Proofs.Finality.Rows",
+      "AvailableChainFGCompose.Proofs.Finality.RowsRecords",
+      "AvailableChainFGCompose.Proofs.Finality.RowsPrem",
+      "AvailableChainFGCompose.Proofs.Finality.Batch",
+      "AvailableChainFGCompose.Proofs.Finality.Carry",
       "AvailableChainFGCompose.Proofs.Healing.Attempt",
       "AvailableChainFGCompose.Proofs.Healing.AttemptRows",
       "AvailableChainFGCompose.Proofs.Healing.AttemptSettle",

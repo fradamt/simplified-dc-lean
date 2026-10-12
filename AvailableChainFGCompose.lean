@@ -66,3 +66,10 @@ public import AvailableChainFGCompose.Proofs.Finality.RecordInv
 public import AvailableChainFGCompose.Statements.FinalityKernel
 public import AvailableChainFGCompose.Proofs.Finality.MiddleSupport
 public import AvailableChainFGCompose.Proofs.Finality.Middle
+
+public import AvailableChainFGCompose.Statements.FinalityRows
+public import AvailableChainFGCompose.Proofs.Finality.Rows
+public import AvailableChainFGCompose.Proofs.Finality.RowsRecords
+public import AvailableChainFGCompose.Proofs.Finality.RowsPrem
+public import AvailableChainFGCompose.Proofs.Finality.Batch
+public import AvailableChainFGCompose.Proofs.Finality.Carry

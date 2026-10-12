@@ -264,3 +264,11 @@ height AvailableChain.FGSA.Run.wcg_service4OfSeed # sleep landing: old height pa
 height AvailableChain.FGSA.Run.d7m_emission # P0 extraction 2026-10-12, class of the 2026-10-11 user-approved lines
 height AvailableChain.FGSA.Run.d7n_emission # P0 extraction 2026-10-12, class of the 2026-10-11 user-approved lines
 height AvailableChain.FGSA.Run.kmid_row_action # P0 extraction 2026-10-12, class of the 2026-10-11 user-approved lines
+
+# P0d7a4 approved shared-client HEIGHT reads.
+height AvailableChain.FGSA.Run.d7a4r_release # height-only, through the shared client (hOf/createRowOnce); bridge-equal; P0 extraction 2026-10-12
+height AvailableChain.FGSA.Run.fresh_unanimous_rows # height-only, through the shared client (hOf/createRowOnce); bridge-equal; P0 extraction 2026-10-12
+height AvailableChain.FGSA.Run.d7a4rr_f_emission # height-only, through the shared client (hOf/createRowOnce); bridge-equal; P0 extraction 2026-10-12
+height AvailableChain.FGSA.Run.d7a4rp_release # height-only, through the shared client (hOf/createRowOnce); bridge-equal; P0 extraction 2026-10-12
+height AvailableChain.FGSA.Run.rowsPrem_pending_head # height-only, through heightView_bridge (KitFG.HeightBridge) and the shared client; bridge-equal; P0 extraction 2026-10-12 (lead ruling r6)
+height AvailableChain.FGSA.Run.rowsPrem_fresh_rows # height-only, through heightView_bridge (KitFG.HeightBridge) and the shared client; bridge-equal; P0 extraction 2026-10-12 (lead ruling r6)

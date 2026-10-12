@@ -1,20 +1,260 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Shared.FGCompose
+public import AvailableChainFGCompose.Proofs.Finality.Rows
+public import AvailableChainKitFG.WindowTransport -- shake: keep (RowsPrem fold_eq route)
+public import AvailableChainKitFG.ClientOnceSafety -- shake: keep (RowsPrem release route)
 public import AvailableChainFGCompose.Proofs.SourceHead
 public import AvailableChainFGCompose.Proofs.ServiceTransport
 public import AvailableChainFGSAProofs.Proofs.Shared.Gate
 public import AvailableChainFGSAClaims.Statements.ComposeStmt
 public import AvailableChainFGSA.Proofs.EmissionFields
-public import AvailableChainKitFG.HeightHistoryTransfer
-public import AvailableChainFGSA.Proofs.WindowRetention
+public import AvailableChainKitFG.HeightHistoryTransfer -- shake: keep (height history route)
+public import AvailableChainFGSA.Proofs.WindowRetention -- shake: keep (Receipt window route)
 
 public section
 
 namespace AvailableChain.FGSA.Run
-open AvailableChain.SimplexFG
+open AvailableChain.SimplexFG AvailableChain.KitFG
+
+private def d7a4r_proposalFG (p : Params) {In : Type} (c : AppCodec In) :=
+  (fgsaCoreReads p c).proposalFG
+
+private theorem d7a4r_reads_eq (p : Params) {In : Type} (c : AppCodec In) :
+    fgsaCoreReads p c =
+      { core := fun nd => ⟨nd.st.base, nd.st.fg, nd.st.proposals, nd.st.rowPool⟩
+        erase := eraseFG
+        source := fun nd => FGSA.fgSource p nd.st
+        headVote := fun nd s => FGSA.headVote p nd.st s
+        finalityHead := fun nd => FGSA.fgBlockOf nd.st (FGSA.fgHead p nd.st)
+        proposalFG := d7a4r_proposalFG p c } :=
+  congrArg (fun reads => { reads with proposalFG := d7a4r_proposalFG p c })
+    (fgsaCoreReads_def p c)
+
+section
+
+private abbrev d7a4w_Old := FGSA.Window.State
+private abbrev d7a4w_New := SimplexFG.Window.State
+
+private def d7a4w_toEntry {V : Type} (e : FGSA.Window.Entry V) : SimplexFG.Window.Entry V :=
+  ⟨e.j, e.X, e.Q⟩
+
+/-- All eleven fields are copied; no field is reconstructed from another field. -/
+private def d7a4w_toWindow {V : Type} (w : d7a4w_Old V) : d7a4w_New V :=
+  ⟨w.L, w.s, w.h, w.T_h, w.target_participation, w.progress,
+    w.W.map d7a4w_toEntry, w.J, w.h_j, w.F, w.h_F⟩
+
+private theorem d7a4w_entry_eq {V : Type} (e : FGSA.Window.Entry V) :
+    d7a4w_toEntry e = ⟨e.j, e.X, e.Q⟩ := rfl
+
+private theorem d7a4w_state_eq {V : Type} (w : d7a4w_Old V) :
+    d7a4w_toWindow w = ⟨w.L, w.s, w.h, w.T_h, w.target_participation, w.progress,
+      w.W.map d7a4w_toEntry, w.J, w.h_j, w.F, w.h_F⟩ := rfl
+
+private theorem d7a4w_entry_fields {V : Type} (e : FGSA.Window.Entry V) :
+    (d7a4w_toEntry e).j = e.j ∧ (d7a4w_toEntry e).X = e.X ∧ (d7a4w_toEntry e).Q
+      = e.Q :=
+  ⟨rfl, rfl, rfl⟩
+
+private theorem d7a4w_state_fields {V : Type} (w : d7a4w_Old V) :
+    (d7a4w_toWindow w).L = w.L ∧ (d7a4w_toWindow w).s = w.s ∧
+    (d7a4w_toWindow w).h = w.h ∧ (d7a4w_toWindow w).T_h = w.T_h ∧
+    (d7a4w_toWindow w).target_participation = w.target_participation ∧
+    (d7a4w_toWindow w).progress = w.progress ∧ (d7a4w_toWindow w).W = w.W.map
+      d7a4w_toEntry ∧
+    (d7a4w_toWindow w).J = w.J ∧ (d7a4w_toWindow w).h_j = w.h_j ∧
+    (d7a4w_toWindow w).F = w.F ∧ (d7a4w_toWindow w).h_F = w.h_F := by
+  exact ⟨rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl⟩
+
+private theorem d7a4w_initial_eq {V : Type} :
+    d7a4w_toWindow (FGSA.Window.initial (V := V)) = SimplexFG.Window.initial := rfl
+
+variable {V : Type} [DecidableEq V] [RowCodec V]
+
+private theorem d7a4w_foldRow_eq (w : d7a4w_Old V) (a : Row V) :
+    d7a4w_toWindow (FGSA.Window.process_row w a) =
+      SimplexFG.Window.process_row (d7a4w_toWindow w) a := by
+  have bits :
+      (w.W.map (fun e => if a.finality_pair = some ⟨e.j, e.X.root⟩ then
+        { e with Q := insert a.signer e.Q } else e)).map d7a4w_toEntry =
+      (w.W.map d7a4w_toEntry).map (fun e => if a.finality_pair = some ⟨e.j, e.X.root⟩ then
+        { e with Q := insert a.signer e.Q } else e) := by
+    simp only [List.map_map]
+    congr 1
+    funext e
+    by_cases he : a.finality_pair = some ⟨e.j, e.X.root⟩ <;>
+      simp [d7a4w_entry_eq, he]
+  rcases a with ⟨i, hp, fp⟩
+  cases hp with
+  | empty =>
+      simpa only [FGSA.Window.process_row_def, SimplexFG.Window.process_row_def,
+        NamedHeightPair.matchesEntry, Bool.false_eq_true, ↓reduceIte, d7a4w_state_eq] using
+        congrArg (fun es => ({ d7a4w_toWindow w with W := es } : d7a4w_New V)) bits
+  | vote h X t =>
+      cases t <;>
+        simp only [FGSA.Window.process_row_def, SimplexFG.Window.process_row_def,
+          NamedHeightPair.matchesEntry] <;>
+        split_ifs <;> dsimp [d7a4w_state_eq] <;> rw [bits] <;> simp_all [d7a4w_state_eq]
+      all_goals
+        exfalso
+        have hm : h = w.h ∧ X = w.T_h.root := of_decide_eq_true (by assumption)
+        exact (by assumption : h = w.h → ¬ X = w.T_h.root) hm.1 hm.2
+
+private theorem d7a4w_rows_eq (rs : List (Row V)) (w : d7a4w_Old V) :
+    d7a4w_toWindow (rs.foldl FGSA.Window.process_row w) =
+      rs.foldl SimplexFG.Window.process_row (d7a4w_toWindow w) := by
+  induction rs generalizing w with
+  | nil => rfl
+  | cons a rs ih => simp only [List.foldl_cons, ih, d7a4w_foldRow_eq]
+
+omit [DecidableEq V] [RowCodec V] in
+private theorem d7a4w_advance_eq (w : d7a4w_Old V) :
+    d7a4w_toWindow (FGSA.Window.advance_height w) =
+      SimplexFG.Window.advance_height (d7a4w_toWindow w) := rfl
+
+variable [Fintype V]
+
+omit [DecidableEq V] [RowCodec V] in
+private theorem d7a4w_greatest_eq (E : Electorate V) (w : d7a4w_Old V) :
+    (FGSA.Window.greatestReady E w).map d7a4w_toEntry =
+      SimplexFG.Window.greatestReady E (d7a4w_toWindow w) := by
+  classical
+  let oldStep := fun (best : Option (FGSA.Window.Entry V)) e =>
+    if w.h_F < e.j ∧ E.q ≤ E.weightOf e.Q then
+      best.elim (some e) (fun old => if old.j < e.j then some e else best)
+    else best
+  let newStep := fun (best : Option (SimplexFG.Window.Entry V)) e =>
+    if w.h_F < e.j ∧ E.q ≤ E.weightOf e.Q then
+      best.elim (some e) (fun old => if old.j < e.j then some e else best)
+    else best
+  have step (best) (e) :
+      (oldStep best e).map d7a4w_toEntry = newStep (best.map d7a4w_toEntry)
+      (d7a4w_toEntry e) := by
+    dsimp [oldStep, newStep, d7a4w_entry_eq]
+    split_ifs <;> cases best <;> simp_all [d7a4w_entry_eq]
+    split_ifs <;> rfl
+  have fold (es : List (FGSA.Window.Entry V)) (best) :
+      (es.foldl oldStep best).map d7a4w_toEntry =
+        (es.map d7a4w_toEntry).foldl newStep (best.map d7a4w_toEntry) := by
+    induction es generalizing best with
+    | nil => rfl
+    | cons e es ih => simp only [List.foldl_cons, List.map_cons, ih, step]
+  have old_eq : FGSA.Window.greatestReady E w = w.W.foldl oldStep none := by
+    rw [FGSA.Window.greatestReady_def]
+    congr 1
+    funext best e
+    cases best <;> rfl
+  have new_eq : SimplexFG.Window.greatestReady E (d7a4w_toWindow w) =
+      (w.W.map d7a4w_toEntry).foldl newStep none := by
+    rw [SimplexFG.Window.greatestReady_def]
+    congr 1
+    funext best e
+    cases best <;> rfl
+  rw [old_eq, new_eq]
+  exact fold w.W none
+
+omit [DecidableEq V] [RowCodec V] in
+private theorem d7a4w_finalize_eq (E : Electorate V) (w : d7a4w_Old V) :
+    d7a4w_toWindow (FGSA.Window.finalizeWindow E w) =
+      SimplexFG.Window.finalizeWindow E (d7a4w_toWindow w) := by
+  rw [FGSA.Window.finalizeWindow_def, SimplexFG.Window.finalizeWindow_def]
+  rw [← d7a4w_greatest_eq]
+  cases FGSA.Window.greatestReady E w <;>
+    simp [d7a4w_state_eq, d7a4w_entry_eq, List.filter_map, Function.comp_def] <;> rfl
+
+omit [DecidableEq V] [RowCodec V] [Fintype V] in
+/-- Appending the new empty entry and dropping old entries preserve conversion. -/
+private theorem d7a4w_append_eviction_eq (es : List (FGSA.Window.Entry V))
+    (j : Height) (X : FGBlock V) (K : Nat) :
+    ((es ++ [FGSA.Window.Entry.mk j X ∅]).drop
+      ((es ++ [FGSA.Window.Entry.mk j X ∅]).length - K)).map d7a4w_toEntry =
+      (es.map d7a4w_toEntry ++ [SimplexFG.Window.Entry.mk j X ∅]).drop
+        ((es.map d7a4w_toEntry ++ [SimplexFG.Window.Entry.mk j X ∅]).length - K) := by
+  simp [List.map_drop, d7a4w_entry_eq]
+
+omit [DecidableEq V] [RowCodec V] in
+private theorem d7a4w_events_eq (E : Electorate V) (cfg : FGConfig) (K : Nat) (w :
+      d7a4w_Old V) :
+    d7a4w_toWindow (FGSA.Window.process_height_events E cfg K w) =
+      SimplexFG.Window.process_height_events E cfg K (d7a4w_toWindow w) := by
+  rw [FGSA.Window.process_height_events_def, SimplexFG.Window.process_height_events_def]
+  rw [← d7a4w_finalize_eq]
+  generalize FGSA.Window.finalizeWindow E w = u
+  change d7a4w_toWindow (if FGSA.Window.targetQuorum E u then _ else _) =
+    (if FGSA.Window.targetQuorum E u then _ else _)
+  rw [show SimplexFG.Window.progReady E cfg (d7a4w_toWindow u) =
+    FGSA.Window.progReady E cfg u from rfl]
+  split_ifs <;>
+    simp [FGSA.Window.advance_height_def, SimplexFG.Window.advance_height_def,
+      d7a4w_state_eq, d7a4w_entry_eq, List.map_drop]
+
+private theorem d7a4w_transition_eq (p : Params) (K : Nat) (w : d7a4w_Old (Fin p.n))
+    (B : FGBlock (Fin p.n)) (rs : List (Row (Fin p.n))) :
+    d7a4w_toWindow (FGSA.Window.transition p K w B rs) =
+      SimplexFG.Window.transition p.E p.cfg K (d7a4w_toWindow w) B rs := by
+  rw [FGSA.Window.transition_def, d7a4w_events_eq, SimplexFG.Window.transition_def]
+  have h := d7a4w_rows_eq rs { w with s := B.slot }
+  change SimplexFG.Window.process_height_events p.E p.cfg K
+    { d7a4w_toWindow (rs.foldl FGSA.Window.process_row { w with s := B.slot }) with L := B }
+      = _
+  rw [h]
+  rfl
+
+private theorem d7a4w_foldMap (p : Params) (K : Nat) :
+    KitFG.WindowFoldMap p.E p.cfg K FGSA.Window.initial (FGSA.Window.transition p K)
+      (FGSA.Window.derive p K) d7a4w_toWindow where
+  initial := d7a4w_initial_eq
+  genesis := rfl
+  node := fun _ _ _ _ _ => rfl
+  step := d7a4w_transition_eq p K
+
+private theorem d7a4w_derive_eq (p : Params) (K : Nat) (B : FGBlock (Fin p.n)) :
+    d7a4w_toWindow (FGSA.Window.derive p K B) = SimplexFG.Window.derive p.E p.cfg K B :=
+  (d7a4w_foldMap p K).fold_eq B
+
+end
 
 variable (p : Params) {In V : Type} [DecidableEq V]
     (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+
+private theorem d7a4w_height_eq :
+    heightView p = KitFG.Window.certificateHeight p.E p.cfg p.K_W := by
+  funext B
+  change KitFG.Window.projectHeight (d7a4w_toWindow (FGSA.Window.derive p p.K_W B)) = _
+  rw [d7a4w_derive_eq, KitFG.Window.certificateHeight_def]
+
+private theorem d7a4w_finality_eq :
+    finalityView p = KitFG.Window.certificateFinality p.E p.cfg p.K_W := by
+  funext B
+  change KitFG.Window.projectFinality (d7a4w_toWindow (FGSA.Window.derive p p.K_W B)) = _
+  rw [d7a4w_derive_eq, KitFG.Window.certificateFinality_def]
+
+private theorem d7a4w_retained_eq (B U : FGBlock (Fin p.n)) (y : Nat) :
+    KitFG.Window.RetainedW p.E p.cfg p.K_W B y U = Window.RetainedW p B y U := by
+  apply propext
+  unfold KitFG.Window.RetainedW
+  rw [← d7a4w_derive_eq p p.K_W B, Window.RetainedW_def]
+  change (∃ e ∈ (Window.derive p p.K_W B).W.map d7a4w_toEntry, e.j = y ∧ e.X = U) ↔ _
+  simp only [List.mem_map]
+  constructor
+  · rintro ⟨e, ⟨d, hd, rfl⟩, hey, heU⟩
+    exact ⟨d, hd, hey, heU⟩
+  · rintro ⟨d, hd, hdy, hdU⟩
+    exact ⟨d7a4w_toEntry d, ⟨d, hd, rfl⟩, hdy, hdU⟩
+
+private theorem d7a4w_covered_eq (B U : FGBlock (Fin p.n)) (y : Nat) :
+    KitFG.Window.CoveredW p.E p.cfg p.K_W B y U = Window.CoveredW p B y U := by
+  unfold KitFG.Window.CoveredW
+  rw [← d7a4w_derive_eq p p.K_W B, Window.CoveredW_def]
+  rfl
+
+private theorem d7a4w_nonempty : ¬ p.E.IsQuorum ∅ := by
+  have hn := p.nPos
+  dsimp only [Params.E, Electorate.IsQuorum, Electorate.q, Electorate.totalWeight,
+    Electorate.weightOf]
+  simp only [Finset.sum_const, Finset.card_univ, Fintype.card_fin,
+    smul_eq_mul, mul_one, Finset.card_empty]
+  omega
+
 
 private theorem rows_clock_read (x : V) (t : Time) (nd : Node p)
     (hnd : postClock E rho x t = some nd) :
@@ -36,6 +276,17 @@ private def c2_timing (p : Params) : FGCompose.FGTiming where
   gate := SA.gateTime p.toParams
   action := p.actionTime
 
+private theorem c2_timing_eq (p : Params) : c2_timing p =
+    { delta := p.Δ
+      roundSlots := p.R
+      proposal := SA.proposalTime p.toParams
+      vote := SA.voteTime p.toParams
+      early := SA.earlyTime p.toParams
+      freeze := SA.freezeTime p.toParams
+      release := SA.releaseTime p.toParams
+      gate := SA.gateTime p.toParams
+      action := p.actionTime } := rfl
+
 private def c2_point (p : Params) (w : HealingWitness) : FGCompose.FGServicePoint :=
   ⟨⟨w.rG, w.u₀, w.M, w.rStar, w.sStar, w.CStar⟩, w.u, w.QStar, tstar p w⟩
 
@@ -44,6 +295,12 @@ private def c2_observations : FGCompose.FGObservationReads (fgsaCoreReads p c) w
   finality := finalityView p
   controls nd := FGSA.controls p nd.st
   viable nd X := domainR p nd.st X
+
+private theorem c2_observations_eq : c2_observations p c =
+    { height := heightView p
+      finality := finalityView p
+      controls := fun nd => FGSA.controls p nd.st
+      viable := fun nd X => domainR p nd.st X } := rfl
 
 private def c2_reads (w : HealingWitness) : FGCompose.FGACServiceReads V where
   honest x := x ∈ rho.honest
@@ -75,6 +332,115 @@ private def c2_reads (w : HealingWitness) : FGCompose.FGACServiceReads V where
       (FGSA.controls p nd.st).lo ≤ (heightView p D).h
   below := Block.Preceq
 
+private def d7a4r_safety (p : Params) {In : Type} (c : AppCodec In) :
+    FGCompose.FGSafetyReads (fgsa p c) p.n (RowWire p.n) where
+  proposalErase := safetyProposalErase p
+  proposalRows := safetyProposalRows p
+  encode := ofRow p
+  decode := RowWire.toRow?
+  decodeObject := decodeRowObject p
+  fgLabel := .base .fg
+  fgSeats := Equiv.refl _
+  record := Node.record
+  inputs := fun nd => fgInputs p nd.st
+  enabled := fun t => decide (p.actionTime ((p.slotOf t - 1) / p.R) = t)
+  finalizedOut := finalizedOut
+
+private def d7a4r_signer (a : RowWire p.n) : Option (Fin p.n) := match a.auth with
+  | .seat .fg i => some i
+  | _ => none
+
+private theorem d7a4r_decode {a : RowWire p.n} {u : Row (Fin p.n)}
+    (ha : a.toRow? = some u) :
+    a = ⟨.seat .fg u.signer, .vote ⟨u.height_pair, u.finality_pair⟩⟩ := by
+  rcases a with ⟨auth, ⟨⟨ah, af⟩⟩⟩
+  cases auth with
+  | none => cases ha
+  | proposer s => cases ha
+  | seat label k =>
+    cases label with
+    | head s => cases ha
+    | fg =>
+      have he : (⟨k, ah, af⟩ : Row (Fin p.n)) = u := Option.some.inj ha
+      subst u
+      rfl
+
+private def d7a4r_wire : FGCompose.FGHistoryWireReads (d7a4r_safety p c) where
+  heightPair a := a.payload.height_pair
+  finalityPair a := a.payload.finality_pair
+  signer := d7a4r_signer p
+  decode_height a u ha := by
+    delta d7a4r_safety at ha
+    rw [d7a4r_decode p ha]
+    rfl
+  decode_finality a u ha := by
+    delta d7a4r_safety at ha
+    rw [d7a4r_decode p ha]
+    rfl
+  decode_signer a u ha := by
+    delta d7a4r_safety at ha
+    rw [d7a4r_decode p ha]
+    rfl
+
+private theorem d7a4r_row_eq (j r : Nat) (x : V) (a : RowWire p.n) :
+    FGCompose.HonestRowAt (d7a4r_safety p c) E rho (c2_timing p) j x r a =
+      HonestRowAt p c E rho j x r a := by delta d7a4r_safety; rfl
+
+private theorem d7a4r_source_eq (x : V) (r : Nat) :
+    FGCompose.actionSourceFG (fgsaCoreReads p c) E rho (c2_timing p) x r =
+      actionSourceFG p c E rho x r := by rw [d7a4r_reads_eq]; rfl
+
+private theorem d7a4r_held_eq (i : Nat) (x : V) (B : FGBlock (Fin p.n)) :
+    FGCompose.HeldAt (fgsaCoreReads p c) E rho i x B = HeldAt p c E rho i x B := by
+  rw [d7a4r_reads_eq]
+  rfl
+
+private theorem d7a4r_signer_iff (a : RowWire p.n) (i : Fin p.n) :
+    d7a4r_signer p a = some i ↔ a.auth = .seat .fg i := by
+  rcases a with ⟨auth, payload⟩
+  cases auth with
+  | none => delta d7a4r_signer; simp
+  | proposer s => delta d7a4r_signer; simp
+  | seat label j => cases label <;> delta d7a4r_signer <;> simp
+
+omit [DecidableEq V] in
+private theorem d7a4r_complete_eq (x : V) (a : RowWire p.n) :
+    FGCompose.RowComplete (d7a4r_safety p c) rho (d7a4r_signer p) RowWire.valid x a =
+      RowComplete p c rho x a := by
+  unfold FGCompose.RowComplete FGCompose.RowSigner RowComplete RowSigner
+  simp only [d7a4r_signer_iff, FGCompose.safetyHolder_def]
+  delta d7a4r_safety
+  rfl
+
+private def d7a4r_makeWire (row : Row (Fin p.n)) : RowWire p.n :=
+  ⟨.seat .fg row.signer, .vote ⟨row.height_pair, row.finality_pair⟩⟩
+
+private theorem d7a4r_release (i : Fin p.n) (q : Nat) (nd : Node p) (row : Row (Fin p.n))
+    (hnd : FGCompose.postClock E rho (rho.seatOf (.base .fg) i) (p.actionTime q) = some nd)
+    (awake : E.awake (rho.seatOf (.base .fg) i) (p.actionTime q) = true)
+    (released : (createRowOnce p.E p.cfg nd.record i (fgInputs p nd.st).1
+      (fgInputs p nd.st).2).1 = some row) :
+    ∃ j, rho.events[j]? = some (.tick (rho.seatOf (.base .fg) i) (p.actionTime q)) ∧
+      ofRow p (d7a4r_makeWire p row) ∈ V2.D.Run.emitsAt E rho j := by
+  rw [← (fgsa_eventReads_eq_compose E rho _ _).2.2.2.2.2.1] at hnd
+  obtain ⟨j, hj, hclock⟩ := rows_clock_read p c E rho _ _ nd hnd
+  obtain ⟨_, _, _, _, shape, _, _, _⟩ :=
+    KitFG.createRowOnce_released p.E p.cfg nd.record i _ _ released
+  have signer : row.signer = i := congrArg Row.signer shape
+  refine ⟨j, hj, ?_⟩
+  change ofRow p ⟨.seat .fg row.signer, .vote ⟨row.height_pair, row.finality_pair⟩⟩ ∈ _
+  rw [signer]
+  apply (fgsa_emitsAt_row E rho j _ _ hj i _).mpr
+  refine ⟨awake, rfl, q, rfl, ?_⟩
+  have record : (V2.D.Run.stateBefore E rho j (rho.seatOf (.base .fg) i)).record =
+      nd.record := (clock_rec (c := c) _ _).symm.trans (congrArg Node.record hclock)
+  rw [show FGSA.clock p _ _ = nd.st from congrArg Node.st hclock, record]
+  rw [attest_signer_irrel _ _ ⟨0, p.nPos⟩ i]
+  change (createRowOnce p.E p.cfg nd.record i (fgInputs p nd.st).1
+    (fgInputs p nd.st).2).1.map (fun a => RowPayload.vote (RowBody.ofRow a)) = _
+  rw [released]
+  rfl
+
 private theorem c2_observation_laws (w : HealingWitness) :
     FGCompose.FGACServiceObservationLaws (c2_reads p c E rho w) (c2_timing p)
       (fgsaCoreReads p c) (c2_observations p c) E rho (fgsaInterface p c)
@@ -96,10 +462,10 @@ private theorem c2_observation_laws (w : HealingWitness) :
   action_time _ := rfl
   gate_label _ := rfl
   action_head_label _ := rfl
-  head_eq _ _ := by rw [fgsaCoreReads_def]; rfl
-  action_head_eq _ _ := by rw [fgsaCoreReads_def]; rfl
+  head_eq _ _ := by rw [d7a4r_reads_eq]; rfl
+  action_head_eq _ _ := by rw [d7a4r_reads_eq]; rfl
   source_eq x q := by
-    rw [fgsaCoreReads_def]
+    rw [d7a4r_reads_eq]
     change ((postClock E rho x (p.actionTime q)).map
       (fun nd => FGSA.fgSource p nd.st)).map (Option.map eraseFG) = _
     rw [Option.map_map]
@@ -114,8 +480,8 @@ private theorem c2_observation_laws (w : HealingWitness) :
   gate_scope _ _ := Iff.rfl
   action_scope _ _ := Iff.rfl
   frame_eq _ _ _ := by
-    dsimp only [c2_observations, c2_reads]
-    rw [fgsaCoreReads_def]
+    dsimp only [c2_observations_eq, c2_reads]
+    rw [d7a4r_reads_eq]
     rfl
 
 private theorem c2_history_transfer (w : HealingWitness) (h : TCarrier p c E rho w)
@@ -123,7 +489,7 @@ private theorem c2_history_transfer (w : HealingWitness) (h : TCarrier p c E rho
     FGCompose.FGHistoricalHighTransfer (fgsaCoreReads p c) (c2_observations p c)
       (c2_timing p) E rho (fgsaInterface p c) (c2_point p w) horizon := by
   intro x r C hx hC hh _ v Q hQ _ hgap
-  rw [fgsaCoreReads_def] at hC ⊢
+  rw [d7a4r_reads_eq] at hC ⊢
   exact h x r C v Q hx hC hh hQ hgap
 
 private theorem c2_history_chain (w : HealingWitness) (h : THigh p c E rho w)
@@ -131,7 +497,7 @@ private theorem c2_history_chain (w : HealingWitness) (h : THigh p c E rho w)
     FGCompose.FGHistoricalHighChain (fgsaCoreReads p c) (c2_observations p c)
       (c2_timing p) E rho (c2_point p w) horizon := by
   intro x y r q C D hx hy hC hD hc hd _ _
-  rw [fgsaCoreReads_def] at hC hD ⊢
+  rw [d7a4r_reads_eq] at hC hD ⊢
   exact h x y r q C D hx hy hC hD hc hd
 
 private theorem c2_service_laws (w : HealingWitness)
@@ -252,18 +618,24 @@ private theorem rows_pending_action_head
   rw [hread, ← hhead] at hcover
   obtain ⟨H, hH, hHe⟩ := (hinv.baseTree _).mp (fgHead_stored p nd.st hinv)
   have hdecode := (fgBlockOf_spec p nd.st hinv _ H).mpr ⟨hH, hHe⟩
-  have hDmem : D ∈ nd.st.fg.TF := (Finset.filter_subset _ _) hD
-  have hDH := preceq_of_eraseFG_preceq (viewRootInj_TF p nd.st hinv)
-    ⟨D, hDmem, KitFG.preceq_refl D⟩ ⟨H, hH, KitFG.preceq_refl H⟩
-    (by simpa only [hHe] using hcover)
-  have hlaws := (fgCertificateLaws p).height
-  have hmono : (heightView p D).h ≤ (heightView p H).h := hlaws.h_mono hDH
-  have hHh : (heightView p H).h = y + 1 := by
-    exact Nat.le_antisymm (hcap H hH) (hDh ▸ hmono)
-  have hplateau := KitFG.justification_eq_on_plateau_of_bridge p.E p.cfg
-    (heightView p) (heightView_bridge p) hDH (hDh.trans hHh.symm)
-  exact ⟨H, hdecode, hDH, hHh, hplateau.1.trans hDJ, hplateau.2.trans hDj,
-    hfin H hH, (hlaws.entry_plateau hDH (hDh.trans hHh.symm)).symm⟩
+  have result := FGCompose.pending_action_head_capped (fgsaCoreReads p c)
+    (c2_observations p c) p.E p.cfg (fgCertificateLaws p).height (heightView_bridge p)
+    y D U nd (by rw [d7a4r_reads_eq]; exact ⟨H, hdecode, hH⟩)
+    (by
+      intro B hB
+      rw [d7a4r_reads_eq] at hB ⊢
+      have heq := Option.some.inj (hdecode.symm.trans hB)
+      subst B
+      simpa only [hHe] using hcover)
+    (by
+      intro A B _ _ hp
+      rw [d7a4r_reads_eq] at hp
+      exact eraseFG_preceq_iff.mp hp)
+    (by rw [d7a4r_reads_eq]; exact (Finset.filter_subset _ _) hD)
+    hDh hDJ hDj (by simpa only [c2_observations_eq, d7a4r_reads_eq] using hcap)
+    (by simpa only [c2_observations_eq, d7a4r_reads_eq] using hfin)
+  simp only [c2_observations_eq, d7a4r_reads_eq] at result
+  exact result
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Paper 22:1228–1254: the full action walk covers D; held caps bound its head fields.
@@ -316,9 +688,20 @@ theorem pending_action_domain_cap
       RowWire.toRow? a = some u → u.height_pair = .vote h T timeout →
       p.actionTime r < p.actionTime q → h < y + 1) :
     ∀ B ∈ nd.st.fg.TF, (heightView p B).h ≤ y + 1 := by
-  intro B hB
-  exact Nat.le_of_lt_succ
-    (hcapBefore (p.actionTime q) y before x B hbefore ⟨hx, hfgread hB⟩ hrows)
+  have result := FGCompose.pending_action_domain_cap (fgsaCoreReads p c)
+    (d7a4r_safety p c) (c2_observations p c) (c2_timing p) E rho before x q y nd hx
+    (by rw [d7a4r_reads_eq]; exact hfgread) hbefore
+    (by
+      intro cut b i z W hi hW rows
+      rw [d7a4r_held_eq] at hW
+      apply hcapBefore cut b i z W hi hW
+      intro j z r a u h B timeout ha hu hp ht
+      exact rows j z r a u h B timeout ((d7a4r_row_eq p c E rho j r z a).mpr ha) hu hp ht)
+    (by
+      intro j z r a u h B timeout ha hu hp ht
+      exact hrows j z r a u h B timeout ((d7a4r_row_eq p c E rho j r z a).mp ha) hu hp ht)
+  simp only [c2_observations_eq, d7a4r_reads_eq] at result
+  exact result
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Paper 22:1228–1254: the actual full action walk has the pending fields.
@@ -366,19 +749,130 @@ theorem pending_action_head
       (heightView p H).h = y + 1 ∧ (heightView p H).J = U ∧
       (heightView p H).h_j = y ∧ (finalityView p H).h_F < y ∧
       (heightView p H).T_h = (heightView p D).T_h := by
-  have held : ∀ B ∈ nd.st.fg.TF, HeldAt p c E rho before x B := by
-    intro B hB
-    change x ∈ rho.honest ∧ B ∈ (storeAt p c E rho before x).fg.TF
-    exact ⟨hx, hfgread hB⟩
-  have hcap := pending_action_domain_cap p c E rho before x q y nd
-    hx hfgread hbefore hcapBefore hrows
-  have hfin : ∀ B ∈ nd.st.fg.TF, (finalityView p B).h_F < y := by
-    intro B hB
-    exact hfinalityLag (q - 1) y before x B ((Nat.zero_le _).trans_lt hDfin)
-      (by simpa only [Nat.sub_add_cancel (Nat.one_le_of_lt hq)] using hbefore)
-      (held B hB) hnoRow
-  exact rows_pending_action_head p c E rho k x q y D U nd raw support seats m
-    hx hnd hread hwalk hhead hcount hD hcompat hbatch hDh hDJ hDj hcap hfin
+  obtain ⟨j, _hj, hclock⟩ := rows_clock_read p c E rho x (p.actionTime q) nd hnd
+  have hinv : CStoreInv p nd.st := by
+    rw [← hclock]
+    exact (storeBundle_postClock E rho j x (p.actionTime q)).cstore
+  have hcover := (hwalk k x (q * p.R + 1) raw support D seats m hx hcount
+    (by simpa only [hread] using hD) (by simpa only [hread] using hcompat)
+    (by simpa only [hread] using hbatch)).1
+  rw [hread, ← hhead] at hcover
+  obtain ⟨H, hH, hHe⟩ := (hinv.baseTree _).mp (fgHead_stored p nd.st hinv)
+  have hdecode := (fgBlockOf_spec p nd.st hinv _ H).mpr ⟨hH, hHe⟩
+  have result := FGCompose.pending_action_head (fgsaCoreReads p c)
+    (d7a4r_safety p c) (c2_observations p c) (c2_timing p) E rho
+    p.E p.cfg (fgCertificateLaws p).height (heightView_bridge p)
+    before x q y D U nd hx (by rw [d7a4r_reads_eq]; exact hfgread) hbefore hq
+    (by rw [d7a4r_reads_eq]; exact ⟨H, hdecode, hH⟩)
+    (by
+      intro B hB
+      rw [d7a4r_reads_eq] at hB ⊢
+      have heq := Option.some.inj (hdecode.symm.trans hB)
+      subst B
+      simpa only [hHe] using hcover)
+    (by
+      intro A B _ _ hp
+      rw [d7a4r_reads_eq] at hp
+      exact eraseFG_preceq_iff.mp hp)
+    (by rw [d7a4r_reads_eq]; exact (Finset.filter_subset _ _) hD)
+    hDh hDJ hDj hDfin
+    (by
+      intro cut b i z W hi hW rows
+      rw [d7a4r_held_eq] at hW
+      apply hcapBefore cut b i z W hi hW
+      intro j z r a u h B timeout ha hu hp ht
+      exact rows j z r a u h B timeout ((d7a4r_row_eq p c E rho j r z a).mpr ha) hu hp ht)
+    (by
+      intro r y i z W hy hi hW rows
+      rw [d7a4r_held_eq] at hW
+      apply hfinalityLag r y i z W hy hi hW
+      intro j z r a u B timeout ha hu hp ht
+      exact rows j z r a u B timeout ((d7a4r_row_eq p c E rho j r z a).mpr ha) hu hp ht)
+    (by
+      intro j z r a u h B timeout ha hu hp ht
+      exact hrows j z r a u h B timeout ((d7a4r_row_eq p c E rho j r z a).mp ha) hu hp ht)
+    (by
+      intro j z r a u B timeout ha hu hp ht
+      exact hnoRow j z r a u B timeout ((d7a4r_row_eq p c E rho j r z a).mp ha) hu hp ht)
+  simp only [c2_observations_eq, d7a4r_reads_eq] at result
+  exact result
+
+private theorem d7a4r_source_service (w : HealingWitness) (q opening : Nat)
+    (D : FGBlock (Fin p.n)) (hx : V) (hhonest : hx ∈ rho.honest)
+    (hbefore : opening ≤ q * p.R) (hstart : w.sStar + 2 ≤ opening)
+    (hproposal : HonestProposal E rho (fgsaInterface p c) opening (eraseFG D))
+    (h2 : H2Prime p c E rho w) (h3 : H3 p c E rho w)
+    (h6 : H6GateService p c E rho w)
+    (hGST : recoveryStart p E ≤ SA.voteTime p.toParams (q * p.R))
+    (hhor : p.actionTime q ≤ rho.horizon) (hne : eraseFG D ≠ .genesis)
+    (hheads : ∀ x ∈ rho.honest, ∃ H,
+      headAtLabel p c E rho x (q * p.R) = some H)
+    (hjoined : ∀ x ∈ rho.honest,
+      joinedAt p E rho x (q * p.R) (SA.voteTime p.toParams (q * p.R)))
+    (hconfirmed : confirmedReaderAtIdx p c E rho hx
+      (afterTicksIdx rho (SA.gateTime p.toParams opening))
+      (SA.gateTime p.toParams opening))
+    (hFgate : ∀ x st, x ∈ rho.honest → gateIn p c E rho x (q * p.R) = some st →
+      Block.Preceq (eraseFG st.fg.F) (eraseFG D))
+    (hframe : ∀ nd, postClock E rho hx (p.actionTime q) = some nd →
+      D ∈ nd.st.fg.TF ∧ FGBlock.Preceq (FGSA.controls p nd.st).F D ∧
+      FGBlock.Preceq (FGSA.controls p nd.st).Z D ∧
+      (FGSA.controls p nd.st).lo ≤ (heightView p D).h) :
+    FGCompose.FGSourceService (fgsaCoreReads p c) E rho hx (p.actionTime q)
+      opening (q * p.R) D := by
+  constructor
+  · intro heq
+    have hexact := ((h3 opening (eraseFG D) hproposal hstart).2
+      (by simpa only [heq, Params.actionTime] using hhor) hx hhonest hconfirmed).2.2.2.2
+      q heq
+    change (actionSourceFG p c E rho hx q).map (Option.map eraseFG) =
+      some (some (eraseFG D)) at hexact
+    obtain ⟨source, hs, he⟩ := Option.map_eq_some_iff.mp hexact
+    obtain ⟨C, hC, hCe⟩ := Option.map_eq_some_iff.mp he
+    have hCD : C = D := eraseFG_injective hCe
+    subst C
+    rw [hC] at hs
+    rw [actionSourceFG_def] at hs
+    obtain ⟨nd, hnd, hsource⟩ := Option.map_eq_some_iff.mp hs
+    rw [d7a4r_reads_eq, ← (fgsa_eventReads_eq_compose E rho hx _).2.2.2.2.2.1]
+    exact ⟨nd, hnd, hsource⟩
+  · intro hlt
+    have hcover : ∀ x ∈ rho.honest, ∃ H,
+        headAtLabel p c E rho x (q * p.R) = some H ∧ Block.Preceq (eraseFG D) H := by
+      have covered := FGCompose.service_head_coverage (A := c2_reads p c E rho w)
+        hheads hjoined (fun x H hx hr hH =>
+          h2 opening (eraseFG D) hproposal hstart x (q * p.R) H ⟨hx, hr⟩
+            (Nat.succ_le_of_lt hlt) hH)
+      intro x hx
+      obtain ⟨H, _, hH, hDH⟩ := covered x hx
+      exact ⟨H, hH, hDH⟩
+    obtain ⟨_hresult, _hpassed, nd, d, hnd, hwrite, hlease, _hdeadline, hlive⟩ :=
+      h6 (q * p.R) (eraseFG D) ((Nat.le_add_right w.sStar 2).trans
+        (hstart.trans hbefore)) hGST hhor hne hcover hFgate hx hhonest
+    obtain ⟨j, _hj, hclock⟩ := rows_clock_read p c E rho hx (p.actionTime q) nd hnd
+    have hf := hframe nd hnd
+    have hkept : D ∈ domainR p nd.st (treeT p nd.st) := by
+      rw [domainR_def, treeT_def, frameR_def]
+      exact (KitFG.mem_filteredFromView (heightView p) _ _ D).mpr
+        ⟨hf.1, hf.2.1, hf.2.2.1, D, hf.1, KitFG.preceq_refl D, hf.2.2.2⟩
+    have hround : p.round (nd.st.slot p) = q := by
+      rw [← hclock]
+      exact (fgsa_action_slot_round (c := c) _ q).2
+    have hnow : nd.st.base.now = p.actionTime q := by
+      rw [← hclock]
+      exact (fgsa_postClock_slot (c := c) _ _).1
+    have hserved : eraseFG D ∈ sourceCandidates p nd.st := by
+      rw [sourceCandidates_def, hround]
+      exact Finset.mem_filter.mpr ⟨List.mem_toFinset.mpr hwrite,
+        by rw [hlease]; exact decide_eq_true (hnow ▸ hlive)⟩
+    have hkept' := hkept
+    have hserved' := hserved
+    rw [← hclock] at hkept' hserved'
+    obtain ⟨C, hsource, hDC⟩ := openingSource_extends_served E rho j hx q D hkept' hserved'
+    change FGSA.fgSource p (((fgsa p c).clock _ _).st) = some C at hsource
+    rw [hclock] at hsource
+    rw [d7a4r_reads_eq, ← (fgsa_eventReads_eq_compose E rho hx _).2.2.2.2.2.1]
+    exact ⟨nd, C, hnd, hsource, hDC⟩
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. Paper 22:1256–1263, 1667–1687: H3 supplies the exact source at c = z;
@@ -411,72 +905,18 @@ theorem finality_action_source (w : HealingWitness) (q y opening : Nat)
     ∃ nd C, postClock E rho hx (p.actionTime q) = some nd ∧
       FGSA.fgSource p nd.st = some C ∧ FGBlock.Preceq D C ∧
       (heightView p C).h = y + 1 ∧ (heightView p C).T_h = (heightView p D).T_h := by
-  have service : FGCompose.FGSourceService (fgsaCoreReads p c) E rho hx (p.actionTime q)
-      opening (q * p.R) D := by
-    constructor
-    · intro heq
-      have hexact := ((h3 opening (eraseFG D) hproposal hstart).2
-        (by simpa only [heq, Params.actionTime] using hhor) hx hhonest hconfirmed).2.2.2.2
-        q heq
-      change (actionSourceFG p c E rho hx q).map (Option.map eraseFG) =
-        some (some (eraseFG D)) at hexact
-      obtain ⟨source, hs, he⟩ := Option.map_eq_some_iff.mp hexact
-      obtain ⟨C, hC, hCe⟩ := Option.map_eq_some_iff.mp he
-      have hCD : C = D := eraseFG_injective hCe
-      subst C
-      rw [hC] at hs
-      rw [actionSourceFG_def] at hs
-      obtain ⟨nd, hnd, hsource⟩ := Option.map_eq_some_iff.mp hs
-      rw [fgsaCoreReads_def]
-      rw [← (fgsa_eventReads_eq_compose E rho hx _).2.2.2.2.2.1]
-      exact ⟨nd, hnd, hsource⟩
-    · intro hlt
-      have hcover : ∀ x ∈ rho.honest, ∃ H,
-          headAtLabel p c E rho x (q * p.R) = some H ∧ Block.Preceq (eraseFG D) H := by
-        have covered := FGCompose.service_head_coverage (A := c2_reads p c E rho w)
-          hheads hjoined (fun x H hx hr hH =>
-            h2 opening (eraseFG D) hproposal hstart x (q * p.R) H ⟨hx, hr⟩
-              (Nat.succ_le_of_lt hlt) hH)
-        intro x hx
-        obtain ⟨H, _, hH, hDH⟩ := covered x hx
-        exact ⟨H, hH, hDH⟩
-      obtain ⟨_hresult, _hpassed, nd, d, hnd, hwrite, hlease, _hdeadline, hlive⟩ :=
-        h6 (q * p.R) (eraseFG D) ((Nat.le_add_right w.sStar 2).trans
-          (hstart.trans hbefore)) hGST hhor hne hcover hFgate hx hhonest
-      obtain ⟨j, _hj, hclock⟩ := rows_clock_read p c E rho hx (p.actionTime q) nd hnd
-      have hf := hframe nd hnd
-      have hkept : D ∈ domainR p nd.st (treeT p nd.st) := by
-        rw [domainR_def, treeT_def, frameR_def]
-        exact (KitFG.mem_filteredFromView (heightView p) _ _ D).mpr
-          ⟨hf.1, hf.2.1, hf.2.2.1, D, hf.1, KitFG.preceq_refl D, hf.2.2.2⟩
-      have hround : p.round (nd.st.slot p) = q := by
-        rw [← hclock]
-        exact (fgsa_action_slot_round (c := c) _ q).2
-      have hnow : nd.st.base.now = p.actionTime q := by
-        rw [← hclock]
-        exact (fgsa_postClock_slot (c := c) _ _).1
-      have hserved : eraseFG D ∈ sourceCandidates p nd.st := by
-        rw [sourceCandidates_def, hround]
-        exact Finset.mem_filter.mpr ⟨List.mem_toFinset.mpr hwrite,
-          by rw [hlease]; exact decide_eq_true (hnow ▸ hlive)⟩
-      have hkept' := hkept
-      have hserved' := hserved
-      rw [← hclock] at hkept' hserved'
-      obtain ⟨C, hsource, hDC⟩ := openingSource_extends_served E rho j hx q D hkept' hserved'
-      change FGSA.fgSource p (((fgsa p c).clock _ _).st) = some C at hsource
-      rw [hclock] at hsource
-      rw [fgsaCoreReads_def]
-      rw [← (fgsa_eventReads_eq_compose E rho hx _).2.2.2.2.2.1]
-      exact ⟨nd, C, hnd, hsource, hDC⟩
+  have service := d7a4r_source_service p c E rho w q opening D hx hhonest hbefore
+    hstart hproposal h2 h3 h6 hGST hhor hne hheads hjoined hconfirmed hFgate hframe
   have hcap' : ∀ nd, FGCompose.postClock E rho hx (p.actionTime q) = some nd →
       ∀ B ∈ ((fgsaCoreReads p c).core nd).fg.TF, (heightView p B).h ≤ y + 1 := by
-    rw [fgsaCoreReads_def]
+    rw [d7a4r_reads_eq]
     rw [← (fgsa_eventReads_eq_compose E rho hx _).2.2.2.2.2.1]
     exact hcap
-  have h := FGCompose.action_source_capped (fgsaCoreReads p c) E rho (fgsaCoreLaws p c)
-    p.E (heightView p) (fgCertificateLaws p).height hx (p.actionTime q) opening (q * p.R) y D
+  have h := FGCompose.finality_action_source (fgsaCoreReads p c) (c2_observations p c)
+    (c2_timing p) E rho (fgsaCoreLaws p c) p.E (fgCertificateLaws p).height hx q y opening D
     service hbefore hDh hcap'
-  rw [fgsaCoreReads_def, ← (fgsa_eventReads_eq_compose E rho hx _).2.2.2.2.2.1] at h
+  simp only [c2_observations_eq, c2_timing_eq, d7a4r_reads_eq] at h
+  rw [← (fgsa_eventReads_eq_compose E rho hx _).2.2.2.2.2.1] at h
   exact h
 
 private theorem rows_release (y : Nat) (U C : FGBlock (Fin p.n))
@@ -566,58 +1006,51 @@ theorem fresh_unanimous_rows
       (∀ i ∈ S, (rows i).payload.height_pair =
         NamedHeightPair.vote (y + 1) (heightView p D).T_h.root false) := by
   classical
-  let body : RowPayload := .vote
-    ⟨.vote (y + 1) (heightView p D).T_h.root false, some ⟨y, U.root⟩⟩
-  let rows : Fin p.n → RowWire p.n := fun i => ⟨.seat .fg i, body⟩
-  have hseat : ∀ i ∈ S, ∃ j C,
-      HonestRowAt p c E rho j (rho.seatOf (.base .fg) i) q (rows i) ∧
-      RowComplete p c rho (rho.seatOf (.base .fg) i) (rows i) ∧
-      (rows i).auth = .seat .fg i ∧ rowHeight (rows i) = some (y + 1) ∧
-      FinalityNames p (rows i) y U ∧
-      actionSourceFG p c E rho (rho.seatOf (.base .fg) i) q = some (some C) ∧
-      (heightView p C).h = y + 1 ∧
-      ∀ j' r a h, r < q →
-        HonestRowAt p c E rho j' (rho.seatOf (.base .fg) i) r a →
-        rowHeight a = some h → h < y + 1 := by
+  have honest : ∀ i ∈ S, rho.seatOf (.base .fg) i ∈ rho.honest := by
     intro i hi
-    obtain ⟨nd, C, hnd, hawake, hsource, hDC, hCh⟩ := hreads i hi
-    have hentry := (fgCertificateLaws p).height.entry_plateau hDC (hDh.trans hCh.symm)
-    have hem := rows_release p y U C nd.st nd.record hsource hCh
-      (hfields i hi nd hnd) (hrecord i hi nd hnd)
-    rw [← hentry] at hem
-    obtain ⟨j, hj, hclock⟩ := rows_clock_read p c E rho
-      (rho.seatOf (.base .fg) i) (p.actionTime q) nd hnd
-    have hrelease : ofRow p (rows i) ∈ V2.D.Run.emitsAt E rho j := by
-      apply (fgsa_emitsAt_row E rho j _ _ hj i body).mpr
-      refine ⟨hawake, rfl, q, rfl, ?_⟩
-      have hs := congrArg Node.st hclock
-      have hr : (V2.D.Run.stateBefore E rho j (rho.seatOf (.base .fg) i)).record =
-          nd.record := by
-        exact (clock_rec (c := c)
-          (V2.D.Run.stateBefore E rho j (rho.seatOf (.base .fg) i)) (p.actionTime q)).symm.trans
-          (congrArg Node.record hclock)
-      rw [show (FGSA.clock p _ _ ) = nd.st from hs, hr]
-      exact hem
-    have hhonest : rho.seatOf (.base .fg) i ∈ rho.honest := by
-      have hmem := hS hi
-      rw [honestSeats_def] at hmem
-      exact (Finset.mem_filter.mp hmem).2
-    refine ⟨j, C, ?_, ?_, rfl, rfl, ?_, ?_, hCh, hearlier i hi⟩
-    · rw [HonestRowAt_def]
-      exact ⟨hhonest, hj, hrelease⟩
-    · change (decide (1 ≤ y + 1) && decide (y < y + 1)) = true ∧
-        RowSigner p c rho (rows i) (rho.seatOf (.base .fg) i)
-      refine ⟨by simp only [Nat.le_add_left, Nat.lt_succ_self, decide_true, Bool.and_self], ?_⟩
-      rw [RowSigner_def]
-      exact ⟨i, rfl, rfl⟩
-    · rw [FinalityNames_def]
-      rfl
-    · simpa only [actionSourceFG_def, hnd, Option.map_some] using congrArg some hsource
-  refine ⟨rows, ?_, ?_, ?_⟩
-  · rw [FreshFinalityRows_W_def]
-    exact ⟨hS, hQ, hseat⟩
-  · intro i hi; rfl
-  · intro i hi; rfl
+    exact (Finset.mem_filter.mp (hS hi)).2
+  have result := FGCompose.fresh_unanimous_rows (fgsaCoreReads p c) (d7a4r_safety p c)
+    (c2_observations p c) (c2_timing p) E rho (d7a4r_wire p c) p.E p.cfg RowWire.valid
+    (fgCertificateLaws p).height (heightView_bridge p) (d7a4r_makeWire p)
+    (fun _ => rfl)
+    (by
+      intro i y U B
+      change (decide (1 ≤ y + 1) && decide (y < y + 1)) = true
+      simp only [Nat.le_add_left, Nat.lt_succ_self, decide_true, Bool.and_self])
+    (by intro nd; rw [d7a4r_reads_eq]; rfl)
+    (by
+      intro i q nd row hn hw hr
+      exact d7a4r_release p c E rho i q nd row hn hw hr)
+    q y D U S honest hQ hDh
+    (by
+      intro i hi
+      obtain ⟨nd, C, hn, hw, hs, path, hh⟩ := hreads i hi
+      refine ⟨nd, C, ?_, hw, ?_, path, hh⟩
+      · exact (fgsa_eventReads_eq_compose E rho _ _).2.2.2.2.2.1 ▸ hn
+      · rw [d7a4r_reads_eq]; exact hs)
+    (by
+      intro i hi nd hn
+      exact hfields i hi nd ((fgsa_eventReads_eq_compose E rho _ _).2.2.2.2.2.1 ▸ hn))
+    (by
+      intro i hi nd hn
+      obtain ⟨ht, hto, hl, htn, hton, hln, hsent⟩ :=
+        hrecord i hi nd ((fgsa_eventReads_eq_compose E rho _ _).2.2.2.2.2.1 ▸ hn)
+      exact ⟨⟨ht, hto, hl⟩, htn, hton, hln, hsent⟩)
+    (by
+      intro i hi j r a h hr ha hh
+      exact hearlier i hi j r a h hr ((d7a4r_row_eq p c E rho j r _ a).mp ha) hh)
+  obtain ⟨rows, fresh, entry, pair⟩ := result
+  refine ⟨rows, ?_, entry, pair⟩
+  rw [FreshFinalityRows_W_def]
+  obtain ⟨_, _, seat⟩ := fresh
+  refine ⟨hS, hQ, ?_⟩
+  intro i hi
+  obtain ⟨j, C, ha, hc, hsign, hh, hn, hsrc, hCh, hearlier⟩ := seat i hi
+  refine ⟨j, C, (d7a4r_row_eq p c E rho j q _ _).mp ha,
+    (d7a4r_complete_eq p c rho _ _).mp hc, (d7a4r_signer_iff p _ i).mp hsign,
+    hh, hn, (d7a4r_source_eq p c E rho _ q) ▸ hsrc, hCh, ?_⟩
+  intro j' r a h hr ha hh
+  exact hearlier j' r a h hr ((d7a4r_row_eq p c E rho j' r _ a).mpr ha) hh
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Paper 22:1265–1289: bound held blocks through the next action cut.
@@ -637,11 +1070,18 @@ theorem actual_anchor_cap
       p.actionTime r < p.actionTime (q + 1) → h ≤ y + 1) :
     ∀ i x W, i ≤ V2.D.Run.idxBefore rho (p.actionTime (q + 1)) →
       HeldAt p c E rho i x W → (heightView p W).h ≤ y + 2 := by
-  intro i x W hi hW
-  have hbound := hcapBefore (p.actionTime (q + 1)) (y + 1) i x W hi hW
-    (fun j z r a u h T timeout ha hu hp ht => by
-      exact Nat.lt_succ_of_le (hrows j z r a u h T timeout ha hu hp ht))
-  exact Nat.le_of_lt_succ (by simpa only [Nat.add_assoc, Nat.add_comm 1 2] using hbound)
+  have result := FGCompose.actual_anchor_cap (fgsaCoreReads p c) (d7a4r_safety p c)
+    (c2_observations p c) (c2_timing p) E rho q y
+    (by
+      intro cut b i x W hi hW rows
+      rw [d7a4r_held_eq] at hW
+      apply hcapBefore cut b i x W hi hW
+      intro j z r a u h B timeout ha hu hp ht
+      exact rows j z r a u h B timeout ((d7a4r_row_eq p c E rho j r z a).mpr ha) hu hp ht)
+    (by
+      intro j z r a u h B timeout ha hu hp ht
+      exact hrows j z r a u h B timeout ((d7a4r_row_eq p c E rho j r z a).mp ha) hu hp ht)
+  simpa only [d7a4r_held_eq, c2_timing_eq, c2_observations_eq] using result
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Paper 22:1265–1289: keep the actual anchor key, or cover it by finality.
@@ -652,22 +1092,10 @@ theorem actual_anchor_retained_or_covered
     (hret : Window.RetainedW p D y U)
     (hcap : (heightView p P).h ≤ y + 2) :
     Window.RetainedW p P y U ∨ Window.CoveredW p P y U := by
-  obtain ⟨e, he, hej, heX⟩ := (Window.RetainedW_def p D y U).mp hret
-  have hj := (fgCertificateLaws p).height.justified_below_height P
-  have hK := p.kWLarge
-  have near : (Window.derive p p.K_W P).h_j < e.j + p.K_W := by
-    rw [heightView_def, Window.projectHeight_def] at hj hcap
-    dsimp only at hj hcap
-    rw [hej]
-    exact (Nat.lt_of_lt_of_le hj hcap).trans_le (Nat.add_le_add_left hK y)
-  rcases Window.window_retained_or_covered p p.K_W hK D P hDP e he near with hr | hc
-  · obtain ⟨f, hf, hfj, hfX, _hbits⟩ := hr
-    exact Or.inl ((Window.RetainedW_def p P y U).mpr
-      ⟨f, hf, hfj.trans hej, hfX.trans heX⟩)
-  · apply Or.inr
-    rw [Window.CoveredW_def]
-    rw [hej, heX] at hc
-    exact hc
+  have result := FGCompose.actual_anchor_retained_or_covered p.E p.cfg p.K_W
+    (d7a4w_nonempty p) p.kWLarge y D U P hDP ((d7a4w_retained_eq p D U y).mpr hret)
+    (by simpa only [KitFG.Window.heightView_def, ← d7a4w_height_eq p] using hcap)
+  simpa only [d7a4w_retained_eq, d7a4w_covered_eq] using result
 
 end AvailableChain.FGSA.Run
 end

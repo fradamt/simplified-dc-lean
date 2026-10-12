@@ -7,6 +7,13 @@ AvailableChainFGCompose.Proofs.Healing.AttemptSettle
 AvailableChainFGCompose.Proofs.Healing.AttemptStop
 AvailableChainFGCompose.Statements.Attempt
 AvailableChainFGCompose.Tests.P0d1
+AvailableChainFGCompose.Tests.P0d7a4
+AvailableChainFGCompose.Statements.FinalityRows
+AvailableChainFGCompose.Proofs.Finality.Rows
+AvailableChainFGCompose.Proofs.Finality.RowsRecords
+AvailableChainFGCompose.Proofs.Finality.RowsPrem
+AvailableChainFGCompose.Proofs.Finality.Batch
+AvailableChainFGCompose.Proofs.Finality.Carry
 AvailableChainFGCompose.Statements.FinalityKernel
 AvailableChainFGCompose.Proofs.Finality.MiddleSupport
 AvailableChainFGCompose.Proofs.Finality.Middle
