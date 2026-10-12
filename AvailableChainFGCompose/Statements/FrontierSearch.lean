@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGCompose.Statements.Attempt
+public import AvailableChainFGCompose.Statements.FinalityKernel
 
 @[expose] public section
 
@@ -113,15 +114,117 @@ def FrontierRepairAllowance (G allowance u : Time) : Prop :=
         T.proposal l < T.proposal s ∧ T.gate s ≤ u + allowance ∧
         HonestProposal E rho I s Q ∧ FrontierProposalService R E rho T s Q))
 
-/-- This is the intermediate terminal-promotion goal. A later package proves it. -/
-def TerminalPromotionFact (G : Time) : Prop :=
+/-- Frozen `Transfers` (ChannelProps:932) over generic reads: HEAD at later labels,
+proposal parents from s + 2, and stable output from the gate cut, each through v. -/
+def PhaseTransfers (s : Slot) (B : Block) (v : Time) : Prop :=
+  (∀ x i H, x ∈ rho.honest → s + 1 ≤ i → T.vote i ≤ v →
+    headAtLabel R E rho T x i = some H → Block.Preceq B H) ∧
+  (∀ i Q, s + 2 ≤ i → T.proposal i ≤ v → HonestProposal E rho I i Q →
+    Block.Preceq B Q.parent) ∧
+  (∀ i x, x ∈ rho.honest → T.gate s + 4 * T.delta ≤ v →
+    afterTicksIdx rho (T.gate s + 4 * T.delta) ≤ i → i ≤ timeIdx rho v →
+    Block.Preceq B (I.stable (rho.stateBefore E i x)))
+
+theorem PhaseTransfers_def (s : Slot) (B : Block) (v : Time) :
+    PhaseTransfers R E rho T I s B v ↔
+  (∀ x i H, x ∈ rho.honest → s + 1 ≤ i → T.vote i ≤ v →
+    headAtLabel R E rho T x i = some H → Block.Preceq B H) ∧
+  (∀ i Q, s + 2 ≤ i → T.proposal i ≤ v → HonestProposal E rho I i Q →
+    Block.Preceq B Q.parent) ∧
+  (∀ i x, x ∈ rho.honest → T.gate s + 4 * T.delta ≤ v →
+    afterTicksIdx rho (T.gate s + 4 * T.delta) ≤ i → i ≤ timeIdx rho v →
+    Block.Preceq B (I.stable (rho.stateBefore E i x))) := Iff.rfl
+
+/-- Frozen `TPerm` (ChannelProps:955) with the protocol phase body as a parameter.
+The body (SA fast write or synchronous-window slow gate) stays protocol-specific. -/
+def PhasePermanence (body : Slot → Block → Prop) : Prop :=
+  ∀ u v m J contested s B, Jst ≤ u → PhaseInterval R E rho O u v m J contested →
+    u ≤ T.vote s → T.gate s ≤ v → body s B → PhaseTransfers R E rho T I s B v
+
+theorem PhasePermanence_def (body : Slot → Block → Prop) :
+    PhasePermanence R E rho O T I Jst body ↔
+  ∀ u v m J contested s B, Jst ≤ u → PhaseInterval R E rho O u v m J contested →
+    u ≤ T.vote s → T.gate s ≤ v → body s B → PhaseTransfers R E rho T I s B v := Iff.rfl
+
+/-- Frozen `SeatCovers` and `CoveredByChild` (Fold.lean:63-74) at the progress kind. -/
+def ProgressCoveredByChild (Ef : Electorate (Fin n)) (H : FGHeightView (Fin n))
+    (X U : FGBlock (Fin n)) (y : Nat) : Prop :=
+  ∃ Q : Finset (Fin n), Ef.q ≤ Ef.weightOf Q ∧ ∀ i ∈ Q,
+    i ∈ (H X.parent).progress ∨ ∃ row ∈ X.rows, RowNames .progress row i y U
+
+theorem ProgressCoveredByChild_def (Ef : Electorate (Fin n)) (H : FGHeightView (Fin n))
+    (X U : FGBlock (Fin n)) (y : Nat) : ProgressCoveredByChild Ef H X U y ↔
+  ∃ Q : Finset (Fin n), Ef.q ≤ Ef.weightOf Q ∧ ∀ i ∈ Q,
+    i ∈ (H X.parent).progress ∨ ∃ row ∈ X.rows, RowNames .progress row i y U := Iff.rfl
+
+/-- Frozen `foldTrichotomy p .progress` (Fold.lean:80). The target conjunct is vacuous
+at the progress kind and is dropped; the progress age premise is unconditional. -/
+def ProgressFoldAdvance (Ef : Electorate (Fin n)) (H : FGHeightView (Fin n))
+    (δt : Nat) : Prop :=
+  ∀ (y : Nat) (U X : FGBlock (Fin n)), X ≠ .genesis → EntryAt H U y →
+    FGBlock.Preceq U X.parent →
+    ((H X.parent).h = y → ProgressCoveredByChild Ef H X U y) →
+    U.slot + δt ≤ X.slot → y + 1 ≤ (H X).h
+
+theorem ProgressFoldAdvance_def (Ef : Electorate (Fin n)) (H : FGHeightView (Fin n))
+    (δt : Nat) : ProgressFoldAdvance Ef H δt ↔
+  ∀ (y : Nat) (U X : FGBlock (Fin n)), X ≠ .genesis → EntryAt H U y →
+    FGBlock.Preceq U X.parent →
+    ((H X.parent).h = y → ProgressCoveredByChild Ef H X U y) →
+    U.slot + δt ≤ X.slot → y + 1 ≤ (H X).h := Iff.rfl
+
+variable {Body : Type} (D : FGHistoryWireReads S) (Ef : Electorate (Fin n))
+variable (family : Prot.Object → Prop) (timely : Prot.State → Prot.Object → Prop)
+variable (decodeProposal : Prot.Object → Option (Slot × Body))
+variable (bodyErase : Body → Block) (bodyRows : Body → List Wire)
+variable (blockWireRows : Prot.State → List Wire)
+variable (parentFG : Prot.State → Block → Option (FGBlock (Fin n)))
+variable (parentHeight : Prot.State → Slot → FGBlock (Fin n) → Height × BlockId)
+variable (validFor : Prot.State → Slot → FGBlock (Fin n) → Wire → Bool)
+
+open Classical in
+/-- This is the intermediate terminal-promotion goal. A later package proves it.
+Fieldwise translation of FrontierSearchDefs:209. Recovery₂ is split into its generic
+fields: delivery (the `family` objects within E.Δ, others within ΔF), E.Δ ≤ ΔF, gap,
+valid, delta, fault, awake and 4Δ ≤ G. Two used effects replace protocol fields:
+`Fintype.card V = n` (Base₂.linked.toCStar, read by healing_phase_extend_of_no_effective)
+and the receipt hold (Base₂.receiptIdealization, read by healing_promotion_first_receipt
+through ReceiverService.proposal). -/
+def TerminalPromotionFact [Fintype V] (body : Slot → Block → Prop) (G ΔF : Time) : Prop :=
+  Gen.V2.Duty.PartialSynchronyBy E rho (fun o => if family o then E.Δ else ΔF) →
+  E.Δ ≤ ΔF →
+  (∀ t, E.t_GST ≤ t → t + G ≤ rho.horizon → ∃ s, t < V2.D.proposalTime I s ∧
+    V2.D.proposalTime I s ≤ t + G ∧ Gen.V2.Duty.HonestSlot rho I s) →
+  V2.D.ExecutionValid E rho → E.Δ = T.delta →
+  (Gen.V2.Duty.faulty rho).card ≤ (n - 1) / 3 →
+  (∀ v ∈ rho.honest, ∀ t, E.t_GST ≤ t → t ≤ rho.horizon → E.awake v t = true) →
+  4 * T.delta ≤ G → Fintype.card V = n →
+  (∀ o s N send freeze x, x ∈ rho.honest → decodeProposal o = some (s, N) →
+    ReceiverService family timely E rho o send freeze x →
+    ∃ Y ∈ (R.core (V2.D.Run.stateBeforeTime E rho freeze x)).fg.TF,
+      R.erase Y = bodyErase N) →
+  deltaT = 2 * T.roundSlots → LivenessBoundW T ΔF →
+  (V2.D.NoRestart rho → FGRunOrderLaws E rho R) → RXing R E rho O →
+  PhasePermanence R E rho O T I Jst body →
+  TRowsReceipt R S E rho T blockWireRows ΔF →
+  (∀ (r height : Nat) (U X : FGBlock (Fin n)),
+    BatchPrem R S O T E rho I D Ef decodeProposal bodyErase bodyRows blockWireRows
+      parentFG parentHeight validFor ΔF .progress r height U X →
+    (O.height X.parent).h = height → ProgressCoveredByChild Ef O.height X U height) →
+  ProgressFoldAdvance Ef O.height deltaT →
+  Gen.Pure.FaultQ n (Gen.V2.Duty.faulty rho).card →
+  (∃ Q : Finset (Fin n), (∀ i ∈ Q, safetyHolder S rho i ∈ rho.honest) ∧
+    Ef.q ≤ Ef.weightOf Q) →
   ∀ r, T.action r + 2 * FGCompose.P T + Γ T G - 9 * T.delta ≤ rho.horizon →
-  ∀ u m J contested q Q height, Jst ≤ u →
+  ∀ u m J contested l q Q height, Jst ≤ u →
     PhaseInterval R E rho O u (T.action r) m J contested →
-    u ≤ T.proposal q → q ≤ r * T.roundSlots →
+    u ≤ T.proposal q → q ≤ r * T.roundSlots → T.proposal l < T.proposal q →
     HonestProposal E rho I q Q → FrontierProposalService R E rho T q Q →
     OpeningEntry R E rho O.height T r height →
     OpeningCovered R S E rho O.height T pair r Q →
+    (∀ v, PhaseInterval R E rho O u v m J contested → ∀ s Q',
+      T.proposal l < T.proposal s → T.gate s ≤ v → HonestProposal E rho I s Q' →
+      FrontierProposalService R E rho T s Q') →
     (∃ i ev, afterTicksIdx rho (T.action r) ≤ i ∧ rho.events[i]? = some ev ∧
       EffectiveEvent R E rho O i ∧
       ev.time ≤ T.action r + 2 * FGCompose.P T + Γ T G - 9 * T.delta) ∨
