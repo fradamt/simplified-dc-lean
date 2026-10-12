@@ -433,7 +433,7 @@ private theorem d7a4b_signer_iff (a : RowWire p.n) (i : Fin p.n) :
 
 private theorem d7a4b_namesEntry (k : RowKind) (a : RowWire p.n) (y : Nat)
     (U : FGBlock (Fin p.n)) :
-    FGCompose.NamesEntry (fgsaSafetyReads p c) (d7a4b_wire p c) (d7a4b_kind k) a y U =
+    FGCompose.NamesEntry (pair := (d7a4b_wire p c).heightPair) (d7a4b_kind k) a y U =
       NamesEntry p k a y U := by cases k <;> rfl
 
 omit [DecidableEq V] in
