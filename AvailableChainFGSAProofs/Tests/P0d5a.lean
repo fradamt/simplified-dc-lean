@@ -3,6 +3,13 @@ public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchDefs
 public import AvailableChainFGCompose.Statements.FrontierSearch
 public import AvailableChainFGSAProofs.Proofs.Shared.HonestQuorum
 public import AvailableChainFGSAProofs.Proofs.Finality.Height
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierService
+public import AvailableChainFGSAProofs.Proofs.Foundations.Crossing
+public import AvailableChainFGSAProofs.Proofs.Foundations.Leases
+public import AvailableChainFGSAProofs.Proofs.Foundations.Store
+public import AvailableChainFGSAProofs.Proofs.Foundations.Counts
+public import AvailableChainFGSAProofs.Proofs.Foundations.RowPermission
+public import AvailableChainFGSAProofs.Proofs.Shared.HealingFixture -- shake: keep (fixture)
 
 set_option linter.privateModule false
 
@@ -364,6 +371,51 @@ private theorem p0d5aAuditTerminal [Fintype V] (E : Generic.Env V)
     (fun v hv s Q' hls hg hQ' =>
       (hrepair v ((p0d5aAuditPhase_iff E rho).mp hv) s Q' hls hg hQ').1)
 
+
+-- Ruling 8(b): the proved TFrontier route from the recovery regime alone.
+private theorem p0d5aAuditFrontierRoute [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : RecoverySleep₂ p c E rho G ΔF) :
+    TFrontier p c E rho :=
+  frontier_service E rho hrec (fgsa_rMonoAll p c E rho)
+    (fgsa_rXing (hroots := hrec.base.idealization) p c E rho hrec.base.linked
+      (fgsa_faultX_count_rec p hrec.fault) hrec.base.valid.toUnforgeableSignatures)
+    (fun q v _ _ _ => healing_frontier_service_scopes_recovery E rho hrec
+      (fgsa_rMonoAll p c E rho) q v)
+    (fun i x row hr => fgsa_leaseOrigins_lastWrite p c E rho
+      hrec.base.valid.toScheduleWellFormed i x row hr)
+    (rowPermission_covered E rho hrec.base hrec.fault)
+
+/-- The inhabited fixture run of Tests.NonVacuity.HealingRun (same events, 311 batches). -/
+private abbrev p0d5aFixtureRun : V2.D.Run (Fin 1) (fgsa HealingFixture.params unitCodec) :=
+  HealingFixture.mkRun (HealingFixture.runPrefix 311).1
+
+-- Ruling 8(b), strongest proved partial: on the fixture run, the recovery regime
+-- (proved there as Tests.NonVacuity.HealingRun.nvRecovery; a Tests module cannot be
+-- imported, TEST-USE) gives TFrontier by the proved route, and the one-way adapter maps
+-- any saved seed above genesis height to the generic StrongServed with its actual
+-- selected proposal and local service. StrongServed itself has no proved producer on an
+-- inhabited run: it needs PhaseInterval over a seed-qualified window and ExactService q Q.
+private theorem p0d5aAuditFixtureFrontier
+    (hrec : RecoverySleep₂ HealingFixture.params unitCodec HealingFixture.env
+      p0d5aFixtureRun HealingFixture.gap HealingFixture.deltaF)
+    {m : Nat} {t : Time}
+    (served : StrongServed HealingFixture.params unitCodec HealingFixture.env
+      p0d5aFixtureRun m t) (above : 2 ≤ m) :
+    TFrontier HealingFixture.params unitCodec HealingFixture.env p0d5aFixtureRun ∧
+    ∃ q Q Qfg, HonestProposal HealingFixture.env p0d5aFixtureRun
+        (fgsaInterface HealingFixture.params unitCodec) q Q ∧ eraseFG Qfg = Q ∧
+      (heightView HealingFixture.params Qfg).h = m ∧ Qfg ≠ .genesis := by
+  have frontier := p0d5aAuditFrontierRoute HealingFixture.env p0d5aFixtureRun hrec
+  obtain ⟨q, Q, Qfg, hp, he, hh, _, _, _⟩ :=
+    p0d5aAuditAdapterUse HealingFixture.env p0d5aFixtureRun frontier served
+      (le_trans (by decide) above)
+  refine ⟨frontier, q, Q, Qfg, hp, he, hh, ?_⟩
+  intro hg
+  subst hg
+  rw [← hh] at above
+  revert above
+  decide
+
 #print axioms p0d5aAuditCoreEq
 #print axioms p0d5aAuditStrong
 #print axioms p0d5aAuditAdapterUse
@@ -373,5 +425,7 @@ private theorem p0d5aAuditTerminal [Fintype V] (E : Generic.Env V)
 #print axioms p0d5aAuditPerm
 #print axioms p0d5aAuditReceipt
 #print axioms p0d5aAuditTerminal
+#print axioms p0d5aAuditFrontierRoute
+#print axioms p0d5aAuditFixtureFrontier
 end AvailableChain.FGSA.Run
 end
