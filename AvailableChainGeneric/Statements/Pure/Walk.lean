@@ -1,6 +1,6 @@
 module
-public import Mathlib.Data.List.Basic
-public import AvailableChainModel.Objects.Blocks
+public import Mathlib.Data.List.Basic -- shake: keep (re-export)
+public import AvailableChainModel.Objects.Blocks -- shake: keep (re-export)
 public import AvailableChainGridCO.Model.Walk
 
 @[expose] public section

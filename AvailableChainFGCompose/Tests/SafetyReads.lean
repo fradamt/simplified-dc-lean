@@ -1,9 +1,9 @@
 module
-public import AvailableChainFGCompose.Statements.SafetyClaims
-public import AvailableChainFGCompose.Proofs.SafetyAccountable
-public import AvailableChainFGCompose.Proofs.SafetyCount
-public import AvailableChainFGCompose.Proofs.SafetyMonotone
-public import AvailableChainFGCompose.Proofs.SafetySlashing
+public import AvailableChainFGCompose.Statements.SafetyClaims -- shake: keep (examples)
+public import AvailableChainFGCompose.Proofs.SafetyAccountable -- shake: keep (examples)
+public import AvailableChainFGCompose.Proofs.SafetyCount -- shake: keep (examples)
+public import AvailableChainFGCompose.Proofs.SafetyMonotone -- shake: keep (examples)
+public import AvailableChainFGCompose.Proofs.SafetySlashing -- shake: keep (examples)
 
 public section
 

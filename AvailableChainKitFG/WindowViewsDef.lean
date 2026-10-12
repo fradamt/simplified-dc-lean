@@ -1,8 +1,8 @@
 module
 public import AvailableChainSimplexFG.Window
 public import AvailableChainSimplexFG.Client
-public import AvailableChainKitFG.FrameBridgeDef
-public import AvailableChainKitFG.CertificateCoreDef
+public import AvailableChainKitFG.FrameBridgeDef -- shake: keep (re-export)
+public import AvailableChainKitFG.CertificateCoreDef -- shake: keep (re-export)
 public import AvailableChainKitFG.CertificateSelectionDef
 
 @[expose] public section

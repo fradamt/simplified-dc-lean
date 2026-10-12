@@ -1,7 +1,7 @@
 module
-public import AvailableChainFGSA.Model.Spec.Objects
+public import AvailableChainFGSA.Model.Spec.Objects -- shake: keep (re-export)
 public import AvailableChainFGSA.Model.Store
-public import Mathlib.Order.WithBot
+public import Mathlib.Order.WithBot -- shake: keep (re-export)
 public import Mathlib.Basic.Real.Basic
 
 @[expose] public section

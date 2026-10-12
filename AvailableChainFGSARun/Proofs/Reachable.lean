@@ -1,8 +1,8 @@
 module
-public import AvailableChainFGSARun.Proofs.ClockLaws
+public import AvailableChainFGSARun.Proofs.ClockLaws -- shake: keep (re-export)
 public import AvailableChainFGSARun.Statements.Interface
-public import AvailableChainFGSA.Proofs.StoreBundle
-public import AvailableChainFGSARun.Proofs.Restore
+public import AvailableChainFGSA.Proofs.StoreBundle -- shake: keep (re-export)
+public import AvailableChainFGSARun.Proofs.Restore -- shake: keep (re-export)
 
 public section
 

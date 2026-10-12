@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGSA.Model.Spec.Frame
-public import AvailableChainKitFG.FrameBridgeDef
+public import AvailableChainKitFG.FrameBridgeDef -- shake: keep (re-export)
 public import AvailableChainKitFG.Ancestry
 public import AvailableChainFGSA.Model.ContestFrame
 

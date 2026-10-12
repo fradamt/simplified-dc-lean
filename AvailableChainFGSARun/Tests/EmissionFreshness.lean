@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGSARun.Proofs.TestSupport.EmissionFreshness
-public import AvailableChainFGSARun.Proofs.NamedDelivery
+public import AvailableChainFGSARun.Proofs.NamedDelivery -- shake: keep (axioms)
 
 #print axioms AvailableChain.FGSA.Run.EmissionFreshnessTests.valid
 #print axioms AvailableChain.FGSA.Run.EmissionFreshnessTests.emitted_proposal_already_processed

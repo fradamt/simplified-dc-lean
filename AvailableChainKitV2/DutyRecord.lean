@@ -1,5 +1,5 @@
 module
-public import AvailableChainKitV2.DutyStable
+public import AvailableChainKitV2.DutyStable -- shake: keep (re-export)
 
 public section
 

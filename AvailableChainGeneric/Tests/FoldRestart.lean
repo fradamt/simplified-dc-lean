@@ -1,5 +1,5 @@
 module
-public import AvailableChainGeneric.Proofs.V2.Fields
+public import AvailableChainGeneric.Proofs.V2.Fields -- shake: keep (examples)
 
 public section
 

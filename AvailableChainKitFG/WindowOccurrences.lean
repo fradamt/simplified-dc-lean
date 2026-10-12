@@ -1,5 +1,5 @@
 module
-public import AvailableChainKitFG.WindowRetention
+public import AvailableChainKitFG.WindowRetention -- shake: keep (re-export)
 public import AvailableChainKitFG.WindowEntriesDef
 
 public section

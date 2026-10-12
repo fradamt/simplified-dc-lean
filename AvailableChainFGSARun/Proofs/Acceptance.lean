@@ -1,6 +1,6 @@
 module
-public import AvailableChainFGSARun.Statements.Acceptance
-public import AvailableChainFGSARun.Proofs.Hooks
+public import AvailableChainFGSARun.Statements.Acceptance -- shake: keep (re-export)
+public import AvailableChainFGSARun.Proofs.Hooks -- shake: keep (re-export)
 public import AvailableChainFGSA.Proofs.CrossNode
 
 -- ROOT-DIGEST-2: private matcher copy; equality is checked by the kernel (BUILD B3).

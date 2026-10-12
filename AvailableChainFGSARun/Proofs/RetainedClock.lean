@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGSARun.Statements.Acceptance
-public import AvailableChainKitV2.DutyEngineClock
+public import AvailableChainKitV2.DutyEngineClock -- shake: keep (re-export)
 public import AvailableChainGeneric.Proofs.V2.Duty.Receipt
 
 public section

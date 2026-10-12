@@ -1,7 +1,7 @@
 module
 public import AvailableChainFGSARun.Proofs.StampOrigins
 public import AvailableChainFGSARun.Proofs.Emission
-public import AvailableChainFGSARun.Proofs.Hooks
+public import AvailableChainFGSARun.Proofs.Hooks -- shake: keep (re-export)
 
 public section
 

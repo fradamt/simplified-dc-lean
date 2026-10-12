@@ -1,6 +1,6 @@
 module
-public import AvailableChainGeneric.Statements.Pure.Stages
-public import Mathlib.Data.Int.DivMod
+public import AvailableChainGeneric.Statements.Pure.Stages -- shake: keep (re-export)
+public import Mathlib.Data.Int.DivMod -- shake: keep (re-export)
 
 @[expose] public section
 

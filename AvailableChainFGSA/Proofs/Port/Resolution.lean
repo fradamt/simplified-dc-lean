@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSA.Model.Resolution
+public import AvailableChainFGSA.Model.Resolution -- shake: keep (re-export)
 public import AvailableChainFGSA.Model.Frame
 public import AvailableChainFGSA.Model.Legacy.Frame
 public import AvailableChainFGSA.Proofs.HeadResolution

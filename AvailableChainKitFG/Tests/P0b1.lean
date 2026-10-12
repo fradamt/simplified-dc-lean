@@ -1,6 +1,6 @@
 module
-public import AvailableChainKitFG.WindowTransport
-public import AvailableChainKitFG.WindowEntriesDef
+public import AvailableChainKitFG.WindowTransport -- shake: keep (axioms)
+public import AvailableChainKitFG.WindowEntriesDef -- shake: keep (axioms)
 
 set_option linter.privateModule false
 

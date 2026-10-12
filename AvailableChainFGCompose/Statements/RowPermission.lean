@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGCompose.Statements.Channels
-public import AvailableChainFGCompose.Statements.SafetyClient
+public import AvailableChainFGCompose.Statements.SafetyClient -- shake: keep (re-export)
 
 @[expose] public section
 

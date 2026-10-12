@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSA.Model.Tree
+public import AvailableChainFGSA.Model.Tree -- shake: keep (re-export)
 public import AvailableChainFGSA.Model.WindowViews
 public import AvailableChainKitFG.TreeFrameDef
 

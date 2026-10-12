@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSARun.Model.Families
+public import AvailableChainFGSARun.Model.Families -- shake: keep (re-export)
 
 @[expose] public section
 namespace AvailableChain.FGSA.Run

@@ -1,5 +1,5 @@
 module
-public import AvailableChainKitFG.WindowViewsDef
+public import AvailableChainKitFG.WindowViewsDef -- shake: keep (re-export)
 
 public section
 

@@ -1,7 +1,7 @@
 module
 public import AvailableChainGridCO.Model.Protocol
 public import AvailableChainGeneric.Statements.Pure.Quorum
-public import Mathlib.Data.Finset.Card
+public import Mathlib.Data.Finset.Card -- shake: keep (re-export)
 
 @[expose] public section
 

@@ -1,8 +1,8 @@
 module
 public import AvailableChainEngineV2.Conditions.DeliveryWindow
 public import AvailableChainEngineV2.Laws.Hooks
-public import AvailableChainEngineV2.Engine.Run
-public import AvailableChainEngineV2.Conditions.Schedule
+public import AvailableChainEngineV2.Engine.Run -- shake: keep (re-export)
+public import AvailableChainEngineV2.Conditions.Schedule -- shake: keep (re-export)
 public import AvailableChainKitV2.ClockLaws
 public import AvailableChainGeneric.Statements.V2.Reads
 

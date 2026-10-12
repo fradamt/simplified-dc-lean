@@ -1,5 +1,5 @@
 module
-public import AvailableChainGeneric.Statements.V2.Duty.Receipt
+public import AvailableChainGeneric.Statements.V2.Duty.Receipt -- shake: keep (re-export)
 public import AvailableChainGeneric.Statements.V2.Duty.Regimes
 
 @[expose] public section

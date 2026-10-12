@@ -1,5 +1,5 @@
 module
-public import AvailableChainGeneric.Statements.AC.Votes
+public import AvailableChainGeneric.Statements.AC.Votes -- shake: keep (re-export)
 
 @[expose] public section
 

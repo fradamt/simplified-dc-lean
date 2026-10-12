@@ -1,38 +1,38 @@
 module
-public import AvailableChainFGSARun.Proofs.RootResolution
-public import AvailableChainFGSARun.Proofs.RootLease
-public import AvailableChainFGSARun.Proofs.NamedDelivery
-public import AvailableChainFGSARun.Proofs.HeadIdentity
-public import AvailableChainFGSARun.Proofs.NamedScope
-public import AvailableChainFGSARun.Proofs.WindowExclusion
-public import AvailableChainFGSARun.Statements.Slashing
-public import AvailableChainFGSARun.Proofs.AncestorDeadlines
-public import AvailableChainFGSARun.Proofs.ReceiptCoverage
-public import AvailableChainFGSARun.Proofs.EmissionWellFormed
-public import AvailableChainFGSARun.Model.Protocol
-public import AvailableChainFGSARun.Model.Families
-public import AvailableChainFGSARun.Proofs.Protocol
-public import AvailableChainFGSARun.Proofs.Excludes
-public import AvailableChainFGSARun.Proofs.Interface
-public import AvailableChainFGSARun.Proofs.ClockLaws
-public import AvailableChainFGSARun.Proofs.Reachable
-public import AvailableChainFGSARun.Proofs.Content
-public import AvailableChainFGSARun.Proofs.Hooks
-public import AvailableChainFGSARun.Proofs.Readiness
-public import AvailableChainFGSARun.Proofs.Acceptance
-public import AvailableChainFGSARun.Proofs.Emission
-public import AvailableChainFGSARun.Statements.Client
-public import AvailableChainFGSARun.Proofs.ClientTrace
-public import AvailableChainFGSARun.Proofs.Slashing
+public import AvailableChainFGSARun.Proofs.RootResolution -- shake: keep (axioms)
+public import AvailableChainFGSARun.Proofs.RootLease -- shake: keep (axioms)
+public import AvailableChainFGSARun.Proofs.NamedDelivery -- shake: keep (axioms)
+public import AvailableChainFGSARun.Proofs.HeadIdentity -- shake: keep (axioms)
+public import AvailableChainFGSARun.Proofs.NamedScope -- shake: keep (axioms)
+public import AvailableChainFGSARun.Proofs.WindowExclusion -- shake: keep (axioms)
+public import AvailableChainFGSARun.Statements.Slashing -- shake: keep (axioms)
+public import AvailableChainFGSARun.Proofs.AncestorDeadlines -- shake: keep (axioms)
+public import AvailableChainFGSARun.Proofs.ReceiptCoverage -- shake: keep (axioms)
+public import AvailableChainFGSARun.Proofs.EmissionWellFormed -- shake: keep (axioms)
+public import AvailableChainFGSARun.Model.Protocol -- shake: keep (axioms)
+public import AvailableChainFGSARun.Model.Families -- shake: keep (axioms)
+public import AvailableChainFGSARun.Proofs.Protocol -- shake: keep (axioms)
+public import AvailableChainFGSARun.Proofs.Excludes -- shake: keep (axioms)
+public import AvailableChainFGSARun.Proofs.Interface -- shake: keep (axioms)
+public import AvailableChainFGSARun.Proofs.ClockLaws -- shake: keep (axioms)
+public import AvailableChainFGSARun.Proofs.Reachable -- shake: keep (axioms)
+public import AvailableChainFGSARun.Proofs.Content -- shake: keep (axioms)
+public import AvailableChainFGSARun.Proofs.Hooks -- shake: keep (axioms)
+public import AvailableChainFGSARun.Proofs.Readiness -- shake: keep (axioms)
+public import AvailableChainFGSARun.Proofs.Acceptance -- shake: keep (axioms)
+public import AvailableChainFGSARun.Proofs.Emission -- shake: keep (axioms)
+public import AvailableChainFGSARun.Statements.Client -- shake: keep (axioms)
+public import AvailableChainFGSARun.Proofs.ClientTrace -- shake: keep (axioms)
+public import AvailableChainFGSARun.Proofs.Slashing -- shake: keep (axioms)
 public import AvailableChainFGSARun.Proofs.HeadHistory -- shake: keep (#print axioms)
 public import AvailableChainFGSARun.Proofs.ProposalHistory -- shake: keep (#print axioms)
 public import AvailableChainFGSARun.Proofs.ReadyAcceptance -- shake: keep (#print axioms)
 public import AvailableChainFGSARun.Proofs.FGSource -- shake: keep (#print axioms)
 public import AvailableChainFGSARun.Proofs.Join -- shake: keep (#print axioms)
 public import AvailableChainFGSARun.Proofs.RowHistory -- shake: keep (#print axioms)
-public import AvailableChainFGSARun.Proofs.Schedule
-public import AvailableChainFGSARun.Proofs.AC
-public import AvailableChainFGSARun.Proofs.Receipts
+public import AvailableChainFGSARun.Proofs.Schedule -- shake: keep (axioms)
+public import AvailableChainFGSARun.Proofs.AC -- shake: keep (axioms)
+public import AvailableChainFGSARun.Proofs.Receipts -- shake: keep (axioms)
 public import AvailableChainFGSARun.Proofs.Spec.Simulation -- shake: keep (#print axioms)
 
 /-! Kernel dependency audit of the FG-SA run library (plan

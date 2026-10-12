@@ -1,6 +1,6 @@
 module
 public import AvailableChainKitFG.WindowEntriesDef
-public import AvailableChainKitFG.WindowHeightBridge
+public import AvailableChainKitFG.WindowHeightBridge -- shake: keep (re-export)
 
 public section
 

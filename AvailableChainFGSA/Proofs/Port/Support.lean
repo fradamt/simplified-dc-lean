@@ -1,7 +1,7 @@
 module
 public import AvailableChainFGSA.Proofs.Port.Resolution
 public import AvailableChainFGSA.Proofs.Port.VoteMerge
-public import AvailableChainFGSA.Proofs.Head.Pool
+public import AvailableChainFGSA.Proofs.Head.Pool -- shake: keep (re-export)
 
 public section
 

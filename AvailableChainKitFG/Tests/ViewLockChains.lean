@@ -1,5 +1,5 @@
 module
-public import AvailableChainKitFG.ViewLockChains
+public import AvailableChainKitFG.ViewLockChains -- shake: keep (axioms)
 public import AvailableChainKitFG.Correspondence
 
 public section

@@ -1,26 +1,26 @@
 module
 public import AvailableChainGeneric.Proofs.V2.Duty.Signatures
-public import AvailableChainGeneric.Proofs.V2.Duty.Linked
+public import AvailableChainGeneric.Proofs.V2.Duty.Linked -- shake: keep (axioms)
 public import AvailableChainGeneric.Statements.V2.Counts
 public import AvailableChainGeneric.Statements.V2.Duty.Counts
-public import AvailableChainGeneric.Statements.V2.Reads
-public import AvailableChainGeneric.Statements.V2.Duty.Reads
-public import AvailableChainGeneric.Statements.V2.Receipt
-public import AvailableChainGeneric.Statements.V2.Duty.Receipt
-public import AvailableChainGeneric.Statements.V2.Regimes
-public import AvailableChainGeneric.Statements.V2.Duty.Regimes
-public import AvailableChainGeneric.Statements.V2.Interface
-public import AvailableChainGeneric.Statements.V2.Duty.Interface
+public import AvailableChainGeneric.Statements.V2.Reads -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.V2.Duty.Reads -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.V2.Receipt -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.V2.Duty.Receipt -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.V2.Regimes -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.V2.Duty.Regimes -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.V2.Interface -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.V2.Duty.Interface -- shake: keep (axioms)
 public import AvailableChainGeneric.Statements.V2.Slashing
 public import AvailableChainGeneric.Statements.V2.Duty.Slashing
-public import AvailableChainGeneric.Statements.V2.Linked
-public import AvailableChainGeneric.Statements.V2.Duty.LinkedHolders
+public import AvailableChainGeneric.Statements.V2.Linked -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.V2.Duty.LinkedHolders -- shake: keep (axioms)
 public import AvailableChainGeneric.Proofs.V2.Reads
 public import AvailableChainGeneric.Proofs.V2.Duty.Reads
 public import AvailableChainGeneric.Proofs.V2.Receipt
 public import AvailableChainGeneric.Proofs.V2.Duty.Receipt
-public import AvailableChainGeneric.Proofs.V2.Regimes
-public import AvailableChainGeneric.Proofs.V2.Duty.Regimes
+public import AvailableChainGeneric.Proofs.V2.Regimes -- shake: keep (axioms)
+public import AvailableChainGeneric.Proofs.V2.Duty.Regimes -- shake: keep (axioms)
 public import AvailableChainGeneric.Proofs.V2.Fields
 public import AvailableChainGeneric.Proofs.V2.Duty.Fields
 public import AvailableChainGeneric.Proofs.V2.Induction

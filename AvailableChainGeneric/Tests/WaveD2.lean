@@ -1,11 +1,11 @@
 module
-public import AvailableChainGeneric.Proofs.Pure.OpeningAfterGate
-public import AvailableChainGeneric.Proofs.Pure.StageStops
-public import AvailableChainGeneric.Proofs.Pure.AdditiveStages
-public import AvailableChainGeneric.Proofs.Pure.PeriodicStages
-public import AvailableChainGeneric.Proofs.Pure.HeadAfterSettlement
-import Mathlib.Tactic.NormNum
-import Mathlib.Tactic.Linarith
+public import AvailableChainGeneric.Proofs.Pure.OpeningAfterGate -- shake: keep (examples)
+public import AvailableChainGeneric.Proofs.Pure.StageStops -- shake: keep (examples)
+public import AvailableChainGeneric.Proofs.Pure.AdditiveStages -- shake: keep (examples)
+public import AvailableChainGeneric.Proofs.Pure.PeriodicStages -- shake: keep (examples)
+public import AvailableChainGeneric.Proofs.Pure.HeadAfterSettlement -- shake: keep (examples)
+import Mathlib.Tactic.NormNum -- shake: keep (examples)
+import Mathlib.Tactic.Linarith -- shake: keep (examples)
 
 public section
 

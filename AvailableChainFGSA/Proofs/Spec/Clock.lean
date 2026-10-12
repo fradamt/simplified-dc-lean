@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGSA.Model.Spec.Transitions
-public import Mathlib.Tactic.Ring
+public import Mathlib.Tactic.Ring -- shake: keep (re-export)
 
 public section
 

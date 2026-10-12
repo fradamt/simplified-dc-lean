@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSA.Model.ContestFrame
+public import AvailableChainFGSA.Model.ContestFrame -- shake: keep (re-export)
 public import AvailableChainFGSA.Model.Frame
 public import AvailableChainFGSA.Model.Legacy.Frame
 public import AvailableChainKitFG.TreeFrameBridge

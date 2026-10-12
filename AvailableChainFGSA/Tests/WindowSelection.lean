@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSA.Proofs.WindowSelection
+public import AvailableChainFGSA.Proofs.WindowSelection -- shake: keep (examples)
 
 @[expose] public section
 

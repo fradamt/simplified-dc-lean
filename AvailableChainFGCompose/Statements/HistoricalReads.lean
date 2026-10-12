@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGCompose.Statements.CoreReads
-public import AvailableChainGeneric.Statements.Pure.CommonAncestor
+public import AvailableChainGeneric.Statements.Pure.CommonAncestor -- shake: keep (re-export)
 
 @[expose] public section
 

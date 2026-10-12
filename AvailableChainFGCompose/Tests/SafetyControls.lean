@@ -1,6 +1,6 @@
 module
-public import AvailableChainFGCompose.Statements.SafetyStore
-public import AvailableChainFGCompose.Proofs.SafetyClient
+public import AvailableChainFGCompose.Statements.SafetyStore -- shake: keep (examples)
+public import AvailableChainFGCompose.Proofs.SafetyClient -- shake: keep (examples)
 
 public section
 

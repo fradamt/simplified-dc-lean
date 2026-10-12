@@ -1,7 +1,7 @@
 module
 public import AvailableChainFGSA.Model.Handlers
 public import AvailableChainFGSA.Model.Frame
-public import AvailableChainFGSA.Model.Legacy.Frame
+public import AvailableChainFGSA.Model.Legacy.Frame -- shake: keep (axioms)
 public import AvailableChainFGSA.Tests.Support
 public import AvailableChainFGSA.Proofs.RowSelection
 

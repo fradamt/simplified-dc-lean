@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSA.Statements.WindowEntries
+public import AvailableChainFGSA.Statements.WindowEntries -- shake: keep (examples)
 
 -- The fixtures and examples are local to this test module.
 set_option linter.privateModule false

@@ -1,5 +1,5 @@
 module
-public import Mathlib.Data.Fintype.Basic
+public import Mathlib.Data.Fintype.Basic -- shake: keep (re-export)
 public import Mathlib.Data.Finset.Card
 
 @[expose] public section

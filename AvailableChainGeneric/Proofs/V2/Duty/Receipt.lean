@@ -1,8 +1,8 @@
 module
 public import AvailableChainGeneric.Statements.V2.Duty.DeliveryBy
 public import AvailableChainGeneric.Proofs.V2.Duty.Sleep
-public import AvailableChainGeneric.Statements.V2.Duty.Receipt
-public import AvailableChainEngineV2.Conditions.Duty.Delivery
+public import AvailableChainGeneric.Statements.V2.Duty.Receipt -- shake: keep (re-export)
+public import AvailableChainEngineV2.Conditions.Duty.Delivery -- shake: keep (re-export)
 public import AvailableChainGeneric.Proofs.V2.Duty.Reads
 public import AvailableChainKitV2.DutyEngineClock
 

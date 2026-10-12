@@ -1,9 +1,9 @@
 module
 public import AvailableChainGeneric.Statements.Pure.SlotGrid
-import Mathlib.Tactic.Ring
-import Mathlib.Tactic.Linarith
-import Mathlib.Tactic.Push
-import Mathlib.Tactic.NormNum
+import Mathlib.Tactic.Ring -- shake: keep (re-export)
+import Mathlib.Tactic.Linarith -- shake: keep (re-export)
+import Mathlib.Tactic.Push -- shake: keep (re-export)
+import Mathlib.Tactic.NormNum -- shake: keep (re-export)
 
 public section
 

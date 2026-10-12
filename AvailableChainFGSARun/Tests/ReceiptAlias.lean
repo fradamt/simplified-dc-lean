@@ -2,7 +2,7 @@ module
 public import AvailableChainFGSARun.Proofs.TestSupport.EmissionFreshness
 public import AvailableChainFGSARun.Statements.ReceiptCoverage
 public import AvailableChainFGSARun.Proofs.Hooks
-public import AvailableChainFGSARun.Proofs.ReadFacts
+public import AvailableChainFGSARun.Proofs.ReadFacts -- shake: keep (axioms)
 
 @[expose] public section
 

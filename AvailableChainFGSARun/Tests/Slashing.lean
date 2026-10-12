@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSARun.Statements.Slashing
+public import AvailableChainFGSARun.Statements.Slashing -- shake: keep (examples)
 
 /-! Small checks of the stored-chain evidence carrier. -/
 

@@ -1,7 +1,7 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Finality.RowsBatch
 public import AvailableChainFGSAProofs.Proofs.Finality.RowsPrem
-public import AvailableChainFGSAProofs.Proofs.Finality.ReceiptSuppliers
+public import AvailableChainFGSAProofs.Proofs.Finality.ReceiptSuppliers -- shake: keep (axioms)
 public import AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient
 
 set_option linter.privateModule false

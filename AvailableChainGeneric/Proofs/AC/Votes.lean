@@ -1,7 +1,7 @@
 module
 public import AvailableChainGeneric.Statements.AC.Votes
 public import AvailableChainGeneric.Proofs.Pure.BlockOrder
-public import Mathlib.Data.Finset.Card
+public import Mathlib.Data.Finset.Card -- shake: keep (re-export)
 
 public section
 

@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGSA.Model.Window
-public import AvailableChainKitFG.FrameBridgeDef
+public import AvailableChainKitFG.FrameBridgeDef -- shake: keep (re-export)
 
 @[expose] public section
 

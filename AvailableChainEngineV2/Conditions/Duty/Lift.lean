@@ -1,17 +1,17 @@
 module
 public import AvailableChainEngineV2.Engine.Duty.Lift
-public import AvailableChainEngineV2.Conditions.Committees
-public import AvailableChainEngineV2.Conditions.Duty.Committees
-public import AvailableChainEngineV2.Conditions.Schedule
-public import AvailableChainEngineV2.Conditions.Duty.Schedule
+public import AvailableChainEngineV2.Conditions.Committees -- shake: keep (re-export)
+public import AvailableChainEngineV2.Conditions.Duty.Committees -- shake: keep (re-export)
+public import AvailableChainEngineV2.Conditions.Schedule -- shake: keep (re-export)
+public import AvailableChainEngineV2.Conditions.Duty.Schedule -- shake: keep (re-export)
 public import AvailableChainEngineV2.Conditions.Delivery
 public import AvailableChainEngineV2.Conditions.Duty.Delivery
-public import AvailableChainEngineV2.Conditions.Interface
-public import AvailableChainEngineV2.Conditions.Duty.Interface
-public import AvailableChainEngineV2.Laws.Isolation
-public import AvailableChainEngineV2.Laws.Duty.Isolation
-public import AvailableChainEngineV2.Laws.Hooks
-public import AvailableChainEngineV2.Laws.Duty.Hooks
+public import AvailableChainEngineV2.Conditions.Interface -- shake: keep (re-export)
+public import AvailableChainEngineV2.Conditions.Duty.Interface -- shake: keep (re-export)
+public import AvailableChainEngineV2.Laws.Isolation -- shake: keep (re-export)
+public import AvailableChainEngineV2.Laws.Duty.Isolation -- shake: keep (re-export)
+public import AvailableChainEngineV2.Laws.Hooks -- shake: keep (re-export)
+public import AvailableChainEngineV2.Laws.Duty.Hooks -- shake: keep (re-export)
 public import AvailableChainEngineV2.Laws.SelfDelivery
 public import AvailableChainEngineV2.Laws.Duty.SelfDelivery
 public import AvailableChainEngineV2.Laws.Outputs

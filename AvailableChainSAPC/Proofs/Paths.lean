@@ -1,6 +1,6 @@
 module
 public import AvailableChainSAPC.Proofs.Acceptance
-public import AvailableChainGridCO.Proofs.Roots
+public import AvailableChainGridCO.Proofs.Roots -- shake: keep (re-export)
 public import AvailableChainGridCO.Proofs.RecordSlots
 
 @[expose] public section

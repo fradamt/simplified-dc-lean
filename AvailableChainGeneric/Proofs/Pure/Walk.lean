@@ -1,7 +1,7 @@
 module
 public import AvailableChainGeneric.Statements.Pure.Walk
 public import AvailableChainGeneric.Proofs.Pure.BlockOrder
-public import AvailableChainGridCO.Model.Walk
+public import AvailableChainGridCO.Model.Walk -- shake: keep (re-export)
 
 namespace AvailableChain.Gen.Pure
 

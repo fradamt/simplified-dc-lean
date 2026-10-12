@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSARun.Proofs.WindowExclusion
+public import AvailableChainFGSARun.Proofs.WindowExclusion -- shake: keep (examples)
 
 set_option linter.privateModule false
 

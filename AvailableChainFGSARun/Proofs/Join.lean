@@ -1,7 +1,7 @@
 module
 public import AvailableChainFGSARun.Proofs.FGSource
 public import AvailableChainFGSARun.Proofs.Acceptance
-public import AvailableChainKitV2.DutySleep
+public import AvailableChainKitV2.DutySleep -- shake: keep (re-export)
 
 public section
 

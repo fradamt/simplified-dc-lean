@@ -1,7 +1,7 @@
 module
 public import AvailableChainGeneric.Statements.Pure.StageStops
 public import AvailableChainGeneric.Proofs.Pure.Stages
-public import Mathlib.Data.List.FinRange
+public import Mathlib.Data.List.FinRange -- shake: keep (re-export)
 
 public section
 

@@ -1,5 +1,5 @@
 module
-public import AvailableChainKitFG.NoEarlyMixed
+public import AvailableChainKitFG.NoEarlyMixed -- shake: keep (axioms)
 
 set_option linter.privateModule false
 

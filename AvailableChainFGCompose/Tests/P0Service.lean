@@ -1,7 +1,7 @@
 module
 public import AvailableChainFGCompose.Proofs.ServiceTransport
 public import AvailableChainFGCompose.Proofs.SourceHead
-public import Mathlib.Tactic.NormNum
+public import Mathlib.Tactic.NormNum -- shake: keep (axioms)
 
 set_option linter.privateModule false
 

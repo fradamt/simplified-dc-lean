@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSA.Proofs.Join
+public import AvailableChainFGSA.Proofs.Join -- shake: keep (axioms)
 
 @[expose] public section
 
