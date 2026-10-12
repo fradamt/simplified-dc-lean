@@ -2557,9 +2557,62 @@ theorem dependency_standalone_reconstruct_nontrivial :
   exact (dependency_reconstruct_metadata sr_trace_laws sr_step_laws
     (k := 3) (t := 2) (by decide) rfl).2.2
 
-/-- A concrete wake-token insertion and a concrete replay tag fail the amended laws. -/
+/-- A decoded child receipt is retained before restart; the bad hook replaces its token. -/
+private noncomputable abbrev rr_run : V2.D.Run Bool do_protocol :=
+  { do_run with events := [.deliver false (do_wire 2) 0, .restart false 1] }
+
+private noncomputable abbrev rr_wake : FGReceiptToken Bool do_protocol.Object :=
+  ⟨false, 1, do_wire 2, 1, 2⟩
+
+private noncomputable abbrev rr_reads : FGDependencyReads Nat (Fin 4)
+    (FGReceiptToken Bool do_protocol.Object) Nat :=
+  { do_reads with originAvailable := fun st b o =>
+    if st = 7 then b = 2 ∧ o = rr_wake else do_reads.originAvailable st b o }
+
+private noncomputable abbrev rr_driver : FGDependencyDriver Bool (Fin 4) do_protocol :=
+  { do_driver with
+    reconstruct := fun _ _ => 7
+    hookProgram := fun st op => match op with
+      | .reconstruct _ => .finish 7
+      | _ => do_driver.hookProgram st op }
+
+private theorem rr_original_origin :
+    FGReceiptOrigin do_env rr_run do_history do_wireReads false 2 do_child := by
+  constructor <;> rfl
+
+private theorem rr_replacement_rejected :
+    (∀ b o, ¬ rr_reads.originAvailable do_protocol.init b o) ∧
+    dependencyStateBefore do_env rr_run rr_driver false 1 = 1 ∧
+    do_protocol.restore (do_protocol.durable 1) 1 = 1 ∧
+    rr_reads.originAvailable 1 2 do_child ∧
+    ¬ rr_reads.originAvailable 1 2 rr_wake ∧
+    dependencyStateBefore do_env rr_run rr_driver false 2 = rr_driver.reconstruct 1 1 ∧
+    rr_reads.originAvailable (rr_driver.reconstruct 1 1) 2 rr_wake ∧
+    ¬ rr_reads.originAvailable (rr_driver.reconstruct 1 1) 2 do_child ∧
+    ¬ (∀ st t b o, rr_reads.originAvailable (rr_driver.reconstruct st t) b o ↔
+      rr_reads.originAvailable st b o) ∧
+    ¬ FGReceiptOrigin do_env rr_run do_history do_wireReads false 2 rr_wake := by
+  refine ⟨?_, rfl, rfl, ?_, ?_, rfl, ?_, ?_, ?_, ?_⟩
+  · intro b o; simp
+  · exact Or.inl ⟨rfl, by decide, rfl⟩
+  · simp [rr_wake, do_child]
+  · exact ⟨rfl, rfl⟩
+  · intro h
+    have bad := congrArg FGReceiptToken.eventIndex h.2
+    cases bad
+  · intro law
+    have bad := (law 1 1 2 do_child).mpr (Or.inl ⟨rfl, by decide, rfl⟩)
+    have index := congrArg FGReceiptToken.eventIndex bad.2
+    cases index
+  · intro origin
+    cases origin.delivered
+
+#print axioms rr_original_origin
+#print axioms rr_replacement_rejected
+
+/-- Concrete wake-token insertion, retained-token replacement and replay tags fail the laws. -/
 theorem dependency_reconstruct_wrong_origin_rejected :
-    ∃ (P : V2.ProtocolSpecD Unit) (E : Generic.Env Bool) (wire : P.Object)
+    (∃ (P : V2.ProtocolSpecD Unit) (E : Generic.Env Bool) (wire : P.Object)
       (rho : V2.D.Run Bool P) (H : FGHistoricalReads P.State Unit)
       (W : FGDependencyWireReads P Unit Unit)
       (D badD : FGDependencyReads P.State Unit (FGReceiptToken Bool P.Object) Unit)
@@ -2582,12 +2635,37 @@ theorem dependency_reconstruct_wrong_origin_rejected :
     replayOp 3 = .replay () o ∧
     ¬ FGDependencyTraceLaws E rho false H W D L Step T F replayOp
       (fun _ _ _ _ => False) (fun _ _ _ => False)
-      (Leaf := P) id id (fun _ _ _ => False) := by
-  refine ⟨sr_protocol, do_env, sr_wire, sr_run, sr_history, sr_wireReads,
-    sr_reads, sr_badReads, sr_leaf, sr_step, sr_trace, sr_badTrace, sr_driver, sr_badDriver,
-    sr_op, sr_replayOp, sr_wakeToken, rfl, fun _ => rfl, rfl, rfl, rfl,
-    sr_negative.1, sr_negative.2.1, sr_negative.2.2.1, sr_negative.2.2.2.1,
-    sr_negative.2.2.2.2.1, rfl, sr_negative.2.2.2.2.2⟩
+      (Leaf := P) id id (fun _ _ _ => False)) ∧
+    ∃ (P : V2.ProtocolSpecD Unit) (E : Generic.Env Bool) (wire : P.Object)
+      (rho : V2.D.Run Bool P) (H : FGHistoricalReads P.State (Fin 4))
+      (W : FGDependencyWireReads P (Fin 4) Nat)
+      (D : FGDependencyReads P.State (Fin 4) (FGReceiptToken Bool P.Object) Nat)
+      (F : FGDependencyDriver Bool (Fin 4) P) (raw : P.State)
+      (original wake : FGReceiptToken Bool P.Object),
+    rho.events = [.deliver false wire 0, .restart false 1] ∧
+    W.decodeBody wire = some 2 ∧
+    FGReceiptOrigin E rho H W false 2 original ∧
+    original.eventIndex = 0 ∧ original.receiptTime = 0 ∧ original.receiptEpoch = 0 ∧
+    wake.eventIndex = 1 ∧ wake.receiptTime = 1 ∧ wake.receiptEpoch = 2 ∧
+    wake.wire = original.wire ∧
+    (∀ b o, ¬ D.originAvailable P.init b o) ∧
+    dependencyStateBefore E rho F false 1 = raw ∧
+    P.restore (P.durable raw) 1 = raw ∧
+    D.originAvailable raw 2 original ∧ ¬ D.originAvailable raw 2 wake ∧
+    dependencyStateBefore E rho F false 2 = F.reconstruct raw 1 ∧
+    D.originAvailable (F.reconstruct raw 1) 2 wake ∧
+    ¬ D.originAvailable (F.reconstruct raw 1) 2 original ∧
+    ¬ (∀ st t b o, D.originAvailable (F.reconstruct st t) b o ↔ D.originAvailable st b o) ∧
+    ¬ FGReceiptOrigin E rho H W false 2 wake := by
+  constructor
+  · refine ⟨sr_protocol, do_env, sr_wire, sr_run, sr_history, sr_wireReads,
+      sr_reads, sr_badReads, sr_leaf, sr_step, sr_trace, sr_badTrace, sr_driver, sr_badDriver,
+      sr_op, sr_replayOp, sr_wakeToken, rfl, fun _ => rfl, rfl, rfl, rfl,
+      sr_negative.1, sr_negative.2.1, sr_negative.2.2.1, sr_negative.2.2.2.1,
+      sr_negative.2.2.2.2.1, rfl, sr_negative.2.2.2.2.2⟩
+  · exact ⟨do_protocol, do_env, do_wire 2, rr_run, do_history, do_wireReads, rr_reads,
+      rr_driver, 1, do_child, rr_wake, rfl, rfl, rr_original_origin,
+      rfl, rfl, rfl, rfl, rfl, rfl, rfl, rr_replacement_rejected⟩
 
 #print axioms dependency_standalone_reconstruct_nontrivial
 #print axioms dependency_reconstruct_wrong_origin_rejected
