@@ -237,18 +237,18 @@ private theorem b3retention_filter_length {V : Type} (xs : List (Entry V)) (y : 
     ((xs.map b3retention_toEntry).filter (fun e => decide (y < e.j))).length =
       (xs.filter (fun e => decide (y < e.j))).length := by
   rw [List.filter_map]
-  simp only [Function.comp_def, b3retention_toEntry, List.length_map]
-  rfl
+  delta b3retention_toEntry
+  simp only [Function.comp_def, List.length_map]
 
 private theorem b3retention_r6w_eq {V : Type} [RowCodec V]
     (w : State V) (a : Row V) :
     SimplexFG.Window.r6w (b3retention_toWindow w) a = r6w w a := by
-  simp only [SimplexFG.Window.r6w_def, r6w_def,
-    SimplexFG.Window.heightMatch_def, heightMatch_def,
-    SimplexFG.Window.staleUseful_def, staleUseful_def,
-    SimplexFG.Window.windowMatch_def, windowMatch_def,
-    b3retention_state_eq, List.any_map, Function.comp_def, b3retention_entry_eq]
-  rfl
+  delta SimplexFG.Window.r6w r6w SimplexFG.Window.heightMatch heightMatch
+    SimplexFG.Window.staleUseful staleUseful SimplexFG.Window.windowMatch windowMatch
+  rcases a with ⟨i, hp, fp⟩
+  cases hp <;> cases fp <;> dsimp only <;>
+    simp only [b3retention_state_eq, List.any_map, Function.comp_def, b3retention_entry_eq]
+  all_goals rfl
 
 private theorem b3retention_mem_map {V : Type} (e : Entry V) (xs : List (Entry V)) :
     b3retention_toEntry e ∈ xs.map b3retention_toEntry ↔ e ∈ xs := by
@@ -443,7 +443,7 @@ theorem window_exact_row_no_missing_effect (p : Params) (K : Nat) (hK : 2 ≤ K)
       refine ⟨?_, ?_⟩
       · cases a with
         | mk i hp fp =>
-            cases hp <;> simpa only [RowBody.ofRow, RowBody.valid] using hr3
+            cases hp <;> exact hr3
       · simpa only [← b3retention_derive_eq, b3retention_r6w_eq] using hr6)
     P
     s

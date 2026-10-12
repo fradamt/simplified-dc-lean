@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSA.Proofs.WindowLiveness
+public import AvailableChainFGSA.Proofs.WindowLiveness -- shake: keep (axioms)
 
 @[expose] public section
 

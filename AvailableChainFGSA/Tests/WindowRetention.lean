@@ -1,7 +1,7 @@
 module
-public import AvailableChainFGSA.Proofs.WindowRetention
-public import AvailableChainFGSA.Proofs.WindowOccurrences
-public import AvailableChainFGSA.Proofs.WindowTerminal
+public import AvailableChainFGSA.Proofs.WindowRetention -- shake: keep (examples)
+public import AvailableChainFGSA.Proofs.WindowOccurrences -- shake: keep (examples)
+public import AvailableChainFGSA.Proofs.WindowTerminal -- shake: keep (examples)
 
 @[expose] public section
 

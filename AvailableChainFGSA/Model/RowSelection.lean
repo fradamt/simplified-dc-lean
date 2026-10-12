@@ -1,6 +1,6 @@
 module
-public import AvailableChainFGSA.Model.RowStore
-public import AvailableChainFGSA.Model.RowValidity
+public import AvailableChainFGSA.Model.RowStore -- shake: keep (re-export)
+public import AvailableChainFGSA.Model.RowValidity -- shake: keep (re-export)
 
 @[expose] public section
 

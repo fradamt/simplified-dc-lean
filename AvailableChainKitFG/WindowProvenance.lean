@@ -1,5 +1,5 @@
 module
-public import AvailableChainKitFG.WindowCertificates
+public import AvailableChainKitFG.WindowCertificates -- shake: keep (re-export)
 public import AvailableChainKitFG.ProvenanceCore
 public import AvailableChainKitFG.CrossingCore
 

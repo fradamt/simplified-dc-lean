@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSARun.Proofs.NamedScope
+public import AvailableChainFGSARun.Proofs.NamedScope -- shake: keep (axioms)
 
 @[expose] public section
 

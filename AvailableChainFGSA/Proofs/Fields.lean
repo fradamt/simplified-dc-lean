@@ -1,7 +1,7 @@
 module
 public import AvailableChainGridCO.Proofs.StoreFacts
 public import AvailableChainFGSA.Statements.Invariants
-public import AvailableChainFGSA.Proofs.FrameViews
+public import AvailableChainFGSA.Proofs.FrameViews -- shake: keep (re-export)
 public import AvailableChainFGSA.Proofs.BlockAncestry
 
 -- Find matcher bodies in the two definitions; do not depend on generated names.

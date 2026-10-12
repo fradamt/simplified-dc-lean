@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSA.Proofs.WindowSteps
+public import AvailableChainFGSA.Proofs.WindowSteps -- shake: keep (re-export)
 public import AvailableChainKitFG.WindowInvariant
 public import AvailableChainKitFG.WindowTransport
 

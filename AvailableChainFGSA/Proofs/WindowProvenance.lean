@@ -1,7 +1,7 @@
 module
-public import AvailableChainFGSA.Proofs.WindowCertificates
-public import AvailableChainKitFG.ProvenanceCore
-public import AvailableChainKitFG.CrossingCore
+public import AvailableChainFGSA.Proofs.WindowCertificates -- shake: keep (re-export)
+public import AvailableChainKitFG.ProvenanceCore -- shake: keep (re-export)
+public import AvailableChainKitFG.CrossingCore -- shake: keep (re-export)
 
 public import AvailableChainKitFG.WindowProvenance
 public import AvailableChainKitFG.WindowTransport

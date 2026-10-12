@@ -1,7 +1,7 @@
 module
-public import AvailableChainFGSA.Model.WindowViews
+public import AvailableChainFGSA.Model.WindowViews -- shake: keep (re-export)
 public import AvailableChainFGSA.Statements.WindowCertificate
-public import AvailableChainKitFG.CertificateCoreDef
+public import AvailableChainKitFG.CertificateCoreDef -- shake: keep (re-export)
 
 @[expose] public section
 

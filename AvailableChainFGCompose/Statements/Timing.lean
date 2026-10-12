@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGCompose.Statements.EventReads
+public import AvailableChainFGCompose.Statements.EventReads -- shake: keep (re-export)
 
 @[expose] public section
 

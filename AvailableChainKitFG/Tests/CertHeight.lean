@@ -1,5 +1,5 @@
 module
-public import AvailableChainKitFG.Correspondence
+public import AvailableChainKitFG.Correspondence -- shake: keep (examples)
 
 -- Test values are private; production code must not import Tests.
 set_option linter.privateModule false

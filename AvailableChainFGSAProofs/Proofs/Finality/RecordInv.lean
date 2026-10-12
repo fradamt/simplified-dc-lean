@@ -853,7 +853,7 @@ private theorem recordInv_complete (i : Nat) (x : V) (r : Nat)
 omit [DecidableEq V] in
 private theorem d7f_holder (k : Fin p.n) :
     FGCompose.safetyHolder (fgsaSafetyReads p c) rho k = rho.seatOf (.base .fg) k := by
-  rw [FGCompose.safetyHolder, fgsaSafetyReads_def p c]
+  rw [FGCompose.safetyHolder_def, fgsaSafetyReads_def p c]
   rfl
 
 private theorem d7f_honest_eq :
@@ -874,7 +874,7 @@ private theorem d7f_signer_eq (a : RowWire p.n) (x : V) :
   | seat label i =>
     cases label
     all_goals dsimp only [FGCompose.RowSigner, RowSigner, d7f_signer]
-    all_goals simp [FGCompose.safetyHolder]
+    all_goals simp [FGCompose.safetyHolder_def]
     rw [fgsaSafetyReads_def p c]
     rfl
 

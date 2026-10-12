@@ -286,7 +286,7 @@ theorem kernel_opening_and_middle
     exact highA.trans (Nat.le_succ _)
   have targetsB : ∀ x ∈ rho.honest, ∃ j a,
       HonestRowAt S E rho T j x (pt.r + 1) a ∧ RowComplete S rho D.signer valid x a ∧
-      NamesEntry S D .target a ((O.height A₀).h + 1) (O.height B).T_h := by
+      NamesEntry (pair := D.heightPair) .target a ((O.height A₀).h + 1) (O.height B).T_h := by
     intro x hx
     obtain ⟨j, rS, a, hle, ha, hc, hp⟩ := hSOCOVTarget x hx (pt.r + 1) B (sourceB x hx) highB
       (hawake x hx _ (by omega) (by omega))

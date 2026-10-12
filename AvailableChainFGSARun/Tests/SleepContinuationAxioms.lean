@@ -1,6 +1,6 @@
 module
-public import AvailableChainFGSARun.Proofs.NamedOrigins
-public import AvailableChainFGSARun.Proofs.Schedule
+public import AvailableChainFGSARun.Proofs.NamedOrigins -- shake: keep (axioms)
+public import AvailableChainFGSARun.Proofs.Schedule -- shake: keep (axioms)
 
 #print axioms AvailableChain.FGSA.Run.act_prop
 #print axioms AvailableChain.FGSA.Run.act_prop_zero

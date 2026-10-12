@@ -1,10 +1,10 @@
 module
 public import AvailableChainGeneric.Statements.Pure.OpeningAfterGate
 public import AvailableChainGeneric.Proofs.Pure.SlotGrid
-import Mathlib.Tactic.Linarith
-import Mathlib.Tactic.Ring
-import Mathlib.Tactic.Push
-import Mathlib.Tactic.NormNum
+import Mathlib.Tactic.Linarith -- shake: keep (re-export)
+import Mathlib.Tactic.Ring -- shake: keep (re-export)
+import Mathlib.Tactic.Push -- shake: keep (re-export)
+import Mathlib.Tactic.NormNum -- shake: keep (re-export)
 
 public section
 

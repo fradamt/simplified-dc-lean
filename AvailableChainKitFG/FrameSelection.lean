@@ -1,5 +1,5 @@
 module
-public import AvailableChainKitFG.FrameBridgeDef
+public import AvailableChainKitFG.FrameBridgeDef -- shake: keep (re-export)
 
 public section
 

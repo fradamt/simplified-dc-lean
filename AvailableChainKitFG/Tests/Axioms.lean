@@ -1,33 +1,33 @@
 module
-public import AvailableChainKitFG.WindowCertificates
-public import AvailableChainKitFG.WindowSelection
-public import AvailableChainKitFG.WindowStore
-public import AvailableChainKitFG.WindowReaders
-public import AvailableChainKitFG.WindowProvenance
+public import AvailableChainKitFG.WindowCertificates -- shake: keep (axioms)
+public import AvailableChainKitFG.WindowSelection -- shake: keep (axioms)
+public import AvailableChainKitFG.WindowStore -- shake: keep (axioms)
+public import AvailableChainKitFG.WindowReaders -- shake: keep (axioms)
+public import AvailableChainKitFG.WindowProvenance -- shake: keep (axioms)
 
-public import AvailableChainKitFG.WindowHeightBridge
-public import AvailableChainKitFG.WindowSteps
-public import AvailableChainKitFG.WindowInvariant
-public import AvailableChainKitFG.TreeCorrespondence
-public import AvailableChainKitFG.TreeFrameGeometry
-public import AvailableChainKitFG.TreeTwoChanges
-public import AvailableChainKitFG.TreeFrameBridge
-public import AvailableChainKitFG.FrameChannels
-public import AvailableChainKitFG.Accountable
-public import AvailableChainKitFG.CrossingNoFinal
-public import AvailableChainKitFG.Correspondence
-public import AvailableChainKitFG.CausalCap
-public import AvailableChainKitFG.ViewLockChains
-public import AvailableChainKitFG.TwoChanges
-public import AvailableChainKitFG.RowBits
-public import AvailableChainKitFG.RecordHigh
-public import AvailableChainKitFG.ClientOnceSafety
-public import AvailableChainKitFG.RecordHighOnce
-public import AvailableChainKitFG.FrameGeometry
-public import AvailableChainKitFG.AccountableCore
-public import AvailableChainKitFG.WindowTransport
-public import AvailableChainKitFG.WindowEntriesDef
-public import AvailableChainKitFG
+public import AvailableChainKitFG.WindowHeightBridge -- shake: keep (axioms)
+public import AvailableChainKitFG.WindowSteps -- shake: keep (axioms)
+public import AvailableChainKitFG.WindowInvariant -- shake: keep (axioms)
+public import AvailableChainKitFG.TreeCorrespondence -- shake: keep (axioms)
+public import AvailableChainKitFG.TreeFrameGeometry -- shake: keep (axioms)
+public import AvailableChainKitFG.TreeTwoChanges -- shake: keep (axioms)
+public import AvailableChainKitFG.TreeFrameBridge -- shake: keep (axioms)
+public import AvailableChainKitFG.FrameChannels -- shake: keep (axioms)
+public import AvailableChainKitFG.Accountable -- shake: keep (axioms)
+public import AvailableChainKitFG.CrossingNoFinal -- shake: keep (axioms)
+public import AvailableChainKitFG.Correspondence -- shake: keep (axioms)
+public import AvailableChainKitFG.CausalCap -- shake: keep (axioms)
+public import AvailableChainKitFG.ViewLockChains -- shake: keep (axioms)
+public import AvailableChainKitFG.TwoChanges -- shake: keep (axioms)
+public import AvailableChainKitFG.RowBits -- shake: keep (axioms)
+public import AvailableChainKitFG.RecordHigh -- shake: keep (axioms)
+public import AvailableChainKitFG.ClientOnceSafety -- shake: keep (axioms)
+public import AvailableChainKitFG.RecordHighOnce -- shake: keep (axioms)
+public import AvailableChainKitFG.FrameGeometry -- shake: keep (axioms)
+public import AvailableChainKitFG.AccountableCore -- shake: keep (axioms)
+public import AvailableChainKitFG.WindowTransport -- shake: keep (axioms)
+public import AvailableChainKitFG.WindowEntriesDef -- shake: keep (axioms)
+public import AvailableChainKitFG -- shake: keep (axioms)
 
 /-! Kernel dependency audit for the FG chain lemmas without root premises. -/
 

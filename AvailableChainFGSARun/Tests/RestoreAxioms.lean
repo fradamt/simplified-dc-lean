@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSARun.Proofs.Restore
+public import AvailableChainFGSARun.Proofs.Restore -- shake: keep (axioms)
 
 #print axioms AvailableChain.FGSA.Run.fgsaClock
 #print axioms AvailableChain.FGSA.Run.fgsa_clock_now

@@ -1,5 +1,5 @@
 module
-public import AvailableChainKitFG.HeightLaws
+public import AvailableChainKitFG.HeightLaws -- shake: keep (axioms)
 
 public section
 

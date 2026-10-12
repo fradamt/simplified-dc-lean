@@ -449,7 +449,7 @@ private theorem c2_observation_laws (w : HealingWitness) :
   action_scope _ _ := Iff.rfl
   frame_eq _ _ _ := by
     dsimp only [c2_observations, c2_reads]
-    simp only [fgsaCoreReads_def]
+    rw [fgsaCoreReads_def]
     rfl
 
 private theorem c2_history_transfer (w : HealingWitness) (h : TCarrier p c E rho w)
@@ -535,7 +535,8 @@ private theorem c2_service_laws (w : HealingWitness)
     refine ⟨eraseFG C, ?_, ?_⟩
     · change actionSource p c E rho x q = some (some (eraseFG C))
       change postClock E rho x (p.actionTime q) = some nd at hnd
-      simp only [actionSource, actionSourceFG, hnd, Option.map_some, hsource]
+      delta actionSource
+      simp only [actionSourceFG, hnd, Option.map_some, hsource]
     · change Block.Preceq Q (eraseFG C)
       rw [← hD]
       exact eraseFG_preceq hDC
@@ -876,7 +877,8 @@ theorem finality_action_source (w : HealingWitness) (q y opening : Nat)
     hstart hproposal h2 h3 h6 hGST hhor hne hheads hjoined hconfirmed hFgate hframe
   have hcap' : ∀ nd, FGCompose.postClock E rho hx (p.actionTime q) = some nd →
       ∀ B ∈ ((fgsaCoreReads p c).core nd).fg.TF, (heightView p B).h ≤ y + 1 := by
-    rw [fgsaCoreReads_def, ← (fgsa_eventReads_eq_compose E rho hx _).2.2.2.2.2.1]
+    rw [fgsaCoreReads_def]
+    rw [← (fgsa_eventReads_eq_compose E rho hx _).2.2.2.2.2.1]
     exact hcap
   have h := FGCompose.finality_action_source (fgsaCoreReads p c) (c2_observations p c)
     (c2_timing p) E rho (fgsaCoreLaws p c) p.E (fgCertificateLaws p).height hx q y opening D

@@ -1,6 +1,6 @@
 module
-public import AvailableChainGridCO.Proofs.LegacyMode
-public import AvailableChainGridCO.Proofs.StoreFacts
+public import AvailableChainGridCO.Proofs.LegacyMode -- shake: keep (axioms)
+public import AvailableChainGridCO.Proofs.StoreFacts -- shake: keep (axioms)
 
 public section
 

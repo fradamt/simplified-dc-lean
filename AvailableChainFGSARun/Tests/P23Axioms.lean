@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSARun.Proofs.ReceiptCoverageReady
+public import AvailableChainFGSARun.Proofs.ReceiptCoverageReady -- shake: keep (axioms)
 
 #print axioms AvailableChain.FGSA.Run.ReceiptCoverageSleepPremises
 #print axioms AvailableChain.FGSA.Run.ReceiptCoverageSleepStatement

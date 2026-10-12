@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSA.Proofs.Port.Support
+public import AvailableChainFGSA.Proofs.Port.Support -- shake: keep (re-export)
 public import AvailableChainFGSA.Proofs.Head.Score
 
 public section

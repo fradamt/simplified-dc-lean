@@ -1,8 +1,8 @@
 module
 public import AvailableChainFGCompose.Statements.RowPermission
-public import AvailableChainFGCompose.Proofs.SourceHead
-public import AvailableChainKitFG.ClientOnceSafety
-public import Mathlib.Tactic.Linarith
+public import AvailableChainFGCompose.Proofs.SourceHead -- shake: keep (re-export)
+public import AvailableChainKitFG.ClientOnceSafety -- shake: keep (re-export)
+public import Mathlib.Tactic.Linarith -- shake: keep (re-export)
 
 public section
 
@@ -20,18 +20,19 @@ theorem p0d2_pair_of_lock (Λ : Record) (h : Height) (T : BlockId)
       | some recorded => if recorded = T then .vote h T false else .vote h T true
       | none => .vote h T false) = _
   by_cases ht : Λ.timeout h = true
-  · rw [ht, ite_eq_left (rfl : true = true), namedEntry]
+  · rw [ht, ite_eq_left (rfl : true = true)]
+    rfl
   · have ht' : Λ.timeout h = false := Bool.eq_false_of_not_eq_true ht
     rw [ht', ite_eq_right Bool.false_ne_true]
     rcases hl with hn | he
     · rw [hn]
       cases Λ.target h with
-      | none => rw [namedEntry]
+      | none => rfl
       | some recorded => by_cases he : recorded = T <;>
-          simp only [he, ite_true, ite_false] <;> rw [namedEntry]
+          simp only [he, ite_true, ite_false] <;> rfl
     · rw [he]
       simp only [ite_true]
-      rw [namedEntry]
+      rfl
 
 /-- SAME pair algebra; the concrete protocol supplies the permitted lock. -/
 theorem rowPermission_pair {In : Type} {P : V2.ProtocolSpecD In} {n : Nat} {Wire : Type}
@@ -63,7 +64,7 @@ theorem p0d2_once_coverage {n : Nat} (Ef : Electorate (Fin n)) (cfg : FGConfig)
   | empty => rw [hpair] at hp; cases hp
   | vote g U timeout =>
     rw [hpair] at hp
-    rw [namedEntry] at hp
+    delta namedEntry at hp
     have he := Option.some.inj hp
     have hg : g = h := congrArg Prod.fst he
     have hU : U = T := congrArg Prod.snd he

@@ -1,6 +1,6 @@
 module
 public import AvailableChainGeneric.Statements.Pure.SupportCounts
-public import Mathlib.Tactic.Push
+public import Mathlib.Tactic.Push -- shake: keep (re-export)
 
 public section
 

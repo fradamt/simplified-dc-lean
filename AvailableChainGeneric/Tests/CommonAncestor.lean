@@ -1,5 +1,5 @@
 module
-public import AvailableChainGeneric.Proofs.Pure.CommonAncestor
+public import AvailableChainGeneric.Proofs.Pure.CommonAncestor -- shake: keep (examples)
 
 public section
 

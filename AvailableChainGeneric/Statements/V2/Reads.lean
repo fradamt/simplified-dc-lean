@@ -1,5 +1,5 @@
 module
-public import AvailableChainEngineV2.Engine.Run
+public import AvailableChainEngineV2.Engine.Run -- shake: keep (re-export)
 public import AvailableChainEngineV2.Conditions.Schedule
 public import AvailableChainEngineV2.Conditions.Interface
 

@@ -1,5 +1,5 @@
 module
-public import AvailableChainKitFG.HeightConsume
+public import AvailableChainKitFG.HeightConsume -- shake: keep (axioms)
 
 public section
 

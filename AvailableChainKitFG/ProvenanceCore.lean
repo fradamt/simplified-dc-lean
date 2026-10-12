@@ -1,7 +1,7 @@
 module
 public import AvailableChainKitFG.ProvenanceCoreDef
 public import AvailableChainKitFG.Provenance
-public import AvailableChainKitFG.CertificateCoreDef
+public import AvailableChainKitFG.CertificateCoreDef -- shake: keep (re-export)
 
 public section
 

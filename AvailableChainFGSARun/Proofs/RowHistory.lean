@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSARun.Proofs.Reachable
+public import AvailableChainFGSARun.Proofs.Reachable -- shake: keep (re-export)
 public import AvailableChainFGSARun.Proofs.Emission
 public import AvailableChainFGSARun.Proofs.Hooks
 

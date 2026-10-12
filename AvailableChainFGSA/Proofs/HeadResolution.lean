@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGSA.Proofs.NamedStore
-public import Mathlib.Data.Finset.Card
+public import Mathlib.Data.Finset.Card -- shake: keep (re-export)
 
 public section
 

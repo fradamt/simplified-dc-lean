@@ -1,8 +1,8 @@
 module
-public import AvailableChainFGSARun.Proofs.NamedScope
-public import AvailableChainFGSARun.Statements.Interface
+public import AvailableChainFGSARun.Proofs.NamedScope -- shake: keep (re-export)
+public import AvailableChainFGSARun.Statements.Interface -- shake: keep (re-export)
 public import AvailableChainFGSARun.Statements.Emission
-public import AvailableChainGeneric.Statements.V2.Duty.DeliveryBy
+public import AvailableChainGeneric.Statements.V2.Duty.DeliveryBy -- shake: keep (re-export)
 public import AvailableChainFGSARun.Proofs.Restore
 public import AvailableChainFGSA.Proofs.NamedReachable
 

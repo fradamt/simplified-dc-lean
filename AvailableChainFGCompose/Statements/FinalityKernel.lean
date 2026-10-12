@@ -1,5 +1,7 @@
 module
 public import AvailableChainFGCompose.Statements.Finality
+public import AvailableChainFGCompose.Statements.Promotion
+public import AvailableChainKitFG.WindowEntriesDef
 public import AvailableChainFGCompose.Statements.FinalityRecords -- shake: keep (d7a2 seed leaves)
 
 @[expose] public section
@@ -13,15 +15,6 @@ variable (R : FGCoreReads P n Base Proposal Wire) (S : FGSafetyReads P n Wire)
 variable (O : FGObservationReads R) (T : FGTiming)
 variable (E : Generic.Env V) (rho : V2.D.Run V P) (I : V2.D.Interface P)
 variable (D : FGHistoryWireReads S) (Ef : Electorate (Fin n))
-
-/-- Height-row coverage keeps the target and progress cases distinct. -/
-inductive RowKind | target | progress
-
-/-- Exact signed content, with the original timeout discriminator. -/
-def NamesEntry (k : RowKind) (a : Wire) (y : Nat) (U : FGBlock (Fin n)) : Prop :=
-  match k with
-  | .target => D.heightPair a = .vote y U.root false
-  | .progress => ∃ timeout, D.heightPair a = .vote y U.root timeout
 
 /-- Exact decoded content and signer. -/
 def RowNames (k : RowKind) (row : Row (Fin n)) (i : Fin n)
@@ -71,7 +64,7 @@ structure BatchPrem (ΔF : Time) (k : RowKind) (q y : Nat)
     (∀ i ∈ Q, safetyHolder S rho i ∈ rho.honest) ∧
     Ef.q ≤ Ef.weightOf Q ∧ ∀ i ∈ Q, ∃ j r a t,
       r ≤ q ∧ HonestRowAt S E rho T j (safetyHolder S rho i) r a ∧
-      D.signer a = some i ∧ NamesEntry S D k a y U ∧
+      D.signer a = some i ∧ NamesEntry (pair := D.heightPair) k a y U ∧
       eventTime rho j = some t ∧ t = T.action r ∧
       ValidForParent E rho I parentFG validFor X.slot (R.erase X) a ∧
       HeightMatch E rho I (fun a => namedEntry (D.heightPair a))
@@ -161,7 +154,7 @@ structure KernelMiddleWitness_W (cfg : FGConfig) (K : Nat)
 
   targetsB : ∀ x ∈ rho.honest, ∃ j a,
     HonestRowAt S E rho T j x (pt.r + 1) a ∧
-    RowComplete S rho D.signer valid x a ∧ NamesEntry S D .target a (d + 1) U
+    RowComplete S rho D.signer valid x a ∧ NamesEntry (pair := D.heightPair) .target a (d + 1) U
 
   actionsInRun : T.action (pt.r + 2) ≤ rho.horizon
   capThroughBAction : ∀ i x W,

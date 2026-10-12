@@ -1,8 +1,8 @@
 module
-public import AvailableChainFGSARun.Proofs.ClockLaws
+public import AvailableChainFGSARun.Proofs.ClockLaws -- shake: keep (re-export)
 public import AvailableChainFGSA.Proofs.Metadata
-public import AvailableChainKitV2.DutyEngineClock
-public import AvailableChainKitV2.DutyStable
+public import AvailableChainKitV2.DutyEngineClock -- shake: keep (re-export)
+public import AvailableChainKitV2.DutyStable -- shake: keep (re-export)
 
 public section
 

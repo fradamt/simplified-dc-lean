@@ -1,8 +1,8 @@
 module
-public import Mathlib.Data.Finset.Basic
-public import Mathlib.Data.Prod.Lex
-public import Mathlib.Logic.Function.Basic
-public import AvailableChainModel.Generic.Env
+public import Mathlib.Data.Finset.Basic -- shake: keep (re-export)
+public import Mathlib.Data.Prod.Lex -- shake: keep (re-export)
+public import Mathlib.Logic.Function.Basic -- shake: keep (re-export)
+public import AvailableChainModel.Generic.Env -- shake: keep (re-export)
 public import AvailableChainEngineV2.Engine.Run
 public import AvailableChainEngineV2.Engine.Duty.Spec
 

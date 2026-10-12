@@ -1,6 +1,6 @@
 module
 public import AvailableChainModel.Objects.Blocks
-public import Mathlib.Data.List.Nodup
+public import Mathlib.Data.List.Nodup -- shake: keep (re-export)
 public import Mathlib.Data.Finset.Max
 
 public section

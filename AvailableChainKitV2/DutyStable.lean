@@ -1,6 +1,6 @@
 module
-public import AvailableChainEngineV2.Laws.Duty.Isolation
-public import AvailableChainKitV2.DutyExecution
+public import AvailableChainEngineV2.Laws.Duty.Isolation -- shake: keep (re-export)
+public import AvailableChainKitV2.DutyExecution -- shake: keep (re-export)
 
 public section
 

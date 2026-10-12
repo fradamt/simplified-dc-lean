@@ -1401,6 +1401,28 @@ names; `SAFETY_FIELDS` contains exact field labels, including `assembled package
 preserve all old entries and have no duplicates or wildcards. The surrounding
 Python AST and shell wrapper must remain unchanged.
 
+### P0d1 — phase order and settlement
+
+`AvailableChainFGCompose.Statements.Phase` defines the cumulative frontier,
+phase evidence, effective events, settled frames, intervals, and all five
+`RPhase` clauses. Lower finality movement does not end a phase.
+`Statements.PhaseReceipts` keeps the selected frontier, top, and contest
+witnesses at `i + 1`, with the actual receiver, joined read, and strict deadline.
+The receipt predicate can use the c2 target service or a frozen protocol service.
+The consumer also takes its proved receipt-to-held consequence at that deadline.
+
+`Proofs.Healing.PhaseFrame`, `PhaseOrder`, and `PhaseSettle` own the shared
+proofs. They use the full store and certificate laws, observation equations,
+order, cumulative retention, crossing, and explicit timing and receipt inputs.
+Settlement constructs a joined tick between one and two delta after the event.
+It returns the phase interval at three delta and each bounded post-clock frame.
+The F-root case retains its accepted finality certificate.
+
+The four FG-SA phase files use private core projections and preserve their
+public statements. `PhaseService` keeps the concrete receipt factories.
+`Tests.P0d1` in Compose checks phase and deadline controls; the FG-SA adapter
+test checks all five clauses and the actual recovery receipt producer.
+PC-SA remains UNPORTED and must supply its own service and receipt proofs.
 P0d7a3 owns FGCompose Statements/FinalityKernel and Proofs/Finality/MiddleSupport
 and Middle. FG-SA keeps its public middle record and theorem signatures. Private
 fieldwise adapters bind the same service point, selected early carrier, fresh entry,

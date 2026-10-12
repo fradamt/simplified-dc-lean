@@ -1,9 +1,9 @@
 module
-public import AvailableChainFGSA.Proofs.Spec.Codec
-public import AvailableChainFGSA.Proofs.Spec.Frame
-public import AvailableChainFGSA.Proofs.Spec.Locks
-public import AvailableChainFGSA.Proofs.Spec.Clock
-public import AvailableChainFGSA.Proofs.Spec.Handlers
+public import AvailableChainFGSA.Proofs.Spec.Codec -- shake: keep (examples)
+public import AvailableChainFGSA.Proofs.Spec.Frame -- shake: keep (examples)
+public import AvailableChainFGSA.Proofs.Spec.Locks -- shake: keep (examples)
+public import AvailableChainFGSA.Proofs.Spec.Clock -- shake: keep (examples)
+public import AvailableChainFGSA.Proofs.Spec.Handlers -- shake: keep (examples)
 
 public section
 

@@ -1,4 +1,6 @@
 module
+public import AvailableChainFGSARun.Statements.Client
+public import AvailableChainFGCompose.Proofs.Healing.Promotion
 public import AvailableChainFGSAProofs.Proofs.Shared.GridSchedule
 public import AvailableChainFGSAProofs.Proofs.Healing.FrameSource
 public import AvailableChainFGSAClaims.Statements.Fold
@@ -11,6 +13,91 @@ namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG Gen.Pure
 
 variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V] {c : AppCodec In}
+
+private def p0d3_fixed_timing (p : Params) : FGCompose.FGTiming where
+  delta := p.Δ
+  roundSlots := p.R
+  proposal := SA.proposalTime p.toParams
+  vote := SA.voteTime p.toParams
+  early := SA.earlyTime p.toParams
+  freeze := SA.freezeTime p.toParams
+  release := SA.releaseTime p.toParams
+  gate := SA.gateTime p.toParams
+  action := p.actionTime
+
+private def p0d3_fixed_core (p : Params) {In : Type} (c : AppCodec In) :
+  FGCompose.FGCoreReads (fgsa p c) p.n (GridCO.State p.n .root) (Wire p.n) (RowWire p.n) :=
+  { core := fun nd => ⟨nd.st.base, nd.st.fg, nd.st.proposals, nd.st.rowPool⟩
+    erase := eraseFG
+    source := fun nd => FGSA.fgSource p nd.st
+    headVote := fun nd s => FGSA.headVote p nd.st s
+    finalityHead := fun nd => FGSA.fgBlockOf nd.st (FGSA.fgHead p nd.st)
+    proposalFG := fun nd o => match (toWire p o).decode with
+      | some (.block _ N) => (parentFG nd.st N.erase).map (fun P => fgBlock P N.erase N.rows)
+      | some (.vote _ _ _) => none
+      | some (.row _ _) => none
+      | none => none }
+private def p0d3_fixed_safety (p : Params) {In : Type} (c : AppCodec In) :
+    FGCompose.FGSafetyReads (fgsa p c) p.n (RowWire p.n) where
+  proposalErase := safetyProposalErase p
+  proposalRows := safetyProposalRows p
+  encode := ofRow p
+  decode := RowWire.toRow?
+  decodeObject := decodeRowObject p
+  fgLabel := .base .fg
+  fgSeats := Equiv.refl _
+  record := Node.record
+  inputs := fun nd => fgInputs p nd.st
+  enabled := fun t => decide (p.actionTime ((p.slotOf t - 1) / p.R) = t)
+  finalizedOut := finalizedOut
+
+omit [Fintype V] in
+private theorem p0d3_fixed_frame_mem (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {x : V} {r : Nat} {K : FGBlock (Fin p.n)}
+    {nd : Node p} (hnd : postClock E rho x (p.actionTime r) = some nd)
+    (hK : actionSourceFG p c E rho x r = some (some K)) : K ∈ fullTree p nd.st := by
+  rw [actionSourceFG_def, hnd] at hK
+  have hs : fgSource p nd.st = some K := Option.some.inj hK
+  exact (Finset.mem_filter.mp (pickPair_some_spec _ _ hs).1).1
+
+omit [Fintype V] in
+private theorem p0d3_fixed_covered_eq (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) (r : Nat) (Q : Block) :
+    FGCompose.OpeningCovered (p0d3_fixed_core p c) (p0d3_fixed_safety p c) E rho
+      (heightView p) (p0d3_fixed_timing p) (fun a => a.payload.height_pair) r Q =
+        OpeningCovered p c E rho r Q := by
+  apply propext
+  constructor
+  · intro h x hx
+    obtain ⟨K, nd, j, rSent, a, hnd, hK, _, hQ, hr, ha, hn⟩ := h x hx
+    exact ⟨K, nd, j, rSent, a, hnd, hK, p0d3_fixed_frame_mem E rho hnd hK,
+      hQ, hr, ha, hn⟩
+  · intro h x hx
+    obtain ⟨K, nd, j, rSent, a, hnd, hK, hm, hQ, hr, ha, hn⟩ := h x hx
+    have htf : K ∈ nd.st.fg.TF := (KitFG.mem_filteredFromView _ _ _ _).mp hm |>.1
+    exact ⟨K, nd, j, rSent, a, hnd, hK, htf, hQ, hr, ha, hn⟩
+
+omit [Fintype V] in
+private theorem p0d3_fixed_batch_eq (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) (r height : Nat) (Q : Block) (U : FGBlock (Fin p.n)) :
+    FGCompose.FixedRows (p0d3_fixed_core p c) (p0d3_fixed_safety p c) E rho
+      (heightView p) (p0d3_fixed_timing p) (fun a => a.payload.height_pair) r height Q U =
+    (∀ x ∈ rho.honest, ∃ K nd j rSent a,
+      postClock E rho x (p.actionTime r) = some nd ∧
+      actionSourceFG p c E rho x r = some (some K) ∧ K ∈ fullTree p nd.st ∧
+      Block.Preceq Q (eraseFG K) ∧ FGBlock.Preceq U K ∧ K.slot ≤ r * p.R ∧
+      (heightView p K).h = height ∧ (heightView p K).T_h = U ∧ rSent ≤ r ∧
+      HonestRowAt p c E rho j x rSent a ∧ NamesEntry p .progress a height U) := by
+  apply propext
+  constructor
+  · intro h x hx
+    obtain ⟨K, nd, j, rSent, a, hnd, hK, _, hQ, hUK, hs, hh, he, hr, ha, hn⟩ := h x hx
+    exact ⟨K, nd, j, rSent, a, hnd, hK, p0d3_fixed_frame_mem E rho hnd hK,
+      hQ, hUK, hs, hh, he, hr, ha, hn⟩
+  · intro h x hx
+    obtain ⟨K, nd, j, rSent, a, hnd, hK, hm, hQ, hUK, hs, hh, he, hr, ha, hn⟩ := h x hx
+    have htf : K ∈ nd.st.fg.TF := (KitFG.mem_filteredFromView _ _ _ _).mp hm |>.1
+    exact ⟨K, nd, j, rSent, a, hnd, hK, htf, hQ, hUK, hs, hh, he, hr, ha, hn⟩
 
 private theorem promotion_honest_nonempty (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF) :
@@ -61,6 +148,22 @@ private theorem promotion_stored_ancestor_slot (E : Generic.Env V)
         exact (ih hP hUP).trans
           (promotion_stored_parent_slot E rho hv i x _ hK (by intro h; cases h)).le
 
+private theorem p0d3_fixed_ancestor (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    {x : V} {r : Nat} {K U : FGBlock (Fin p.n)}
+    (hK : actionSourceFG p c E rho x r = some (some K))
+    (hUK : FGBlock.Preceq U K) : U.slot ≤ K.slot := by
+  rw [actionSourceFG_def, postClock_def, preTick_def] at hK
+  cases hi : V2.D.Run.tickIdx? rho x (p.actionTime r) with
+  | none => simp only [hi, Option.map_none, reduceCtorEq] at hK
+  | some i =>
+    simp only [hi, Option.map_some, Option.some.injEq] at hK
+    have hm := (Finset.mem_filter.mp (pickPair_some_spec _ _ hK).1).1
+    have hs := ((KitFG.mem_filteredFromView _ _ _ _).mp hm).1
+    change K ∈ (clock p (storeAt p c E rho i x) (p.actionTime r)).fg.TF at hs
+    rw [clock_fg] at hs
+    exact promotion_stored_ancestor_slot E rho hrec.base.valid i x hs hUK
+
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. Blueprint 21:1356–1384; plan §3.2 step 1.
 DC: INTENTIONAL choose the starting action's SO-COV witnesses once.
@@ -78,31 +181,20 @@ theorem healing_promotion_fixed_rows (E : Generic.Env V)
         (heightView p K).h = height ∧ (heightView p K).T_h = U ∧
         rSent ≤ r ∧ HonestRowAt p c E rho j x rSent a ∧
         NamesEntry p .progress a height U := by
-  obtain ⟨e, he⟩ := hentry
-  obtain ⟨x₀, hx₀⟩ := promotion_honest_nonempty E rho hrec
-  obtain ⟨K₀, _, _, _, _, _, hK₀, _⟩ := hcovered x₀ hx₀
-  obtain ⟨hh₀, hr₀⟩ := he x₀ K₀ hx₀ hK₀
-  let U := (heightView p K₀).T_h
-  refine ⟨U, ⟨((fgCertificateLaws p).height.entry_same_height K₀).trans hh₀,
-    (fgCertificateLaws p).height.entry_idem K₀⟩, ?_⟩
-  intro x hx
-  obtain ⟨K, nd, j, rSent, a, hnd, hK, hmem, hQ, hr, ha, hn⟩ := hcovered x hx
-  obtain ⟨hh, hroot⟩ := he x K hx hK
-  have hU : (heightView p K).T_h = U := rootScope_eq hrec.base.idealization
-    (rootScope_entry (rootScope_source hx hK))
-    (rootScope_entry (rootScope_source hx₀ hK₀)) (hroot.trans hr₀.symm)
-  refine ⟨K, nd, j, rSent, a, hnd, hK, hmem, hQ,
-    hU ▸ (fgCertificateLaws p).height.entry_preceq K,
-    healing_source_slot p c E rho hx hK, hh, hU, hr, ha, ?_⟩
-  rw [hh, hU] at hn
-  change ∃ timeout, a.payload.height_pair = .vote height U.root timeout
-  cases hp : a.payload.height_pair with
-  | empty => rw [hp] at hn; cases hn
-  | vote h root timeout =>
-    rw [hp] at hn
-    have heq : (h, root) = (height, U.root) := Option.some.inj hn
-    cases heq
-    exact ⟨timeout, rfl⟩
+  have hcov := (p0d3_fixed_covered_eq E rho r Q).mpr hcovered
+  have h := FGCompose.healing_promotion_fixed_rows
+    (p0d3_fixed_core p c) (p0d3_fixed_safety p c) E rho
+    (heightView p) (p0d3_fixed_timing p) (fun a => a.payload.height_pair)
+    p.E (fgCertificateLaws p).height (promotion_honest_nonempty E rho hrec)
+    hentry hcov
+    (fun x y K L hx hy hK hL he =>
+      rootScope_eq hrec.base.idealization
+        (rootScope_entry (rootScope_source hx hK))
+        (rootScope_entry (rootScope_source hy hL)) he)
+    (fun x K hx hK => healing_source_slot p c E rho hx hK)
+  simp only [p0d3_fixed_batch_eq] at h
+  delta FGCompose.EntryAt at h
+  exact h
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21:1356–1384; plan §3.2 steps 1 and 5.
@@ -113,18 +205,11 @@ theorem healing_promotion_entry_slot (E : Generic.Env V)
     {x : V} {r : Nat} {K U : FGBlock (Fin p.n)} (hx : x ∈ rho.honest)
     (hK : actionSourceFG p c E rho x r = some (some K))
     (hU : (heightView p K).T_h = U) : U.slot ≤ r * p.R := by
-  have hslot := healing_source_slot p c E rho hx hK
-  have hUK : FGBlock.Preceq U K := hU ▸ (fgCertificateLaws p).height.entry_preceq K
-  rw [actionSourceFG_def, postClock_def, preTick_def] at hK
-  cases hi : V2.D.Run.tickIdx? rho x (p.actionTime r) with
-  | none => simp only [hi, Option.map_none, reduceCtorEq] at hK
-  | some i =>
-    simp only [hi, Option.map_some, Option.some.injEq] at hK
-    have hm := (Finset.mem_filter.mp (pickPair_some_spec _ _ hK).1).1
-    have hs := ((KitFG.mem_filteredFromView _ _ _ _).mp hm).1
-    change K ∈ (clock p (storeAt p c E rho i x) (p.actionTime r)).fg.TF at hs
-    rw [clock_fg] at hs
-    exact (promotion_stored_ancestor_slot E rho hrec.base.valid i x hs hUK).trans hslot
+  exact FGCompose.healing_promotion_entry_slot
+    (p0d3_fixed_core p c) E rho (heightView p) (p0d3_fixed_timing p)
+    p.E (fgCertificateLaws p).height hx hK hU
+    (fun y L hy hL => healing_source_slot p c E rho hy hL)
+    (fun y L A _ hL hAL => p0d3_fixed_ancestor E rho hrec hL hAL)
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21:1356–1384; plan §3.2 step 1.
@@ -142,10 +227,20 @@ theorem healing_promotion_bounded_rows (E : Generic.Env V)
         (heightView p K).h = height ∧ (heightView p K).T_h = U ∧
         rSent ≤ r ∧ HonestRowAt p c E rho j x rSent a ∧
         NamesEntry p .progress a height U := by
-  obtain ⟨U, hU, hrows⟩ := healing_promotion_fixed_rows E rho hrec hentry hcovered
-  obtain ⟨x, hx⟩ := promotion_honest_nonempty E rho hrec
-  obtain ⟨K, _, _, _, _, _, hK, _, _, _, _, _, he, _⟩ := hrows x hx
-  exact ⟨U, hU, healing_promotion_entry_slot E rho hrec hx hK he, hrows⟩
+  have h := FGCompose.healing_promotion_bounded_rows
+    (p0d3_fixed_core p c) (p0d3_fixed_safety p c) E rho
+    (heightView p) (p0d3_fixed_timing p) (fun a => a.payload.height_pair)
+    p.E (fgCertificateLaws p).height (promotion_honest_nonempty E rho hrec)
+    hentry ((p0d3_fixed_covered_eq E rho r Q).mpr hcovered)
+    (fun x y K L hx hy hK hL he =>
+      rootScope_eq hrec.base.idealization
+        (rootScope_entry (rootScope_source hx hK))
+        (rootScope_entry (rootScope_source hy hL)) he)
+    (fun x K hx hK => healing_source_slot p c E rho hx hK)
+    (fun x K A _ hK hAK => p0d3_fixed_ancestor E rho hrec hK hAK)
+  simp only [p0d3_fixed_batch_eq] at h
+  delta FGCompose.EntryAt at h
+  exact h
 
 omit [Fintype V] in
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]

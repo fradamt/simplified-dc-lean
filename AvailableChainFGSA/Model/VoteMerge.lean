@@ -1,6 +1,6 @@
 module
-public import AvailableChainFGSA.Model.ContestFrame
-public import AvailableChainFGSA.Model.Clock
+public import AvailableChainFGSA.Model.ContestFrame -- shake: keep (re-export)
+public import AvailableChainFGSA.Model.Clock -- shake: keep (re-export)
 
 @[expose] public section
 

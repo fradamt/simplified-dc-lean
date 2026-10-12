@@ -5,6 +5,9 @@ public import AvailableChainFGCompose.Statements.Bounds
 public import AvailableChainFGCompose.Statements.Finality
 public import AvailableChainFGCompose.Statements.FinalityReceipts
 public import AvailableChainFGCompose.Proofs.ServiceTransport
+public import AvailableChainFGCompose.Statements.Dependency
+public import AvailableChainFGCompose.Statements.DependencyTrace
+public import AvailableChainFGCompose.Proofs.Dependency
 public import AvailableChainFGCompose.Proofs.ObservationTransport
 public import AvailableChainFGCompose.Proofs.Timing
 public import AvailableChainFGCompose.Statements.Observations
@@ -31,12 +34,32 @@ public import AvailableChainFGCompose.Proofs.SafetySlashing
 public import AvailableChainFGCompose.Statements.HistoricalReads
 public import AvailableChainFGCompose.Proofs.HistoricalReads
 
+public import AvailableChainFGCompose.Statements.Phase
+public import AvailableChainFGCompose.Statements.PhaseReceipts
+public import AvailableChainFGCompose.Proofs.Healing.PhaseFrame
+public import AvailableChainFGCompose.Proofs.Healing.PhaseOrder
+public import AvailableChainFGCompose.Proofs.Healing.PhaseSettle
+public import AvailableChainFGCompose.Statements.RowPermission
+public import AvailableChainFGCompose.Proofs.RowPermission
+public import AvailableChainFGCompose.Statements.Promotion
+public import AvailableChainFGCompose.Proofs.Healing.PromotionArithmetic
+public import AvailableChainFGCompose.Proofs.Healing.CommonEntry
+public import AvailableChainFGCompose.Proofs.Healing.Promotion
+public import AvailableChainFGCompose.Proofs.Healing.PromotionRows
+
+public import AvailableChainFGCompose.Statements.Attempt
+
+public import AvailableChainFGCompose.Proofs.Healing.AttemptStop
+
+public import AvailableChainFGCompose.Proofs.Healing.AttemptSettle
+
+public import AvailableChainFGCompose.Proofs.Healing.AttemptRows
+
+public import AvailableChainFGCompose.Proofs.Healing.Attempt
 public import AvailableChainFGCompose.Statements.ResetCut
 public import AvailableChainFGCompose.Proofs.Healing.ResetCut
 public import AvailableChainFGCompose.Statements.FinalityHistory
 public import AvailableChainFGCompose.Proofs.Finality.History
-public import AvailableChainFGCompose.Statements.RowPermission
-public import AvailableChainFGCompose.Proofs.RowPermission
 public import AvailableChainFGCompose.Statements.FinalityRecords
 public import AvailableChainFGCompose.Proofs.Finality.RecordInv
 

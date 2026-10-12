@@ -1,6 +1,6 @@
 module
-public import Mathlib.Data.List.Sort
-public import Mathlib.Order.Monotone.Basic
+public import Mathlib.Data.List.Sort -- shake: keep (re-export)
+public import Mathlib.Order.Monotone.Basic -- shake: keep (re-export)
 
 @[expose] public section
 

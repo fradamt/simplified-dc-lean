@@ -1,7 +1,7 @@
 module
 public import AvailableChainKitFG.WindowOccurrences
 public import AvailableChainKitFG.WindowTerminal
-public import AvailableChainKitFG.WindowValidity
+public import AvailableChainKitFG.WindowValidity -- shake: keep (axioms)
 
 set_option linter.privateModule false
 

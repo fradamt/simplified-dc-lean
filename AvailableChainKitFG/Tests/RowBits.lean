@@ -1,5 +1,5 @@
 module
-public import AvailableChainKitFG.RowBits
+public import AvailableChainKitFG.RowBits -- shake: keep (examples)
 
 public section
 

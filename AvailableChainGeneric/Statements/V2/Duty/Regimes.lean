@@ -1,11 +1,11 @@
 module
 public import AvailableChainGeneric.Statements.V2.Duty.Receipt
-public import AvailableChainGeneric.Statements.V2.Duty.Reads
+public import AvailableChainGeneric.Statements.V2.Duty.Reads -- shake: keep (re-export)
 public import AvailableChainGeneric.Statements.Pure.Quorum
 public import AvailableChainEngineV2.Conditions.Duty.Delivery
-public import AvailableChainEngineV2.Conditions.Duty.Interface
-public import AvailableChainEngineV2.Conditions.Duty.Schedule
-public import Mathlib.Order.Monotone.Basic
+public import AvailableChainEngineV2.Conditions.Duty.Interface -- shake: keep (re-export)
+public import AvailableChainEngineV2.Conditions.Duty.Schedule -- shake: keep (re-export)
+public import Mathlib.Order.Monotone.Basic -- shake: keep (re-export)
 
 @[expose] public section
 

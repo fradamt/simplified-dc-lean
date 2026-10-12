@@ -1,6 +1,6 @@
 module
 public import AvailableChainKitFG.TreeFrameBridge
-public import AvailableChainKitFG.FrameGeometry
+public import AvailableChainKitFG.FrameGeometry -- shake: keep (re-export)
 public import AvailableChainKitFG.Correspondence
 
 public section

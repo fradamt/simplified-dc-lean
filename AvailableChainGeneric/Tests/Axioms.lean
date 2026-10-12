@@ -1,111 +1,111 @@
 module
-public import AvailableChainGeneric.Proofs.V2.Duty.Sleep
-public import AvailableChainGeneric.Proofs.V2.Sleep
-public import AvailableChainGeneric.Proofs.AC.RootVotes
-public import AvailableChainGeneric.Proofs.AC.RootSupport
-public import AvailableChainGeneric.Proofs.AC.RootBatch
+public import AvailableChainGeneric.Proofs.V2.Duty.Sleep -- shake: keep (axioms)
+public import AvailableChainGeneric.Proofs.V2.Sleep -- shake: keep (axioms)
+public import AvailableChainGeneric.Proofs.AC.RootVotes -- shake: keep (axioms)
+public import AvailableChainGeneric.Proofs.AC.RootSupport -- shake: keep (axioms)
+public import AvailableChainGeneric.Proofs.AC.RootBatch -- shake: keep (axioms)
 public import AvailableChainGeneric.Statements.Pure.ScheduleW -- shake: keep (S4.1 axiom audit)
 public import AvailableChainGeneric.Proofs.Pure.ScheduleW -- shake: keep (S4.1 axiom audit)
-public import AvailableChainGeneric.Proofs.V2.Duty.Linked
-public import AvailableChainGeneric.Proofs.V2.Duty.Signatures
-public import AvailableChainGeneric.Statements.V2.Duty.Linked
-public import AvailableChainGeneric.Statements.V2.Duty.Signatures
-public import AvailableChainGeneric.Statements.Pure.SlotGrid
-public import AvailableChainGeneric.Proofs.Pure.SlotGrid
-public import AvailableChainGeneric.Statements.Pure.KernelArithmetic
-public import AvailableChainGeneric.Proofs.Pure.KernelArithmetic
-public import AvailableChainGeneric.Statements.Pure.Stages
-public import AvailableChainGeneric.Proofs.Pure.Stages
-public import AvailableChainGeneric.Statements.Pure.ChainSearch
-public import AvailableChainGeneric.Proofs.Pure.ChainSearch
-public import AvailableChainGeneric.Statements.Pure.CommonAncestor
-public import AvailableChainGeneric.Proofs.Pure.CommonAncestor
-public import AvailableChainGeneric.Proofs.V2.DCRegimes
-public import AvailableChainGeneric.Proofs.V2.DCProps
-public import AvailableChainGeneric.Statements.V2.Slashing
-public import AvailableChainGeneric.Statements.Pure.Quorum
-public import AvailableChainGeneric.Statements.Pure.QuorumInter
-public import AvailableChainGeneric.Statements.Pure.SupportCounts
-public import AvailableChainGeneric.Statements.Pure.Dominance
-public import AvailableChainGeneric.Statements.Pure.FirstBad
-public import AvailableChainGeneric.Statements.Pure.Schedule
-public import AvailableChainGeneric.Statements.Pure.Walk
-public import AvailableChainGeneric.Statements.Pure.Props
-public import AvailableChainGeneric.Statements.V2.Reads
-public import AvailableChainGeneric.Statements.V2.Counts
-public import AvailableChainGeneric.Statements.V2.Obs
-public import AvailableChainGeneric.Statements.V2.Interface
-public import AvailableChainGeneric.Statements.V2.Receipt
-public import AvailableChainGeneric.Statements.V2.Regimes
-public import AvailableChainGeneric.Statements.V2.Linked
-public import AvailableChainGeneric.Statements.V2.Signatures
-public import AvailableChainGeneric.Statements.AC.Reads
-public import AvailableChainGeneric.Statements.AC.Lease
-public import AvailableChainGeneric.Statements.AC.History
-public import AvailableChainGeneric.Statements.AC.Transfer
-public import AvailableChainGeneric.Statements.AC.Votes
-public import AvailableChainGeneric.Proofs.Pure.FirstBad
-public import AvailableChainGeneric.Proofs.Pure.Schedule
-public import AvailableChainGeneric.Proofs.Pure.BlockOrder
-public import AvailableChainGeneric.Proofs.Pure.Walk
-public import AvailableChainGeneric.Proofs.Pure.Quorum
-public import AvailableChainGeneric.Proofs.Pure.SupportCounts
-public import AvailableChainGeneric.Proofs.Pure.Fold
-public import AvailableChainGeneric.Proofs.Pure.Props
-public import AvailableChainGeneric.Proofs.V2.Fields
-public import AvailableChainGeneric.Proofs.V2.Reads
-public import AvailableChainGeneric.Proofs.V2.Induction
-public import AvailableChainGeneric.Proofs.V2.BaseTransport
-public import AvailableChainGeneric.Proofs.V2.Receipt
-public import AvailableChainGeneric.Proofs.V2.Regimes
-public import AvailableChainGeneric.Proofs.V2.Linked
-public import AvailableChainGeneric.Proofs.V2.Signatures
-public import AvailableChainGeneric.Proofs.AC.Output
-public import AvailableChainGeneric.Proofs.AC.Lease
-public import AvailableChainGeneric.Proofs.AC.History
-public import AvailableChainGeneric.Proofs.AC.Transfer
-public import AvailableChainGeneric.Proofs.AC.Duty.Transfer
-public import AvailableChainGeneric.Proofs.AC.Votes
-public import AvailableChainGeneric.Statements.AC.Support
-public import AvailableChainGeneric.Statements.Pure.HonestCount
-public import AvailableChainGeneric.Proofs.AC.Support
-public import AvailableChainGeneric.Proofs.Pure.HonestCount
-public import AvailableChainGeneric.Statements.Pure.OpeningAfterGate
-public import AvailableChainGeneric.Proofs.Pure.OpeningAfterGate
-public import AvailableChainGeneric.Statements.Pure.StageStops
-public import AvailableChainGeneric.Proofs.Pure.StageStops
-public import AvailableChainGeneric.Statements.Pure.AdditiveStages
-public import AvailableChainGeneric.Proofs.Pure.AdditiveStages
-public import AvailableChainGeneric.Statements.Pure.PeriodicStages
-public import AvailableChainGeneric.Proofs.Pure.PeriodicStages
-public import AvailableChainGeneric.Statements.Pure.HeadAfterSettlement
-public import AvailableChainGeneric.Proofs.Pure.HeadAfterSettlement
-public import AvailableChainGeneric.Statements.Pure.BatchDominance
-public import AvailableChainGeneric.Proofs.Pure.BatchDominance
-public import AvailableChainGeneric.Statements.Pure.PCQuorum
-public import AvailableChainGeneric.Proofs.Pure.PCQuorum
-public import AvailableChainGeneric.Statements.Pure.PCRank
-public import AvailableChainGeneric.Proofs.Pure.PCRank
-public import AvailableChainGeneric.Statements.Pure.PCFloor
-public import AvailableChainGeneric.Proofs.Pure.PCFloor
-public import AvailableChainGeneric.Statements.V2.Duty.PCCompanion
-public import AvailableChainGeneric.Proofs.AC.Batch
-public import AvailableChainGeneric.Statements.V2.Duty.Counts
-public import AvailableChainGeneric.Statements.V2.Duty.Interface
-public import AvailableChainGeneric.Statements.V2.Duty.LinkedHolders
-public import AvailableChainGeneric.Statements.V2.Duty.Reads
-public import AvailableChainGeneric.Statements.V2.Duty.Receipt
-public import AvailableChainGeneric.Statements.V2.Duty.Regimes
-public import AvailableChainGeneric.Statements.V2.Duty.Slashing
-public import AvailableChainGeneric.Proofs.V2.Duty.BaseTransport
-public import AvailableChainGeneric.Proofs.V2.Duty.Fields
-public import AvailableChainGeneric.Proofs.V2.Duty.Induction
-public import AvailableChainGeneric.Proofs.V2.Duty.LinkedHolders
-public import AvailableChainGeneric.Proofs.V2.Duty.Reads
-public import AvailableChainGeneric.Proofs.V2.Duty.Receipt
-public import AvailableChainGeneric.Proofs.V2.Duty.Regimes
+public import AvailableChainGeneric.Proofs.V2.Duty.Linked -- shake: keep (axioms)
+public import AvailableChainGeneric.Proofs.V2.Duty.Signatures -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.V2.Duty.Linked -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.V2.Duty.Signatures -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.Pure.SlotGrid -- shake: keep (axioms)
+public import AvailableChainGeneric.Proofs.Pure.SlotGrid -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.Pure.KernelArithmetic -- shake: keep (axioms)
+public import AvailableChainGeneric.Proofs.Pure.KernelArithmetic -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.Pure.Stages -- shake: keep (axioms)
+public import AvailableChainGeneric.Proofs.Pure.Stages -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.Pure.ChainSearch -- shake: keep (axioms)
+public import AvailableChainGeneric.Proofs.Pure.ChainSearch -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.Pure.CommonAncestor -- shake: keep (axioms)
+public import AvailableChainGeneric.Proofs.Pure.CommonAncestor -- shake: keep (axioms)
+public import AvailableChainGeneric.Proofs.V2.DCRegimes -- shake: keep (axioms)
+public import AvailableChainGeneric.Proofs.V2.DCProps -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.V2.Slashing -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.Pure.Quorum -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.Pure.QuorumInter -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.Pure.SupportCounts -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.Pure.Dominance -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.Pure.FirstBad -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.Pure.Schedule -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.Pure.Walk -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.Pure.Props -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.V2.Reads -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.V2.Counts -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.V2.Obs -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.V2.Interface -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.V2.Receipt -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.V2.Regimes -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.V2.Linked -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.V2.Signatures -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.AC.Reads -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.AC.Lease -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.AC.History -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.AC.Transfer -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.AC.Votes -- shake: keep (axioms)
+public import AvailableChainGeneric.Proofs.Pure.FirstBad -- shake: keep (axioms)
+public import AvailableChainGeneric.Proofs.Pure.Schedule -- shake: keep (axioms)
+public import AvailableChainGeneric.Proofs.Pure.BlockOrder -- shake: keep (axioms)
+public import AvailableChainGeneric.Proofs.Pure.Walk -- shake: keep (axioms)
+public import AvailableChainGeneric.Proofs.Pure.Quorum -- shake: keep (axioms)
+public import AvailableChainGeneric.Proofs.Pure.SupportCounts -- shake: keep (axioms)
+public import AvailableChainGeneric.Proofs.Pure.Fold -- shake: keep (axioms)
+public import AvailableChainGeneric.Proofs.Pure.Props -- shake: keep (axioms)
+public import AvailableChainGeneric.Proofs.V2.Fields -- shake: keep (axioms)
+public import AvailableChainGeneric.Proofs.V2.Reads -- shake: keep (axioms)
+public import AvailableChainGeneric.Proofs.V2.Induction -- shake: keep (axioms)
+public import AvailableChainGeneric.Proofs.V2.BaseTransport -- shake: keep (axioms)
+public import AvailableChainGeneric.Proofs.V2.Receipt -- shake: keep (axioms)
+public import AvailableChainGeneric.Proofs.V2.Regimes -- shake: keep (axioms)
+public import AvailableChainGeneric.Proofs.V2.Linked -- shake: keep (axioms)
+public import AvailableChainGeneric.Proofs.V2.Signatures -- shake: keep (axioms)
+public import AvailableChainGeneric.Proofs.AC.Output -- shake: keep (axioms)
+public import AvailableChainGeneric.Proofs.AC.Lease -- shake: keep (axioms)
+public import AvailableChainGeneric.Proofs.AC.History -- shake: keep (axioms)
+public import AvailableChainGeneric.Proofs.AC.Transfer -- shake: keep (axioms)
+public import AvailableChainGeneric.Proofs.AC.Duty.Transfer -- shake: keep (axioms)
+public import AvailableChainGeneric.Proofs.AC.Votes -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.AC.Support -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.Pure.HonestCount -- shake: keep (axioms)
+public import AvailableChainGeneric.Proofs.AC.Support -- shake: keep (axioms)
+public import AvailableChainGeneric.Proofs.Pure.HonestCount -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.Pure.OpeningAfterGate -- shake: keep (axioms)
+public import AvailableChainGeneric.Proofs.Pure.OpeningAfterGate -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.Pure.StageStops -- shake: keep (axioms)
+public import AvailableChainGeneric.Proofs.Pure.StageStops -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.Pure.AdditiveStages -- shake: keep (axioms)
+public import AvailableChainGeneric.Proofs.Pure.AdditiveStages -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.Pure.PeriodicStages -- shake: keep (axioms)
+public import AvailableChainGeneric.Proofs.Pure.PeriodicStages -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.Pure.HeadAfterSettlement -- shake: keep (axioms)
+public import AvailableChainGeneric.Proofs.Pure.HeadAfterSettlement -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.Pure.BatchDominance -- shake: keep (axioms)
+public import AvailableChainGeneric.Proofs.Pure.BatchDominance -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.Pure.PCQuorum -- shake: keep (axioms)
+public import AvailableChainGeneric.Proofs.Pure.PCQuorum -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.Pure.PCRank -- shake: keep (axioms)
+public import AvailableChainGeneric.Proofs.Pure.PCRank -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.Pure.PCFloor -- shake: keep (axioms)
+public import AvailableChainGeneric.Proofs.Pure.PCFloor -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.V2.Duty.PCCompanion -- shake: keep (axioms)
+public import AvailableChainGeneric.Proofs.AC.Batch -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.V2.Duty.Counts -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.V2.Duty.Interface -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.V2.Duty.LinkedHolders -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.V2.Duty.Reads -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.V2.Duty.Receipt -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.V2.Duty.Regimes -- shake: keep (axioms)
+public import AvailableChainGeneric.Statements.V2.Duty.Slashing -- shake: keep (axioms)
+public import AvailableChainGeneric.Proofs.V2.Duty.BaseTransport -- shake: keep (axioms)
+public import AvailableChainGeneric.Proofs.V2.Duty.Fields -- shake: keep (axioms)
+public import AvailableChainGeneric.Proofs.V2.Duty.Induction -- shake: keep (axioms)
+public import AvailableChainGeneric.Proofs.V2.Duty.LinkedHolders -- shake: keep (axioms)
+public import AvailableChainGeneric.Proofs.V2.Duty.Reads -- shake: keep (axioms)
+public import AvailableChainGeneric.Proofs.V2.Duty.Receipt -- shake: keep (axioms)
+public import AvailableChainGeneric.Proofs.V2.Duty.Regimes -- shake: keep (axioms)
 
-public import AvailableChainGeneric.Proofs.V2.Duty.DeliveryBy
+public import AvailableChainGeneric.Proofs.V2.Duty.DeliveryBy -- shake: keep (axioms)
 
 -- A4 support and honest-origin count contracts and proofs.
 #print axioms AvailableChain.Gen.AC.GoldfishScoreAntitoneStatement_def

@@ -1,6 +1,6 @@
 module
-public import AvailableChainFGSA.Statements.WindowCertificate
-public import AvailableChainFGSA.Proofs.WindowInvariant
+public import AvailableChainFGSA.Statements.WindowCertificate -- shake: keep (re-export)
+public import AvailableChainFGSA.Proofs.WindowInvariant -- shake: keep (re-export)
 
 public import AvailableChainKitFG.WindowCertificates
 public import AvailableChainKitFG.WindowTransport

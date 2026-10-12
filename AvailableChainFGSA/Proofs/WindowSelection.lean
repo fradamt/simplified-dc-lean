@@ -1,6 +1,6 @@
 module
-public import AvailableChainFGSA.Proofs.WindowCertificates
-public import AvailableChainKitFG.SelectionCore
+public import AvailableChainFGSA.Proofs.WindowCertificates -- shake: keep (re-export)
+public import AvailableChainKitFG.SelectionCore -- shake: keep (re-export)
 
 public import AvailableChainKitFG.WindowSelection
 public import AvailableChainKitFG.WindowTransport

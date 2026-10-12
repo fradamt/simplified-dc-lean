@@ -3,7 +3,7 @@ public import AvailableChainFGCompose.Statements.CoreReads
 public import AvailableChainKitFG.ClientOnce
 public import AvailableChainSimplexFG.Evidence
 public import AvailableChainKitFG.CertificateCoreDef
-public import AvailableChainGeneric.Statements.V2.Duty.Slashing
+public import AvailableChainGeneric.Statements.V2.Duty.Slashing -- shake: keep (re-export)
 
 @[expose] public section
 

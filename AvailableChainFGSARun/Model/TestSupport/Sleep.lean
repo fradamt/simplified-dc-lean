@@ -1,8 +1,8 @@
 module
 public import AvailableChainEngineV2.Engine.Duty.Run
 public import AvailableChainFGSARun.Model.Protocol
-public import Mathlib.Tactic.FinCases
-public import Mathlib.Tactic.IntervalCases
+public import Mathlib.Tactic.FinCases -- shake: keep (re-export)
+public import Mathlib.Tactic.IntervalCases -- shake: keep (re-export)
 
 @[expose] public section
 

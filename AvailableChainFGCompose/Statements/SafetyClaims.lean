@@ -1,6 +1,6 @@
 module
-public import AvailableChainFGCompose.Statements.SafetyStore
-public import AvailableChainFGCompose.Statements.SafetyClient
+public import AvailableChainFGCompose.Statements.SafetyStore -- shake: keep (re-export)
+public import AvailableChainFGCompose.Statements.SafetyClient -- shake: keep (re-export)
 public import AvailableChainEngineV2.Conditions.Duty.Committees -- shake: keep (contract types)
 public import AvailableChainGeneric.Statements.V2.Duty.Counts -- shake: keep (contract types)
 

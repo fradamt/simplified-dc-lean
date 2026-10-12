@@ -1,7 +1,7 @@
 module
-public import AvailableChainFGSA.Proofs.Spec.Clock
-public import AvailableChainFGSA.Proofs.Spec.Handlers
-public import AvailableChainFGSARun.Proofs.Restore
+public import AvailableChainFGSA.Proofs.Spec.Clock -- shake: keep (re-export)
+public import AvailableChainFGSA.Proofs.Spec.Handlers -- shake: keep (re-export)
+public import AvailableChainFGSARun.Proofs.Restore -- shake: keep (re-export)
 public import AvailableChainEngineV2.Conditions.Duty.Schedule
 
 public section

@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSA.Proofs.Port.Tree
+public import AvailableChainFGSA.Proofs.Port.Tree -- shake: keep (examples)
 
 public section
 

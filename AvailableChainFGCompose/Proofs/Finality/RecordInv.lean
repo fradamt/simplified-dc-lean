@@ -509,9 +509,12 @@ theorem shield_high_entry_record_invariant (X : FGBlock (Fin n)) (b : Nat) (cuto
   apply high_record_fresh_at_cut (D := D) J emission hown i x y hx
   intro j r a h hj ha hh
   cases hp : D.heightPair a with
-  | empty => simp [historyRowHeight, hp] at hh
+  | empty =>
+    have he := d7r_row_height_eq a _ hp
+    rw [he] at hh
+    cases hh
   | vote g U timeout =>
-    have hgh : g = h := Option.some.inj (by simpa only [historyRowHeight, hp] using hh)
+    have hgh : g = h := Option.some.inj ((d7r_row_height_eq a _ hp).symm.trans hh)
     have hcap := (shield j x r a g U timeout ha (hold j r a hj ha) hp).1
     simp only [Height] at *
     omega
@@ -659,7 +662,8 @@ private theorem d7r_honest_pair (j : Nat) (x : V) (r : Nat) (a : Wire) (u : Row 
   cases hp : u.height_pair with
   | empty => rw [hp] at hn; cases hn
   | vote g B timeout =>
-    rw [hp, namedEntry] at hn
+    delta namedEntry at hn
+    rw [hp] at hn
     have he : (g, B) = (y, U) := Option.some.inj hn
     cases he
     have hnwire : namedEntry (D.heightPair a) = some (y, U) := by

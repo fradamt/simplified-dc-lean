@@ -1,6 +1,12 @@
 # Fixed G-S1 scope. Entries are module names, not Lake library targets.
 # REQUIRED compiles; DEFERRED has an owner; STABLE lists unchanged library prefixes.
 [REQUIRED]
+AvailableChainFGCompose.Proofs.Healing.Attempt
+AvailableChainFGCompose.Proofs.Healing.AttemptRows
+AvailableChainFGCompose.Proofs.Healing.AttemptSettle
+AvailableChainFGCompose.Proofs.Healing.AttemptStop
+AvailableChainFGCompose.Statements.Attempt
+AvailableChainFGCompose.Tests.P0d1
 AvailableChainFGCompose.Statements.FinalityKernel
 AvailableChainFGCompose.Proofs.Finality.MiddleSupport
 AvailableChainFGCompose.Proofs.Finality.Middle
@@ -14,6 +20,17 @@ AvailableChainFGCompose.Tests.P0d7a1
 AvailableChainFGCompose.Tests.P0d6a
 AvailableChainFGCompose.Proofs.Healing.ResetCut
 AvailableChainFGCompose.Statements.ResetCut
+AvailableChainFGCompose.Tests.P0d3
+AvailableChainFGCompose.Statements.Phase
+AvailableChainFGCompose.Statements.PhaseReceipts
+AvailableChainFGCompose.Proofs.Healing.PhaseFrame
+AvailableChainFGCompose.Proofs.Healing.PhaseOrder
+AvailableChainFGCompose.Proofs.Healing.PhaseSettle
+AvailableChainFGCompose.Proofs.Healing.CommonEntry
+AvailableChainFGCompose.Proofs.Healing.Promotion
+AvailableChainFGCompose.Proofs.Healing.PromotionRows
+AvailableChainFGCompose.Statements.Promotion
+AvailableChainFGCompose.Proofs.Healing.PromotionArithmetic
 AvailableChainFGCompose.Statements.ResetHistory
 AvailableChainFGCompose.Statements.Service
 AvailableChainFGCompose.Statements.Bounds
@@ -21,6 +38,11 @@ AvailableChainFGCompose.Statements.Finality
 AvailableChainFGCompose.Statements.FinalityReceipts
 AvailableChainFGCompose.Proofs.ServiceTransport
 AvailableChainFGCompose.Tests.P0Service
+AvailableChainFGCompose.Statements.Dependency
+AvailableChainFGCompose.Statements.DependencyTrace
+AvailableChainFGCompose.Proofs.Dependency
+AvailableChainFGCompose.Tests.DependencyRetention
+AvailableChainFGCompose.Tests.DependencyOrigins
 AvailableChainFGCompose.Statements.HistoricalReads
 AvailableChainFGCompose.Proofs.HistoricalReads
 AvailableChainFGCompose.Tests.HistoricalReads
@@ -510,6 +532,8 @@ AvailableChainKitV2.Tests.Toy
 AvailableChainFGCompose.Statements.RowPermission
 AvailableChainFGCompose.Proofs.RowPermission
 AvailableChainFGCompose.Tests.P0d2
+AvailableChainFGCompose.Tests.P0d4
+
 [DEFERRED]
 AvailableChainFGSAProofs.Proofs.Shared.Claims P-ShA
 

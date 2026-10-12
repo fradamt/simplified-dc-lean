@@ -2,9 +2,9 @@ module
 public import AvailableChainFGSA.Proofs.Carrier
 public import AvailableChainFGSA.Proofs.NamedProposal
 public import AvailableChainFGSARun.Model.Families
-public import AvailableChainFGSARun.Proofs.Restore
+public import AvailableChainFGSARun.Proofs.Restore -- shake: keep (re-export)
 public import AvailableChainKitFG.ClientOnceSafety
-public import AvailableChainGeneric.Proofs.V2.Duty.Signatures
+public import AvailableChainGeneric.Proofs.V2.Duty.Signatures -- shake: keep (re-export)
 
 public section
 

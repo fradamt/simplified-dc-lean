@@ -1,9 +1,9 @@
 module
-public import AvailableChainFGSARun.Proofs.Excludes
-public import AvailableChainFGSARun.Proofs.Restore
-public import AvailableChainKitV2.DutyClockLaws
-public import AvailableChainFGSARun.Proofs.RetainedClock
-public import AvailableChainGeneric.Statements.V2.Duty.Reads
+public import AvailableChainFGSARun.Proofs.Excludes -- shake: keep (re-export)
+public import AvailableChainFGSARun.Proofs.Restore -- shake: keep (re-export)
+public import AvailableChainKitV2.DutyClockLaws -- shake: keep (re-export)
+public import AvailableChainFGSARun.Proofs.RetainedClock -- shake: keep (re-export)
+public import AvailableChainGeneric.Statements.V2.Duty.Reads -- shake: keep (re-export)
 
 public section
 

@@ -1,6 +1,6 @@
 module
-public import AvailableChainFGSARun.Proofs.Protocol
-public import AvailableChainFGSARun.Proofs.Acceptance
+public import AvailableChainFGSARun.Proofs.Protocol -- shake: keep (examples)
+public import AvailableChainFGSARun.Proofs.Acceptance -- shake: keep (examples)
 
 @[expose] public section
 

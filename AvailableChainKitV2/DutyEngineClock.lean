@@ -1,7 +1,7 @@
 module
 public import AvailableChainKitV2.DutySleep
 public import AvailableChainKitV2.DutyClockLaws
-public import AvailableChainKitV2.DutyStable
+public import AvailableChainKitV2.DutyStable -- shake: keep (re-export)
 
 public section
 

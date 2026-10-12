@@ -1,7 +1,7 @@
 module
 public import AvailableChainFGCompose.Statements.Timing
 public import Mathlib.Tactic.Ring.RingNF
-public import Mathlib.Tactic.Linarith
+public import Mathlib.Tactic.Linarith -- shake: keep (re-export)
 
 public section
 

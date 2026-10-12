@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSA.Proofs.Fields
+public import AvailableChainFGSA.Proofs.Fields -- shake: keep (re-export)
 
 public section
 

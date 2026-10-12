@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGCompose.Proofs.ServiceTransport
+public import AvailableChainFGCompose.Proofs.ServiceTransport -- shake: keep (re-export)
 public import AvailableChainFGSAProofs.Proofs.Shared.Gate
 public import AvailableChainFGSAProofs.Proofs.Finality.ActionTime
 public import AvailableChainFGSAProofs.Proofs.Finality.RowsFrame
@@ -112,7 +112,7 @@ private theorem c2b_observation_laws (w : HealingWitness) :
   action_scope _ _ := Iff.rfl
   frame_eq _ _ _ := by
     dsimp only [c2b_observations, c2b_reads]
-    simp only [fgsaCoreReads_def]
+    rw [fgsaCoreReads_def]
     rfl
 
 private theorem c2b_history_transfer (w : HealingWitness) (h : TCarrier p c E rho w)
@@ -198,7 +198,8 @@ private theorem c2b_service_laws (w : HealingWitness)
     refine ⟨eraseFG C, ?_, ?_⟩
     · change actionSource p c E rho x q = some (some (eraseFG C))
       change postClock E rho x (p.actionTime q) = some nd at hnd
-      simp only [actionSource, actionSourceFG, hnd, Option.map_some, hsource]
+      delta actionSource
+      simp only [actionSourceFG, hnd, Option.map_some, hsource]
     · change Block.Preceq Q (eraseFG C)
       rw [← hD]
       exact eraseFG_preceq hDC

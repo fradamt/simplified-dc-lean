@@ -1,9 +1,9 @@
 module
 public import AvailableChainFGSA.Model.WindowStore
-public import AvailableChainFGSA.Proofs.WindowInvariant
-public import AvailableChainKitFG.Correspondence
-public import AvailableChainKitFG.StoreSafety
-public import AvailableChainFGSA.Proofs.WindowSelection
+public import AvailableChainFGSA.Proofs.WindowInvariant -- shake: keep (re-export)
+public import AvailableChainKitFG.Correspondence -- shake: keep (re-export)
+public import AvailableChainKitFG.StoreSafety -- shake: keep (re-export)
+public import AvailableChainFGSA.Proofs.WindowSelection -- shake: keep (re-export)
 
 public import AvailableChainKitFG.WindowStore
 public import AvailableChainKitFG.WindowTransport

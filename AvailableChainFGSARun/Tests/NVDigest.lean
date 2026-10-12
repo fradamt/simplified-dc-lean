@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSARun.Statements.Roots
+public import AvailableChainFGSARun.Statements.Roots -- shake: keep (axioms)
 
 @[expose] public section
 

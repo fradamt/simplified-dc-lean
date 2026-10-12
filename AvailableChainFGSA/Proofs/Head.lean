@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSA.Proofs.StoreLaws
+public import AvailableChainFGSA.Proofs.StoreLaws -- shake: keep (re-export)
 public import AvailableChainFGSA.Proofs.StoreInv
 
 public section

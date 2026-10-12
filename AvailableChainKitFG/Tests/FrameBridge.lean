@@ -1,5 +1,5 @@
 module
-public import AvailableChainKitFG.FrameBridge
+public import AvailableChainKitFG.FrameBridge -- shake: keep (axioms)
 
 public section
 

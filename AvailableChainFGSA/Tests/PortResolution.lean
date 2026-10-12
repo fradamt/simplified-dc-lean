@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSA.Proofs.Port.Resolution
+public import AvailableChainFGSA.Proofs.Port.Resolution -- shake: keep (examples)
 
 public section
 

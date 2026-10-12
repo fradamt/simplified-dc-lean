@@ -1,6 +1,6 @@
 module
-public import AvailableChainFGSA.Proofs.Admission
-public import AvailableChainFGSA.Proofs.EmissionFields
+public import AvailableChainFGSA.Proofs.Admission -- shake: keep (examples)
+public import AvailableChainFGSA.Proofs.EmissionFields -- shake: keep (examples)
 
 set_option linter.privateModule false
 

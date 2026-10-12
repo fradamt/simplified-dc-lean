@@ -318,6 +318,16 @@ private theorem d7n_timing_laws (p : Params) :
 private theorem d7n_action_eq (p : Params) (q : Nat) :
     (d7n_timing p).action q = p.actionTime q := rfl
 
+private theorem d7n_reads_eq : fgsaCoreReads p c =
+    { core := fun nd => ⟨nd.st.base, nd.st.fg, nd.st.proposals, nd.st.rowPool⟩
+      erase := eraseFG
+      source := fun nd => FGSA.fgSource p nd.st
+      headVote := fun nd s => FGSA.headVote p nd.st s
+      finalityHead := fun nd => FGSA.fgBlockOf nd.st (FGSA.fgHead p nd.st)
+      proposalFG := (fgsaCoreReads p c).proposalFG } :=
+  congrArg (fun reads => { reads with proposalFG := (fgsaCoreReads p c).proposalFG })
+    (fgsaCoreReads_def p c)
+
 private def d7n_safety (p : Params) {In : Type} (c : AppCodec In) :
     FGCompose.FGSafetyReads (fgsa p c) p.n (RowWire p.n) where
   proposalErase := safetyProposalErase p
@@ -387,29 +397,29 @@ private def d7n_wire : FGCompose.FGHistoryWireReads (d7n_safety p c) where
   finalityPair a := a.payload.finality_pair
   signer := d7n_signer p
   decode_height a u ha := by
-    rw [d7n_safety] at ha
+    delta d7n_safety at ha
     rw [d7n_decode p ha]
     rfl
   decode_finality a u ha := by
-    rw [d7n_safety] at ha
+    delta d7n_safety at ha
     rw [d7n_decode p ha]
     rfl
   decode_signer a u ha := by
-    rw [d7n_safety] at ha
+    delta d7n_safety at ha
     rw [d7n_decode p ha]
     rfl
 
 private theorem d7n_row_eq (j r : Nat) (x : V) (a : RowWire p.n) :
     FGCompose.HonestRowAt (d7n_safety p c) E rho (d7n_timing p) j x r a =
-      HonestRowAt p c E rho j x r a := by rw [d7n_safety]; rfl
+      HonestRowAt p c E rho j x r a := by delta d7n_safety; rfl
 
 private theorem d7n_source_eq (x : V) (r : Nat) :
     FGCompose.actionSourceFG (fgsaCoreReads p c) E rho (d7n_timing p) x r =
-      actionSourceFG p c E rho x r := by rw [fgsaCoreReads_def]; rfl
+      actionSourceFG p c E rho x r := by rw [d7n_reads_eq]; rfl
 
 private theorem d7n_held_eq (i : Nat) (x : V) (B : FGBlock (Fin p.n)) :
     FGCompose.HeldAt (fgsaCoreReads p c) E rho i x B = HeldAt p c E rho i x B := by
-  rw [fgsaCoreReads_def]
+  rw [d7n_reads_eq]
   rfl
 
 private def d7n_point (p : Params) (w : HealingWitness) : FGCompose.FGServicePoint :=
@@ -422,7 +432,7 @@ private theorem d7n_transfer (w : HealingWitness) (h : TCarrier p c E rho w)
   intro x r C hx hsrc hhigh _ s Q hQ _ hgap
   change FGCompose.actionSourceFG (fgsaCoreReads p c) E rho (d7n_timing p) x r =
     some (some C) at hsrc
-  rw [d7n_source_eq, fgsaCoreReads_def] at *
+  rw [d7n_source_eq, d7n_reads_eq] at *
   exact h x r C s Q hx hsrc hhigh hQ hgap
 
 private theorem d7n_rowHeight_eq (a : RowWire p.n) :
@@ -537,7 +547,7 @@ private theorem d7n_decoded : ∀ j x r a,
 private theorem d7n_tree_restore : FGCompose.FGTreeRestoreLaws (fgsaCoreReads p c) := by
   constructor
   intro nd t
-  rw [fgsaCoreReads_def]
+  rw [d7n_reads_eq]
   exact congrArg (fun st => st.TF) (acRestart_fg p nd.st t)
 
 private theorem d7n_tree_keep : FGCompose.FGTreeKeepLaws (fgsaCoreReads p c) := by
@@ -549,7 +559,8 @@ private theorem d7n_faulty_eq : FGCompose.historyFaulty (d7n_safety p c) rho =
     Finset.univ \ honestSeats p c rho := by
   classical
   unfold FGCompose.historyFaulty
-  dsimp only [FGCompose.safetyHolder, d7n_safety]
+  simp only [FGCompose.safetyHolder_def]
+  delta d7n_safety
   ext i
   simp only [Finset.mem_univ, true_and, Finset.mem_sdiff, kmid_honestSeats_mem]
   constructor
@@ -572,7 +583,7 @@ private theorem d7n_origin
   rw [d7n_held_eq] at hh
   obtain ⟨a, r, ha, har, k, o, t, hki, hk, he⟩ := horigin i x B hh u hu
   refine ⟨a, r, ?_, ?_, k, o, t, hki, hk, ?_⟩
-  · rw [d7n_safety]
+  · delta d7n_safety
     exact ha
   · change d7n_signer p a = some u.signer
     rw [d7n_decode p ha]
@@ -586,7 +597,8 @@ private theorem d7n_origin
       rw [eq]
     have hholder' : rho.seatOf (.base .fg) seat = z := by
       change FGCompose.safetyHolder (d7n_safety p c) rho seat = z at hholder
-      rw [FGCompose.safetyHolder, d7n_safety] at hholder
+      rw [FGCompose.safetyHolder_def] at hholder
+      delta d7n_safety at hholder
       exact hholder
     obtain ⟨⟨j, hji, hj⟩, hrt⟩ := he z ⟨seat, hseat', hholder'⟩ hhonest
     exact ⟨⟨j, hji, (d7n_row_eq p c E rho j r z a).mpr hj⟩, hrt⟩
@@ -615,7 +627,7 @@ private theorem d7n_validRows (st : State p.n) (hr : Reachable p st) :
       SimplexFG.Window.heightMatch_def, Window.heightMatch_def,
       SimplexFG.Window.staleUseful_def, Window.staleUseful_def,
       SimplexFG.Window.windowMatch_def, Window.windowMatch_def,
-      d7nw_toWindow, d7nw_toEntry, List.any_map, Function.comp_def, hp, hf,
+      d7nw_state_eq, d7nw_entry_eq, List.any_map, Function.comp_def, hp, hf,
       Bool.or_eq_true_iff, Bool.and_eq_true_iff, List.any_eq_true, decide_eq_true_eq] at hv ⊢
     all_goals first | exact hv | skip
     rcases hv with hm | ⟨h, e, he, hpair⟩
@@ -713,13 +725,13 @@ private theorem d7n_signer_iff (a : RowWire p.n) (i : Fin p.n) :
     d7n_signer p a = some i ↔ a.auth = .seat .fg i := by
   rcases a with ⟨auth, payload⟩
   cases auth with
-  | none => simp [d7n_signer]
-  | proposer s => simp [d7n_signer]
-  | seat label j => cases label <;> simp [d7n_signer]
+  | none => delta d7n_signer; simp
+  | proposer s => delta d7n_signer; simp
+  | seat label j => cases label <;> delta d7n_signer <;> simp
 
 private theorem d7n_namesEntry (k : RowKind) (a : RowWire p.n) (y : Nat)
     (U : FGBlock (Fin p.n)) :
-    FGCompose.NamesEntry (d7n_safety p c) (d7n_wire p c) (d7n_kind k) a y U =
+    FGCompose.NamesEntry (pair := (d7n_wire p c).heightPair) (d7n_kind k) a y U =
       NamesEntry p k a y U := by cases k <;> rfl
 
 omit [DecidableEq V] in
@@ -727,14 +739,18 @@ private theorem d7n_complete_eq (x : V) (a : RowWire p.n) :
     FGCompose.RowComplete (d7n_safety p c) rho (d7n_signer p) RowWire.valid x a =
       RowComplete p c rho x a := by
   unfold FGCompose.RowComplete FGCompose.RowSigner RowComplete RowSigner
-  simp only [d7n_signer_iff, FGCompose.safetyHolder, d7n_safety]
+  simp only [d7n_signer_iff, FGCompose.safetyHolder_def]
+  delta d7n_safety
   rfl
 
 private theorem d7n_receipt_eq (deltaF : Time) :
     FGCompose.TRowsReceipt (fgsaCoreReads p c) (d7n_safety p c) E rho (d7n_timing p)
       (fun nd => FGSA.blockWireRows nd.st) deltaF = TRowsReceipt p c E rho deltaF := by
-  simp only [FGCompose.TRowsReceipt, TRowsReceipt, d7n_row_eq,
-    FGCompose.HeldBefore, HeldBefore, fgsaCoreReads_def]
+  delta FGCompose.TRowsReceipt
+  rw [TRowsReceipt_def]
+  delta FGCompose.HeldBefore HeldBefore
+  rw [d7n_reads_eq]
+  simp only [d7n_row_eq]
   rfl
 
 private theorem d7n_validParent_eq (s : Slot) (Q : Block) (a : RowWire p.n) :
@@ -779,7 +795,9 @@ private theorem d7n_batch_from [Fintype V] (ΔF : Time) (base : BaseSet p c E rh
   refine ⟨base, faultQ, h.deltaF, (d7n_receipt_eq p c E rho ΔF).mp h.rowsReceipt,
     h.horizon, ?_, h.after, ?_, h.entry, h.path, ?_⟩
   · have hc := h.carrier
-    simpa only [d7n_carrier_eq, fgsaCoreReads_def, d7n_safety] using hc
+    rw [d7n_reads_eq] at hc
+    dsimp only [d7n_safety] at hc
+    simpa only [d7n_carrier_eq] using hc
   · obtain ⟨Q, hh, hq, hw⟩ := h.valid
     refine ⟨Q, (fun i hi => (kmid_honestSeats_mem p c rho i).mpr (hh i hi)), hq, ?_⟩
     intro i hi
@@ -787,9 +805,9 @@ private theorem d7n_batch_from [Fintype V] (ΔF : Time) (base : BaseSet p c E rh
     refine ⟨j, r, a, t, hr, ?_, (d7n_signer_iff p a i).mp hsign,
       (d7n_namesEntry p c k a y U).mp hn, ht, htime, ?_, ?_⟩
     · exact (d7n_row_eq p c E rho j r _ a).mp ha
-    · rw [fgsaCoreReads_def] at hv
+    · rw [d7n_reads_eq] at hv
       exact (d7n_validParent_eq p c E rho _ _ a).mp hv
-    · rw [fgsaCoreReads_def] at hm
+    · rw [d7n_reads_eq] at hm
       exact (d7n_heightMatch_eq p c E rho _ _ a).mp hm
   · intro i hi W hW hr
     exact h.above i ((kmid_honestSeats_mem p c rho i).mp hi) W hW
@@ -851,7 +869,7 @@ private def d7n_ac (w : HealingWitness) : FGCompose.FGACServiceReads V where
 
 private theorem d7n_head_eq (x : V) (s : Slot) :
     FGCompose.headAtLabel (fgsaCoreReads p c) E rho (d7n_timing p) x s =
-      headAtLabel p c E rho x s := by rw [fgsaCoreReads_def]; rfl
+      headAtLabel p c E rho x s := by rw [d7n_reads_eq]; rfl
 
 private theorem d7n_honestProposal_eq (s : Slot) (Q : Block) :
     FGCompose.HonestProposal E rho (fgsaInterface p c) s Q =
@@ -890,7 +908,10 @@ private theorem d7n_batch_to [Fintype V] (ΔF : Time) (k : RowKind) (q y : Nat)
     ?_, h.entry, h.path, ?_⟩
   · rw [d7n_faulty_eq]
     exact kmid_faulty_weight p c E rho h.base h.faultQ
-  · simpa only [d7n_carrier_eq, fgsaCoreReads_def, d7n_safety] using h.carrier
+  · have hc := h.carrier
+    delta d7n_safety
+    rw [d7n_reads_eq]
+    simpa only [d7n_carrier_eq] using hc
   · obtain ⟨Q, hh, hq, hw⟩ := h.valid
     refine ⟨Q, (fun i hi => (kmid_honestSeats_mem p c rho i).mp (hh hi)), hq, ?_⟩
     intro i hi
@@ -898,9 +919,9 @@ private theorem d7n_batch_to [Fintype V] (ΔF : Time) (k : RowKind) (q y : Nat)
     refine ⟨j, r, a, t, hr, (d7n_row_eq p c E rho j r _ a).mpr ha,
       (d7n_signer_iff p a i).mpr hsign, (d7n_namesEntry p c k a y U).mpr hn, ht, htime,
       ?_, ?_⟩
-    · rw [fgsaCoreReads_def]
+    · rw [d7n_reads_eq]
       exact (d7n_validParent_eq p c E rho _ _ a).mpr hv
-    · rw [fgsaCoreReads_def]
+    · rw [d7n_reads_eq]
       exact (d7n_heightMatch_eq p c E rho _ _ a).mpr hm
   · intro i hi W hW hr
     exact h.above i ((kmid_honestSeats_mem p c rho i).mpr hi) W hW
@@ -917,11 +938,11 @@ private abbrev d7n_Middle (ΔF : Time) (pt : KernelPt) (A : Block) :=
 
 
 private theorem d7n_fg (nd : (fgsa p c).State) : ((fgsaCoreReads p c).core nd).fg = nd.st.fg := by
-  rw [fgsaCoreReads_def p c]
+  rw [d7n_reads_eq p c]
 
 private theorem d7n_erase (C : FGBlock (Fin p.n)) :
     (fgsaCoreReads p c).erase C = eraseFG C := by
-  rw [fgsaCoreReads_def p c]
+  rw [d7n_reads_eq p c]
 
 private theorem d7n_roundSlots_eq : (d7n_timing p).roundSlots = p.R := rfl
 
@@ -934,7 +955,7 @@ private theorem d7n_storeAt_eq (i : Nat) (x : V) :
 
 private theorem d7n_chain_eq [Fintype V] (X : FGBlock (Fin p.n)) (cut : Time) :
     FGCompose.ChainRowsBefore (fgsaCoreReads p c) E rho X cut =
-      ChainRowsBefore p c E rho X cut := by rw [fgsaCoreReads_def]; rfl
+      ChainRowsBefore p c E rho X cut := by rw [d7n_reads_eq]; rfl
 
 private def d7n_middle_to [Fintype V] (ΔF : Time) (pt : KernelPt) (A : Block)
     (m : KernelMiddleWitness_W p c E rho ΔF pt A) : d7n_Middle p c E rho ΔF pt A where
@@ -945,7 +966,7 @@ private def d7n_middle_to [Fintype V] (ΔF : Time) (pt : KernelPt) (A : Block)
   cD := m.cD
   d := m.d
   opening := m.opening
-  eraseA := by simpa only [fgsaCoreReads_def] using m.eraseA
+  eraseA := (d7n_erase p c m.A₀).trans m.eraseA
   carrierA := by
     have h := m.carrierA
     exact (d7n_opening_eq p c E rho _ _ _).mpr h
@@ -1039,7 +1060,7 @@ private def d7n_middle_from [Fintype V] (G ΔF : Time) (pt : KernelPt) (A : Bloc
   cD := m.cD
   d := m.d
   opening := m.opening
-  eraseA := by simpa only [fgsaCoreReads_def] using m.eraseA
+  eraseA := (d7n_erase p c m.A₀).symm.trans m.eraseA
   carrierA := by
     have h := m.carrierA
     exact (d7n_opening_eq p c E rho _ _ _).mp h
@@ -1217,10 +1238,11 @@ private theorem d7n_carrier {s : Slot} {Q : Block}
   change (FGCompose.proposalStateAt E rho (fgsaInterface p c) s).map Node.st = some st at hst
   obtain ⟨nd, hnd, rfl⟩ := Option.map_eq_some_iff.mp hst
   refine ⟨X, ?_, (d7n_opening_eq p c E rho _ _ _).mpr hc, hslot, ?_, nd, hnd, hlookup, ?_⟩
-  · rw [fgsaCoreReads_def]
+  · rw [d7n_reads_eq]
     exact he
-  · simpa only [d7n_carrier_eq, d7n_safety] using hrows
-  · rw [fgsaCoreReads_def]
+  · delta d7n_safety
+    simpa only [d7n_carrier_eq] using hrows
+  · rw [d7n_reads_eq]
     exact hparent
 
 private theorem d7n_proposal_reachable (s : Slot) (nd : Node p)
@@ -1325,7 +1347,7 @@ theorem kernel_opening_and_middle
     (source_eq := by
       intro x r
       change actionSource p c E rho x r = _
-      rw [d7n_source_eq, fgsaCoreReads_def]
+      rw [d7n_source_eq, d7n_reads_eq]
       rfl)
     (head_read := by
       intro s Q x hex hlo hhi hx

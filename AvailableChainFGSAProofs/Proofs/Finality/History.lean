@@ -3,10 +3,7 @@ public import AvailableChainFGSAProofs.Proofs.Shared.ReceiptFacts
 public import AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient
 public import AvailableChainFGSAProofs.Proofs.Finality.Height
 public import AvailableChainFGSA.Proofs.StoreLaws
-public import AvailableChainFGSA.Proofs.WindowRetention
 public import AvailableChainFGCompose.Proofs.Finality.History
-public import AvailableChainKitFG.WindowTransport
-public import AvailableChainGeneric.Proofs.V2.Duty.Reads
 
 public section
 
@@ -328,7 +325,7 @@ private theorem d7a_faulty_eq :
       Finset.univ \ honestSeats p c rho := by
   classical
   rw [fgsaSafetyReads_def]
-  unfold FGCompose.historyFaulty FGCompose.safetyHolder
+  delta FGCompose.historyFaulty FGCompose.safetyHolder
   ext i
   simp only [Finset.mem_filter, Finset.mem_univ, true_and, Finset.mem_sdiff,
     khistory_honestSeats_mem]
@@ -393,7 +390,8 @@ private theorem d7a_origin : FGCompose.RawHistoryOrigin (fgsaCoreReads p c)
       rw [eq]
     have hholder' : rho.seatOf (.base .fg) seat = z := by
       change FGCompose.safetyHolder (fgsaSafetyReads p c) rho seat = z at hholder
-      rw [FGCompose.safetyHolder, fgsaSafetyReads_def] at hholder
+      delta FGCompose.safetyHolder at hholder
+      rw [fgsaSafetyReads_def] at hholder
       exact hholder
     obtain ⟨⟨j, hji, hj⟩, hrt⟩ := he z ⟨seat, hseat', hholder'⟩ hhonest
     exact ⟨⟨j, hji, (d7a_row_eq p c E rho j r z a).mpr hj⟩, hrt⟩

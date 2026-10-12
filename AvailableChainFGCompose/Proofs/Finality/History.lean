@@ -22,19 +22,20 @@ variable (hc : FGCertificateLaws Ef H f) (horigin : RawHistoryOrigin R S E rho T
 private theorem d7_honest_seat (u : Row (Fin n))
     (hf : u.signer ∉ historyFaulty S rho) : safetyHolder S rho u.signer ∈ rho.honest := by
   classical
-  simpa only [historyFaulty, Finset.mem_filter, Finset.mem_univ, true_and,
+  delta historyFaulty at hf
+  simpa only [Finset.mem_filter, Finset.mem_univ, true_and,
     not_not] using hf
 
 private theorem d7_event_time {j r : Nat} {z : V} {a : Wire}
     (hj : HonestRowAt S E rho T j z r a) : eventTime rho j = some (T.action r) := by
-  unfold eventTime
+  delta eventTime
   rw [hj.2.1]
   rfl
 
 private theorem d7_matching_height {u : Row (Fin n)} {a : Wire} {y : Nat} {root : BlockId}
     (ha : S.decode a = some u) (hm : u.height_pair.matchesEntry y root = true) :
     historyRowHeight S D a = some y := by
-  unfold historyRowHeight
+  delta historyRowHeight
   rw [D.decode_height a u ha]
   cases hp : u.height_pair with
   | empty => simp only [hp, NamedHeightPair.matchesEntry] at hm; contradiction
@@ -152,7 +153,7 @@ private theorem d7_finality_origin (hs : V2.D.ScheduleWellFormed E rho)
         (d7_honest_seat S rho u hf)) hy hF
   obtain ⟨j, r, a, t, hj, ha, ht, hearly⟩ := ho
   refine ⟨j, _, r, a, t, hj, ?_, ht, hearly⟩
-  unfold historyFinHeight
+  delta historyFinHeight
   rw [D.decode_finality a u ha, hp]
   rfl
 

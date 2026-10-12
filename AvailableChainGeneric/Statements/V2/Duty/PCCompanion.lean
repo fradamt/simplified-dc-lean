@@ -2,8 +2,8 @@ module
 public import AvailableChainGeneric.Statements.V2.Duty.Counts
 public import AvailableChainGeneric.Statements.V2.Duty.DeliveryBy
 public import AvailableChainGeneric.Statements.Pure.PCQuorum
-public import AvailableChainEngineV2.Conditions.Duty.Interface
-public import AvailableChainEngineV2.Conditions.Duty.Schedule
+public import AvailableChainEngineV2.Conditions.Duty.Interface -- shake: keep (re-export)
+public import AvailableChainEngineV2.Conditions.Duty.Schedule -- shake: keep (re-export)
 public import AvailableChainEngineV2.Conditions.Duty.Committees
 
 @[expose] public section

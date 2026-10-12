@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSA.Proofs.WindowStore
+public import AvailableChainFGSA.Proofs.WindowStore -- shake: keep (examples)
 
 public section
 

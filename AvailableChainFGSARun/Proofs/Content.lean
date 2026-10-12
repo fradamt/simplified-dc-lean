@@ -1,6 +1,6 @@
 module
-public import AvailableChainFGSARun.Proofs.Roots
-public import AvailableChainFGSA.Proofs.CrossNode
+public import AvailableChainFGSARun.Proofs.Roots -- shake: keep (re-export)
+public import AvailableChainFGSA.Proofs.CrossNode -- shake: keep (re-export)
 
 public section
 

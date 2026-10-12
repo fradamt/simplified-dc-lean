@@ -1,5 +1,5 @@
 module
-public import AvailableChainGeneric.Proofs.V2.DCRegimes
+public import AvailableChainGeneric.Proofs.V2.DCRegimes -- shake: keep (examples)
 
 public section
 

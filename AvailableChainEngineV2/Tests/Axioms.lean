@@ -1,19 +1,19 @@
 module
-public import AvailableChainEngineV2.Laws.Isolation
-public import AvailableChainEngineV2.Laws.SelfDelivery
-public import AvailableChainEngineV2.Conditions.Duty.Committees
-public import AvailableChainEngineV2.Conditions.Duty.Delivery
-public import AvailableChainEngineV2.Conditions.Duty.Duties
-public import AvailableChainEngineV2.Conditions.Duty.Interface
-public import AvailableChainEngineV2.Conditions.Duty.Lift
-public import AvailableChainEngineV2.Conditions.Duty.Schedule
-public import AvailableChainEngineV2.Engine.Duty.Lift
-public import AvailableChainEngineV2.Engine.Duty.Run
-public import AvailableChainEngineV2.Engine.Duty.Spec
-public import AvailableChainEngineV2.Laws.Duty.Hooks
-public import AvailableChainEngineV2.Laws.Duty.Isolation
-public import AvailableChainEngineV2.Laws.Duty.Outputs
-public import AvailableChainEngineV2.Laws.Duty.SelfDelivery
+public import AvailableChainEngineV2.Laws.Isolation -- shake: keep (axioms)
+public import AvailableChainEngineV2.Laws.SelfDelivery -- shake: keep (axioms)
+public import AvailableChainEngineV2.Conditions.Duty.Committees -- shake: keep (axioms)
+public import AvailableChainEngineV2.Conditions.Duty.Delivery -- shake: keep (axioms)
+public import AvailableChainEngineV2.Conditions.Duty.Duties -- shake: keep (axioms)
+public import AvailableChainEngineV2.Conditions.Duty.Interface -- shake: keep (axioms)
+public import AvailableChainEngineV2.Conditions.Duty.Lift -- shake: keep (axioms)
+public import AvailableChainEngineV2.Conditions.Duty.Schedule -- shake: keep (axioms)
+public import AvailableChainEngineV2.Engine.Duty.Lift -- shake: keep (axioms)
+public import AvailableChainEngineV2.Engine.Duty.Run -- shake: keep (axioms)
+public import AvailableChainEngineV2.Engine.Duty.Spec -- shake: keep (axioms)
+public import AvailableChainEngineV2.Laws.Duty.Hooks -- shake: keep (axioms)
+public import AvailableChainEngineV2.Laws.Duty.Isolation -- shake: keep (axioms)
+public import AvailableChainEngineV2.Laws.Duty.Outputs -- shake: keep (axioms)
+public import AvailableChainEngineV2.Laws.Duty.SelfDelivery -- shake: keep (axioms)
 
 -- Duty engine: every new production theorem.
 #print axioms AvailableChain.V2.D.Linked.toCStar

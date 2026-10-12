@@ -1,5 +1,5 @@
 module
-public import AvailableChainGeneric.Proofs.V2.DCProps
+public import AvailableChainGeneric.Proofs.V2.DCProps -- shake: keep (examples)
 
 public section
 

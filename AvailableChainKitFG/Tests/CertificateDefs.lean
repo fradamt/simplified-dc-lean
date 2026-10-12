@@ -1,6 +1,6 @@
 module
-public import AvailableChainKitFG.CertificateSelectionDef
-public import AvailableChainKitFG.StoreSafetyDef
+public import AvailableChainKitFG.CertificateSelectionDef -- shake: keep (axioms)
+public import AvailableChainKitFG.StoreSafetyDef -- shake: keep (axioms)
 
 public section
 

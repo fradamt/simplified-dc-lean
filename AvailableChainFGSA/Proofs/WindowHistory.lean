@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSA.Proofs.WindowCertificates
+public import AvailableChainFGSA.Proofs.WindowCertificates -- shake: keep (re-export)
 
 public import AvailableChainKitFG.WindowHistory
 public import AvailableChainKitFG.WindowTransport
@@ -237,18 +237,18 @@ private theorem b3history_filter_length {V : Type} (xs : List (Entry V)) (y : Na
     ((xs.map b3history_toEntry).filter (fun e => decide (y < e.j))).length =
       (xs.filter (fun e => decide (y < e.j))).length := by
   rw [List.filter_map]
-  simp only [Function.comp_def, b3history_toEntry, List.length_map]
-  rfl
+  delta b3history_toEntry
+  simp only [Function.comp_def, List.length_map]
 
 private theorem b3history_r6w_eq {V : Type} [RowCodec V]
     (w : State V) (a : Row V) :
     SimplexFG.Window.r6w (b3history_toWindow w) a = r6w w a := by
-  simp only [SimplexFG.Window.r6w_def, r6w_def,
-    SimplexFG.Window.heightMatch_def, heightMatch_def,
-    SimplexFG.Window.staleUseful_def, staleUseful_def,
-    SimplexFG.Window.windowMatch_def, windowMatch_def,
-    b3history_state_eq, List.any_map, Function.comp_def, b3history_entry_eq]
-  rfl
+  delta SimplexFG.Window.r6w r6w SimplexFG.Window.heightMatch heightMatch
+    SimplexFG.Window.staleUseful staleUseful SimplexFG.Window.windowMatch windowMatch
+  rcases a with ⟨i, hp, fp⟩
+  cases hp <;> cases fp <;> dsimp only <;>
+    simp only [b3history_state_eq, List.any_map, Function.comp_def, b3history_entry_eq]
+  all_goals rfl
 
 private theorem b3history_mem_map {V : Type} (e : Entry V) (xs : List (Entry V)) :
     b3history_toEntry e ∈ xs.map b3history_toEntry ↔ e ∈ xs := by

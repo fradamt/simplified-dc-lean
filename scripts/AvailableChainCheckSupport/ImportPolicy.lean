@@ -1,5 +1,5 @@
 module
-public import Lean
+public import Lean -- shake: keep (re-export)
 
 public section
 namespace AvailableChainCheckSupport.ImportPolicy

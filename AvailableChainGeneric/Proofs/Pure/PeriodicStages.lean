@@ -1,8 +1,8 @@
 module
 public import AvailableChainGeneric.Statements.Pure.PeriodicStages
-public import Mathlib.Data.Int.Basic
-import Mathlib.Tactic.Ring
-import Mathlib.Tactic.Linarith
+public import Mathlib.Data.Int.Basic -- shake: keep (re-export)
+import Mathlib.Tactic.Ring -- shake: keep (re-export)
+import Mathlib.Tactic.Linarith -- shake: keep (re-export)
 
 public section
 

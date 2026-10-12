@@ -1,7 +1,7 @@
 module
-public import AvailableChainEngineV2.Conditions.Duty.Schedule
-public import AvailableChainEngineV2.Conditions.Duty.Lift
-public import AvailableChainEngineV2.Laws.Duty.SelfDelivery
+public import AvailableChainEngineV2.Conditions.Duty.Schedule -- shake: keep (re-export)
+public import AvailableChainEngineV2.Conditions.Duty.Lift -- shake: keep (re-export)
+public import AvailableChainEngineV2.Laws.Duty.SelfDelivery -- shake: keep (re-export)
 
 public section
 

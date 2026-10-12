@@ -1,6 +1,5 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Finality.Middle
-public import AvailableChainFGSARun.Proofs.Reachable
 
 public section
 

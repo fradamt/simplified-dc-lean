@@ -1,6 +1,6 @@
 module
 public import AvailableChainEngineV2.Conditions.Duty.Schedule
-public import AvailableChainEngineV2.Conditions.Duty.Duties
+public import AvailableChainEngineV2.Conditions.Duty.Duties -- shake: keep (re-export)
 
 @[expose] public section
 

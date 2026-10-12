@@ -1,6 +1,6 @@
 module
-public import AvailableChainSAPC.Proofs.CleanTicks
-public import AvailableChainSAPC.Proofs.CleanInclusion
+public import AvailableChainSAPC.Proofs.CleanTicks -- shake: keep (re-export)
+public import AvailableChainSAPC.Proofs.CleanInclusion -- shake: keep (re-export)
 
 /-!
 Rejected round-9 event obligations, retained only for the checked

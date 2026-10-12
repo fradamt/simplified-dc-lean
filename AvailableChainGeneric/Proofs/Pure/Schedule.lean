@@ -1,9 +1,9 @@
 module
 public import AvailableChainGeneric.Statements.Pure.Schedule
-import Mathlib.Tactic.Linarith
-import Mathlib.Tactic.Positivity
-import Mathlib.Tactic.Ring
-import Mathlib.Tactic.Tauto
+import Mathlib.Tactic.Linarith -- shake: keep (re-export)
+import Mathlib.Tactic.Positivity -- shake: keep (re-export)
+import Mathlib.Tactic.Ring -- shake: keep (re-export)
+import Mathlib.Tactic.Tauto -- shake: keep (re-export)
 
 public section
 
