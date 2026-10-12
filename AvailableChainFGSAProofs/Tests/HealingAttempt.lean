@@ -1,10 +1,8 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.AttemptSettle -- shake: keep (four cut starts)
 public import AvailableChainFGSAProofs.Proofs.Healing.Attempt -- shake: keep (conditional assembly)
-public import AvailableChainFGSAProofs.Proofs.Healing.AttemptBudget
--- shake: keep (four budget rows)
-public import AvailableChainFGSAProofs.Proofs.Healing.AttemptStop
--- shake: keep (event and cut tests)
+public import AvailableChainFGSAProofs.Proofs.Healing.AttemptBudget -- shake: keep (four budgets)
+public import AvailableChainFGSAProofs.Proofs.Healing.AttemptStop -- shake: keep (event/cut tests)
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseBoot -- shake: keep (B21 boundary)
 public import AvailableChainFGSAProofs.Proofs.Assembly.ProgressAttempt -- shake: keep (example)
 
