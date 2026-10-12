@@ -3,7 +3,6 @@ public import AvailableChainFGSAProofs.Proofs.Shared.FGCompose
 public import AvailableChainFGCompose.Proofs.Finality.Rows
 public import AvailableChainKitFG.WindowTransport -- shake: keep (RowsPrem fold_eq route)
 public import AvailableChainKitFG.ClientOnceSafety -- shake: keep (RowsPrem release route)
-public import AvailableChainFGCompose.Proofs.SourceHead
 public import AvailableChainFGCompose.Proofs.ServiceTransport
 public import AvailableChainFGSAProofs.Proofs.Shared.Gate
 public import AvailableChainFGSAClaims.Statements.ComposeStmt
