@@ -700,6 +700,34 @@ private theorem c2g0_batch_consumer
     { hK with input := c2g0_consumer_input p c E rho pt.w deltaF hK.input }
   exact rowsPrem_action_walk_batch p c E rho hProjected m hServices hQC hXing hNames
 
+include hK hQC hXing hNames in
+private theorem d7a4g0_pending_consumer
+    (hServices : FinalityActionReceipts p c E rho) :
+    ∀ x nd, x ∈ rho.honest →
+      postClock E rho x (p.actionTime (pt.r + 2)) = some nd →
+      ∃ H : FGBlock (Fin p.n),
+        FGSA.fgBlockOf nd.st (FGSA.fgHead p nd.st) = some H ∧ FGBlock.Preceq m.X_D H ∧
+        (heightView p H).h = m.d + 2 ∧ (heightView p H).J = m.U ∧
+        (heightView p H).h_j = m.d + 1 ∧ (finalityView p H).h_F < m.d + 1 ∧
+        (heightView p H).T_h = (heightView p m.X_D).T_h := by
+  have hProjected : KernelPrem_W p c G deltaF E rho pt :=
+    { hK with input := c2g0_consumer_input p c E rho pt.w deltaF hK.input }
+  exact rowsPrem_pending_head p c E rho hProjected m hServices hQC hXing hNames
+
+include hK hQC hXing hNames in
+private theorem d7a4g0_fresh_consumer
+    (hServices : FinalityActionReceipts p c E rho)
+    (S : Finset (Fin p.n)) (hS : S ⊆ honestSeats p c rho) (hQ : p.E.IsQuorum S) :
+    ∃ rows : Fin p.n → RowWire p.n,
+      FreshFinalityRows_W p c E rho (pt.r + 2) (m.d + 1) m.U S rows ∧
+      ∀ i ∈ S, (rows i).payload.height_pair =
+        NamedHeightPair.vote (m.d + 2) (heightView p m.X_D).T_h.root false := by
+  have hProjected : KernelPrem_W p c G deltaF E rho pt :=
+    { hK with input := c2g0_consumer_input p c E rho pt.w deltaF hK.input }
+  obtain ⟨rows, fresh, _, pair⟩ :=
+    rowsPrem_fresh_rows p c E rho hProjected m hServices hQC hXing hNames S hS hQ
+  exact ⟨rows, fresh, pair⟩
+
 end Consumers
 
 private def c2g0_decode (o : Obj p) : Option (Slot × NamedProposal p.n) :=
@@ -772,6 +800,8 @@ private theorem c2g0_result_iff (deltaF : Time) (r : Nat) :
 #print axioms c2g0_same_height
 #print axioms c2g0_next_label
 #print axioms c2g0_pools
+#print axioms d7a4g0_pending_consumer
+#print axioms d7a4g0_fresh_consumer
 #print axioms c2g0_output_frame
 
 end AvailableChain.FGSA.Run.Tests.P0Service
