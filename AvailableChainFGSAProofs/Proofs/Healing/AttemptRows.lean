@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseService
-public import AvailableChainFGSAProofs.Proofs.Healing.AttemptBudget
+public import AvailableChainFGSAProofs.Proofs.Healing.AttemptBudget -- shake: keep (frozen budget)
 public import AvailableChainFGSAProofs.Proofs.Healing.AttemptSettle
 public import AvailableChainFGSAProofs.Proofs.Healing.AttemptStop
 public import AvailableChainFGSAProofs.Proofs.Healing.CommonEntry

@@ -1,6 +1,6 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.Attempt
-public import AvailableChainFGCompose.Proofs.Healing.AttemptStop
+public import AvailableChainFGSAProofs.Proofs.Healing.Attempt -- shake: keep (#print axioms)
+public import AvailableChainFGCompose.Proofs.Healing.AttemptStop -- shake: keep (#print axioms)
 
 set_option linter.privateModule false
 

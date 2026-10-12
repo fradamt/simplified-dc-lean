@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGCompose.Statements.PhaseReceipts
+public import AvailableChainFGCompose.Statements.PhaseReceipts -- shake: keep (receipt contract API)
 public import AvailableChainFGCompose.Statements.Promotion
 
 @[expose] public section

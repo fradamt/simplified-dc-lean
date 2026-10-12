@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGCompose.Proofs.Healing.Attempt
-public import AvailableChainFGCompose.Proofs.Healing.AttemptRows
+public import AvailableChainFGCompose.Proofs.Healing.AttemptRows -- shake: keep (#check branches)
 
 set_option linter.privateModule false
 

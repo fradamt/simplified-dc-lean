@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.PhaseSettle
+public import AvailableChainFGSAProofs.Proofs.Healing.PhaseSettle -- shake: keep (frozen settlement)
 public import AvailableChainFGCompose.Proofs.Healing.AttemptSettle
 
 
