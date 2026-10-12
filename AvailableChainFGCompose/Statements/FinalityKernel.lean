@@ -97,12 +97,12 @@ structure KernelMiddleWitness_W (cfg : FGConfig) (K : Nat)
 
   opening : HonestProposal E rho I (pt.r * T.roundSlots) A
   eraseA : R.erase A₀ = A
-  carrierA : OpeningCarrier_W decodeProposal bodyErase bodyRows parentFG
-    makeFG E rho I (pt.r * T.roundSlots) A A₀
-  carrierB : OpeningCarrier_W decodeProposal bodyErase bodyRows parentFG
-    makeFG E rho I ((pt.r + 1) * T.roundSlots) (R.erase B) B
-  carrierD : OpeningCarrier_W decodeProposal bodyErase bodyRows parentFG
-    makeFG E rho I cD (R.erase X_D) X_D
+  carrierA : OpeningCarrier_W decodeProposal bodyErase bodyRows
+    (fun nd Q => parentFG nd Q.parent) makeFG E rho I (pt.r * T.roundSlots) A A₀
+  carrierB : OpeningCarrier_W decodeProposal bodyErase bodyRows
+    (fun nd Q => parentFG nd Q.parent) makeFG E rho I ((pt.r + 1) * T.roundSlots) (R.erase B) B
+  carrierD : OpeningCarrier_W decodeProposal bodyErase bodyRows
+    (fun nd Q => parentFG nd Q.parent) makeFG E rho I cD (R.erase X_D) X_D
   honestB : HonestProposal E rho I ((pt.r + 1) * T.roundSlots) (R.erase B)
   honestD : HonestProposal E rho I cD (R.erase X_D)
   slotA : A₀.slot = pt.r * T.roundSlots
