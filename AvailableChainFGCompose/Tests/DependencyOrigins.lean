@@ -2075,7 +2075,6 @@ private structure sr_State where
   restartTime : Time := 0
   signed : Nat := 0
   bodyToken : Bool := false
-  deriving DecidableEq
 
 private def sr_receive (st : sr_State) : sr_State := { st with mLatest := 7 }
 
