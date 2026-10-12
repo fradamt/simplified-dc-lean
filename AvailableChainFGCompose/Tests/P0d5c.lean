@@ -1,7 +1,7 @@
 module
 public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchGap
 public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchTail
-public import AvailableChainKitFG.WindowSelection
+public import AvailableChainFGCompose.Proofs.Finality.History
 
 set_option linter.privateModule false
 
