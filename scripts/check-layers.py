@@ -852,6 +852,38 @@ COMPOSE_EDGES |= frozenset({
 })
 
 
+# P0d7a3 middle support and construction.
+COMPOSE_MODULES += (
+    'AvailableChainFGCompose.Statements.FinalityKernel',
+    'AvailableChainFGCompose.Proofs.Finality.MiddleSupport',
+    'AvailableChainFGCompose.Proofs.Finality.Middle',
+)
+COMPOSE_EDGES |= frozenset({
+    ('AvailableChainFGCompose.Statements.FinalityKernel',
+     'AvailableChainFGCompose.Statements.Finality'),
+    ('AvailableChainFGCompose.Statements.FinalityKernel',
+     'AvailableChainFGCompose.Statements.FinalityRecords'),
+    ('AvailableChainFGCompose.Proofs.Finality.MiddleSupport',
+     'AvailableChainFGCompose.Statements.FinalityKernel'),
+    ('AvailableChainFGCompose.Proofs.Finality.MiddleSupport',
+     'AvailableChainFGCompose.Proofs.Finality.History'),
+    ('AvailableChainFGCompose.Proofs.Finality.MiddleSupport',
+     'AvailableChainFGCompose.Proofs.Finality.RecordInv'),
+    ('AvailableChainFGCompose.Proofs.Finality.MiddleSupport',
+     'AvailableChainFGCompose.Proofs.Timing'),
+    ('AvailableChainFGCompose.Proofs.Finality.MiddleSupport',
+     'AvailableChainFGCompose.Proofs.Healing.ResetCut'),
+    ('AvailableChainFGCompose.Proofs.Finality.Middle',
+     'AvailableChainFGCompose.Proofs.Finality.MiddleSupport'),
+    ('AvailableChainFGCompose.Tests.P0d7a3',
+     'AvailableChainFGCompose.Proofs.Finality.Middle'),
+    ('AvailableChainFGSAProofs.Proofs.Finality.MiddleSupport',
+     'AvailableChainFGCompose.Proofs.Finality.MiddleSupport'),
+    ('AvailableChainFGSAProofs.Proofs.Finality.Middle',
+     'AvailableChainFGCompose.Proofs.Finality.Middle'),
+})
+
+
 def compose_base(dep: str) -> bool:
     return (foundation(dep) or under(dep, "AvailableChainModel.Objects")
             or any_under(dep, ("AvailableChainEngineV2.Engine",

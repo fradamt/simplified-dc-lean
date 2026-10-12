@@ -84,6 +84,9 @@
       "AvailableChainGeneric.Statements.**"
     ],
     "laneUpstream": [
+      "AvailableChainFGCompose.Statements.FinalityKernel",
+      "AvailableChainFGCompose.Proofs.Finality.MiddleSupport",
+      "AvailableChainFGCompose.Proofs.Finality.Middle",
       "AvailableChainFGCompose.Statements.FinalityRecords",
       "AvailableChainFGCompose.Proofs.Finality.RecordInv",
       "AvailableChainFGCompose.Statements.FinalityHistory",

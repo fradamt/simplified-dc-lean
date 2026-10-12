@@ -1400,3 +1400,9 @@ names; `SAFETY_FIELDS` contains exact field labels, including `assembled package
 `REQUIRED_MODEL_SCOPE` contains exact model owner/name pairs. Additions must
 preserve all old entries and have no duplicates or wildcards. The surrounding
 Python AST and shell wrapper must remain unchanged.
+
+P0d7a3 owns FGCompose Statements/FinalityKernel and Proofs/Finality/MiddleSupport
+and Middle. FG-SA keeps its public middle record and theorem signatures. Private
+fieldwise adapters bind the same service point, selected early carrier, fresh entry,
+and through-action caps. The conditional shield route uses the published d7a2 seed
+leaves and historical transfer, including the cutoff-to-service-start gap.

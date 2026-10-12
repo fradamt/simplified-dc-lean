@@ -39,3 +39,7 @@ public import AvailableChainFGCompose.Statements.RowPermission
 public import AvailableChainFGCompose.Proofs.RowPermission
 public import AvailableChainFGCompose.Statements.FinalityRecords
 public import AvailableChainFGCompose.Proofs.Finality.RecordInv
+
+public import AvailableChainFGCompose.Statements.FinalityKernel
+public import AvailableChainFGCompose.Proofs.Finality.MiddleSupport
+public import AvailableChainFGCompose.Proofs.Finality.Middle
