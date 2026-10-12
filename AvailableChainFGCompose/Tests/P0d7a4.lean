@@ -1,6 +1,7 @@
 module
 public import AvailableChainFGCompose.Proofs.Finality.Carry
 public import AvailableChainFGCompose.Proofs.Finality.Rows
+public import AvailableChainFGCompose.Proofs.Finality.RowsRecords
 
 set_option linter.privateModule false
 
@@ -131,7 +132,8 @@ private abbrev rowsI (sign : Bool) : V2.D.Interface (rowsP sign) where
     change 4 * a = 4 * b at h
     exact Nat.eq_of_mul_eq_mul_left (by decide : 0 < 4) h
 
-private abbrev rowsEnv : Generic.Env Unit := ⟨1, by decide, 0, by decide, fun _ _ => true⟩
+private abbrev rowsEnv : Generic.Env Unit :=
+  ⟨1, by decide, 0, by decide, fun _ t => decide (t = 6 ∨ t = 24)⟩
 private abbrev rowsRun (sign : Bool) : V2.D.Run Unit (rowsP sign) where
   honest := {()}
   horizon := 30
@@ -496,9 +498,216 @@ private theorem rowsBudgetGuards :
     kappaF rowsT 1 = 2 ∧ kappaF rowsT 1 ≤ rowsT.roundSlots ∧
       ¬ kappaF rowsT 10 ≤ rowsT.roundSlots ∧ ¬ 2 ≤ (1 : Nat) := by decide +kernel
 
-private theorem rowsTwoLabels :
-    2 * rowsT.roundSlots = 4 ∧ 2 * rowsT.roundSlots + 1 = 5 ∧
-    (4 : Nat) ≠ 5 := by decide
+private theorem rowsSchedule (sign : Bool) :
+    V2.D.ScheduleWellFormed rowsEnv (rowsRun sign) where
+  horizon_nonneg := by cases sign <;> decide
+  sorted := by cases sign <;> decide +kernel
+  nodup := by cases sign <;> decide +kernel
+  in_horizon := by
+    intro ev hm
+    change ev ∈ [.tick () 6, .tick () 24] at hm
+    simp only [List.mem_cons, List.mem_nil_iff, or_false] at hm
+    rcases hm with rfl | rfl <;> cases sign <;> decide
+  honest_only := by
+    intro ev hm
+    change ev ∈ [.tick () 6, .tick () 24] at hm
+    simp only [List.mem_cons, List.mem_nil_iff, or_false] at hm
+    rcases hm with rfl | rfl <;> cases sign <;> decide
+  tick_public := by
+    intro x t hm
+    change V2.Event.tick x t ∈ [.tick () 6, .tick () 24] at hm
+    simp only [List.mem_cons, List.mem_nil_iff, V2.Event.tick.injEq, or_false] at hm
+    rcases hm with ⟨_, rfl⟩ | ⟨_, rfl⟩
+    · exact ⟨6, by decide⟩
+    · exact ⟨24, by decide⟩
+  tick_total := by
+    intro x _ t _ _ _ ha
+    have ht : t = 6 ∨ t = 24 := of_decide_eq_true ha
+    rcases ht with rfl | rfl <;> simp
+
+private theorem rowsFaultFree (sign : Bool) :
+    rowsE.weightOf (historyFaulty (rowsS sign) (rowsRun sign)) < rowsE.q := by
+  have h : historyFaulty (rowsS sign) (rowsRun sign) = ∅ := by
+    ext i
+    simp [historyFaulty, safetyHolder]
+  rw [h]
+  decide +kernel
+
+-- The action label: the produced pending head at the exact action read.
+private theorem rowsHeadProduced (sign : Bool) :
+    ∃ H, (rowsR sign).finalityHead () = some H ∧ FGBlock.Preceq rowsD H ∧
+      ((rowsO sign).height H).h = 3 ∧ ((rowsO sign).height H).J = rowsU ∧
+      ((rowsO sign).height H).h_j = 2 ∧ ((rowsO sign).finality H).h_F < 2 ∧
+      ((rowsO sign).height H).T_h = ((rowsO sign).height rowsD).T_h := by
+  have hTF : ∀ B ∈ ((rowsR sign).core ()).fg.TF, B = .genesis ∨ B = rowsU ∨ B = rowsD := by
+    intro B hB
+    simpa only [Finset.mem_insert, Finset.mem_singleton] using hB
+  exact pending_action_head_capped (rowsR sign) (rowsO sign) rowsE rowsCfg
+    (KitFG.Window.windowHeightLaws rowsE rowsCfg 2 (by decide))
+    (KitFG.Window.windowHeightBridge rowsE rowsCfg 2 (by decide)) 2 rowsD rowsU ()
+    ⟨rowsD, rfl, by cases sign <;> decide +kernel⟩
+    (by intro H hH; cases hH; cases sign <;> decide +kernel)
+    (fun A B _ _ h => rowsReflect A B h) (by cases sign <;> decide +kernel)
+    (by cases sign <;> decide +kernel) (by cases sign <;> decide +kernel)
+    (by cases sign <;> decide +kernel)
+    (by intro B hB; rcases hTF B hB with rfl | rfl | rfl <;> cases sign <;> decide +kernel)
+    (by intro B hB; rcases hTF B hB with rfl | rfl | rfl <;> cases sign <;> decide +kernel)
+
+private theorem rowsHeadInspected (sign : Bool) :
+    ∃ H, H = rowsD ∧ H ≠ .genesis ∧ (rowsR sign).finalityHead () = some H ∧
+      ((rowsO sign).height H).h = 3 ∧ ((rowsO sign).height H).J = rowsU := by
+  obtain ⟨H, hH, _, hh, hJ, _⟩ := rowsHeadProduced sign
+  have he : rowsD = H := Option.some.inj hH
+  exact ⟨H, he.symm, he ▸ (by decide +kernel), hH, hh, hJ⟩
+
+-- Two HEAD labels: the action read at T.action 0 and the proposal read at slot 6.
+private theorem rowsTwoLabels (sign : Bool) :
+    ∃ H, (postClock rowsEnv (rowsRun sign) () (rowsT.action 0)).bind
+        (rowsR sign).finalityHead = some H ∧ ((rowsO sign).height H).h = 3 ∧
+      proposalHeadAt rowsEnv (rowsRun sign) (rowsI sign) (rowsR sign).headVote 6 =
+        some (rowsErase H) ∧ rowsT.action 0 < rowsT.proposal 6 := by
+  obtain ⟨H, hH, _, hh, _⟩ := rowsHeadProduced sign
+  have he : rowsD = H := Option.some.inj hH
+  subst H
+  refine ⟨rowsD, ?_, hh, ?_, by decide⟩
+  · rw [show rowsT.action 0 = 6 by decide, rowsRead sign]
+    rfl
+  · unfold proposalHeadAt
+    rw [rowsParentRead sign]
+    rfl
+
+private theorem rowsTargetQC : TargetQCAt rowsE rowsD 2 rowsU :=
+  ⟨{0}, by unfold Electorate.IsQuorum; decide +kernel, fun i _ =>
+    ⟨rowsD, rowsTarget, preceq_refl _, by decide +kernel, Subsingleton.elim _ _, rfl⟩⟩
+
+private theorem rowsBatchPrem (sign : Bool) :
+    FinalityBatchPrem_W (rowsR sign) (rowsS sign) rowsT rowsEnv (rowsRun sign) (rowsI sign)
+      (rowsWire sign) rowsE rowsCfg 2 (fun _ => true) (rowsCarrier sign) (rowsPool sign)
+      rowsParent rowsValid SimplexFG.Window.r6w 1 0 2 rowsU (rowsX sign) where
+  schedule := rowsSchedule sign
+  fault_weight := rowsFaultFree sign
+  deltaF := by decide
+  rowsReceipt := by
+    intro j y r a ha _ x _
+    have he := rowsAllEmitted sign j a ha.2.2
+    subst a
+    exact Or.inl (List.mem_singleton_self _)
+  carrier := ⟨[rowsSigned sign], rowsCarrierProduced sign, rfl⟩
+  after := by cases sign <;> decide +kernel
+  horizon := by cases sign <;> decide +kernel
+  parent := ⟨(), rowsParentRead sign, rfl⟩
+  birth := ⟨rowsD, preceq_refl _, by decide +kernel, by decide +kernel, by decide +kernel,
+    by decide +kernel, by decide +kernel, by decide +kernel, rowsTargetQC⟩
+  retainedOrCovered := Or.inl rowsRetained
+  batch := by
+    refine ⟨{0}, fun i _ => (by change () ∈ ({()} : Finset Unit); decide),
+      by unfold Electorate.IsQuorum; decide +kernel, ?_⟩
+    intro i _
+    have hi : i = 0 := Subsingleton.elim _ _
+    subst i
+    exact ⟨0, rowsSigned sign, rowsEmitted sign, ⟨rfl, 0, rfl, rfl⟩, rfl, rfl,
+      Or.inl (List.mem_singleton_self _),
+      ⟨(), rowsParentRead sign, Or.inl (List.mem_singleton_self _)⟩,
+      fun _ => ⟨by cases sign <;> decide +kernel,
+        ⟨(), rowsD, rowsParentRead sign, rfl, by cases sign <;> decide +kernel⟩⟩⟩
+
+private theorem rowsBatch (sign : Bool) :
+    KitFG.Window.CoveredW rowsE rowsCfg 2 (rowsX sign).parent 2 rowsU ∨
+      FinalityCoveredByChild_W rowsE rowsCfg 2 (rowsX sign) rowsU 2 :=
+  finalityBatchCoverage_W_of_tRowsSelect (rowsR sign) (rowsS sign) rowsT rowsEnv
+    (rowsRun sign) (rowsI sign) (rowsWire sign) rowsE rowsCfg 2 (rowsCarrier sign)
+    rowsChain (rowsPool sign) rowsParent rowsValid (rowsSelected sign) rowsNonempty
+    (by decide) (by intro a i _; exact ⟨a, rfl⟩) (rowsOccurrence sign)
+    SimplexFG.Window.r6w (fun _ => true) 1 0 2 rowsU (rowsX sign) (rowsBatchPrem sign)
+    rowsParentValid
+
+private theorem rowsBatchInspected (sign : Bool) :
+    ∃ row ∈ (rowsX sign).rows,
+      row.signer = (0 : Fin 1) ∧ row.height_pair = .vote 3 ⟨2⟩ sign ∧
+        row.finality_pair = some ⟨2, rowsU.root⟩ := by
+  have hn : ¬ KitFG.Window.CoveredW rowsE rowsCfg 2 rowsD 2 rowsU := by
+    rw [KitFG.Window.CoveredW_def]
+    decide +kernel
+  obtain h | h := rowsBatch sign
+  · exact (hn h).elim
+  · obtain ⟨e, he, _, _, seats, hq, hs⟩ := h
+    have hzero : (0 : Fin 1) ∈ seats := by
+      by_contra hzero
+      have hempty : seats = ∅ := by
+        ext i
+        have hi : i = 0 := Subsingleton.elim _ _
+        simp [hi, hzero]
+      exact rowsNonempty (hempty ▸ hq)
+    have hnot : (0 : Fin 1) ∉ e.Q := by
+      have hw : (SimplexFG.Window.derive rowsE rowsCfg 2 rowsD).W =
+          [⟨1, .genesis, ∅⟩, ⟨2, rowsU, ∅⟩] := by decide +kernel
+      change e ∈ (SimplexFG.Window.derive rowsE rowsCfg 2 rowsD).W at he
+      rw [hw] at he
+      simp only [List.mem_cons, List.not_mem_nil, or_false] at he
+      rcases he with rfl | rfl <;> simp
+    obtain hb | ⟨row, hr, hi, hf⟩ := hs 0 hzero
+    · exact (hnot hb).elim
+    · have heq : row = rowsSigned sign := List.mem_singleton.mp hr
+      exact ⟨row, hr, hi, heq ▸ rfl, hf⟩
+
+private theorem rowsTerminal :
+    ∃ rows : Fin 1 → Row (Fin 1), rows 0 = rowsSigned false ∧
+      ValidForParent rowsEnv (rowsRun false) (rowsI false) rowsParent rowsValid 6
+        (rowsErase (rowsX false)) (rows 0) ∧
+      FinalityCoveredByChild_W rowsE rowsCfg 2 (rowsX false) rowsU 2 := by
+  obtain ⟨rows, fresh, _⟩ := rowsFreshProduced
+  have h0 : rows 0 = rowsSigned false := by
+    obtain ⟨j, _, ha, _⟩ := fresh.2.2 0 (by decide)
+    exact rowsAllEmitted false j (rows 0) ha.2.2
+  have hrows : ∀ i, rows i = rowsSigned false := fun i => Subsingleton.elim i 0 ▸ h0
+  have result := terminalCarriage_W_of_tRowsSelect (rowsR false) (rowsS false) rowsT
+    rowsEnv (rowsRun false) (rowsI false) (rowsWire false) rowsE rowsCfg 2
+    (rowsCarrier false) rowsChain (rowsPool false) rowsParent rowsValid
+    (rowsSelected false) rowsNonempty (by decide) (by intro a i _; exact ⟨a, rfl⟩)
+    (rowsOccurrence false) (rowsO false)
+    (KitFG.Window.windowHeightLaws rowsE rowsCfg 2 (by decide)) rfl
+    (fun _ _ B => (((rowsO false).height B).h, ((rowsO false).height B).T_h.root))
+    (by intros; rfl) (by intros; rfl) (fun _ => true) 1 0 2 rowsD rowsU (rowsX false)
+    { schedule := rowsSchedule false
+      fault_weight := rowsFaultFree false
+      deltaF := by decide
+      carrier := ⟨[rowsSigned false], rowsCarrierProduced false, rfl⟩
+      parent := ⟨(), rowsParentRead false, rfl⟩
+      path := preceq_refl _
+      freshHeight := by decide +kernel
+      retainedOrCovered := Or.inl rowsRetained
+      horizon := by decide +kernel
+      seats := {0}
+      rows := rows
+      fresh := fresh
+      heightEntry := by intro i _; rw [hrows i]; decide +kernel
+      receipt := by
+        intro i _
+        rw [hrows i]
+        exact ⟨Or.inl (List.mem_singleton_self _),
+          ⟨(), rowsParentRead false, Or.inl (List.mem_singleton_self _)⟩⟩ }
+    rowsParentValid
+  have hn : ¬ KitFG.Window.CoveredW rowsE rowsCfg 2 rowsD 2 rowsU := by
+    rw [KitFG.Window.CoveredW_def]
+    decide +kernel
+  rcases result with hc | ⟨hall, hcarry⟩
+  · exact (hn hc).elim
+  · exact ⟨rows, h0, (hall 0 (Finset.mem_singleton_self 0)).1, hcarry⟩
+
+-- The earlier-row cap at the next action round, applied to the emitted row.
+private theorem rowsEarlierHeight (sign : Bool) :
+    historyRowHeight (rowsS sign) (rowsWire sign) (rowsSigned sign) = some 3 ∧ 3 < 4 := by
+  have hh : historyRowHeight (rowsS sign) (rowsWire sign) (rowsSigned sign) = some 3 := by
+    cases sign <;> rfl
+  have cap := rowsPrem_earlier_height (S := rowsS sign) (D := rowsWire sign)
+    (E := rowsEnv) (rho := rowsRun sign) rowsTiming 1 4 (by
+      intro j x r a h t ha hah hy _
+      have he := rowsAllEmitted sign j a ha.2.2
+      subst a
+      rw [hh] at hah
+      cases hah
+      omega)
+  exact ⟨hh, cap 0 () 0 (rowsSigned sign) 3 (by decide) (rowsEmitted sign) hh⟩
 
 #print axioms rowsFreshInspected
 #print axioms rowsFreshCarried
@@ -509,6 +718,10 @@ private theorem rowsTwoLabels :
 #print axioms rowsWrongFinalityKey
 #print axioms rowsBudgetGuards
 #print axioms rowsTwoLabels
+#print axioms rowsHeadInspected
+#print axioms rowsBatchInspected
+#print axioms rowsTerminal
+#print axioms rowsEarlierHeight
 
 #print axioms rowsSourceInspected
 #print axioms rowsBothSigns
