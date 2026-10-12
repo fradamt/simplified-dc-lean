@@ -1737,7 +1737,7 @@ private theorem dr4_step_laws :
 
 
 set_option maxHeartbeats 800000 in
--- Finite cases cover 21 microsteps, five events, and two reads in the restart segment.
+-- Finite cases cover 21 microsteps, five events, and one read in the restart segment.
 private theorem dr4_trace_laws :
     FGDependencyTraceLaws do_env dr4_run false do_history dr4_wireReads dr4_reads do_leaf
       dr4_step dr4_trace dr4_driver dr4_op do_arrival dr4_notify
@@ -2254,6 +2254,10 @@ private noncomputable abbrev dr4_alterTrace : FGDependencyTrace Nat :=
   { dr4_trace with state := fun k => if 20 ≤ k then 1 else dr4_trace.state k }
 
 private theorem dr4_rebuild_alters_data_rejected :
+    (dependencyExecuteWork dr4_alterDriver 7
+      (dr4_alterDriver.work 7 (.restart false 5))).operations =
+      [.reconstruct 5, .replay 1 do_parent, .replay 2 do_child, .rebuild 5,
+        .notification 2 do_child] ∧
     dependencyStateBefore do_env dr4_run dr4_alterDriver false 5 = 1 ∧
     dr4_reads.accepted 8 1 ∧ ¬ dr4_reads.accepted (dr4_alterDriver.rebuild 8 5) 1 ∧
     dr4_reads.originAvailable 8 1 do_parent ∧
@@ -2261,7 +2265,7 @@ private theorem dr4_rebuild_alters_data_rejected :
     ¬ FGDependencyTraceLaws do_env dr4_run false do_history dr4_wireReads dr4_reads do_leaf
       dr4_step dr4_alterTrace dr4_alterDriver dr4_op do_arrival dr4_notify
       (Leaf := do_leafProtocol) id id do_read := by
-  refine ⟨rfl, by decide, by decide, Or.inr ⟨rfl, by decide, rfl⟩, ?_, ?_⟩
+  refine ⟨rfl, rfl, by decide, by decide, Or.inr ⟨rfl, by decide, rfl⟩, ?_, ?_⟩
   · rintro (⟨bad, _⟩ | ⟨_, bad, _⟩) <;> simp at bad
   · intro laws
     have accepted := ((laws.rebuild_data 8 5).2.2.1 1).mpr (by decide)
