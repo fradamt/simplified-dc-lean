@@ -1,11 +1,11 @@
 module
 public import AvailableChainGeneric.Statements.Pure.HeadAfterSettlement
-public import AvailableChainGeneric.Proofs.Pure.SlotGrid
-public import Mathlib.Data.Int.DivMod
-import Mathlib.Tactic.Linarith
-import Mathlib.Tactic.Ring
-import Mathlib.Tactic.Push
-import Mathlib.Tactic.NormNum
+public import AvailableChainGeneric.Proofs.Pure.SlotGrid -- shake: keep (re-export)
+public import Mathlib.Data.Int.DivMod -- shake: keep (re-export)
+import Mathlib.Tactic.Linarith -- shake: keep (re-export)
+import Mathlib.Tactic.Ring -- shake: keep (re-export)
+import Mathlib.Tactic.Push -- shake: keep (re-export)
+import Mathlib.Tactic.NormNum -- shake: keep (re-export)
 
 public section
 

@@ -1,7 +1,7 @@
 module
 public import Mathlib.Algebra.BigOperators.Group.Finset.Basic
 public import Mathlib.Data.Fintype.Basic
-public import AvailableChainModel.Objects.Blocks
+public import AvailableChainModel.Objects.Blocks -- shake: keep (re-export)
 public import AvailableChainModel.Objects.Identifiers
 public import AvailableChainModel.Objects.Time
 

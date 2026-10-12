@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGSARun.Proofs.Reachable
-public import AvailableChainFGSA.Proofs.Head.Walk
+public import AvailableChainFGSA.Proofs.Head.Walk -- shake: keep (re-export)
 
 public section
 

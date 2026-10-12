@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSA.Proofs.StoreBundle
+public import AvailableChainFGSA.Proofs.StoreBundle -- shake: keep (re-export)
 
 -- Find matcher bodies in the two definitions; do not depend on generated names.
 local elab "hygieneEq% " lhs:term:max rhs:term:max : term => do

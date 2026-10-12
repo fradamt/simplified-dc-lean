@@ -192,7 +192,8 @@ theorem healing_promotion_fixed_rows (E : Generic.Env V)
         (rootScope_entry (rootScope_source hx hK))
         (rootScope_entry (rootScope_source hy hL)) he)
     (fun x K hx hK => healing_source_slot p c E rho hx hK)
-  simp only [p0d3_fixed_batch_eq, FGCompose.EntryAt] at h
+  simp only [p0d3_fixed_batch_eq] at h
+  delta FGCompose.EntryAt at h
   exact h
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -237,7 +238,8 @@ theorem healing_promotion_bounded_rows (E : Generic.Env V)
         (rootScope_entry (rootScope_source hy hL)) he)
     (fun x K hx hK => healing_source_slot p c E rho hx hK)
     (fun x K A _ hK hAK => p0d3_fixed_ancestor E rho hrec hK hAK)
-  simp only [p0d3_fixed_batch_eq, FGCompose.EntryAt] at h
+  simp only [p0d3_fixed_batch_eq] at h
+  delta FGCompose.EntryAt at h
   exact h
 
 omit [Fintype V] in

@@ -1,17 +1,17 @@
 module
-public import AvailableChainKitV2.RunCheck
-public import AvailableChainKitV2.DutyExecution
-public import AvailableChainKitV2.DutySleep
-public import AvailableChainKitV2.DutyStable
-public import AvailableChainKitV2.Emission
-public import AvailableChainKitV2.Execution
-public import AvailableChainKitV2.Sleep
-public import AvailableChainKitV2.Stable
-public import AvailableChainKitV2.DutyEmission
-public import AvailableChainKitV2.DutyLinked
-public import AvailableChainKitV2.EngineClock
-public import AvailableChainKitV2.DutyEngineClock
-public import AvailableChainKitV2.DutyRecord
+public import AvailableChainKitV2.RunCheck -- shake: keep (axioms)
+public import AvailableChainKitV2.DutyExecution -- shake: keep (axioms)
+public import AvailableChainKitV2.DutySleep -- shake: keep (axioms)
+public import AvailableChainKitV2.DutyStable -- shake: keep (axioms)
+public import AvailableChainKitV2.Emission -- shake: keep (axioms)
+public import AvailableChainKitV2.Execution -- shake: keep (axioms)
+public import AvailableChainKitV2.Sleep -- shake: keep (axioms)
+public import AvailableChainKitV2.Stable -- shake: keep (axioms)
+public import AvailableChainKitV2.DutyEmission -- shake: keep (axioms)
+public import AvailableChainKitV2.DutyLinked -- shake: keep (axioms)
+public import AvailableChainKitV2.EngineClock -- shake: keep (axioms)
+public import AvailableChainKitV2.DutyEngineClock -- shake: keep (axioms)
+public import AvailableChainKitV2.DutyRecord -- shake: keep (axioms)
 
 /-! Kernel dependencies of the subset field-origin helper. -/
 

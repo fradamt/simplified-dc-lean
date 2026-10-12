@@ -1,36 +1,36 @@
 module
-public import AvailableChainFGSA.Proofs.Port.VoteMerge
-public import AvailableChainFGSA.Proofs.Port.ContestFrame
-public import AvailableChainFGSA.Proofs.Port.Tree
-public import AvailableChainFGSA.Proofs.Port.Resolution
-public import AvailableChainFGSA.Proofs.Port.Support
-public import AvailableChainFGSA.Proofs.Port.Carry
-public import AvailableChainFGSA.Proofs.Port.LocalReads
-public import AvailableChainFGSA.Proofs.NamedReachable
-public import AvailableChainFGSA.Proofs.HeadResolution
-public import AvailableChainFGSA.Proofs.WindowOccurrences
-public import AvailableChainFGSA.Proofs.WindowTerminal
-public import AvailableChainFGSA.Proofs.WindowAdmissionInvariant
-public import AvailableChainFGSA.Proofs.WindowRetention
-public import AvailableChainFGSA.Statements.WindowEntries
-public import AvailableChainFGSA.Proofs.EmissionFields
-public import AvailableChainFGSA.Proofs.WindowProvenance
-public import AvailableChainFGSA.Proofs.WindowHistory
-public import AvailableChainFGSA.Proofs.WindowLiveness
-public import AvailableChainFGSA.Proofs.WindowSelection
-public import AvailableChainFGSA.Proofs.WindowCertificates
-public import AvailableChainFGSA.Proofs.WindowStore
-public import AvailableChainFGSA.Proofs.WindowInvariant
-public import AvailableChainFGSA.Proofs.WindowHeightBridge
+public import AvailableChainFGSA.Proofs.Port.VoteMerge -- shake: keep (axioms)
+public import AvailableChainFGSA.Proofs.Port.ContestFrame -- shake: keep (axioms)
+public import AvailableChainFGSA.Proofs.Port.Tree -- shake: keep (axioms)
+public import AvailableChainFGSA.Proofs.Port.Resolution -- shake: keep (axioms)
+public import AvailableChainFGSA.Proofs.Port.Support -- shake: keep (axioms)
+public import AvailableChainFGSA.Proofs.Port.Carry -- shake: keep (axioms)
+public import AvailableChainFGSA.Proofs.Port.LocalReads -- shake: keep (axioms)
+public import AvailableChainFGSA.Proofs.NamedReachable -- shake: keep (axioms)
+public import AvailableChainFGSA.Proofs.HeadResolution -- shake: keep (axioms)
+public import AvailableChainFGSA.Proofs.WindowOccurrences -- shake: keep (axioms)
+public import AvailableChainFGSA.Proofs.WindowTerminal -- shake: keep (axioms)
+public import AvailableChainFGSA.Proofs.WindowAdmissionInvariant -- shake: keep (axioms)
+public import AvailableChainFGSA.Proofs.WindowRetention -- shake: keep (axioms)
+public import AvailableChainFGSA.Statements.WindowEntries -- shake: keep (axioms)
+public import AvailableChainFGSA.Proofs.EmissionFields -- shake: keep (axioms)
+public import AvailableChainFGSA.Proofs.WindowProvenance -- shake: keep (axioms)
+public import AvailableChainFGSA.Proofs.WindowHistory -- shake: keep (axioms)
+public import AvailableChainFGSA.Proofs.WindowLiveness -- shake: keep (axioms)
+public import AvailableChainFGSA.Proofs.WindowSelection -- shake: keep (axioms)
+public import AvailableChainFGSA.Proofs.WindowCertificates -- shake: keep (axioms)
+public import AvailableChainFGSA.Proofs.WindowStore -- shake: keep (axioms)
+public import AvailableChainFGSA.Proofs.WindowInvariant -- shake: keep (axioms)
+public import AvailableChainFGSA.Proofs.WindowHeightBridge -- shake: keep (axioms)
 public import AvailableChainFGSA.Proofs.Head.Score -- shake: keep (F1b.4a axiom audit)
 public import AvailableChainFGSA.Proofs.Head.Walk -- shake: keep (F1b.4a axiom audit)
-public import AvailableChainFGSA.Proofs.Head.Transfer
-public import AvailableChainFGSA.Proofs.Head.Pool
+public import AvailableChainFGSA.Proofs.Head.Transfer -- shake: keep (axioms)
+public import AvailableChainFGSA.Proofs.Head.Pool -- shake: keep (axioms)
 public import AvailableChainFGSA.Proofs.BlockAncestry
 public import AvailableChainFGSA.Proofs.Carrier
 public import AvailableChainFGSA.Proofs.Fields
-public import AvailableChainFGSA.Proofs.Restart
-public import AvailableChainFGSA.Proofs.Join
+public import AvailableChainFGSA.Proofs.Restart -- shake: keep (axioms)
+public import AvailableChainFGSA.Proofs.Join -- shake: keep (axioms)
 public import AvailableChainFGSA.Proofs.ActView
 public import AvailableChainFGSA.Proofs.Nesting
 public import AvailableChainFGSA.Proofs.Reconcile
@@ -38,23 +38,23 @@ public import AvailableChainFGSA.Proofs.Admission
 public import AvailableChainFGSA.Proofs.StoreInv
 public import AvailableChainFGSA.Proofs.Metadata
 public import AvailableChainFGSA.Proofs.CrossNode
-public import AvailableChainFGSA.Proofs.Head
-public import AvailableChainFGSA.Proofs.SetEq
-public import AvailableChainFGSA.Proofs.LeaseOutput
-public import AvailableChainFGSA.Model.WindowViews
-public import AvailableChainFGSA.Proofs.FrameViews
-public import AvailableChainFGSA.Proofs.WindowReaders
-public import AvailableChainFGSA.Proofs.WindowValidity
-public import AvailableChainFGSA.Model.Spec.ACState
-public import AvailableChainFGSA.Model.Spec.Codec
-public import AvailableChainFGSA.Model.Spec.Frame
-public import AvailableChainFGSA.Model.Spec.Objects
-public import AvailableChainFGSA.Model.Spec.Transitions
-public import AvailableChainFGSA.Proofs.Spec.Clock
-public import AvailableChainFGSA.Proofs.Spec.Codec
-public import AvailableChainFGSA.Proofs.Spec.Frame
-public import AvailableChainFGSA.Proofs.Spec.Handlers
-public import AvailableChainFGSA.Proofs.Spec.Locks
+public import AvailableChainFGSA.Proofs.Head -- shake: keep (axioms)
+public import AvailableChainFGSA.Proofs.SetEq -- shake: keep (axioms)
+public import AvailableChainFGSA.Proofs.LeaseOutput -- shake: keep (axioms)
+public import AvailableChainFGSA.Model.WindowViews -- shake: keep (axioms)
+public import AvailableChainFGSA.Proofs.FrameViews -- shake: keep (axioms)
+public import AvailableChainFGSA.Proofs.WindowReaders -- shake: keep (axioms)
+public import AvailableChainFGSA.Proofs.WindowValidity -- shake: keep (axioms)
+public import AvailableChainFGSA.Model.Spec.ACState -- shake: keep (axioms)
+public import AvailableChainFGSA.Model.Spec.Codec -- shake: keep (axioms)
+public import AvailableChainFGSA.Model.Spec.Frame -- shake: keep (axioms)
+public import AvailableChainFGSA.Model.Spec.Objects -- shake: keep (axioms)
+public import AvailableChainFGSA.Model.Spec.Transitions -- shake: keep (axioms)
+public import AvailableChainFGSA.Proofs.Spec.Clock -- shake: keep (axioms)
+public import AvailableChainFGSA.Proofs.Spec.Codec -- shake: keep (axioms)
+public import AvailableChainFGSA.Proofs.Spec.Frame -- shake: keep (axioms)
+public import AvailableChainFGSA.Proofs.Spec.Handlers -- shake: keep (axioms)
+public import AvailableChainFGSA.Proofs.Spec.Locks -- shake: keep (axioms)
 
 /-! Kernel dependency audit (Task 13 Step 1): one line for each public theorem of
 Tasks 2 and 7–12. Each prints only `propext`, `Classical.choice`, `Quot.sound`, or

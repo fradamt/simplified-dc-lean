@@ -50,8 +50,8 @@ private theorem p0d3_height_phase_eq (E : Generic.Env V)
     (J : Option (FGBlock (Fin p.n))) (contested : Bool) :
     FGCompose.PhaseInterval (p0d3_height_core p c) E rho (p0d3_height_obs p c)
       u v m J contested = PhaseInterval p c E rho u v m J contested := by
-  cases J <;> simp only [FGCompose.PhaseInterval, PhaseInterval, p0d3_height_obs, R_at,
-    frameR, storeAt, FGCompose.timeIdx, timeIdx]
+  cases J <;> delta FGCompose.PhaseInterval PhaseInterval p0d3_height_obs R_at
+    frameR storeAt FGCompose.timeIdx timeIdx <;> rfl
 
 private theorem p0d3_height_tick (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {x : V} {r : Nat} {nd : Node p}

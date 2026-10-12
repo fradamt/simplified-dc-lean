@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGSARun.Proofs.HeadIdentity
-public import AvailableChainFGSA.Proofs.HeadDomain
+public import AvailableChainFGSA.Proofs.HeadDomain -- shake: keep (re-export)
 public import AvailableChainGeneric.Proofs.AC.RootVotes
 public import AvailableChainFGSA.Proofs.Head.Pool
 

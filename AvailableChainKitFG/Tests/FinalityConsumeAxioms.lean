@@ -1,5 +1,5 @@
 module
-public import AvailableChainKitFG.FinalityConsume
+public import AvailableChainKitFG.FinalityConsume -- shake: keep (axioms)
 
 set_option linter.privateModule false
 

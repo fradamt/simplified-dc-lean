@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSARun.Proofs.NamedOrigins
+public import AvailableChainFGSARun.Proofs.NamedOrigins -- shake: keep (re-export)
 public import AvailableChainFGSARun.Proofs.Reachable
 
 public section

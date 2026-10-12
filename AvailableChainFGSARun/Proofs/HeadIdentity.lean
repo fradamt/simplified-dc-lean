@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSARun.Proofs.Content
+public import AvailableChainFGSARun.Proofs.Content -- shake: keep (re-export)
 public import AvailableChainFGSARun.Proofs.Schedule
 public import AvailableChainFGSA.Proofs.HeadResolution
 

@@ -1,9 +1,9 @@
 module
 public import AvailableChainEngineV2.Conditions.Interface
 public import AvailableChainEngineV2.Conditions.Schedule
-public import AvailableChainKitV2.ClockLaws
+public import AvailableChainKitV2.ClockLaws -- shake: keep (re-export)
 public import AvailableChainSA.Model.Protocol
-public import AvailableChainModel.Objects.Blocks
+public import AvailableChainModel.Objects.Blocks -- shake: keep (re-export)
 
 @[expose] public section
 

@@ -1,7 +1,7 @@
 module
 public import AvailableChainKitFG.StoreSafetyDef
 public import AvailableChainKitFG.FrameSelection
-public import AvailableChainKitFG.Certificates
+public import AvailableChainKitFG.Certificates -- shake: keep (re-export)
 public import AvailableChainKitFG.JustificationLawsDef
 
 public section

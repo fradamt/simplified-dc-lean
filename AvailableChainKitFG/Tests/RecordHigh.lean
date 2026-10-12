@@ -1,5 +1,5 @@
 module
-public import AvailableChainKitFG.RecordHigh
+public import AvailableChainKitFG.RecordHigh -- shake: keep (axioms)
 
 public section
 

@@ -3,7 +3,7 @@ public import AvailableChainFGSARun.Proofs.Reachable
 public import AvailableChainFGSA.Proofs.Join
 public import AvailableChainGeneric.Proofs.V2.Duty.Induction
 public import AvailableChainFGSA.Proofs.ActView
-public import AvailableChainKitV2.DutyEngineClock
+public import AvailableChainKitV2.DutyEngineClock -- shake: keep (re-export)
 public import AvailableChainKitV2.DutyEmission
 
 public section

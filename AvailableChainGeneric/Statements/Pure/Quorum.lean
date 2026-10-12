@@ -1,6 +1,6 @@
 module
-public import Mathlib.Algebra.BigOperators.Group.Finset.Basic
-public import Mathlib.Data.Fintype.Basic
+public import Mathlib.Algebra.BigOperators.Group.Finset.Basic -- shake: keep (re-export)
+public import Mathlib.Data.Fintype.Basic -- shake: keep (re-export)
 
 @[expose] public section
 

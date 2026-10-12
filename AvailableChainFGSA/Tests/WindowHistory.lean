@@ -1,6 +1,6 @@
 module
-public import AvailableChainFGSA.Proofs.WindowHistory
-public import AvailableChainFGSA.Proofs.WindowProvenance
+public import AvailableChainFGSA.Proofs.WindowHistory -- shake: keep (examples)
+public import AvailableChainFGSA.Proofs.WindowProvenance -- shake: keep (examples)
 
 @[expose] public section
 

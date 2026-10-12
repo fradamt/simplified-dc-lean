@@ -1,5 +1,5 @@
 module
-public import AvailableChainKitFG.TwoChanges
+public import AvailableChainKitFG.TwoChanges -- shake: keep (examples)
 
 public section
 

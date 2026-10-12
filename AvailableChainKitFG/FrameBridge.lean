@@ -1,6 +1,6 @@
 module
 public import AvailableChainKitFG.FrameBridgeDef
-public import AvailableChainKitFG.HeightBridge
+public import AvailableChainKitFG.HeightBridge -- shake: keep (re-export)
 
 public section
 

@@ -1,9 +1,9 @@
 module
-public import AvailableChainGeneric.Proofs.Pure.Schedule
-import Mathlib.Tactic.Linarith
-import Mathlib.Tactic.Positivity
-import Mathlib.Tactic.Ring
-import Mathlib.Tactic.Tauto
+public import AvailableChainGeneric.Proofs.Pure.Schedule -- shake: keep (examples)
+import Mathlib.Tactic.Linarith -- shake: keep (examples)
+import Mathlib.Tactic.Positivity -- shake: keep (examples)
+import Mathlib.Tactic.Ring -- shake: keep (examples)
+import Mathlib.Tactic.Tauto -- shake: keep (examples)
 
 public section
 

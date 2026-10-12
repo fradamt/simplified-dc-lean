@@ -2,7 +2,7 @@ module
 public import Mathlib.Tactic.FinCases
 public import Mathlib.Tactic.IntervalCases
 public import AvailableChainEngineV2.TestSupport.Sleep
-public import AvailableChainEngineV2.Conditions.Duty.Lift
+public import AvailableChainEngineV2.Conditions.Duty.Lift -- shake: keep (examples)
 
 @[expose] public section
 

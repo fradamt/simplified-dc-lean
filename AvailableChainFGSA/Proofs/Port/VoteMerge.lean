@@ -1,7 +1,7 @@
 module
-public import AvailableChainFGSA.Model.FrameNext
-public import AvailableChainFGSA.Model.Legacy.Frame
-public import AvailableChainFGSA.Proofs.Port.ContestFrame
+public import AvailableChainFGSA.Model.FrameNext -- shake: keep (re-export)
+public import AvailableChainFGSA.Model.Legacy.Frame -- shake: keep (re-export)
+public import AvailableChainFGSA.Proofs.Port.ContestFrame -- shake: keep (re-export)
 public import AvailableChainFGSA.Proofs.Port.Tree
 
 public section

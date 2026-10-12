@@ -1,5 +1,5 @@
 module
-public import AvailableChainKitFG.CertificateSimplex
+public import AvailableChainKitFG.CertificateSimplex -- shake: keep (axioms)
 
 public section
 

@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGSARun.Proofs.Reachable
-public import AvailableChainFGSARun.Proofs.Acceptance
+public import AvailableChainFGSARun.Proofs.Acceptance -- shake: keep (re-export)
 public import AvailableChainFGSARun.Proofs.Schedule
 public import AvailableChainFGSARun.Statements.Receipts
 

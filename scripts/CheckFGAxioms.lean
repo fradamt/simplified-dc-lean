@@ -132,7 +132,9 @@ def composeImportAllowed (m dep : Name) : Bool :=
     (`AvailableChainFGCompose.Statements.SafetyReads, `AvailableChainKitFG.CertificateCoreDef),
     (`AvailableChainFGCompose.Statements.SafetyReads, `AvailableChainGeneric.Statements.V2.Duty.Slashing),
     (`AvailableChainFGCompose.Statements.SafetyStore, `AvailableChainKitFG.StoreSafetyDef),
-    (`AvailableChainFGCompose.Statements.SafetyClient, `AvailableChainGeneric.Statements.Pure.Quorum)].contains (m, dep)
+    (`AvailableChainFGCompose.Statements.SafetyClient, `AvailableChainGeneric.Statements.Pure.Quorum),
+       (`AvailableChainFGCompose.Statements.FinalityHistory,
+        `AvailableChainKitFG.WindowEntriesDef)].contains (m, dep)
   if dep == `Init then true
   else if m == `AvailableChainFGCompose then
     [`AvailableChainFGCompose.Statements.EventReads, `AvailableChainFGCompose.Statements.CoreReads,
@@ -152,6 +154,9 @@ def composeImportAllowed (m dep : Name) : Bool :=
      `AvailableChainFGCompose.Statements.Finality,
      `AvailableChainFGCompose.Statements.FinalityReceipts,
      `AvailableChainFGCompose.Proofs.ServiceTransport,
+     `AvailableChainFGCompose.Statements.Dependency,
+     `AvailableChainFGCompose.Statements.DependencyTrace,
+     `AvailableChainFGCompose.Proofs.Dependency,
      `AvailableChainFGCompose.Statements.HistoricalReads,
      `AvailableChainFGCompose.Proofs.HistoricalReads,
      `AvailableChainFGCompose.Statements.Promotion,
@@ -176,7 +181,16 @@ def composeImportAllowed (m dep : Name) : Bool :=
      `AvailableChainFGCompose.Proofs.SafetyAccountable,
      `AvailableChainFGCompose.Proofs.SafetyClient, `AvailableChainFGCompose.Proofs.SafetyCount,
      `AvailableChainFGCompose.Proofs.SafetyMonotone,
-     `AvailableChainFGCompose.Proofs.SafetySlashing].contains dep
+     `AvailableChainFGCompose.Proofs.SafetySlashing,
+     `AvailableChainFGCompose.Statements.Phase,
+     `AvailableChainFGCompose.Statements.PhaseReceipts,
+     `AvailableChainFGCompose.Proofs.Healing.PhaseFrame,
+     `AvailableChainFGCompose.Proofs.Healing.PhaseOrder,
+     `AvailableChainFGCompose.Proofs.Healing.PhaseSettle,
+     `AvailableChainFGCompose.Statements.ResetCut,
+     `AvailableChainFGCompose.Statements.FinalityHistory,
+     `AvailableChainFGCompose.Proofs.Finality.History,
+     `AvailableChainFGCompose.Proofs.Healing.ResetCut].contains dep
   else if composeStatements m then base || ownStatements || safety
   else if [(`AvailableChainFGCompose.Tests.P0d3,
       `AvailableChainKitFG.WindowHeightBridge)].contains (m, dep) then true
@@ -199,6 +213,12 @@ def composeImportAllowed (m dep : Name) : Bool :=
         `AvailableChainKitFG.Ancestry),
        (`AvailableChainFGCompose.Proofs.Healing.PromotionRows,
         `AvailableChainKitFG.Ancestry),
+       (`AvailableChainFGCompose.Proofs.Healing.PhaseFrame,
+        `AvailableChainKitFG.FrameGeometry),
+       (`AvailableChainFGCompose.Proofs.Healing.PhaseFrame,
+        `AvailableChainKitFG.StoreBounds),
+       (`AvailableChainFGCompose.Proofs.Healing.PhaseSettle,
+        `AvailableChainGeneric.Proofs.V2.Duty.Reads),
        (`AvailableChainFGCompose.Proofs.Healing.PromotionArithmetic,
         `AvailableChainGeneric.Proofs.V2.Duty.Reads),
        (`AvailableChainFGCompose.Proofs.HistoricalReads,
@@ -208,7 +228,19 @@ def composeImportAllowed (m dep : Name) : Bool :=
        (`AvailableChainFGCompose.Proofs.RowPermission, `AvailableChainKitFG.ClientOnceSafety),
        (`AvailableChainFGCompose.Proofs.SafetyClient, `AvailableChainKitFG.ClientOnceSafety),
        (`AvailableChainFGCompose.Proofs.SafetyClient,
-        `AvailableChainGeneric.Proofs.V2.Duty.Fields)].contains (m, dep)
+        `AvailableChainGeneric.Proofs.V2.Duty.Fields),
+       (`AvailableChainFGCompose.Proofs.Finality.History,
+        `AvailableChainKitFG.CausalCapCore),
+       (`AvailableChainFGCompose.Proofs.Finality.History,
+        `AvailableChainKitFG.HeightHistoryTransfer),
+       (`AvailableChainFGCompose.Proofs.Finality.History,
+        `AvailableChainKitFG.WindowRetention),
+       (`AvailableChainFGCompose.Proofs.Finality.History,
+        `AvailableChainKitFG.WindowSelection),
+       (`AvailableChainFGCompose.Proofs.Finality.History,
+        `AvailableChainGeneric.Proofs.V2.Duty.Reads),
+       (`AvailableChainFGCompose.Proofs.Healing.ResetCut,
+        `AvailableChainKitFG.StoreBounds)].contains (m, dep)
   else false
 
 def composeMain (args : List String) : IO UInt32 := do

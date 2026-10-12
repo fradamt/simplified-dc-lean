@@ -1,5 +1,5 @@
 module
-public import AvailableChainGeneric.Statements.AC.Lease
+public import AvailableChainGeneric.Statements.AC.Lease -- shake: keep (re-export)
 
 @[expose] public section
 

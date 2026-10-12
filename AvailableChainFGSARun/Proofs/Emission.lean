@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSARun.Proofs.ClockLaws
+public import AvailableChainFGSARun.Proofs.ClockLaws -- shake: keep (re-export)
 public import AvailableChainGeneric.Proofs.V2.Duty.Fields
 
 public section

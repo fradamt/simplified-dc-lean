@@ -5,9 +5,9 @@ public import AvailableChainFGSARun.Proofs.Reachable
 public import AvailableChainFGSARun.Proofs.Emission
 public import AvailableChainFGSA.Proofs.Carrier
 public import AvailableChainFGSA.Proofs.CrossNode
-public import AvailableChainFGSA.Proofs.Head
-public import AvailableChainFGSARun.Statements.Interface
-public import AvailableChainGeneric.Statements.V2.Duty.DeliveryBy
+public import AvailableChainFGSA.Proofs.Head -- shake: keep (re-export)
+public import AvailableChainFGSARun.Statements.Interface -- shake: keep (re-export)
+public import AvailableChainGeneric.Statements.V2.Duty.DeliveryBy -- shake: keep (re-export)
 
 public section
 

@@ -1,5 +1,5 @@
 module
-public import AvailableChainGeneric
+public import AvailableChainGeneric -- shake: keep (examples)
 
 public section
 

@@ -1,6 +1,6 @@
 module
-public import AvailableChainFGSA.Proofs.Port.Carry
-public import AvailableChainFGSA.Proofs.Port.LocalReads
+public import AvailableChainFGSA.Proofs.Port.Carry -- shake: keep (axioms)
+public import AvailableChainFGSA.Proofs.Port.LocalReads -- shake: keep (axioms)
 
 public section
 

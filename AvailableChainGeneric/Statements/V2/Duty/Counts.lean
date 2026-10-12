@@ -1,6 +1,6 @@
 module
 public import AvailableChainEngineV2.Engine.Duty.Run
-public import Mathlib.Data.Finset.SDiff
+public import Mathlib.Data.Finset.SDiff -- shake: keep (re-export)
 public import Mathlib.Data.Fintype.Defs
 
 @[expose] public section

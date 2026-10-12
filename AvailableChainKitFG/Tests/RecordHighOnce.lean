@@ -1,5 +1,5 @@
 module
-public import AvailableChainKitFG.RecordHighOnce
+public import AvailableChainKitFG.RecordHighOnce -- shake: keep (examples)
 
 public section
 

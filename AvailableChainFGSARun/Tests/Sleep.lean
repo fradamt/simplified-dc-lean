@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGSARun.Model.TestSupport.Sleep
-public import AvailableChainFGSARun.Proofs.Restore
+public import AvailableChainFGSARun.Proofs.Restore -- shake: keep (axioms)
 public import AvailableChainFGSARun.Proofs.Schedule
 
 @[expose] public section

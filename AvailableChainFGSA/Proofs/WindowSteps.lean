@@ -1,6 +1,6 @@
 module
-public import AvailableChainFGSA.Statements.WindowCertificate
-public import AvailableChainFGSA.Proofs.WindowHeightBridge
+public import AvailableChainFGSA.Statements.WindowCertificate -- shake: keep (re-export)
+public import AvailableChainFGSA.Proofs.WindowHeightBridge -- shake: keep (re-export)
 public import AvailableChainKitFG.WindowSteps
 
 public section

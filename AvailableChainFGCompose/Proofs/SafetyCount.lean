@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGCompose.Statements.SafetyClaims
+public import AvailableChainFGCompose.Statements.SafetyClaims -- shake: keep (re-export)
 
 public section
 

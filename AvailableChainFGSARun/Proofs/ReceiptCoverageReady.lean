@@ -1,8 +1,8 @@
 module
 public import AvailableChainFGSARun.Statements.ReceiptCoverage
 public import AvailableChainFGSARun.Proofs.Receipts
-public import AvailableChainFGSARun.Proofs.Content
-public import AvailableChainFGSA.Proofs.Head
+public import AvailableChainFGSARun.Proofs.Content -- shake: keep (re-export)
+public import AvailableChainFGSA.Proofs.Head -- shake: keep (re-export)
 public import AvailableChainGeneric.Proofs.Pure.BlockOrder
 
 public section

@@ -1,7 +1,7 @@
 module
 public import AvailableChainFGCompose.Statements.Selection
 public import AvailableChainFGCompose.Statements.Timing
-public import AvailableChainGeneric.Statements.V2.Duty.Counts
+public import AvailableChainGeneric.Statements.V2.Duty.Counts -- shake: keep (re-export)
 
 @[expose] public section
 

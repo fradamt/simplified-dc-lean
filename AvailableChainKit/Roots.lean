@@ -1,5 +1,5 @@
 module
-public import AvailableChainStatements.Generic.Conditions
+public import AvailableChainStatements.Generic.Conditions -- shake: keep (re-export)
 
 @[expose] public section
 

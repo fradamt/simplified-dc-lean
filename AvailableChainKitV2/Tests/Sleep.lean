@@ -1,8 +1,8 @@
 module
 public import Mathlib.Tactic.IntervalCases
-public import AvailableChainKitV2.EngineClock
-public import AvailableChainKitV2.DutyEngineClock
-public import AvailableChainKitV2.TestSupport.Sleep
+public import AvailableChainKitV2.EngineClock -- shake: keep (axioms)
+public import AvailableChainKitV2.DutyEngineClock -- shake: keep (axioms)
+public import AvailableChainKitV2.TestSupport.Sleep -- shake: keep (axioms)
 
 @[expose] public section
 

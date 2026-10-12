@@ -1,6 +1,6 @@
 module
-public import AvailableChainFGSARun.Model.TestSupport.Sleep
-public import AvailableChainFGSARun.Proofs.TestSupport.EmissionFreshness
+public import AvailableChainFGSARun.Model.TestSupport.Sleep -- shake: keep (axioms)
+public import AvailableChainFGSARun.Proofs.TestSupport.EmissionFreshness -- shake: keep (axioms)
 
 public section
 

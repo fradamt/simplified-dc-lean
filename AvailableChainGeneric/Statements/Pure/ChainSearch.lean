@@ -1,5 +1,5 @@
 module
-public import AvailableChainGeneric.Statements.Pure.Stages
+public import AvailableChainGeneric.Statements.Pure.Stages -- shake: keep (re-export)
 
 @[expose] public section
 

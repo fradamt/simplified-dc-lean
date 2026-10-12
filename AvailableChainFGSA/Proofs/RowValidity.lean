@@ -1,9 +1,9 @@
 module
 public import AvailableChainFGSA.Model.RowValidity
-public import AvailableChainFGSA.Proofs.Carrier
+public import AvailableChainFGSA.Proofs.Carrier -- shake: keep (re-export)
 public import AvailableChainKitFG.RowBits
 public import AvailableChainFGSA.Proofs.FrameViews
-public import AvailableChainFGSA.Proofs.WindowValidity
+public import AvailableChainFGSA.Proofs.WindowValidity -- shake: keep (re-export)
 
 public section
 

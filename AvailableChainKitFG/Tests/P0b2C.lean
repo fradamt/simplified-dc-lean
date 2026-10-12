@@ -1,7 +1,7 @@
 module
 public import AvailableChainKitFG.WindowStore
-public import AvailableChainKitFG.WindowReaders
-public import AvailableChainKitFG.WindowProvenance
+public import AvailableChainKitFG.WindowReaders -- shake: keep (axioms)
+public import AvailableChainKitFG.WindowProvenance -- shake: keep (axioms)
 
 set_option linter.privateModule false
 

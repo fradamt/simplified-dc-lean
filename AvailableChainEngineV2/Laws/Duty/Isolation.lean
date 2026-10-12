@@ -1,5 +1,5 @@
 module
-public import AvailableChainEngineV2.Engine.Duty.Run
+public import AvailableChainEngineV2.Engine.Duty.Run -- shake: keep (re-export)
 public import AvailableChainEngineV2.Conditions.Duty.Committees
 
 @[expose] public section

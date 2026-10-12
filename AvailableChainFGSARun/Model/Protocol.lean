@@ -1,11 +1,11 @@
 module
-public import Mathlib.Logic.Equiv.Defs
-public import Mathlib.Tactic.Ring
+public import Mathlib.Logic.Equiv.Defs -- shake: keep (re-export)
+public import Mathlib.Tactic.Ring -- shake: keep (re-export)
 public import AvailableChainEngineV2.Engine.Duty.Spec
-public import AvailableChainFGSA.Model.Handlers
-public import AvailableChainFGSA.Model.Clock
-public import AvailableChainFGSA.Model.Frame
-public import AvailableChainFGSA.Model.FrameNext
+public import AvailableChainFGSA.Model.Handlers -- shake: keep (re-export)
+public import AvailableChainFGSA.Model.Clock -- shake: keep (re-export)
+public import AvailableChainFGSA.Model.Frame -- shake: keep (re-export)
+public import AvailableChainFGSA.Model.FrameNext -- shake: keep (re-export)
 public import AvailableChainFGSA.Model.Restart
 
 @[expose] public section

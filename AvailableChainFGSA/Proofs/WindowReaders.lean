@@ -1,7 +1,7 @@
 module
-public import AvailableChainFGSA.Proofs.WindowHeightBridge
+public import AvailableChainFGSA.Proofs.WindowHeightBridge -- shake: keep (re-export)
 public import AvailableChainFGSA.Statements.WindowCertificate
-public import AvailableChainKitFG.FrameBridge
+public import AvailableChainKitFG.FrameBridge -- shake: keep (re-export)
 public import AvailableChainKitFG.ProvenanceCoreDef
 
 public import AvailableChainKitFG.WindowReaders

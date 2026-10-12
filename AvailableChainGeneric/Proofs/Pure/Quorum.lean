@@ -1,10 +1,10 @@
 module
-public import AvailableChainGeneric.Statements.Pure.Quorum
+public import AvailableChainGeneric.Statements.Pure.Quorum -- shake: keep (re-export)
 public import AvailableChainGeneric.Statements.Pure.QuorumInter
 public import AvailableChainGeneric.Statements.Pure.Dominance
 public import AvailableChainGeneric.Proofs.Pure.SupportCounts
 public import Mathlib.Algebra.Order.BigOperators.Group.Finset
-import Mathlib.Tactic.Push
+import Mathlib.Tactic.Push -- shake: keep (re-export)
 
 public section
 

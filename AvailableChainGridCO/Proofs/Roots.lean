@@ -1,5 +1,5 @@
 module
-public import AvailableChainGridCO.Model.StoreKeys
+public import AvailableChainGridCO.Model.StoreKeys -- shake: keep (re-export)
 public import AvailableChainGridCO.Proofs.Paths
 public import AvailableChainGridCO.Proofs.Proposals
 

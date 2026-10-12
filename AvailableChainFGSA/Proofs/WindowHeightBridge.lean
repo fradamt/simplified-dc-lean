@@ -1,6 +1,6 @@
 module
-public import AvailableChainFGSA.Statements.WindowHeight
-public import AvailableChainKitFG.HeightLaws
+public import AvailableChainFGSA.Statements.WindowHeight -- shake: keep (re-export)
+public import AvailableChainKitFG.HeightLaws -- shake: keep (re-export)
 public import AvailableChainKitFG.WindowHeightBridge
 public import AvailableChainKitFG.WindowTransport
 

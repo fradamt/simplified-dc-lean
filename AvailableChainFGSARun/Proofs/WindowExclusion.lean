@@ -1,7 +1,7 @@
 module
 public import AvailableChainFGSARun.Proofs.EmissionWellFormed
 public import AvailableChainFGSA.Proofs.WindowAdmissionInvariant
-public import AvailableChainFGSA.Proofs.WindowOccurrences
+public import AvailableChainFGSA.Proofs.WindowOccurrences -- shake: keep (re-export)
 
 public section
 

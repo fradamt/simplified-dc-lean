@@ -1,6 +1,7 @@
 module
-public import AvailableChainFGCompose.Statements.Observations
-public import AvailableChainFGCompose.Statements.Timing
+public import AvailableChainFGCompose.Statements.Observations -- shake: keep (re-export)
+public import AvailableChainFGCompose.Statements.Timing -- shake: keep (re-export)
+public import AvailableChainFGCompose.Statements.ResetCut
 
 @[expose] public section
 
@@ -16,10 +17,6 @@ variable (voterBlocks : P.State → Slot → Finset (FGBlock (Fin n)))
 
 /-- DC: INTENTIONAL. Cumulative evidence gives gap, top J, or contest. -/
 inductive PhaseKind | gap | topJ | contest
-
-/-- P0d1: SAME fieldwise phase observation. -/
-def frontierAtIdx (i : Nat) : Nat :=
-  rho.honest.sup (fun x => (R.core (V2.D.Run.stateBefore E rho i x)).fg.h_max)
 
 /-- P0d1: SAME fieldwise phase observation. -/
 def TopEvidence (i m : Nat) : Prop := ∃ x, x ∈ rho.honest ∧

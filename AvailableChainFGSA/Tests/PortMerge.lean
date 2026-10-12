@@ -1,6 +1,6 @@
 module
-public import AvailableChainFGSA.Proofs.Port.VoteMerge
-public import AvailableChainFGSA.Model.Handlers
+public import AvailableChainFGSA.Proofs.Port.VoteMerge -- shake: keep (examples)
+public import AvailableChainFGSA.Model.Handlers -- shake: keep (examples)
 
 public section
 

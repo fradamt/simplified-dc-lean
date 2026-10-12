@@ -1,8 +1,8 @@
 module
 public import AvailableChainFGCompose.Statements.SafetyStore
-public import AvailableChainFGCompose.Statements.EventReads
+public import AvailableChainFGCompose.Statements.EventReads -- shake: keep (re-export)
 public import AvailableChainKitV2.DutyStable
-public import AvailableChainKitFG.Correspondence
+public import AvailableChainKitFG.Correspondence -- shake: keep (re-export)
 
 public section
 

@@ -5,6 +5,9 @@ public import AvailableChainFGCompose.Statements.Bounds
 public import AvailableChainFGCompose.Statements.Finality
 public import AvailableChainFGCompose.Statements.FinalityReceipts
 public import AvailableChainFGCompose.Proofs.ServiceTransport
+public import AvailableChainFGCompose.Statements.Dependency
+public import AvailableChainFGCompose.Statements.DependencyTrace
+public import AvailableChainFGCompose.Proofs.Dependency
 public import AvailableChainFGCompose.Proofs.ObservationTransport
 public import AvailableChainFGCompose.Proofs.Timing
 public import AvailableChainFGCompose.Statements.Observations
@@ -53,3 +56,7 @@ public import AvailableChainFGCompose.Proofs.Healing.AttemptSettle
 public import AvailableChainFGCompose.Proofs.Healing.AttemptRows
 
 public import AvailableChainFGCompose.Proofs.Healing.Attempt
+public import AvailableChainFGCompose.Statements.ResetCut
+public import AvailableChainFGCompose.Proofs.Healing.ResetCut
+public import AvailableChainFGCompose.Statements.FinalityHistory
+public import AvailableChainFGCompose.Proofs.Finality.History

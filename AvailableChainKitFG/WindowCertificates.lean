@@ -1,6 +1,6 @@
 module
 public import AvailableChainKitFG.WindowViewsDef
-public import AvailableChainKitFG.WindowInvariant
+public import AvailableChainKitFG.WindowInvariant -- shake: keep (re-export)
 
 public section
 

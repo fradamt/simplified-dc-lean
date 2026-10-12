@@ -1,7 +1,7 @@
 module
-public import AvailableChainFGSARun.Proofs.Receipts
-public import AvailableChainFGSARun.Proofs.Hooks
-public import AvailableChainEngineV2.Laws.Duty.SelfDelivery
+public import AvailableChainFGSARun.Proofs.Receipts -- shake: keep (re-export)
+public import AvailableChainFGSARun.Proofs.Hooks -- shake: keep (re-export)
+public import AvailableChainEngineV2.Laws.Duty.SelfDelivery -- shake: keep (re-export)
 
 /-! Self-delivery of the own FG row (own-row analysis, Option 1; spec
 `on_tick` ends with `attest`, and `on_attestation` is the delivery handler).

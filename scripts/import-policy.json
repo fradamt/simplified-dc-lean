@@ -103,6 +103,9 @@
       "AvailableChainFGCompose.Statements.Finality",
       "AvailableChainFGCompose.Statements.FinalityReceipts",
       "AvailableChainFGCompose.Proofs.ServiceTransport",
+      "AvailableChainFGCompose.Statements.Dependency",
+      "AvailableChainFGCompose.Statements.DependencyTrace",
+      "AvailableChainFGCompose.Proofs.Dependency",
       "AvailableChainFGCompose.Proofs.ObservationTransport",
       "AvailableChainFGCompose.Proofs.Timing",
       "AvailableChainFGCompose.Statements.ChannelLaws",
@@ -125,7 +128,11 @@
       "AvailableChainFGCompose.Proofs.SafetySlashing",
       "AvailableChainFGCompose.Statements.HistoricalReads",
       "AvailableChainFGCompose.Proofs.HistoricalReads",
-      "AvailableChainFGCompose.Proofs.RowPermission"
+      "AvailableChainFGCompose.Proofs.RowPermission",
+      "AvailableChainFGCompose.Statements.FinalityHistory",
+      "AvailableChainFGCompose.Proofs.Finality.History",
+      "AvailableChainFGCompose.Proofs.Healing.ResetCut",
+      "AvailableChainFGCompose.Statements.ResetCut"
     ]
   },
   "profiles": {

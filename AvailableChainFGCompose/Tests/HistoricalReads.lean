@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGCompose.Proofs.HistoricalReads
+public import AvailableChainFGCompose.Proofs.HistoricalReads -- shake: keep (axioms)
 
 set_option linter.privateModule false
 

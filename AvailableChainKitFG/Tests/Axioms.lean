@@ -1,33 +1,33 @@
 module
-public import AvailableChainKitFG.WindowCertificates
-public import AvailableChainKitFG.WindowSelection
-public import AvailableChainKitFG.WindowStore
-public import AvailableChainKitFG.WindowReaders
-public import AvailableChainKitFG.WindowProvenance
+public import AvailableChainKitFG.WindowCertificates -- shake: keep (axioms)
+public import AvailableChainKitFG.WindowSelection -- shake: keep (axioms)
+public import AvailableChainKitFG.WindowStore -- shake: keep (axioms)
+public import AvailableChainKitFG.WindowReaders -- shake: keep (axioms)
+public import AvailableChainKitFG.WindowProvenance -- shake: keep (axioms)
 
-public import AvailableChainKitFG.WindowHeightBridge
-public import AvailableChainKitFG.WindowSteps
-public import AvailableChainKitFG.WindowInvariant
-public import AvailableChainKitFG.TreeCorrespondence
-public import AvailableChainKitFG.TreeFrameGeometry
-public import AvailableChainKitFG.TreeTwoChanges
-public import AvailableChainKitFG.TreeFrameBridge
-public import AvailableChainKitFG.FrameChannels
-public import AvailableChainKitFG.Accountable
-public import AvailableChainKitFG.CrossingNoFinal
-public import AvailableChainKitFG.Correspondence
-public import AvailableChainKitFG.CausalCap
-public import AvailableChainKitFG.ViewLockChains
-public import AvailableChainKitFG.TwoChanges
-public import AvailableChainKitFG.RowBits
-public import AvailableChainKitFG.RecordHigh
-public import AvailableChainKitFG.ClientOnceSafety
-public import AvailableChainKitFG.RecordHighOnce
-public import AvailableChainKitFG.FrameGeometry
-public import AvailableChainKitFG.AccountableCore
-public import AvailableChainKitFG.WindowTransport
-public import AvailableChainKitFG.WindowEntriesDef
-public import AvailableChainKitFG
+public import AvailableChainKitFG.WindowHeightBridge -- shake: keep (axioms)
+public import AvailableChainKitFG.WindowSteps -- shake: keep (axioms)
+public import AvailableChainKitFG.WindowInvariant -- shake: keep (axioms)
+public import AvailableChainKitFG.TreeCorrespondence -- shake: keep (axioms)
+public import AvailableChainKitFG.TreeFrameGeometry -- shake: keep (axioms)
+public import AvailableChainKitFG.TreeTwoChanges -- shake: keep (axioms)
+public import AvailableChainKitFG.TreeFrameBridge -- shake: keep (axioms)
+public import AvailableChainKitFG.FrameChannels -- shake: keep (axioms)
+public import AvailableChainKitFG.Accountable -- shake: keep (axioms)
+public import AvailableChainKitFG.CrossingNoFinal -- shake: keep (axioms)
+public import AvailableChainKitFG.Correspondence -- shake: keep (axioms)
+public import AvailableChainKitFG.CausalCap -- shake: keep (axioms)
+public import AvailableChainKitFG.ViewLockChains -- shake: keep (axioms)
+public import AvailableChainKitFG.TwoChanges -- shake: keep (axioms)
+public import AvailableChainKitFG.RowBits -- shake: keep (axioms)
+public import AvailableChainKitFG.RecordHigh -- shake: keep (axioms)
+public import AvailableChainKitFG.ClientOnceSafety -- shake: keep (axioms)
+public import AvailableChainKitFG.RecordHighOnce -- shake: keep (axioms)
+public import AvailableChainKitFG.FrameGeometry -- shake: keep (axioms)
+public import AvailableChainKitFG.AccountableCore -- shake: keep (axioms)
+public import AvailableChainKitFG.WindowTransport -- shake: keep (axioms)
+public import AvailableChainKitFG.WindowEntriesDef -- shake: keep (axioms)
+public import AvailableChainKitFG -- shake: keep (axioms)
 
 /-! Kernel dependency audit for the FG chain lemmas without root premises. -/
 
@@ -283,3 +283,33 @@ public import AvailableChainKitFG
 #print axioms AvailableChain.KitFG.Window.window_exists_crossing_quorum_ne_justified
 #print axioms AvailableChain.KitFG.Window.window_exists_honest_timeout_of_crossing
 #print axioms AvailableChain.KitFG.Window.window_headFields_latest
+#print axioms AvailableChain.KitFG.Window.window_final_birth
+#print axioms AvailableChain.KitFG.Window.window_le_hF_covered
+#print axioms AvailableChain.KitFG.Window.window_absent_le_hF_covered
+#print axioms AvailableChain.KitFG.Window.window_evicted_above_hF
+#print axioms AvailableChain.KitFG.Window.window_retained_bits_mono
+#print axioms AvailableChain.KitFG.Window.window_latest_pair_kept
+#print axioms AvailableChain.KitFG.Window.window_evicted_has_K_newer
+#print axioms AvailableChain.KitFG.Window.window_entry_history
+#print axioms AvailableChain.KitFG.Window.window_bit_add_of_row
+#print axioms AvailableChain.KitFG.Window.window_bits_accumulate
+#print axioms AvailableChain.KitFG.Window.window_finalize_of_accumulated_quorum
+#print axioms AvailableChain.KitFG.Window.window_target_appended_newest
+#print axioms AvailableChain.KitFG.Window.window_retained_of_few_newer
+#print axioms AvailableChain.KitFG.Window.window_retained_along
+#print axioms AvailableChain.KitFG.Window.window_hj_mono
+#print axioms AvailableChain.KitFG.Window.window_retained_of_scalar
+#print axioms AvailableChain.KitFG.Window.window_retained_or_covered
+#print axioms AvailableChain.KitFG.Window.window_exact_row_no_missing_effect
+#print axioms AvailableChain.KitFG.Window.window_retained_of_few_births
+#print axioms AvailableChain.KitFG.Window.window_retained_fresh_one_newer
+#print axioms AvailableChain.KitFG.Window.entry_bit_insertW
+#print axioms AvailableChain.KitFG.Window.entry_bit_persistW
+#print axioms AvailableChain.KitFG.Window.entry_bit_occurrenceW
+#print axioms AvailableChain.KitFG.Window.entry_historyW
+#print axioms AvailableChain.KitFG.Window.terminal_retained_scalarW
+#print axioms AvailableChain.KitFG.Window.terminal_retained_birthsW
+#print axioms AvailableChain.KitFG.Window.terminal_retained_or_coveredW
+#print axioms AvailableChain.KitFG.Window.terminalRetentionW
+#print axioms AvailableChain.KitFG.Window.r6w_fold
+#print axioms AvailableChain.KitFG.Window.heightMatch_progress_first

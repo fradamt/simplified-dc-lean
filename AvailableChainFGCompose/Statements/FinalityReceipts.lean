@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGCompose.Statements.Service
-public import AvailableChainGeneric.Statements.V2.Duty.Receipt
+public import AvailableChainGeneric.Statements.V2.Duty.Receipt -- shake: keep (re-export)
 public import AvailableChainGeneric.Statements.V2.Duty.DeliveryBy
 
 @[expose] public section

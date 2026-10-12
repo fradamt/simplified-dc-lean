@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGCompose.Proofs.ObservationTransport
-public import AvailableChainFGCompose.Proofs.Timing
+public import AvailableChainFGCompose.Proofs.Timing -- shake: keep (axioms)
 public import AvailableChainFGCompose.Proofs.Restart
 
 set_option linter.privateModule false

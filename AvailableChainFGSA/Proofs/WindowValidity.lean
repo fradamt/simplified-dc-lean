@@ -1,11 +1,91 @@
 module
 public import AvailableChainFGSA.Model.WindowViews
 
+public import AvailableChainKitFG.WindowValidity
+public import AvailableChainKitFG.WindowTransport -- shake: keep (re-export)
+
 public section
 
 namespace AvailableChain.FGSA.Window
 
 open AvailableChain.SimplexFG hiding process_row derive
+
+section
+
+private abbrev b3validity_Old := FGSA.Window.State
+private abbrev b3validity_New := SimplexFG.Window.State
+
+private def b3validity_toEntry {V : Type} (e : FGSA.Window.Entry V) : SimplexFG.Window.Entry V :=
+  ⟨e.j, e.X, e.Q⟩
+
+/-- All eleven fields are copied; no field is reconstructed from another field. -/
+private def b3validity_toWindow {V : Type} (w : b3validity_Old V) : b3validity_New V :=
+  ⟨w.L, w.s, w.h, w.T_h, w.target_participation, w.progress,
+    w.W.map b3validity_toEntry, w.J, w.h_j, w.F, w.h_F⟩
+
+private theorem b3validity_entry_eq {V : Type} (e : Entry V) :
+    b3validity_toEntry e = ⟨e.j, e.X, e.Q⟩ := rfl
+
+private theorem b3validity_state_eq {V : Type} (w : b3validity_Old V) :
+    b3validity_toWindow w = ⟨w.L, w.s, w.h, w.T_h, w.target_participation, w.progress,
+      w.W.map b3validity_toEntry, w.J, w.h_j, w.F, w.h_F⟩ := rfl
+
+private theorem b3validity_entry_fields {V : Type} (e : FGSA.Window.Entry V) :
+    (b3validity_toEntry e).j = e.j ∧ (b3validity_toEntry e).X = e.X ∧ (b3validity_toEntry e).Q =
+      e.Q :=
+  ⟨rfl, rfl, rfl⟩
+
+private theorem b3validity_state_fields {V : Type} (w : b3validity_Old V) :
+    (b3validity_toWindow w).L = w.L ∧ (b3validity_toWindow w).s = w.s ∧
+    (b3validity_toWindow w).h = w.h ∧ (b3validity_toWindow w).T_h = w.T_h ∧
+    (b3validity_toWindow w).target_participation = w.target_participation ∧
+    (b3validity_toWindow w).progress = w.progress ∧ (b3validity_toWindow w).W = w.W.map
+      b3validity_toEntry ∧
+    (b3validity_toWindow w).J = w.J ∧ (b3validity_toWindow w).h_j = w.h_j ∧
+    (b3validity_toWindow w).F = w.F ∧ (b3validity_toWindow w).h_F = w.h_F := by
+  exact ⟨rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl⟩
+
+variable {V : Type} [DecidableEq V] [RowCodec V]
+
+private theorem b3validity_row_eq (w : b3validity_Old V) (a : Row V) :
+    b3validity_toWindow (FGSA.Window.process_row w a) =
+      SimplexFG.Window.process_row (b3validity_toWindow w) a := by
+  have bits :
+      (w.W.map (fun e => if a.finality_pair = some ⟨e.j, e.X.root⟩ then
+        { e with Q := insert a.signer e.Q } else e)).map b3validity_toEntry =
+      (w.W.map b3validity_toEntry).map (fun e => if a.finality_pair = some ⟨e.j, e.X.root⟩ then
+        { e with Q := insert a.signer e.Q } else e) := by
+    simp only [List.map_map]
+    congr 1
+    funext e
+    by_cases he : a.finality_pair = some ⟨e.j, e.X.root⟩ <;>
+      simp [b3validity_entry_eq, he]
+  delta FGSA.Window.process_row SimplexFG.Window.process_row
+  delta NamedHeightPair.matchesEntry
+  rcases a with ⟨i, hp, fp⟩
+  cases hp with
+  | empty =>
+      simpa only [Bool.false_eq_true, ↓reduceIte, b3validity_state_eq] using
+        congrArg (fun es => ({ b3validity_toWindow w with W := es } : b3validity_New V)) bits
+  | vote h X t =>
+      cases t <;> dsimp only <;>
+        split_ifs <;> dsimp [b3validity_state_eq] <;> rw [bits] <;> simp_all [b3validity_state_eq]
+      all_goals
+        exfalso
+        have hm : h = w.h ∧ X = w.T_h.root := of_decide_eq_true (by assumption)
+        exact (by assumption : h = w.h → ¬ X = w.T_h.root) hm.1 hm.2
+
+private theorem b3validity_rows_eq (rs : List (Row V)) (w : b3validity_Old V) :
+    b3validity_toWindow (rs.foldl FGSA.Window.process_row w) =
+      rs.foldl SimplexFG.Window.process_row (b3validity_toWindow w) := by
+  induction rs generalizing w with
+  | nil => rfl
+  | cons a rs ih => simp only [List.foldl_cons, ih, b3validity_row_eq]
+
+omit [DecidableEq V] [RowCodec V] in
+end
+
+variable {V : Type} [DecidableEq V] [RowCodec V]
 
 /-- R6W accepts a decoded row through either height matching or useful stale finality. -/
 theorem rowValidW_iff {n : Nat} (σ : State (Fin n)) (a : RowWire n) :
@@ -68,23 +148,21 @@ private theorem windowMatch_of_keys (σ τ : State V)
 theorem rowValidW_fold {n : Nat} (σ : State (Fin n))
     (rows : List (Row (Fin n))) (a : RowWire n) :
     rowValidW (rows.foldl process_row σ) a = rowValidW σ a := by
-  obtain ⟨hh, hT, hk⟩ := fold_validity_keys rows σ
   rw [rowValidW_def, rowValidW_def]
   cases a.toRow? with
   | none => rfl
   | some b =>
-      have hm := windowMatch_of_keys _ _ hk b
-      have hs : staleUseful (rows.foldl process_row σ) b = staleUseful σ b := by
-        obtain ⟨i, pair, fp⟩ := b
-        cases pair with
-        | empty => rfl
-        | vote h X t =>
-            cases fp with
-            | none => rfl
-            | some f =>
-                exact congrArg₂ (fun x y : Bool => x && y)
-                  (congrArg (fun k => decide (f.height < h ∧ h < k)) hh) hm
-      simp only [r6w_def, heightMatch_def, hh, hT, hs]
+      have result := KitFG.Window.r6w_fold (b3validity_toWindow σ) rows b
+      have validity (w : State (Fin n)) :
+          SimplexFG.Window.r6w (b3validity_toWindow w) b = r6w w b := by
+        delta SimplexFG.Window.r6w r6w SimplexFG.Window.heightMatch heightMatch
+          SimplexFG.Window.staleUseful staleUseful SimplexFG.Window.windowMatch windowMatch
+        rcases b with ⟨i, hp, fp⟩
+        cases hp <;> cases fp <;> dsimp only <;>
+          simp only [b3validity_state_eq, List.any_map, Function.comp_def, b3validity_entry_eq]
+        all_goals rfl
+      rw [← b3validity_rows_eq, validity, validity] at result
+      exact result
 
 private theorem row_progress (σ : State V) (a : Row V) :
     σ.progress ⊆ (process_row σ a).progress ∧
@@ -123,7 +201,20 @@ theorem heightMatch_progress_first (p : Params) (K : Nat) (hK : 2 ≤ K)
     b.signer ∈ ((rows.filterMap RowWire.toRow?).foldl process_row
       (parentState p K P s)).progress := by
   have _capacity := hK
-  exact matched_progress_first _ _ b (List.mem_filterMap.mpr ⟨a, ha, hd⟩) hm
+  have result := KitFG.Window.heightMatch_progress_first
+    (rows.filterMap RowWire.toRow?) (b3validity_toWindow (parentState p K P s)) b
+    (List.mem_filterMap.mpr ⟨a, ha, hd⟩) hm
+  rw [← b3validity_rows_eq] at result
+  exact result
+
+#print axioms b3validity_toEntry
+#print axioms b3validity_toWindow
+#print axioms b3validity_entry_eq
+#print axioms b3validity_state_eq
+#print axioms b3validity_entry_fields
+#print axioms b3validity_state_fields
+#print axioms b3validity_row_eq
+#print axioms b3validity_rows_eq
 
 end AvailableChain.FGSA.Window
 end

@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGSARun.Model.TestSupport.EmissionFreshness
-public import AvailableChainFGSARun.Proofs.Emission
+public import AvailableChainFGSARun.Proofs.Emission -- shake: keep (re-export)
 public import AvailableChainFGSARun.Proofs.NamedHistory
 
 public section

@@ -1,5 +1,5 @@
 module
-public import AvailableChainKitFG.HeightCoreDef
+public import AvailableChainKitFG.HeightCoreDef -- shake: keep (re-export)
 public import AvailableChainKitFG.HeightLawsDef
 public import AvailableChainKitFG.JustificationLawsDef
 public import AvailableChainKitFG.NoEarlyMixed

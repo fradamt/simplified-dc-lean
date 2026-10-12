@@ -1,5 +1,5 @@
 module
-public import AvailableChainKitFG.ClientOnceSafety
+public import AvailableChainKitFG.ClientOnceSafety -- shake: keep (examples)
 
 public section
 

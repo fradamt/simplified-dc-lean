@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGCompose.Proofs.Restart
-public import AvailableChainFGCompose.Proofs.SafetyCount
+public import AvailableChainFGCompose.Proofs.SafetyCount -- shake: keep (axioms)
 
 set_option linter.privateModule false
 

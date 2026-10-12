@@ -1,6 +1,6 @@
 module
 public import AvailableChainEngineV2.Engine.Duty.Run
-public import AvailableChainEngineV2.Conditions.Sleep
+public import AvailableChainEngineV2.Conditions.Sleep -- shake: keep (re-export)
 
 @[expose] public section
 

@@ -1,10 +1,10 @@
 module
 public import AvailableChainFGSA.Model.Handlers
 public import AvailableChainFGSA.Model.Clock
-public import AvailableChainFGSA.Model.RowCore
-public import AvailableChainFGSA.Model.WindowViews
-public import AvailableChainKitFG.ClientOnce
-public import AvailableChainFGSA.Model.FrameNext
+public import AvailableChainFGSA.Model.RowCore -- shake: keep (re-export)
+public import AvailableChainFGSA.Model.WindowViews -- shake: keep (re-export)
+public import AvailableChainKitFG.ClientOnce -- shake: keep (re-export)
+public import AvailableChainFGSA.Model.FrameNext -- shake: keep (re-export)
 
 @[expose] public section
 

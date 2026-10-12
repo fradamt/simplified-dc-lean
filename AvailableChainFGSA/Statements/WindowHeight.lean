@@ -1,2 +1,2 @@
 module
-public import AvailableChainFGSA.Model.WindowViews
+public import AvailableChainFGSA.Model.WindowViews -- shake: keep (re-export)

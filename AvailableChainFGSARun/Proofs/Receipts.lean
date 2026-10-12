@@ -1,18 +1,18 @@
 module
 public import AvailableChainFGSARun.Proofs.Roots
 public import AvailableChainFGSARun.Proofs.NamedDelivery
-public import AvailableChainFGSARun.Proofs.Interface
+public import AvailableChainFGSARun.Proofs.Interface -- shake: keep (re-export)
 public import AvailableChainFGSARun.Proofs.Acceptance
 public import AvailableChainFGSARun.Proofs.Readiness
 public import AvailableChainFGSARun.Proofs.Schedule
-public import AvailableChainFGSARun.Proofs.RowHistory
+public import AvailableChainFGSARun.Proofs.RowHistory -- shake: keep (re-export)
 public import AvailableChainFGSARun.Proofs.StampOrigins
 public import AvailableChainFGSARun.Proofs.ReadyAcceptance
 public import AvailableChainFGSARun.Statements.Receipts
 public import AvailableChainFGSARun.Proofs.Emission
 public import AvailableChainFGSARun.Proofs.EmissionWellFormed
-public import AvailableChainGeneric.Proofs.V2.Duty.Signatures
-public import AvailableChainGeneric.Proofs.V2.Duty.DeliveryBy
+public import AvailableChainGeneric.Proofs.V2.Duty.Signatures -- shake: keep (re-export)
+public import AvailableChainGeneric.Proofs.V2.Duty.DeliveryBy -- shake: keep (re-export)
 
 -- ROOT-DIGEST-2: private matcher copy; equality is checked by the kernel (BUILD B3).
 namespace AvailableChain.FGSA

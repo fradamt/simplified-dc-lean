@@ -1,5 +1,5 @@
 module
-public import AvailableChainKitFG.CausalCap
+public import AvailableChainKitFG.CausalCap -- shake: keep (examples)
 
 @[expose] public section
 

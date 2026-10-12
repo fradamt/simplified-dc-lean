@@ -1,6 +1,6 @@
 module
 public import AvailableChainGeneric.Statements.AC.Reads
-public import AvailableChainEngineV2.Conditions.Schedule
+public import AvailableChainEngineV2.Conditions.Schedule -- shake: keep (re-export)
 
 public section
 

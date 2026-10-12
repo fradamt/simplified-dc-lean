@@ -635,6 +635,9 @@ def test_scope(ctx: Context, m: Module, dep: str) -> bool:
         (PROOFS + ".Tests.P0b2", KITFG + ".WindowInvariant"),
         (PROOFS + ".Tests.P0b2", FGSA + ".Proofs.WindowSelection"),
         (PROOFS + ".Tests.P0b2", FGSA + ".Proofs.WindowStore"),
+        (PROOFS + ".Tests.P0b3", FGSA + ".Proofs.WindowOccurrences"),
+        (PROOFS + ".Tests.P0b3", FGSA + ".Proofs.WindowTerminal"),
+        (PROOFS + ".Tests.P0b3", FGSA + ".Proofs.WindowValidity"),
     }:
         return False
     if not is_test(m.name) or foundation(dep):
@@ -765,6 +768,7 @@ COMPOSE_MODULES += (
 COMPOSE_EDGES |= frozenset({
     (PROOFS + ".Proofs.Shared.FGCompose", COMPOSE + ".Statements.ChannelLaws"),
     (PROOFS + ".Proofs.Shared.FGCompose", COMPOSE + ".Proofs.ObservationTransport"),
+    (PROOFS + ".Proofs.Shared.FGCompose", COMPOSE + ".Proofs.SourceHead"),
     (PROOFS + ".Proofs.Finality.ActionTime", COMPOSE + ".Proofs.Timing"),
     (PROOFS + ".Tests.P0c1", COMPOSE + ".Proofs.ObservationTransport"),
 })
@@ -881,6 +885,16 @@ COMPOSE_EDGES |= frozenset({
      'AvailableChainFGCompose.Proofs.Healing.AttemptStop'),
 })
 
+# P0d1: exact phase modules.
+COMPOSE_MODULES += (
+    'AvailableChainFGCompose.Statements.Phase',
+    'AvailableChainFGCompose.Statements.PhaseReceipts',
+    'AvailableChainFGCompose.Proofs.Healing.PhaseFrame',
+    'AvailableChainFGCompose.Proofs.Healing.PhaseOrder',
+    'AvailableChainFGCompose.Proofs.Healing.PhaseSettle',
+)
+
+
 # P0d4: exact frozen-wrapper edges.
 COMPOSE_EDGES |= frozenset({
     ('AvailableChainFGSAProofs.Proofs.Healing.AttemptStop',
@@ -891,7 +905,59 @@ COMPOSE_EDGES |= frozenset({
      'AvailableChainFGCompose.Proofs.Healing.AttemptRows'),
     ('AvailableChainFGSAProofs.Proofs.Healing.Attempt',
      'AvailableChainFGCompose.Proofs.Healing.Attempt'),
+    ('AvailableChainFGSAProofs.Proofs.Healing.PhaseFrame',
+     'AvailableChainFGCompose.Proofs.Healing.PhaseFrame'),
+    ('AvailableChainFGSAProofs.Proofs.Healing.PhaseOrder',
+     'AvailableChainFGCompose.Proofs.Healing.PhaseOrder'),
+    ('AvailableChainFGSAProofs.Proofs.Healing.PhaseSettle',
+     'AvailableChainFGCompose.Proofs.Healing.PhaseSettle'),
 })
+
+# P0d6a: causal reset-cut statement home.
+COMPOSE_MODULES += (COMPOSE + ".Statements.ResetCut",)
+
+# P0d6a: direct b2 store bound and the frozen FG-SA adapter.
+COMPOSE_MODULES += (COMPOSE + ".Proofs.Healing.ResetCut",)
+COMPOSE_PROOF_IMPORTS |= frozenset({
+    (COMPOSE + ".Proofs.Healing.ResetCut", KITFG + ".StoreBounds"),
+})
+COMPOSE_EDGES |= frozenset({
+    (PROOFS + ".Proofs.Healing.ResetCut", COMPOSE + ".Proofs.Healing.ResetCut"),
+})
+
+# P0d7a1: exact causal history consumers and frozen wrapper.
+COMPOSE_MODULES += (
+    'AvailableChainFGCompose.Statements.FinalityHistory',
+    'AvailableChainFGCompose.Proofs.Finality.History',
+)
+COMPOSE_SAFETY_IMPORTS |= frozenset({
+    ('AvailableChainFGCompose.Statements.FinalityHistory', 'AvailableChainKitFG.WindowEntriesDef'),
+})
+COMPOSE_PROOF_IMPORTS |= frozenset({
+    ('AvailableChainFGCompose.Proofs.Finality.History', 'AvailableChainKitFG.CausalCapCore'),
+    ('AvailableChainFGCompose.Proofs.Finality.History',
+     'AvailableChainKitFG.HeightHistoryTransfer'),
+    ('AvailableChainFGCompose.Proofs.Finality.History', 'AvailableChainKitFG.WindowRetention'),
+})
+COMPOSE_EDGES |= frozenset({
+    ('AvailableChainFGSAProofs.Proofs.Finality.History',
+     'AvailableChainFGCompose.Proofs.Finality.History'),
+})
+
+COMPOSE_PROOF_IMPORTS |= frozenset({
+    (COMPOSE + ".Proofs.Finality.History", "AvailableChainGeneric.Proofs.V2.Duty.Reads"),
+})
+
+COMPOSE_PROOF_IMPORTS |= frozenset({
+    (COMPOSE + ".Proofs.Finality.History", KITFG + ".WindowSelection"),
+})
+
+# P0c3: exact dependency contract and proof modules.
+COMPOSE_MODULES += (
+    "AvailableChainFGCompose.Statements.Dependency",
+    "AvailableChainFGCompose.Statements.DependencyTrace",
+    "AvailableChainFGCompose.Proofs.Dependency",
+)
 
 def compose_base(dep: str) -> bool:
     return (foundation(dep) or under(dep, "AvailableChainModel.Objects")

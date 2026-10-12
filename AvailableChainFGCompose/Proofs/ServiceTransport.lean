@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGCompose.Statements.Finality
-public import AvailableChainFGCompose.Statements.FinalityReceipts
+public import AvailableChainFGCompose.Statements.FinalityReceipts -- shake: keep (re-export)
 
 public section
 

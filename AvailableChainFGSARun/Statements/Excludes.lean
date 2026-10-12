@@ -1,5 +1,5 @@
 module
-public import Mathlib.Logic.Relation
+public import Mathlib.Logic.Relation -- shake: keep (re-export)
 public import AvailableChainFGSARun.Model.Protocol
 
 @[expose] public section

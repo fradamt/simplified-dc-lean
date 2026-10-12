@@ -1,9 +1,9 @@
 module
-public import AvailableChainKitFG.FrameGeometry
-public import AvailableChainKitFG.CausalCapCore
+public import AvailableChainKitFG.FrameGeometry -- shake: keep (axioms)
+public import AvailableChainKitFG.CausalCapCore -- shake: keep (axioms)
 public import AvailableChainKitFG.StoreSafetySimplex
-public import AvailableChainKitFG.FrameChannels
-public import AvailableChainKitFG.CausalCap
+public import AvailableChainKitFG.FrameChannels -- shake: keep (axioms)
+public import AvailableChainKitFG.CausalCap -- shake: keep (axioms)
 
 public section
 

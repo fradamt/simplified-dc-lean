@@ -1,7 +1,7 @@
 module
 public import AvailableChainSimplexFG.Store
-public import AvailableChainSimplexFG.Frame
-public import AvailableChainSimplexFG.ChainState
+public import AvailableChainSimplexFG.Frame -- shake: keep (re-export)
+public import AvailableChainSimplexFG.ChainState -- shake: keep (re-export)
 
 @[expose] public section
 

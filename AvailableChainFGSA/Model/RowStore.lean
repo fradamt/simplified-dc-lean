@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSA.Model.Frame
+public import AvailableChainFGSA.Model.Frame -- shake: keep (re-export)
 
 @[expose] public section
 

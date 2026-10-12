@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGCompose.Statements.Service
+public import AvailableChainFGCompose.Statements.Service -- shake: keep (re-export)
 public import AvailableChainFGCompose.Statements.Bounds
 public import AvailableChainGeneric.Statements.Pure.ScheduleW
 

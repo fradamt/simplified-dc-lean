@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSA.Proofs.Restart
+public import AvailableChainFGSA.Proofs.Restart -- shake: keep (axioms)
 
 @[expose] public section
 
