@@ -76,3 +76,7 @@ public import AvailableChainFGCompose.Proofs.Finality.RowsRecords
 public import AvailableChainFGCompose.Proofs.Finality.RowsPrem
 public import AvailableChainFGCompose.Proofs.Finality.Batch
 public import AvailableChainFGCompose.Proofs.Finality.Carry
+
+public import AvailableChainFGCompose.Statements.ExecutionObs
+public import AvailableChainFGCompose.Statements.ExecutionBridges
+public import AvailableChainFGCompose.Proofs.ExecutionObs

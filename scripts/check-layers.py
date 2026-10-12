@@ -1076,6 +1076,14 @@ COMPOSE_EDGES |= frozenset({
      'AvailableChainFGCompose.Proofs.Finality.RowsRecords'),
 })
 
+# X1a: shared execution observation statements and the ordinary-fold instance.
+COMPOSE_MODULES += (
+    'AvailableChainFGCompose.Statements.ExecutionObs',
+    'AvailableChainFGCompose.Statements.ExecutionBridges',
+    'AvailableChainFGCompose.Proofs.ExecutionObs',
+)
+
+
 def compose_base(dep: str) -> bool:
     return (foundation(dep) or under(dep, "AvailableChainModel.Objects")
             or any_under(dep, ("AvailableChainEngineV2.Engine",
