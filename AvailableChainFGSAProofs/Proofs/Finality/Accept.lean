@@ -296,11 +296,6 @@ private theorem d7a5a_inv (i : Nat) (x : V) (_hx : x ∈ rho.honest) :
   rw [d7a5a_reads_eq, ← d7a5a_w_height_eq, ← d7a5a_w_finality_eq]
   exact (cstoreInv_stateBefore E rho i x).fg
 
-private theorem d7a5a_justification :
-    KitFG.FGJustificationLaws (KitFG.Window.certificateHeight p.E p.cfg p.K_W) := by
-  rw [← d7a5a_w_height_eq]
-  exact fgJustificationLaws p
-
 private def d7a5a_delivery [Fintype V] {W U : FGBlock (Fin p.n)} {a₀ d : Time}
     (h : BlockDelivery_W p c E rho W U a₀ d) :
     FGCompose.BlockDelivery_W (fgsaCoreReads p c) E rho
@@ -372,7 +367,7 @@ theorem fgsa_acceptBefore_W : AcceptBefore_W p := by
   intro V _ _ In c E rho W K a₀ d h x hx
   rw [← d7a5a_accepts_eq]
   exact FGCompose.acceptBefore_W (fgsaCoreReads p c) E rho p.E p.cfg p.K_W
-    (d7a5a_w_nonempty p) p.kWLarge (d7a5a_justification p) (d7a5a_durable p c)
+    (d7a5a_w_nonempty p) p.kWLarge (d7a5a_durable p c)
     (fun i x W t => Ready_W p c E rho i x W t) (d7a5a_step p c E rho)
     (d7a5a_inv p c E rho) W K a₀ d (d7a5a_prem p c E rho h) x hx
 
@@ -385,7 +380,7 @@ theorem fgsa_finalizePending_W (ΔF : Time) : FinalizePending_W p ΔF := by
   intro V _ _ In c E rho q y U X _slot h x hx
   rw [← d7a5a_accepts_eq]
   exact FGCompose.finalizePending_W (fgsaCoreReads p c) E rho p.E p.cfg p.K_W
-    (d7a5a_w_nonempty p) p.kWLarge (d7a5a_justification p) (d7a5a_durable p c)
+    (d7a5a_w_nonempty p) p.kWLarge (d7a5a_durable p c)
     (fun i x W t => Ready_W p c E rho i x W t) (d7a5a_step p c E rho)
     (d7a5a_inv p c E rho) y U X _ _
     { fold := d7a5a_fold p y U X h.fold

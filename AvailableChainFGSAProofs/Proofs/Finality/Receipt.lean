@@ -1221,7 +1221,6 @@ theorem receipt_jPath (hroots : NamedRootCollisionFree p c E rho) (ΔF : Time) (
     exact (le_max_left 1 _).trans hmu
   have r := FGCompose.receipt_jPath (fgsaCoreReads p c) (fgsaSafetyReads p c) (d7a5r_timing p)
     E rho (fgsaInterface p c) p.E p.cfg p.K_W (d7a5r_observations p c)
-    (by simpa only [d7a5r_observations_eq] using fgJustificationLaws p)
     (d7a5r_w_height_eq p) (d7a5r_w_nonempty p) p.kWLarge (d7a5r_timing_laws p)
     h.base.valid.toScheduleWellFormed (fun a => FGCompose.namedEntry a.payload.height_pair)
     (by

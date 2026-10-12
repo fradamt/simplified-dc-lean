@@ -3,6 +3,7 @@ public import AvailableChainFGCompose.Proofs.Finality.Carry
 public import AvailableChainFGCompose.Proofs.Finality.Rows
 public import AvailableChainFGCompose.Proofs.Finality.RestoreReads
 public import AvailableChainFGCompose.Proofs.Finality.MiddleSupport
+public import AvailableChainKitFG.FrameGeometry
 
 public section
 
@@ -258,12 +259,18 @@ theorem receipt_jPath_of_cached_anchor (i : Nat) (x : V) (X U : FGBlock (Fin n))
     | node B s root body rows => exact KitFG.preceq_parent_node B s root body rows
   exact Or.inl (hcached ▸ KitFG.preceq_trans hpath hp)
 
+/-- The window height view has the justified-entry laws (through the window bridge). -/
+private theorem d7a5g_justification (O : FGObservationReads R)
+    (height_eq : O.height = KitFG.Window.certificateHeight Ef cfg K) (hK : 2 ≤ K) :
+    FGJustificationLaws O.height := by
+  rw [height_eq]
+  exact FGJustificationLaws.of_bridge (KitFG.Window.windowHeightBridge Ef cfg K hK)
+
 /-- Paper 22:1297–1302: a high cached J is on the terminal carrier path.
 DC: INTENTIONAL W cached pair and action-source ancestry. Stratification, emitted-name
 provenance, the root-scope equation and the historical high-source transfer are the
 protocol's inputs. -/
 theorem receipt_jPath (O : FGObservationReads R)
-    (justification : FGJustificationLaws O.height)
     (height_eq : O.height = KitFG.Window.certificateHeight Ef cfg K)
     (hne : ¬ Ef.IsQuorum ∅) (hK : 2 ≤ K) (L : FGTimingLaws T)
     (hs : V2.D.ScheduleWellFormed E rho) (entry : Wire → Option (Height × BlockId))
@@ -314,7 +321,7 @@ theorem receipt_jPath (O : FGObservationReads R)
   have hCpos : (O.height C).h_j ≠ 0 := by
     simp only [Height] at hCJ hXj hfloor hstrict ⊢
     omega
-  have hJheight := justification.J_height C hCpos
+  have hJheight := (d7a5g_justification R Ef cfg K O height_eq hK).J_height C hCpos
   have hJne : (O.height C).J ≠ .genesis := by
     intro hg
     rw [hg] at hJheight
@@ -361,7 +368,6 @@ theorem receipt_jPath (O : FGObservationReads R)
 receipts. DC: INTENTIONAL local W receipt and same-event guards. The selected delivery is
 the concrete supplier's; the carrier finality is the carriage result. -/
 theorem receipt_acceptPrem_W (O : FGObservationReads R)
-    (justification : FGJustificationLaws O.height)
     (height_eq : O.height = KitFG.Window.certificateHeight Ef cfg K)
     (finality_eq : O.finality = KitFG.Window.certificateFinality Ef cfg K)
     (hne : ¬ Ef.IsQuorum ∅) (hK : 2 ≤ K) (L : FGTimingLaws T)
@@ -427,7 +433,7 @@ theorem receipt_acceptPrem_W (O : FGObservationReads R)
     dsimp only
     intro _hready _hnotCovered
     have hw := delivery.witness x hx
-    exact receipt_jPath R S T E rho I Ef cfg K O justification height_eq hne hK L hs entry
+    exact receipt_jPath R S T E rho I Ef cfg K O height_eq hne hK L hs entry
       reflect erase_parent ΔF q y (delivery.selected x hx).index x A X
       (delivery.selected x hx).time deltaF path proposal hXhor sp hM transfer hx hbound hw.1
       hw.2.1

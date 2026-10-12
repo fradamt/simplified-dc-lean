@@ -15,7 +15,6 @@ variable (Ef : Electorate (Fin n)) (cfg : FGConfig) (K : Nat)
 
 /-- DC: SAME entry comparison on one path, with the window height view. -/
 private theorem d7a5a_J_path (hne : ¬ Ef.IsQuorum ∅) (hK : 2 ≤ K)
-    (justification : FGJustificationLaws (KitFG.Window.certificateHeight Ef cfg K))
     (st : Store (Fin n))
     (hI : KitFG.FGStoreInvariant (KitFG.Window.certificateHeight Ef cfg K)
       (KitFG.Window.certificateFinality Ef cfg K) st)
@@ -23,7 +22,8 @@ private theorem d7a5a_J_path (hne : ¬ Ef.IsQuorum ∅) (hK : 2 ≤ K)
     FGBlock.Preceq (KitFG.Window.certificateHeight Ef cfg K W).J st.J ∨
       st.h_j < (KitFG.Window.certificateHeight Ef cfg K W).h_j := by
   have hH := (KitFG.Window.windowCertificateLaws Ef cfg K hne hK).height
-  have hJ := justification
+  have hJ : FGJustificationLaws (KitFG.Window.certificateHeight Ef cfg K) :=
+    FGJustificationLaws.of_bridge (KitFG.Window.windowHeightBridge Ef cfg K hK)
   have hJW := KitFG.preceq_trans (hH.justified_preceq_entry W) (hH.entry_preceq W)
   rcases KitFG.preceq_total_of_common hJW hpath with h | h
   · exact Or.inl h
@@ -49,7 +49,6 @@ private theorem d7a5a_J_path (hne : ¬ Ef.IsQuorum ∅) (hK : 2 ≤ K)
 
 /-- DC: INTENTIONAL selected handler guards accept the window finality. -/
 private theorem d7a5a_update (hne : ¬ Ef.IsQuorum ∅) (hK : 2 ≤ K)
-    (justification : FGJustificationLaws (KitFG.Window.certificateHeight Ef cfg K))
     (st : Store (Fin n))
     (hI : KitFG.FGStoreInvariant (KitFG.Window.certificateHeight Ef cfg K)
       (KitFG.Window.certificateFinality Ef cfg K) st)
@@ -68,7 +67,7 @@ private theorem d7a5a_update (hne : ¬ Ef.IsQuorum ∅) (hK : 2 ≤ K)
   have hj' : FGBlock.Preceq (SimplexFG.Window.derive Ef cfg K W).J st.J ∨
       st.h_j < (SimplexFG.Window.derive Ef cfg K W).h_j := by
     rcases hj with hj | hj
-    · exact d7a5a_J_path Ef cfg K hne hK justification st hI W hj
+    · exact d7a5a_J_path Ef cfg K hne hK st hI W hj
     · exact Or.inr hj
   have hread : (KitFG.Window.certificateHeight Ef cfg K W).h =
       (SimplexFG.Window.derive Ef cfg K W).h := rfl
@@ -136,7 +135,6 @@ private theorem d7a5a_update (hne : ¬ Ef.IsQuorum ∅) (hK : 2 ≤ K)
 INTENTIONAL: the selected W receipt, its exact one-step consequence and a strict
 supplied deadline. -/
 theorem acceptBefore_W (hne : ¬ Ef.IsQuorum ∅) (hK : 2 ≤ K)
-    (justification : FGJustificationLaws (KitFG.Window.certificateHeight Ef cfg K))
     (F : FGFinalityDurableLaws R)
     (ready : Nat → V → FGBlock (Fin n) → Time → Prop)
     (step : AcceptStep_W R E rho Ef cfg K ready)
@@ -169,7 +167,7 @@ theorem acceptBefore_W (hne : ¬ Ef.IsQuorum ∅) (hK : 2 ≤ K)
       (h.guards.finCmp x hx hr).resolve_right hc
     rw [he]
     apply KitFG.preceq_trans h.finalized
-    apply d7a5a_update Ef cfg K hne hK justification _ (inv w.index x hx) W
+    apply d7a5a_update Ef cfg K hne hK _ (inv w.index x hx) W
       (KitFG.preceq_trans hf h.finalized) hm (h.guards.jPath x hx hr hc)
     exact h.guards.cap x hx hr hc
   apply finality_acceptsFinalBefore_of_idx R E rho F h.schedule
@@ -195,7 +193,6 @@ theorem acceptBefore_W (hne : ¬ Ef.IsQuorum ∅) (hK : 2 ≤ K)
 INTENTIONAL: the pending pair is consumed by the window fold; acceptance uses the same
 selected receipt and strict deadline. Conditional on the selected delivery. -/
 theorem finalizePending_W (hne : ¬ Ef.IsQuorum ∅) (hK : 2 ≤ K)
-    (justification : FGJustificationLaws (KitFG.Window.certificateHeight Ef cfg K))
     (F : FGFinalityDurableLaws R)
     (ready : Nat → V → FGBlock (Fin n) → Time → Prop)
     (step : AcceptStep_W R E rho Ef cfg K ready)
@@ -220,7 +217,7 @@ theorem finalizePending_W (hne : ¬ Ef.IsQuorum ∅) (hK : 2 ≤ K)
           Q hQ hc
         rw [hX] at r
         exact r.1
-  exact acceptBefore_W R E rho Ef cfg K hne hK justification F ready step inv X U a₀ d
+  exact acceptBefore_W R E rho Ef cfg K hne hK F ready step inv X U a₀ d
     ⟨h.schedule, hfinal, h.deliver, h.guards, h.horizon⟩
 
 end AvailableChain.FGCompose

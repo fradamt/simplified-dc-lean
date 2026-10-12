@@ -1,7 +1,6 @@
 module
 public import AvailableChainFGCompose.Proofs.Finality.Accept
 public import AvailableChainFGCompose.Statements.HistoricalReads
-public import AvailableChainKitFG.FrameGeometry
 
 set_option linter.privateModule false
 
@@ -209,9 +208,6 @@ private theorem aDurable : FGFinalityDurableLaws aR :=
     (KitFG.Window.window_on_block_F_mono aE aCfg 2 st o.payload), fun _ _ h => h⟩,
     fun _ _ => rfl⟩
 
-private theorem aJust : FGJustificationLaws (KitFG.Window.certificateHeight aE aCfg 2) :=
-  FGJustificationLaws.of_bridge (KitFG.Window.windowHeightBridge aE aCfg 2 (by decide))
-
 private theorem aSchedule (early : Bool) : V2.D.ScheduleWellFormed aEnv (aRun early) := by
   refine ⟨by cases early <;> decide, ?_, ?_, ?_, ?_, ?_, ?_⟩
   · cases early <;> decide
@@ -274,7 +270,7 @@ private def aPrem : AcceptPrem_W aR aEnv (aRun false) aE aCfg 2 (aReady false) a
 
 /-- POSITIVE: the selected receipt is accepted strictly before the deadline. -/
 private theorem aAccepted : AcceptsFinalBefore aR aEnv (aRun false) () aU 4 :=
-  acceptBefore_W aR aEnv (aRun false) aE aCfg 2 aNonempty (by decide) aJust aDurable
+  acceptBefore_W aR aEnv (aRun false) aE aCfg 2 aNonempty (by decide) aDurable
     (aReady false) (aStep false) (fun i x _ => (aReach false i x).1) aX aU 0 4 aPrem ()
     (Finset.mem_singleton_self _)
 
@@ -321,7 +317,7 @@ private def aCovered : BlockDelivery_W aR aEnv (aRun false) (aReady false) aX aU
     exact ⟨rfl, by decide, Or.inl (by decide +kernel)⟩
 
 private theorem aCoveredAccepted : AcceptsFinalBefore aR aEnv (aRun false) () aU 5 :=
-  acceptBefore_W aR aEnv (aRun false) aE aCfg 2 aNonempty (by decide) aJust aDurable
+  acceptBefore_W aR aEnv (aRun false) aE aCfg 2 aNonempty (by decide) aDurable
     (aReady false) (aStep false) (fun i x _ => (aReach false i x).1) aX aU 0 5
     { schedule := aSchedule false
       finalized := by rw [aFinal]; exact preceq_refl _
@@ -339,7 +335,7 @@ private theorem aFold : PendingFold_W aE aCfg 2 2 aU aX :=
     fun i _ => Or.inr ⟨aSigned, by decide, Subsingleton.elim _ _, rfl⟩⟩
 
 private theorem aFinalized : AcceptsFinalBefore aR aEnv (aRun false) () aU 4 :=
-  finalizePending_W aR aEnv (aRun false) aE aCfg 2 aNonempty (by decide) aJust aDurable
+  finalizePending_W aR aEnv (aRun false) aE aCfg 2 aNonempty (by decide) aDurable
     (aReady false) (aStep false) (fun i x _ => (aReach false i x).1) 2 aU aX 0 4
     ⟨aFold, aSchedule false, aDelivery, aGuards, by decide⟩ () (Finset.mem_singleton_self _)
 
