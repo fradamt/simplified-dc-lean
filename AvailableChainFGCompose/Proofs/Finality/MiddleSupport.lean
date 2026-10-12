@@ -1,9 +1,9 @@
 module
 public import AvailableChainFGCompose.Statements.FinalityKernel
-public import AvailableChainFGCompose.Proofs.Finality.History
-public import AvailableChainFGCompose.Proofs.Finality.RecordInv
-public import AvailableChainFGCompose.Proofs.Timing
-public import AvailableChainFGCompose.Proofs.Healing.ResetCut
+public import AvailableChainFGCompose.Proofs.Finality.History -- shake: keep (causal laws)
+public import AvailableChainFGCompose.Proofs.Finality.RecordInv -- shake: keep (client laws)
+public import AvailableChainFGCompose.Proofs.Timing -- shake: keep (clock tactic context)
+public import AvailableChainFGCompose.Proofs.Healing.ResetCut -- shake: keep (clock laws)
 
 public section
 

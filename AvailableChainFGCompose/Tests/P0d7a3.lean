@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGCompose.Proofs.Finality.Middle
+public import AvailableChainFGCompose.Proofs.Finality.Middle -- shake: keep (kernel test context)
 
 set_option linter.privateModule false
 

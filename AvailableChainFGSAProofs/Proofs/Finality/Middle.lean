@@ -1,7 +1,7 @@
 module
 public import AvailableChainFGCompose.Proofs.Finality.Middle
 public import AvailableChainFGSAProofs.Proofs.Finality.MiddleSupport
-public import AvailableChainFGSAProofs.Proofs.Finality.History
+public import AvailableChainFGSAProofs.Proofs.Finality.History -- shake: keep (window transport)
 public import AvailableChainFGSAProofs.Proofs.Shared.Regimes
 
 public section

@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGCompose.Statements.Finality
-public import AvailableChainFGCompose.Statements.FinalityRecords
+public import AvailableChainFGCompose.Statements.FinalityRecords -- shake: keep (d7a2 seed leaves)
 
 @[expose] public section
 

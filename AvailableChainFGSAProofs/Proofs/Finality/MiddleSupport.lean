@@ -1,17 +1,17 @@
 module
 public import AvailableChainFGCompose.Proofs.Finality.MiddleSupport
 public import AvailableChainFGSAProofs.Proofs.Shared.FGCompose
-public import AvailableChainFGCompose.Proofs.Restart
+public import AvailableChainFGCompose.Proofs.Restart -- shake: keep (P0a restart API)
 public import AvailableChainFGSAProofs.Proofs.Finality.RecoveryScope
 public import AvailableChainFGSAProofs.Proofs.Finality.TickRead -- shake: keep (facade coverage)
 public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowthProposal
 public import AvailableChainFGSAProofs.Proofs.Shared.ProposalRead
-public import AvailableChainFGSAProofs.Proofs.Shared.BoundsW
+public import AvailableChainFGSAProofs.Proofs.Shared.BoundsW -- shake: keep (frozen bounds API)
 public import AvailableChainFGSAProofs.Proofs.Shared.HonestQuorum
 public import AvailableChainFGSAClaims.Statements.ComposeStmt
 public import AvailableChainFGSAClaims.Statements.Phases
 public import AvailableChainFGSA.Proofs.WindowAdmissionInvariant
-public import AvailableChainKitFG.CausalCapCore
+public import AvailableChainKitFG.CausalCapCore -- shake: keep (causal cap API)
 
 public section
 
