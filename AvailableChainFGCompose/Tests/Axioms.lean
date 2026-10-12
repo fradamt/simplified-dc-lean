@@ -748,3 +748,13 @@ public import AvailableChainFGCompose.Proofs.Healing.ResetCut -- shake: keep (#p
 #print axioms AvailableChain.FGCompose.dependency_hook_accepted_origin_bridge
 #print axioms AvailableChain.FGCompose.dependency_hook_origin_at_read
 #print axioms AvailableChain.FGCompose.FGDependencyDriver.replay
+
+#print axioms AvailableChain.FGCompose.FGDependencyOperation.reconstruct
+#print axioms AvailableChain.FGCompose.FGDependencyDriver.reconstruct
+#print axioms AvailableChain.FGCompose.dependencyDrainInput
+#print axioms AvailableChain.FGCompose.FGDependencyTraceLaws.reconstruct_program
+#print axioms AvailableChain.FGCompose.FGDependencyTraceLaws.reconstruct_data
+#print axioms AvailableChain.FGCompose.FGDependencyTraceLaws.restart_reconstruct
+#print axioms AvailableChain.FGCompose.FGDependencyTraceLaws.restart_drain_closed
+#print axioms AvailableChain.FGCompose.FGDependencyTraceLaws.restart_replay_order
+#print axioms AvailableChain.FGCompose.dependency_reconstruct_metadata

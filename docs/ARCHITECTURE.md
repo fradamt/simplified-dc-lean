@@ -805,6 +805,11 @@ contract, its pure consequences, controls, and real FG-SA accepted-tree/leaf
 projection. P1-Driver supplies the full queue/refusal driver and timed completion
 proofs. PC-SA remains UNPORTED until its later suppliers and implementation close.
 
+P0c3a (A7) adds one explicit, read-free reconstruction step after raw restart entry.
+The step keeps body, refusal, pending, notification, and original-receipt observations.
+The drain closes before body replay. P1 supplies the trace and step laws; P2d supplies
+saved M and the missed freezes, including the `lastCompleted` equal-cut rule.
+
 ```text
 ┌────┬──────────────────────────────────────┬──────────────────────────┐
 │ M  │ Content                              │ Status 2026-09-30        │

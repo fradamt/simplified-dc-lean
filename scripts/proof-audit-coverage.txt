@@ -646,6 +646,14 @@
             'AvailableChain.FGCompose.dependencyResolved',
         ),
         'AvailableChainFGCompose.Statements.DependencyTrace': (
+            'AvailableChain.FGCompose.FGDependencyOperation.reconstruct',
+            'AvailableChain.FGCompose.FGDependencyDriver.reconstruct',
+            'AvailableChain.FGCompose.dependencyDrainInput',
+            'AvailableChain.FGCompose.FGDependencyTraceLaws.reconstruct_program',
+            'AvailableChain.FGCompose.FGDependencyTraceLaws.reconstruct_data',
+            'AvailableChain.FGCompose.FGDependencyTraceLaws.restart_reconstruct',
+            'AvailableChain.FGCompose.FGDependencyTraceLaws.restart_drain_closed',
+            'AvailableChain.FGCompose.FGDependencyTraceLaws.restart_replay_order',
             'AvailableChain.FGCompose.FGDependencyDriver.replay',
             'AvailableChain.FGCompose.FGDependencyDriver',
             'AvailableChain.FGCompose.FGDependencyDriver.drain',
@@ -768,6 +776,7 @@
             'AvailableChain.FGCompose.dependencyExecuteWork',
         ),
         'AvailableChainFGCompose.Proofs.Dependency': (
+            'AvailableChain.FGCompose.dependency_reconstruct_metadata',
             'AvailableChain.FGCompose.dependency_read_completion',
             'AvailableChain.FGCompose.dependency_accepted_origin_bridge',
             'AvailableChain.FGCompose.dependency_arrival_order',
