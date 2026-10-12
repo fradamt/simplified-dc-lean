@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Shared.FGCompose
+public import AvailableChainFGSAProofs.Proofs.Shared.FGCompose -- shake: keep (core reads API)
 public import AvailableChainFGCompose.Statements.FrontierSearch
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSeedDefs
 

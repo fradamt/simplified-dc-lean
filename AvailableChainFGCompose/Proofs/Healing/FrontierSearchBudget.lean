@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGCompose.Statements.FrontierSearch
+public import AvailableChainFGCompose.Statements.FrontierSearch -- shake: keep (search API)
 public import Mathlib.Tactic.Linarith -- shake: keep (budget algebra)
 public import Mathlib.Tactic.Ring -- shake: keep (budget algebra)
 

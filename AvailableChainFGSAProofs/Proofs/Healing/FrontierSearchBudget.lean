@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchBudget
-public import AvailableChainFGSAProofs.Proofs.Shared.BoundsW
+public import AvailableChainFGSAProofs.Proofs.Shared.BoundsW -- shake: keep (frozen bound proof API)
 
 public section
 

@@ -1,9 +1,9 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Shared.FGCompose
+public import AvailableChainFGSAProofs.Proofs.Shared.FGCompose -- shake: keep (core reads API)
 public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchStop
-public import AvailableChainFGSAProofs.Proofs.Healing.PhaseRelay
+public import AvailableChainFGSAProofs.Proofs.Healing.PhaseRelay -- shake: keep (frozen relay API)
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchDefs
-public import AvailableChainFGSAProofs.Proofs.Shared.BoundsW
+public import AvailableChainFGSAProofs.Proofs.Shared.BoundsW -- shake: keep (frozen bound proof API)
 
 public section
 
