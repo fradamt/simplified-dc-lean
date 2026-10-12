@@ -546,6 +546,10 @@ source = source.replace('  if cs.isEmpty then\n    IO.eprintln "NO CONSTANTS FOU
 # (the import does not load it). It caches a result only for a complete
 # strongly connected component (Tarjan), so each cached set is exactly the
 # set of axioms reachable from that constant: the value of a fresh call.
+# `visit` recurses through the whole dependency closure, as `collect` does,
+# inside the `IO.asTask` worker threads. It passed on the real data (batch 4,
+# 15790 constants; measured maximum depth 46 `visit` frames). A stack
+# overflow aborts the process, so the step fails closed.
 parallel_axioms = '''namespace AuditAxioms
 
 structure St where
