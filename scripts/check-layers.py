@@ -1071,6 +1071,8 @@ COMPOSE_EDGES |= frozenset({
      'AvailableChainFGCompose.Proofs.Finality.Rows'),
     ('AvailableChainFGCompose.Tests.P0d7a4',
      'AvailableChainFGCompose.Proofs.Finality.Carry'),
+    ('AvailableChainFGCompose.Tests.P0d7a4',
+     'AvailableChainFGCompose.Proofs.Finality.RowsRecords'),
 })
 
 def compose_base(dep: str) -> bool:
