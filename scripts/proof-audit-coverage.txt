@@ -997,6 +997,11 @@
             'AvailableChain.FGCompose.dependencyResolved',
         ),
         'AvailableChainFGCompose.Statements.DependencyTrace': (
+            'AvailableChain.FGCompose.FGDependencyOperation.rebuild',
+            'AvailableChain.FGCompose.FGDependencyDriver.rebuild',
+            'AvailableChain.FGCompose.FGDependencyTraceLaws.rebuild_program',
+            'AvailableChain.FGCompose.FGDependencyTraceLaws.rebuild_data',
+            'AvailableChain.FGCompose.FGDependencyTraceLaws.restart_rebuild',
             'AvailableChain.FGCompose.FGDependencyOperation.reconstruct',
             'AvailableChain.FGCompose.FGDependencyDriver.reconstruct',
             'AvailableChain.FGCompose.dependencyDrainInput',

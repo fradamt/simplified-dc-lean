@@ -1436,4 +1436,9 @@
     'AvailableChain.FGCompose.healing_frontierTail_rise_of_seed',
     'AvailableChain.FGCompose.healing_frontierTail_rise',
     'AvailableChain.FGCompose.healing_frontierTail',
+    'AvailableChain.FGCompose.FGDependencyDriver.rebuild',
+    'AvailableChain.FGCompose.FGDependencyOperation.rebuild',
+    'AvailableChain.FGCompose.FGDependencyTraceLaws.rebuild_data',
+    'AvailableChain.FGCompose.FGDependencyTraceLaws.rebuild_program',
+    'AvailableChain.FGCompose.FGDependencyTraceLaws.restart_rebuild',
 )

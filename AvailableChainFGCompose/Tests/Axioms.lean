@@ -1247,3 +1247,9 @@ public import AvailableChainFGCompose.Proofs.Healing.ResetCut -- shake: keep (#p
 #print axioms AvailableChain.FGCompose.healing_frontierTail_rise_of_seed
 #print axioms AvailableChain.FGCompose.healing_frontierTail_rise
 #print axioms AvailableChain.FGCompose.healing_frontierTail
+
+#print axioms AvailableChain.FGCompose.FGDependencyOperation.rebuild
+#print axioms AvailableChain.FGCompose.FGDependencyDriver.rebuild
+#print axioms AvailableChain.FGCompose.FGDependencyTraceLaws.rebuild_program
+#print axioms AvailableChain.FGCompose.FGDependencyTraceLaws.rebuild_data
+#print axioms AvailableChain.FGCompose.FGDependencyTraceLaws.restart_rebuild
