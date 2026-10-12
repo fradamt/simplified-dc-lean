@@ -16,6 +16,20 @@ public section
 namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG AvailableChain.KitFG
 
+private def d7a4r_proposalFG (p : Params) {In : Type} (c : AppCodec In) :=
+  (fgsaCoreReads p c).proposalFG
+
+private theorem d7a4r_reads_eq (p : Params) {In : Type} (c : AppCodec In) :
+    fgsaCoreReads p c =
+      { core := fun nd => ⟨nd.st.base, nd.st.fg, nd.st.proposals, nd.st.rowPool⟩
+        erase := eraseFG
+        source := fun nd => FGSA.fgSource p nd.st
+        headVote := fun nd s => FGSA.headVote p nd.st s
+        finalityHead := fun nd => FGSA.fgBlockOf nd.st (FGSA.fgHead p nd.st)
+        proposalFG := d7a4r_proposalFG p c } :=
+  congrArg (fun reads => { reads with proposalFG := d7a4r_proposalFG p c })
+    (fgsaCoreReads_def p c)
+
 section
 
 private abbrev d7a4w_Old := FGSA.Window.State
@@ -262,6 +276,17 @@ private def c2_timing (p : Params) : FGCompose.FGTiming where
   gate := SA.gateTime p.toParams
   action := p.actionTime
 
+private theorem c2_timing_eq (p : Params) : c2_timing p =
+    { delta := p.Δ
+      roundSlots := p.R
+      proposal := SA.proposalTime p.toParams
+      vote := SA.voteTime p.toParams
+      early := SA.earlyTime p.toParams
+      freeze := SA.freezeTime p.toParams
+      release := SA.releaseTime p.toParams
+      gate := SA.gateTime p.toParams
+      action := p.actionTime } := rfl
+
 private def c2_point (p : Params) (w : HealingWitness) : FGCompose.FGServicePoint :=
   ⟨⟨w.rG, w.u₀, w.M, w.rStar, w.sStar, w.CStar⟩, w.u, w.QStar, tstar p w⟩
 
@@ -270,6 +295,12 @@ private def c2_observations : FGCompose.FGObservationReads (fgsaCoreReads p c) w
   finality := finalityView p
   controls nd := FGSA.controls p nd.st
   viable nd X := domainR p nd.st X
+
+private theorem c2_observations_eq : c2_observations p c =
+    { height := heightView p
+      finality := finalityView p
+      controls := fun nd => FGSA.controls p nd.st
+      viable := fun nd X => domainR p nd.st X } := rfl
 
 private def c2_reads (w : HealingWitness) : FGCompose.FGACServiceReads V where
   honest x := x ∈ rho.honest
@@ -339,45 +370,46 @@ private def d7a4r_wire : FGCompose.FGHistoryWireReads (d7a4r_safety p c) where
   finalityPair a := a.payload.finality_pair
   signer := d7a4r_signer p
   decode_height a u ha := by
-    rw [d7a4r_safety] at ha
+    delta d7a4r_safety at ha
     rw [d7a4r_decode p ha]
     rfl
   decode_finality a u ha := by
-    rw [d7a4r_safety] at ha
+    delta d7a4r_safety at ha
     rw [d7a4r_decode p ha]
     rfl
   decode_signer a u ha := by
-    rw [d7a4r_safety] at ha
+    delta d7a4r_safety at ha
     rw [d7a4r_decode p ha]
     rfl
 
 private theorem d7a4r_row_eq (j r : Nat) (x : V) (a : RowWire p.n) :
     FGCompose.HonestRowAt (d7a4r_safety p c) E rho (c2_timing p) j x r a =
-      HonestRowAt p c E rho j x r a := by rw [d7a4r_safety]; rfl
+      HonestRowAt p c E rho j x r a := by delta d7a4r_safety; rfl
 
 private theorem d7a4r_source_eq (x : V) (r : Nat) :
     FGCompose.actionSourceFG (fgsaCoreReads p c) E rho (c2_timing p) x r =
-      actionSourceFG p c E rho x r := by rw [fgsaCoreReads_def]; rfl
+      actionSourceFG p c E rho x r := by rw [d7a4r_reads_eq]; rfl
 
 private theorem d7a4r_held_eq (i : Nat) (x : V) (B : FGBlock (Fin p.n)) :
     FGCompose.HeldAt (fgsaCoreReads p c) E rho i x B = HeldAt p c E rho i x B := by
-  rw [fgsaCoreReads_def]
+  rw [d7a4r_reads_eq]
   rfl
 
 private theorem d7a4r_signer_iff (a : RowWire p.n) (i : Fin p.n) :
     d7a4r_signer p a = some i ↔ a.auth = .seat .fg i := by
   rcases a with ⟨auth, payload⟩
   cases auth with
-  | none => simp [d7a4r_signer]
-  | proposer s => simp [d7a4r_signer]
-  | seat label j => cases label <;> simp [d7a4r_signer]
+  | none => delta d7a4r_signer; simp
+  | proposer s => delta d7a4r_signer; simp
+  | seat label j => cases label <;> delta d7a4r_signer <;> simp
 
 omit [DecidableEq V] in
 private theorem d7a4r_complete_eq (x : V) (a : RowWire p.n) :
     FGCompose.RowComplete (d7a4r_safety p c) rho (d7a4r_signer p) RowWire.valid x a =
       RowComplete p c rho x a := by
   unfold FGCompose.RowComplete FGCompose.RowSigner RowComplete RowSigner
-  simp only [d7a4r_signer_iff, FGCompose.safetyHolder, d7a4r_safety]
+  simp only [d7a4r_signer_iff, FGCompose.safetyHolder_def]
+  delta d7a4r_safety
   rfl
 
 private def d7a4r_makeWire (row : Row (Fin p.n)) : RowWire p.n :=
@@ -430,10 +462,10 @@ private theorem c2_observation_laws (w : HealingWitness) :
   action_time _ := rfl
   gate_label _ := rfl
   action_head_label _ := rfl
-  head_eq _ _ := by rw [fgsaCoreReads_def]; rfl
-  action_head_eq _ _ := by rw [fgsaCoreReads_def]; rfl
+  head_eq _ _ := by rw [d7a4r_reads_eq]; rfl
+  action_head_eq _ _ := by rw [d7a4r_reads_eq]; rfl
   source_eq x q := by
-    rw [fgsaCoreReads_def]
+    rw [d7a4r_reads_eq]
     change ((postClock E rho x (p.actionTime q)).map
       (fun nd => FGSA.fgSource p nd.st)).map (Option.map eraseFG) = _
     rw [Option.map_map]
@@ -448,8 +480,8 @@ private theorem c2_observation_laws (w : HealingWitness) :
   gate_scope _ _ := Iff.rfl
   action_scope _ _ := Iff.rfl
   frame_eq _ _ _ := by
-    dsimp only [c2_observations, c2_reads]
-    rw [fgsaCoreReads_def]
+    dsimp only [c2_observations_eq, c2_reads]
+    rw [d7a4r_reads_eq]
     rfl
 
 private theorem c2_history_transfer (w : HealingWitness) (h : TCarrier p c E rho w)
@@ -457,7 +489,7 @@ private theorem c2_history_transfer (w : HealingWitness) (h : TCarrier p c E rho
     FGCompose.FGHistoricalHighTransfer (fgsaCoreReads p c) (c2_observations p c)
       (c2_timing p) E rho (fgsaInterface p c) (c2_point p w) horizon := by
   intro x r C hx hC hh _ v Q hQ _ hgap
-  rw [fgsaCoreReads_def] at hC ⊢
+  rw [d7a4r_reads_eq] at hC ⊢
   exact h x r C v Q hx hC hh hQ hgap
 
 private theorem c2_history_chain (w : HealingWitness) (h : THigh p c E rho w)
@@ -465,7 +497,7 @@ private theorem c2_history_chain (w : HealingWitness) (h : THigh p c E rho w)
     FGCompose.FGHistoricalHighChain (fgsaCoreReads p c) (c2_observations p c)
       (c2_timing p) E rho (c2_point p w) horizon := by
   intro x y r q C D hx hy hC hD hc hd _ _
-  rw [fgsaCoreReads_def] at hC hD ⊢
+  rw [d7a4r_reads_eq] at hC hD ⊢
   exact h x y r q C D hx hy hC hD hc hd
 
 private theorem c2_service_laws (w : HealingWitness)
@@ -588,21 +620,21 @@ private theorem rows_pending_action_head
   have hdecode := (fgBlockOf_spec p nd.st hinv _ H).mpr ⟨hH, hHe⟩
   have result := FGCompose.pending_action_head_capped (fgsaCoreReads p c)
     (c2_observations p c) p.E p.cfg (fgCertificateLaws p).height (heightView_bridge p)
-    y D U nd (by rw [fgsaCoreReads_def]; exact ⟨H, hdecode, hH⟩)
+    y D U nd (by rw [d7a4r_reads_eq]; exact ⟨H, hdecode, hH⟩)
     (by
       intro B hB
-      rw [fgsaCoreReads_def] at hB ⊢
+      rw [d7a4r_reads_eq] at hB ⊢
       have heq := Option.some.inj (hdecode.symm.trans hB)
       subst B
       simpa only [hHe] using hcover)
     (by
       intro A B _ _ hp
-      rw [fgsaCoreReads_def] at hp
+      rw [d7a4r_reads_eq] at hp
       exact eraseFG_preceq_iff.mp hp)
-    (by rw [fgsaCoreReads_def]; exact (Finset.filter_subset _ _) hD)
-    hDh hDJ hDj (by simpa only [c2_observations, fgsaCoreReads_def] using hcap)
-    (by simpa only [c2_observations, fgsaCoreReads_def] using hfin)
-  simp only [c2_observations, fgsaCoreReads_def] at result
+    (by rw [d7a4r_reads_eq]; exact (Finset.filter_subset _ _) hD)
+    hDh hDJ hDj (by simpa only [c2_observations_eq, d7a4r_reads_eq] using hcap)
+    (by simpa only [c2_observations_eq, d7a4r_reads_eq] using hfin)
+  simp only [c2_observations_eq, d7a4r_reads_eq] at result
   exact result
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -658,7 +690,7 @@ theorem pending_action_domain_cap
     ∀ B ∈ nd.st.fg.TF, (heightView p B).h ≤ y + 1 := by
   have result := FGCompose.pending_action_domain_cap (fgsaCoreReads p c)
     (d7a4r_safety p c) (c2_observations p c) (c2_timing p) E rho before x q y nd hx
-    (by rw [fgsaCoreReads_def]; exact hfgread) hbefore
+    (by rw [d7a4r_reads_eq]; exact hfgread) hbefore
     (by
       intro cut b i z W hi hW rows
       rw [d7a4r_held_eq] at hW
@@ -668,7 +700,7 @@ theorem pending_action_domain_cap
     (by
       intro j z r a u h B timeout ha hu hp ht
       exact hrows j z r a u h B timeout ((d7a4r_row_eq p c E rho j r z a).mp ha) hu hp ht)
-  simp only [c2_observations, fgsaCoreReads_def] at result
+  simp only [c2_observations_eq, d7a4r_reads_eq] at result
   exact result
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -730,19 +762,19 @@ theorem pending_action_head
   have result := FGCompose.pending_action_head (fgsaCoreReads p c)
     (d7a4r_safety p c) (c2_observations p c) (c2_timing p) E rho
     p.E p.cfg (fgCertificateLaws p).height (heightView_bridge p)
-    before x q y D U nd hx (by rw [fgsaCoreReads_def]; exact hfgread) hbefore hq
-    (by rw [fgsaCoreReads_def]; exact ⟨H, hdecode, hH⟩)
+    before x q y D U nd hx (by rw [d7a4r_reads_eq]; exact hfgread) hbefore hq
+    (by rw [d7a4r_reads_eq]; exact ⟨H, hdecode, hH⟩)
     (by
       intro B hB
-      rw [fgsaCoreReads_def] at hB ⊢
+      rw [d7a4r_reads_eq] at hB ⊢
       have heq := Option.some.inj (hdecode.symm.trans hB)
       subst B
       simpa only [hHe] using hcover)
     (by
       intro A B _ _ hp
-      rw [fgsaCoreReads_def] at hp
+      rw [d7a4r_reads_eq] at hp
       exact eraseFG_preceq_iff.mp hp)
-    (by rw [fgsaCoreReads_def]; exact (Finset.filter_subset _ _) hD)
+    (by rw [d7a4r_reads_eq]; exact (Finset.filter_subset _ _) hD)
     hDh hDJ hDj hDfin
     (by
       intro cut b i z W hi hW rows
@@ -762,7 +794,7 @@ theorem pending_action_head
     (by
       intro j z r a u B timeout ha hu hp ht
       exact hnoRow j z r a u B timeout ((d7a4r_row_eq p c E rho j r z a).mp ha) hu hp ht)
-  simp only [c2_observations, fgsaCoreReads_def] at result
+  simp only [c2_observations_eq, d7a4r_reads_eq] at result
   exact result
 
 private theorem d7a4r_source_service (w : HealingWitness) (q opening : Nat)
@@ -802,7 +834,7 @@ private theorem d7a4r_source_service (w : HealingWitness) (q opening : Nat)
     rw [hC] at hs
     rw [actionSourceFG_def] at hs
     obtain ⟨nd, hnd, hsource⟩ := Option.map_eq_some_iff.mp hs
-    rw [fgsaCoreReads_def, ← (fgsa_eventReads_eq_compose E rho hx _).2.2.2.2.2.1]
+    rw [d7a4r_reads_eq, ← (fgsa_eventReads_eq_compose E rho hx _).2.2.2.2.2.1]
     exact ⟨nd, hnd, hsource⟩
   · intro hlt
     have hcover : ∀ x ∈ rho.honest, ∃ H,
@@ -839,7 +871,7 @@ private theorem d7a4r_source_service (w : HealingWitness) (q opening : Nat)
     obtain ⟨C, hsource, hDC⟩ := openingSource_extends_served E rho j hx q D hkept' hserved'
     change FGSA.fgSource p (((fgsa p c).clock _ _).st) = some C at hsource
     rw [hclock] at hsource
-    rw [fgsaCoreReads_def, ← (fgsa_eventReads_eq_compose E rho hx _).2.2.2.2.2.1]
+    rw [d7a4r_reads_eq, ← (fgsa_eventReads_eq_compose E rho hx _).2.2.2.2.2.1]
     exact ⟨nd, C, hnd, hsource, hDC⟩
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -877,13 +909,13 @@ theorem finality_action_source (w : HealingWitness) (q y opening : Nat)
     hstart hproposal h2 h3 h6 hGST hhor hne hheads hjoined hconfirmed hFgate hframe
   have hcap' : ∀ nd, FGCompose.postClock E rho hx (p.actionTime q) = some nd →
       ∀ B ∈ ((fgsaCoreReads p c).core nd).fg.TF, (heightView p B).h ≤ y + 1 := by
-    rw [fgsaCoreReads_def]
+    rw [d7a4r_reads_eq]
     rw [← (fgsa_eventReads_eq_compose E rho hx _).2.2.2.2.2.1]
     exact hcap
   have h := FGCompose.finality_action_source (fgsaCoreReads p c) (c2_observations p c)
     (c2_timing p) E rho (fgsaCoreLaws p c) p.E (fgCertificateLaws p).height hx q y opening D
     service hbefore hDh hcap'
-  simp only [c2_observations, c2_timing, fgsaCoreReads_def] at h
+  simp only [c2_observations_eq, c2_timing_eq, d7a4r_reads_eq] at h
   rw [← (fgsa_eventReads_eq_compose E rho hx _).2.2.2.2.2.1] at h
   exact h
 
@@ -985,7 +1017,7 @@ theorem fresh_unanimous_rows
       intro i y U B
       change (decide (1 ≤ y + 1) && decide (y < y + 1)) = true
       simp only [Nat.le_add_left, Nat.lt_succ_self, decide_true, Bool.and_self])
-    (by intro nd; rw [fgsaCoreReads_def]; rfl)
+    (by intro nd; rw [d7a4r_reads_eq]; rfl)
     (by
       intro i q nd row hn hw hr
       exact d7a4r_release p c E rho i q nd row hn hw hr)
@@ -995,7 +1027,7 @@ theorem fresh_unanimous_rows
       obtain ⟨nd, C, hn, hw, hs, path, hh⟩ := hreads i hi
       refine ⟨nd, C, ?_, hw, ?_, path, hh⟩
       · exact (fgsa_eventReads_eq_compose E rho _ _).2.2.2.2.2.1 ▸ hn
-      · rw [fgsaCoreReads_def]; exact hs)
+      · rw [d7a4r_reads_eq]; exact hs)
     (by
       intro i hi nd hn
       exact hfields i hi nd ((fgsa_eventReads_eq_compose E rho _ _).2.2.2.2.2.1 ▸ hn))
@@ -1049,7 +1081,7 @@ theorem actual_anchor_cap
     (by
       intro j z r a u h B timeout ha hu hp ht
       exact hrows j z r a u h B timeout ((d7a4r_row_eq p c E rho j r z a).mp ha) hu hp ht)
-  simpa only [d7a4r_held_eq, c2_timing, c2_observations] using result
+  simpa only [d7a4r_held_eq, c2_timing_eq, c2_observations_eq] using result
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Paper 22:1265–1289: keep the actual anchor key, or cover it by finality.

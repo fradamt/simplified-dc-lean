@@ -132,7 +132,8 @@ theorem terminalCarriage_general_W
           exact ⟨e, he, by simp only [hej, heX, hf, decide_true]⟩
         have useful : SimplexFG.Window.staleUseful
             (KitFG.Window.parentState Ef cfg K X.parent X.slot) row = true := by
-          rw [historyRowHeight, hp] at hh
+          delta historyRowHeight at hh
+          rw [hp] at hh
           rw [SimplexFG.Window.staleUseful_def, hf]
           cases hr : row.height_pair with
           | empty => rw [hr] at hh; cases hh

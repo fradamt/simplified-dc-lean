@@ -12,6 +12,20 @@ namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG AvailableChain.KitFG
 open AvailableChain.FGSA.Window (CoveredW)
 
+private def d7a4b_proposalFG (p : Params) {In : Type} (c : AppCodec In) :=
+  (fgsaCoreReads p c).proposalFG
+
+private theorem d7a4b_reads_eq (p : Params) {In : Type} (c : AppCodec In) :
+    fgsaCoreReads p c =
+      { core := fun nd => ⟨nd.st.base, nd.st.fg, nd.st.proposals, nd.st.rowPool⟩
+        erase := eraseFG
+        source := fun nd => FGSA.fgSource p nd.st
+        headVote := fun nd s => FGSA.headVote p nd.st s
+        finalityHead := fun nd => FGSA.fgBlockOf nd.st (FGSA.fgHead p nd.st)
+        proposalFG := d7a4b_proposalFG p c } :=
+  congrArg (fun reads => { reads with proposalFG := d7a4b_proposalFG p c })
+    (fgsaCoreReads_def p c)
+
 section
 
 private abbrev d7a4b_w_Old := FGSA.Window.State
@@ -223,6 +237,17 @@ private def d7a4b_timing (p : Params) : FGCompose.FGTiming where
   gate := SA.gateTime p.toParams
   action := p.actionTime
 
+private theorem d7a4b_timing_eq (p : Params) : d7a4b_timing p =
+    { delta := p.Δ
+      roundSlots := p.R
+      proposal := SA.proposalTime p.toParams
+      vote := SA.voteTime p.toParams
+      early := SA.earlyTime p.toParams
+      freeze := SA.freezeTime p.toParams
+      release := SA.releaseTime p.toParams
+      gate := SA.gateTime p.toParams
+      action := p.actionTime } := rfl
+
 private theorem d7a4b_timing_laws (p : Params) :
     FGCompose.FGTimingLaws (d7a4b_timing p) where
   delta_pos := p.deltaPos
@@ -245,6 +270,12 @@ private def d7a4b_observations : FGCompose.FGObservationReads (fgsaCoreReads p c
   finality := finalityView p
   controls nd := FGSA.controls p nd.st
   viable nd X := domainR p nd.st X
+
+private theorem d7a4b_observations_eq : d7a4b_observations p c =
+    { height := heightView p
+      finality := finalityView p
+      controls := fun nd => FGSA.controls p nd.st
+      viable := fun nd X => domainR p nd.st X } := rfl
 
 private def d7a4b_signer (a : RowWire p.n) : Option (Fin p.n) := match a.auth with
   | .seat .fg i => some i
@@ -288,11 +319,11 @@ private theorem d7a4b_row_eq (j r : Nat) (x : V) (a : RowWire p.n) :
 
 private theorem d7a4b_source_eq (x : V) (r : Nat) :
     FGCompose.actionSourceFG (fgsaCoreReads p c) E rho (d7a4b_timing p) x r =
-      actionSourceFG p c E rho x r := by rw [fgsaCoreReads_def]; rfl
+      actionSourceFG p c E rho x r := by rw [d7a4b_reads_eq]; rfl
 
 private theorem d7a4b_held_eq (i : Nat) (x : V) (B : FGBlock (Fin p.n)) :
     FGCompose.HeldAt (fgsaCoreReads p c) E rho i x B = HeldAt p c E rho i x B := by
-  rw [fgsaCoreReads_def]
+  rw [d7a4b_reads_eq]
   rfl
 
 private theorem d7a4b_rowHeight_eq (a : RowWire p.n) :
@@ -427,9 +458,9 @@ private theorem d7a4b_signer_iff (a : RowWire p.n) (i : Fin p.n) :
     d7a4b_signer p a = some i ↔ a.auth = .seat .fg i := by
   rcases a with ⟨auth, payload⟩
   cases auth with
-  | none => simp [d7a4b_signer]
-  | proposer s => simp [d7a4b_signer]
-  | seat label j => cases label <;> simp [d7a4b_signer]
+  | none => delta d7a4b_signer; simp
+  | proposer s => delta d7a4b_signer; simp
+  | seat label j => cases label <;> delta d7a4b_signer <;> simp
 
 private theorem d7a4b_namesEntry (k : RowKind) (a : RowWire p.n) (y : Nat)
     (U : FGBlock (Fin p.n)) :
@@ -446,8 +477,9 @@ private theorem d7a4b_complete_eq (x : V) (a : RowWire p.n) :
 private theorem d7a4b_receipt_eq (deltaF : Time) :
     FGCompose.TRowsReceipt (fgsaCoreReads p c) (fgsaSafetyReads p c) E rho (d7a4b_timing p)
       (fun nd => FGSA.blockWireRows nd.st) deltaF = TRowsReceipt p c E rho deltaF := by
-  simp only [FGCompose.TRowsReceipt, TRowsReceipt, d7a4b_row_eq,
-    FGCompose.HeldBefore, HeldBefore, fgsaCoreReads_def]
+  rw [TRowsReceipt_def]
+  delta FGCompose.TRowsReceipt FGCompose.HeldBefore HeldBefore
+  simp only [d7a4b_row_eq, d7a4b_reads_eq]
   rfl
 
 private theorem d7a4b_validParent_eq (s : Slot) (Q : Block) (a : RowWire p.n) :
@@ -509,11 +541,13 @@ private theorem d7a4b_held (s : Slot) (a : RowWire p.n) :
   constructor
   · rintro ⟨nd, hn, ha⟩
     refine ⟨nd.st, Option.map_eq_some_iff.mpr ⟨nd, hn, rfl⟩, ?_⟩
-    simpa only [FGCompose.rowHeld, fgsaCoreReads_def, rowHeld] using ha
+    rw [d7a4b_reads_eq] at ha
+    exact ha
   · rintro ⟨st, hs, ha⟩
     obtain ⟨nd, hn, rfl⟩ := Option.map_eq_some_iff.mp hs
     refine ⟨nd, hn, ?_⟩
-    simpa only [FGCompose.rowHeld, fgsaCoreReads_def, rowHeld] using ha
+    rw [d7a4b_reads_eq]
+    exact ha
 
 private theorem d7a4b_selection (h : TRowsSelect p c E rho) :
     FGCompose.TRowsSelect (fgsaCoreReads p c) (fgsaSafetyReads p c) E rho (d7a4b_timing p)
@@ -550,11 +584,12 @@ private theorem d7a4b_occurrence (s : Slot) (Q : Block) (H : FGBlock (Fin p.n))
 
 private theorem d7a4b_r6w (w : Window.State (Fin p.n)) (a : Row (Fin p.n)) :
     SimplexFG.Window.r6w (d7a4b_w_toWindow w) a = Window.r6w w a := by
-  simp only [SimplexFG.Window.r6w_def, Window.r6w_def,
+  cases hp : a.height_pair <;> cases hf : a.finality_pair <;>
+    simp only [SimplexFG.Window.r6w_def, Window.r6w_def,
     SimplexFG.Window.heightMatch_def, Window.heightMatch_def,
     SimplexFG.Window.staleUseful_def, Window.staleUseful_def,
     SimplexFG.Window.windowMatch_def, Window.windowMatch_def,
-    d7a4b_w_state_eq, List.any_map, Function.comp_def, d7a4b_w_entry_eq]
+    d7a4b_w_state_eq, List.any_map, Function.comp_def, d7a4b_w_entry_eq, hp, hf]
   rfl
 
 private theorem d7a4b_valid (hv : V2.D.ExecutionValid E rho) (X : FGBlock (Fin p.n))
@@ -599,7 +634,8 @@ private theorem d7a4b_child_eq (X U : FGBlock (Fin p.n)) (y : Nat) :
   change (∃ e ∈ (Window.derive p p.K_W X.parent).W.map d7a4b_w_toEntry,
     e.j = y ∧ e.X = U ∧ ∃ Q, p.E.IsQuorum Q ∧ ∀ i ∈ Q,
       i ∈ e.Q ∨ ∃ row ∈ X.rows, FGCompose.FinRowNames row i y U) ↔ _
-  simp only [List.mem_map, FGCompose.FinRowNames, FinRowNames_def]
+  delta FGCompose.FinRowNames
+  simp only [List.mem_map, FinRowNames_def]
   constructor
   · rintro ⟨e, ⟨d, hd, rfl⟩, hy, hU, Q, hQ, hi⟩
     exact ⟨d, hd, hy, hU, Q, hQ, hi⟩
@@ -639,11 +675,11 @@ private theorem d7a4b_batch_to [Fintype V] (ΔF : Time) (q y : Nat)
     ?_, ?_, ?_, ?_⟩
   · rw [d7a4b_faulty_eq]
     exact kmid_faulty_weight p c E rho h.base h.faultQ
-  · simpa only [d7a4b_carrier_eq, fgsaCoreReads_def, fgsaSafetyReads_def] using h.carrier
+  · simpa only [d7a4b_carrier_eq, d7a4b_reads_eq, fgsaSafetyReads_def] using h.carrier
   · obtain ⟨st, hs, hp⟩ := h.parent
     obtain ⟨nd, hn, rfl⟩ := Option.map_eq_some_iff.mp hs
     refine ⟨nd, hn, ?_⟩
-    simpa only [fgsaCoreReads_def] using hp
+    simpa only [d7a4b_reads_eq] using hp
   · rw [← d7a4b_w_height_eq]
     exact h.birth
   · simpa only [d7a4b_w_retained_eq, d7a4b_w_covered_eq] using h.retainedOrCovered
@@ -655,14 +691,15 @@ private theorem d7a4b_batch_to [Fintype V] (ΔF : Time) (q y : Nat)
     refine ⟨j, a, (d7a4b_row_eq p c E rho j q _ a).mpr ha,
       (d7a4b_complete_eq p c rho _ a).mpr hc, (d7a4b_signer_iff p a i).mpr hs,
       hn, ?_, (d7a4b_held p c E rho _ _).mpr hheld, ?_⟩
-    · simpa only [FGCompose.HeldBefore, HeldBefore, FGCompose.rowHeld, rowHeld,
-        fgsaCoreReads_def, d7a4b_timing] using hr
+    · delta HeldBefore rowHeld at hr
+      delta FGCompose.HeldBefore FGCompose.rowHeld
+      simpa only [d7a4b_reads_eq, d7a4b_timing_eq] using hr
     · intro hret
       obtain ⟨hr, hv⟩ := hv ((d7a4b_w_retained_eq p _ _ _).mp hret)
       refine ⟨?_, ?_⟩
       · rw [d7a4b_parentState, d7a4b_rowValid_eq]
         exact hr
-      · rw [fgsaCoreReads_def]
+      · rw [d7a4b_reads_eq]
         exact (d7a4b_validParent_eq p c E rho _ _ _).mpr hv
 
 end
@@ -717,16 +754,19 @@ theorem finalityRow_bit_or_carried_W
       rw [fgsaSafetyReads_def] at hd
       exact d7a4b_occurrence p c E rho s Q H nd a u hn hp hm hd)
     X U y wireRows (by
-      rw [fgsaCoreReads_def]
+      rw [d7a4b_reads_eq]
       exact (d7a4b_carrier_eq p c E rho _ _ _).mpr hc)
     (by simpa only [fgsaSafetyReads_def] using hrows)
-    (by simpa only [fgsaCoreReads_def] using parent)
+    (by simpa only [d7a4b_reads_eq] using parent)
     (d7a4b_valid p c E rho hv X hparent) (d7a4b_w_toEntry e) entry hej heX i j r a
     (by simpa only [d7a4b_holder, d7a4b_row_eq] using ha)
     ((d7a4b_signer_iff p a i).mpr hauth) hnames
-    (by rw [fgsaCoreReads_def]; exact (d7a4b_validParent_eq p c E rho _ _ _).mpr hvalid)
+    (by rw [d7a4b_reads_eq]; exact (d7a4b_validParent_eq p c E rho _ _ _).mpr hvalid)
     ((d7a4b_held p c E rho _ _).mpr hheld)
-  simpa only [FGCompose.FinRowNames, FinRowNames_def, d7a4b_w_entry_eq] using result
+  revert result
+  delta FGCompose.FinRowNames
+  intro result
+  simpa only [FinRowNames_def, d7a4b_w_entry_eq] using result
 
 variable [Fintype V]
 

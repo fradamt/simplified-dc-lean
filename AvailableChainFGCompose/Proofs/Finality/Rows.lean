@@ -162,8 +162,13 @@ private theorem d7a4_release (Ef : Electorate (Fin n)) (cfg : FGConfig)
   have hhp : height_pair Λ.toRecord
       (some ((derive Ef cfg C).h, (derive Ef cfg C).T_h.root))
       (some ⟨y, U.root⟩) = .vote (y + 1) (derive Ef cfg C).T_h.root false := by
-    simp only [hC, height_pair, own_lock, hton, Bool.false_eq_true, ↓reduceIte,
-      show y ≠ y + 1 from Nat.ne_of_lt (Nat.lt_succ_self y), hln, htn]
+    have ho : own_lock Λ.toRecord (y + 1) (some ⟨y, U.root⟩) = none := by
+      change (if y = y + 1 then some U.root else Λ.lock (y + 1)) = none
+      simp only [show y ≠ y + 1 from Nat.ne_of_lt (Nat.lt_succ_self y), ↓reduceIte, hln]
+    rw [hC]
+    change (if Λ.timeout (y + 1) = true then _ else _) = _
+    rw [hton, ho, htn]
+    rfl
   have hsame : sameHeightOnce Λ (y + 1) (derive Ef cfg C).T_h.root false = false := by
     delta sameHeightOnce
     rw [List.any_eq_false]
@@ -183,7 +188,8 @@ private theorem d7a4_release (Ef : Electorate (Fin n)) (cfg : FGConfig)
   rw [createRowOnce_def, hfp]
   dsimp only [Option.map_some]
   rw [hhp]
-  simp only [hsame, Bool.false_eq_true, ↓reduceIte, Row.onceKey,
+  delta Row.onceKey
+  simp only [hsame, Bool.false_eq_true, ↓reduceIte,
     Option.filter_some, Nat.lt_succ_self, decide_true, hkey]
 
 /-- The computed client release produces one fixed signed row for each selected seat. -/
@@ -249,8 +255,10 @@ theorem fresh_unanimous_rows (D : FGHistoryWireReads S)
     obtain ⟨j, hj, he⟩ := release i q nd (row i) hnd awake rel
     refine ⟨j, C, ⟨hS i hi, hj, he⟩, ⟨wireValid _ _ _ _, i, hs i, rfl⟩,
       hs i, ?_, hf i, ?_, hh, hearlier i hi⟩
-    · rw [historyRowHeight, hp]
-    · simp only [actionSourceFG, hnd, Option.map_some, src]
+    · delta historyRowHeight
+      rw [hp]
+    · delta actionSourceFG
+      simp only [hnd, Option.map_some, src]
   · intro i _
     rw [hp]; rfl
 

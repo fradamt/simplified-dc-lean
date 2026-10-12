@@ -9,6 +9,20 @@ public section
 namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG AvailableChain.KitFG
 
+private def d7a4rr_proposalFG (p : Params) {In : Type} (c : AppCodec In) :=
+  (fgsaCoreReads p c).proposalFG
+
+private theorem d7a4rr_reads_eq (p : Params) {In : Type} (c : AppCodec In) :
+    fgsaCoreReads p c =
+      { core := fun nd => ⟨nd.st.base, nd.st.fg, nd.st.proposals, nd.st.rowPool⟩
+        erase := eraseFG
+        source := fun nd => FGSA.fgSource p nd.st
+        headVote := fun nd s => FGSA.headVote p nd.st s
+        finalityHead := fun nd => FGSA.fgBlockOf nd.st (FGSA.fgHead p nd.st)
+        proposalFG := d7a4rr_proposalFG p c } :=
+  congrArg (fun reads => { reads with proposalFG := d7a4rr_proposalFG p c })
+    (fgsaCoreReads_def p c)
+
 section
 
 private abbrev d7a4rr_w_Old := FGSA.Window.State
@@ -285,11 +299,11 @@ private theorem d7a4rr_row_eq (j r : Nat) (x : V) (a : RowWire p.n) :
 
 private theorem d7a4rr_source_eq (x : V) (r : Nat) :
     FGCompose.actionSourceFG (fgsaCoreReads p c) E rho (d7a4rr_timing p) x r =
-      actionSourceFG p c E rho x r := by rw [fgsaCoreReads_def]; rfl
+      actionSourceFG p c E rho x r := by rw [d7a4rr_reads_eq]; rfl
 
 private theorem d7a4rr_held_eq (i : Nat) (x : V) (B : FGBlock (Fin p.n)) :
     FGCompose.HeldAt (fgsaCoreReads p c) E rho i x B = HeldAt p c E rho i x B := by
-  rw [fgsaCoreReads_def]
+  rw [d7a4rr_reads_eq]
   rfl
 
 private def d7a4rr_point (p : Params) (w : HealingWitness) : FGCompose.FGServicePoint :=
@@ -427,9 +441,9 @@ private theorem d7a4rr_signer_iff (a : RowWire p.n) (i : Fin p.n) :
     d7a4rr_signer p a = some i ↔ a.auth = .seat .fg i := by
   rcases a with ⟨auth, payload⟩
   cases auth with
-  | none => simp [d7a4rr_signer]
-  | proposer s => simp [d7a4rr_signer]
-  | seat label j => cases label <;> simp [d7a4rr_signer]
+  | none => delta d7a4rr_signer; simp
+  | proposer s => delta d7a4rr_signer; simp
+  | seat label j => cases label <;> delta d7a4rr_signer <;> simp
 
 private theorem d7a4rr_namesEntry (k : RowKind) (a : RowWire p.n) (y : Nat)
     (U : FGBlock (Fin p.n)) :
@@ -446,8 +460,9 @@ private theorem d7a4rr_complete_eq (x : V) (a : RowWire p.n) :
 private theorem d7a4rr_receipt_eq (deltaF : Time) :
     FGCompose.TRowsReceipt (fgsaCoreReads p c) (fgsaSafetyReads p c) E rho (d7a4rr_timing p)
       (fun nd => FGSA.blockWireRows nd.st) deltaF = TRowsReceipt p c E rho deltaF := by
-  simp only [FGCompose.TRowsReceipt, TRowsReceipt, d7a4rr_row_eq,
-    FGCompose.HeldBefore, HeldBefore, fgsaCoreReads_def]
+  rw [TRowsReceipt_def]
+  delta FGCompose.TRowsReceipt FGCompose.HeldBefore HeldBefore
+  simp only [d7a4rr_row_eq, d7a4rr_reads_eq]
   rfl
 
 private theorem d7a4rr_validParent_eq (s : Slot) (Q : Block) (a : RowWire p.n) :
@@ -552,7 +567,7 @@ private theorem d7a4rr_batch_to [Fintype V] (ΔF : Time) (k : RowKind) (q y : Na
     ?_, h.entry, h.path, ?_⟩
   · rw [d7a4rr_faulty_eq]
     exact kmid_faulty_weight p c E rho h.base h.faultQ
-  · simpa only [d7a4rr_carrier_eq, fgsaCoreReads_def, fgsaSafetyReads_def] using h.carrier
+  · simpa only [d7a4rr_carrier_eq, d7a4rr_reads_eq, fgsaSafetyReads_def] using h.carrier
   · simp only [d7a4rr_holder]
     obtain ⟨Q, hh, hq, hw⟩ := h.valid
     refine ⟨Q, (fun i hi => (kmid_honestSeats_mem p c rho i).mp (hh hi)), hq, ?_⟩
@@ -561,9 +576,9 @@ private theorem d7a4rr_batch_to [Fintype V] (ΔF : Time) (k : RowKind) (q y : Na
     refine ⟨j, r, a, t, hr, (d7a4rr_row_eq p c E rho j r _ a).mpr ha,
       (d7a4rr_signer_iff p a i).mpr hsign, (d7a4rr_namesEntry p c k a y U).mpr hn, ht, htime,
       ?_, ?_⟩
-    · rw [fgsaCoreReads_def]
+    · rw [d7a4rr_reads_eq]
       exact (d7a4rr_validParent_eq p c E rho _ _ a).mpr hv
-    · rw [fgsaCoreReads_def]
+    · rw [d7a4rr_reads_eq]
       exact (d7a4rr_heightMatch_eq p c E rho _ _ a).mpr hm
   · simp only [d7a4rr_holder]
     intro i hi W hW hr
@@ -581,11 +596,11 @@ private abbrev d7a4rr_Middle (ΔF : Time) (pt : KernelPt) (A : Block) :=
 
 private theorem d7a4rr_fg (nd : (fgsa p c).State) : ((fgsaCoreReads p c).core nd).fg = nd.st.fg :=
     by
-  rw [fgsaCoreReads_def p c]
+  rw [d7a4rr_reads_eq p c]
 
 private theorem d7a4rr_erase (C : FGBlock (Fin p.n)) :
     (fgsaCoreReads p c).erase C = eraseFG C := by
-  rw [fgsaCoreReads_def p c]
+  rw [d7a4rr_reads_eq p c]
 
 private theorem d7a4rr_roundSlots_eq : (d7a4rr_timing p).roundSlots = p.R := rfl
 
@@ -598,7 +613,7 @@ private theorem d7a4rr_storeAt_eq (i : Nat) (x : V) :
 
 private theorem d7a4rr_chain_eq [Fintype V] (X : FGBlock (Fin p.n)) (cut : Time) :
     FGCompose.ChainRowsBefore (fgsaCoreReads p c) E rho X cut =
-      ChainRowsBefore p c E rho X cut := by rw [fgsaCoreReads_def]; rfl
+      ChainRowsBefore p c E rho X cut := by rw [d7a4rr_reads_eq]; rfl
 
 private def d7a4rr_middle_to [Fintype V] (ΔF : Time) (pt : KernelPt) (A : Block)
     (m : KernelMiddleWitness_W p c E rho ΔF pt A) : d7a4rr_Middle p c E rho ΔF pt A where
@@ -609,7 +624,7 @@ private def d7a4rr_middle_to [Fintype V] (ΔF : Time) (pt : KernelPt) (A : Block
   cD := m.cD
   d := m.d
   opening := m.opening
-  eraseA := by simpa only [fgsaCoreReads_def] using m.eraseA
+  eraseA := by simpa only [d7a4rr_reads_eq] using m.eraseA
   carrierA := by
     have h := m.carrierA
     exact (d7a4rr_opening_eq p c E rho _ _ _).mpr h
@@ -721,13 +736,13 @@ private theorem d7a4rr_f_chain (w : HealingWitness) (h : THigh p c E rho w) (hor
     FGCompose.FGHistoricalHighChain (fgsaCoreReads p c) (d7a4rr_observations p c)
       (d7a4rr_timing p) E rho (d7a4rr_point p w) horizon := by
   intro x y r q C D hx hy hC hD hc hd _ _
-  rw [fgsaCoreReads_def p c] at hC hD ⊢
+  rw [d7a4rr_reads_eq p c] at hC hD ⊢
   exact h x y r q C D hx hy hC hD hc hd
 
 private theorem d7a4rr_f_reflect (A B : FGBlock (Fin p.n))
     (h : Block.Preceq ((fgsaCoreReads p c).erase A) ((fgsaCoreReads p c).erase B)) :
     FGBlock.Preceq A B := by
-  rw [fgsaCoreReads_def p c] at h
+  rw [d7a4rr_reads_eq p c] at h
   exact eraseFG_preceq_iff.mp h
 
 private theorem d7a4rr_f_qc (h : RQCOrigin p c E rho) :
@@ -747,7 +762,7 @@ private theorem d7a4rr_f_head :
       (d7a4rr_observations p c) E rho := by
   intro i x t _hx
   dsimp only [d7a4rr_observations]
-  rw [fgsaCoreReads_def p c, fgsaSafetyReads_def p c]
+  rw [d7a4rr_reads_eq p c, fgsaSafetyReads_def p c]
   let st := FGSA.clock p (V2.D.Run.stateBefore E rho i x).st t
   have hs := cstoreInv_clock p _ (cstoreInv_stateBefore E rho i x) t
   cases hk : fgBlockOf st (fgHead p st) with
