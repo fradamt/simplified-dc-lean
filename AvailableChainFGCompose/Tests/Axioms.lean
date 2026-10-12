@@ -422,6 +422,8 @@ public import AvailableChainFGCompose.Proofs.Healing.ResetCut -- shake: keep (#p
 #print axioms AvailableChain.FGCompose.healing_promotion_same_rows_on
 #print axioms AvailableChain.FGCompose.healing_promotion_same_rows
 #print axioms AvailableChain.FGCompose.RowKind
+#print axioms AvailableChain.FGCompose.RowKind.progress
+#print axioms AvailableChain.FGCompose.RowKind.target
 #print axioms AvailableChain.FGCompose.EntryAt
 #print axioms AvailableChain.FGCompose.NamesEntry
 #print axioms AvailableChain.FGCompose.OpeningEntry
@@ -440,6 +442,9 @@ public import AvailableChainFGCompose.Proofs.Healing.ResetCut -- shake: keep (#p
 #print axioms AvailableChain.FGCompose.EffectiveEvent
 #print axioms AvailableChain.FGCompose.PhaseInterval
 #print axioms AvailableChain.FGCompose.PhaseKind
+#print axioms AvailableChain.FGCompose.PhaseKind.contest
+#print axioms AvailableChain.FGCompose.PhaseKind.gap
+#print axioms AvailableChain.FGCompose.PhaseKind.topJ
 #print axioms AvailableChain.FGCompose.RPhase
 #print axioms AvailableChain.FGCompose.SettledPhaseFrame
 #print axioms AvailableChain.FGCompose.TopEvidence

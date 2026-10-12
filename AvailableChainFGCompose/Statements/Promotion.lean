@@ -1,6 +1,7 @@
 module
-public import AvailableChainFGCompose.Statements.Channels
+public import AvailableChainFGCompose.Statements.Channels -- shake: keep (re-export)
 public import AvailableChainFGCompose.Statements.Bounds
+public import AvailableChainFGCompose.Statements.FinalityHistory -- shake: keep (re-export)
 
 @[expose] public section
 
@@ -16,10 +17,6 @@ variable (pair : Wire → NamedHeightPair)
 
 /-- The target case excludes timeout; progress retains either original bit. -/
 inductive RowKind | target | progress
-
-/-- The entry retains both its height and its own entry identity. -/
-def EntryAt (U : FGBlock (Fin n)) (height : Nat) : Prop :=
-  (H U).h = height ∧ (H U).T_h = U
 
 /-- Exact wire pair, before decoding. -/
 def NamesEntry (kind : RowKind) (a : Wire) (height : Nat) (U : FGBlock (Fin n)) : Prop :=
