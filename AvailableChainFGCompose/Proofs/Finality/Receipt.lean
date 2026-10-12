@@ -272,15 +272,13 @@ theorem receipt_jPath (O : FGObservationReads R)
     (ΔF : Time) (q y i : Nat) (x : V) (A X : FGBlock (Fin n)) (t : Time)
     (deltaF : E.Δ ≤ ΔF) (path : FGBlock.Preceq A X.parent)
     (proposal : HonestProposal E rho I X.slot (R.erase X))
-    (w : FGResetHistory) (hM : 1 ≤ w.M)
-    (transfer : ∀ u r C s Q, u ∈ rho.honest →
-      actionSourceFG R E rho T u r = some (some C) → high R O w C →
-      HonestProposal E rho I s Q → r * T.roundSlots + 2 ≤ s →
-      Block.Preceq (R.erase C) Q.parent)
+    (hXhor : T.proposal X.slot ≤ rho.horizon)
+    (sp : FGServicePoint) (hM : 1 ≤ sp.reset.M)
+    (transfer : FGHistoricalHighTransfer R O T E rho I sp rho.horizon)
     (hx : x ∈ rho.honest) (hbound : LivenessBoundW T ΔF)
     (ht : eventTime rho i = some t) (hbefore : t < kernelDeadlineW T ΔF q)
     (hslot : X.slot = q * T.roundSlots + kappaF T ΔF)
-    (hanchor : (O.height A).h_j = y) (hfloor : w.M + 1 ≤ y)
+    (hanchor : (O.height A).h_j = y) (hfloor : sp.reset.M + 1 ≤ y)
     (inv : KitFG.FGStoreInvariant O.height O.finality
       (R.core (V2.D.Run.stateBefore E rho i x)).fg)
     (hStrat : ∀ j z W, z ∈ rho.honest →
@@ -333,9 +331,8 @@ theorem receipt_jPath (O : FGObservationReads R)
   obtain ⟨B, hsource, hentry, hJB⟩ := hEmittedSource j u r a _ hrow hnames
   have hJeq : (O.height C).J = (O.height B).T_h :=
     rootScope C j u r a B hC hrow hsource (congrArg Prod.snd hentry)
-  have hhigh : high R O w B := by
+  have hhigh : sp.reset.M + 1 ≤ (O.height B).h := by
     have hheight := congrArg Prod.fst hentry
-    change w.M + 1 ≤ (O.height B).h
     simp only [Height] at hCJ hXj hfloor hstrict hJheight hheight ⊢
     omega
   have hi := d7a5g_index_before T E rho L hs ΔF q i t hbound ht hbefore
@@ -352,7 +349,10 @@ theorem receipt_jPath (O : FGObservationReads R)
   have hlabel : r * T.roundSlots + 2 ≤ X.slot := by
     rw [hslot]
     exact Nat.add_le_add (Nat.mul_le_mul_right T.roundSlots hrq) hk
-  have hbasepath := transfer u r B X.slot (R.erase X) hrow.1 hsource hhigh proposal hlabel
+  have hrhor : T.action r ≤ rho.horizon :=
+    (hs.in_horizon _ (List.mem_of_getElem? hrow.2.1)).2
+  have hbasepath := transfer u r B hrow.1 hsource hhigh hrhor X.slot (R.erase X) proposal
+    hXhor hlabel
   rw [← erase_parent] at hbasepath
   have hpath : FGBlock.Preceq B X.parent := reflect _ _ hbasepath
   exact Or.inl (hJ.trans hJeq ▸ KitFG.preceq_trans hJB (KitFG.preceq_trans hpath hpp))
@@ -380,14 +380,12 @@ theorem receipt_acceptPrem_W (O : FGObservationReads R)
     (ΔF : Time) (q y : Nat) (A U X : FGBlock (Fin n))
     (deltaF : E.Δ ≤ ΔF) (path : FGBlock.Preceq A X.parent)
     (proposal : HonestProposal E rho I X.slot (R.erase X))
-    (w : FGResetHistory) (hM : 1 ≤ w.M)
-    (transfer : ∀ u r C s Q, u ∈ rho.honest →
-      actionSourceFG R E rho T u r = some (some C) → high R O w C →
-      HonestProposal E rho I s Q → r * T.roundSlots + 2 ≤ s →
-      Block.Preceq (R.erase C) Q.parent)
+    (hXhor : T.proposal X.slot ≤ rho.horizon)
+    (sp : FGServicePoint) (hM : 1 ≤ sp.reset.M)
+    (transfer : FGHistoricalHighTransfer R O T E rho I sp rho.horizon)
     (hbound : LivenessBoundW T ΔF)
     (hslot : X.slot = q * T.roundSlots + kappaF T ΔF)
-    (hanchor : (O.height A).h_j = y) (hfloor : w.M + 1 ≤ y)
+    (hanchor : (O.height A).h_j = y) (hfloor : sp.reset.M + 1 ≤ y)
     (hStrat : ∀ j z W, z ∈ rho.honest →
       W ∈ (R.core (V2.D.Run.stateBefore E rho j z)).fg.TF →
       ∀ J ∈ certified R O W, J ≠ .genesis → ∃ u r a,
@@ -431,7 +429,8 @@ theorem receipt_acceptPrem_W (O : FGObservationReads R)
     have hw := delivery.witness x hx
     exact receipt_jPath R S T E rho I Ef cfg K O justification height_eq hne hK L hs entry
       reflect erase_parent ΔF q y (delivery.selected x hx).index x A X
-      (delivery.selected x hx).time deltaF path proposal w hM transfer hx hbound hw.1 hw.2.1
+      (delivery.selected x hx).time deltaF path proposal hXhor sp hM transfer hx hbound hw.1
+      hw.2.1
       hslot hanchor hfloor (inv _ x hx) hStrat hEmittedSource (rootScope _ x hx)
   · intro x hx
     dsimp only
