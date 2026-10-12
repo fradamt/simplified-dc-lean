@@ -43,6 +43,17 @@ private theorem p0d7a3_carrier_lookup :
 #print axioms p0d7a3_non_genesis_lookup
 #print axioms p0d7a3_carrier_lookup
 
+private theorem p0d7a3_reset_before_start (p : Params) {In V : Type} [DecidableEq V]
+    (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (w : HealingWitness) (h : H0 p c E rho w) : p.actionTime w.rStar < tstar p w := by
+  have hgap : w.rStar * p.R + 2 ≤ w.u := h.label ▸ h.proposal_lower
+  have hd := p.deltaPos
+  change 4 * p.Δ * (w.rStar * p.R : Nat) + 6 * p.Δ <
+    4 * p.Δ * (w.u : Time) + 6 * p.Δ
+  have hcast : (w.rStar * p.R : Time) + 2 ≤ w.u := by exact_mod_cast hgap
+  push_cast
+  nlinarith
+
 private theorem p0d7a3_constructed_run
     (p : Params) {In V : Type} [DecidableEq V] [Fintype V]
     (c : AppCodec In) (E : Generic.Env V)
@@ -78,11 +89,17 @@ private theorem p0d7a3_constructed_run
         actionSourceFG p c E rho x (pt.r + 2) = some (some C) →
         (heightView p C).h ≤ m.d + 2) ∧
       (∀ i x W, i ≤ rho.events.length → i ≤ afterTicksIdx rho (p.actionTime (pt.r + 2)) →
-        HeldAt p c E rho i x W → (heightView p W).h ≤ m.d + 2) := by
+        HeldAt p c E rho i x W → (heightView p W).h ≤ m.d + 2) ∧
+      (∃ j x a C, HonestRowAt p c E rho j x pt.w.rStar a ∧
+        actionSourceFG p c E rho x pt.w.rStar = some (some C) ∧
+        p.actionTime pt.w.rStar < tstar p pt.w ∧
+        (heightView p C).h = pt.w.M + 1 ∧ (heightView p C).h ≤ (heightView p m.A₀).h) ∧
+      (∀ j x r a h, r < pt.r → HonestRowAt p c E rho j x r a → rowHeight a = some h →
+        p.actionTime r < tstar p pt.w → h ≤ (heightView p m.A₀).h) := by
   obtain ⟨m⟩ := kernel_opening_and_middle p c E rho G ΔF pt hδ hK hNames hOrigin
     hBatch hSOCOVTarget A hA
   obtain ⟨hp, hn, hh, _⟩ := kernel_middle_fresh_U p c E rho ΔF pt A m
-  refine ⟨m, ?_, ?_, hp, hn, hh, m.justifiedD, ?_, m.capThroughFinalAction⟩
+  refine ⟨m, ?_, ?_, hp, hn, hh, m.justifiedD, ?_, m.capThroughFinalAction, ?_, ?_⟩
   · intro he
     have hl := (kmid_kernel_bounds hK).2.2.2.2.1
     have hs := m.slotA
@@ -96,7 +113,16 @@ private theorem p0d7a3_constructed_run
   · intro x C hx hC
     exact kernel_middle_source_cap p c E rho ΔF pt A m
       hK.set.base.valid.toScheduleWellFormed hx hC
+  · obtain ⟨j, x, a, C, ha, _, hs, _, hc⟩ := hK.input.wit.fresh
+    refine ⟨j, x, a, C, ha, hs, p0d7a3_reset_before_start p c E rho pt.w hK.input.wit, hc, ?_⟩
+    rw [hc, m.heightA]
+    exact m.highA
+  · intro j x r a h hr ha hh _
+    exact kmid_rows_below_opening p c E rho pt.w hK.input.t.h2 hNames pt.r m.A₀
+      (by rw [m.eraseA]; exact hA) (by rw [m.heightA]; exact m.highA)
+      j x r a h hr ha hh
 
+#print axioms p0d7a3_reset_before_start
 #print axioms p0d7a3_constructed_run
 
 end AvailableChain.FGSA.Run
