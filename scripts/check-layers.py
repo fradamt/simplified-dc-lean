@@ -1295,5 +1295,38 @@ COMPOSE_PROOF_IMPORTS |= frozenset({
 
 COMPOSE_MODULES += ('AvailableChainFGCompose.Proofs.Healing.FrontierSearchBudget',)
 COMPOSE_MODULES += ('AvailableChainFGCompose.Proofs.Healing.FrontierSearchStop',)
+# P0d7a5: exact receipt and acceptance entries.
+COMPOSE_MODULES += (
+    'AvailableChainFGCompose.Proofs.Finality.RestoreReads',
+    'AvailableChainFGCompose.Proofs.Finality.Receipt',
+    'AvailableChainFGCompose.Proofs.Finality.Accept',
+)
+COMPOSE_SAFETY_IMPORTS |= frozenset({
+    ('AvailableChainFGCompose.Statements.FinalityReceipts',
+     'AvailableChainSimplexFG.WindowStore'),
+})
+COMPOSE_PROOF_IMPORTS |= frozenset({
+    ('AvailableChainFGCompose.Proofs.Finality.RestoreReads',
+     'AvailableChainGeneric.Proofs.V2.Duty.Reads'),
+    ('AvailableChainFGCompose.Proofs.Finality.RestoreReads',
+     'AvailableChainKitFG.Ancestry'),
+    ('AvailableChainFGCompose.Proofs.Finality.Receipt',
+     'AvailableChainKitFG.FrameGeometry'),
+    ('AvailableChainFGCompose.Proofs.Finality.Receipt',
+     'AvailableChainGeneric.Proofs.V2.Duty.Reads'),
+    ('AvailableChainFGCompose.Proofs.Finality.Accept',
+     'AvailableChainKitFG.FrameGeometry'),
+    ('AvailableChainFGCompose.Proofs.Finality.Accept',
+     'AvailableChainKitFG.WindowStore'),
+})
+COMPOSE_EDGES |= frozenset({
+    ('AvailableChainFGSAProofs.Proofs.Finality.RestoreReads',
+     'AvailableChainFGCompose.Proofs.Finality.RestoreReads'),
+    ('AvailableChainFGSAProofs.Proofs.Finality.Receipt',
+     'AvailableChainFGCompose.Proofs.Finality.Receipt'),
+    ('AvailableChainFGSAProofs.Proofs.Finality.Accept',
+     'AvailableChainFGCompose.Proofs.Finality.Accept'),
+})
+
 if __name__ == "__main__":
     sys.exit(main())
