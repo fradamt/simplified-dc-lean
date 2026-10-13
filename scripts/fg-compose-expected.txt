@@ -1607,4 +1607,9 @@
     'AvailableChain.FGCompose.FGDependencyTraceLaws.rebuild_data',
     'AvailableChain.FGCompose.FGDependencyTraceLaws.rebuild_program',
     'AvailableChain.FGCompose.FGDependencyTraceLaws.restart_rebuild',
+    'AvailableChain.FGCompose.accepted_body_origin_driver',
+    'AvailableChain.FGCompose.accepted_body_origin_driver_at',
+    'AvailableChain.FGCompose.chainRows_of_head_driver',
+    'AvailableChain.FGCompose.chainRows_of_held_obs',
+    'AvailableChain.FGCompose.ordinary_chainRows_atCut_of_before',
 )
