@@ -19,7 +19,7 @@ variable (parentFG : P.State → Block → Option (FGBlock (Fin n)))
 variable (makeFG : FGBlock (Fin n) → Block → List Wire → FGBlock (Fin n))
 
 /-- A finality certificate height is at most the height of its finalized block. -/
-private theorem local_certificate_le (hc : FGCertificateLaws Ef O.height O.finality)
+private theorem finality_certificate_le (hc : FGCertificateLaws Ef O.height O.finality)
     (K : FGBlock (Fin n)) : (O.finality K).h_F ≤ (O.height (O.finality K).F).h := by
   by_cases hz : (O.finality K).h_F = 0
   · rw [hz]
@@ -73,7 +73,7 @@ theorem finality_liveness_of_forward_W {deltaF t : Time} {g : Nat} {sp : FGServi
       rw [heA]
       exact Gen.Pure.block_preceq_trans (finalBelow x hx) (hSA x hx)
     have hheight := hc.height.h_mono (reflect _ _ hFA)
-    have hcert := local_certificate_le R O Ef hc K
+    have hcert := finality_certificate_le R O Ef hc K
     rw [hKF] at hcert
     rw [hU, ← hd]
     exact Nat.lt_succ_of_le (hcert.trans hheight)
