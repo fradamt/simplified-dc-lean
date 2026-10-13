@@ -572,4 +572,12 @@ AvailableChainFGCompose.Proofs.Healing.FrontierSearchTop
 AvailableChainFGCompose.Proofs.Healing.FrontierSearchTail
 AvailableChainFGCompose.Proofs.Healing.FrontierSearchRise
 AvailableChainFGCompose.Tests.P0d5c
+AvailableChainFGCompose.Proofs.ExecutionHistory
+AvailableChainFGCompose.Proofs.ExecutionObs
+AvailableChainFGCompose.Proofs.Healing.FrontierSearchCompose
+AvailableChainFGCompose.Statements.ExecutionBridges
+AvailableChainFGCompose.Statements.ExecutionObs
+AvailableChainFGCompose.Statements.ExecutionRecords
+AvailableChainFGCompose.Tests.P0d5da
+AvailableChainFGCompose.Tests.X1a
 [EXPECTED-FAIL]

@@ -567,4 +567,12 @@ AvailableChainKitV2.Tests.Duties
 AvailableChainKitV2.Tests.Sleep
 AvailableChainKitV2.Tests.Toy
 
+AvailableChainFGCompose.Proofs.ExecutionHistory
+AvailableChainFGCompose.Proofs.ExecutionObs
+AvailableChainFGCompose.Proofs.Finality.Kernel
+AvailableChainFGCompose.Statements.ExecutionBridges
+AvailableChainFGCompose.Statements.ExecutionObs
+AvailableChainFGCompose.Statements.ExecutionRecords
+AvailableChainFGCompose.Tests.P0d7ba
+AvailableChainFGCompose.Tests.X1a
 [EXPECTED-FAIL]

@@ -567,4 +567,8 @@ AvailableChainKitV2.Tests.Counterexamples
 AvailableChainKitV2.Tests.Duties
 AvailableChainKitV2.Tests.Sleep
 AvailableChainKitV2.Tests.Toy
+AvailableChainFGCompose.Proofs.Finality.Kernel
+AvailableChainFGCompose.Proofs.Healing.FrontierSearchCompose
+AvailableChainFGCompose.Tests.P0d5da
+AvailableChainFGCompose.Tests.P0d7ba
 [EXPECTED-FAIL]
