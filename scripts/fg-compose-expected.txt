@@ -1099,6 +1099,8 @@
     'AvailableChain.FGCompose.frontierSearch_phaseRank_contest_def',
     'AvailableChain.FGCompose.frontierSearch_remaining',
     'AvailableChain.FGCompose.frontierSearch_remaining_def',
+    'AvailableChain.FGCompose.FrontierSearchFamilyStatement',
+    'AvailableChain.FGCompose.FrontierSearchFamilyStatement_def',
     'AvailableChain.FGCompose.FrontierRepairStart.two',
     'AvailableChain.FGCompose.FrontierRepairStart.one',
 
@@ -1450,6 +1452,7 @@
     'AvailableChain.FGCompose.frontierSearch_cut_start',
     'AvailableChain.FGCompose.frontierSearch_event_time_mono',
     'AvailableChain.FGCompose.frontierSearch',
+    'AvailableChain.FGCompose.frontierSearch_family',
     'AvailableChain.FGCompose.FGDependencyDriver.rebuild',
     'AvailableChain.FGCompose.FGDependencyOperation.rebuild',
     'AvailableChain.FGCompose.FGDependencyTraceLaws.rebuild_data',

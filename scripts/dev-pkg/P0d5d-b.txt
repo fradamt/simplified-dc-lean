@@ -4,6 +4,7 @@ AvailableChainFGCompose.Proofs.Healing.FrontierSearchTasks
 AvailableChainFGCompose.Proofs.Healing.FrontierSearchFull
 AvailableChainFGCompose.Tests.P0d5db
 AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchTasks
+AvailableChainFGSAProofs.Tests.P0d5db
 
 [GREEN]
 AvailableChainEngineV2
@@ -341,6 +342,7 @@ AvailableChainFGSAProofs.Proofs.Shared.ScoreRun
 AvailableChainFGSAProofs.Proofs.Shared.SelfDelivery
 AvailableChainFGSAProofs.Proofs.Shared.StoreRun
 AvailableChainFGSAProofs.Proofs.Shared.WindowTerminal
+AvailableChainFGSAProofs.Tests.P0d5db
 AvailableChainFGSAProofs.Tests.SharedAxioms
 AvailableChainFGSARun
 AvailableChainFGSARun.Model.Families

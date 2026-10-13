@@ -919,6 +919,9 @@ public import AvailableChainFGCompose.Proofs.Healing.ResetCut -- shake: keep (#p
 #print axioms AvailableChain.FGCompose.frontierSearch_cut_start
 #print axioms AvailableChain.FGCompose.frontierSearch_event_time_mono
 #print axioms AvailableChain.FGCompose.frontierSearch
+#print axioms AvailableChain.FGCompose.FrontierSearchFamilyStatement
+#print axioms AvailableChain.FGCompose.FrontierSearchFamilyStatement_def
+#print axioms AvailableChain.FGCompose.frontierSearch_family
 #print axioms AvailableChain.FGCompose.FrontierRepairStart.two
 #print axioms AvailableChain.FGCompose.FrontierRepairStart.one
 

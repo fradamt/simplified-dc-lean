@@ -151,6 +151,7 @@
         ),
         'AvailableChainFGCompose.Proofs.Healing.FrontierSearchFull': (
             'AvailableChain.FGCompose.frontierSearch',
+            'AvailableChain.FGCompose.frontierSearch_family',
         ),
         'AvailableChainFGCompose.Statements.FrontierMaturity': (
             'AvailableChain.FGCompose.PromotionSourceAt',
@@ -254,6 +255,8 @@
             'AvailableChain.FGCompose.frontierSearch_phaseRank_contest_def',
             'AvailableChain.FGCompose.frontierSearch_remaining',
             'AvailableChain.FGCompose.frontierSearch_remaining_def',
+            'AvailableChain.FGCompose.FrontierSearchFamilyStatement',
+            'AvailableChain.FGCompose.FrontierSearchFamilyStatement_def',
             'AvailableChain.FGCompose.FrontierRepairStart.two',
             'AvailableChain.FGCompose.FrontierRepairStart.one',
         ),
