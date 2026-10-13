@@ -230,5 +230,16 @@ private theorem mixed_safety_premises_sat :
         (ordinaryFGExecutionObs_laws env run) mixed_client_premises_sat
         mixed_wire_premises_sat i hi)
 
+private theorem mixed_all_honest_safe :
+    (∀ x ∈ run.honest, safetyNoSlash reads env run x) ∧
+    Gen.V2.Duty.HonestNeverSlashed slashing run ∧
+    ¬ slashing.slashes run 7 ∧ ¬ slashing.slashes run 9 := by
+  have h := safety_honest_never_slashed_holder reads env run core
+    mixed_safety_premises_sat.1 mixed_safety_premises_sat.2.1 slashing
+    mixed_safety_premises_sat.2.2.1
+  exact ⟨safety_noSlash_all_of_holder reads env run (electorate 1) cfg
+    mixed_client_premises_sat mixed_wire_premises_sat mixed_safety_premises_sat.2.1,
+    h, h 7 (by decide), h 9 (by decide)⟩
+
 end AvailableChain.FGCompose.Tests.Population
 end
