@@ -2,6 +2,40 @@
 # Review changes. Normal checks never regenerate this file.
 {
     'AvailableChainFGCompose.Tests.Axioms': {
+        'AvailableChainFGCompose.Proofs.ExecutionAcceptance': (
+            'AvailableChain.FGCompose.acceptBefore_driver',
+            'AvailableChain.FGCompose.acceptance_F_keep',
+            'AvailableChain.FGCompose.acceptance_at_strict_read',
+            'AvailableChain.FGCompose.finalizePending_driver',
+            'AvailableChain.FGCompose.ordinary_acceptsFinalBefore_iff',
+            'AvailableChain.FGCompose.selectedAcceptance_keep',
+        ),
+        'AvailableChainFGCompose.Proofs.ExecutionAcceptanceOrdinary': (
+            'AvailableChain.FGCompose.acceptBefore_ordinary',
+            'AvailableChain.FGCompose.finalizePending_ordinary',
+            'AvailableChain.FGCompose.ordinary_acceptanceEffect_iff',
+            'AvailableChain.FGCompose.ordinary_acceptance_cut_eq',
+            'AvailableChain.FGCompose.ordinary_selectedAcceptance',
+            'AvailableChain.FGCompose.ordinary_selectedAcceptance_fields',
+        ),
+        'AvailableChainFGCompose.Statements.ExecutionAcceptance': (
+            'AvailableChain.FGCompose.AcceptBeforeDriverStatement',
+            'AvailableChain.FGCompose.AcceptBeforeDriverStatement_def',
+            'AvailableChain.FGCompose.AcceptsFinalBefore_obs',
+            'AvailableChain.FGCompose.AcceptsFinalBefore_obs_def',
+            'AvailableChain.FGCompose.FGAcceptanceEffectLaws',
+            'AvailableChain.FGCompose.FGAcceptanceEffectLaws.finality',
+            'AvailableChain.FGCompose.FGAcceptanceEffectLaws.leaf',
+            'AvailableChain.FGCompose.FGAcceptanceEffectLaws.mk',
+            'AvailableChain.FGCompose.FGAcceptanceGuards',
+            'AvailableChain.FGCompose.FGAcceptanceGuards.cap',
+            'AvailableChain.FGCompose.FGAcceptanceGuards.finCmp',
+            'AvailableChain.FGCompose.FGAcceptanceGuards.invariant',
+            'AvailableChain.FGCompose.FGAcceptanceGuards.jPath',
+            'AvailableChain.FGCompose.FGAcceptanceGuards.mk',
+            'AvailableChain.FGCompose.FinalizePendingDriverStatement',
+            'AvailableChain.FGCompose.FinalizePendingDriverStatement_def',
+        ),
         'AvailableChainFGCompose.Proofs.ExecutionHistory': (
             'AvailableChain.FGCompose.accepted_body_origin_driver',
             'AvailableChain.FGCompose.accepted_body_origin_driver_at',

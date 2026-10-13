@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGCompose.Proofs.ExecutionAcceptanceOrdinary -- shake: keep (audit)
 public import AvailableChainFGCompose.Statements.FrontierSearch -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchBudget -- shake: keep (audit)
 public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchStop -- shake: keep (audit)
@@ -1442,3 +1443,33 @@ public import AvailableChainFGCompose.Proofs.Healing.ResetCut -- shake: keep (#p
 #print axioms AvailableChain.FGCompose.KernelRunFacts.schedule
 #print axioms AvailableChain.FGCompose.finality_kernel_W_of
 #print axioms AvailableChain.FGCompose.kernel_terminal_bounds_W
+
+-- X1e: selected successful leaf, global retention and ordinary bridges.
+#print axioms AvailableChain.FGCompose.AcceptBeforeDriverStatement
+#print axioms AvailableChain.FGCompose.AcceptBeforeDriverStatement_def
+#print axioms AvailableChain.FGCompose.AcceptsFinalBefore_obs
+#print axioms AvailableChain.FGCompose.AcceptsFinalBefore_obs_def
+#print axioms AvailableChain.FGCompose.FGAcceptanceEffectLaws
+#print axioms AvailableChain.FGCompose.FGAcceptanceEffectLaws.finality
+#print axioms AvailableChain.FGCompose.FGAcceptanceEffectLaws.leaf
+#print axioms AvailableChain.FGCompose.FGAcceptanceEffectLaws.mk
+#print axioms AvailableChain.FGCompose.FGAcceptanceGuards
+#print axioms AvailableChain.FGCompose.FGAcceptanceGuards.cap
+#print axioms AvailableChain.FGCompose.FGAcceptanceGuards.finCmp
+#print axioms AvailableChain.FGCompose.FGAcceptanceGuards.invariant
+#print axioms AvailableChain.FGCompose.FGAcceptanceGuards.jPath
+#print axioms AvailableChain.FGCompose.FGAcceptanceGuards.mk
+#print axioms AvailableChain.FGCompose.FinalizePendingDriverStatement
+#print axioms AvailableChain.FGCompose.FinalizePendingDriverStatement_def
+#print axioms AvailableChain.FGCompose.acceptBefore_driver
+#print axioms AvailableChain.FGCompose.acceptBefore_ordinary
+#print axioms AvailableChain.FGCompose.acceptance_F_keep
+#print axioms AvailableChain.FGCompose.acceptance_at_strict_read
+#print axioms AvailableChain.FGCompose.finalizePending_driver
+#print axioms AvailableChain.FGCompose.finalizePending_ordinary
+#print axioms AvailableChain.FGCompose.ordinary_acceptanceEffect_iff
+#print axioms AvailableChain.FGCompose.ordinary_acceptance_cut_eq
+#print axioms AvailableChain.FGCompose.ordinary_acceptsFinalBefore_iff
+#print axioms AvailableChain.FGCompose.ordinary_selectedAcceptance
+#print axioms AvailableChain.FGCompose.selectedAcceptance_keep
+#print axioms AvailableChain.FGCompose.ordinary_selectedAcceptance_fields
