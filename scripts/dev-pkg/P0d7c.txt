@@ -1,6 +1,11 @@
 # P0d7c generic finality chain G0 (test only).
 [TARGETS]
 AvailableChainFGSAProofs.Tests.P0d7c
+AvailableChainFGCompose.Proofs.Finality.Forward
+AvailableChainFGCompose.Proofs.Finality.Local
+AvailableChainFGCompose.Tests.P0d7bb
+AvailableChainFGSAProofs.Proofs.Finality.Forward
+AvailableChainFGSAProofs.Proofs.Finality.Local
 AvailableChainFGCompose
 AvailableChainFGCompose.Tests.Axioms
 AvailableChainFGSAProofs.Proofs.Assembly.Finality
