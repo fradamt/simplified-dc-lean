@@ -354,8 +354,25 @@ theorem DriverTraceLaws_def (E : Generic.Env V) (rho : V2.D.Run V P)
       ∀ x, FGDependencyTraceLaws E rho x H W D L Step (T x) F (Op x) Arrival Notify
         leafState leafWire ActualRead := rfl
 
-/-- E1F obligation (PC line): the driver trace laws of every receiver give the shared
-execution laws of the canonical driver observation. Stated here; not proved in X1a. -/
+/-- Additive own-write trace of the driver run (the c3 run and read construction supplies
+it): at each tick of a receiver the executed own-record operations over `[dutyCut, done)`
+are exactly the self-visible release list at the drained duty state, in order; no other
+operation of that receiver, in particular none at another receiver's entry, is an own
+record. `DriverTraceLaws` alone does not imply these laws. -/
+structure DriverOwnTraceLaws {Body : Type} (E : Generic.Env V) (rho : V2.D.Run V P)
+    (T : V → FGDependencyTrace P.State)
+    (Op : V → Nat → FGDependencyOperation Body (FGReceiptToken V P.Object) P.Object) :
+    Prop where
+  own_ops : ∀ x j t, rho.events[j]? = some (.tick x t) →
+    (List.range ((T x).done j - (T x).dutyCut j)).flatMap
+        (fun i => driverOwnWrite (Op x ((T x).dutyCut j + i))) =
+      (dependencyReleased E rho ((T x).state ((T x).dutyCut j)) x t).filter P.objSelfVisible
+  own_only_ticks : ∀ x k, k < (T x).length → driverOwnWrite (Op x k) ≠ [] →
+    ∃ j t, rho.events[j]? = some (.tick x t) ∧ (T x).dutyCut j ≤ k ∧ k < (T x).done j
+
+/-- E1F obligation (PC line): the driver trace laws of every receiver and the additive
+own-write trace give the shared execution laws of the canonical driver observation.
+Stated here; not proved in X1a. -/
 def DriverExecutionObsStatement (E : Generic.Env V) (rho : V2.D.Run V P)
     (H : FGHistoricalReads P.State Body) (W : FGDependencyWireReads P Body Row)
     (D : FGDependencyReads P.State Body (FGReceiptToken V P.Object) Latest)
@@ -368,6 +385,7 @@ def DriverExecutionObsStatement (E : Generic.Env V) (rho : V2.D.Run V P)
     (leafState : P.State → Leaf.State) (leafWire : P.Object → Leaf.Object)
     (ActualRead : V → Nat → P.State → Prop) : Prop :=
   DriverTraceLaws E rho H W D L Step F T Op Arrival Notify leafState leafWire ActualRead →
+  DriverOwnTraceLaws E rho T Op →
   FGExecutionObsLaws E rho (driverFGExecutionObs E rho F T Op)
 
 theorem DriverExecutionObsStatement_def (E : Generic.Env V) (rho : V2.D.Run V P)
@@ -385,6 +403,7 @@ theorem DriverExecutionObsStatement_def (E : Generic.Env V) (rho : V2.D.Run V P)
         ActualRead =
       (DriverTraceLaws E rho H W D L Step F T Op Arrival Notify leafState leafWire
         ActualRead →
+      DriverOwnTraceLaws E rho T Op →
       FGExecutionObsLaws E rho (driverFGExecutionObs E rho F T Op)) := rfl
 
 /-- Local step laws that the driver core obligation consumes. `Good` is a reachable
