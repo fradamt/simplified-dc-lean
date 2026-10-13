@@ -220,5 +220,48 @@ theorem safety_event_agreement_origin
     (fun B hB hne => safety_origin_stored_runBlock C L E rho i x B hB hne)
     (fun B hB hne => safety_origin_stored_runBlock C L E rho j y B hB hne)
 
+private theorem safety_origin_read_row (C : FGCoreLaws R)
+    (L : FGSafetyStoreOriginLaws R S H f Good pending)
+    (t : Time) (x : V) (B : FGBlock (Fin n))
+    (hB : B ∈ (R.core (V2.D.Run.readAt E rho t x)).fg.TF)
+    (u : Row (Fin n)) (hu : u ∈ chainRows B) :
+    ∃ a o t', V2.Event.deliver x o t' ∈ rho.events ∧ a ∈ S.proposalRows o ∧
+      S.decode a = some u := by
+  induction B with
+  | genesis => exact (Finset.notMem_empty u hu).elim
+  | node Q s root body rows ih =>
+    change u ∈ rows.toFinset ∪ chainRows Q at hu
+    rcases (Finset.mem_union.mp hu).symm with hu | hu
+    · exact ih ((L.invariant _ (safety_origin_good_readAt C L E rho t x)).closed _ hB) hu
+    · obtain ⟨o, t', hd, -, hrows⟩ :=
+        safety_origin_read_delivery C L E rho t x _ hB (by intro h; cases h)
+      change rows = (S.proposalRows o).filterMap S.decode at hrows
+      have hur : u ∈ rows := List.mem_toFinset.mp hu
+      rw [hrows] at hur
+      obtain ⟨a, ha, hau⟩ := List.mem_filterMap.mp hur
+      exact ⟨a, o, t', hd, ha, hau⟩
+
+/-- `safety_read_carriage` under the origin record. -/
+theorem safety_read_carriage_origin (C : FGCoreLaws R)
+    (L : FGSafetyStoreOriginLaws R S H f Good pending)
+    (W : FGSafetyWireLaws S) (hu : V2.D.UnforgeableSignatures E rho)
+    (t : Time) (x : V) :
+    safetyCarriage S E rho (safetyRows R (V2.D.Run.readAt E rho t x)) := by
+  rw [safetyCarriage_def]
+  intro u hmem
+  rw [safetyRows_def] at hmem
+  obtain ⟨B, hB, hrow⟩ := Finset.mem_biUnion.mp hmem
+  obtain ⟨a, o, t', hd, ha, hdec⟩ := safety_origin_read_row C L t x B hB u hrow
+  refine ⟨a, hdec, fun hh => ?_⟩
+  obtain ⟨k, hk⟩ := List.mem_iff_getElem?.mp hd
+  have hholder :
+      V2.D.Run.holder rho (S.encode a).auth = some (safetyHolder S rho u.signer) := by
+    rw [W.decode_auth a u hdec, safetyHolder_def]
+    rfl
+  obtain ⟨t'', -, i, hi, hem⟩ :=
+    hu.carried x o t' ⟨k, hk⟩ (S.encode a) (W.carried o a ha) _ hh hholder
+  rw [safetyEmits_def]
+  exact ⟨i, t'', hi, hem⟩
+
 end AvailableChain.FGCompose
 end
