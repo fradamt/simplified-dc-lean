@@ -36,5 +36,73 @@ theorem safetyStoreOriginLaws_of_storeLaws (L : FGSafetyStoreLaws R S H f Good) 
   pending_origin := ⟨fun _ h => h, fun _ _ _ _ h => h, fun _ _ _ _ h => h.elim,
     fun _ _ _ _ h => h, fun _ _ _ _ h => h⟩
 
+/-- The shared origin lemma under the origin record: every prefix state is `Good`, each
+stored block is genesis or was delivered to the same node, and each pending object was
+delivered to the same node. -/
+theorem safety_origin_stateBefore (C : FGCoreLaws R)
+    (L : FGSafetyStoreOriginLaws R S H f Good pending)
+    (E : Generic.Env V) (rho : V2.D.Run V P) (i : Nat) (x : V) :
+    Good (V2.D.Run.stateBefore E rho i x) ∧
+      (∀ B ∈ (R.core (V2.D.Run.stateBefore E rho i x)).fg.TF, B = .genesis ∨
+        ∃ o t, V2.Event.deliver x o t ∈ rho.events ∧
+          S.proposalErase o = some (R.erase B) ∧
+          B.rows = (S.proposalRows o).filterMap S.decode) ∧
+      ∀ q, pending (V2.D.Run.stateBefore E rho i x) q →
+        ∃ t, V2.Event.deliver x q t ∈ rho.events := by
+  obtain ⟨pInit, pClock, pProcess, pOwn, pRestart⟩ := L.pending_origin
+  let M : P.State → Prop := fun st => Good st ∧
+    (∀ B ∈ (R.core st).fg.TF, B = .genesis ∨
+      ∃ o t, V2.Event.deliver x o t ∈ rho.events ∧
+        S.proposalErase o = some (R.erase B) ∧
+        B.rows = (S.proposalRows o).filterMap S.decode) ∧
+    ∀ q, pending st q → ∃ t, V2.Event.deliver x q t ∈ rho.events
+  refine V2.D.Engine.stateBefore_step_induction E rho M (Nat.zero_le i) x ?_
+    ⟨L.initial_good, fun B hB => Or.inl (L.initial_tf B hB), fun q hq => (pInit q hq).elim⟩
+  intro k e _ _ he hv hk
+  obtain ⟨hg, htf, hpend⟩ := hk
+  cases e with
+  | restart u t =>
+    change u = x at hv
+    subst u
+    have hM : M (P.restore (P.durable (V2.D.Run.stateBefore E rho k x)) t) :=
+      ⟨L.restart_good _ t hg, fun B hB => htf B (L.restart_tf _ t B hg hB),
+        fun q hq => hpend q (pRestart _ t q hg hq)⟩
+    change M (Function.update (V2.D.Run.stateBefore E rho k) x _ x)
+    rw [Function.update_self]
+    exact hM
+  | tick u t =>
+    change u = x at hv
+    subst u
+    have hown : ∀ st o, M st → M (P.recordOwn st o) := by
+      intro st o hst
+      refine ⟨L.own_good st o hst.1, ?_, fun q hq => hst.2.2 q (pOwn st o q hst.1 hq)⟩
+      rw [C.own_core]
+      exact hst.2.1
+    have hclock : M (P.clock (V2.D.Run.stateBefore E rho k x) t) := by
+      refine ⟨L.clock_good _ t hg, ?_, fun q hq => hpend q (pClock _ t q hg hq)⟩
+      rw [C.clock_fg]
+      exact htf
+    change M (Function.update (V2.D.Run.stateBefore E rho k) x _ x)
+    rw [Function.update_self]
+    exact V2.D.Engine.tick_preserve E rho M hown hclock
+  | deliver u o t =>
+    change u = x at hv
+    subst u
+    have hM : M (P.process (V2.D.Run.stateBefore E rho k x) o) := by
+      refine ⟨L.process_good _ o hg, fun B hB => ?_, fun q hq => ?_⟩
+      · by_cases hold : B ∈ (R.core (V2.D.Run.stateBefore E rho k x)).fg.TF
+        · exact htf B hold
+        · obtain ⟨origin, hsource, hp, hrows⟩ := L.process_origin _ o B hg hB hold
+          rcases hsource with rfl | hwaiting
+          · exact Or.inr ⟨origin, t, List.mem_of_getElem? he, hp, hrows⟩
+          · obtain ⟨t', hd⟩ := hpend origin hwaiting
+            exact Or.inr ⟨origin, t', hd, hp, hrows⟩
+      · rcases pProcess _ o q hg hq with hold | rfl
+        · exact hpend q hold
+        · exact ⟨t, List.mem_of_getElem? he⟩
+    change M (Function.update (V2.D.Run.stateBefore E rho k) x _ x)
+    rw [Function.update_self]
+    exact hM
+
 end AvailableChain.FGCompose
 end
