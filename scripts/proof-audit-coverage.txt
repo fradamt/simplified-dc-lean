@@ -140,6 +140,18 @@
             'AvailableChain.FGCompose.frontierSearch_phase_compose',
             'AvailableChain.FGCompose.frontierSearch_phase_tail',
         ),
+        'AvailableChainFGCompose.Proofs.Healing.FrontierSearchTasks': (
+            'AvailableChain.FGCompose.frontierSearch_task_bounds',
+            'AvailableChain.FGCompose.frontierSearch_rise_task',
+            'AvailableChain.FGCompose.frontierSearch_row_of_rise',
+            'AvailableChain.FGCompose.frontierSearch_row_task',
+            'AvailableChain.FGCompose.frontierSearch_phase_exists',
+            'AvailableChain.FGCompose.frontierSearch_cut_start',
+            'AvailableChain.FGCompose.frontierSearch_event_time_mono',
+        ),
+        'AvailableChainFGCompose.Proofs.Healing.FrontierSearchFull': (
+            'AvailableChain.FGCompose.frontierSearch',
+        ),
         'AvailableChainFGCompose.Statements.FrontierMaturity': (
             'AvailableChain.FGCompose.PromotionSourceAt',
             'AvailableChain.FGCompose.PromotionSourceAt.age',

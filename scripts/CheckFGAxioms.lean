@@ -161,6 +161,8 @@ def composeImportAllowed (m dep : Name) : Bool :=
      `AvailableChainFGCompose.Proofs.Healing.FrontierSearchTail,
      `AvailableChainFGCompose.Proofs.Healing.FrontierSearchRise,
      `AvailableChainFGCompose.Proofs.Healing.FrontierSearchCompose,
+     `AvailableChainFGCompose.Proofs.Healing.FrontierSearchTasks,
+     `AvailableChainFGCompose.Proofs.Healing.FrontierSearchFull,
      `AvailableChainFGCompose.Statements.Attempt,
      `AvailableChainFGCompose.Proofs.Healing.AttemptStop,
      `AvailableChainFGCompose.Proofs.Healing.AttemptSettle,

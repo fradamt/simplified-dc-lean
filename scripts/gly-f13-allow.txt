@@ -371,3 +371,11 @@ F-13 dup healing_frontierTail AvailableChainFGCompose AvailableChainFGSAProofs #
 F-13 dup frontierSearch_rise_rebase AvailableChainFGCompose AvailableChainFGSAProofs # P0: generic home; FG-SA copy frozen (plan v3 §1)
 F-13 dup frontierSearch_rise_of_stop AvailableChainFGCompose AvailableChainFGSAProofs # P0: generic home; FG-SA copy frozen (plan v3 §1)
 F-13 dup frontierSearch_phase_tail AvailableChainFGCompose AvailableChainFGSAProofs # P0: generic home; FG-SA copy frozen (plan v3 §1)
+# P0d5d-b
+F-13 dup frontierSearch_task_bounds AvailableChainFGCompose AvailableChainFGSAProofs # P0: generic home; FG-SA copy frozen (plan v3 §1)
+F-13 dup frontierSearch_rise_task AvailableChainFGCompose AvailableChainFGSAProofs # P0: generic home; FG-SA copy frozen (plan v3 §1)
+F-13 dup frontierSearch_row_of_rise AvailableChainFGCompose AvailableChainFGSAProofs # P0: generic home; FG-SA copy frozen (plan v3 §1)
+F-13 dup frontierSearch_row_task AvailableChainFGCompose AvailableChainFGSAProofs # P0: generic home; FG-SA copy frozen (plan v3 §1)
+F-13 dup frontierSearch_cut_start AvailableChainFGCompose AvailableChainFGSAProofs # P0: generic home; FG-SA copy frozen (plan v3 §1)
+F-13 dup frontierSearch_event_time_mono AvailableChainFGCompose AvailableChainFGSAProofs # P0: generic home; FG-SA copy frozen (plan v3 §1)
+F-13 dup frontierSearch_phase_exists AvailableChainFGCompose AvailableChainFGSAProofs # P0: generic home; FG-SA copy frozen (plan v3 §1)
