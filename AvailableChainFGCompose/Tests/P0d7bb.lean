@@ -1,5 +1,6 @@
 module
-public import AvailableChainFGCompose.Proofs.Finality.Local
+public import AvailableChainFGCompose.Proofs.Finality.Joined
+public import AvailableChainFGCompose.Proofs.Finality.Forward
 
 set_option linter.privateModule false
 

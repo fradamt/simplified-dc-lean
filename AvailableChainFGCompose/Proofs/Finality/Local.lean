@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGCompose.Proofs.Finality.Forward
+public import AvailableChainFGCompose.Proofs.Finality.RestoreReads
 public import AvailableChainGeneric.Proofs.Pure.BlockOrder
 
 public section

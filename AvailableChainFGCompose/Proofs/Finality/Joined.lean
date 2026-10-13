@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGCompose.Proofs.Finality.Kernel
+public import AvailableChainFGCompose.Statements.Finality
 
 public section
 

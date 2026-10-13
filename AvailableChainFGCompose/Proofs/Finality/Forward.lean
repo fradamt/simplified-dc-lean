@@ -1,5 +1,6 @@
 module
-public import AvailableChainFGCompose.Proofs.Finality.Joined
+public import AvailableChainFGCompose.Statements.Finality
+public import AvailableChainFGCompose.Proofs.Finality.Middle
 public import AvailableChainGeneric.Proofs.Pure.ScheduleW
 
 public section
