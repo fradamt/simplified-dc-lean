@@ -289,5 +289,33 @@ private theorem frozen_premises_sat :
   · intro j x t ht hn
     exact False.elim (hn x rfl)
 
+private def frozenSlashing : Gen.V2.Duty.SlashingInterface (V := Fin 1) protocol :=
+  { slashing.toFinalityInterface with
+    slashes rho v := ∃ x y t t' i,
+      SlashableBetween (safetyRows core (V2.D.Run.readAt frozenEnv rho t x))
+        (safetyRows core (V2.D.Run.readAt frozenEnv rho t' y)) i ∧
+        safetyHolder reads rho i = v }
+
+private theorem frozen_safety_premises_sat :
+    (∀ t x, safetyCarriage reads frozenEnv frozenRun
+      (safetyRows core (V2.D.Run.readAt frozenEnv frozenRun t x))) ∧
+    (∀ i, safetyHolder reads frozenRun i ∈ frozenRun.honest →
+      safetyNoSlash reads frozenEnv frozenRun (safetyHolder reads frozenRun i)) ∧
+    safetySlashesRead core reads frozenEnv frozenRun frozenSlashing ∧
+    row ∈ safetyRows core (V2.D.Run.readAt frozenEnv frozenRun 6 0) := by
+  refine ⟨?_, ?_, fun _ => Iff.rfl, by decide⟩
+  · intro t x u hu
+    change u ∈ Finset.biUnion (if _ then {FGBlock.genesis} else {tip}) chainRows at hu
+    split_ifs at hu with hn
+    · simp [chainRows] at hu
+    · have hur : u = row := by simpa [tip, chainRows] using hu
+      subst u
+      exact ⟨wire, rfl, fun _ => ⟨0, 6, rfl, by decide⟩⟩
+  · intro i hi
+    exact (ordinary_obsSafetyNoSlash_iff reads frozenEnv frozenRun _).1
+      (safety_emitted_noSlash_obs reads (electorate 1) cfg frozenEnv frozenRun _
+        (ordinaryFGExecutionObs_laws frozenEnv frozenRun) frozen_premises_sat.1
+        frozen_premises_sat.2.1 i hi)
+
 end AvailableChain.FGCompose.Tests.Population
 end
