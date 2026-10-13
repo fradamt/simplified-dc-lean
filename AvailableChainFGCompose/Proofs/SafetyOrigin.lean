@@ -169,5 +169,25 @@ theorem safety_read_scope_origin (C : FGCoreLaws R)
   obtain ⟨o, t', hd, hp, -⟩ := safety_origin_read_delivery C L E rho t x B hB hne
   exact N.delivered_scope x o t' _ hd hp
 
+variable (R S Ef H f E rho Good pending Q) in
+/-- `safety_run_accountable` under the origin record. -/
+theorem safety_run_accountable_origin
+    (C : FGCoreLaws R) (L : FGSafetyStoreOriginLaws R S H f Good pending)
+    (K : FGCertificateLaws Ef H f) (N : FGSafetyScopeLaws R S E rho Q)
+    (hr : safetyScopedRoots R Q) : SafetyWholeAccountable R S Ef f E rho := by
+  refine ⟨fun A B T T' _ _ hA hB hfA hfB => ?_, fun x hx y hy i j => ?_,
+    fun x hx y hy t t' => ?_⟩
+  · exact (safety_runBlock_accountable K N hr hA hB).imp id (fun hc => hfA.1 ▸ hfB.1 ▸ hc)
+  · exact safety_store_accountable K hr
+      (L.invariant _ (safety_origin_stateBefore C L E rho i x).1)
+      (L.invariant _ (safety_origin_stateBefore C L E rho j y).1)
+      (fun B hB => safety_origin_stored_scope C L N i x hx B hB)
+      (fun B hB => safety_origin_stored_scope C L N j y hy B hB)
+  · exact safety_store_accountable K hr
+      (L.invariant _ (safety_origin_good_readAt C L E rho t x))
+      (L.invariant _ (safety_origin_good_readAt C L E rho t' y))
+      (fun B hB => safety_read_scope_origin C L N t x hx B hB)
+      (fun B hB => safety_read_scope_origin C L N t' y hy B hB)
+
 end AvailableChain.FGCompose
 end
