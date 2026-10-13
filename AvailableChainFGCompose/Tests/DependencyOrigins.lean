@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGCompose.Proofs.Dependency
-public import Mathlib.Tactic.IntervalCases
+public import Mathlib.Tactic.IntervalCases -- shake: keep (own interval_cases use)
 public import AvailableChainFGCompose.Proofs.ExecutionHistory
 
 set_option linter.privateModule false
