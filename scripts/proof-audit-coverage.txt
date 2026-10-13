@@ -8980,4 +8980,23 @@
             'AvailableChain.Block.meet_def',
         ),
     },
+    'AvailableChainFGCompose.Tests.PopulationAxioms': {
+        'AvailableChainFGCompose.Proofs.Population.Safety': (
+            'AvailableChain.FGCompose.safety_honest_never_slashed_holder',
+            'AvailableChain.FGCompose.safety_noSlash_all_of_holder',
+            'AvailableChain.FGCompose.safety_nonholder_noSlash',
+            'AvailableChain.FGCompose.selection_tick_rows_holder',
+        ),
+        'AvailableChainFGCompose.Proofs.Population.Seats': (
+            'AvailableChain.FGCompose.fgHonestSeats_eq_compl',
+            'AvailableChain.FGCompose.fgHonestSeats_nonempty_of_quorum',
+            'AvailableChain.FGCompose.fg_fault_count_eq_nodes_of_equiv',
+            'AvailableChain.FGCompose.fg_fault_weight_of_count',
+            'AvailableChain.FGCompose.high_target_honest_quorum_holder',
+        ),
+        'AvailableChainFGCompose.Statements.Population.Seats': (
+            'AvailableChain.FGCompose.FGHonestSeats',
+            'AvailableChain.FGCompose.FGHonestSeats_def',
+        ),
+    },
 }
