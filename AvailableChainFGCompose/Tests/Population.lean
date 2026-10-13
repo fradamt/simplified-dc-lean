@@ -317,5 +317,19 @@ private theorem frozen_safety_premises_sat :
         (ordinaryFGExecutionObs_laws frozenEnv frozenRun) frozen_premises_sat.1
         frozen_premises_sat.2.1 i hi)
 
+private theorem frozen_safety_and_rows :
+    (∀ x ∈ frozenRun.honest, safetyNoSlash reads frozenEnv frozenRun x) ∧
+    Gen.V2.Duty.HonestNeverSlashed frozenSlashing frozenRun ∧
+    ((V2.D.Run.emitsAt frozenEnv frozenRun 0).filter protocol.objSelfVisible).filterMap
+      reads.decodeObject = [row] := by
+  refine ⟨safety_noSlash_all_of_holder reads frozenEnv frozenRun (electorate 1) cfg
+    frozen_premises_sat.1 frozen_premises_sat.2.1 frozen_safety_premises_sat.2.1,
+    safety_honest_never_slashed_holder reads frozenEnv frozenRun core
+      frozen_safety_premises_sat.1 frozen_safety_premises_sat.2.1 frozenSlashing
+      frozen_safety_premises_sat.2.2.1, ?_⟩
+  have h := selection_tick_rows_holder reads frozenEnv frozenRun (electorate 1) cfg
+    selection ⟨fun _ => rfl⟩ frozen_premises_sat.1 0 0 6 rfl
+  exact h.trans (by decide)
+
 end AvailableChain.FGCompose.Tests.Population
 end
