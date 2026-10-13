@@ -1,8 +1,7 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchCompose
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchRise
-public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchBudget
-public import AvailableChainFGSAProofs.Proofs.Healing.ResetCut
+public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchTasks
 
 public section
 
@@ -12,7 +11,127 @@ First rise, then the first height-M+1 row, with one row selected before both all
 namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
 
+private def p0d5dTskCore (p : Params) {In : Type} (c : AppCodec In) :
+    FGCompose.FGCoreReads (fgsa p c) p.n (GridCO.State p.n .root) (Wire p.n) (RowWire p.n) :=
+  { core := fun nd => ⟨nd.st.base, nd.st.fg, nd.st.proposals, nd.st.rowPool⟩
+    erase := eraseFG
+    source := fun nd => FGSA.fgSource p nd.st
+    headVote := fun nd s => FGSA.headVote p nd.st s
+    finalityHead := fun nd => FGSA.fgBlockOf nd.st (FGSA.fgHead p nd.st)
+    proposalFG := fun nd o => match (toWire p o).decode with
+      | some (.block _ N) => (parentFG nd.st N.erase).map (fun P => fgBlock P N.erase N.rows)
+      | some (.vote _ _ _) => none
+      | some (.row _ _) => none
+      | none => none }
+
+private def p0d5dTskTiming (p : Params) : FGCompose.FGTiming where
+  delta := p.Δ
+  roundSlots := p.R
+  proposal := SA.proposalTime p.toParams
+  vote := SA.voteTime p.toParams
+  early := SA.earlyTime p.toParams
+  freeze := SA.freezeTime p.toParams
+  release := SA.releaseTime p.toParams
+  gate := SA.gateTime p.toParams
+  action := p.actionTime
+
+private theorem p0d5dTskTimingLaws (p : Params) :
+    FGCompose.FGTimingLaws (p0d5dTskTiming p) where
+  delta_pos := p.deltaPos
+  rounds := p.RLarge
+  proposal_eq s := by
+    change 4 * p.Δ * (s : Time) = 4 * (s : Time) * p.Δ
+    ring
+  vote_eq _ := rfl
+  early_eq _ := rfl
+  freeze_eq _ := rfl
+  release_eq _ := rfl
+  gate_eq _ := rfl
+  action_eq _ := rfl
+
+private def p0d5dTskObs (p : Params) {In : Type} (c : AppCodec In) :
+    FGCompose.FGObservationReads (p0d5dTskCore p c) where
+  height := heightView p
+  finality := finalityView p
+  controls nd := FGSA.controls p nd.st
+  viable nd X := domainR p nd.st X
+
+private def p0d5dTskSafety (p : Params) {In : Type} (c : AppCodec In) :
+    FGCompose.FGSafetyReads (fgsa p c) p.n (RowWire p.n) where
+  proposalErase := safetyProposalErase p
+  proposalRows := safetyProposalRows p
+  encode := ofRow p
+  decode := RowWire.toRow?
+  decodeObject := decodeRowObject p
+  fgLabel := .base .fg
+  fgSeats := Equiv.refl _
+  record := Node.record
+  inputs := fun nd => fgInputs p nd.st
+  enabled := fun t => decide (p.actionTime ((p.slotOf t - 1) / p.R) = t)
+  finalizedOut := finalizedOut
+
+private def p0d5dTskSigner {p : Params} (a : RowWire p.n) : Option (Fin p.n) := match a.auth with
+  | .seat .fg i => some i
+  | _ => none
+
+private theorem p0d5dTskDecodeRow {p : Params} {a : RowWire p.n} {u : Row (Fin p.n)}
+    (ha : a.toRow? = some u) :
+    a = ⟨.seat .fg u.signer, .vote ⟨u.height_pair, u.finality_pair⟩⟩ := by
+  rcases a with ⟨auth, ⟨⟨ah, af⟩⟩⟩
+  cases auth with
+  | none => cases ha
+  | proposer s => cases ha
+  | seat label k =>
+    cases label with
+    | head s => cases ha
+    | fg =>
+      have he : (⟨k, ah, af⟩ : Row (Fin p.n)) = u := Option.some.inj ha
+      subst u
+      rfl
+
+private def p0d5dTskWire (p : Params) {In : Type} (c : AppCodec In) :
+    FGCompose.FGHistoryWireReads (p0d5dTskSafety p c) where
+  heightPair a := a.payload.height_pair
+  finalityPair a := a.payload.finality_pair
+  signer := p0d5dTskSigner
+  decode_height a u ha := by
+    delta p0d5dTskSafety at ha
+    rw [p0d5dTskDecodeRow ha]
+    rfl
+  decode_finality a u ha := by
+    delta p0d5dTskSafety at ha
+    rw [p0d5dTskDecodeRow ha]
+    rfl
+  decode_signer a u ha := by
+    delta p0d5dTskSafety at ha
+    rw [p0d5dTskDecodeRow ha]
+    rfl
+
+private def p0d5dTskKind : PhaseKind → FGCompose.PhaseKind
+  | .gap => .gap | .topJ => .topJ | .contest => .contest
+
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
+
+private theorem p0d5dTskRem (G ΔF ρbar tail : Time) (kind : PhaseKind) :
+    frontierSearch_remaining p G ΔF ρbar tail kind =
+      FGCompose.frontierSearch_remaining (p0d5dTskTiming p) G ΔF ρbar tail
+        (p0d5dTskKind kind) := by
+  cases kind
+  · change _ = FGCompose.frontierSearch_remaining (p0d5dTskTiming p) G ΔF ρbar tail .gap
+    simp only [frontierSearch_remaining_eq, FGCompose.frontierSearch_remaining_def,
+      frontierSearch_phaseRank_gap, FGCompose.frontierSearch_phaseRank_gap_def,
+      Nat.reduceEqDiff, ↓reduceIte]
+    rfl
+  · change _ = FGCompose.frontierSearch_remaining (p0d5dTskTiming p) G ΔF ρbar tail .topJ
+    simp only [frontierSearch_remaining_eq, FGCompose.frontierSearch_remaining_def,
+      frontierSearch_phaseRank_topJ, FGCompose.frontierSearch_phaseRank_topJ_def,
+      Nat.reduceEqDiff, ↓reduceIte]
+    rfl
+  · change _ = FGCompose.frontierSearch_remaining (p0d5dTskTiming p) G ΔF ρbar tail .contest
+    simp only [frontierSearch_remaining_eq, FGCompose.frontierSearch_remaining_def,
+      frontierSearch_phaseRank_contest, FGCompose.frontierSearch_phaseRank_contest_def,
+      Nat.reduceEqDiff, ↓reduceIte]
+    rfl
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21:1722–1800; S5 F3, budget arithmetic.
@@ -27,32 +146,12 @@ theorem frontierSearch_task_bounds [Fintype V] (E : Generic.Env V)
         frontierSearchRowBudget p G ΔF ρbar ∧
     0 ≤ 2 * P p + Γ p G - 9 * p.Δ ∧ 0 ≤ P p - 4 * p.Δ ∧
     0 ≤ frontierSearchRiseBudget p G ΔF ρbar ∧ 0 ≤ frontierSearchRowBudget p G ΔF ρbar := by
-  have hP := frontierSearch_period_bound p
-  have hΓ : 4 * p.Δ ≤ Γ p G := hrec.gapPos.trans (fgsa_gamma_bounds p G).1
-  have hρ := frontierSearch_allowance_nonneg E rho hrec hmode
-  have hg : 0 ≤ E_gF p ΔF G ρbar := by
-    rw [E_gF_eq p ΔF G ρbar hbound]
-    change 0 ≤ ρbar + 2 * P p + Γ p G - p.Δ
-    linarith [p.deltaPos]
-  have hj : 0 ≤ E_jF p ΔF G ρbar := by
-    change 0 ≤ max _ _
-    apply le_trans _ (le_max_right _ _)
-    linarith [p.deltaPos]
-  have hcR := frontierSearch_contest_rise_cost p G ΔF ρbar hbound
-  have hcW := frontierSearch_contest_row_cost p ρbar
-  refine ⟨?_, ?_, by linarith [p.deltaPos], by linarith [p.deltaPos], ?_, ?_⟩
-  · rw [frontierSearchRiseBudget_eq]
-    rw [← hcR]
-    cases kind <;> simp [frontierSearch_remaining_eq] <;> linarith only [hg, hj]
-  · rw [frontierSearchRowBudget_eq]
-    rw [← hcW]
-    cases kind <;> simp [frontierSearch_remaining_eq] <;> linarith only [hg, hj]
-  · rw [frontierSearchRiseBudget_eq]
-    rw [← hcR]
-    linarith [p.deltaPos]
-  · rw [frontierSearchRowBudget_eq]
-    rw [← hcW]
-    linarith [p.deltaPos]
+  have h := FGCompose.frontierSearch_task_bounds (p0d5dTskTiming p) (p0d5dTskTimingLaws p)
+    hrec.gapPos (ΔF := ΔF) ⟨hbound.kappa_le_R⟩
+    (frontierSearch_allowance_nonneg E rho hrec hmode) (p0d5dTskKind kind)
+  rw [FGCompose.frontierSearchRiseBudget_def, FGCompose.frontierSearchRowBudget_def] at h
+  rw [p0d5dTskRem, p0d5dTskRem, frontierSearchRiseBudget_eq, frontierSearchRowBudget_eq]
+  exact h
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21:1722–1800; S5 F3, first task.
@@ -104,18 +203,13 @@ theorem frontierSearch_row_of_rise (E : Generic.Env V) (rho : V2.D.Run V (fgsa p
     (hs : V2.D.ScheduleWellFormed E rho) (cap : RCap p c E rho)
     {i m : Nat} {D : Time} (hm : 1 ≤ m) (hrise : FrontierRiseBy p c E rho i m D) :
     FirstHeightRowBy p c E rho m D := by
-  obtain ⟨j, ev, _, hj, ht, hh, _⟩ := (frontierRiseBy_iff p c E rho i m D).mp hrise
-  obtain ⟨x, W, hW, hWh⟩ := (healing_phaseWitness p c E rho (i := j + 1)
-        (m := frontierAtIdx p c E rho (j + 1)) (by omega) rfl).frontier
-  obtain ⟨l, z, r, a, e, hlj, ha, hn, _⟩ := cap (m - 1) (j + 1) x W hW
-    (by simp only [Height] at *; omega)
-  have hn' : namedEntry a.payload.height_pair = some (m, e) := by
-    simpa only [Nat.sub_add_cancel hm] using hn
-  have hcut : l < timeIdx rho ev.time := by
-    have hjcut := healing_phase_lt_timeIdx p c E rho hs hj le_rfl
-    exact (Nat.le_of_lt_succ hlj).trans_lt hjcut
-  exact frontierSearch_first_row p c E rho ⟨l, z, a, e, ha, hn'⟩
-    ((frontierSearch_event_time_le p c E rho hs ha.2.1 hcut).trans ht)
+  simp only [frontierRiseBy_iff] at hrise
+  exact (firstHeightRowBy_iff p c E rho m D).mpr
+    (FGCompose.frontierSearch_row_of_rise (R := p0d5dTskCore p c) (S := p0d5dTskSafety p c)
+      (O := p0d5dTskObs p c) (T := p0d5dTskTiming p) (E := E) (rho := rho)
+      (D := p0d5dTskWire p c) (Ef := p.E) (cert := fgCertificateLaws p)
+      (inv := fun i x => (storeBundle_stateBefore E rho i x).cstore.fg)
+      (chainRows := fun nd B => chainWireRows nd.st B) (p0d5dTskTimingLaws p) hs cap hm hrise)
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21:1722–1800; S5 F3, second task.
@@ -214,50 +308,21 @@ theorem frontierSearch_cut_start [Fintype V] (E : Generic.Env V)
     rw [Gen.V2.Duty.faulty_def, he, Finset.sdiff_empty, Finset.card_univ, hn] at hf
     have := p.nPos
     omega
-  obtain ⟨x, hx⟩ := hne
-  have hs := hrec.base.valid.toScheduleWellFormed
-  have hstart := healing_recovery_start_lower (p := p) E
-  have hgrid : u₀ = ((4 * ((rG + 2) * p.R) + 6 : Nat) : Time) * p.Δ := by
-    rw [hu₀]
-    change 4 * p.Δ * (((rG + 2) * p.R : Nat) : Time) + 6 * p.Δ = _
-    push_cast
-    ring
-  obtain ⟨j, hj, _⟩ := fgsa_tick_total E rho hs hrec.base.delta x hx
-    (4 * ((rG + 2) * p.R) + 6) (hgrid ▸ hhor)
-    (hgrid ▸ hrec.awake x hx u₀ (by
-      have hP : 0 ≤ P p := by
-        have := p.deltaPos
-        change 0 ≤ 4 * (p.R : Time) * p.Δ
-        positivity
-      linarith [hstart, p.deltaPos]) hhor)
-  rw [← hgrid] at hj
-  have hcut : ∃ (i : Nat) (ev : V2.Event V (Obj p)), rho.events[i]? = some ev ∧
-      ev.time = u₀ ∧ timeIdx rho u₀ = i + 1 :=
-    (reset_inclusive_start_iff p c E rho hs u₀).mpr
-      ⟨.tick x u₀, List.mem_of_getElem? hj, rfl⟩
-  obtain ⟨i, ev, hi, ht, hidx⟩ := hcut
-  have hfront : frontierAtIdx p c E rho (i + 1) = M := by
-    rw [← hidx]
-    exact (hM.trans (reset_inclusive_frontier p c E rho hs u₀)).symm
-  have hm : 1 ≤ M := by
-    have hg := (storeBundle_stateBefore E rho (i + 1) x).cstore.fg.gen
-    have hh := ((fgCertificateLaws p).height.one_le_h .genesis).trans
-      ((healing_phase_height_le p c E rho hg).trans (healing_phase_local_le_frontier p c E rho hx))
-    exact hh.trans_eq hfront
-  have kinds : ∃ kind, AttemptPhaseAt p c E rho (i + 1) M kind := by
-    by_cases hc : ContestEvidence p c E rho (i + 1) M
-    · exact ⟨.contest, hc⟩
-    · by_cases ht : TopEvidence p c E rho (i + 1) M
-      · exact ⟨.topJ, ht, hc⟩
-      · exact ⟨.gap, ht, hc⟩
-  obtain ⟨kind, hkind⟩ := kinds
-  refine ⟨i, ev, kind, (frontierSearchStart_iff p c E rho i ev M kind).mpr
-    ⟨hi, ?_, Or.inr ⟨rG, hgst, hfirst, ht.trans hu₀, ?_⟩, hfront, hm, hkind⟩, ht, hidx⟩
-  · rw [ht]
-    have hP := frontierSearch_period_bound p
-    linarith [p.deltaPos]
-  · rw [ht]
-    exact hidx
+  have hlow := healing_recovery_start_lower (p := p) E
+  obtain ⟨i, ev, kind, hst, ht, hidx⟩ := FGCompose.frontierSearch_cut_start
+    (R := p0d5dTskCore p c) (O := p0d5dTskObs p c) (T := p0d5dTskTiming p) (E := E)
+    (rho := rho) (Ef := p.E) (Jst := recoveryStart p E) (cert := fgCertificateLaws p)
+    (inv := fun i x => (storeBundle_stateBefore E rho i x).cstore.fg)
+    (p0d5dTskTimingLaws p) hrec.base.valid.toScheduleWellFormed hne
+    (fun y hy t ht hh => hrec.awake y hy t ht hh) hrec.base.delta
+    (by linarith [hlow, p.deltaPos]) hgst hfirst hu₀ hdelay hM hhor
+  cases kind with
+  | gap => exact ⟨i, ev, .gap, (frontierSearchStart_iff p c E rho i ev M .gap).mpr hst, ht, hidx⟩
+  | topJ =>
+    exact ⟨i, ev, .topJ, (frontierSearchStart_iff p c E rho i ev M .topJ).mpr hst, ht, hidx⟩
+  | contest =>
+    exact ⟨i, ev, .contest, (frontierSearchStart_iff p c E rho i ev M .contest).mpr hst, ht,
+      hidx⟩
 
 omit [DecidableEq V] in
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -267,27 +332,19 @@ theorem frontierSearch_event_time_mono (E : Generic.Env V) (rho : V2.D.Run V (fg
     (hs : V2.D.ScheduleWellFormed E rho) {i j : Nat} {ev ev' : V2.Event V (Obj p)}
     (hi : rho.events[i]? = some ev) (hj : rho.events[j]? = some ev') (hij : i ≤ j) :
     ev.time ≤ ev'.time := by
-  by_cases he : i = j
-  · subst j
-    have hev : ev = ev' := Option.some.inj (hi.symm.trans hj)
-    exact hev ▸ le_rfl
-  · obtain ⟨hil, hie⟩ := List.getElem?_eq_some_iff.mp hi
-    obtain ⟨hjl, hje⟩ := List.getElem?_eq_some_iff.mp hj
-    have hk := (List.pairwise_iff_getElem.mp hs.sorted) i j hil hjl (by omega)
-    rw [hie, hje] at hk
-    exact V2.D.Engine.time_le_of_key_le _ _ hk
+  exact FGCompose.frontierSearch_event_time_mono E rho hs hi hj hij
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21:1744–1800; S5 F3.
 DC: SAME classify a frontier by its accepted evidence. -/
 theorem frontierSearch_phase_exists (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (i m : Nat) : ∃ kind, AttemptPhaseAt p c E rho i m kind := by
-  classical
-  by_cases hc : ContestEvidence p c E rho i m
-  · exact ⟨.contest, hc⟩
-  · by_cases ht : TopEvidence p c E rho i m
-    · exact ⟨.topJ, ht, hc⟩
-    · exact ⟨.gap, ht, hc⟩
+  obtain ⟨k, hk⟩ := FGCompose.frontierSearch_phase_exists (p0d5dTskCore p c)
+    (p0d5dTskObs p c) E rho i m
+  cases k with
+  | gap => exact ⟨.gap, hk⟩
+  | topJ => exact ⟨.topJ, hk⟩
+  | contest => exact ⟨.contest, hk⟩
 
 end AvailableChain.FGSA.Run
 end
