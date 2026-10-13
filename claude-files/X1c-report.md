@@ -584,3 +584,11 @@ AvailableChain.FGCompose.ordinary_FGHolderClientLaws {In V : Type} {P : Availabl
   AvailableChain.FGCompose.FGHolderClientLaws S Ef cfg E rho (AvailableChain.FGCompose.ordinaryFGExecutionObs E rho) ⇑e
 ```
 
+
+## Acceptance iteration
+
+The first precheck found F-13 short-name collisions in the new private helpers
+`client_step` and `emitted_mem`. They are now `holder_client_step` and
+`holder_emitted_mem`; no public type changed. The first DCK run had passed all 76 strict
+axiom audits. The final suite is rerun at the corrected committed revision, and the earlier
+manifest and failing precheck logs are retained under `.lake/x1c/`.

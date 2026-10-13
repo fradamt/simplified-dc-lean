@@ -127,7 +127,7 @@ private theorem run_single (rec : RecordOnce) (i : Fin n)
     exact ⟨rfl, hr.symm⟩
 
 include EL J in
-private theorem client_step (i : Fin n) (j : Nat) :
+private theorem holder_client_step (i : Fin n) (j : Nat) :
     (obsOwnReleased O (holder i) j).filterMap S.decodeObject =
       clientRunOnce Ef cfg i (S.record (O.stateBefore j (holder i)))
         (obsSafetyInputAt S E rho O (holder i) j).toList ∧
@@ -164,7 +164,7 @@ theorem safety_client_trace_obs : FGHolderClientTrace S Ef cfg E rho O holder :=
       rw [List.range_succ, List.filterMap_append]
       simp only [List.filterMap_cons, List.filterMap_nil]
       cases obsSafetyInputAt S E rho O (holder i) k <;> rfl
-    obtain ⟨hs1, hs2⟩ := client_step S Ef cfg E rho O EL J i k
+    obtain ⟨hs1, hs2⟩ := holder_client_step S Ef cfg E rho O EL J i k
     rw [hxs, KitFG.clientRecordOnce_append, KitFG.clientRunOnce_append, ← ih.1,
       record_event S Ef cfg E rho O EL J, safety_record_fold, hs2]
     refine ⟨rfl, ?_⟩
@@ -182,7 +182,7 @@ theorem safety_client_trace_driver (F : FGDependencyDriver V Body P)
   exact safety_client_trace_obs S Ef cfg E rho _ EL J
 
 omit [DecidableEq V] in
-private theorem emitted_mem (W : FGSafetyWireLaws S) {x : V} {a : Wire}
+private theorem holder_emitted_mem (W : FGSafetyWireLaws S) {x : V} {a : Wire}
     {u : Row (Fin n)} {t : Time} {N : Nat}
     (ha : obsEmits O rho x (S.encode a) t) (hd : S.decode a = some u)
     (hN : ∀ j, rho.events[j]? = some (.tick x t) → j < N) :
@@ -200,9 +200,9 @@ theorem safety_emitted_noSlash_obs (W : FGSafetyWireLaws S) (i : Fin n)
   intro a b ha hb u v hu hv
   obtain ⟨t, ha⟩ := ha
   obtain ⟨t', hb⟩ := hb
-  have hm := emitted_mem S rho O W ha hu (N := rho.events.length)
+  have hm := holder_emitted_mem S rho O W ha hu (N := rho.events.length)
     (fun _ h => (List.getElem?_eq_some_iff.mp h).1)
-  have hm' := emitted_mem S rho O W hb hv (N := rho.events.length)
+  have hm' := holder_emitted_mem S rho O W hb hv (N := rho.events.length)
     (fun _ h => (List.getElem?_eq_some_iff.mp h).1)
   rw [(safety_client_trace_obs S Ef cfg E rho O EL J i hi rho.events.length).2] at hm hm'
   exact KitFG.clientRunOnce_noSlash Ef cfg i _ u hm v hm'
