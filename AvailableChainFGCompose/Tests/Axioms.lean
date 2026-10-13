@@ -57,6 +57,7 @@ public import AvailableChainFGCompose.Statements.ExecutionObs -- shake: keep (#p
 public import AvailableChainFGCompose.Statements.ExecutionBridges -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Statements.ExecutionRecords -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Proofs.ExecutionObs -- shake: keep (#print axioms)
+public import AvailableChainFGCompose.Proofs.ExecutionHistory -- shake: keep (#print axioms)
 
 public import AvailableChainFGCompose.Statements.ResetHistory -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Statements.Service -- shake: keep (#print axioms)
@@ -1411,3 +1412,9 @@ public import AvailableChainFGCompose.Proofs.Healing.ResetCut -- shake: keep (#p
 #print axioms AvailableChain.FGCompose.FGDependencyTraceLaws.rebuild_program
 #print axioms AvailableChain.FGCompose.FGDependencyTraceLaws.rebuild_data
 #print axioms AvailableChain.FGCompose.FGDependencyTraceLaws.restart_rebuild
+
+#print axioms AvailableChain.FGCompose.accepted_body_origin_driver
+#print axioms AvailableChain.FGCompose.accepted_body_origin_driver_at
+#print axioms AvailableChain.FGCompose.chainRows_of_head_driver
+#print axioms AvailableChain.FGCompose.chainRows_of_held_obs
+#print axioms AvailableChain.FGCompose.ordinary_chainRows_atCut_of_before

@@ -91,6 +91,7 @@ public import AvailableChainFGCompose.Statements.ExecutionObs
 public import AvailableChainFGCompose.Statements.ExecutionBridges
 public import AvailableChainFGCompose.Statements.ExecutionRecords
 public import AvailableChainFGCompose.Proofs.ExecutionObs
+public import AvailableChainFGCompose.Proofs.ExecutionHistory
 public import AvailableChainFGCompose.Proofs.Finality.RestoreReads
 public import AvailableChainFGCompose.Proofs.Finality.Receipt
 public import AvailableChainFGCompose.Proofs.Finality.Accept

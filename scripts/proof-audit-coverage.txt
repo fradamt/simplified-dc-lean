@@ -2,6 +2,13 @@
 # Review changes. Normal checks never regenerate this file.
 {
     'AvailableChainFGCompose.Tests.Axioms': {
+        'AvailableChainFGCompose.Proofs.ExecutionHistory': (
+            'AvailableChain.FGCompose.accepted_body_origin_driver',
+            'AvailableChain.FGCompose.accepted_body_origin_driver_at',
+            'AvailableChain.FGCompose.chainRows_of_head_driver',
+            'AvailableChain.FGCompose.chainRows_of_held_obs',
+            'AvailableChain.FGCompose.ordinary_chainRows_atCut_of_before',
+        ),
         'AvailableChainFGCompose.Statements.ExecutionObs': (
             'AvailableChain.FGCompose.DriverOwnTraceLaws',
             'AvailableChain.FGCompose.DriverOwnTraceLaws.own_ops',

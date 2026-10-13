@@ -1084,6 +1084,9 @@ COMPOSE_MODULES += (
     'AvailableChainFGCompose.Proofs.ExecutionObs',
 )
 
+# X1b: strict-cut history and accepted-body origin proofs.
+COMPOSE_MODULES += ('AvailableChainFGCompose.Proofs.ExecutionHistory',)
+
 
 def compose_base(dep: str) -> bool:
     return (foundation(dep) or under(dep, "AvailableChainModel.Objects")

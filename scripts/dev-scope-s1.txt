@@ -5,6 +5,8 @@ AvailableChainFGCompose.Statements.ExecutionObs
 AvailableChainFGCompose.Statements.ExecutionBridges
 AvailableChainFGCompose.Statements.ExecutionRecords
 AvailableChainFGCompose.Proofs.ExecutionObs
+AvailableChainFGCompose.Proofs.ExecutionHistory
+AvailableChainFGCompose.Tests.X1b
 AvailableChainFGCompose.Tests.X1a
 AvailableChainFGCompose.Proofs.Healing.Attempt
 AvailableChainFGCompose.Proofs.Healing.AttemptRows
