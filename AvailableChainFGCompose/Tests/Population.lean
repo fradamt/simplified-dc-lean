@@ -250,5 +250,44 @@ private theorem mixed_old_population_blocked :
   · rintro ⟨N, e, _⟩
     exact not_surjective_finite_infinite e e.surjective
 
+private abbrev frozenEnv : Generic.Env (Fin 1) where
+  Δ := 1
+  Δ_pos := by decide
+  t_GST := 0
+  t_GST_nonneg := by decide
+  awake := fun _ _ => true
+private abbrev frozenRun : V2.D.Run (Fin 1) protocol where
+  honest := {0}
+  horizon := 20
+  events := [.tick 0 6]
+  seatOf := fun _ i => i
+  input := fun _ _ => ()
+
+private theorem frozen_premises_sat :
+    FGHolderClientLaws reads (electorate 1) cfg frozenEnv frozenRun
+      (ordinaryFGExecutionObs frozenEnv frozenRun) (safetyHolder reads frozenRun) ∧
+    FGSafetyWireLaws reads ∧
+    (∀ i, safetyHolder reads frozenRun i = (Equiv.refl (Fin 1)) i) ∧
+    frozenRun.events = [.tick 0 6] ∧ frozenRun.horizon = 20 := by
+  refine ⟨?_, mixed_wire_premises_sat, fun _ => rfl, rfl, rfl⟩
+  refine ⟨fun _ => rfl, fun _ _ _ => Subsingleton.elim _ _, rfl, ?_, ?_, ?_⟩
+  · intro x k hk
+    have hx : x = 0 := Subsingleton.elim _ _
+    subst x
+    change k < 3 at hk
+    interval_cases k <;> rfl
+  · intro j x t i ht _
+    have hx : x = 0 := Subsingleton.elim _ _
+    have hi : i = 0 := Subsingleton.elim _ _
+    subst x i
+    have hj : j < 1 := (List.getElem?_eq_some_iff.mp ht).1
+    have hj' : j = 0 := by omega
+    subst j
+    have ht' : t = 6 := by simpa [safetyHolder, reads, frozenRun] using ht.symm
+    subst t
+    decide
+  · intro j x t ht hn
+    exact False.elim (hn x rfl)
+
 end AvailableChain.FGCompose.Tests.Population
 end
