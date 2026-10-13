@@ -162,8 +162,9 @@ theorem safety_client_trace_obs : FGHolderClientTrace S Ef cfg E rho O holder :=
         (List.range k).filterMap (obsSafetyInputAt S E rho O (holder i)) ++
           (obsSafetyInputAt S E rho O (holder i) k).toList := by
       rw [List.range_succ, List.filterMap_append]
-      simp only [List.filterMap_cons, List.filterMap_nil]
-      cases obsSafetyInputAt S E rho O (holder i) k <;> rfl
+      cases hx : obsSafetyInputAt S E rho O (holder i) k with
+      | none => rw [List.filterMap_cons_none hx]; rfl
+      | some a => rw [List.filterMap_cons_some hx]; rfl
     obtain ⟨hs1, hs2⟩ := holder_client_step S Ef cfg E rho O EL J i k
     rw [hxs, KitFG.clientRecordOnce_append, KitFG.clientRunOnce_append, ← ih.1,
       record_event S Ef cfg E rho O EL J, safety_record_fold, hs2]

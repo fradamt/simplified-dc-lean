@@ -592,3 +592,9 @@ The first precheck found F-13 short-name collisions in the new private helpers
 `holder_emitted_mem`; no public type changed. The first DCK run had passed all 76 strict
 axiom audits. The final suite is rerun at the corrected committed revision, and the earlier
 manifest and failing precheck logs are retained under `.lake/x1c/`.
+
+The first whole-tree CheckProofEqns run detected 24 lazy imported equation exports from
+simplification in the two new proof modules. Explicit `_def` equations, case lemmas and
+private ordinary-cut reductions replace those simplifications. The resulting whole-tree
+preflight passes: 924 proof modules, 1033 exports, 0 unaccepted. No baseline or public
+signature changed. The final acceptance suite runs on the committed proof-only fix.
