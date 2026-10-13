@@ -1,8 +1,7 @@
 module
 public import AvailableChainFGCompose.Statements.ExecutionBridges
-public import AvailableChainFGCompose.Statements.Observations
 public import AvailableChainFGCompose.Statements.Channels
-public import AvailableChainFGCompose.Statements.SafetyStore
+public import AvailableChainFGCompose.Statements.SafetyStore -- shake: keep (Compose import policy)
 
 @[expose] public section
 
