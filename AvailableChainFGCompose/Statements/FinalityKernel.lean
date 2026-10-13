@@ -171,6 +171,33 @@ structure KernelMiddleWitness_W (cfg : FGConfig) (K : Nat)
   heldAAtEnd : ∀ x ∈ rho.honest,
     A₀ ∈ (R.core (V2.D.Run.stateBefore E rho rho.events.length x)).fg.TF
 
+/-! P0d7b-a: kernel inputs. `KernelRunFacts` replaces the FG-SA aggregates `BaseSet` and
+`Recovery₂` (R7) by the consequences that the kernel reads. -/
+
+/-- The used run facts: schedule, FG fault weight, row delay, seat link and awake suffix. -/
+structure KernelRunFacts (ΔF : Time) : Prop where
+  schedule : V2.D.ScheduleWellFormed E rho
+  fault_weight : Ef.weightOf (historyFaulty S rho) < Ef.q
+  deltaF : E.Δ ≤ ΔF
+  linked : Function.Injective (safetyHolder S rho)
+  awake : ∀ x ∈ rho.honest, ∀ t, E.t_GST ≤ t → t ≤ rho.horizon → E.awake x t = true
+
+variable {decodeProposal bodyErase bodyRows blockWireRows parentFG parentHeight validFor makeFG
+  valid ac} in
+/-- The action reads at the final middle action for the same witness. -/
+structure KernelActionSupply_W {cfg : FGConfig} {K : Nat} {ΔF : Time} {sp : FGServicePoint}
+    {pt : KernelPt} {A : Block}
+    (m : KernelMiddleWitness_W R S O T E rho I D Ef decodeProposal bodyErase bodyRows
+      blockWireRows parentFG parentHeight validFor makeFG valid ac cfg K ΔF sp pt A) : Prop where
+  read : ∀ x nd, postClock E rho x (T.action (pt.r + 2)) = some nd →
+    (R.core (V2.D.Run.stateBefore E rho (afterTicksIdx rho (T.action (pt.r + 2))) x)).fg =
+      (R.core nd).fg
+  service : ∀ x ∈ rho.honest, FGSourceService R E rho x (T.action (pt.r + 2))
+    m.cD ((pt.r + 2) * T.roundSlots) m.X_D
+  head : ∀ x nd, x ∈ rho.honest → postClock E rho x (T.action (pt.r + 2)) = some nd →
+    ∃ H, R.finalityHead nd = some H ∧ H ∈ (R.core nd).fg.TF
+  walk : ∀ x nd, x ∈ rho.honest → postClock E rho x (T.action (pt.r + 2)) = some nd →
+    ∀ H, R.finalityHead nd = some H → Block.Preceq (R.erase m.X_D) (R.erase H)
 
 end AvailableChain.FGCompose
 end
