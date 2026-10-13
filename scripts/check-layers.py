@@ -1303,6 +1303,8 @@ COMPOSE_EDGES |= frozenset({
 COMPOSE_PROOF_IMPORTS |= frozenset({
     ('AvailableChainFGCompose.Proofs.Healing.FrontierSearchStop',
      'AvailableChainGeneric.Proofs.V2.Duty.Reads'),
+    ('AvailableChainFGCompose.Proofs.ExecutionHistory',
+     'AvailableChainGeneric.Proofs.V2.Duty.Reads'),
 })
 
 COMPOSE_MODULES += ('AvailableChainFGCompose.Proofs.Healing.FrontierSearchBudget',)

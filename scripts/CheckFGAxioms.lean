@@ -250,6 +250,8 @@ def composeImportAllowed (m dep : Name) : Bool :=
       -- Lead ruling 2026-10-07 (P2, S3a): the two exact SafetyClient pairs.
       [(`AvailableChainFGCompose.Proofs.SafetyAccountable,
         `AvailableChainKitFG.AccountableCore),
+       (`AvailableChainFGCompose.Proofs.ExecutionHistory,
+        `AvailableChainGeneric.Proofs.V2.Duty.Reads),
        (`AvailableChainFGCompose.Proofs.Healing.FrontierSearchStop,
         `AvailableChainGeneric.Proofs.V2.Duty.Reads),
        (`AvailableChainFGCompose.Proofs.Healing.PhaseFrame,
