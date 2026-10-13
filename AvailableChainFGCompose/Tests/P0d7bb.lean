@@ -9,7 +9,8 @@ namespace AvailableChain.FGCompose.Tests.P0d7bb
 open AvailableChain.SimplexFG AvailableChain.KitFG
 
 /-! P0d7b-b G0 (pure data). (A) the forward round from the recurrence: exact start and finite
-horizon; (B) the joined kernel premise with an independent FG quorum and no recovery bound.
+horizon; (B) the joined kernel premise with an independent FG quorum and no recovery bound;
+(C) the guarded opening premise on a run whose proposer joins after round 1.
 Timing: Δ = 1, R = 4, ΔF = 1 (κ = 2, P = 16, β = 8), g = 1, so W_W = 57. -/
 
 private abbrev xT : FGTiming where
@@ -163,6 +164,108 @@ private theorem xJoinedHorizonShort : ¬ KernelJoinedPrem xT 1 56 1 xH 1 1 8 2 (
   rw [xValues.2.2.2] at this
   exact absurd this (by decide)
 
+/-! (C) The guarded opening premise. One honest node proposes only from slot 12 (time 48):
+before that its duty emits nothing (a join cut after round 1). With t = 40 the guarded
+premise (rounds with t ≤ r·P, here r = 3) holds on this run; the unguarded premise fails at
+round 1. Interface model, not an ExecutionValid FG-SA or PC-SA run. -/
+
+private abbrev oP : V2.ProtocolSpecD Unit where
+  State := Unit
+  Label := Nat
+  Duty := Nat
+  signLabel d := d / 4
+  seats _ := 1
+  Payload := Block
+  Durable := Unit
+  init := ()
+  clock st _ := st
+  actTime d := (d : Time)
+  duties t := if 0 ≤ t then [t.toNat] else []
+  duties_spec s t := by
+    split
+    · next ht =>
+      simp only [List.mem_singleton]
+      constructor
+      · intro hs; subst s; exact Int.toNat_of_nonneg ht
+      · intro hs; subst t; simp
+    · next ht =>
+      constructor
+      · intro hm; cases hm
+      · intro hs; exact False.elim (ht (hs ▸ Int.natCast_nonneg s))
+  duties_nodup t := by split <;> simp
+  act _ d _ := if 48 ≤ d then some .genesis else none
+  gossip _ _ := []
+  process st _ := st
+  selfVisible _ := true
+  recordOwn st _ := st
+  durable st := st
+  restore st _ := st
+  wellFormed _ := true
+  depsPresent _ _ := true
+  processed _ _ := false
+  excludes _ _ := false
+  handles _ _ _ := False
+  carries _ _ := False
+
+private noncomputable abbrev oI : V2.D.Interface oP where
+  confirmed _ := .genesis
+  stable _ := .genesis
+  block := some
+  opening _ := True
+  propLabel s := s
+  propDuty s := 4 * s
+  propDuty_label s := Nat.mul_div_cancel_left s (by decide)
+  propLabel_single _ := rfl
+  propLabel_injective := fun _ _ h => h
+
+private noncomputable abbrev oEnv : Generic.Env Unit := ⟨1, by decide, 0, le_rfl, fun _ _ => true⟩
+
+private noncomputable abbrev oRun : V2.D.Run Unit oP where
+  honest := {()}
+  horizon := 60
+  events := [.tick () 16, .tick () 48]
+  seatOf _ _ := ()
+  input _ _ := ()
+
+/-- The slot-12 duty emits one proposal object at the tick of time 48. -/
+private theorem oEmits12 : ∃ o : oP.Object,
+    V2.D.Run.emits oEnv oRun () o 48 ∧ oI.block o.payload = some .genesis :=
+  ⟨⟨.seat 12 ⟨0, by decide⟩, .genesis⟩, ⟨1, rfl, by decide +kernel⟩, rfl⟩
+
+/-- The slot-4 duty emits nothing at the tick of time 16. -/
+private theorem oEmits4 : ∀ o : oP.Object, ¬ V2.D.Run.emits oEnv oRun () o 16 := by
+  rintro o ⟨i, hi, ho⟩
+  match i, hi, ho with
+  | 0, _, ho =>
+    have he : V2.D.Run.emitsAt oEnv oRun 0 = [] := by decide +kernel
+    rw [he] at ho
+    cases ho
+  | 1, hi, _ => exact absurd hi (by decide)
+  | (_ + 2), hi, _ => cases hi
+
+/-- POSITIVE (premises_sat of the guarded premise): at t = 40 every honest round with
+t ≤ r·P inside the horizon 60 (only r = 3) has an actual honest proposal. -/
+private theorem oGuarded : ∀ r : Nat, xH (r * xT.roundSlots) →
+    (40 : Time) ≤ (r : Time) * FGCompose.P xT → xT.proposal (r * xT.roundSlots) ≤ oRun.horizon →
+    ∃ A, HonestProposal oEnv oRun oI (r * xT.roundSlots) A := by
+  intro r _ htr hh
+  rw [xValues.1] at htr
+  change 4 * ((r * 4 : Nat) : Time) * 1 ≤ 60 at hh
+  dsimp only [Time] at htr hh
+  have hr : r = 3 := by push_cast at hh; omega
+  subst hr
+  obtain ⟨o, ho, hb⟩ := oEmits12
+  exact ⟨.genesis, ⟨by decide, Finset.mem_singleton_self _⟩, o, ho, hb⟩
+
+/-- NEGATIVE: the unguarded premise is false on the same run: round 1 (slot 4, time 16) is
+honest and inside the horizon, but its duty emitted no proposal. -/
+private theorem oUnguardedFails : ¬ ∀ r : Nat, xH (r * xT.roundSlots) →
+    xT.proposal (r * xT.roundSlots) ≤ oRun.horizon →
+    ∃ A, HonestProposal oEnv oRun oI (r * xT.roundSlots) A := by
+  intro h
+  obtain ⟨A, _, o, ho, _⟩ := h 1 (by decide) (by decide)
+  exact oEmits4 o ho
+
 #print axioms xForward
 #print axioms xStartNeeded
 #print axioms xHorizonNeeded
@@ -171,6 +274,8 @@ private theorem xJoinedHorizonShort : ¬ KernelJoinedPrem xT 1 56 1 xH 1 1 8 2 (
 #print axioms xQuorumNeeded
 #print axioms xLateService
 #print axioms xJoinedHorizonShort
+#print axioms oGuarded
+#print axioms oUnguardedFails
 
 end AvailableChain.FGCompose.Tests.P0d7bb
 end
