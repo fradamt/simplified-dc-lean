@@ -489,5 +489,19 @@ theorem frontierSearch_phaseRank_gap_def : frontierSearch_phaseRank .gap = 0 := 
 theorem frontierSearch_phaseRank_topJ_def : frontierSearch_phaseRank .topJ = 1 := rfl
 theorem frontierSearch_phaseRank_contest_def : frontierSearch_phaseRank .contest = 2 := rfl
 
+/-- Blueprint 21:1722–1800; S5 F3 (FrontierSearchCompose:110).
+DC: SAME the unused phase charges remain available until the terminal tail. -/
+def frontierSearch_remaining (G ΔF ρbar tail : Time) (kind : PhaseKind) : Time :=
+  (if frontierSearch_phaseRank kind = 0 then E_gF T ΔF G ρbar else 0) +
+    (if frontierSearch_phaseRank kind = 2 then 0 else E_jF T ΔF G ρbar) +
+    (ρbar + 3 * T.delta + tail)
+
+/-- Blueprint 21:1722–1800; S5 F3. DC: SAME the arithmetic form (F-28 name). -/
+theorem frontierSearch_remaining_def (G ΔF ρbar tail : Time) (kind : PhaseKind) :
+    frontierSearch_remaining T G ΔF ρbar tail kind =
+      (if frontierSearch_phaseRank kind = 0 then E_gF T ΔF G ρbar else 0) +
+        (if frontierSearch_phaseRank kind = 2 then 0 else E_jF T ΔF G ρbar) +
+        (ρbar + 3 * T.delta + tail) := rfl
+
 end AvailableChain.FGCompose
 end
