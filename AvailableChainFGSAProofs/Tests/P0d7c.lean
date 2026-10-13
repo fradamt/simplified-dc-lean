@@ -1,9 +1,28 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Assembly.Finality
-public import AvailableChainFGSAProofs.Proofs.Assembly.Healing
-public import AvailableChainFGSAProofs.Proofs.Assembly.ResetArrival
-public import AvailableChainFGCompose.Proofs.Finality.Local
-public import AvailableChainFGCompose.Proofs.Finality.Joined
+import AvailableChainFGCompose.Proofs.Finality.Joined
+import AvailableChainFGCompose.Proofs.Finality.Local
+import AvailableChainFGSA.Proofs.EmissionFields
+import AvailableChainFGSAProofs.Proofs.Assembly.Healing
+import AvailableChainFGSAProofs.Proofs.Assembly.ResetArrival
+import AvailableChainFGSAProofs.Proofs.Finality.Forward
+import AvailableChainFGSAProofs.Proofs.Finality.Height
+import AvailableChainFGSAProofs.Proofs.Finality.MiddleSupport
+import AvailableChainFGSAProofs.Proofs.Finality.Receipt
+import AvailableChainFGSAProofs.Proofs.Finality.ReceiptSuppliers
+import AvailableChainFGSAProofs.Proofs.Finality.RowsBatch
+import AvailableChainFGSAProofs.Proofs.Finality.RowsFrame
+import AvailableChainFGSAProofs.Proofs.Foundations.RowService
+import AvailableChainFGSAProofs.Proofs.Foundations.Sources
+import AvailableChainFGSAProofs.Proofs.Foundations.Store
+import AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient
+import AvailableChainFGSAProofs.Proofs.Shared.Gate
+import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowthReads
+import AvailableChainFGSAProofs.Proofs.Shared.Reads
+import AvailableChainFGSAProofs.Proofs.Shared.Regimes
+import AvailableChainFGSAProofs.Proofs.Shared.Roots
+import AvailableChainFGSAProofs.Proofs.Shared.RowReads
+import AvailableChainFGSARun.Proofs.WindowExclusion
+public import AvailableChainFGSARun.Model.Protocol
 public meta import AvailableChainFGSAProofs.Proofs.Foundations.RowPermission
 -- shake: keep (cached prefix checks)
 
@@ -2584,7 +2603,7 @@ private theorem d7c_liveness
 
 /-- `d7c_kernel` with the FG-SA suppliers of the frozen kernel produced from `Recovery₂`
 (the same public producers as Assembly/Finality.fgsa_finalityKernel_W). -/
-private theorem d7c_kernel_closed (G ΔF : Time) (hδ : p.δt = 2 * p.R) (pt : KernelPt)
+private theorem d7c_kernelOfRecovery (G ΔF : Time) (hδ : p.δt = 2 * p.R) (pt : KernelPt)
     (hK : KernelPrem_W p c G ΔF E rho pt) :
     FGCompose.KernelConclusion_W (fgsaCoreReads p c) E rho (d7n_observations p c)
       (d7n_timing p) (fgsaInterface p c) (d7n_decodeProposal p) NamedProposal.erase
@@ -2627,7 +2646,7 @@ private theorem d7c_kernel_closed (G ΔF : Time) (hδ : p.δt = 2 * p.R) (pt : K
     exact absurd (hcut k z' r a u (b + 1) T tmo hrow hd hh hcutr) (Nat.lt_irrefl _)
 
 /-- `d7c_liveness` with the same suppliers produced from the recovery regime. -/
-private theorem d7c_liveness_closed (G ΔF : Time) (g : Nat) (w : HealingWitness)
+private theorem d7c_livenessOfRecovery (G ΔF : Time) (g : Nat) (w : HealingWitness)
     (hδ : p.δt = 2 * p.R) (pt : PtT)
     (h : FinalityLivenessPrem_W p c G ΔF .recFE g w E rho pt)
     (opening : ∀ r, Gen.V2.Duty.HonestSlot rho (fgsaInterface p c) (r * p.R) →
@@ -2673,7 +2692,7 @@ private theorem d7c_liveness_closed (G ΔF : Time) (g : Nat) (w : HealingWitness
     exact absurd (hcut k z' r a u (b + 1) T tmo hrow hd hh hcutr) (Nat.lt_irrefl _)
 
 /-- `d7c_forward` with the same suppliers produced from the recovery regime. -/
-private theorem d7c_forward_closed (G ΔF : Time) (g : Nat) (w : HealingWitness)
+private theorem d7c_forwardOfRecovery (G ΔF : Time) (g : Nat) (w : HealingWitness)
     (hδ : p.δt = 2 * p.R) (pt : PtT)
     (h : FinalityLivenessPrem_W p c G ΔF .recFE g w E rho pt)
     (opening : ∀ r, Gen.V2.Duty.HonestSlot rho (fgsaInterface p c) (r * p.R) →
@@ -4571,7 +4590,7 @@ theorem kernelGeneric :
       NamedProposal.rows
       (fun (nd : Node params) (Q : Block) => FGSA.fgBlockOf nd.st Q.parent)
       FGSA.fgBlock deltaF 5 :=
-  d7c_kernel_closed params unitCodec env run gap deltaF nvClock ⟨w', 5⟩
+  d7c_kernelOfRecovery params unitCodec env run gap deltaF nvClock ⟨w', 5⟩
     kernelPrem_premises_sat
 
 /-- premises_sat (generic joined premise): one service point (the image of w'), the window,
@@ -4603,7 +4622,7 @@ theorem joinedGeneric :
     FGSA.fgBlock
     (fun sp hsp hKg => by
       subst hsp
-      exact d7c_kernel_closed params unitCodec env run gap deltaF nvClock ⟨w', 5⟩
+      exact d7c_kernelOfRecovery params unitCodec env run gap deltaF nvClock ⟨w', 5⟩
         { set := nvRecovery.toRecovery₂, bound := livenessBound, window := hKg.window
           start := hKg.start, hhor := hKg.hhor, input := nvHealingInput
           services := fgsa_coreServices env run nvRecovery.base w'
@@ -4619,7 +4638,7 @@ theorem forwardGeneric :
       (fun (nd : Node params) (Q : Block) => FGSA.fgBlockOf nd.st Q.parent)
       FGSA.fgBlock (Gen.V2.Duty.HonestSlot run (fgsaInterface params unitCodec)) deltaF 1
       (d7n_point params w') 50 :=
-  d7c_forward_closed params unitCodec env run gap deltaF 1 w' nvClock ⟨50⟩
+  d7c_forwardOfRecovery params unitCodec env run gap deltaF 1 w' nvClock ⟨50⟩
     localPrem_premises_sat opening_premises_sat
 
 /-- POSITIVE 4: the generic local liveness `FGCompose.finality_liveness_of_forward_W` on the
@@ -4629,7 +4648,7 @@ theorem livenessGeneric :
       (d7n_observations params unitCodec)
       (fun nd : Node params => nd.st.base.stableRecord) 50
       (50 + FGCompose.W_W (d7n_timing params) deltaF 1) :=
-  d7c_liveness_closed params unitCodec env run gap deltaF 1 w' nvClock ⟨50⟩
+  d7c_livenessOfRecovery params unitCodec env run gap deltaF 1 w' nvClock ⟨50⟩
     localPrem_premises_sat opening_premises_sat
 
 /-- The forward witness inspected: the selected round is exactly q = r = 5, the opening is an

@@ -36,6 +36,10 @@ AvailableChainFGCompose.Proofs.Finality.Receipt
 AvailableChainFGCompose.Proofs.Finality.Accept
 AvailableChainFGCompose.Tests.P0d7ba
 AvailableChainFGCompose.Proofs.Finality.Kernel
+AvailableChainFGCompose.Tests.P0d7bb
+AvailableChainFGCompose.Proofs.Finality.Joined
+AvailableChainFGCompose.Proofs.Finality.Forward
+AvailableChainFGCompose.Proofs.Finality.Local
 AvailableChainFGCompose.Statements.FinalityKernel
 AvailableChainFGCompose.Proofs.Finality.MiddleSupport
 AvailableChainFGCompose.Proofs.Finality.Middle
@@ -63,6 +67,7 @@ AvailableChainFGCompose.Proofs.Healing.PromotionArithmetic
 AvailableChainFGCompose.Statements.ResetHistory
 AvailableChainFGCompose.Statements.Service
 AvailableChainFGCompose.Statements.Bounds
+AvailableChainFGCompose.Statements.Finality
 AvailableChainFGCompose.Statements.FinalityReceipts
 AvailableChainFGCompose.Proofs.ServiceTransport
 AvailableChainFGCompose.Tests.P0Service

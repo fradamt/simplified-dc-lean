@@ -622,6 +622,8 @@ def test_scope(ctx: Context, m: Module, dep: str) -> bool:
     if (m.name, dep) in {
         (PROOFS + ".Tests.P0d5a", COMPOSE + ".Statements.FrontierSearch"),
         (PROOFS + ".Tests.P0d4", COMPOSE + ".Proofs.Healing.AttemptStop"),
+        (PROOFS + ".Tests.P0d7c", COMPOSE + ".Proofs.Finality.Joined"),
+        (PROOFS + ".Tests.P0d7c", COMPOSE + ".Proofs.Finality.Local"),
         (COMPOSE + ".Tests.P0d3", KITFG + ".WindowHeightBridge"),
         (PROOFS + ".Tests.P0c1", COMPOSE + ".Proofs.ObservationTransport"),
         (PROOFS + ".Tests.P0HistoricalReads", COMPOSE + ".Proofs.HistoricalReads"),
@@ -1427,6 +1429,14 @@ COMPOSE_PROOF_IMPORTS |= frozenset({
 COMPOSE_EDGES |= frozenset({
     ('AvailableChainFGSAProofs.Proofs.Finality.Forward',
      'AvailableChainFGCompose.Proofs.Finality.Forward'),
+})
+
+# P0d7c: exact private test-adapter edges (generic finality chain G0).
+COMPOSE_EDGES |= frozenset({
+    ('AvailableChainFGSAProofs.Tests.P0d7c',
+     'AvailableChainFGCompose.Proofs.Finality.Joined'),
+    ('AvailableChainFGSAProofs.Tests.P0d7c',
+     'AvailableChainFGCompose.Proofs.Finality.Local'),
 })
 
 if __name__ == "__main__":
