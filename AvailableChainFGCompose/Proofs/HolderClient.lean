@@ -2,7 +2,6 @@ module
 public import AvailableChainFGCompose.Statements.HolderClient
 public import AvailableChainFGCompose.Proofs.SafetyClient
 public import AvailableChainFGCompose.Proofs.RowPermission
-public import AvailableChainFGCompose.Proofs.ExecutionObs
 
 public section
 

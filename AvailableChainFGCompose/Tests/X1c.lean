@@ -1,6 +1,5 @@
 module
-public import AvailableChainFGCompose.Proofs.OrdinaryHolderClient
-public import Mathlib.Tactic.IntervalCases
+public import AvailableChainFGCompose.Proofs.HolderClient
 
 set_option linter.privateModule false
 

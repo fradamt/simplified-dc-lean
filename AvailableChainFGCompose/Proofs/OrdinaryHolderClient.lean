@@ -1,5 +1,7 @@
 module
-public import AvailableChainFGCompose.Proofs.HolderClient
+public import AvailableChainFGCompose.Statements.HolderClient
+public import AvailableChainFGCompose.Proofs.ExecutionObs
+public import AvailableChainFGCompose.Proofs.SafetyClient -- shake: keep (Compose import policy)
 
 public section
 

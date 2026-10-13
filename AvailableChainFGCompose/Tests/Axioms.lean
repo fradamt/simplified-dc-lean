@@ -60,6 +60,9 @@ public import AvailableChainFGCompose.Statements.ExecutionBridges -- shake: keep
 public import AvailableChainFGCompose.Statements.ExecutionRecords -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Proofs.ExecutionObs -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Proofs.ExecutionHistory -- shake: keep (#print axioms)
+public import AvailableChainFGCompose.Statements.HolderClient -- shake: keep (#print axioms)
+public import AvailableChainFGCompose.Proofs.HolderClient -- shake: keep (#print axioms)
+public import AvailableChainFGCompose.Proofs.OrdinaryHolderClient -- shake: keep (#print axioms)
 
 public import AvailableChainFGCompose.Statements.ResetHistory -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Statements.Service -- shake: keep (#print axioms)
@@ -1442,3 +1445,39 @@ public import AvailableChainFGCompose.Proofs.Healing.ResetCut -- shake: keep (#p
 #print axioms AvailableChain.FGCompose.KernelRunFacts.schedule
 #print axioms AvailableChain.FGCompose.finality_kernel_W_of
 #print axioms AvailableChain.FGCompose.kernel_terminal_bounds_W
+
+-- X1c: every new public statement, equation and proof.
+#print axioms AvailableChain.FGCompose.obsSafetyInputAt
+#print axioms AvailableChain.FGCompose.obsSafetyInputAt_def
+#print axioms AvailableChain.FGCompose.obsOwnReleasedBefore
+#print axioms AvailableChain.FGCompose.obsOwnReleasedBefore_def
+#print axioms AvailableChain.FGCompose.obsSafetyNoSlash
+#print axioms AvailableChain.FGCompose.obsSafetyNoSlash_def
+#print axioms AvailableChain.FGCompose.obsHonestRowAt
+#print axioms AvailableChain.FGCompose.obsHonestRowAt_def
+#print axioms AvailableChain.FGCompose.FGHolderClientTrace
+#print axioms AvailableChain.FGCompose.FGHolderClientTrace_def
+#print axioms AvailableChain.FGCompose.FGHolderRowCoverage
+#print axioms AvailableChain.FGCompose.FGHolderRowCoverage_def
+#print axioms AvailableChain.FGCompose.SafetyClientTraceDriverStatement
+#print axioms AvailableChain.FGCompose.SafetyClientTraceDriverStatement_def
+#print axioms AvailableChain.FGCompose.SafetyEmittedNoSlashDriverStatement
+#print axioms AvailableChain.FGCompose.SafetyEmittedNoSlashDriverStatement_def
+#print axioms AvailableChain.FGCompose.RowPermissionCoveredDriverStatement
+#print axioms AvailableChain.FGCompose.RowPermissionCoveredDriverStatement_def
+#print axioms AvailableChain.FGCompose.holder_record_at_duty
+#print axioms AvailableChain.FGCompose.safety_client_trace_obs
+#print axioms AvailableChain.FGCompose.safety_client_trace_driver
+#print axioms AvailableChain.FGCompose.safety_emitted_noSlash_obs
+#print axioms AvailableChain.FGCompose.safety_emitted_noSlash_driver
+#print axioms AvailableChain.FGCompose.rowPermission_covered_obs
+#print axioms AvailableChain.FGCompose.rowPermission_covered_driver
+#print axioms AvailableChain.FGCompose.ordinary_obsDutyState_tick
+#print axioms AvailableChain.FGCompose.ordinary_obsSafetyInputAt
+#print axioms AvailableChain.FGCompose.ordinary_obsOwnReleased
+#print axioms AvailableChain.FGCompose.ordinary_obsOwnReleasedBefore
+#print axioms AvailableChain.FGCompose.ordinary_obsSafetyNoSlash_iff
+#print axioms AvailableChain.FGCompose.ordinary_obsHonestRowAt_iff
+#print axioms AvailableChain.FGCompose.ordinary_FGHolderClientTrace_iff
+#print axioms AvailableChain.FGCompose.ordinary_rowPermission_covered
+#print axioms AvailableChain.FGCompose.ordinary_FGHolderClientLaws
