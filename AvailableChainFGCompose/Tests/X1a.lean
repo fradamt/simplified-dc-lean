@@ -196,11 +196,6 @@ private theorem obs_own_nil (k : Nat) : obs.ownWrites () k = [] := by
   rw [obs_rel_nil]
   split_ifs <;> rfl
 
--- Close the finitely many event cases of one law, then compute.
-local macro "ev_close" h:ident : tactic =>
-  `(tactic| (rcases ev_cases $h with ⟨hj0, he⟩ | ⟨hj0, he⟩ | ⟨hj0, he⟩ <;> subst hj0 <;>
-    cases he <;> decide))
-
 /-- Probe A drops the tick's clock effect from every later state (a consistent run
 without the tick's clock). Only `tick_entry` fails. -/
 private noncomputable abbrev droppedTick : FGExecutionObs Unit protocol :=
@@ -220,16 +215,41 @@ private theorem dropped_isolated
         protocol.clock (droppedTick.cutState x (droppedTick.start x j)) t) :
     FGExecutionObsLaws env trace droppedTick where
   init_state x := by cases x; decide
-  start_state j e x h := by cases x; ev_close h
-  done_state j e x h := by cases x; ev_close h
+  start_state j e x h := by
+    cases x
+    rcases ev_cases h with ⟨hj0, he⟩ | ⟨hj0, he⟩ | ⟨hj0, he⟩
+    all_goals subst hj0
+    all_goals cases he
+    all_goals decide
+  done_state j e x h := by
+    cases x
+    rcases ev_cases h with ⟨hj0, he⟩ | ⟨hj0, he⟩ | ⟨hj0, he⟩
+    all_goals subst hj0
+    all_goals cases he
+    all_goals decide
   cut_order := exec_laws.cut_order
   event_order := exec_laws.event_order
   segment_time := exec_laws.segment_time
   tick_entry := tick_entry
-  restart_entry j x t h := by cases x; ev_close h
-  released_tick j x t h := by cases x; ev_close h
+  restart_entry j x t h := by
+    cases x
+    rcases ev_cases h with ⟨hj0, he⟩ | ⟨hj0, he⟩ | ⟨hj0, he⟩
+    all_goals subst hj0
+    all_goals cases he
+    all_goals decide
+  released_tick j x t h := by
+    cases x
+    rcases ev_cases h with ⟨hj0, he⟩ | ⟨hj0, he⟩ | ⟨hj0, he⟩
+    all_goals subst hj0
+    all_goals cases he
+    all_goals decide
   released_other := exec_laws.released_other
-  tick_done j x t h := by cases x; ev_close h
+  tick_done j x t h := by
+    cases x
+    rcases ev_cases h with ⟨hj0, he⟩ | ⟨hj0, he⟩ | ⟨hj0, he⟩
+    all_goals subst hj0
+    all_goals cases he
+    all_goals decide
   accept_origin := exec_laws.accept_origin
   accept_time := exec_laws.accept_time
   tail_state j x h := by
@@ -269,9 +289,24 @@ private theorem reversed_isolated
         reversedCuts.done x i < reversedCuts.start x j) :
     FGExecutionObsLaws env trace reversedCuts where
   init_state := exec_laws.init_state
-  start_state j e x h := by cases x; ev_close h
-  done_state j e x h := by cases x; ev_close h
-  cut_order j e x h := by cases x; ev_close h
+  start_state j e x h := by
+    cases x
+    rcases ev_cases h with ⟨hj0, he⟩ | ⟨hj0, he⟩ | ⟨hj0, he⟩
+    all_goals subst hj0
+    all_goals cases he
+    all_goals decide
+  done_state j e x h := by
+    cases x
+    rcases ev_cases h with ⟨hj0, he⟩ | ⟨hj0, he⟩ | ⟨hj0, he⟩
+    all_goals subst hj0
+    all_goals cases he
+    all_goals decide
+  cut_order j e x h := by
+    cases x
+    rcases ev_cases h with ⟨hj0, he⟩ | ⟨hj0, he⟩ | ⟨hj0, he⟩
+    all_goals subst hj0
+    all_goals cases he
+    all_goals decide
   event_order := event_order
   segment_time j e x k h h1 h2 := by
     cases x
@@ -285,11 +320,31 @@ private theorem reversed_isolated
     · change 6 ≤ k at h1; change k ≤ 8 at h2
       obtain rfl | rfl | rfl : k = 6 ∨ k = 7 ∨ k = 8 := by omega
       all_goals decide
-  tick_entry j x t h := by cases x; ev_close h
-  restart_entry j x t h := by cases x; ev_close h
-  released_tick j x t h := by cases x; ev_close h
+  tick_entry j x t h := by
+    cases x
+    rcases ev_cases h with ⟨hj0, he⟩ | ⟨hj0, he⟩ | ⟨hj0, he⟩
+    all_goals subst hj0
+    all_goals cases he
+    all_goals decide
+  restart_entry j x t h := by
+    cases x
+    rcases ev_cases h with ⟨hj0, he⟩ | ⟨hj0, he⟩ | ⟨hj0, he⟩
+    all_goals subst hj0
+    all_goals cases he
+    all_goals decide
+  released_tick j x t h := by
+    cases x
+    rcases ev_cases h with ⟨hj0, he⟩ | ⟨hj0, he⟩ | ⟨hj0, he⟩
+    all_goals subst hj0
+    all_goals cases he
+    all_goals decide
   released_other := exec_laws.released_other
-  tick_done j x t h := by cases x; ev_close h
+  tick_done j x t h := by
+    cases x
+    rcases ev_cases h with ⟨hj0, he⟩ | ⟨hj0, he⟩ | ⟨hj0, he⟩
+    all_goals subst hj0
+    all_goals cases he
+    all_goals decide
   accept_origin x k o h := by
     cases x
     obtain ⟨j, w, t, hj, hk, ho⟩ := h
@@ -307,7 +362,12 @@ private theorem reversed_isolated
   tail_state := exec_laws.tail_state
   own_source x k h := by cases x; exact absurd (obs_own_nil k) h
   own_state x k h := by cases x; exact absurd (obs_own_nil k) h
-  own_complete j x t h := by cases x; ev_close h
+  own_complete j x t h := by
+    cases x
+    rcases ev_cases h with ⟨hj0, he⟩ | ⟨hj0, he⟩ | ⟨hj0, he⟩
+    all_goals subst hj0
+    all_goals cases he
+    all_goals decide
 
 /-- Probe C attributes a release to the delivery event. Only `released_other` fails. -/
 private noncomputable abbrev extraRelease : FGExecutionObs Unit protocol :=
@@ -331,15 +391,30 @@ private theorem extra_release_isolated
   segment_time := exec_laws.segment_time
   tick_entry := exec_laws.tick_entry
   restart_entry := exec_laws.restart_entry
-  released_tick j x t h := by cases x; ev_close h
+  released_tick j x t h := by
+    cases x
+    rcases ev_cases h with ⟨hj0, he⟩ | ⟨hj0, he⟩ | ⟨hj0, he⟩
+    all_goals subst hj0
+    all_goals cases he
+    all_goals decide
   released_other := released_other
-  tick_done j x t h := by cases x; ev_close h
+  tick_done j x t h := by
+    cases x
+    rcases ev_cases h with ⟨hj0, he⟩ | ⟨hj0, he⟩ | ⟨hj0, he⟩
+    all_goals subst hj0
+    all_goals cases he
+    all_goals decide
   accept_origin := exec_laws.accept_origin
   accept_time := exec_laws.accept_time
   tail_state := exec_laws.tail_state
   own_source := exec_laws.own_source
   own_state := exec_laws.own_state
-  own_complete j x t h := by cases x; ev_close h
+  own_complete j x t h := by
+    cases x
+    rcases ev_cases h with ⟨hj0, he⟩ | ⟨hj0, he⟩ | ⟨hj0, he⟩
+    all_goals subst hj0
+    all_goals cases he
+    all_goals decide
 
 /-! ### Strict history on a row-bearing run -/
 
