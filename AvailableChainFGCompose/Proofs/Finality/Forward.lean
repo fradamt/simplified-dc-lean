@@ -31,12 +31,17 @@ theorem forward_round_FE (T : FGTiming) (L : FGTimingLaws T) {deltaF start horiz
     have hR : 0 < T.roundSlots := by have := L.rounds; omega
     exact mul_pos (mul_pos (by decide) (Int.natCast_pos.mpr hR)) L.delta_pos
   obtain ⟨q, r, htq, hqt, hr, hgood⟩ := Gen.Pure.recFE_W_extract recur hP ht hstart
-    (by simpa only [W_W, Int.add_assoc] using hhor)
+    (by
+      have h := hhor
+      unfold W_W at h
+      linarith)
   have htr : t ≤ (r : Time) * FGCompose.P T := htq.trans
     (mul_le_mul_of_nonneg_right (Int.ofNat_le.mpr hr.1) hP.le)
   have hD : kernelDeadlineW T deltaF (r + 2) < t + W_W T deltaF g := by
-    simpa only [kernelDeadlineW, W_W, Nat.cast_add, Nat.cast_ofNat,
-      Int.add_assoc] using Gen.Pure.recFE_W_receipt_lt hP hqt hr
+    have h := Gen.Pure.recFE_W_receipt_lt (Δ := T.delta) (β := betaF T deltaF) hP hqt hr
+    unfold kernelDeadlineW W_W
+    push_cast
+    linarith
   exact ⟨q, r, htq, hqt, hr, hgood, htr, hD, hD.le.trans hhor⟩
 
 variable {In V : Type} {P : V2.ProtocolSpecD In} [DecidableEq V]
