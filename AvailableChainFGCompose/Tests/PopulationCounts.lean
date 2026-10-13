@@ -78,5 +78,13 @@ private theorem counts_premises_sat :
     omega
   · exact ⟨by decide, by decide, fun A => by simp [Electorate.weightOf], by decide⟩
 
+private theorem node_faults_do_not_count_seats :
+    (Gen.V2.Duty.faulty before).card = 9 ∧ (Gen.V2.Duty.faulty extra).card = 10 ∧
+    historyFaulty (reads 1) before = ∅ ∧ historyFaulty (reads 1) extra = ∅ ∧
+    historyFaulty (reads 1) faultySeat = {0} := by
+  refine ⟨by decide, by decide, ?_, ?_, ?_⟩ <;>
+    ext i <;> have hi : i = 0 := Subsingleton.elim _ _
+  all_goals subst i; simp [historyFaulty, safetyHolder]
+
 end AvailableChain.FGCompose.Tests.PopulationCounts
 end
