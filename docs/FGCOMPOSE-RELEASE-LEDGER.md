@@ -1,0 +1,13322 @@
+# Shared FG composition release ledger
+
+Source pin: fba2c746fd2fad49bc9b54c41c5f0d0894bee1c1 (P0 batch 9). This document changes no Lean
+declaration. It replaces the size-ratio release assessment of P0 plan v3 §7 with declaration
+evidence. The checkpoint of 2026-10-12 §3.2 supplies the four release classes; its §3.3 and §9
+govern open obligations and bounded witnesses.
+
+Scope: every baseline public theorem in the production FG-SA modules touched by P0, plus the
+unchanged Full/Joined/Local/Export/Assembly finality consumers. Baseline is the approved P0z0 pin
+49ccd55d5b8c5294a8538e538497e556707d861d (docs/audit/p0-baseline.md:3). Retained equations and
+suppliers are included so that unchanged proof bodies cannot disappear from the census. Source
+declarations, not generated recursors, are counted. All production Compose source declarations are
+indexed below; the compiled generated closure is docs/api/compose-api.json:1.
+
+Class a: the wrapper body directly applies a shared proof theorem for its result, with fieldwise
+transport as needed. Class b: an accepted partial wrapper retains concrete fields or reasoning, or
+delegates through the extracted subchain instead of applying its corresponding generic consumer.
+Class c: a retained concrete supplier, definition equation or claim/assembly export. Class d: an
+explicitly open intermediate or fixture gap with an owner. Merely mentioning a generic predicate
+or equation is not a full re-point.
+
+```text
+┌────────────┬──────────────────────┐
+│ Class      │ Declarations         │
+├────────────┼──────────────────────┤
+│ a          │ 332                  │
+│ b          │ 19                   │
+│ c          │ 373                  │
+│ d          │ 1                    │
+└────────────┴──────────────────────┘
+```
+
+## What the library proves and does not prove
+
+It proves conditional restart-safe tree/row transport, accountable safety,
+phase/attempt/search/reset consumers and the finality chain. The exact hypotheses and conclusions
+are the source declarations indexed in the generic-consumer register below (in particular
+Proofs/Restart.lean, Proofs/SafetyCount.lean, Proofs/Healing/FrontierSearchFull.lean,
+Proofs/Healing/Reset.lean and Proofs/Finality/Kernel.lean).
+
+A complete generic kernel, joined, forward and liveness application is witnessed on one concrete
+bounded FG-SA run: AvailableChainFGSAProofs/Tests/P0d7c.lean:4553 (localPrem_premises_sat), :4559
+(kernelPrem_premises_sat), :4584 (joined_premises_sat), :4572 (kernelGeneric), :4597
+(joinedGeneric), :4619 (forwardGeneric), :4632 (livenessGeneric); :4644 and :4675 inspect the
+witnesses. This closes the earlier generic-chain joint-satisfiability deferral. It does not make
+the frozen kernel wrapper a full re-point (Proofs/Finality/Kernel.lean:117 in the FG-SA register).
+
+The generic search family has a fixed allowance across actual starts. The stronger search theorem
+still takes transfer across every cut-admissible allowance
+(AvailableChainFGCompose/Proofs/Healing/FrontierSearchFull.lean:238). The canonical FG-SA family
+producer is test-private in AvailableChainFGSAProofs/Tests/P0d5db.lean; p0d5zTstFamily at :89
+proves the canonical family allowance premises. No general transfer producer is claimed.
+
+Driver-native observations, holder laws and acceptance consumers are conditional on the actual
+trace and leaf-effect laws. They do not establish PC execution validity or a concrete PC instance
+(AvailableChainFGCompose/Statements/ExecutionObs.lean, Statements/HolderClient.lean and
+Statements/ExecutionAcceptance.lean in the declaration index). PC remains UNPORTED
+(scripts/unported-libraries.txt:1).
+
+## Open items and retained c3 exception
+
+```text
+┌─────────────────────────────┬──────────────────────────────┬───────────────────────────────────┐
+│ Item                        │ Owner / status               │ Source evidence                   │
+├─────────────────────────────┼──────────────────────────────┼───────────────────────────────────┤
+│ TerminalPromotionFact       │ zF records route (c); future │ AvailableChainFGCompose/Proofs/He │
+│                             │ consumer must choose a       │ aling/FrontierSearchCompose.lean: │
+│                             │ proved route                 │ 6; Statements/FrontierSearch.lean │
+│                             │                              │ :193                              │
+│ FG-SA StrongServed /        │ FG-SA Foundations; PC        │ AvailableChainFGSAProofs/Proofs/H │
+│ ExactService inhabited      │ analogue P7/P8; leave named  │ ealing/FrontierSearchDefs.lean:72 │
+│ producer                    │                              │ ; Compose                         │
+│                             │                              │ Statements/FrontierSearch.lean:73 │
+│ Saved-seed search coverage  │ P8 SearchControls; deferred  │ Compose Tests/P0d5db.lean (lad);  │
+│                             │                              │ deferral from P0d5d-b report, not │
+│                             │                              │ a tree-level P8 proof             │
+│ Joint search/reset model    │ P8b SearchControls; deferred │ Compose Tests/P0d5db.lean and     │
+│                             │                              │ Tests/P0d6b.lean supply separate  │
+│                             │                              │ models; P0d6b report records      │
+│                             │                              │ owner                             │
+│ Two-wire-history actual     │ E1F; open                    │ Compose                           │
+│ driver control              │                              │ Tests/DependencyOrigins.lean:3587 │
+│                             │                              │ gives observation-level           │
+│                             │                              │ two_wire_histories                │
+│ ViewRootInj reachable FG    │ PC P5a; required at every    │ Compose Proofs/Finality/RecordInv │
+│ store                       │ F-3 site below               │ .lean:877; Middle.lean:124;       │
+│                             │                              │ Kernel.lean:139                   │
+│ Population / holder         │ X0 consumer audit; E2 actual │ Compose Proofs/Healing/AttemptRow │
+│ applicability               │ holder laws; per-path        │ s.lean:55;                        │
+│                             │ bijection only               │ Finality/RecordInv.lean:1009;     │
+│                             │                              │ HolderClient.lean                 │
+│ Actual PC hooks, paths,     │ PC E1/E1F/E2/E3/E4 and       │ Compose                           │
+│ seed, holders and           │ P7/P8/P10; leave             │ Statements/DependencyTrace.lean;  │
+│ acceptance                  │                              │ ExecutionObs.lean;                │
+│                             │                              │ ExecutionAcceptance.lean          │
+│ P0c3 / A11 concrete         │ P1 driver and PC hook        │ Compose                           │
+│ implementation              │ owners; retained exception   │ Statements/DependencyTrace.lean;  │
+│                             │                              │ Proofs/Dependency.lean;           │
+│                             │                              │ Tests/DependencyOrigins.lean      │
+└─────────────────────────────┴──────────────────────────────┴───────────────────────────────────┘
+```
+
+The c3 exception is retained: shared dependency/restart/read/receipt contracts and conditional
+proofs are released; the frozen FG-SA one-body process is not asserted to implement same-event
+recursive retries, drains, notifications or the PC reconstruction sequence. P0c3a/b strengthen the
+shared contract, not the old FG-SA implementation. See
+AvailableChainFGCompose/Statements/DependencyTrace.lean and
+AvailableChainFGSA/Model/Handlers.lean:65; dependency_origin_same_receiver and
+dependency_finite_path_resolved_before appear in the consumer register.
+
+R3/R6 obsolete short-horizon controls are superseded by the proved bounded d5c applications listed
+below. R7 is represented by KernelRunFacts in
+AvailableChainFGCompose/Statements/FinalityKernel.lean; its five fields are schedule,
+fault_weight, deltaF, linked and awake. Closing R7 adds no global population identity. The
+checkpoint D1 ruling keeps extra non-FG nodes and allocates required bijections to individual
+paths.
+
+Owner/acceptance history above comes from the required lead log (2026-10-12 09:03 onward) and
+package reports. Deferrals are governance facts; this tree contains no completed P8 or E1F proof
+for them. Reports are read-only, untracked inputs, not proof evidence. The P0d7b-b report’s
+earlier open generic-chain item is superseded by P0d7c source.
+
+## Bounded-model evidence for partial declarations
+
+### B5
+
+AvailableChainFGCompose/Tests/P0d5b.lean
+
+```text
+┌─────────────────────────────────────────────────────────────────┬────────────────────┐
+│ Control / premise witness                                       │ Source line        │
+├─────────────────────────────────────────────────────────────────┼────────────────────┤
+│ d5bRiseBeforeMaturity                                           │ 193                │
+│ d5bAgePositive                                                  │ 202                │
+│ d5bStrictReceipt                                                │ 229                │
+│ d5bBudget                                                       │ 239                │
+│ d5bBudgetPastOpening                                            │ 252                │
+└─────────────────────────────────────────────────────────────────┴────────────────────┘
+```
+
+### C5
+
+AvailableChainFGCompose/Tests/P0d5c.lean
+
+```text
+┌─────────────────────────────────────────────────────────────────┬────────────────────┐
+│ Control / premise witness                                       │ Source line        │
+├─────────────────────────────────────────────────────────────────┼────────────────────┤
+│ c5contest                                                       │ 578                │
+│ r6row                                                           │ 990                │
+│ m9rise                                                          │ 1631               │
+│ gHG3gap                                                         │ 3032               │
+│ gHG3top                                                         │ 3082               │
+└─────────────────────────────────────────────────────────────────┴────────────────────┘
+```
+
+### DB5
+
+AvailableChainFGCompose/Tests/P0d5db.lean
+
+```text
+┌─────────────────────────────────────────────────────────────────┬────────────────────┐
+│ Control / premise witness                                       │ Source line        │
+├─────────────────────────────────────────────────────────────────┼────────────────────┤
+│ ladFull_premises_sat                                            │ 1216               │
+│ ladSearch_premises_sat                                          │ 1374               │
+│ ladFamily_premises_sat                                          │ 1554               │
+│ ladFamilyStatement_premises_sat                                 │ 1647               │
+└─────────────────────────────────────────────────────────────────┴────────────────────┘
+```
+
+### R6
+
+AvailableChainFGCompose/Tests/P0d6b.lean
+
+```text
+┌─────────────────────────────────────────────────────────────────┬────────────────────┐
+│ Control / premise witness                                       │ Source line        │
+├─────────────────────────────────────────────────────────────────┼────────────────────┤
+│ rstReset_premises_sat                                           │ 628                │
+└─────────────────────────────────────────────────────────────────┴────────────────────┘
+```
+
+### A75
+
+AvailableChainFGSAProofs/Tests/P0d7c.lean
+
+```text
+┌─────────────────────────────────────────────────────────────────┬────────────────────┐
+│ Control / premise witness                                       │ Source line        │
+├─────────────────────────────────────────────────────────────────┼────────────────────┤
+│ kernelPrem_premises_sat                                         │ 4559               │
+│ kernelGeneric                                                   │ 4572               │
+│ forwardGeneric                                                  │ 4619               │
+│ livenessGeneric                                                 │ 4632               │
+└─────────────────────────────────────────────────────────────────┴────────────────────┘
+```
+
+### K7
+
+AvailableChainFGSAProofs/Tests/P0d7c.lean
+
+```text
+┌─────────────────────────────────────────────────────────────────┬────────────────────┐
+│ Control / premise witness                                       │ Source line        │
+├─────────────────────────────────────────────────────────────────┼────────────────────┤
+│ kernelPrem_premises_sat                                         │ 4559               │
+│ kernelGeneric                                                   │ 4572               │
+└─────────────────────────────────────────────────────────────────┴────────────────────┘
+```
+
+### F7
+
+AvailableChainFGSAProofs/Tests/P0d7c.lean
+
+```text
+┌─────────────────────────────────────────────────────────────────┬────────────────────┐
+│ Control / premise witness                                       │ Source line        │
+├─────────────────────────────────────────────────────────────────┼────────────────────┤
+│ localPrem_premises_sat                                          │ 4553               │
+│ joined_premises_sat                                             │ 4584               │
+│ joinedGeneric                                                   │ 4597               │
+│ forwardGeneric                                                  │ 4619               │
+│ livenessGeneric                                                 │ 4632               │
+└─────────────────────────────────────────────────────────────────┴────────────────────┘
+```
+
+B5 contains pure bounded age/receipt/budget controls; it has no full age-service premises_sat
+lemma. The FG-SA fixture projections p0d5bTstFixtureProposal (:550) and p0d5bTstFixtureLeaves
+(:589) in AvailableChainFGSAProofs/Tests/P0d5b.lean are conditional on recovery; the StrongServed
+producer item remains open. C5 supplies the bounded phase consumers. A75 uses the P0d7c
+whole-chain witness, including its receipt/acceptance argument producers; the original
+Tests/P0d7a5 acceptance guards are also bounded controls. DB5 is a generic event fold, not
+ExecutionValid. R6 is a separate generic event fold. K7/F7 are the one-run FG-SA generic-chain
+controls. FG-SA wrapper controls also exist in AvailableChainFGSAProofs/Tests/P0d7baRun.lean and
+Tests/P0d7bb.lean; their proof paths use the frozen partial wrappers.
+
+## Frozen FG-SA declaration register
+
+Each heading resolves the full source file and each row gives the declaration’s line. The calls
+column lists actual proof theorem applications found in the wrapper body; b rows remain partial
+even if a generic sublemma occurs. For unchanged b bodies, the named G0 in the last column
+supplies generic-consumer evidence. c rows receive no extraction completion credit.
+
+### S101
+
+AvailableChainFGSA/Model/ContestFrame.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ controlsNext_def                            │ c     │ 16    │ concrete body                    │
+│ fullTreeNext_def                            │ c     │ 23    │ concrete body                    │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S102
+
+AvailableChainFGSA/Model/WindowViews.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ projectHeight_def                           │ c     │ 17    │ concrete body                    │
+│ parentState_def                             │ c     │ 26    │ concrete body                    │
+│ parentState_height_entry                    │ c     │ 30    │ concrete body                    │
+│ headFields_def                              │ c     │ 38    │ concrete body                    │
+│ heightView_def                              │ c     │ 48    │ concrete body                    │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S103
+
+AvailableChainFGSA/Proofs/EmissionFields.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ fgInputs_headFields                         │ c     │ 13    │ concrete body                    │
+│ attest_source_heightView                    │ c     │ 22    │ concrete body                    │
+│ emitted_finality_pair_of_headFields         │ c     │ 31    │ concrete body                    │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S104
+
+AvailableChainFGSA/Proofs/Fields.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ admitHead_fg                                │ c     │ 79    │ concrete body                    │
+│ admitHead_base_blocks                       │ c     │ 82    │ concrete body                    │
+│ admitHead_base_stable                       │ c     │ 86    │ concrete body                    │
+│ admitHead_obligations                       │ c     │ 90    │ concrete body                    │
+│ admitHead_fastWrite                         │ c     │ 94    │ concrete body                    │
+│ admitHead_genuine                           │ c     │ 97    │ concrete body                    │
+│ admitRow_eq                                 │ c     │ 107   │ concrete body                    │
+│ admitBlock_refused                          │ c     │ 119   │ concrete body                    │
+│ onView_fg                                   │ c     │ 135   │ concrete body                    │
+│ onView_base_blocks                          │ c     │ 138   │ concrete body                    │
+│ onView_proposals                            │ c     │ 141   │ concrete body                    │
+│ onView_rowPool                              │ c     │ 144   │ concrete body                    │
+│ onView_fastWrite                            │ c     │ 147   │ concrete body                    │
+│ normalizeS_fg                               │ c     │ 151   │ concrete body                    │
+│ normalizeS_fields                           │ c     │ 155   │ concrete body                    │
+│ reconcile_fg                                │ c     │ 163   │ concrete body                    │
+│ freeze_blocks                               │ c     │ 170   │ concrete body                    │
+│ release_blocks                              │ c     │ 173   │ concrete body                    │
+│ saGate_blocks                               │ c     │ 179   │ concrete body                    │
+│ gateStep_fg                                 │ c     │ 186   │ concrete body                    │
+│ gateStep_base_blocks                        │ c     │ 192   │ concrete body                    │
+│ gateStep_proposals                          │ c     │ 198   │ concrete body                    │
+│ gateStep_rowPool                            │ c     │ 204   │ concrete body                    │
+│ savedGenuine_append                         │ c     │ 213   │ concrete body                    │
+│ saGate_genuine                              │ c     │ 236   │ concrete body                    │
+│ gateStep_fresh                              │ c     │ 271   │ concrete body                    │
+│ gateStep_saved                              │ c     │ 300   │ concrete body                    │
+│ gateStep_unjoined                           │ c     │ 306   │ concrete body                    │
+│ gateStep_unjoined_eq                        │ c     │ 328   │ concrete body                    │
+│ gateStep_other                              │ c     │ 337   │ concrete body                    │
+│ gateStep_fresh_cases                        │ c     │ 351   │ concrete body                    │
+│ fastSet_prefix                              │ c     │ 371   │ concrete body                    │
+│ clockPre_fields                             │ c     │ 389   │ concrete body                    │
+│ clockPre_fg                                 │ c     │ 399   │ concrete body                    │
+│ clockPre_genuine                            │ c     │ 402   │ concrete body                    │
+│ clockPre_fastWrite                          │ c     │ 406   │ concrete body                    │
+│ clock_fg                                    │ c     │ 410   │ concrete body                    │
+│ clock_base_blocks                           │ c     │ 417   │ concrete body                    │
+│ clock_proposals                             │ c     │ 425   │ concrete body                    │
+│ clock_rowPool                               │ c     │ 433   │ concrete body                    │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S105
+
+AvailableChainFGSA/Proofs/Head.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ erasedList_subset                           │ c     │ 20    │ concrete body                    │
+│ headInTree_stored                           │ c     │ 28    │ concrete body                    │
+│ getHead_stored                              │ c     │ 41    │ concrete body                    │
+│ headVote_zero                               │ c     │ 49    │ concrete body                    │
+│ headVote_stored                             │ c     │ 54    │ concrete body                    │
+│ liveRoot_preceq_headInTree                  │ c     │ 66    │ concrete body                    │
+│ F_preceq_liveRoot                           │ a     │ 74    │ mem_filteredFromView,            │
+│                                             │       │       │ preceq_refl                      │
+│ F_preceq_headInTree                         │ c     │ 98    │ concrete body                    │
+│ preceq_getHead_of_preceq_F                  │ c     │ 105   │ concrete body                    │
+│ preceq_fgHead_of_preceq_F                   │ c     │ 114   │ concrete body                    │
+│ preceq_headVote_of_preceq_F                 │ c     │ 123   │ concrete body                    │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S106
+
+AvailableChainFGSA/Proofs/Head/Pool.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ fgsa_early_subset_late                      │ c     │ 14    │ concrete body                    │
+│ fgsa_cleanSupport_no_equivocation           │ c     │ 58    │ concrete body                    │
+│ fgsa_cleanSupport_seats_subset_late         │ c     │ 80    │ concrete body                    │
+│ fgsa_prefixSupport_antitone                 │ c     │ 88    │ concrete body                    │
+│ fgsa_conflicting_support_sum_le_late        │ c     │ 97    │ concrete body                    │
+│ fgsa_confirmationFrom_covers_majority       │ c     │ 110   │ concrete body                    │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S107
+
+AvailableChainFGSA/Proofs/Head/Walk.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ fgsa_getHead_covers_of_dominated_suffix     │ c     │ 17    │ concrete body                    │
+│ fgsa_getHead_exact_of_dominated_suffix      │ c     │ 38    │ concrete body                    │
+│ fgsa_getHead_reanchor_of_dominated_suffix   │ c     │ 51    │ concrete body                    │
+│ fgsa_getHead_avoids_unsupported_child       │ c     │ 64    │ concrete body                    │
+│ fgsa_headInTree_reanchor_of_pivot           │ c     │ 82    │ concrete body                    │
+│ fgsa_confirmationFrom_exact_of_dominated_su │ c     │ 114   │ concrete body                    │
+│ ffix                                        │       │       │                                  │
+│ fgsa_headInTree_covers_of_transfer          │ c     │ 158   │ concrete body                    │
+│ geometry_lift_prefix                        │ a     │ 204   │ preceq_parent_node, preceq_refl, │
+│                                             │       │       │ preceq_trans                     │
+│ fgsa_headInTree_mem_or_anchor               │ c     │ 225   │ concrete body                    │
+│ fgsa_filtered_anchorClosed                  │ a     │ 239   │ mem_filteredFrom_of_bridge,      │
+│                                             │       │       │ preceq_refl, preceq_trans        │
+│ fgsa_headInTree_noEligibleChild             │ c     │ 273   │ concrete body                    │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S108
+
+AvailableChainFGSA/Proofs/HeadResolution.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ actView_resolvedHead                        │ c     │ 10    │ concrete body                    │
+│ active_resolvedBefore_base                  │ c     │ 37    │ concrete body                    │
+│ resolvedHead_mem                            │ c     │ 55    │ concrete body                    │
+│ active_releaseCount_le                      │ c     │ 125   │ concrete body                    │
+│ active_releaseCount_zero                    │ c     │ 142   │ concrete body                    │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S109
+
+AvailableChainFGSA/Proofs/Join.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ joinedNow_none                              │ c     │ 11    │ concrete body                    │
+│ joinedNow_iff                               │ c     │ 18    │ concrete body                    │
+│ joinedNow_slot_zero                         │ c     │ 27    │ concrete body                    │
+│ clockPre_joined                             │ c     │ 34    │ concrete body                    │
+│ clockPre_obligations_unjoined               │ c     │ 41    │ concrete body                    │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S110
+
+AvailableChainFGSA/Proofs/Port/Carry.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ port_retained_proposal_row                  │ c     │ 11    │ concrete body                    │
+│ port_retained_raw_carry                     │ c     │ 24    │ concrete body                    │
+│ port_retained_support_carry                 │ c     │ 41    │ concrete body                    │
+│ port_retained_carry_score                   │ c     │ 61    │ concrete body                    │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S111
+
+AvailableChainFGSA/Proofs/Port/ContestFrame.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ controls_eq_of_top_extends_F                │ c     │ 14    │ concrete body                    │
+│ fullTree_eq_of_top_extends_F                │ c     │ 21    │ concrete body                    │
+│ controls_contest_imp                        │ c     │ 28    │ concrete body                    │
+│ port_controls_eq_legacy_of_top_extends_F    │ a     │ 32    │ treeStoreControlsView_eq         │
+│ port_fullTree_eq_legacy_of_top_extends_F    │ a     │ 39    │ treeStoreFrameView_eq            │
+│ port_controls_contest_imp_legacy            │ a     │ 46    │ treeStoreControlsView_contest_im │
+│                                             │       │       │ p                                │
+│ controls_contest_witness                    │ a     │ 51    │ treeStoreControlsView_contest_wi │
+│                                             │       │       │ tness                            │
+│ controls_J_preceq_of_rootIsJ                │ a     │ 57    │ treeStoreControlsView_J_preceq_o │
+│                                             │       │       │ f_rootIsJ                        │
+│ contestFullTree_subset_tree                 │ c     │ 64    │ concrete body                    │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S112
+
+AvailableChainFGSA/Proofs/Port/Resolution.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ proposerSupportNext_eq_filter               │ c     │ 16    │ concrete body                    │
+│ proposerSupportNext_sublist                 │ c     │ 26    │ concrete body                    │
+│ mem_proposerSupportNext_iff                 │ c     │ 33    │ concrete body                    │
+│ mem_proposerSupportNext_iff_base            │ c     │ 42    │ concrete body                    │
+│ proposerSupportNext_unresolved              │ c     │ 66    │ concrete body                    │
+│ proposerSupportNext_drop                    │ c     │ 72    │ concrete body                    │
+│ proposerSupportNext_keep                    │ c     │ 80    │ concrete body                    │
+│ proposerSupportNext_eq_of_extends           │ c     │ 89    │ concrete body                    │
+│ proposerSupportNext_incidence               │ c     │ 103   │ concrete body                    │
+│ proposerSupportNext_supporters              │ c     │ 146   │ concrete body                    │
+│ proposerSupportNext_seat_support            │ c     │ 169   │ concrete body                    │
+│ proposerSupportNext_scoreOn                 │ c     │ 193   │ concrete body                    │
+│ proposerSupportNext_score                   │ c     │ 205   │ concrete body                    │
+│ port_proposerSupport_eq_legacy_filter       │ c     │ 215   │ concrete body                    │
+│ port_proposerSupport_sublist_legacy         │ c     │ 225   │ concrete body                    │
+│ port_proposerSupport_scoreOn_legacy         │ c     │ 231   │ concrete body                    │
+│ port_proposerSupport_score_legacy           │ c     │ 264   │ concrete body                    │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S113
+
+AvailableChainFGSA/Proofs/Port/Support.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ port_proposerSupport_positive               │ c     │ 14    │ concrete body                    │
+│ port_scoreOn_resolved                       │ c     │ 27    │ concrete body                    │
+│ port_support_filter_incidence               │ c     │ 51    │ concrete body                    │
+│ port_support_filter_score                   │ c     │ 75    │ concrete body                    │
+│ port_headSupport_incidence                  │ c     │ 88    │ concrete body                    │
+│ port_headSupport_scoreOn                    │ c     │ 106   │ concrete body                    │
+│ port_headVotes_score                        │ c     │ 135   │ concrete body                    │
+│ port_clean_score_card                       │ c     │ 149   │ concrete body                    │
+│ port_clean_filter_score                     │ c     │ 174   │ concrete body                    │
+│ port_ghostStep_congr                        │ c     │ 297   │ concrete body                    │
+│ port_ghost_congr                            │ c     │ 353   │ concrete body                    │
+│ port_confirmation_filter                    │ c     │ 382   │ concrete body                    │
+│ port_selected_head_eq                       │ c     │ 416   │ concrete body                    │
+│ port_proposer_selected_head                 │ c     │ 433   │ concrete body                    │
+│ port_voter_selected_head                    │ c     │ 445   │ concrete body                    │
+│ port_releaseCount_eq                        │ c     │ 520   │ concrete body                    │
+│ port_headSupport_incidence_legacy           │ c     │ 560   │ concrete body                    │
+│ port_headSupport_scoreOn_legacy             │ c     │ 591   │ concrete body                    │
+│ port_headVotes_score_legacy                 │ c     │ 618   │ concrete body                    │
+│ port_selected_head_eq_legacy                │ c     │ 630   │ concrete body                    │
+│ port_proposer_selected_head_legacy          │ c     │ 645   │ concrete body                    │
+│ port_voter_selected_head_legacy             │ c     │ 655   │ concrete body                    │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S114
+
+AvailableChainFGSA/Proofs/Port/Tree.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ mem_tree                                    │ c     │ 13    │ concrete body                    │
+│ F_mem_tree                                  │ a     │ 18    │ preceq_refl                      │
+│ tree_subset_TF                              │ c     │ 23    │ concrete body                    │
+│ fullTree_subset_tree                        │ c     │ 30    │ concrete body                    │
+│ mem_erasedList                              │ c     │ 39    │ concrete body                    │
+│ erasedList_eq                               │ c     │ 46    │ concrete body                    │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S115
+
+AvailableChainFGSA/Proofs/Port/VoteMerge.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ controls_eq                                 │ c     │ 17    │ concrete body                    │
+│ fullTree_eq                                 │ c     │ 21    │ concrete body                    │
+│ erasedList_eq                               │ c     │ 25    │ concrete body                    │
+│ liveRoot_eq                                 │ c     │ 27    │ concrete body                    │
+│ legacy_eligible_eq                          │ c     │ 37    │ concrete body                    │
+│ headInTree_eq                               │ c     │ 45    │ concrete body                    │
+│ getHead_eq                                  │ c     │ 51    │ concrete body                    │
+│ proposalsAt_eq                              │ c     │ 55    │ concrete body                    │
+│ voterBlocks_eq                              │ c     │ 61    │ concrete body                    │
+│ headVotes_eq                                │ c     │ 67    │ concrete body                    │
+│ headSupport_eq                              │ c     │ 75    │ concrete body                    │
+│ headVote_eq                                 │ c     │ 86    │ concrete body                    │
+│ proposerVotes_eq                            │ c     │ 93    │ concrete body                    │
+│ proposerSupport_eq                          │ c     │ 95    │ concrete body                    │
+│ chainWireRows_eq                            │ c     │ 101   │ concrete body                    │
+│ blockWireRows_eq                            │ c     │ 103   │ concrete body                    │
+│ proposalRows_eq                             │ c     │ 105   │ concrete body                    │
+│ propose_eq                                  │ c     │ 107   │ concrete body                    │
+│ fgHead_eq                                   │ c     │ 119   │ concrete body                    │
+│ fgBlockOf_eq                                │ c     │ 128   │ concrete body                    │
+│ deepest_eq                                  │ c     │ 130   │ concrete body                    │
+│ fgSource_eq                                 │ c     │ 132   │ concrete body                    │
+│ fgInputs_eq                                 │ c     │ 141   │ concrete body                    │
+│ attest_eq                                   │ c     │ 147   │ concrete body                    │
+│ proposalsAtNext_eq_of_retained              │ c     │ 160   │ concrete body                    │
+│ headVotesNext_eq_of_proposals               │ c     │ 181   │ concrete body                    │
+│ voterBlocksNext_eq_of_tree                  │ c     │ 188   │ concrete body                    │
+│ headSupportNext_eq_of_retained              │ c     │ 195   │ concrete body                    │
+│ tree_eq_of_all_extends                      │ c     │ 208   │ concrete body                    │
+│ fullTree_eq_of_controls                     │ c     │ 214   │ concrete body                    │
+│ liveRootNext_eq_of_controls                 │ c     │ 220   │ concrete body                    │
+│ eligibleNext_eq_of_controls                 │ c     │ 226   │ concrete body                    │
+│ headInTreeNext_eq_of_controls               │ c     │ 231   │ concrete body                    │
+│ getHeadNext_eq_of_controls                  │ c     │ 236   │ concrete body                    │
+│ headVoteNext_eq_of_reads                    │ c     │ 243   │ concrete body                    │
+│ port_proposalsAt_eq_legacy_of_retained      │ c     │ 254   │ concrete body                    │
+│ port_headVotes_eq_legacy_of_proposals       │ c     │ 272   │ concrete body                    │
+│ port_voterBlocks_eq_legacy_of_tree          │ c     │ 278   │ concrete body                    │
+│ port_headSupport_eq_legacy_of_retained      │ c     │ 283   │ concrete body                    │
+│ port_fullTree_eq_legacy_of_controls         │ c     │ 311   │ concrete body                    │
+│ port_liveRoot_eq_legacy_of_controls         │ c     │ 318   │ concrete body                    │
+│ port_eligible_eq_legacy_of_controls         │ c     │ 323   │ concrete body                    │
+│ port_headInTree_eq_legacy_of_controls       │ c     │ 329   │ concrete body                    │
+│ port_getHead_eq_legacy_of_controls          │ c     │ 336   │ concrete body                    │
+│ port_headVote_eq_legacy_of_reads            │ c     │ 344   │ concrete body                    │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S116
+
+AvailableChainFGSA/Proofs/Restart.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ normalizeS_eq_of_nestOK                     │ c     │ 68    │ concrete body                    │
+│ wipe_now                                    │ c     │ 73    │ concrete body                    │
+│ wipe_restartTime                            │ c     │ 77    │ concrete body                    │
+│ wipe_fg                                     │ c     │ 81    │ concrete body                    │
+│ wipe_proposals                              │ c     │ 85    │ concrete body                    │
+│ wipe_rowPool                                │ c     │ 89    │ concrete body                    │
+│ wipe_blocks                                 │ c     │ 93    │ concrete body                    │
+│ wipe_obligations                            │ c     │ 97    │ concrete body                    │
+│ wipe_stableRecord                           │ c     │ 101   │ concrete body                    │
+│ wipe_fastWrite                              │ c     │ 105   │ concrete body                    │
+│ wipe_blockStamp                             │ c     │ 109   │ concrete body                    │
+│ restartVotes_eq                             │ c     │ 116   │ concrete body                    │
+│ acRestart_now                               │ c     │ 186   │ concrete body                    │
+│ acRestart_restartTime                       │ c     │ 191   │ concrete body                    │
+│ acRestart_fg                                │ c     │ 196   │ concrete body                    │
+│ acRestart_proposals                         │ c     │ 201   │ concrete body                    │
+│ acRestart_rowPool                           │ c     │ 206   │ concrete body                    │
+│ acRestart_blocks                            │ c     │ 211   │ concrete body                    │
+│ acRestart_obligations                       │ c     │ 216   │ concrete body                    │
+│ acRestart_stableRecord                      │ c     │ 221   │ concrete body                    │
+│ acRestart_blockStamp                        │ c     │ 226   │ concrete body                    │
+│ acRestart_fastWrite                         │ c     │ 232   │ concrete body                    │
+│ acRestart_genuine                           │ c     │ 237   │ concrete body                    │
+│ acRestart_voteStamp_keys                    │ c     │ 364   │ concrete body                    │
+│ acRestart_votes_nodup                       │ c     │ 369   │ concrete body                    │
+│ acRestart_voteStamp_nodup                   │ c     │ 373   │ concrete body                    │
+│ acRestart_two_per_seat                      │ c     │ 379   │ concrete body                    │
+│ acRestart_replay_stamp                      │ c     │ 385   │ concrete body                    │
+│ restartSources_eq                           │ c     │ 481   │ concrete body                    │
+│ restartSources_parent_order                 │ c     │ 494   │ concrete body                    │
+│ acRestart_replay_order                      │ c     │ 513   │ concrete body                    │
+│ acRestart_block_stamp                       │ c     │ 522   │ concrete body                    │
+│ reachable_acRestart                         │ c     │ 539   │ concrete body                    │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S117
+
+AvailableChainFGSA/Proofs/RowValidity.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ rowsValidForParent_iff                      │ c     │ 19    │ concrete body                    │
+│ rowsValidForParent_slot_irrel               │ c     │ 27    │ concrete body                    │
+│ rowsValidForParent_perm                     │ c     │ 32    │ concrete body                    │
+│ rowsValidStored_initial                     │ c     │ 39    │ concrete body                    │
+│ RowPayload.ofRow_toRow                      │ c     │ 44    │ concrete body                    │
+│ row_bit_persist                             │ a     │ 49    │ bit_from_row                     │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S118
+
+AvailableChainFGSA/Proofs/Spec/Clock.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ revoke_vote_time                            │ c     │ 10    │ concrete body                    │
+│ confirmation_cutoff_time                    │ c     │ 16    │ concrete body                    │
+│ phaseTime_strict                            │ c     │ 21    │ concrete body                    │
+│ schedule_embedding                          │ c     │ 27    │ concrete body                    │
+│ actionTime_embedding                        │ c     │ 40    │ concrete body                    │
+│ tick_order                                  │ c     │ 44    │ concrete body                    │
+│ receipt_lt_public_iff                       │ c     │ 49    │ concrete body                    │
+│ resolution_lt_public_iff                    │ c     │ 64    │ concrete body                    │
+│ acOnTick_zero_vote                          │ c     │ 74    │ concrete body                    │
+│ acOnTick_zero_confirmation                  │ c     │ 81    │ concrete body                    │
+│ acOnTick_vote_order                         │ c     │ 89    │ concrete body                    │
+│ acOnTick_confirmation_slot                  │ c     │ 98    │ concrete body                    │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S119
+
+AvailableChainFGSA/Proofs/Spec/Frame.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ frame_tree                                  │ c     │ 14    │ concrete body                    │
+│ mem_viableTree                              │ c     │ 18    │ concrete body                    │
+│ viableTree_eq_filter                        │ a     │ 27    │ preceq_trans                     │
+│ viableTree_next_controls                    │ c     │ 47    │ concrete body                    │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S120
+
+AvailableChainFGSA/Proofs/WindowCertificates.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ justificationBirth_window_iff_simplex       │ a     │ 225   │ justificationBirth_window_iff_si │
+│                                             │       │       │ mplex                            │
+│ window_entry_origin                         │ a     │ 234   │ window_entry_origin              │
+│ window_prefinal_entry_origin                │ a     │ 246   │ window_prefinal_entry_origin     │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S121
+
+AvailableChainFGSA/Proofs/WindowHeightBridge.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ heightRefinement                            │ a     │ 194   │ heightRefinement                 │
+│ windowHeightBridge                          │ a     │ 204   │ windowHeightBridge               │
+│ windowHeightLaws                            │ a     │ 211   │ windowHeightLaws                 │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S122
+
+AvailableChainFGSA/Proofs/WindowHistory.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ window_final_birth                          │ a     │ 281   │ window_final_birth               │
+│ window_le_hF_covered                        │ a     │ 341   │ window_le_hF_covered             │
+│ window_absent_le_hF_covered                 │ a     │ 372   │ window_absent_le_hF_covered      │
+│ window_evicted_above_hF                     │ a     │ 409   │ window_evicted_above_hF          │
+│ window_retained_bits_mono                   │ a     │ 446   │ window_retained_bits_mono        │
+│ window_latest_pair_kept                     │ a     │ 483   │ window_latest_pair_kept          │
+│ window_evicted_has_K_newer                  │ a     │ 608   │ window_evicted_has_K_newer       │
+│ window_entry_history                        │ a     │ 674   │ window_entry_history             │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S123
+
+AvailableChainFGSA/Proofs/WindowInvariant.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ window_ordered                              │ a     │ 206   │ window_ordered                   │
+│ window_bounds                               │ a     │ 212   │ window_bounds                    │
+│ window_capacity                             │ a     │ 221   │ window_capacity                  │
+│ window_post_not_ready                       │ a     │ 227   │ window_post_not_ready            │
+│ window_F_preceq_J                           │ a     │ 235   │ window_F_preceq_J                │
+│ window_hF_le_hj                             │ a     │ 241   │ window_hF_le_hj                  │
+│ window_finalized_zero                       │ a     │ 247   │ window_finalized_zero            │
+│ window_hF_mono                              │ a     │ 256   │ window_hF_mono                   │
+│ window_F_mono                               │ a     │ 263   │ window_F_mono                    │
+│ window_bit_retained                         │ a     │ 270   │ window_bit_retained              │
+│ window_no_reentry                           │ a     │ 278   │ window_no_reentry                │
+│ window_finality_of_cover                    │ a     │ 295   │ window_finality_of_cover         │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S124
+
+AvailableChainFGSA/Proofs/WindowLiveness.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ window_bit_add_of_row                       │ a     │ 343   │ window_bit_add_of_row            │
+│ window_bits_accumulate                      │ a     │ 388   │ window_bits_accumulate           │
+│ window_finalize_of_accumulated_quorum       │ a     │ 427   │ window_finalize_of_accumulated_q │
+│                                             │       │       │ uorum                            │
+│ window_target_appended_newest               │ a     │ 478   │ window_target_appended_newest    │
+│ window_retained_of_few_newer                │ a     │ 520   │ window_retained_of_few_newer     │
+│ window_retained_along                       │ a     │ 564   │ window_retained_along            │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S125
+
+AvailableChainFGSA/Proofs/WindowOccurrences.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ entry_bit_insertW                           │ a     │ 269   │ entry_bit_insertW                │
+│ entry_bit_persistW                          │ a     │ 320   │ entry_bit_persistW               │
+│ entry_bit_occurrenceW                       │ a     │ 365   │ entry_bit_occurrenceW            │
+│ entry_historyW                              │ a     │ 415   │ entry_historyW                   │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S126
+
+AvailableChainFGSA/Proofs/WindowProvenance.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ window_provenance_entry                     │ a     │ 215   │ window_provenance_entry          │
+│ window_provenance_finalityRow               │ a     │ 227   │ window_provenance_finalityRow    │
+│ window_provenance_finalityQC                │ a     │ 239   │ window_provenance_finalityQC     │
+│ window_exists_crossing_quorum_ne_justified  │ a     │ 256   │ window_exists_crossing_quorum_ne │
+│                                             │       │       │ _justified                       │
+│ window_exists_honest_timeout_of_crossing    │ a     │ 270   │ window_exists_honest_timeout_of_ │
+│                                             │       │       │ crossing                         │
+│ window_headFields_latest                    │ a     │ 293   │ window_headFields_latest         │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S127
+
+AvailableChainFGSA/Proofs/WindowReaders.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ window_hOf_eq                               │ a     │ 218   │ window_hOf_eq                    │
+│ window_frontier_eq                          │ a     │ 229   │ window_frontier_eq               │
+│ window_lexMax_eq                            │ a     │ 240   │ window_lexMax_eq                 │
+│ window_filteredFrom_eq                      │ a     │ 251   │ window_filteredFrom_eq           │
+│ window_storeControls_eq                     │ a     │ 263   │ window_storeControls_eq          │
+│ window_storeFrame_eq                        │ a     │ 274   │ window_storeFrame_eq             │
+│ window_fjControls_eq                        │ a     │ 286   │ window_fjControls_eq             │
+│ window_fjFrame_eq                           │ a     │ 297   │ window_fjFrame_eq                │
+│ headFields_eq_certificateHeadFields         │ a     │ 308   │ headFields_eq_certificateHeadFie │
+│                                             │       │       │ lds                              │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S128
+
+AvailableChainFGSA/Proofs/WindowRetention.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ window_hj_mono                              │ a     │ 263   │ window_hj_mono                   │
+│ window_retained_of_scalar                   │ a     │ 300   │ window_retained_of_scalar        │
+│ window_retained_or_covered                  │ a     │ 342   │ window_retained_or_covered       │
+│ window_exact_row_no_missing_effect          │ a     │ 413   │ window_exact_row_no_missing_effe │
+│                                             │       │       │ ct                               │
+│ window_retained_of_few_births               │ a     │ 467   │ window_retained_of_few_births    │
+│ window_retained_fresh_one_newer             │ a     │ 513   │ window_retained_fresh_one_newer  │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S129
+
+AvailableChainFGSA/Proofs/WindowSelection.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ windowSelectionLaws                         │ a     │ 245   │ windowSelectionLaws              │
+│ windowCertificateLaws                       │ a     │ 252   │ windowCertificateLaws            │
+│ windowChainCertificate                      │ a     │ 258   │ windowChainCertificate           │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S130
+
+AvailableChainFGSA/Proofs/WindowSteps.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ window_addBit_key                           │ a     │ 168   │ window_addBit_key                │
+│ window_addBit_bits                          │ a     │ 174   │ window_addBit_bits               │
+│ window_row_fields                           │ a     │ 181   │ window_row_fields                │
+│ window_fold_fields                          │ a     │ 192   │ window_fold_fields               │
+│ window_fold_entry                           │ a     │ 203   │ window_fold_entry                │
+│ window_greatest_spec                        │ a     │ 217   │ window_greatest_spec             │
+│ window_strict_node                          │ a     │ 236   │ window_strict_node               │
+│ window_fold_sources                         │ a     │ 243   │ window_fold_sources              │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S131
+
+AvailableChainFGSA/Proofs/WindowStore.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ acceptViable_eq                             │ a     │ 236   │ acceptViable_eq                  │
+│ window_update_finality_TF                   │ a     │ 248   │ window_update_finality_TF        │
+│ window_update_finality_h_max                │ a     │ 261   │ window_update_finality_h_max     │
+│ window_update_finality_pair                 │ a     │ 274   │ window_update_finality_pair      │
+│ window_update_finality_F_cases              │ a     │ 290   │ window_update_finality_F_cases   │
+│ update_finality_h_max_eq                    │ a     │ 306   │ update_finality_h_max_eq         │
+│ update_finality_J_eq                        │ a     │ 319   │ update_finality_J_eq             │
+│ update_finality_h_j_eq                      │ a     │ 332   │ update_finality_h_j_eq           │
+│ on_block_TF_eq                              │ a     │ 345   │ on_block_TF_eq                   │
+│ windowStoreInvariant_init                   │ a     │ 358   │ windowStoreInvariant_init        │
+│ windowStoreInvariant_accept                 │ a     │ 371   │ windowStoreInvariant_accept      │
+│ window_on_block_of_refused                  │ a     │ 384   │ window_on_block_of_refused       │
+│ window_on_block_of_accepted                 │ a     │ 397   │ window_on_block_of_accepted      │
+│ window_on_block_F_mono                      │ a     │ 410   │ window_on_block_F_mono           │
+│ windowStoreInvariant_on_block               │ a     │ 422   │ windowStoreInvariant_on_block    │
+│ window_on_block_TF_subset                   │ a     │ 434   │ window_on_block_TF_subset        │
+│ windowStoreSafety                           │ a     │ 447   │ windowStoreSafety                │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S132
+
+AvailableChainFGSA/Proofs/WindowTerminal.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ terminal_retained_scalarW                   │ a     │ 266   │ terminal_retained_scalarW        │
+│ terminal_retained_birthsW                   │ a     │ 323   │ terminal_retained_birthsW        │
+│ terminal_retained_or_coveredW               │ a     │ 385   │ terminal_retained_or_coveredW    │
+│ terminalRetentionW                          │ a     │ 432   │ terminalRetentionW               │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S133
+
+AvailableChainFGSA/Proofs/WindowValidity.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ rowValidW_iff                               │ c     │ 91    │ concrete body                    │
+│ rowValidW_decodes                           │ c     │ 97    │ concrete body                    │
+│ rowValidW_slot_irrel                        │ c     │ 103   │ concrete body                    │
+│ rowValidW_fold                              │ a     │ 148   │ r6w_fold                         │
+│ heightMatch_progress_first                  │ a     │ 196   │ heightMatch_progress_first       │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S134
+
+AvailableChainFGSA/Statements/FinalityView.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ finalityView_def                            │ c     │ 14    │ concrete body                    │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S135
+
+AvailableChainFGSA/Statements/WindowCertificate.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ projectFinality_def                         │ c     │ 17    │ concrete body                    │
+│ projectCertEntry_def                        │ c     │ 23    │ concrete body                    │
+│ certificateHeight_def                       │ c     │ 29    │ concrete body                    │
+│ certificateFinality_def                     │ c     │ 35    │ concrete body                    │
+│ certificateFolded_def                       │ c     │ 44    │ concrete body                    │
+│ certificateSelection_def                    │ c     │ 55    │ concrete body                    │
+│ EntryOriginAt_def                           │ c     │ 72    │ concrete body                    │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S136
+
+AvailableChainFGSAProofs/Proofs/Assembly/Finality.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ fgsa_finalityKernel_W                       │ c     │ 112   │ concrete body                    │
+│ fgsa_finalityKernelJoined_W                 │ c     │ 156   │ concrete body                    │
+│ fgsa_tailKernel_W                           │ c     │ 201   │ concrete body                    │
+│ fgsa_finalityLivenessRecFE_W                │ c     │ 259   │ concrete body                    │
+│ fgsa_finalityLivenessRecF4_W                │ c     │ 271   │ concrete body                    │
+│ fgsa_proposalFinalRecFE_W                   │ c     │ 281   │ concrete body                    │
+│ fgsa_proposalFinalRecF4_W                   │ c     │ 292   │ concrete body                    │
+│ fgsa_aboveFrontierRecFE_W                   │ c     │ 311   │ concrete body                    │
+│ fgsa_aboveFrontierRecF4_W                   │ c     │ 330   │ concrete body                    │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S137
+
+AvailableChainFGSAProofs/Proofs/Finality/Accept.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ fgsa_acceptBefore_W                         │ a     │ 366   │ acceptBefore_W                   │
+│ fgsa_finalizePending_W                      │ a     │ 379   │ finalizePending_W                │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S138
+
+AvailableChainFGSAProofs/Proofs/Finality/ActionTime.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ finality_action_time_bounds                 │ a     │ 36    │ finality_action_time_bounds      │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S139
+
+AvailableChainFGSAProofs/Proofs/Finality/Batch.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ finalityRow_bit_or_carried_W                │ a     │ 716   │ finalityRow_bit_or_carried_W     │
+│ finalityBatchCoverage_W_of_tRowsSelect      │ a     │ 778   │ finalityBatchCoverage_W_of_tRows │
+│                                             │       │       │ Select                           │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S140
+
+AvailableChainFGSAProofs/Proofs/Finality/Carry.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ terminalCarriage_general_W                  │ a     │ 799   │ terminalCarriage_general_W       │
+│ terminalCarriage_W_of_tRowsSelect           │ a     │ 871   │ terminalCarriage_W_of_tRowsSelec │
+│                                             │       │       │ t                                │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S141
+
+AvailableChainFGSAProofs/Proofs/Finality/Export.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ fgsa_kernelACSide_W                         │ c     │ 18    │ concrete body                    │
+│ fgsa_finalityKernel_W_of                    │ c     │ 29    │ concrete body                    │
+│ fgsa_finalityKernelJoined_W_of              │ c     │ 103   │ concrete body                    │
+│ fgsa_tailKernel_W_of                        │ c     │ 178   │ concrete body                    │
+│ fgsa_finalityLivenessRecFE_W_of             │ c     │ 267   │ concrete body                    │
+│ fgsa_finalityLivenessRecF4_W_of             │ c     │ 340   │ concrete body                    │
+│ fgsa_proposalFinalRecFE_W_of                │ c     │ 406   │ concrete body                    │
+│ fgsa_proposalFinalRecF4_W_of                │ c     │ 478   │ concrete body                    │
+│ fgsa_aboveFrontierRecFE_W_of                │ c     │ 557   │ concrete body                    │
+│ fgsa_aboveFrontierRecF4_W_of                │ c     │ 645   │ concrete body                    │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S142
+
+AvailableChainFGSAProofs/Proofs/Finality/Forward.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ ForwardWitness_W_def                        │ c     │ 35    │ concrete body                    │
+│ finality_window_nonneg                      │ c     │ 84    │ concrete body                    │
+│ forward_witness_FE_of                       │ b     │ 153   │ forward_round_FE / F7            │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S143
+
+AvailableChainFGSAProofs/Proofs/Finality/FrontierBound.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ honestFrontier_le_opening                   │ c     │ 13    │ concrete body                    │
+│ opening_height_succ_eq_middle               │ c     │ 71    │ concrete body                    │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S144
+
+AvailableChainFGSAProofs/Proofs/Finality/History.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ noMixedPreBatchParent                       │ a     │ 433   │ noMixedPreBatchParent            │
+│ justifyFresh_W                              │ a     │ 445   │ justifyFresh_W                   │
+│ raw_causal_cap_before                       │ a     │ 466   │ raw_causal_cap_before            │
+│ raw_causal_cap_at_tick                      │ a     │ 487   │ raw_causal_cap_at_tick           │
+│ raw_causal_cap_through_action               │ a     │ 509   │ raw_causal_cap_through_action    │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S145
+
+AvailableChainFGSAProofs/Proofs/Finality/Joined.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ finality_kernel_prem_W_of_joined            │ b     │ 17    │ concrete body / F7               │
+│ finality_kernel_joined_W_of                 │ b     │ 34    │ concrete body / F7               │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S146
+
+AvailableChainFGSAProofs/Proofs/Finality/Kernel.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ finality_kernel_W_of                        │ b     │ 117   │ concrete body / K7               │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S147
+
+AvailableChainFGSAProofs/Proofs/Finality/Local.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ finality_liveness_of_forward_W              │ b     │ 26    │ concrete body / F7               │
+│ finality_liveness_FE_W_of                   │ b     │ 80    │ concrete body / F7               │
+│ finality_liveness_F4_W_of                   │ c     │ 127   │ concrete body                    │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S148
+
+AvailableChainFGSAProofs/Proofs/Finality/Middle.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ kernel_opening_and_middle                   │ a     │ 1260  │ head_held,                       │
+│                                             │       │       │ kernel_opening_and_middle        │
+│ kernel_middle_fresh_U                       │ a     │ 1397  │ kernel_middle_fresh_U            │
+│ kernel_middle_early_justification           │ a     │ 1409  │ kernel_middle_early_justificatio │
+│                                             │       │       │ n                                │
+│ kernel_middle_source_cap                    │ a     │ 1427  │ kernel_middle_source_cap         │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S149
+
+AvailableChainFGSAProofs/Proofs/Finality/MiddleSupport.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ kmid_actionTime_eq                          │ a     │ 235   │ kmid_actionTime_eq               │
+│ kmid_action_strictMono                      │ a     │ 242   │ kmid_action_strictMono           │
+│ kmid_slot_scale_le                          │ a     │ 248   │ kmid_slot_scale_le               │
+│ kmid_slot_scale_lt                          │ a     │ 255   │ kmid_slot_scale_lt               │
+│ kmid_kappa_cover                            │ a     │ 262   │ kmid_kappa_cover                 │
+│ kmid_honest_proposal_exists                 │ c     │ 421   │ concrete body                    │
+│ kmid_proposal_read                          │ c     │ 435   │ concrete body                    │
+│ kmid_opening_carrier                        │ c     │ 456   │ concrete body                    │
+│ kmid_eraseFG_inj                            │ c     │ 494   │ concrete body                    │
+│ kmid_lift_preceq                            │ a     │ 501   │ kmid_lift_preceq                 │
+│ kmid_parent_preceq                          │ a     │ 509   │ kmid_parent_preceq               │
+│ kmid_source_of_exact                        │ a     │ 515   │ kmid_source_of_exact             │
+│ kmid_rowHeight_entry                        │ c     │ 536   │ concrete body                    │
+│ kmid_row_source_height                      │ a     │ 552   │ kmid_row_source_height           │
+│ kmid_rows_below_opening                     │ a     │ 570   │ kmid_rows_below_opening          │
+│ kmid_rows_at_source                         │ a     │ 597   │ kmid_rows_at_source              │
+│ kmid_row_action                             │ a     │ 746   │ kmid_row_action                  │
+│ kmid_row_fin_lt                             │ a     │ 769   │ kmid_row_fin_lt                  │
+│ kmid_tick_lt_afterTicks                     │ a     │ 784   │ kmid_tick_lt_afterTicks          │
+│ kmid_head_held                              │ a     │ 793   │ head_held                        │
+│ kmid_source_mem_TF                          │ a     │ 815   │ source_mem_TF                    │
+│ kmid_source_held_at_tick                    │ a     │ 829   │ kmid_source_held_at_tick         │
+│ kmid_chainRows_of_head                      │ a     │ 866   │ kmid_chainRows_of_head           │
+│ kmid_head_held_from                         │ a     │ 881   │ kmid_head_held_from              │
+│ kmid_faulty_weight                          │ a     │ 912   │ kmid_faulty_weight               │
+│ kmid_honest_seat                            │ a     │ 927   │ kmid_honest_seat                 │
+│ kmid_wire_decode                            │ c     │ 937   │ concrete body                    │
+│ kmid_event_time                             │ a     │ 956   │ kmid_event_time                  │
+│ kmid_matching_height                        │ a     │ 966   │ kmid_matching_height             │
+│ kmid_delivery_before_afterTicks             │ a     │ 979   │ kmid_delivery_before_afterTicks  │
+│ kmid_held_height_le                         │ a     │ 1025  │ kmid_held_height_le              │
+│ kmid_held_cap_afterTicks                    │ a     │ 1043  │ kmid_held_cap_afterTicks         │
+│ kmid_held_finality_afterTicks               │ a     │ 1061  │ kmid_held_finality_afterTicks    │
+│ kmid_parentFold_height                      │ a     │ 1089  │ kmid_parentFold_height           │
+│ kmid_wire_toRow                             │ c     │ 1105  │ concrete body                    │
+│ kmid_proposal_reachable                     │ c     │ 1116  │ concrete body                    │
+│ kmid_rows_above_entry                       │ a     │ 1163  │ kmid_rows_above_entry            │
+│ kmid_stored_parent_slot                     │ c     │ 1187  │ concrete body                    │
+│ kmid_stored_slotChain                       │ c     │ 1206  │ concrete body                    │
+│ kmid_slot_le_of_preceq                      │ a     │ 1222  │ kmid_slot_le_of_preceq           │
+│ kmid_slot_lt_of_strict                      │ a     │ 1230  │ kmid_slot_lt_of_strict           │
+│ kmid_batchPrem                              │ a     │ 1448  │ kmid_batchPrem                   │
+│ kmid_period_eq                              │ a     │ 1512  │ kmid_period_eq                   │
+│ kmid_kernel_bounds                          │ a     │ 1520  │ kmid_kernel_bounds               │
+│ kmid_slot_horizon                           │ a     │ 1544  │ kmid_slot_horizon                │
+│ kmid_slot_gst                               │ a     │ 1555  │ kmid_slot_gst                    │
+│ finality_healing_recoveryStart              │ c     │ 1563  │ concrete body                    │
+│ finality_input_suffix_confirmed             │ c     │ 1582  │ concrete body                    │
+│ kmid_suffix_confirmed                       │ c     │ 1606  │ concrete body                    │
+│ kmid_window_join_cut                        │ c     │ 1630  │ concrete body                    │
+│ kmid_window_joined                          │ c     │ 1646  │ concrete body                    │
+│ kmid_window_confirmed                       │ c     │ 1658  │ concrete body                    │
+│ kmid_window_proposal                        │ c     │ 1673  │ concrete body                    │
+│ kmid_window_exact                           │ c     │ 1688  │ concrete body                    │
+│ kmid_rows_cut                               │ a     │ 1700  │ kmid_rows_cut                    │
+│ kmid_fin_cut                                │ a     │ 1716  │ kmid_fin_cut                     │
+│ kmid_vote_lt_action                         │ a     │ 1733  │ kmid_vote_lt_action              │
+│ kmid_proposal_le_action                     │ a     │ 1741  │ kmid_proposal_le_action          │
+│ kmid_batch_horizon                          │ a     │ 1749  │ kmid_batch_horizon               │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S150
+
+AvailableChainFGSAProofs/Proofs/Finality/Receipt.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ receipt_kernel_fields                       │ b     │ 692   │ concrete body / A75              │
+│ receipt_finalized_of_carriage               │ a     │ 702   │ receipt_finalized_of_carriage    │
+│ receipt_finCmp_of_block                     │ a     │ 767   │ receipt_finCmp_of_block          │
+│ receipt_finCmp                              │ a     │ 796   │ receipt_finCmp                   │
+│ receipt_cap                                 │ a     │ 827   │ receipt_cap                      │
+│ receipt_receiver_finalityLag                │ a     │ 864   │ receipt_receiver_finalityLag     │
+│ receipt_jPath_of_cached_anchor              │ a     │ 903   │ receipt_jPath_of_cached_anchor   │
+│ receipt_ready_of_delivery                   │ c     │ 924   │ concrete body                    │
+│ receipt_delivery                            │ a     │ 1002  │ preceq_refl, preceq_trans        │
+│ receipt_jPath                               │ a     │ 1199  │ receipt_jPath                    │
+│ receipt_acceptPrem_W                        │ b     │ 1272  │ preceq_trans / A75               │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S151
+
+AvailableChainFGSAProofs/Proofs/Finality/ReceiptSuppliers.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ finality_proposal_receiver_service          │ c     │ 18    │ concrete body                    │
+│ finality_honest_head_pool_unique            │ c     │ 80    │ concrete body                    │
+│ finality_fresh_head_service                 │ c     │ 141   │ concrete body                    │
+│ finality_target_service_of_held             │ c     │ 304   │ concrete body                    │
+│ finality_postClock_tick                     │ c     │ 322   │ concrete body                    │
+│ finality_F_mono_idx                         │ a     │ 335   │ preceq_refl                      │
+│ finality_F_before_postClock                 │ c     │ 346   │ concrete body                    │
+│ finality_action_receipts                    │ c     │ 443   │ concrete body                    │
+│ finality_tail_head_receipts                 │ c     │ 454   │ concrete body                    │
+│ finality_scoped_vote_receipts               │ c     │ 498   │ concrete body                    │
+│ finality_full_vote_at_scoped_read           │ c     │ 526   │ concrete body                    │
+│ finality_vote_receipts                      │ c     │ 535   │ concrete body                    │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S152
+
+AvailableChainFGSAProofs/Proofs/Finality/RecordInv.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ high_source_entry_eq                        │ a     │ 325   │ high_source_entry_eq             │
+│ high_record_target_choice                   │ a     │ 370   │ high_record_target_choice        │
+│ high_entry_record_invariant                 │ a     │ 660   │ high_entry_record_invariant      │
+│ high_record_fresh_at_cut                    │ a     │ 749   │ high_record_fresh_at_cut         │
+│ high_target_row_covered                     │ a     │ 1007  │ high_target_row_covered          │
+│ high_record_reset_fresh                     │ a     │ 1036  │ high_record_reset_fresh          │
+│ high_record_guards_and_fresh                │ a     │ 1051  │ high_record_guards_and_fresh     │
+│ high_target_first_row                       │ a     │ 1081  │ high_target_first_row            │
+│ high_target_honest_quorum                   │ a     │ 1121  │ high_target_honest_quorum        │
+│ high_target_quorum_covered                  │ a     │ 1181  │ high_target_quorum_covered       │
+│ high_action_target_choice                   │ a     │ 1232  │ high_action_target_choice        │
+│ high_record_guards_and_fresh_at_action      │ a     │ 1259  │ high_record_guards_and_fresh_at_ │
+│                                             │       │       │ action                           │
+│ ff2_stored_high_qc_identity                 │ a     │ 1410  │ ff2_stored_high_qc_identity      │
+│ ff2_high_qc_identity                        │ a     │ 1473  │ ff2_high_qc_identity             │
+│ ff2_no_high_contest                         │ a     │ 1519  │ ff2_no_high_contest              │
+│ HighRecordGuard_W_def                       │ c     │ 1546  │ concrete body                    │
+│ ff2_high_record_guards                      │ a     │ 1555  │ ff2_high_record_guards           │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S153
+
+AvailableChainFGSAProofs/Proofs/Finality/RestoreReads.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ finality_restore_preceq_F                   │ a     │ 41    │ finality_restore_preceq_F        │
+│ finality_acceptsFinalBefore_of_idx          │ a     │ 50    │ finality_acceptsFinalBefore_of_i │
+│                                             │       │       │ dx                               │
+│ finality_acceptsFinalBefore_mono_deadline   │ a     │ 62    │ finality_acceptsFinalBefore_mono │
+│                                             │       │       │ _deadline                        │
+│ finality_acceptsFinalBefore_mono_ancestor   │ a     │ 71    │ finality_acceptsFinalBefore_mono │
+│                                             │       │       │ _ancestor                        │
+│ finality_heldBefore_at_proposal             │ a     │ 115   │ finality_heldBefore_at_proposal  │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S154
+
+AvailableChainFGSAProofs/Proofs/Finality/Rows.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ pending_action_head_capped                  │ c     │ 642   │ concrete body                    │
+│ pending_action_domain_cap                   │ a     │ 675   │ pending_action_domain_cap        │
+│ pending_action_head                         │ a     │ 708   │ pending_action_head              │
+│ finality_action_source                      │ a     │ 880   │ finality_action_source           │
+│ fresh_unanimous_rows                        │ a     │ 973   │ fresh_unanimous_rows             │
+│ actual_anchor_cap                           │ a     │ 1057  │ actual_anchor_cap                │
+│ actual_anchor_retained_or_covered           │ a     │ 1088  │ actual_anchor_retained_or_covere │
+│                                             │       │       │ d                                │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S155
+
+AvailableChainFGSAProofs/Proofs/Finality/RowsBatch.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ rowsPrem_action_pools                       │ c     │ 215   │ concrete body                    │
+│ rowsPrem_action_walk_batch                  │ c     │ 246   │ concrete body                    │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S156
+
+AvailableChainFGSAProofs/Proofs/Finality/RowsPrem.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ rowsPrem_pending_head                       │ a     │ 982   │ rowsPrem_pending_head            │
+│ rowsPrem_action_source                      │ a     │ 1059  │ rowsPrem_action_source           │
+│ rowsPrem_fresh_rows                         │ a     │ 1184  │ rowsPrem_fresh_rows              │
+│ rowsPrem_anchor_cap                         │ a     │ 1277  │ rowsPrem_anchor_cap              │
+│ rowsPrem_anchor_retained_or_covered         │ a     │ 1308  │ rowsPrem_anchor_retained_or_cove │
+│                                             │       │       │ red                              │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S157
+
+AvailableChainFGSAProofs/Proofs/Finality/RowsRecords.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ rowsPrem_earlier_height                     │ a     │ 866   │ rowsPrem_earlier_height          │
+│ rowsPrem_action_record                      │ a     │ 880   │ rowsPrem_action_record           │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S158
+
+AvailableChainFGSAProofs/Proofs/Foundations/FGSafetyBridge.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ fgsa_bridge_runAccountable                  │ c     │ 79    │ concrete body                    │
+│ fgsa_bridge_parent_scope                    │ c     │ 96    │ concrete body                    │
+│ fgsa_bridge_read_scope                      │ c     │ 109   │ concrete body                    │
+│ fgsa_bridge_stores_accountable              │ c     │ 118   │ concrete body                    │
+│ fgsa_bridge_reads_accountable               │ c     │ 132   │ concrete body                    │
+│ fgsa_bridge_event_agreement                 │ c     │ 146   │ concrete body                    │
+│ fgsa_bridge_read_agreement                  │ c     │ 167   │ concrete body                    │
+│ fgsa_bridge_pool_count                      │ c     │ 232   │ concrete body                    │
+│ fgsa_bridge_slashableBound_of_faults        │ c     │ 249   │ concrete body                    │
+│ fgsa_bridge_finalizedMonotone               │ c     │ 279   │ concrete body                    │
+│ fgsa_bridge_finalizedMonotone_restart       │ c     │ 290   │ concrete body                    │
+│ fgsa_bridge_clientSafeAll                   │ c     │ 301   │ concrete body                    │
+│ fgsa_bridge_read_row_origin                 │ c     │ 309   │ concrete body                    │
+│ fgsa_safetySlashesRead                      │ c     │ 337   │ concrete body                    │
+│ fgsa_bridge_honestNeverSlashed              │ c     │ 346   │ concrete body                    │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S159
+
+AvailableChainFGSAProofs/Proofs/Foundations/RowPermission.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ rowPermission_confirmedReader_gate          │ c     │ 18    │ concrete body                    │
+│ rowPermission_own_lock                      │ c     │ 302   │ concrete body                    │
+│ rowPermission_pair                          │ a     │ 404   │ rowPermission_pair               │
+│ rowPermission_covered                       │ a     │ 612   │ rowPermission_covered            │
+│ rowPermission_at                            │ c     │ 671   │ concrete body                    │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S160
+
+AvailableChainFGSAProofs/Proofs/Healing/Attempt.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ healing_progressAttempt_of                  │ a     │ 304   │ progressAttempt_of               │
+│ healing_progressAttempt                     │ a     │ 485   │ progressAttempt_of               │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S161
+
+AvailableChainFGSAProofs/Proofs/Healing/AttemptRows.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ healing_attempt_firstRow_contest            │ a     │ 757   │ healing_attempt_firstRow_contest │
+│ healing_attempt_firstRow_other              │ a     │ 885   │ healing_attempt_firstRow_other   │
+│ healing_attempt_raise_contest               │ a     │ 1001  │ healing_attempt_raise_contest    │
+│ healing_attempt_raise_other                 │ a     │ 1057  │ healing_attempt_raise_other      │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S162
+
+AvailableChainFGSAProofs/Proofs/Healing/AttemptSettle.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ healing_attempt_settle_start                │ a     │ 302   │ healing_attempt_settle_start     │
+│ healing_attempt_raise_contest_settle        │ a     │ 343   │ healing_attempt_raise_contest_se │
+│                                             │       │       │ ttle                             │
+│ healing_attempt_raise_other_settle          │ a     │ 387   │ healing_attempt_raise_other_sett │
+│                                             │       │       │ le                               │
+│ healing_attempt_firstRow_contest_settle     │ a     │ 433   │ healing_attempt_firstRow_contest │
+│                                             │       │       │ _settle                          │
+│ healing_attempt_firstRow_other_settle       │ a     │ 477   │ healing_attempt_firstRow_other_s │
+│                                             │       │       │ ettle                            │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S163
+
+AvailableChainFGSAProofs/Proofs/Healing/AttemptStop.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ healing_attempt_ends_of_event               │ a     │ 254   │ healing_attempt_ends_of_event    │
+│ healing_attempt_ends_of_row                 │ a     │ 266   │ healing_attempt_ends_of_row      │
+│ healing_attempt_ends_mono                   │ a     │ 284   │ healing_attempt_ends_mono        │
+│ healing_attempt_no_event                    │ a     │ 292   │ healing_attempt_no_event         │
+│ healing_attempt_inclusive_start             │ a     │ 306   │ healing_attempt_inclusive_start  │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S164
+
+AvailableChainFGSAProofs/Proofs/Healing/CommonEntryFacts.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ common_first_opening_labels                 │ c     │ 44    │ concrete body                    │
+│ common_first_time_bound                     │ c     │ 59    │ concrete body                    │
+│ common_source_tick                          │ c     │ 77    │ concrete body                    │
+│ common_source_height_le                     │ a     │ 89    │ mem_filteredFromView             │
+│ common_source_below_raw                     │ c     │ 111   │ concrete body                    │
+│ common_sources_compatible                   │ c     │ 130   │ concrete body                    │
+│ common_entry_of_plateau                     │ a     │ 176   │ common_entry_of_plateau          │
+│ common_low_or_high                          │ a     │ 188   │ common_low_or_high               │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S165
+
+AvailableChainFGSAProofs/Proofs/Healing/CommonEntryHeight.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ common_sources_extend_and_cap               │ a     │ 97    │ common_sources_extend_and_cap    │
+│ common_entry_at_high                        │ a     │ 118   │ common_entry_at_high             │
+│ common_next_sources_extend_and_cap          │ a     │ 135   │ common_next_sources_extend_and_c │
+│                                             │       │       │ ap                               │
+│ common_next_entry                           │ a     │ 174   │ common_next_entry                │
+│ common_entry_at_low                         │ a     │ 192   │ common_entry_at_low              │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S166
+
+AvailableChainFGSAProofs/Proofs/Healing/FrontierSearchAge.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ frontierSearch_age_service                  │ a     │ 443   │ frontierSearch_age_service       │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S167
+
+AvailableChainFGSAProofs/Proofs/Healing/FrontierSearchBudget.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ frontierSearch_contest_rise_cost            │ a     │ 41    │ frontierSearch_contest_rise_cost │
+│ frontierSearch_contest_row_cost             │ a     │ 49    │ frontierSearch_contest_row_cost  │
+│ frontierSearch_terminal_opening_cost        │ a     │ 56    │ frontierSearch_terminal_opening_ │
+│                                             │       │       │ cost                             │
+│ frontierSearch_terminal_horizon_gap8        │ a     │ 67    │ frontierSearch_terminal_horizon_ │
+│                                             │       │       │ gap8                             │
+│ frontierSearch_terminal_horizon_gap12       │ a     │ 74    │ frontierSearch_terminal_horizon_ │
+│                                             │       │       │ gap12                            │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S168
+
+AvailableChainFGSAProofs/Proofs/Healing/FrontierSearchCompose.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ frontierSearch_repair_start                 │ c     │ 72    │ concrete body                    │
+│ frontierSearch_allowance_nonneg             │ c     │ 124   │ concrete body                    │
+│ frontierSearch_rise_rebase                  │ a     │ 140   │ frontierSearch_rise_rebase       │
+│ frontierSearch_rise_of_stop                 │ a     │ 150   │ frontierSearch_rise_of_stop      │
+│ frontierSearch_remaining_eq                 │ c     │ 166   │ concrete body                    │
+│ frontierSearch_phase_tail                   │ a     │ 176   │ frontierSearch_phase_compose     │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S169
+
+AvailableChainFGSAProofs/Proofs/Healing/FrontierSearchDefs.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ strongServed_iff                            │ c     │ 83    │ concrete body                    │
+│ StrongServed.toServedFrontier               │ c     │ 95    │ concrete body                    │
+│ frontierSearchStart_iff                     │ c     │ 113   │ concrete body                    │
+│ firstPhaseStopBy_iff                        │ c     │ 166   │ concrete body                    │
+│ firstRiseStopBy_iff                         │ c     │ 183   │ concrete body                    │
+│ frontierHG3Result_iff                       │ c     │ 199   │ concrete body                    │
+│ interruptedRepairBudget_gap                 │ c     │ 249   │ concrete body                    │
+│ interruptedRepairBudget_topJ                │ c     │ 256   │ concrete body                    │
+│ interruptedRepairBudget_contest             │ c     │ 263   │ concrete body                    │
+│ firstEffectiveBy_iff                        │ c     │ 276   │ concrete body                    │
+│ frontierRiseBy_iff                          │ c     │ 293   │ concrete body                    │
+│ firstHeightRowBy_iff                        │ c     │ 308   │ concrete body                    │
+│ frontierTailStatement_iff                   │ c     │ 387   │ concrete body                    │
+│ frontierSearchStatement_iff                 │ c     │ 399   │ concrete body                    │
+│ frontierSearchRiseBudget_eq                 │ c     │ 430   │ concrete body                    │
+│ frontierSearchRowBudget_eq                  │ c     │ 438   │ concrete body                    │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S170
+
+AvailableChainFGSAProofs/Proofs/Healing/FrontierSearchFull.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ healing_frontierSearch                      │ b     │ 23    │ concrete body / DB5              │
+│ healing_frontierSearch_recovery             │ c     │ 171   │ concrete body                    │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S171
+
+AvailableChainFGSAProofs/Proofs/Healing/FrontierSearchGap.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ frontierSearch_period_bound                 │ a     │ 56    │ frontierSearch_period_bound      │
+│ frontierSearch_gap_phase                    │ b     │ 61    │ preceq_parent_node, preceq_refl  │
+│                                             │       │       │ / C5                             │
+│ frontier_hg3_gap                            │ b     │ 262   │ concrete body / C5               │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S172
+
+AvailableChainFGSAProofs/Proofs/Healing/FrontierSearchHG2a.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ frontierHG2aResult_iff                      │ c     │ 455   │ concrete body                    │
+│ frontierSearch_hg2a_bound                   │ a     │ 471   │ frontierSearch_hg2a_bound        │
+│ frontierSearch_hg2a_gate_cost               │ a     │ 483   │ frontierSearch_hg2a_gate_cost    │
+│ frontierSearch_hg2a_gap                     │ a     │ 494   │ frontierSearch_hg2a_gap          │
+│ frontier_hg2a_receipt                       │ a     │ 522   │ frontier_hg2a_receipt            │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S173
+
+AvailableChainFGSAProofs/Proofs/Healing/FrontierSearchRepair.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ frontierSearch_timeIdx_mono                 │ a     │ 137   │ frontierSearch_timeIdx_mono      │
+│ frontierSearch_phase_cut                    │ a     │ 143   │ frontierSearch_phase_cut         │
+│ frontierSearch_repair_seed                  │ c     │ 153   │ concrete body                    │
+│ frontierSearch_seed_after                   │ a     │ 175   │ frontierSearch_seed_after        │
+│ frontierSearch_proposal_heights             │ a     │ 184   │ frontierSearch_proposal_heights  │
+│ frontierSearch_seed_repair                  │ c     │ 221   │ concrete body                    │
+│ frontierSearch_save_seed                    │ b     │ 241   │ frontierSearch_phase_cap,        │
+│                                             │       │       │ frontierSearch_phase_cut,        │
+│                                             │       │       │ frontierSearch_seed_after / C5   │
+│ frontier_hg3_contest                        │ b     │ 271   │ concrete body / C5               │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S174
+
+AvailableChainFGSAProofs/Proofs/Healing/FrontierSearchRise.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ healing_frontierTail_rise_of_seed           │ a     │ 542   │ healing_frontierTail_rise_of_see │
+│                                             │       │       │ d                                │
+│ healing_frontierTail_rise                   │ c     │ 608   │ concrete body                    │
+│ healing_frontierTail                        │ c     │ 635   │ concrete body                    │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S175
+
+AvailableChainFGSAProofs/Proofs/Healing/FrontierSearchStop.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ frontierSearch_event_time_le                │ a     │ 92    │ frontierSearch_event_time_le     │
+│ frontierSearch_first_effective_split        │ a     │ 101   │ frontierSearch_first_effective_s │
+│                                             │       │       │ plit                             │
+│ frontierSearch_classify_stop                │ a     │ 112   │ frontierSearch_classify_stop     │
+│ frontierSearch_first_rise                   │ a     │ 125   │ frontierSearch_first_rise        │
+│ frontierSearch_first_row                    │ a     │ 138   │ frontierSearch_first_row         │
+│ frontierSearch_first_row_unique             │ a     │ 149   │ frontierSearch_first_row_unique  │
+│ frontierSearch_skipped_row                  │ a     │ 161   │ frontierSearch_skipped_row       │
+│ frontierSearch_phase_step_of_crossing       │ a     │ 181   │ frontierSearch_phase_step_of_cro │
+│                                             │       │       │ ssing                            │
+│ frontierSearch_strict_cap_or_rise           │ a     │ 222   │ frontierSearch_strict_cap_or_ris │
+│                                             │       │       │ e                                │
+│ frontierSearch_timeIdx_le_idxBefore         │ a     │ 236   │ frontierSearch_timeIdx_le_idxBef │
+│                                             │       │       │ ore                              │
+│ frontierSearch_rise_mono                    │ a     │ 243   │ frontierSearch_rise_mono         │
+│ frontierSearch_rise_of_receipt              │ a     │ 251   │ frontierSearch_rise_of_receipt   │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S176
+
+AvailableChainFGSAProofs/Proofs/Healing/FrontierSearchTail.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ healing_frontierTail_row                    │ a     │ 152   │ healing_frontierTail_row         │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S177
+
+AvailableChainFGSAProofs/Proofs/Healing/FrontierSearchTasks.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ frontierSearch_task_bounds                  │ a     │ 139   │ frontierSearch_task_bounds       │
+│ frontierSearch_rise_task                    │ b     │ 159   │ concrete body / DB5              │
+│ frontierSearch_row_of_rise                  │ a     │ 202   │ frontierSearch_row_of_rise       │
+│ frontierSearch_row_task                     │ b     │ 217   │ concrete body / DB5              │
+│ frontierSearch_cut_start                    │ a     │ 293   │ frontierSearch_cut_start         │
+│ frontierSearch_event_time_mono              │ a     │ 331   │ frontierSearch_event_time_mono   │
+│ frontierSearch_phase_exists                 │ a     │ 340   │ frontierSearch_phase_exists      │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S178
+
+AvailableChainFGSAProofs/Proofs/Healing/FrontierSearchTop.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ frontierSearch_initial_J_age                │ a     │ 259   │ frontierSearch_initial_J_age     │
+│ frontier_hg3_topJ                           │ b     │ 645   │ concrete body / C5               │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S179
+
+AvailableChainFGSAProofs/Proofs/Healing/FrontierSeedDefs.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ frontierSeedQualification_iff               │ c     │ 58    │ concrete body                    │
+│ frontier_seed_prior_cut                     │ a     │ 74    │ frontier_seed_prior_cut          │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S180
+
+AvailableChainFGSAProofs/Proofs/Healing/PhaseFrame.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ healing_phase_height_le                     │ a     │ 41    │ healing_phase_height_le          │
+│ healing_phase_justified_lt                  │ a     │ 54    │ healing_phase_justified_lt       │
+│ healing_phase_finality_le                   │ a     │ 68    │ healing_phase_finality_le        │
+│ healing_phase_frontier_witness              │ a     │ 84    │ healing_phase_frontier_witness   │
+│ healing_phase_frontier_root                 │ a     │ 100   │ healing_phase_frontier_root      │
+│ healing_frontier_mem                        │ a     │ 120   │ healing_frontier_mem             │
+│ healing_phase_frame                         │ a     │ 141   │ healing_phase_frame              │
+│ healing_settled_frame                       │ a     │ 166   │ healing_settled_frame            │
+│ healing_settled_frame_ready                 │ a     │ 186   │ healing_settled_frame_ready      │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S181
+
+AvailableChainFGSAProofs/Proofs/Healing/PhaseOrder.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ healing_phase_local_le_frontier             │ a     │ 42    │ healing_phase_local_le_frontier  │
+│ healing_phase_top_persist_all               │ a     │ 53    │ healing_phase_top_persist_all    │
+│ healing_phase_top_persist                   │ a     │ 69    │ healing_phase_top_persist        │
+│ healing_phase_entries_eq                    │ a     │ 88    │ healing_phase_entries_eq         │
+│ healing_phase_contest_persist_of_crossing_a │ a     │ 100   │ healing_phase_contest_persist_of │
+│ ll                                          │       │       │ _crossing_all                    │
+│ healing_phase_contest_persist_of_crossing   │ a     │ 121   │ healing_phase_contest_persist_of │
+│                                             │       │       │ _crossing                        │
+│ healing_phase_order_of_crossing_all         │ a     │ 145   │ healing_phase_order_of_crossing_ │
+│                                             │       │       │ all                              │
+│ healing_phase_order_of_crossing             │ a     │ 166   │ healing_phase_order_of_crossing  │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S182
+
+AvailableChainFGSAProofs/Proofs/Healing/PhaseService.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ healing_proposal_service_at_recovery_anchor │ c     │ 73    │ concrete body                    │
+│ healing_target_receipt_at_event             │ c     │ 158   │ concrete body                    │
+│ healing_witness_receipt_at_event            │ c     │ 203   │ concrete body                    │
+│ healing_phase_witness_receipts_recovery     │ c     │ 212   │ concrete body                    │
+│ healing_phase_block_receipt_recovery        │ c     │ 327   │ concrete body                    │
+│ healing_evidence_spread_recovery            │ a     │ 367   │ healing_phase_head_inclusion     │
+│ healing_rPhase_recovery                     │ a     │ 432   │ healing_frontier_mem, healing_ph │
+│                                             │       │       │ ase_order_of_crossing_all,       │
+│                                             │       │       │ healing_settled_frame_ready      │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S183
+
+AvailableChainFGSAProofs/Proofs/Healing/PhaseSettle.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ healing_phase_window                        │ a     │ 118   │ healing_phase_window_all         │
+│ healing_phase_top_node                      │ a     │ 136   │ phase_top_carrier                │
+│ healing_settle_start                        │ a     │ 216   │ phase_settle_from_carriers       │
+│ healing_settle_event                        │ c     │ 289   │ concrete body                    │
+│ healing_rPhase                              │ c     │ 316   │ concrete body                    │
+│ healing_phase_window_all                    │ a     │ 352   │ healing_phase_window_all         │
+│ healing_settle_start_on                     │ a     │ 366   │ healing_settle_start_on          │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S184
+
+AvailableChainFGSAProofs/Proofs/Healing/Promotion.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ healing_promotion_fixed_rows                │ a     │ 172   │ healing_promotion_fixed_rows     │
+│ healing_promotion_entry_slot                │ a     │ 203   │ healing_promotion_entry_slot     │
+│ healing_promotion_bounded_rows              │ a     │ 218   │ healing_promotion_bounded_rows   │
+│ healing_promotion_source_body               │ c     │ 250   │ concrete body                    │
+│ healing_promotion_source_parent             │ c     │ 276   │ concrete body                    │
+│ healing_promotion_continuing_service        │ c     │ 298   │ concrete body                    │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S185
+
+AvailableChainFGSAProofs/Proofs/Healing/PromotionAge.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ promotion_age_grid                          │ a     │ 469   │ promotion_age_grid               │
+│ healing_promotion_age_receipt               │ a     │ 480   │ healing_promotion_age_receipt    │
+│ healing_promotion_age_service_tail          │ b     │ 560   │ healing_promotion_age_service_ta │
+│                                             │       │       │ il / B5                          │
+│ healing_promotion_age_service               │ b     │ 598   │ healing_promotion_age_service /  │
+│                                             │       │       │ B5                               │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S186
+
+AvailableChainFGSAProofs/Proofs/Healing/PromotionArithmetic.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ healing_promotion_gap_remainder             │ a     │ 99    │ healing_promotion_gap_remainder  │
+│ healing_promotion_held_mono                 │ a     │ 110   │ healing_promotion_held_mono      │
+│ healing_promotion_gap                       │ a     │ 121   │ healing_promotion_gap            │
+│ healing_promotion_row_deadline              │ a     │ 142   │ healing_promotion_row_deadline   │
+│ healing_promotion_row_deadline_strict       │ a     │ 162   │ healing_promotion_row_deadline_s │
+│                                             │       │       │ trict                            │
+│ healing_promotion_row_receipt               │ a     │ 182   │ healing_promotion_row_receipt    │
+│ healing_promotion_row_receipt_strict        │ a     │ 212   │ healing_promotion_row_receipt_st │
+│                                             │       │       │ rict                             │
+│ healing_promotion_maturity                  │ a     │ 241   │ healing_promotion_maturity       │
+│ healing_promotion_maturity_of_action        │ a     │ 249   │ healing_promotion_maturity_of_ac │
+│                                             │       │       │ tion                             │
+│ healing_promotion_age_gap                   │ a     │ 259   │ healing_promotion_age_gap        │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S187
+
+AvailableChainFGSAProofs/Proofs/Healing/PromotionRows.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ healing_promotion_same_rows                 │ a     │ 295   │ healing_promotion_same_rows      │
+│ healing_promotion_same_rows_on              │ a     │ 354   │ healing_promotion_same_rows_on   │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S188
+
+AvailableChainFGSAProofs/Proofs/Healing/PromotionSource.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ promotion_age_advance_of_source             │ a     │ 350   │ promotion_age_advance_of_source  │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S189
+
+AvailableChainFGSAProofs/Proofs/Healing/Reset.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ healing_reset_budget_sum                    │ a     │ 49    │ healing_reset_budget_sum         │
+│ healing_reset_budget_choice                 │ c     │ 57    │ concrete body                    │
+│ healing_reset_budget_lt                     │ a     │ 76    │ healing_reset_budget_lt          │
+│ healing_reset_rowCap                        │ a     │ 215   │ healing_reset_rowCap             │
+│ healing_reset_mu_le                         │ a     │ 232   │ healing_reset_mu_le              │
+│ healing_reset_fresh                         │ a     │ 248   │ healing_reset_fresh              │
+│ healing_reset_synchronous                   │ a     │ 268   │ healing_reset_synchronous        │
+│ healing_reset_reset_first                   │ c     │ 288   │ concrete body                    │
+│ healing_reset_fields                        │ a     │ 313   │ healing_reset_fields             │
+│ healing_resetWitness                        │ b     │ 367   │ concrete body / R6               │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S190
+
+AvailableChainFGSAProofs/Proofs/Healing/ResetCut.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ reset_period_lower                          │ a     │ 58    │ reset_period_lower               │
+│ reset_action_exists                         │ a     │ 63    │ reset_action_exists              │
+│ reset_rG_after                              │ a     │ 81    │ reset_rG_after                   │
+│ reset_rG_first                              │ a     │ 85    │ reset_rG_first                   │
+│ reset_cut                                   │ a     │ 90    │ reset_cut                        │
+│ reset_first_action_upper                    │ a     │ 95    │ reset_first_action_upper         │
+│ reset_cut_lower                             │ a     │ 101   │ reset_cut_lower                  │
+│ reset_cut_upper                             │ a     │ 105   │ reset_cut_upper                  │
+│ reset_frontier                              │ a     │ 178   │ reset_frontier                   │
+│ reset_inclusive_frontier                    │ a     │ 186   │ reset_inclusive_frontier         │
+│ reset_inclusive_start_iff                   │ a     │ 199   │ reset_inclusive_start_iff        │
+│ reset_row_cap                               │ a     │ 207   │ reset_row_cap                    │
+│ reset_old_row_before_cut                    │ a     │ 240   │ reset_old_row_before_cut         │
+│ reset_old_height_sup_le                     │ a     │ 249   │ reset_old_height_sup_le          │
+│ reset_mu_le_iff                             │ a     │ 278   │ reset_mu_le_iff                  │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S191
+
+AvailableChainFGSAProofs/Proofs/Shared/FGCompose.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ fgsaCoreReads_def                           │ c     │ 25    │ concrete body                    │
+│ fgsa_eventReads_eq_compose                  │ c     │ 37    │ concrete body                    │
+│ fgsa_chainRows_eq_compose                   │ c     │ 46    │ concrete body                    │
+│ fgsaCoreLaws                                │ a     │ 53    │ mem_filteredFromView             │
+│ fgsaHeadLaws                                │ c     │ 80    │ concrete body                    │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### S192
+
+AvailableChainFGSAProofs/Proofs/Shared/FGSafetyStore.lean
+
+```text
+┌─────────────────────────────────────────────┬───────┬───────┬──────────────────────────────────┐
+│ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
+├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
+│ fgsaSafetyStoreLaws                         │ c     │ 10    │ concrete body                    │
+│ fgsaSafetyRestartLaws                       │ c     │ 47    │ concrete body                    │
+│ fgsa_restore_finality_fields                │ c     │ 55    │ concrete body                    │
+│ fgsaSafetyOrderLaws                         │ c     │ 69    │ concrete body                    │
+└─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+## Generic consumer premises and FG-SA producers
+
+Every production Compose proof theorem has an entry, including helper consumers that PC may
+select. The translated telescope is read from the committed Compose API snapshot
+(entries/nodes/type), then abbreviated only by namespaces. Binder names below list the whole outer
+telescope, including data parameters; unnamed arrow hypotheses retain their proposition text.
+Exact quantified types and conclusions remain at the cited source declaration and in
+docs/api/compose-api.json:1. This makes section-inherited premises visible instead of guessing
+them from the short local theorem header.
+
+F-3 is per-state ViewRootInj wherever the telescope mentions it. A certificate/law parameter is
+not a substitute for that premise. Population notes below distinguish whole-run faulty-node
+cardinality, Fin n ≃ V, holder injectivity, honest FG weight and FG-seat faulty weight. No card V
+= n premise is inferred for an arbitrary driver consumer. Data arity n is the FG signer-seat
+count, while V is the runtime node type.
+
+### dependency_effect_step
+
+Source: `S001:16`.
+
+Translated telescope: State Body Origin Latest V, H, D, L, Step, restore, signs,
+[FGDependencyStepLaws H D L Step restore signs], kind, x, st st', b, o, [Step kind x st st'],
+[Effect H D st b o].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### dependency_effect_prefix
+
+Source: `S001:26`.
+
+Translated telescope: State Body Origin Latest V, H, D, L, Step, restore, signs,
+[FGDependencyStepLaws H D L Step restore signs], x, st st', b, o, [FGDependencySteps Step x st
+st'], [Effect H D st b o].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### dependency_refusal_descendants
+
+Source: `S001:54`.
+
+Translated telescope: State Body Origin Latest, H, D, L, [FGDependencyStateLaws H D L], st, base
+target, path, [FGDependencyPath H base target path], [dependencyRefused H D st base],
+[dependencyClosed H D st], [(∀ (b : Body), D.accepted st b → D.accepted st (H.parent b))], [(∀ (b
+: Body), List.instMembership.mem (List.cons base path) b → D.validBody b)], [(∀ (b : Body),
+List.instMembership.mem path b → Exists fun o => Effect H D st b o)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### dependency_arrival_order
+
+Source: `S001:87`.
+
+Translated telescope: State Body Origin Latest, H, D, L, Arrival, Notify,
+[FGDependencyArrivalLeafLaws H D L Arrival Notify], a z, b, o, [Arrival a b o z], [D.validBody b],
+[dependencyRefused H D a (H.parent b)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### dependency_reconstruct_metadata
+
+Source: `S001:118`.
+
+Translated telescope: In LeafIn V Body Row Latest, inst, P, Leaf, E, rho, x, H, W, D, L, Step, T,
+F, Op, Arrival, Notify, leafState, leafWire, Read, [FGDependencyTraceLaws E rho x H W D L Step T F
+Op Arrival Notify leafState leafWire Read], restore, signs, [FGDependencyStepLaws H D L Step
+restore signs], k, t, [instLTNat.lt k T.length], [Eq (Op k) (FGDependencyOperation.reconstruct
+t)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### dependency_origin_same_receiver
+
+Source: `S001:129`.
+
+Translated telescope: In V Body Row, inst, P, E, rho, x, H, W, b, o, [FGReceiptOrigin E rho H W x
+b o].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### dependency_origin_at_read
+
+Source: `S001:148`.
+
+Translated telescope: In LeafIn V Body Row Latest, inst, P, Leaf, E, rho, x, H, W, D, L, Step, T,
+F, Op, Arrival, Notify, leafState, leafWire, Read, [FGDependencyTraceLaws E rho x H W D L Step T F
+Op Arrival Notify leafState leafWire Read], i, st, b, o, [Read x i st], [D.originAvailable st b
+o].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### dependency_read_completion
+
+Source: `S001:156`.
+
+Translated telescope: In LeafIn V Body Row Latest, inst, P, Leaf, E, rho, x, H, W, D, L, Step, T,
+F, Op, Arrival, Notify, leafState, leafWire, Read, [FGDependencyTraceLaws E rho x H W D L Step T F
+Op Arrival Notify leafState leafWire Read], i, st, [Read x i st].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### dependency_hook_read_completion
+
+Source: `S001:170`.
+
+Translated telescope: In LeafIn V Body Row Latest, inst, P, Leaf, E, rho, x, H, W, D, L, Step, T,
+F, Op, Arrival, Notify, leafState, leafWire, Read, [FGDependencyTraceLaws E rho x H W D L Step T F
+Op Arrival Notify leafState leafWire Read], j, e, index, kind, cut, st, [Eq
+(List.instGetElem?NatLtLength.getElem? rho.events j) (Option.some e)], [T.hookRead j index kind
+cut st].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### dependency_accepted_origin_bridge
+
+Source: `S001:203`.
+
+Translated telescope: In LeafIn V Body Row Latest, inst, P, Leaf, E, rho, x, H, W, D, L, Step, T,
+F, Op, Arrival, Notify, leafState, leafWire, Read, [FGDependencyTraceLaws E rho x H W D L Step T F
+Op Arrival Notify leafState leafWire Read], i, st, b, [Read x i st], [D.accepted st b], [Ne b
+L.genesis].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### dependency_hook_origin_at_read
+
+Source: `S001:211`.
+
+Translated telescope: In LeafIn V Body Row Latest, inst, P, Leaf, E, rho, x, H, W, D, L, Step, T,
+F, Op, Arrival, Notify, leafState, leafWire, Read, [FGDependencyTraceLaws E rho x H W D L Step T F
+Op Arrival Notify leafState leafWire Read], j, e, index, kind, cut, st, b, o, [Eq
+(List.instGetElem?NatLtLength.getElem? rho.events j) (Option.some e)], [T.hookRead j index kind
+cut st], [D.originAvailable st b o].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### dependency_hook_accepted_origin_bridge
+
+Source: `S001:220`.
+
+Translated telescope: In LeafIn V Body Row Latest, inst, P, Leaf, E, rho, x, H, W, D, L, Step, T,
+F, Op, Arrival, Notify, leafState, leafWire, Read, [FGDependencyTraceLaws E rho x H W D L Step T F
+Op Arrival Notify leafState leafWire Read], j, e, index, kind, cut, st, b, [Eq
+(List.instGetElem?NatLtLength.getElem? rho.events j) (Option.some e)], [T.hookRead j index kind
+cut st], [D.accepted st b], [Ne b L.genesis].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### dependency_drain_before_deadline
+
+Source: `S001:230`.
+
+Translated telescope: In LeafIn V Body Row Latest, inst, P, Leaf, E, rho, x, H, W, D, L, Step, T,
+F, Op, Arrival, Notify, leafState, leafWire, Read, [FGDependencyTraceLaws E rho x H W D L Step T F
+Op Arrival Notify leafState leafWire Read], j, wire, t deadline, [Eq
+(List.instGetElem?NatLtLength.getElem? rho.events j) (Option.some (V2.Event.deliver x wire t))],
+[Int.instLTInt.lt t deadline].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### dependency_finite_path_resolved_before
+
+Source: `S001:297`.
+
+Translated telescope: In LeafIn V Body Row Latest, inst, P, Leaf, E, rho, x, H, W, D, L, Step, T,
+F, Op, Arrival, Notify, leafState, leafWire, Read, [FGDependencyTraceLaws E rho x H W D L Step T F
+Op Arrival Notify leafState leafWire Read], restore, signs, [FGDependencyStepLaws H D L Step
+restore signs], Outstanding, [FGDependencyDeliveryLaws E rho x H W D T F Outstanding], target,
+path, entry, tau wake, event, [FGDependencyPath H L.genesis target path], [Eq
+(List.instGetElem?NatLtLength.getElem? rho.events entry) (Option.some event)], [Eq event.time
+tau], [D.accepted (T.state 0) L.genesis], [Int.instLEInt.le E.t_GST tau], [Int.instLEInt.le wake
+tau], [(∀ (t : Time), Int.instLEInt.le wake t → Int.instLEInt.le t (instHAdd.hAdd tau E.Δ) → Eq
+(E.awake x t) Bool.true)], [(∀ (j : Nat) (t : Time), Eq (List.instGetElem?NatLtLength.getElem?
+rho.events j) (Option.some (V2.Event.restart x t)) → Int.instLTInt.lt wake t → Int.instLTInt.lt
+(instHAdd.hAdd tau E.Δ) t)], [Int.instLEInt.le (instHAdd.hAdd tau E.Δ) rho.horizon], [(∀ (b :
+Body), List.instMembership.mem path b → And (D.validBody b) (∀ (k : Nat), instLENat.le k T.length
+→ ∀ (o : FGReceiptToken V P.Object), D.pending (T.state k) b o → D.accepted (T.state k) (H.parent
+b) → And (D.priorChecks (T.state k) b) (D.timely (T.state k) b)))], [(∀ (b : Body),
+List.instMembership.mem path b → Or (Exists fun o => Effect H D (T.state (T.start entry)) b o)
+(Exists fun sender => Exists fun wire => Exists fun sent => And (SetLike.instMembership.mem
+rho.honest sender) (And (dependencyEmits E rho F sender wire sent) (And (Eq (W.decodeBody wire)
+(Option.some b)) (And (Int.instLTInt.lt sent tau) (Outstanding wire sent wake))))))].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### acceptance_F_keep
+
+Source: `S002:136`.
+
+Translated telescope: In V, P, n, Base Proposal Wire, R, rho, O, [FGObservedFinalityLaws R rho O],
+x, i k, [instLENat.le i k], [instLENat.le k (O.cutLength x)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### selectedAcceptance_keep
+
+Source: `S002:145`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire Body, R, S, E, rho, H, Wr, O, update.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### acceptance_at_strict_read
+
+Source: `S002:154`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, E, rho, O, [FGExecutionObsLaws E
+rho O], [FGObservedFinalityLaws R rho O], [V2.D.ScheduleWellFormed E rho], x, j k, e, U, d, [Eq
+(List.instGetElem?NatLtLength.getElem? rho.events j) (Option.some e)], [instLENat.le k (O.done x
+j)], [Int.instLTInt.lt e.time d], [U.Preceq (R.core (O.cutState x k)).fg.F].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### acceptBefore_driver
+
+Source: `S002:181`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire Body, R, S, E, rho, H, Wr, O, Ef, cfg,
+K.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### finalizePending_driver
+
+Source: `S002:205`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire Body, R, S, E, rho, H, Wr, O, Ef, cfg,
+K.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### ordinary_acceptsFinalBefore_iff
+
+Source: `S002:227`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, E, rho, [V2.D.ScheduleWellFormed E
+rho], x, U, d.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### ordinary_acceptance_cut_eq
+
+Source: `S003:18`.
+
+Translated telescope: In V, P, inst, E, rho, j, x, o, t, [Eq
+(List.instGetElem?NatLtLength.getElem? rho.events j) (Option.some (V2.Event.deliver x o t))].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### ordinary_selectedAcceptance_fields
+
+Source: `S003:66`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire Body, R, S, E, rho, H, Wr, Ef, cfg, K,
+j, x, o, t d, b, W, hx, he, origin, herase, hrows, ht, effect.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### ordinary_acceptanceEffect_iff
+
+Source: `S003:84`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire Body, R, S, E, rho, H, Wr, Ef, cfg, K,
+x, W, d, A.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### acceptBefore_ordinary
+
+Source: `S003:95`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire Body, R, S, E, rho, H, Wr, Ef, cfg, K,
+[Not (Ef.IsQuorum Finset.instEmptyCollection.emptyCollection)], [instLENat.le 2 K],
+[V2.D.ScheduleWellFormed E rho], x, W U, d, A, [FGAcceptanceEffectLaws R S E rho H Wr
+(ordinaryFGExecutionObs E rho) Ef cfg K x W d A], [Int.instLEInt.le d rho.horizon], [U.Preceq
+(FG.Window.derive Ef cfg K W).F], [FGAcceptanceGuards R (ordinaryFGExecutionObs E rho) Ef cfg K x
+A.step W U].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### finalizePending_ordinary
+
+Source: `S003:109`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire Body, R, S, E, rho, H, Wr, Ef, cfg, K,
+[Not (Ef.IsQuorum Finset.instEmptyCollection.emptyCollection)], [instLENat.le 2 K],
+[V2.D.ScheduleWellFormed E rho], x, y, U X, d, A, [FGAcceptanceEffectLaws R S E rho H Wr
+(ordinaryFGExecutionObs E rho) Ef cfg K x X d A], [Int.instLEInt.le d rho.horizon], [PendingFold_W
+Ef cfg K y U X], [FGAcceptanceGuards R (ordinaryFGExecutionObs E rho) Ef cfg K x A.step X U].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### accepted_body_origin_driver_at
+
+Source: `S004:20`.
+
+Translated telescope: In V, P, inst, Body Row Latest LeafIn, Leaf, E, rho, H, W, D, L, Step, F, T,
+Op, Arrival, Notify, leafState, leafWire, ActualRead, x, [FGDependencyTraceLaws E rho x H W D L
+Step (T x) F (Op x) Arrival Notify leafState leafWire ActualRead], [(∀ (k : Nat) (b : Body),
+instLENat.le k (T x).length → Iff (List.instMembership.mem (H.acceptedBodies ((T x).state k)) b)
+(D.accepted ((T x).state k) b))].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### accepted_body_origin_driver
+
+Source: `S004:46`.
+
+Translated telescope: In V, P, inst, Body Row Latest LeafIn, Leaf, E, rho, H, W, D, L, Step, F, T,
+Op, Arrival, Notify, leafState, leafWire, ActualRead.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### chainRows_of_held_obs
+
+Source: `S004:69`.
+
+Translated telescope: In V, P, n, Base Proposal Wire, R, rho, O, x, j k, e, X, deadline,
+[SetLike.instMembership.mem rho.honest x], [Eq (List.instGetElem?NatLtLength.getElem? rho.events
+j) (Option.some e)], [instLENat.le (O.start x j) k], [instLENat.le k (O.done x j)], [(∀ (i : Nat)
+(ei : V2.Event V P.Object), Eq (List.instGetElem?NatLtLength.getElem? rho.events i) (Option.some
+ei) → instLENat.le i j → Int.instLTInt.lt ei.time deadline)], [(∀ (B : FG.FGBlock (Fin n)),
+SetLike.instMembership.mem (R.core (O.cutState x k)).fg.TF B → SetLike.instMembership.mem (R.core
+(O.cutState x k)).fg.TF B.parent)], [SetLike.instMembership.mem (R.core (O.cutState x k)).fg.TF
+X].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### chainRows_of_head_driver
+
+Source: `S004:102`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire Body Row Latest LeafIn, Leaf, R, E,
+rho, H, W, D, L, Step, F, T, Op, Arrival, Notify, leafState, leafWire, ActualRead, Good, x,
+[FGDependencyTraceLaws E rho x H W D L Step (T x) F (Op x) Arrival Notify leafState leafWire
+ActualRead], [DriverCoreStepLaws R H D Step Good], [FGCoreLaws R], j, t, s, X, deadline,
+[SetLike.instMembership.mem rho.honest x], [Eq (List.instGetElem?NatLtLength.getElem? rho.events
+j) (Option.some (V2.Event.tick x t))], [Eq (R.headVote ((T x).state ((T x).dutyCut j)) s) (R.erase
+X)], [(∀ (i : Nat) (ei : V2.Event V P.Object), Eq (List.instGetElem?NatLtLength.getElem?
+rho.events i) (Option.some ei) → instLENat.le i j → Int.instLTInt.lt ei.time deadline)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### ordinary_chainRows_atCut_of_before
+
+Source: `S004:136`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, E, rho, [V2.D.ScheduleWellFormed E
+rho], X, cut, [ChainRowsBefore R E rho X cut].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### ordinaryFGExecutionObs_laws
+
+Source: `S005:136`.
+
+Translated telescope: V In, P, inst, E, rho.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### ordinary_obsEmits_iff
+
+Source: `S005:240`.
+
+Translated telescope: V In, P, inst, E, rho, x, o, t.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### chainRows_of_head_obs
+
+Source: `S005:260`.
+
+Translated telescope: V In, P, inst, E, rho, n, Base Proposal Wire, R, O.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### ordinaryFGExecutionObs_core
+
+Source: `S005:320`.
+
+Translated telescope: V In, P, inst, E, rho, n, Base Proposal Wire, R, [FGCoreLaws R], [FGHeadLaws
+R E rho], [FGTreeRestoreLaws R].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### ordinaryFGExecutionObs_finality
+
+Source: `S005:357`.
+
+Translated telescope: V In, P, inst, E, rho, n, Base Proposal Wire, R, [FGCoreLaws R], [(∀ (nd :
+P.State) (o : V2.Signed P.Label P.seats P.Payload), (R.core nd).fg.F.Preceq (R.core (P.process nd
+o)).fg.F)], [FGSafetyRestartLaws R].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### ordinaryFGExecutionObs_order
+
+Source: `S005:374`.
+
+Translated telescope: V In, P, inst, E, rho, n, Base Proposal Wire, R, [FGRunOrderLaws E rho R].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### ordinaryFGExecutionObs_pool
+
+Source: `S005:380`.
+
+Translated telescope: V In, P, inst, E, rho, n, Base Proposal Wire, R, blockRows, [(∀ (i j : Nat)
+(x : V) (a : Wire), instLENat.le i j → rowHeld R blockRows (V2.D.Run.stateBefore E rho i x) a →
+rowHeld R blockRows (V2.D.Run.stateBefore E rho j x) a)], [(∀ (i j : Nat) (x : V), instLENat.le i
+j → (R.core (V2.D.Run.stateBefore E rho i x)).proposals.IsPrefix (R.core (V2.D.Run.stateBefore E
+rho j x)).proposals)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### ordinaryFGExecutionObs_safety
+
+Source: `S005:427`.
+
+Translated telescope: V In, P, inst, E, rho, n, Base Proposal Wire, R, Body, S, Hv, f, H, W, Good,
+[FGCoreLaws R], [FGSafetyStoreLaws R S Hv f Good], [FGHistoricalLaws R H Good], [(∀ (st :
+P.State), Good st → ∀ (b : Body), List.instMembership.mem (H.acceptedBodies st) b → ∀ (B :
+FG.FGBlock (Fin n)), SetLike.instMembership.mem (R.core st).fg.TF B → Eq (R.erase B) (H.erase b) →
+Eq B.rows (List.filterMap S.decode (W.bodyRows b)))].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### acceptBefore_W
+
+Source: `S006:135`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, E, rho, Ef, cfg, K, [Not
+(Ef.IsQuorum Finset.instEmptyCollection.emptyCollection)], [instLENat.le 2 K],
+[FGFinalityDurableLaws R], ready, [AcceptStep_W R E rho Ef cfg K ready], [(∀ (i : Nat) (x : V),
+SetLike.instMembership.mem rho.honest x → KitFG.FGStoreInvariant (KitFG.Window.certificateHeight
+Ef cfg K) (KitFG.Window.certificateFinality Ef cfg K) (R.core (V2.D.Run.stateBefore E rho i
+x)).fg)], W U, a₀ d, h, x, [SetLike.instMembership.mem rho.honest x].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: fgsa_acceptBefore_W (`S137:366`).
+
+### finalizePending_W
+
+Source: `S006:193`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, E, rho, Ef, cfg, K, [Not
+(Ef.IsQuorum Finset.instEmptyCollection.emptyCollection)], [instLENat.le 2 K],
+[FGFinalityDurableLaws R], ready, [AcceptStep_W R E rho Ef cfg K ready], [(∀ (i : Nat) (x : V),
+SetLike.instMembership.mem rho.honest x → KitFG.FGStoreInvariant (KitFG.Window.certificateHeight
+Ef cfg K) (KitFG.Window.certificateFinality Ef cfg K) (R.core (V2.D.Run.stateBefore E rho i
+x)).fg)], y, U X, a₀ d, h, x, [SetLike.instMembership.mem rho.honest x].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: fgsa_finalizePending_W (`S137:379`).
+
+### finalityRow_bit_or_carried_W
+
+Source: `S007:22`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, S, T, E, rho, I, D, Ef, cfg, K,
+carrier, chainWireRows, blockWireRows, parentFG, validFor, [TRowsSelect R S E rho T I carrier
+chainWireRows blockWireRows parentFG validFor], [Not (Ef.IsQuorum
+Finset.instEmptyCollection.emptyCollection)], [instLENat.le 2 K], [(∀ (a : Wire) (i : Fin n), Eq
+(D.signer a) (Option.some i) → Exists fun u => Eq (S.decode a) (Option.some u))], [(∀ (s : Slot)
+(Q : Block) (H : FG.FGBlock (Fin n)) (nd : P.State) (a : Wire) (u : FG.Row (Fin n)), Eq
+(proposalStateAt E rho I s) (Option.some nd) → Eq (parentFG nd Q.parent) (Option.some H) →
+List.instMembership.mem (chainWireRows nd Q.parent) a → Eq (S.decode a) (Option.some u) → Exists
+fun W => And (W.Preceq H) (List.instMembership.mem W.rows u))], X U, y, wireRows, [HonestCarrier E
+rho I carrier X.slot (R.erase X) wireRows], [Eq X.rows (List.filterMap S.decode wireRows)],
+[(Exists fun nd => And (Eq (proposalStateAt E rho I X.slot) (Option.some nd)) (Eq (parentFG nd
+(R.erase X).parent) (Option.some X.parent)))], [(∀ (B : FG.FGBlock (Fin n)) (s : Slot) (root :
+BlockId) (body : Nat) (rs : List (FG.Row (Fin n))), (B.node s root body rs).Preceq X.parent → ∀ (a
+: FG.Row (Fin n)), List.instMembership.mem rs a → And (Eq (finalityRow_bit_or_carried_W.match_1
+(fun x => Bool) a.height_pair (fun _ => Bool.false) fun h entry timeout => (Decidable.decide
+(instLENat.le 1 h)).and ((Option.map (fun fp => Decidable.decide (instLTNat.lt fp.height h))
+a.finality_pair).getD Bool.true)) Bool.true) (Eq (FG.Window.r6w (FG.Window.derive Ef cfg K B) a)
+Bool.true))], e, [List.instMembership.mem (FG.Window.derive Ef cfg K X.parent).W e], [Eq e.j y],
+[Eq e.X U], i, j r, a, [HonestRowAt S E rho T j (safetyHolder S rho i) r a], [Eq (D.signer a)
+(Option.some i)], [FinalityNames S D a y U], [ValidForParent E rho I parentFG validFor X.slot
+(R.erase X) a], [heldAtProposal R E rho I blockWireRows X.slot a].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: holder assignment/injectivity or honest-holder FG weight (exact guards in type).
+
+FG-SA producer/application: finalityRow_bit_or_carried_W (`S139:716`).
+
+### finalityBatchCoverage_W_of_tRowsSelect
+
+Source: `S007:72`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, S, T, E, rho, I, D, Ef, cfg, K,
+carrier, chainWireRows, blockWireRows, parentFG, validFor, [TRowsSelect R S E rho T I carrier
+chainWireRows blockWireRows parentFG validFor], [Not (Ef.IsQuorum
+Finset.instEmptyCollection.emptyCollection)], [instLENat.le 2 K], [(∀ (a : Wire) (i : Fin n), Eq
+(D.signer a) (Option.some i) → Exists fun u => Eq (S.decode a) (Option.some u))], [(∀ (s : Slot)
+(Q : Block) (H : FG.FGBlock (Fin n)) (nd : P.State) (a : Wire) (u : FG.Row (Fin n)), Eq
+(proposalStateAt E rho I s) (Option.some nd) → Eq (parentFG nd Q.parent) (Option.some H) →
+List.instMembership.mem (chainWireRows nd Q.parent) a → Eq (S.decode a) (Option.some u) → Exists
+fun W => And (W.Preceq H) (List.instMembership.mem W.rows u))], rowValid, validWire, ΔF, q y, U X,
+[FinalityBatchPrem_W R S T E rho I D Ef cfg K validWire carrier blockWireRows parentFG validFor
+rowValid ΔF q y U X], [(∀ (B : FG.FGBlock (Fin n)) (s : Slot) (root : BlockId) (body : Nat) (rs :
+List (FG.Row (Fin n))), (B.node s root body rs).Preceq X.parent → ∀ (a : FG.Row (Fin n)),
+List.instMembership.mem rs a → And (Eq (finalityRow_bit_or_carried_W.match_1 (fun x => Bool)
+a.height_pair (fun _ => Bool.false) fun h entry timeout => (Decidable.decide (instLENat.le 1
+h)).and ((Option.map (fun fp => Decidable.decide (instLTNat.lt fp.height h)) a.finality_pair).getD
+Bool.true)) Bool.true) (Eq (FG.Window.r6w (FG.Window.derive Ef cfg K B) a) Bool.true))].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: finalityBatchCoverage_W_of_tRowsSelect (`S139:778`).
+
+### terminalCarriage_general_W
+
+Source: `S008:24`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, S, T, E, rho, I, D, Ef, cfg, K,
+carrier, chainWireRows, blockWireRows, parentFG, validFor, [TRowsSelect R S E rho T I carrier
+chainWireRows blockWireRows parentFG validFor], [Not (Ef.IsQuorum
+Finset.instEmptyCollection.emptyCollection)], [instLENat.le 2 K], [(∀ (a : Wire) (i : Fin n), Eq
+(D.signer a) (Option.some i) → Exists fun u => Eq (S.decode a) (Option.some u))], [(∀ (s : Slot)
+(Q : Block) (H : FG.FGBlock (Fin n)) (nd : P.State) (a : Wire) (u : FG.Row (Fin n)), Eq
+(proposalStateAt E rho I s) (Option.some nd) → Eq (parentFG nd Q.parent) (Option.some H) →
+List.instMembership.mem (chainWireRows nd Q.parent) a → Eq (S.decode a) (Option.some u) → Exists
+fun W => And (W.Preceq H) (List.instMembership.mem W.rows u))], H, [KitFG.FGHeightLaws Ef H], [Eq
+H (KitFG.Window.certificateHeight Ef cfg K)], parentHeight, [(∀ (nd : P.State) (s : Slot) (B :
+FG.FGBlock (Fin n)), Eq (parentHeight nd s B) { fst := (H B).h, snd := (H B).T_h.root })], [(∀ (nd
+: P.State) (s : Slot) (B : FG.FGBlock (Fin n)) (a : Wire), Eq (validFor nd s B a) ((S.decode
+a).isSome.and ((Option.map (FG.Window.r6w (KitFG.Window.parentState Ef cfg K B s)) (S.decode
+a)).getD Bool.false)))], q y sourceH, A U X, [instLTNat.lt y sourceH], [(Exists fun wireRows =>
+And (HonestCarrier E rho I carrier X.slot (R.erase X) wireRows) (Eq X.rows (List.filterMap
+S.decode wireRows)))], [(Exists fun nd => And (Eq (proposalStateAt E rho I X.slot) (Option.some
+nd)) (Eq (parentFG nd (R.erase X).parent) (Option.some X.parent)))], [(∀ (B : FG.FGBlock (Fin n))
+(s : Slot) (root : BlockId) (body : Nat) (rs : List (FG.Row (Fin n))), (B.node s root body
+rs).Preceq X.parent → ∀ (a : FG.Row (Fin n)), List.instMembership.mem rs a → And (Eq
+(terminalCarriage_general_W.match_1 (fun x => Bool) a.height_pair (fun _ => Bool.false) fun h
+entry timeout => (Decidable.decide (instLENat.le 1 h)).and ((Option.map (fun fp =>
+Decidable.decide (instLTNat.lt fp.height h)) a.finality_pair).getD Bool.true)) Bool.true) (Eq
+(FG.Window.r6w (FG.Window.derive Ef cfg K B) a) Bool.true))], [A.Preceq X.parent], [Eq (H A).h
+sourceH], [Or (KitFG.Window.RetainedW Ef cfg K X.parent y U) (KitFG.Window.CoveredW Ef cfg K
+X.parent y U)], seats, rows, [Ef.IsQuorum seats], [(∀ (i : Fin n), SetLike.instMembership.mem
+seats i → Exists fun j => And (HonestRowAt S E rho T j (safetyHolder S rho i) q (rows i)) (And (Eq
+(D.signer (rows i)) (Option.some i)) (And (Eq (historyRowHeight S D (rows i)) (Option.some
+sourceH)) (FinalityNames S D (rows i) y U))))], [(∀ (i : Fin n), SetLike.instMembership.mem seats
+i → Eq (namedEntry (D.heightPair (rows i))) (Option.some { fst := sourceH, snd := (H A).T_h.root
+}))], [(∀ (i : Fin n), SetLike.instMembership.mem seats i → heldAtProposal R E rho I blockWireRows
+X.slot (rows i))].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: holder assignment/injectivity or honest-holder FG weight (exact guards in type).
+
+FG-SA producer/application: terminalCarriage_general_W (`S140:799`).
+
+### terminalCarriage_W_of_tRowsSelect
+
+Source: `S008:161`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, S, T, E, rho, I, D, Ef, cfg, K,
+carrier, chainWireRows, blockWireRows, parentFG, validFor, [TRowsSelect R S E rho T I carrier
+chainWireRows blockWireRows parentFG validFor], [Not (Ef.IsQuorum
+Finset.instEmptyCollection.emptyCollection)], [instLENat.le 2 K], [(∀ (a : Wire) (i : Fin n), Eq
+(D.signer a) (Option.some i) → Exists fun u => Eq (S.decode a) (Option.some u))], [(∀ (s : Slot)
+(Q : Block) (H : FG.FGBlock (Fin n)) (nd : P.State) (a : Wire) (u : FG.Row (Fin n)), Eq
+(proposalStateAt E rho I s) (Option.some nd) → Eq (parentFG nd Q.parent) (Option.some H) →
+List.instMembership.mem (chainWireRows nd Q.parent) a → Eq (S.decode a) (Option.some u) → Exists
+fun W => And (W.Preceq H) (List.instMembership.mem W.rows u))], O, [KitFG.FGHeightLaws Ef
+O.height], [Eq O.height (KitFG.Window.certificateHeight Ef cfg K)], parentHeight, [(∀ (nd :
+P.State) (s : Slot) (B : FG.FGBlock (Fin n)), Eq (parentHeight nd s B) { fst := (O.height B).h,
+snd := (O.height B).T_h.root })], [(∀ (nd : P.State) (s : Slot) (B : FG.FGBlock (Fin n)) (a :
+Wire), Eq (validFor nd s B a) ((S.decode a).isSome.and ((Option.map (FG.Window.r6w
+(KitFG.Window.parentState Ef cfg K B s)) (S.decode a)).getD Bool.false)))], validWire, ΔF, q y, A
+U X, h, [(∀ (B : FG.FGBlock (Fin n)) (s : Slot) (root : BlockId) (body : Nat) (rs : List (FG.Row
+(Fin n))), (B.node s root body rs).Preceq X.parent → ∀ (a : FG.Row (Fin n)),
+List.instMembership.mem rs a → And (Eq (terminalCarriage_general_W.match_1 (fun x => Bool)
+a.height_pair (fun _ => Bool.false) fun h entry timeout => (Decidable.decide (instLENat.le 1
+h)).and ((Option.map (fun fp => Decidable.decide (instLTNat.lt fp.height h)) a.finality_pair).getD
+Bool.true)) Bool.true) (Eq (FG.Window.r6w (FG.Window.derive Ef cfg K B) a) Bool.true))].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: terminalCarriage_W_of_tRowsSelect (`S140:871`).
+
+### finality_window_nonneg
+
+Source: `S009:12`.
+
+Translated telescope: T, [FGTimingLaws T], deltaF, g.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### forward_round_FE
+
+Source: `S009:21`.
+
+Translated telescope: T, [FGTimingLaws T], deltaF start horizon t, g, honestSlot, [FE_W T deltaF
+honestSlot start horizon g], [Int.instLTInt.lt 0 t], [Int.instLEInt.le start t], [Int.instLEInt.le
+(instHAdd.hAdd t (W_W T deltaF g)) horizon].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: forward_witness_FE_of (`S142:153`).
+
+### forward_witness_FE_of
+
+Source: `S009:64`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire Body, R, S, O, T, [FGTimingLaws T], E,
+rho, I, D, Ef, decodeProposal, bodyErase, bodyRows, parentFG, makeFG, deltaF recurStart t, g, Jst,
+sp, honestSlot, fgQuorum fgHonestWeight timeoutSlots capacity, [LivenessBoundW T deltaF],
+[Int.instLEInt.le 0 deltaF], [FE_W T deltaF honestSlot recurStart rho.horizon g],
+[Int.instLEInt.le recurStart t], [Int.instLTInt.lt 0 t], [Int.instLEInt.le sp.serviceStart t],
+[Int.instLEInt.le (instHAdd.hAdd t (W_W T deltaF g)) rho.horizon], [Int.instLEInt.le (T.proposal
+(instHAdd.hAdd sp.reset.sStar 2)) sp.serviceStart], [Int.instLEInt.le E.t_GST sp.serviceStart],
+[instLENat.le fgQuorum fgHonestWeight], [Eq timeoutSlots (instHMul.hMul 2 T.roundSlots)],
+[instLENat.le 2 capacity], [(∀ (r : Nat), KernelPrem_W T deltaF rho.horizon sp { r := r }
+honestSlot fgQuorum fgHonestWeight timeoutSlots capacity → KernelConclusion_W R E rho O T I
+decodeProposal bodyErase bodyRows parentFG makeFG deltaF r)], [(∀ (r : Nat), honestSlot
+(instHMul.hMul r T.roundSlots) → Int.instLEInt.le t (instHMul.hMul r.cast (P T)) →
+Int.instLEInt.le (T.proposal (instHMul.hMul r T.roundSlots)) rho.horizon → Exists fun A =>
+HonestProposal E rho I (instHMul.hMul r T.roundSlots) A)], [H0Reset R S E rho O T (fun a =>
+namedEntry (D.heightPair a)) Jst sp.reset], [FGHistoricalHighTransfer R O T E rho I sp
+rho.horizon], [KitFG.FGHeightLaws Ef O.height], [(∀ (A B : FG.FGBlock (Fin n)), (R.erase A).Preceq
+(R.erase B) → A.Preceq B)], [(∀ (B : FG.FGBlock (Fin n)), Eq (R.erase B.parent) (R.erase
+B).parent)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: KernelPrem_W: supplied honest FG weight ≥ q.
+
+FG-SA producer/application: test-private d7c_kernel/d7c_forward/d7c_liveness and their recovery
+suppliers in AvailableChainFGSAProofs/Tests/P0d7c.lean:2046, :2386, :2612; K7/F7 above. The
+production wrapper remains partial. Kernel argument suppliers are mapped below.
+
+### noMixedPreBatchParent
+
+Source: `S010:76`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, S, E, rho, T, D, Ef, cfg, H,
+[KitFG.HeightBridge Ef cfg H], [RawHistoryOrigin R S E rho T D], q y, U X, h.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: noMixedPreBatchParent (`S144:433`).
+
+### justifyFresh_W
+
+Source: `S010:220`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, S, E, rho, T, D, Ef, cfg, H, f,
+[KitFG.HeightBridge Ef cfg H], [KitFG.FGCertificateLaws Ef H f], [RawHistoryOrigin R S E rho T D],
+K, [Not (Ef.IsQuorum Finset.instEmptyCollection.emptyCollection)], [instLENat.le 2 K], [Eq H
+(KitFG.Window.certificateHeight Ef cfg K)], [Eq f (KitFG.Window.certificateFinality Ef cfg K)],
+[TargetJustification Ef H], q y, U X, [Ne X FG.FGBlock.genesis], [EntryAt H U y], [U.Preceq
+X.parent], [(Eq (H X.parent).h y → TargetCoveredByChild Ef H X U y)], [NoMixedOnPath H X y], h.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: justifyFresh_W (`S144:445`).
+
+### raw_causal_cap_before
+
+Source: `S010:304`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, S, E, rho, T, D, Ef, H, f,
+[KitFG.FGCertificateLaws Ef H f], [RawHistoryOrigin R S E rho T D], [V2.D.ScheduleWellFormed E
+rho], [instLTNat.lt (Ef.weightOf (historyFaulty S rho)) Ef.q], m, cut, [(∀ (j : Nat) (z : V) (r :
+Nat) (a : Wire) (h : Nat) (t : Time), HonestRowAt S E rho T j z r a → Eq (historyRowHeight S D a)
+(Option.some h) → Eq (eventTime rho j) (Option.some t) → Int.instLTInt.lt t cut → instLENat.le h
+m)], i, x, B, [instLENat.le i (rho.idxBefore cut)], [HeldAt R E rho i x B].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: faulty FG-seat weight/count.
+
+FG-SA producer/application: raw_causal_cap_before (`S144:466`).
+
+### raw_causal_cap_at_tick
+
+Source: `S010:320`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, S, E, rho, T, D, Ef, H, f,
+[KitFG.FGCertificateLaws Ef H f], [RawHistoryOrigin R S E rho T D], [V2.D.ScheduleWellFormed E
+rho], [instLTNat.lt (Ef.weightOf (historyFaulty S rho)) Ef.q], m, cut, [(∀ (j : Nat) (z : V) (r :
+Nat) (a : Wire) (h : Nat) (t : Time), HonestRowAt S E rho T j z r a → Eq (historyRowHeight S D a)
+(Option.some h) → Eq (eventTime rho j) (Option.some t) → Int.instLTInt.lt t cut → instLENat.le h
+m)], i, x, B, v, [Eq (List.instGetElem?NatLtLength.getElem? rho.events i) (Option.some
+(V2.Event.tick v cut))], [HeldAt R E rho i x B].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: faulty FG-seat weight/count.
+
+FG-SA producer/application: raw_causal_cap_at_tick (`S144:487`).
+
+### raw_causal_cap_through_action
+
+Source: `S010:338`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, S, E, rho, T, D, Ef, H, f,
+[KitFG.FGCertificateLaws Ef H f], [RawHistoryOrigin R S E rho T D], [V2.D.ScheduleWellFormed E
+rho], [instLTNat.lt (Ef.weightOf (historyFaulty S rho)) Ef.q], [StrictMono T.action], q m, [(∀ (j
+: Nat) (z : V) (r : Nat) (a : Wire) (h : Nat) (t : Time), HonestRowAt S E rho T j z r a → Eq
+(historyRowHeight S D a) (Option.some h) → Eq (eventTime rho j) (Option.some t) → Int.instLTInt.lt
+t (T.action q) → instLENat.le h m)], [(∀ (j : Nat) (z : V) (a : Wire) (h : Nat), HonestRowAt S E
+rho T j z q a → Eq (historyRowHeight S D a) (Option.some h) → instLENat.le h m)], i, x, B,
+[instLENat.le i (rho.idxBefore (T.action (instHAdd.hAdd q 1)))], [HeldAt R E rho i x B].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: faulty FG-seat weight/count.
+
+FG-SA producer/application: raw_causal_cap_through_action (`S144:509`).
+
+### finality_kernel_prem_W_of_joined
+
+Source: `S011:12`.
+
+Translated telescope: T, deltaF horizon, r, honestSlot, fgQuorum fgHonestWeight timeoutSlots
+capacity, Service, [KernelJoinedPrem T deltaF horizon r honestSlot fgQuorum fgHonestWeight
+timeoutSlots capacity Service].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: KernelPrem_W: supplied honest FG weight ≥ q.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### finality_kernel_joined_W_of
+
+Source: `S011:41`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire Body, R, O, T, E, rho, I,
+decodeProposal, bodyErase, bodyRows, parentFG, makeFG, deltaF, r, honestSlot, fgQuorum
+fgHonestWeight timeoutSlots capacity, Service, [(∀ (sp : FGServicePoint), Service sp →
+KernelPrem_W T deltaF rho.horizon sp { r := r } honestSlot fgQuorum fgHonestWeight timeoutSlots
+capacity → KernelConclusion_W R E rho O T I decodeProposal bodyErase bodyRows parentFG makeFG
+deltaF r)], [KernelJoinedPrem T deltaF rho.horizon r honestSlot fgQuorum fgHonestWeight
+timeoutSlots capacity Service].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: KernelPrem_W: supplied honest FG weight ≥ q.
+
+FG-SA producer/application: test-private d7c_kernel/d7c_forward/d7c_liveness and their recovery
+suppliers in AvailableChainFGSAProofs/Tests/P0d7c.lean:2046, :2386, :2612; K7/F7 above. The
+production wrapper remains partial. Kernel argument suppliers are mapped below.
+
+### kernel_terminal_bounds_W
+
+Source: `S012:14`.
+
+Translated telescope: T, [FGTimingLaws T], ΔF gst, q, [LivenessBoundW T ΔF], [Int.instLEInt.le 0
+ΔF], [Int.instLEInt.le gst (T.action q)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### finality_kernel_W_of
+
+Source: `S012:79`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire Body, R, S, O, T, [FGTimingLaws T], E,
+rho, I, D, Ef, decodeProposal, bodyErase, bodyRows, blockWireRows, chainWireRows, parentFG,
+parentHeight, validFor, makeFG, valid, ac, cfg, K, ΔF, sp, pt, Jst, [FGCoreLaws R], [FGHeadLaws R
+E rho], [FGTreeKeepLaws R], [FGTreeRestoreLaws R], [KitFG.FGCertificateLaws Ef O.height
+O.finality], [KitFG.HeightBridge Ef cfg O.height], [Eq O.height (KitFG.Window.certificateHeight Ef
+cfg K)], [Eq O.finality (KitFG.Window.certificateFinality Ef cfg K)], [Not (Ef.IsQuorum
+Finset.instEmptyCollection.emptyCollection)], [TargetJustification Ef O.height], [(∀ (y : Nat) (U
+X : FG.FGBlock (Fin n)), Ne X FG.FGBlock.genesis → EntryAt O.height U y → U.Preceq X.parent → (Eq
+(O.height X.parent).h y → TargetCoveredByChild Ef O.height X U y) → instLENat.le (instHAdd.hAdd y
+1) (O.height X).h)], [(∀ (y : Nat) (U X : FG.FGBlock (Fin n)), SlotChain X → EntryAt O.height U y
+→ U.Preceq X.parent → instLTNat.lt X.slot (instHAdd.hAdd (instHAdd.hAdd U.slot cfg.timeoutDelay)
+1) → NoMixedOnPath O.height X y)], honestSlot, [KernelPrem_W T ΔF rho.horizon sp pt honestSlot
+Ef.q (Ef.weightOf (Finset.instSDiff.sdiff Finset.univ (historyFaulty S rho))) cfg.timeoutDelay K],
+[KernelRunFacts S E rho Ef ΔF], [Int.instLEInt.le (T.proposal (instHAdd.hAdd sp.reset.sStar 2))
+sp.serviceStart], [Int.instLEInt.le E.t_GST sp.serviceStart], [H0Reset R S E rho O T (fun a =>
+namedEntry (D.heightPair a)) Jst sp.reset], [FGHistoricalHighTransfer R O T E rho I sp
+rho.horizon], [(∀ (horizon : Time), FGHistoricalHighChain R O T E rho sp horizon)], [(∀ (A B :
+FG.FGBlock (Fin n)), (R.erase A).Preceq (R.erase B) → A.Preceq B)], [(∀ (B : FG.FGBlock (Fin n)),
+Eq (R.erase B.parent) (R.erase B).parent)], [RawHistoryOrigin R S E rho T D], [HighRecordEmission
+S T E rho Ef cfg], [(∀ (j : Nat) (x : V) (r : Nat) (a : Wire), HonestRowAt S E rho T j x r a →
+Exists fun u => Eq (S.decode a) (Option.some u))], [TRowsReceipt R S E rho T blockWireRows ΔF],
+[(∀ (s : Slot), honestSlot s → Exists fun x => SetLike.instMembership.mem rho.honest x)], [(∀ (s :
+Slot), honestSlot s → instLENat.le (instHMul.hMul pt.r T.roundSlots) s → instLENat.le s
+(instHMul.hMul (instHAdd.hAdd pt.r 2) T.roundSlots) → Exists fun Q => HonestProposal E rho I s
+Q)], [(honestSlot (instHAdd.hAdd (instHMul.hMul (instHAdd.hAdd pt.r 2) T.roundSlots) (kappaF T
+ΔF)) → Exists fun Q => HonestProposal E rho I (instHAdd.hAdd (instHMul.hMul (instHAdd.hAdd pt.r 2)
+T.roundSlots) (kappaF T ΔF)) Q)], [(∀ (s : Slot) (Q : Block), HonestProposal E rho I s Q → Exists
+fun X => And (Eq (R.erase X) Q) (And (OpeningCarrier_W decodeProposal bodyErase bodyRows (fun nd Q
+=> parentFG nd Q.parent) makeFG E rho I s Q X) (And (Eq X.slot s) (And (Exists fun rows => And
+(HonestCarrier E rho I (kernelCarrier decodeProposal bodyErase bodyRows) s Q rows) (Eq X.rows
+(List.filterMap S.decode rows))) (Exists fun nd => And (Eq (proposalStateAt E rho I s)
+(Option.some nd)) (And (Eq (parentFG nd Q.parent) (Option.some X.parent))
+(SetLike.instMembership.mem (R.core nd).fg.TF X.parent)))))))], [(∀ (s : Slot) (Q : Block),
+HonestProposal E rho I s Q → instLENat.le (instHMul.hMul pt.r T.roundSlots) s → KernelExactService
+ac rho.horizon s Q)], [(∀ (s : Slot) (Q : Block) (r : Slot) (x : V), KernelExactService ac
+rho.horizon s Q → Int.instLEInt.le (T.gate s) rho.horizon → Eq s (instHMul.hMul r T.roundSlots) →
+SetLike.instMembership.mem rho.honest x → instLENat.le (instHMul.hMul pt.r T.roundSlots) s → Eq
+(ac.source x r) (Option.some (Option.some Q)))], [(∀ (x : V) (r : Nat), Eq (ac.source x r)
+(Option.map (Option.map R.erase) (actionSourceFG R E rho T x r)))], [(∀ (s : Slot) (Q : Block) (x
+: V), KernelExactService ac rho.horizon s Q → instLENat.le (instHMul.hMul pt.r T.roundSlots) s →
+instLENat.le s (instHMul.hMul (instHAdd.hAdd pt.r 2) T.roundSlots) → SetLike.instMembership.mem
+rho.honest x → Eq (headAtLabel R E rho T x s) (Option.some Q))], [(∀ (s : Slot) (X : FG.FGBlock
+(Fin n)) (x : V), Eq (headAtLabel R E rho T x s) (Option.some (R.erase X)) → Exists fun i => And
+(Eq (List.instGetElem?NatLtLength.getElem? rho.events i) (Option.some (V2.Event.tick x (T.vote
+s)))) (SetLike.instMembership.mem (R.core (V2.D.Run.stateBefore E rho i x)).fg.TF X))], [(∀ (i :
+Nat) (x : V) (X : FG.FGBlock (Fin n)), SetLike.instMembership.mem (R.core (V2.D.Run.stateBefore E
+rho i x)).fg.TF X → SlotChain X)], [(∀ (s : Slot) (nd : P.State), Eq (proposalStateAt E rho I s)
+(Option.some nd) → ∀ (X : FG.FGBlock (Fin n)), SetLike.instMembership.mem (R.core nd).fg.TF X →
+SetLike.instMembership.mem (R.core nd).fg.TF X.parent)], [(∀ (s : Slot) (nd : P.State), Eq
+(proposalStateAt E rho I s) (Option.some nd) → FG.ViewRootInj (R.core nd).fg.TF)], [(∀ (s : Slot)
+(nd : P.State), Eq (proposalStateAt E rho I s) (Option.some nd) → ∀ (X : FG.FGBlock (Fin n)),
+SetLike.instMembership.mem (R.core nd).fg.TF X → ∀ (row : FG.Row (Fin n)), List.instMembership.mem
+X.rows row → Eq (FG.Window.r6w (FG.Window.derive Ef cfg K X.parent) row) Bool.true)], [(∀ (nd :
+P.State) (s : Slot) (X : FG.FGBlock (Fin n)), Eq (parentHeight nd s X) { fst := (O.height X).h,
+snd := (O.height X).T_h.root })], [(∀ (nd : P.State) (s : Slot) (X : FG.FGBlock (Fin n)) (a :
+Wire), Eq (valid a) Bool.true → Eq (namedEntry (D.heightPair a)) (Option.some (parentHeight nd s
+X)) → Eq (validFor nd s X a) Bool.true)], [(∀ (q y : Nat) (U X : FG.FGBlock (Fin n)), BatchPrem R
+S O T E rho I D Ef decodeProposal bodyErase bodyRows blockWireRows parentFG parentHeight validFor
+ΔF RowKind.target q y U X → Eq (O.height X.parent).h y → TargetCoveredByChild Ef O.height X U y)],
+[(∀ (x : V), SetLike.instMembership.mem rho.honest x → ∀ (r : Nat) (C : FG.FGBlock (Fin n)), Eq
+(actionSourceFG R E rho T x r) (Option.some (Option.some C)) → instLENat.le (instHAdd.hAdd
+sp.reset.M 1) (O.height C).h → Eq (E.awake x (T.action r)) Bool.true → Exists fun j => Exists fun
+rSent => Exists fun a => And (instLENat.le rSent r) (And (HonestRowAt S E rho T j x rSent a) (And
+(RowComplete S rho D.signer valid x a) (Eq (D.heightPair a) (FG.NamedHeightPair.vote (O.height
+C).h (O.height C).T_h.root Bool.false)))))], [(∀ (A : Block) (m : KernelMiddleWitness_W R S O T E
+rho I D Ef decodeProposal bodyErase bodyRows blockWireRows parentFG parentHeight validFor makeFG
+valid ac cfg K ΔF sp pt A), KernelActionSupply_W R S O T E rho I D Ef m)], makeWire, [(∀ (row :
+FG.Row (Fin n)), Eq (S.decode (makeWire row)) (Option.some row))], [(∀ (i : Fin n) (y : FG.Height)
+(U B : BlockId), Eq (valid (makeWire { signer := i, height_pair := FG.NamedHeightPair.vote
+(instHAdd.hAdd y 1) B Bool.false, finality_pair := Option.some { height := y, target := U } }))
+Bool.true)], [(∀ (nd : P.State), Eq (S.inputs nd).fst (R.source nd))], [(∀ (i : Fin n) (q : Nat)
+(nd : P.State) (row : FG.Row (Fin n)), Eq (postClock E rho (safetyHolder S rho i) (T.action q))
+(Option.some nd) → Eq (E.awake (safetyHolder S rho i) (T.action q)) Bool.true → Eq
+(FG.createRowOnce Ef cfg (S.record nd) i (S.inputs nd).fst (S.inputs nd).snd).fst (Option.some
+row) → Exists fun j => And (Eq (List.instGetElem?NatLtLength.getElem? rho.events j) (Option.some
+(V2.Event.tick (safetyHolder S rho i) (T.action q)))) (List.instMembership.mem (V2.D.Run.emitsAt E
+rho j) (S.encode (makeWire row))))], [(∀ (nd : P.State) (H : FG.FGBlock (Fin n)), Eq
+(R.finalityHead nd) (Option.some H) → Eq (S.inputs nd).snd (KitFG.certificateHeadFields O.height
+O.finality H))], storedCarrier, SourceService, [RQCOrigin R S E rho O T storedCarrier
+SourceService Ef], [HighRecordHead R S O E rho], [FGSafetyClientLaws S Ef cfg],
+[HighRecordOwnOrigin S T E rho], [TRowsSelect R S E rho T I (kernelCarrier decodeProposal
+bodyErase bodyRows) chainWireRows blockWireRows parentFG validFor], [(∀ (a : Wire) (i : Fin n), Eq
+(D.signer a) (Option.some i) → Exists fun u => Eq (S.decode a) (Option.some u))], [(∀ (s : Slot)
+(Q : Block) (H : FG.FGBlock (Fin n)) (nd : P.State) (a : Wire) (u : FG.Row (Fin n)), Eq
+(proposalStateAt E rho I s) (Option.some nd) → Eq (parentFG nd Q.parent) (Option.some H) →
+List.instMembership.mem (chainWireRows nd Q.parent) a → Eq (S.decode a) (Option.some u) → Exists
+fun W => And (W.Preceq H) (List.instMembership.mem W.rows u))], [(∀ (nd : P.State) (s : Slot) (B :
+FG.FGBlock (Fin n)) (a : Wire), Eq (validFor nd s B a) ((S.decode a).isSome.and ((Option.map
+(FG.Window.r6w (KitFG.Window.parentState Ef cfg K B s)) (S.decode a)).getD Bool.false)))], [(∀ (s
+: Slot) (nd : P.State), Eq (proposalStateAt E rho I s) (Option.some nd) → ∀ (H : FG.FGBlock (Fin
+n)), SetLike.instMembership.mem (R.core nd).fg.TF H → ∀ (B : FG.FGBlock (Fin n)) (s' : Slot) (root
+: BlockId) (body : Nat) (rs : List (FG.Row (Fin n))), (B.node s' root body rs).Preceq H → ∀ (a :
+FG.Row (Fin n)), List.instMembership.mem rs a → And (Eq (finality_kernel_W_of.match_1 (fun x =>
+Bool) a.height_pair (fun _ => Bool.false) fun h entry timeout => (Decidable.decide (instLENat.le 1
+h)).and ((Option.map (fun fp => Decidable.decide (instLTNat.lt fp.height h)) a.finality_pair).getD
+Bool.true)) Bool.true) (Eq (FG.Window.r6w (FG.Window.derive Ef cfg K B) a) Bool.true))], [(∀ (s :
+Slot), Eq (T.proposal s) (V2.D.proposalTime I s))], [(∀ (i j : Nat) (x : V) (a : Wire),
+instLENat.le i j → rowHeld R blockWireRows (V2.D.Run.stateBefore E rho i x) a → rowHeld R
+blockWireRows (V2.D.Run.stateBefore E rho j x) a)], [(∀ (nd : P.State) (t : Time) (a : Wire),
+rowHeld R blockWireRows nd a → rowHeld R blockWireRows (P.clock nd t) a)], ready, [AcceptStep_W R
+E rho Ef cfg K ready], [FGFinalityDurableLaws R], [(∀ (i : Nat) (x : V),
+SetLike.instMembership.mem rho.honest x → KitFG.FGStoreInvariant O.height O.finality (R.core
+(V2.D.Run.stateBefore E rho i x)).fg)], finBlock, [(∀ (C W : FG.FGBlock (Fin n)), finBlock C →
+finBlock W → Eq ((O.finality C).F.compatible (O.finality W).F) Bool.true)], [(∀ (i : Nat) (x : V)
+(X : FG.FGBlock (Fin n)) (t : Time), ready i x X t → finBlock X)], [(∀ (i : Nat) (x : V) (C :
+FG.FGBlock (Fin n)), SetLike.instMembership.mem (R.core (V2.D.Run.stateBefore E rho i x)).fg.TF C
+→ Ne C FG.FGBlock.genesis → finBlock C)], [(∀ (i : Nat) (x : V), SetLike.instMembership.mem
+rho.honest x → ∀ (C : FG.FGBlock (Fin n)) (k : Nat) (u : V) (r : Nat) (a : Wire) (B : FG.FGBlock
+(Fin n)), SetLike.instMembership.mem (R.core (V2.D.Run.stateBefore E rho i x)).fg.TF C →
+HonestRowAt S E rho T k u r a → Eq (actionSourceFG R E rho T u r) (Option.some (Option.some B)) →
+Eq (O.height C).J.root (O.height B).T_h.root → Eq (O.height C).J (O.height B).T_h)], [(∀ (j : Nat)
+(z : V) (W : FG.FGBlock (Fin n)), SetLike.instMembership.mem rho.honest z →
+SetLike.instMembership.mem (R.core (V2.D.Run.stateBefore E rho j z)).fg.TF W → ∀ (J : FG.FGBlock
+(Fin n)), Set.instMembership.mem (certified R O W) J → Ne J FG.FGBlock.genesis → Exists fun u =>
+Exists fun r => Exists fun a => And (HonestRowBefore S E rho T j u r a) (Eq (namedEntry
+(D.heightPair a)) (Option.some { fst := (O.height J).h, snd := J.root })))], [(∀ (j : Nat) (z : V)
+(r : Nat) (a : Wire) (e : Prod FG.Height BlockId), HonestRowAt S E rho T j z r a → Eq (namedEntry
+(D.heightPair a)) (Option.some e) → Exists fun C => And (Eq (actionSourceFG R E rho T z r)
+(Option.some (Option.some C))) (And (Eq e { fst := (O.height C).h, snd := (O.height C).T_h.root })
+((O.height C).T_h.Preceq C)))], [(∀ (cut : Time) (b j : Nat) (z : V) (W : FG.FGBlock (Fin n)),
+instLENat.le j (rho.idxBefore cut) → HeldAt R E rho j z W → (∀ (k : Nat) (u : V) (r : Nat) (a :
+Wire) (row : FG.Row (Fin n)) (h : FG.Height) (B : BlockId) (timeout : Bool), HonestRowAt S E rho T
+k u r a → Eq (S.decode a) (Option.some row) → Eq row.height_pair (FG.NamedHeightPair.vote h B
+timeout) → Int.instLTInt.lt (T.action r) cut → instLTNat.lt h (instHAdd.hAdd b 1)) → instLTNat.lt
+(O.height W).h (instHAdd.hAdd b 2))], [(∀ (X U : FG.FGBlock (Fin n)) (rows : List Wire),
+HonestCarrier E rho I (kernelCarrier decodeProposal bodyErase bodyRows) X.slot (R.erase X) rows →
+Int.instLEInt.le E.t_GST (T.proposal X.slot) → Int.instLEInt.le (instHAdd.hAdd (T.proposal X.slot)
+T.delta) rho.horizon → U.Preceq (FG.Window.derive Ef cfg K X).F → Nonempty (BlockDelivery_W R E
+rho ready X U (T.proposal X.slot) (instHAdd.hAdd (T.proposal X.slot) T.delta)))].
+
+F-3: ViewRootInj at the quantified store(s); producer viewRootInj_TF from FG-SA reachable store.
+Population: holder assignment/injectivity or honest-holder FG weight (exact guards in type);
+faulty FG-seat weight/count; KernelRunFacts: linked injective holders and faulty FG weight < q;
+KernelPrem_W: supplied honest FG weight ≥ q.
+
+FG-SA producer/application: test-private d7c_kernel/d7c_forward/d7c_liveness and their recovery
+suppliers in AvailableChainFGSAProofs/Tests/P0d7c.lean:2046, :2386, :2612; K7/F7 above. The
+production wrapper remains partial. Kernel argument suppliers are mapped below.
+
+### finality_liveness_of_forward_W
+
+Source: `S013:38`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire Body, R, O, T, E, rho, I, Ef,
+decodeProposal, bodyErase, bodyRows, parentFG, makeFG, deltaF t, g, sp, honestSlot, output,
+[FGCoreLaws R], [FGFinalityDurableLaws R], [V2.D.ScheduleWellFormed E rho],
+[KitFG.FGCertificateLaws Ef O.height O.finality], [(∀ (A B : FG.FGBlock (Fin n)), (R.erase
+A).Preceq (R.erase B) → A.Preceq B)], [(∀ (A B : FG.FGBlock (Fin n)), A.Preceq B → (R.erase
+A).Preceq (R.erase B))], [(∀ (r : Nat) (A : Block), Int.instLEInt.le t (instHMul.hMul r.cast (P
+T)) → HonestProposal E rho I (instHMul.hMul r T.roundSlots) A → Int.instLEInt.le (kernelDeadlineW
+T deltaF (instHAdd.hAdd r 2)) rho.horizon → ∀ (x : V), SetLike.instMembership.mem rho.honest x →
+(output (V2.D.Run.readAt E rho t x)).Preceq A)], [(∀ (x : V), SetLike.instMembership.mem
+rho.honest x → (R.erase (R.core (V2.D.Run.readAt E rho t x)).fg.F).Preceq (output (V2.D.Run.readAt
+E rho t x)))], [ForwardWitness_W R E rho O T I decodeProposal bodyErase bodyRows parentFG makeFG
+honestSlot deltaF g sp t].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: test-private d7c_kernel/d7c_forward/d7c_liveness and their recovery
+suppliers in AvailableChainFGSAProofs/Tests/P0d7c.lean:2046, :2386, :2612; K7/F7 above. The
+production wrapper remains partial. Kernel argument suppliers are mapped below.
+
+### finality_liveness_FE_W_of
+
+Source: `S013:88`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire Body, R, S, O, T, [FGTimingLaws T], E,
+rho, I, D, Ef, decodeProposal, bodyErase, bodyRows, parentFG, makeFG, deltaF recurStart t, g, Jst,
+sp, honestSlot, fgQuorum fgHonestWeight timeoutSlots capacity, [LivenessBoundW T deltaF],
+[Int.instLEInt.le 0 deltaF], [FE_W T deltaF honestSlot recurStart rho.horizon g],
+[Int.instLEInt.le recurStart t], [Int.instLTInt.lt 0 t], [Int.instLEInt.le sp.serviceStart t],
+[Int.instLEInt.le (instHAdd.hAdd t (W_W T deltaF g)) rho.horizon], [Int.instLEInt.le (T.proposal
+(instHAdd.hAdd sp.reset.sStar 2)) sp.serviceStart], [Int.instLEInt.le E.t_GST sp.serviceStart],
+[instLENat.le fgQuorum fgHonestWeight], [Eq timeoutSlots (instHMul.hMul 2 T.roundSlots)],
+[instLENat.le 2 capacity], [(∀ (r : Nat), KernelPrem_W T deltaF rho.horizon sp { r := r }
+honestSlot fgQuorum fgHonestWeight timeoutSlots capacity → KernelConclusion_W R E rho O T I
+decodeProposal bodyErase bodyRows parentFG makeFG deltaF r)], [(∀ (r : Nat), honestSlot
+(instHMul.hMul r T.roundSlots) → Int.instLEInt.le t (instHMul.hMul r.cast (P T)) →
+Int.instLEInt.le (T.proposal (instHMul.hMul r T.roundSlots)) rho.horizon → Exists fun A =>
+HonestProposal E rho I (instHMul.hMul r T.roundSlots) A)], [H0Reset R S E rho O T (fun a =>
+namedEntry (D.heightPair a)) Jst sp.reset], [FGHistoricalHighTransfer R O T E rho I sp
+rho.horizon], output, [FGCoreLaws R], [FGFinalityDurableLaws R], [V2.D.ScheduleWellFormed E rho],
+[KitFG.FGCertificateLaws Ef O.height O.finality], [(∀ (A B : FG.FGBlock (Fin n)), (R.erase
+A).Preceq (R.erase B) → A.Preceq B)], [(∀ (B : FG.FGBlock (Fin n)), Eq (R.erase B.parent) (R.erase
+B).parent)], [(∀ (A B : FG.FGBlock (Fin n)), A.Preceq B → (R.erase A).Preceq (R.erase B))], [(∀ (r
+: Nat) (A : Block), Int.instLEInt.le t (instHMul.hMul r.cast (P T)) → HonestProposal E rho I
+(instHMul.hMul r T.roundSlots) A → Int.instLEInt.le (kernelDeadlineW T deltaF (instHAdd.hAdd r 2))
+rho.horizon → ∀ (x : V), SetLike.instMembership.mem rho.honest x → (output (V2.D.Run.readAt E rho
+t x)).Preceq A)], [(∀ (x : V), SetLike.instMembership.mem rho.honest x → (R.erase (R.core
+(V2.D.Run.readAt E rho t x)).fg.F).Preceq (output (V2.D.Run.readAt E rho t x)))].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: KernelPrem_W: supplied honest FG weight ≥ q.
+
+FG-SA producer/application: test-private d7c_kernel/d7c_forward/d7c_liveness and their recovery
+suppliers in AvailableChainFGSAProofs/Tests/P0d7c.lean:2046, :2386, :2612; K7/F7 above. The
+production wrapper remains partial. Kernel argument suppliers are mapped below.
+
+### middle_reset_opening_height
+
+Source: `S014:18`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, S, O, T, [FGTimingLaws T], E, rho,
+I, D, Ef, sp, horizon Jst, [H0Reset R S E rho O T (fun a => namedEntry (D.heightPair a)) Jst
+sp.reset], [FGHistoricalHighTransfer R O T E rho I sp horizon], [KitFG.FGHeightLaws Ef O.height],
+[(∀ (A B : FG.FGBlock (Fin n)), (R.erase A).Preceq (R.erase B) → A.Preceq B)], [(∀ (B : FG.FGBlock
+(Fin n)), Eq (R.erase B.parent) (R.erase B).parent)], q, A₀, [HonestProposal E rho I
+(instHMul.hMul q T.roundSlots) (R.erase A₀)], [Int.instLEInt.le (T.proposal (instHMul.hMul q
+T.roundSlots)) horizon], [instLENat.le (instHAdd.hAdd sp.reset.sStar 2) (instHMul.hMul q
+T.roundSlots)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### kernel_opening_and_middle
+
+Source: `S014:62`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire Body, R, S, O, T, [FGTimingLaws T], E,
+rho, I, D, Ef, decodeProposal, bodyErase, bodyRows, blockWireRows, parentFG, parentHeight,
+validFor, makeFG, valid, ac, cfg, K, ΔF, sp, pt, A, Jst, [FGCoreLaws R], [FGHeadLaws R E rho],
+[FGTreeKeepLaws R], [FGTreeRestoreLaws R], [V2.D.ScheduleWellFormed E rho],
+[KitFG.FGCertificateLaws Ef O.height O.finality], [KitFG.HeightBridge Ef cfg O.height], [Eq
+O.height (KitFG.Window.certificateHeight Ef cfg K)], [Eq O.finality
+(KitFG.Window.certificateFinality Ef cfg K)], [Not (Ef.IsQuorum
+Finset.instEmptyCollection.emptyCollection)], [TargetJustification Ef O.height], [(∀ (y : Nat) (U
+X : FG.FGBlock (Fin n)), Ne X FG.FGBlock.genesis → EntryAt O.height U y → U.Preceq X.parent → (Eq
+(O.height X.parent).h y → TargetCoveredByChild Ef O.height X U y) → instLENat.le (instHAdd.hAdd y
+1) (O.height X).h)], [(∀ (y : Nat) (U X : FG.FGBlock (Fin n)), SlotChain X → EntryAt O.height U y
+→ U.Preceq X.parent → instLTNat.lt X.slot (instHAdd.hAdd (instHAdd.hAdd U.slot cfg.timeoutDelay)
+1) → NoMixedOnPath O.height X y)], honestSlot, [KernelPrem_W T ΔF rho.horizon sp pt honestSlot
+Ef.q (Ef.weightOf (Finset.instSDiff.sdiff Finset.univ (historyFaulty S rho))) cfg.timeoutDelay K],
+[Int.instLEInt.le 0 ΔF], [Int.instLEInt.le E.Δ ΔF], [Int.instLEInt.le (T.proposal (instHAdd.hAdd
+sp.reset.sStar 2)) sp.serviceStart], [Int.instLEInt.le E.t_GST sp.serviceStart], [H0Reset R S E
+rho O T (fun a => namedEntry (D.heightPair a)) Jst sp.reset], [FGHistoricalHighTransfer R O T E
+rho I sp rho.horizon], [(∀ (A B : FG.FGBlock (Fin n)), (R.erase A).Preceq (R.erase B) → A.Preceq
+B)], [(∀ (B : FG.FGBlock (Fin n)), Eq (R.erase B.parent) (R.erase B).parent)], [HighRecordNames R
+S O T E rho D], [RawHistoryOrigin R S E rho T D], [HighRecordEmission S T E rho Ef cfg], [(∀ (j :
+Nat) (x : V) (r : Nat) (a : Wire), HonestRowAt S E rho T j x r a → Exists fun u => Eq (S.decode a)
+(Option.some u))], [instLTNat.lt (Ef.weightOf (historyFaulty S rho)) Ef.q], [Function.Injective
+(safetyHolder S rho)], [TRowsReceipt R S E rho T blockWireRows ΔF], [(∀ (x : V),
+SetLike.instMembership.mem rho.honest x → ∀ (t : Time), Int.instLEInt.le E.t_GST t →
+Int.instLEInt.le t rho.horizon → Eq (E.awake x t) Bool.true)], [(∀ (s : Slot), honestSlot s →
+Exists fun x => SetLike.instMembership.mem rho.honest x)], [(∀ (s : Slot), honestSlot s →
+instLENat.le (instHMul.hMul pt.r T.roundSlots) s → instLENat.le s (instHMul.hMul (instHAdd.hAdd
+pt.r 2) T.roundSlots) → Exists fun Q => HonestProposal E rho I s Q)], [(∀ (s : Slot) (Q : Block),
+HonestProposal E rho I s Q → Exists fun X => And (Eq (R.erase X) Q) (And (OpeningCarrier_W
+decodeProposal bodyErase bodyRows (fun nd Q => parentFG nd Q.parent) makeFG E rho I s Q X) (And
+(Eq X.slot s) (And (Exists fun rows => And (HonestCarrier E rho I (kernelCarrier decodeProposal
+bodyErase bodyRows) s Q rows) (Eq X.rows (List.filterMap S.decode rows))) (Exists fun nd => And
+(Eq (proposalStateAt E rho I s) (Option.some nd)) (And (Eq (parentFG nd Q.parent) (Option.some
+X.parent)) (SetLike.instMembership.mem (R.core nd).fg.TF X.parent)))))))], [(∀ (s : Slot) (Q :
+Block), HonestProposal E rho I s Q → instLENat.le (instHMul.hMul pt.r T.roundSlots) s →
+KernelExactService ac rho.horizon s Q)], [(∀ (s : Slot) (Q : Block) (r : Slot) (x : V),
+KernelExactService ac rho.horizon s Q → Int.instLEInt.le (T.gate s) rho.horizon → Eq s
+(instHMul.hMul r T.roundSlots) → SetLike.instMembership.mem rho.honest x → instLENat.le
+(instHMul.hMul pt.r T.roundSlots) s → Eq (ac.source x r) (Option.some (Option.some Q)))], [(∀ (x :
+V) (r : Nat), Eq (ac.source x r) (Option.map (Option.map R.erase) (actionSourceFG R E rho T x
+r)))], [(∀ (s : Slot) (Q : Block) (x : V), KernelExactService ac rho.horizon s Q → instLENat.le
+(instHMul.hMul pt.r T.roundSlots) s → instLENat.le s (instHMul.hMul (instHAdd.hAdd pt.r 2)
+T.roundSlots) → SetLike.instMembership.mem rho.honest x → Eq (headAtLabel R E rho T x s)
+(Option.some Q))], [(∀ (s : Slot) (X : FG.FGBlock (Fin n)) (x : V), Eq (headAtLabel R E rho T x s)
+(Option.some (R.erase X)) → Exists fun i => And (Eq (List.instGetElem?NatLtLength.getElem?
+rho.events i) (Option.some (V2.Event.tick x (T.vote s)))) (SetLike.instMembership.mem (R.core
+(V2.D.Run.stateBefore E rho i x)).fg.TF X))], [(∀ (i : Nat) (x : V) (X : FG.FGBlock (Fin n)),
+SetLike.instMembership.mem (R.core (V2.D.Run.stateBefore E rho i x)).fg.TF X → SlotChain X)], [(∀
+(s : Slot) (nd : P.State), Eq (proposalStateAt E rho I s) (Option.some nd) → ∀ (X : FG.FGBlock
+(Fin n)), SetLike.instMembership.mem (R.core nd).fg.TF X → SetLike.instMembership.mem (R.core
+nd).fg.TF X.parent)], [(∀ (s : Slot) (nd : P.State), Eq (proposalStateAt E rho I s) (Option.some
+nd) → FG.ViewRootInj (R.core nd).fg.TF)], [(∀ (s : Slot) (nd : P.State), Eq (proposalStateAt E rho
+I s) (Option.some nd) → ∀ (X : FG.FGBlock (Fin n)), SetLike.instMembership.mem (R.core nd).fg.TF X
+→ ∀ (row : FG.Row (Fin n)), List.instMembership.mem X.rows row → Eq (FG.Window.r6w
+(FG.Window.derive Ef cfg K X.parent) row) Bool.true)], [(∀ (nd : P.State) (s : Slot) (X :
+FG.FGBlock (Fin n)), Eq (parentHeight nd s X) { fst := (O.height X).h, snd := (O.height
+X).T_h.root })], [(∀ (nd : P.State) (s : Slot) (X : FG.FGBlock (Fin n)) (a : Wire), Eq (valid a)
+Bool.true → Eq (namedEntry (D.heightPair a)) (Option.some (parentHeight nd s X)) → Eq (validFor nd
+s X a) Bool.true)], [(∀ (q y : Nat) (U X : FG.FGBlock (Fin n)), BatchPrem R S O T E rho I D Ef
+decodeProposal bodyErase bodyRows blockWireRows parentFG parentHeight validFor ΔF RowKind.target q
+y U X → Eq (O.height X.parent).h y → TargetCoveredByChild Ef O.height X U y)], [(∀ (x : V),
+SetLike.instMembership.mem rho.honest x → ∀ (r : Nat) (C : FG.FGBlock (Fin n)), Eq (actionSourceFG
+R E rho T x r) (Option.some (Option.some C)) → instLENat.le (instHAdd.hAdd sp.reset.M 1) (O.height
+C).h → Eq (E.awake x (T.action r)) Bool.true → Exists fun j => Exists fun rSent => Exists fun a =>
+And (instLENat.le rSent r) (And (HonestRowAt S E rho T j x rSent a) (And (RowComplete S rho
+D.signer valid x a) (Eq (D.heightPair a) (FG.NamedHeightPair.vote (O.height C).h (O.height
+C).T_h.root Bool.false)))))], [HonestProposal E rho I (instHMul.hMul pt.r T.roundSlots) A].
+
+F-3: ViewRootInj at the quantified store(s); producer viewRootInj_TF from FG-SA reachable store.
+Population: holder assignment/injectivity or honest-holder FG weight (exact guards in type);
+faulty FG-seat weight/count; KernelPrem_W: supplied honest FG weight ≥ q.
+
+FG-SA producer/application: kernel_opening_and_middle (`S148:1260`).
+
+### kernel_middle_fresh_U
+
+Source: `S014:446`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire Body, R, S, O, T, E, rho, I, D, Ef,
+decodeProposal, bodyErase, bodyRows, blockWireRows, parentFG, parentHeight, validFor, makeFG,
+valid, ac, cfg, K, ΔF, sp, pt, A, m.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: kernel_middle_fresh_U (`S148:1397`).
+
+### kernel_middle_early_justification
+
+Source: `S014:453`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire Body, R, S, O, T, E, rho, I, D, Ef,
+decodeProposal, bodyErase, bodyRows, blockWireRows, parentFG, parentHeight, validFor, makeFG,
+valid, ac, cfg, K, ΔF, sp, pt, A, m.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: kernel_middle_early_justification (`S148:1409`).
+
+### kernel_middle_source_cap
+
+Source: `S014:461`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire Body, R, S, O, T, E, rho, I, D, Ef,
+decodeProposal, bodyErase, bodyRows, blockWireRows, parentFG, parentHeight, validFor, makeFG,
+valid, ac, cfg, K, ΔF, sp, pt, A, m, [FGCoreLaws R], [V2.D.ScheduleWellFormed E rho], x, C,
+[SetLike.instMembership.mem rho.honest x], [Eq (actionSourceFG R E rho T x (instHAdd.hAdd pt.r 2))
+(Option.some (Option.some C))].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: kernel_middle_source_cap (`S148:1427`).
+
+### kmid_actionTime_eq
+
+Source: `S015:14`.
+
+Translated telescope: T, [FGTimingLaws T], r.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: kmid_actionTime_eq (`S149:235`).
+
+### kmid_action_strictMono
+
+Source: `S015:20`.
+
+Translated telescope: T, [FGTimingLaws T].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: kmid_action_strictMono (`S149:242`).
+
+### kmid_slot_scale_le
+
+Source: `S015:30`.
+
+Translated telescope: T, [FGTimingLaws T], a b, [instLENat.le a b].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: kmid_slot_scale_le (`S149:248`).
+
+### kmid_slot_scale_lt
+
+Source: `S015:37`.
+
+Translated telescope: T, [FGTimingLaws T], a b, [instLTNat.lt a b].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: kmid_slot_scale_lt (`S149:255`).
+
+### kmid_kappa_cover
+
+Source: `S015:44`.
+
+Translated telescope: T, [FGTimingLaws T], ΔF, [Int.instLEInt.le 0 ΔF].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: kmid_kappa_cover (`S149:262`).
+
+### kmid_period_eq
+
+Source: `S015:57`.
+
+Translated telescope: T, r.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: kmid_period_eq (`S149:1512`).
+
+### kmid_lift_preceq
+
+Source: `S015:64`.
+
+Translated telescope: n, erase, [(∀ (A B : FG.FGBlock (Fin n)), (erase A).Preceq (erase B) →
+A.Preceq B)], A B, [(erase A).Preceq (erase B)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: kmid_lift_preceq (`S149:501`).
+
+### kmid_parent_preceq
+
+Source: `S015:70`.
+
+Translated telescope: n, B.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: kmid_parent_preceq (`S149:509`).
+
+### kmid_slot_le_of_preceq
+
+Source: `S015:76`.
+
+Translated telescope: n, W X, [SlotChain X], [W.Preceq X].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: kmid_slot_le_of_preceq (`S149:1222`).
+
+### kmid_slot_lt_of_strict
+
+Source: `S015:90`.
+
+Translated telescope: n, W X, [SlotChain X], [W.Preceq X], [Ne W X].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: kmid_slot_lt_of_strict (`S149:1230`).
+
+### kmid_kernel_bounds
+
+Source: `S015:103`.
+
+Translated telescope: T, [FGTimingLaws T], ΔF horizon gst, sp, pt, [LivenessBoundW T ΔF],
+[Int.instLEInt.le sp.serviceStart (instHMul.hMul pt.r.cast (P T))], [Int.instLEInt.le
+(kernelDeadlineW T ΔF (instHAdd.hAdd pt.r 2)) horizon], [Int.instLEInt.le 0 ΔF], [Int.instLEInt.le
+(T.proposal (instHAdd.hAdd sp.reset.sStar 2)) sp.serviceStart], [Int.instLEInt.le gst
+sp.serviceStart].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: kmid_kernel_bounds (`S149:1520`).
+
+### kmid_slot_horizon
+
+Source: `S015:136`.
+
+Translated telescope: T, [FGTimingLaws T], q s, horizon, [Int.instLEInt.le (T.action
+(instHAdd.hAdd q 2)) horizon], [instLENat.le s (instHMul.hMul (instHAdd.hAdd q 2) T.roundSlots)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: kmid_slot_horizon (`S149:1544`).
+
+### kmid_slot_gst
+
+Source: `S015:148`.
+
+Translated telescope: T, [FGTimingLaws T], q s, gst, [Int.instLEInt.le gst (T.proposal
+(instHMul.hMul q T.roundSlots))], [instLENat.le (instHMul.hMul q T.roundSlots) s].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: kmid_slot_gst (`S149:1555`).
+
+### kmid_vote_lt_action
+
+Source: `S015:156`.
+
+Translated telescope: T, [FGTimingLaws T], s, r, [instLENat.le s (instHMul.hMul r T.roundSlots)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: kmid_vote_lt_action (`S149:1733`).
+
+### kmid_proposal_le_action
+
+Source: `S015:164`.
+
+Translated telescope: T, [FGTimingLaws T], s, r, [instLENat.le s (instHMul.hMul r T.roundSlots)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: kmid_proposal_le_action (`S149:1741`).
+
+### kmid_batch_horizon
+
+Source: `S015:172`.
+
+Translated telescope: T, [FGTimingLaws T], ΔF gst horizon, [Int.instLEInt.le 0 ΔF], q r s,
+[Int.instLEInt.le (T.action (instHAdd.hAdd q 2)) horizon], [Int.instLEInt.le gst (T.action r)],
+[instLENat.le (instHAdd.hAdd (instHMul.hMul r T.roundSlots) (kappaF T ΔF)) s], [instLENat.le s
+(instHMul.hMul (instHAdd.hAdd q 2) T.roundSlots)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: kmid_batch_horizon (`S149:1749`).
+
+### kmid_event_time
+
+Source: `S015:192`.
+
+Translated telescope: In V, P, inst, n, Wire, S, T, E, rho, j r, z, a, [HonestRowAt S E rho T j z
+r a].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: kmid_event_time (`S149:956`).
+
+### kmid_row_source_height
+
+Source: `S015:199`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, S, O, T, E, rho, D,
+[HighRecordNames R S O T E rho D], j, x, r, a, h, [HonestRowAt S E rho T j x r a], [Eq
+(historyRowHeight S D a) (Option.some h)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: kmid_row_source_height (`S149:552`).
+
+### kmid_rows_at_source
+
+Source: `S015:213`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, S, O, T, E, rho, D,
+[HighRecordNames R S O T E rho D], r, X, [(∀ (x : V), SetLike.instMembership.mem rho.honest x → Eq
+(actionSourceFG R E rho T x r) (Option.some (Option.some X)))], j, x, a, h, [HonestRowAt S E rho T
+j x r a], [Eq (historyRowHeight S D a) (Option.some h)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: kmid_rows_at_source (`S149:597`).
+
+### kmid_rows_below_opening
+
+Source: `S015:225`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, S, O, T, [FGTimingLaws T], E, rho,
+I, D, Ef, sp, horizon, [FGHistoricalHighTransfer R O T E rho I sp horizon], [HighRecordNames R S O
+T E rho D], [KitFG.FGHeightLaws Ef O.height], [(∀ (A B : FG.FGBlock (Fin n)), (R.erase A).Preceq
+(R.erase B) → A.Preceq B)], [(∀ (B : FG.FGBlock (Fin n)), Eq (R.erase B.parent) (R.erase
+B).parent)], q, A₀, [HonestProposal E rho I (instHMul.hMul q T.roundSlots) (R.erase A₀)],
+[Int.instLEInt.le (T.action q) horizon], [Int.instLEInt.le (T.proposal (instHMul.hMul q
+T.roundSlots)) horizon], [instLENat.le (instHAdd.hAdd sp.reset.M 1) (O.height A₀).h], j, x, r, a,
+h, [instLTNat.lt r q], [HonestRowAt S E rho T j x r a], [Eq (historyRowHeight S D a) (Option.some
+h)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: kmid_rows_below_opening (`S149:570`).
+
+### middle_seed_opening_height
+
+Source: `S015:254`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, S, O, T, E, rho, D, Ef, sp, X A₀,
+b, cutoff, [HighRecordSeedLeaves R S O T E rho D sp X b cutoff], [KitFG.FGHeightLaws Ef O.height],
+[(∀ (A B : FG.FGBlock (Fin n)), (R.erase A).Preceq (R.erase B) → A.Preceq B)], [(∀ (B : FG.FGBlock
+(Fin n)), Eq (R.erase B.parent) (R.erase B).parent)], [(R.erase X).Preceq (R.erase A₀).parent].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### middle_shield_rows_below_opening
+
+Source: `S015:269`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, S, O, T, [FGTimingLaws T], E, rho,
+I, D, Ef, sp, horizon, X A₀, b, cutoff, [HighRecordSeedLeaves R S O T E rho D sp X b cutoff],
+[(R.erase X).Preceq (R.erase A₀).parent], [FGHistoricalHighTransfer R O T E rho I sp horizon],
+[HighRecordNames R S O T E rho D], [KitFG.FGHeightLaws Ef O.height], [(∀ (A B : FG.FGBlock (Fin
+n)), (R.erase A).Preceq (R.erase B) → A.Preceq B)], [(∀ (B : FG.FGBlock (Fin n)), Eq (R.erase
+B.parent) (R.erase B).parent)], q, [HonestProposal E rho I (instHMul.hMul q T.roundSlots) (R.erase
+A₀)], [Int.instLEInt.le (T.action q) horizon], [Int.instLEInt.le (T.proposal (instHMul.hMul q
+T.roundSlots)) horizon].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### kmid_matching_height
+
+Source: `S015:299`.
+
+Translated telescope: In, P, n, Wire, S, D, u, a, y, root, [Eq (S.decode a) (Option.some u)], [Eq
+(FG.NamedHeightPair.matchesEntry y root u.height_pair) Bool.true].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: kmid_matching_height (`S149:966`).
+
+### kmid_honest_seat
+
+Source: `S015:313`.
+
+Translated telescope: In V, P, inst, n, Wire, S, rho, u, [Not (SetLike.instMembership.mem
+(historyFaulty S rho) u.signer)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: holder assignment/injectivity or honest-holder FG weight (exact guards in type);
+faulty FG-seat weight/count.
+
+FG-SA producer/application: kmid_honest_seat (`S149:927`).
+
+### kmid_tick_lt_afterTicks
+
+Source: `S015:322`.
+
+Translated telescope: In V, P, E, rho, [V2.D.ScheduleWellFormed E rho], i, v, t' t, [Eq
+(List.instGetElem?NatLtLength.getElem? rho.events i) (Option.some (V2.Event.tick v t'))],
+[Int.instLEInt.le t' t].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: kmid_tick_lt_afterTicks (`S149:784`).
+
+### kmid_source_held_at_tick
+
+Source: `S015:327`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, T, E, rho, [FGCoreLaws R],
+[V2.D.ScheduleWellFormed E rho], x, r, C, [SetLike.instMembership.mem rho.honest x], [Eq
+(actionSourceFG R E rho T x r) (Option.some (Option.some C))].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: kmid_source_held_at_tick (`S149:829`).
+
+### kmid_chainRows_of_head
+
+Source: `S015:343`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, T, E, rho, [FGCoreLaws R],
+[FGHeadLaws R E rho], [V2.D.ScheduleWellFormed E rho], [FGTreeRestoreLaws R], v, X, x,
+[SetLike.instMembership.mem rho.honest x], [Eq (headAtLabel R E rho T x v) (Option.some (R.erase
+X))], cut, [Int.instLTInt.lt (T.vote v) cut].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: kmid_chainRows_of_head (`S149:866`).
+
+### kmid_head_held_from
+
+Source: `S015:351`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, T, E, rho, [FGCoreLaws R],
+[FGHeadLaws R E rho], [V2.D.ScheduleWellFormed E rho], [FGTreeKeepLaws R], v, X, x, [Eq
+(headAtLabel R E rho T x v) (Option.some (R.erase X))], k, t, [Int.instLEInt.le (T.vote v) t],
+[instLENat.le (afterTicksIdx rho t) k].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: kmid_head_held_from (`S149:881`).
+
+### kmid_source_of_exact
+
+Source: `S015:360`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, T, E, rho, [FGCoreLaws R], x, r, X,
+[Eq (Option.map (Option.map R.erase) (actionSourceFG R E rho T x r)) (Option.some (Option.some
+(R.erase X)))].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: kmid_source_of_exact (`S149:515`).
+
+### kmid_delivery_before_afterTicks
+
+Source: `S015:378`.
+
+Translated telescope: In V, P, E, rho, [V2.D.ScheduleWellFormed E rho], k, t t', x, o,
+[instLTNat.lt k (afterTicksIdx rho t)], [Eq (List.instGetElem?NatLtLength.getElem? rho.events k)
+(Option.some (V2.Event.deliver x o t'))].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: kmid_delivery_before_afterTicks (`S149:979`).
+
+### kmid_held_height_le
+
+Source: `S015:402`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, S, O, T, E, rho, D, Ef,
+[KitFG.FGCertificateLaws Ef O.height O.finality], [RawHistoryOrigin R S E rho T D], [instLTNat.lt
+(Ef.weightOf (historyFaulty S rho)) Ef.q], m, cut, [(∀ (j : Nat) (z : V) (r : Nat) (a : Wire) (h :
+Nat) (t : Time), HonestRowAt S E rho T j z r a → Eq (historyRowHeight S D a) (Option.some h) → Eq
+(eventTime rho j) (Option.some t) → Int.instLTInt.lt t cut → instLENat.le h m)], i, x, B, [HeldAt
+R E rho i x B], [(∀ (k : Nat) (o : P.Object) (t : Time), instLTNat.lt k i → Eq
+(List.instGetElem?NatLtLength.getElem? rho.events k) (Option.some (V2.Event.deliver x o t)) →
+Int.instLTInt.lt t cut)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: faulty FG-seat weight/count.
+
+FG-SA producer/application: kmid_held_height_le (`S149:1025`).
+
+### kmid_held_cap_afterTicks
+
+Source: `S015:426`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, S, O, T, E, rho, D, Ef,
+[KitFG.FGCertificateLaws Ef O.height O.finality], [RawHistoryOrigin R S E rho T D],
+[V2.D.ScheduleWellFormed E rho], [instLTNat.lt (Ef.weightOf (historyFaulty S rho)) Ef.q], m, cut,
+[(∀ (j : Nat) (z : V) (r : Nat) (a : Wire) (h : Nat) (t : Time), HonestRowAt S E rho T j z r a →
+Eq (historyRowHeight S D a) (Option.some h) → Eq (eventTime rho j) (Option.some t) →
+Int.instLTInt.lt t cut → instLENat.le h m)], i, x, B, [instLENat.le i (afterTicksIdx rho cut)],
+[HeldAt R E rho i x B].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: faulty FG-seat weight/count.
+
+FG-SA producer/application: kmid_held_cap_afterTicks (`S149:1043`).
+
+### kmid_held_finality_afterTicks
+
+Source: `S015:438`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, S, O, T, E, rho, D, Ef,
+[KitFG.FGCertificateLaws Ef O.height O.finality], [RawHistoryOrigin R S E rho T D],
+[V2.D.ScheduleWellFormed E rho], [instLTNat.lt (Ef.weightOf (historyFaulty S rho)) Ef.q], y, cut,
+[instLTNat.lt 0 y], [(∀ (j : Nat) (z : V) (r : Nat) (a : Wire) (f : Nat) (t : Time), HonestRowAt S
+E rho T j z r a → Eq (historyFinHeight S D a) (Option.some f) → Eq (eventTime rho j) (Option.some
+t) → Int.instLTInt.lt t cut → instLTNat.lt f y)], i, x, W, [instLENat.le i (afterTicksIdx rho
+cut)], [HeldAt R E rho i x W].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: faulty FG-seat weight/count.
+
+FG-SA producer/application: kmid_held_finality_afterTicks (`S149:1061`).
+
+### kmid_row_action
+
+Source: `S015:467`.
+
+Translated telescope: In V, P, inst, n, Wire, S, T, E, rho, Ef, cfg, [HighRecordEmission S T E rho
+Ef cfg], j, x, r, a, u, [HonestRowAt S E rho T j x r a], [Eq (S.decode a) (Option.some u)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: kmid_row_action (`S149:746`).
+
+### kmid_row_fin_lt
+
+Source: `S015:478`.
+
+Translated telescope: In V, P, inst, n, Wire, S, T, E, rho, D, Ef, cfg, [HighRecordEmission S T E
+rho Ef cfg], [(∀ (j : Nat) (x : V) (r : Nat) (a : Wire), HonestRowAt S E rho T j x r a → Exists
+fun u => Eq (S.decode a) (Option.some u))], j, x, r, a, [HonestRowAt S E rho T j x r a].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: kmid_row_fin_lt (`S149:769`).
+
+### kmid_rows_cut
+
+Source: `S015:501`.
+
+Translated telescope: In V, P, inst, n, Wire, S, T, [FGTimingLaws T], E, rho, D, m Q, [(∀ (j :
+Nat) (x : V) (r : Nat) (a : Wire) (h : Nat), instLENat.le r Q → HonestRowAt S E rho T j x r a → Eq
+(historyRowHeight S D a) (Option.some h) → instLENat.le h m)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: kmid_rows_cut (`S149:1700`).
+
+### kmid_fin_cut
+
+Source: `S015:525`.
+
+Translated telescope: In V, P, inst, n, Wire, S, T, [FGTimingLaws T], E, rho, D, Ef, cfg,
+[HighRecordEmission S T E rho Ef cfg], [(∀ (j : Nat) (x : V) (r : Nat) (a : Wire), HonestRowAt S E
+rho T j x r a → Exists fun u => Eq (S.decode a) (Option.some u))], m Q, [(∀ (j : Nat) (x : V) (r :
+Nat) (a : Wire) (h : Nat), instLENat.le r Q → HonestRowAt S E rho T j x r a → Eq (historyRowHeight
+S D a) (Option.some h) → instLENat.le h m)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: kmid_fin_cut (`S149:1716`).
+
+### kmid_faulty_weight
+
+Source: `S015:551`.
+
+Translated telescope: In V, P, inst, n, Wire, S, rho, Ef, inst_1, [Function.Injective
+(safetyHolder S rho)], [(∀ (i : Fin n), Eq (Ef.weight i) 1)], [instLTNat.lt (Gen.V2.Duty.faulty
+rho).card Ef.q].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: whole-run faulty-node count/bound; holder assignment/injectivity or honest-holder FG
+weight (exact guards in type); faulty FG-seat weight/count.
+
+FG-SA producer/application: kmid_faulty_weight (`S149:912`).
+
+### kmid_parentFold_height
+
+Source: `S015:571`.
+
+Translated telescope: n, Ef, cfg, K, s, H.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: kmid_parentFold_height (`S149:1089`).
+
+### kmid_rows_above_entry
+
+Source: `S015:579`.
+
+Translated telescope: In, P, n, Base Proposal Wire, R, O, Ef, cfg, K, [KitFG.FGHeightLaws Ef
+O.height], [Eq O.height (KitFG.Window.certificateHeight Ef cfg K)], nd, [(∀ (B : FG.FGBlock (Fin
+n)), SetLike.instMembership.mem (R.core nd).fg.TF B → SetLike.instMembership.mem (R.core nd).fg.TF
+B.parent)], [FG.ViewRootInj (R.core nd).fg.TF], [(∀ (W : FG.FGBlock (Fin n)),
+SetLike.instMembership.mem (R.core nd).fg.TF W → ∀ (row : FG.Row (Fin n)), List.instMembership.mem
+W.rows row → Eq (FG.Window.r6w (FG.Window.derive Ef cfg K W.parent) row) Bool.true)], k, y, U B,
+[SetLike.instMembership.mem (R.core nd).fg.TF B], [Eq (O.height B).h y], [U.Preceq B], i, W,
+[W.Preceq B], [(Exists fun row => And (List.instMembership.mem W.rows row) (RowNames k row i y
+U))].
+
+F-3: ViewRootInj at the quantified store(s); producer viewRootInj_TF from FG-SA reachable store.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: kmid_rows_above_entry (`S149:1163`).
+
+### kmid_batchPrem
+
+Source: `S015:630`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, S, O, T, E, rho, I, D, Ef, Body,
+cfg, K, [KitFG.FGHeightLaws Ef O.height], [Eq O.height (KitFG.Window.certificateHeight Ef cfg K)],
+decodeProposal, bodyErase, bodyRows, blockWireRows, parentFG, parentHeight, validFor, valid, ΔF,
+[V2.D.ScheduleWellFormed E rho], [instLTNat.lt (Ef.weightOf (historyFaulty S rho)) Ef.q],
+[Function.Injective (safetyHolder S rho)], [instLENat.le Ef.q (Ef.weightOf (Finset.instSDiff.sdiff
+Finset.univ (historyFaulty S rho)))], [Int.instLEInt.le E.Δ ΔF], [TRowsReceipt R S E rho T
+blockWireRows ΔF], q y, U X, [And (Int.instLEInt.le (instHAdd.hAdd (Int.instMax.max (T.action q)
+E.t_GST) ΔF) (T.proposal X.slot)) (Int.instLEInt.le (T.proposal X.slot) rho.horizon)], [(Exists
+fun rows => And (HonestCarrier E rho I (kernelCarrier decodeProposal bodyErase bodyRows) X.slot
+(R.erase X) rows) (Eq X.rows (List.filterMap S.decode rows)))], nd, [Eq (proposalStateAt E rho I
+X.slot) (Option.some nd)], [Eq (parentFG nd (R.erase X).parent) (Option.some X.parent)],
+[SetLike.instMembership.mem (R.core nd).fg.TF X.parent], [(∀ (B : FG.FGBlock (Fin n)),
+SetLike.instMembership.mem (R.core nd).fg.TF B → SetLike.instMembership.mem (R.core nd).fg.TF
+B.parent)], [FG.ViewRootInj (R.core nd).fg.TF], [(∀ (W : FG.FGBlock (Fin n)),
+SetLike.instMembership.mem (R.core nd).fg.TF W → ∀ (row : FG.Row (Fin n)), List.instMembership.mem
+W.rows row → Eq (FG.Window.r6w (FG.Window.derive Ef cfg K W.parent) row) Bool.true)], [Eq
+(parentHeight nd X.slot X.parent) { fst := (O.height X.parent).h, snd := (O.height
+X.parent).T_h.root }], [(∀ (a : Wire), Eq (valid a) Bool.true → Eq (namedEntry (D.heightPair a))
+(Option.some (parentHeight nd X.slot X.parent)) → Eq (validFor nd X.slot X.parent a) Bool.true)],
+[instLENat.le (instHAdd.hAdd (instHMul.hMul q T.roundSlots) 2) X.slot], [EntryAt O.height U y],
+[U.Preceq X.parent], [Eq (O.height X.parent).h y], [(∀ (x : V), SetLike.instMembership.mem
+rho.honest x → Exists fun j => Exists fun r => Exists fun a => And (instLENat.le r q) (And
+(HonestRowAt S E rho T j x r a) (And (RowComplete S rho D.signer valid x a) (NamesEntry
+D.heightPair RowKind.target a y U))))].
+
+F-3: ViewRootInj at the quantified store(s); producer viewRootInj_TF from FG-SA reachable store.
+Population: holder assignment/injectivity or honest-holder FG weight (exact guards in type);
+faulty FG-seat weight/count.
+
+FG-SA producer/application: kmid_batchPrem (`S149:1448`).
+
+### receipt_kernel_fields
+
+Source: `S016:27`.
+
+Translated telescope: T, deltaF horizon, sp, pt, honestSlot, fgQuorum fgHonestWeight timeoutSlots
+capacity, [KernelPrem_W T deltaF horizon sp pt honestSlot fgQuorum fgHonestWeight timeoutSlots
+capacity].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: KernelPrem_W: supplied honest FG weight ≥ q.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### receipt_finalized_of_carriage
+
+Source: `S016:69`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, S, T, E, rho, I, D, Ef, cfg, K,
+carrier, chainWireRows, blockWireRows, parentFG, validFor, [TRowsSelect R S E rho T I carrier
+chainWireRows blockWireRows parentFG validFor], [Not (Ef.IsQuorum
+Finset.instEmptyCollection.emptyCollection)], [instLENat.le 2 K], [(∀ (a : Wire) (i : Fin n), Eq
+(D.signer a) (Option.some i) → Exists fun u => Eq (S.decode a) (Option.some u))], [(∀ (s : Slot)
+(Q : Block) (H : FG.FGBlock (Fin n)) (nd : P.State) (a : Wire) (u : FG.Row (Fin n)), Eq
+(proposalStateAt E rho I s) (Option.some nd) → Eq (parentFG nd Q.parent) (Option.some H) →
+List.instMembership.mem (chainWireRows nd Q.parent) a → Eq (S.decode a) (Option.some u) → Exists
+fun W => And (W.Preceq H) (List.instMembership.mem W.rows u))], O, [KitFG.FGHeightLaws Ef
+O.height], [Eq O.height (KitFG.Window.certificateHeight Ef cfg K)], parentHeight, [(∀ (nd :
+P.State) (s : Slot) (B : FG.FGBlock (Fin n)), Eq (parentHeight nd s B) { fst := (O.height B).h,
+snd := (O.height B).T_h.root })], [(∀ (nd : P.State) (s : Slot) (B : FG.FGBlock (Fin n)) (a :
+Wire), Eq (validFor nd s B a) ((S.decode a).isSome.and ((Option.map (FG.Window.r6w
+(KitFG.Window.parentState Ef cfg K B s)) (S.decode a)).getD Bool.false)))], validWire, ΔF, q y, A
+U X, [Ne X FG.FGBlock.genesis], h, [(∀ (B : FG.FGBlock (Fin n)) (s : Slot) (root : BlockId) (body
+: Nat) (rs : List (FG.Row (Fin n))), (B.node s root body rs).Preceq X.parent → ∀ (a : FG.Row (Fin
+n)), List.instMembership.mem rs a → And (Eq (receipt_finalized_of_carriage.match_1 (fun x => Bool)
+a.height_pair (fun _ => Bool.false) fun h entry timeout => (Decidable.decide (instLENat.le 1
+h)).and ((Option.map (fun fp => Decidable.decide (instLTNat.lt fp.height h)) a.finality_pair).getD
+Bool.true)) Bool.true) (Eq (FG.Window.r6w (FG.Window.derive Ef cfg K B) a) Bool.true))].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: receipt_finalized_of_carriage (`S150:702`).
+
+### receipt_finCmp_of_block
+
+Source: `S016:106`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, E, rho, Ef, cfg, K, [Not
+(Ef.IsQuorum Finset.instEmptyCollection.emptyCollection)], [instLENat.le 2 K], O, [Eq O.finality
+(KitFG.Window.certificateFinality Ef cfg K)], finBlock, [(∀ (C W : FG.FGBlock (Fin n)), finBlock C
+→ finBlock W → Eq ((O.finality C).F.compatible (O.finality W).F) Bool.true)], i, x,
+[KitFG.FGStoreInvariant O.height O.finality (R.core (V2.D.Run.stateBefore E rho i x)).fg], [(∀ (C
+: FG.FGBlock (Fin n)), SetLike.instMembership.mem (R.core (V2.D.Run.stateBefore E rho i x)).fg.TF
+C → Ne C FG.FGBlock.genesis → finBlock C)], X U, [U.Preceq (FG.Window.derive Ef cfg K X).F],
+[finBlock X].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: receipt_finCmp_of_block (`S150:767`).
+
+### receipt_finCmp
+
+Source: `S016:140`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, E, rho, Ef, cfg, K, [Not
+(Ef.IsQuorum Finset.instEmptyCollection.emptyCollection)], [instLENat.le 2 K], O, [Eq O.finality
+(KitFG.Window.certificateFinality Ef cfg K)], ready, finBlock, [(∀ (C W : FG.FGBlock (Fin n)),
+finBlock C → finBlock W → Eq ((O.finality C).F.compatible (O.finality W).F) Bool.true)], i, x,
+[KitFG.FGStoreInvariant O.height O.finality (R.core (V2.D.Run.stateBefore E rho i x)).fg], [(∀ (C
+: FG.FGBlock (Fin n)), SetLike.instMembership.mem (R.core (V2.D.Run.stateBefore E rho i x)).fg.TF
+C → Ne C FG.FGBlock.genesis → finBlock C)], X U, t, [(ready i x X t → finBlock X)], [U.Preceq
+(FG.Window.derive Ef cfg K X).F], [ready i x X t].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: receipt_finCmp (`S150:796`).
+
+### receipt_cap
+
+Source: `S016:186`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, S, T, E, rho, Ef, cfg, K, O, [Eq
+O.height (KitFG.Window.certificateHeight Ef cfg K)], [FGTimingLaws T], [V2.D.ScheduleWellFormed E
+rho], ΔF, q y i, x, X, t, [SetLike.instMembership.mem rho.honest x], [LivenessBoundW T ΔF], [Eq
+(eventTime rho i) (Option.some t)], [Int.instLTInt.lt t (kernelDeadlineW T ΔF q)],
+[KitFG.FGStoreInvariant O.height O.finality (R.core (V2.D.Run.stateBefore E rho i x)).fg],
+[instLENat.le (instHAdd.hAdd y 1) (O.height X).h], [(∀ (cut : Time) (b j : Nat) (z : V) (W :
+FG.FGBlock (Fin n)), instLENat.le j (rho.idxBefore cut) → HeldAt R E rho j z W → (∀ (k : Nat) (u :
+V) (r : Nat) (a : Wire) (row : FG.Row (Fin n)) (h : FG.Height) (B : BlockId) (timeout : Bool),
+HonestRowAt S E rho T k u r a → Eq (S.decode a) (Option.some row) → Eq row.height_pair
+(FG.NamedHeightPair.vote h B timeout) → Int.instLTInt.lt (T.action r) cut → instLTNat.lt h
+(instHAdd.hAdd b 1)) → instLTNat.lt (O.height W).h (instHAdd.hAdd b 2))], [(∀ (j : Nat) (z : V) (r
+: Nat) (a : Wire) (row : FG.Row (Fin n)) (h : FG.Height) (B : BlockId) (timeout : Bool),
+HonestRowAt S E rho T j z r a → Eq (S.decode a) (Option.some row) → Eq row.height_pair
+(FG.NamedHeightPair.vote h B timeout) → Int.instLTInt.lt (T.action r) (T.action (instHAdd.hAdd q
+1)) → instLENat.le h (instHAdd.hAdd y 1))].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: receipt_cap (`S150:827`).
+
+### receipt_receiver_finalityLag
+
+Source: `S016:224`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, S, T, E, rho, O, [FGTimingLaws T],
+[V2.D.ScheduleWellFormed E rho], ΔF, q y i, x, t, [SetLike.instMembership.mem rho.honest x],
+[LivenessBoundW T ΔF], [Eq (eventTime rho i) (Option.some t)], [Int.instLTInt.lt t
+(kernelDeadlineW T ΔF q)], [KitFG.FGStoreInvariant O.height O.finality (R.core
+(V2.D.Run.stateBefore E rho i x)).fg], [(∀ (r k j : Nat) (z : V) (W : FG.FGBlock (Fin n)),
+instLTNat.lt 0 k → instLENat.le j (rho.idxBefore (T.action (instHAdd.hAdd r 1))) → HeldAt R E rho
+j z W → (∀ (l : Nat) (u : V) (s : Nat) (a : Wire) (row : FG.Row (Fin n)) (B : BlockId) (timeout :
+Bool), HonestRowAt S E rho T l u s a → Eq (S.decode a) (Option.some row) → Eq row.height_pair
+(FG.NamedHeightPair.vote k B timeout) → Not (Int.instLTInt.lt (T.action s) (T.action r))) →
+instLTNat.lt (O.finality W).h_F k)], [(∀ (j : Nat) (z : V) (r : Nat) (a : Wire) (row : FG.Row (Fin
+n)) (h : FG.Height) (B : BlockId) (timeout : Bool), HonestRowAt S E rho T j z r a → Eq (S.decode
+a) (Option.some row) → Eq row.height_pair (FG.NamedHeightPair.vote h B timeout) → Int.instLTInt.lt
+(T.action r) (T.action q) → instLTNat.lt h (instHAdd.hAdd y 1))].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: receipt_receiver_finalityLag (`S150:864`).
+
+### receipt_jPath_of_cached_anchor
+
+Source: `S016:252`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, E, rho, Ef, cfg, K i, x, X U, [Eq
+(R.core (V2.D.Run.stateBefore E rho i x)).fg.J U], [U.Preceq X.parent].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: receipt_jPath_of_cached_anchor (`S150:903`).
+
+### receipt_jPath
+
+Source: `S016:275`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, S, T, E, rho, I, Ef, cfg, K, O, [Eq
+O.height (KitFG.Window.certificateHeight Ef cfg K)], [Not (Ef.IsQuorum
+Finset.instEmptyCollection.emptyCollection)], [instLENat.le 2 K], [FGTimingLaws T],
+[V2.D.ScheduleWellFormed E rho], entry, [(∀ (A B : FG.FGBlock (Fin n)), (R.erase A).Preceq
+(R.erase B) → A.Preceq B)], [(∀ (B : FG.FGBlock (Fin n)), Eq (R.erase B.parent) (R.erase
+B).parent)], ΔF, q y i, x, A X, t, [Int.instLEInt.le E.Δ ΔF], [A.Preceq X.parent], [HonestProposal
+E rho I X.slot (R.erase X)], [Int.instLEInt.le (T.proposal X.slot) rho.horizon], sp, [instLENat.le
+1 sp.reset.M], [FGHistoricalHighTransfer R O T E rho I sp rho.horizon],
+[SetLike.instMembership.mem rho.honest x], [LivenessBoundW T ΔF], [Eq (eventTime rho i)
+(Option.some t)], [Int.instLTInt.lt t (kernelDeadlineW T ΔF q)], [Eq X.slot (instHAdd.hAdd
+(instHMul.hMul q T.roundSlots) (kappaF T ΔF))], [Eq (O.height A).h_j y], [instLENat.le
+(instHAdd.hAdd sp.reset.M 1) y], [KitFG.FGStoreInvariant O.height O.finality (R.core
+(V2.D.Run.stateBefore E rho i x)).fg], [(∀ (j : Nat) (z : V) (W : FG.FGBlock (Fin n)),
+SetLike.instMembership.mem rho.honest z → SetLike.instMembership.mem (R.core (V2.D.Run.stateBefore
+E rho j z)).fg.TF W → ∀ (J : FG.FGBlock (Fin n)), Set.instMembership.mem (certified R O W) J → Ne
+J FG.FGBlock.genesis → Exists fun u => Exists fun r => Exists fun a => And (HonestRowBefore S E
+rho T j u r a) (Eq (entry a) (Option.some { fst := (O.height J).h, snd := J.root })))], [(∀ (j :
+Nat) (z : V) (r : Nat) (a : Wire) (e : Prod FG.Height BlockId), HonestRowAt S E rho T j z r a → Eq
+(entry a) (Option.some e) → Exists fun C => And (Eq (actionSourceFG R E rho T z r) (Option.some
+(Option.some C))) (And (Eq e { fst := (O.height C).h, snd := (O.height C).T_h.root }) ((O.height
+C).T_h.Preceq C)))], [(∀ (C : FG.FGBlock (Fin n)) (k : Nat) (u : V) (r : Nat) (a : Wire) (B :
+FG.FGBlock (Fin n)), SetLike.instMembership.mem (R.core (V2.D.Run.stateBefore E rho i x)).fg.TF C
+→ HonestRowAt S E rho T k u r a → Eq (actionSourceFG R E rho T u r) (Option.some (Option.some B))
+→ Eq (O.height C).J.root (O.height B).T_h.root → Eq (O.height C).J (O.height B).T_h)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: receipt_jPath (`S150:1199`).
+
+### receipt_acceptPrem_W
+
+Source: `S016:372`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, S, T, E, rho, I, Ef, cfg, K, O, [Eq
+O.height (KitFG.Window.certificateHeight Ef cfg K)], [Eq O.finality
+(KitFG.Window.certificateFinality Ef cfg K)], [Not (Ef.IsQuorum
+Finset.instEmptyCollection.emptyCollection)], [instLENat.le 2 K], [FGTimingLaws T],
+[V2.D.ScheduleWellFormed E rho], entry, [(∀ (A B : FG.FGBlock (Fin n)), (R.erase A).Preceq
+(R.erase B) → A.Preceq B)], [(∀ (B : FG.FGBlock (Fin n)), Eq (R.erase B.parent) (R.erase
+B).parent)], ready, finBlock, [(∀ (C W : FG.FGBlock (Fin n)), finBlock C → finBlock W → Eq
+((O.finality C).F.compatible (O.finality W).F) Bool.true)], [(∀ (i : Nat) (x : V) (X : FG.FGBlock
+(Fin n)) (t : Time), ready i x X t → finBlock X)], [(∀ (i : Nat) (x : V) (C : FG.FGBlock (Fin n)),
+SetLike.instMembership.mem (R.core (V2.D.Run.stateBefore E rho i x)).fg.TF C → Ne C
+FG.FGBlock.genesis → finBlock C)], [(∀ (i : Nat) (x : V), SetLike.instMembership.mem rho.honest x
+→ KitFG.FGStoreInvariant O.height O.finality (R.core (V2.D.Run.stateBefore E rho i x)).fg)], ΔF, q
+y, A U X, [Int.instLEInt.le E.Δ ΔF], [A.Preceq X.parent], [HonestProposal E rho I X.slot (R.erase
+X)], [Int.instLEInt.le (T.proposal X.slot) rho.horizon], sp, [instLENat.le 1 sp.reset.M],
+[FGHistoricalHighTransfer R O T E rho I sp rho.horizon], [LivenessBoundW T ΔF], [Eq X.slot
+(instHAdd.hAdd (instHMul.hMul q T.roundSlots) (kappaF T ΔF))], [Eq (O.height A).h_j y],
+[instLENat.le (instHAdd.hAdd sp.reset.M 1) y], [(∀ (j : Nat) (z : V) (W : FG.FGBlock (Fin n)),
+SetLike.instMembership.mem rho.honest z → SetLike.instMembership.mem (R.core (V2.D.Run.stateBefore
+E rho j z)).fg.TF W → ∀ (J : FG.FGBlock (Fin n)), Set.instMembership.mem (certified R O W) J → Ne
+J FG.FGBlock.genesis → Exists fun u => Exists fun r => Exists fun a => And (HonestRowBefore S E
+rho T j u r a) (Eq (entry a) (Option.some { fst := (O.height J).h, snd := J.root })))], [(∀ (j :
+Nat) (z : V) (r : Nat) (a : Wire) (e : Prod FG.Height BlockId), HonestRowAt S E rho T j z r a → Eq
+(entry a) (Option.some e) → Exists fun C => And (Eq (actionSourceFG R E rho T z r) (Option.some
+(Option.some C))) (And (Eq e { fst := (O.height C).h, snd := (O.height C).T_h.root }) ((O.height
+C).T_h.Preceq C)))], [(∀ (i : Nat) (x : V), SetLike.instMembership.mem rho.honest x → ∀ (C :
+FG.FGBlock (Fin n)) (k : Nat) (u : V) (r : Nat) (a : Wire) (B : FG.FGBlock (Fin n)),
+SetLike.instMembership.mem (R.core (V2.D.Run.stateBefore E rho i x)).fg.TF C → HonestRowAt S E rho
+T k u r a → Eq (actionSourceFG R E rho T u r) (Option.some (Option.some B)) → Eq (O.height
+C).J.root (O.height B).T_h.root → Eq (O.height C).J (O.height B).T_h)], [instLENat.le
+(instHAdd.hAdd y 1) (O.height X).h], [(∀ (cut : Time) (b j : Nat) (z : V) (W : FG.FGBlock (Fin
+n)), instLENat.le j (rho.idxBefore cut) → HeldAt R E rho j z W → (∀ (k : Nat) (u : V) (r : Nat) (a
+: Wire) (row : FG.Row (Fin n)) (h : FG.Height) (B : BlockId) (timeout : Bool), HonestRowAt S E rho
+T k u r a → Eq (S.decode a) (Option.some row) → Eq row.height_pair (FG.NamedHeightPair.vote h B
+timeout) → Int.instLTInt.lt (T.action r) cut → instLTNat.lt h (instHAdd.hAdd b 1)) → instLTNat.lt
+(O.height W).h (instHAdd.hAdd b 2))], [(∀ (j : Nat) (z : V) (r : Nat) (a : Wire) (row : FG.Row
+(Fin n)) (h : FG.Height) (B : BlockId) (timeout : Bool), HonestRowAt S E rho T j z r a → Eq
+(S.decode a) (Option.some row) → Eq row.height_pair (FG.NamedHeightPair.vote h B timeout) →
+Int.instLTInt.lt (T.action r) (T.action (instHAdd.hAdd q 1)) → instLENat.le h (instHAdd.hAdd y
+1))], [U.Preceq (FG.Window.derive Ef cfg K X).F], a₀, delivery, [Int.instLEInt.le (kernelDeadlineW
+T ΔF q) rho.horizon].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### HighRecordOwnOrigin_def
+
+Source: `S017:37`.
+
+Translated telescope: In V, P, inst, n, Wire, S, T, E, rho.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### high_source_entry_eq
+
+Source: `S017:46`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, O, T, E, rho, Ef, pt, [(∀ (horizon
+: Time), FGHistoricalHighChain R O T E rho pt horizon)], [KitFG.FGCertificateLaws Ef O.height
+O.finality], [(∀ (A B : FG.FGBlock (Fin n)), (R.erase A).Preceq (R.erase B) → A.Preceq B)], x z, r
+s, C B, [SetLike.instMembership.mem rho.honest x], [SetLike.instMembership.mem rho.honest z], [Eq
+(actionSourceFG R E rho T x r) (Option.some (Option.some C))], [Eq (actionSourceFG R E rho T z s)
+(Option.some (Option.some B))], [high R O pt.reset C], [high R O pt.reset B], [Eq (O.height C).h
+(O.height B).h].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: high_source_entry_eq (`S152:325`).
+
+### high_record_target_choice
+
+Source: `S017:87`.
+
+Translated telescope: Λ, y, T, fp, [Or (Eq (Λ.target y) Option.none) (Eq (Λ.target y) (Option.some
+T))], [Eq (Λ.timeout y) Bool.false], [Or (Eq (Λ.lock y) Option.none) (Eq (Λ.lock y) (Option.some
+T))], [(∀ (f : FG.FinalityPair), Eq fp (Option.some f) → Eq f.height y → Eq f.target T)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: high_record_target_choice (`S152:370`).
+
+### high_entry_record_invariant
+
+Source: `S017:305`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, S, O, T, E, rho, D, Ef, cfg, pt,
+[(∀ (horizon : Time), FGHistoricalHighChain R O T E rho pt horizon)], [KitFG.FGCertificateLaws Ef
+O.height O.finality], [(∀ (A B : FG.FGBlock (Fin n)), (R.erase A).Preceq (R.erase B) → A.Preceq
+B)], storedCarrier, SourceService, [RQCOrigin R S E rho O T storedCarrier SourceService Ef],
+[HighRecordHead R S O E rho], [FGSafetyClientLaws S Ef cfg], [HighRecordEmission S T E rho Ef
+cfg], [HighRecordOwnOrigin S T E rho], [HighRecordNames R S O T E rho D].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: high_entry_record_invariant (`S152:660`).
+
+### shield_record_before_cut
+
+Source: `S017:328`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, S, O, T, E, rho, D, Ef, cfg,
+[FGSafetyClientLaws S Ef cfg], [HighRecordEmission S T E rho Ef cfg], [HighRecordOwnOrigin S T E
+rho], X, b, cutoff, [instLENat.le 1 b], [HighRecordShieldRows R S O T E rho D X b cutoff], i, x,
+[SetLike.instMembership.mem rho.honest x], [(∀ (j r : Nat) (a : Wire), instLTNat.lt j i →
+HonestRowAt S E rho T j x r a → Int.instLTInt.lt (T.action r) cutoff)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### high_record_fresh_at_cut
+
+Source: `S017:448`.
+
+Translated telescope: In V, P, inst, n, Wire, S, T, E, rho, D, Ef, cfg, [FGSafetyClientLaws S Ef
+cfg], [HighRecordEmission S T E rho Ef cfg], [HighRecordOwnOrigin S T E rho], i, x, y,
+[SetLike.instMembership.mem rho.honest x], [(∀ (j r : Nat) (a : Wire) (h : Nat), instLTNat.lt j i
+→ HonestRowAt S E rho T j x r a → Eq (historyRowHeight S D a) (Option.some h) → instLTNat.lt h
+y)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: high_record_fresh_at_cut (`S152:749`).
+
+### shield_high_entry_record_invariant
+
+Source: `S017:489`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, S, O, T, E, rho, D, Ef, cfg, pt,
+[(∀ (horizon : Time), FGHistoricalHighChain R O T E rho pt horizon)], [KitFG.FGCertificateLaws Ef
+O.height O.finality], [(∀ (A B : FG.FGBlock (Fin n)), (R.erase A).Preceq (R.erase B) → A.Preceq
+B)], storedCarrier, SourceService, [RQCOrigin R S E rho O T storedCarrier SourceService Ef],
+[HighRecordHead R S O E rho], [FGSafetyClientLaws S Ef cfg], [HighRecordEmission S T E rho Ef
+cfg], [HighRecordOwnOrigin S T E rho], [HighRecordNames R S O T E rho D], X, b, cutoff,
+[HighRecordSeedLeaves R S O T E rho D pt X b cutoff].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### high_record_reset_fresh
+
+Source: `S017:524`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, S, O, T, E, rho, D, Ef, cfg,
+[FGSafetyClientLaws S Ef cfg], [HighRecordEmission S T E rho Ef cfg], [HighRecordOwnOrigin S T E
+rho], w, start, [H0Reset R S E rho O T (fun a => namedEntry (D.heightPair a)) start w],
+[V2.D.ScheduleWellFormed E rho], x, [SetLike.instMembership.mem rho.honest x], y, [instLENat.le
+(instHAdd.hAdd w.M 1) y].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: high_record_reset_fresh (`S152:1036`).
+
+### high_record_guards_and_fresh
+
+Source: `S017:560`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, S, O, T, E, rho, D, Ef, cfg, pt,
+[(∀ (horizon : Time), FGHistoricalHighChain R O T E rho pt horizon)], [KitFG.FGCertificateLaws Ef
+O.height O.finality], [(∀ (A B : FG.FGBlock (Fin n)), (R.erase A).Preceq (R.erase B) → A.Preceq
+B)], storedCarrier, SourceService, [RQCOrigin R S E rho O T storedCarrier SourceService Ef],
+[HighRecordHead R S O E rho], [FGSafetyClientLaws S Ef cfg], [HighRecordEmission S T E rho Ef
+cfg], [HighRecordOwnOrigin S T E rho], [HighRecordNames R S O T E rho D], z, r, C,
+[SetLike.instMembership.mem rho.honest z], [Eq (actionSourceFG R E rho T z r) (Option.some
+(Option.some C))], y, [Eq (O.height C).h y], [instLENat.le (instHAdd.hAdd pt.reset.M 1) y], i, x,
+[SetLike.instMembership.mem rho.honest x], [(∀ (j r : Nat) (a : Wire) (h : Nat), instLTNat.lt j i
+→ HonestRowAt S E rho T j x r a → Eq (historyRowHeight S D a) (Option.some h) → instLTNat.lt h
+(instHAdd.hAdd y 1))].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: high_record_guards_and_fresh (`S152:1051`).
+
+### high_action_target_choice
+
+Source: `S017:578`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, S, O, T, E, rho, D, Ef, cfg, pt,
+[(∀ (horizon : Time), FGHistoricalHighChain R O T E rho pt horizon)], [KitFG.FGCertificateLaws Ef
+O.height O.finality], [(∀ (A B : FG.FGBlock (Fin n)), (R.erase A).Preceq (R.erase B) → A.Preceq
+B)], storedCarrier, SourceService, [RQCOrigin R S E rho O T storedCarrier SourceService Ef],
+[HighRecordHead R S O E rho], [FGSafetyClientLaws S Ef cfg], [HighRecordEmission S T E rho Ef
+cfg], [HighRecordOwnOrigin S T E rho], [HighRecordNames R S O T E rho D], z, r, C,
+[SetLike.instMembership.mem rho.honest z], [Eq (actionSourceFG R E rho T z r) (Option.some
+(Option.some C))], [high R O pt.reset C], i, x, t, [SetLike.instMembership.mem rho.honest x].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: high_action_target_choice (`S152:1232`).
+
+### high_record_guards_and_fresh_at_action
+
+Source: `S017:626`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, S, O, T, E, rho, D, Ef, cfg, pt,
+[(∀ (horizon : Time), FGHistoricalHighChain R O T E rho pt horizon)], [KitFG.FGCertificateLaws Ef
+O.height O.finality], [(∀ (A B : FG.FGBlock (Fin n)), (R.erase A).Preceq (R.erase B) → A.Preceq
+B)], storedCarrier, SourceService, [RQCOrigin R S E rho O T storedCarrier SourceService Ef],
+[HighRecordHead R S O E rho], [FGSafetyClientLaws S Ef cfg], [HighRecordEmission S T E rho Ef
+cfg], [HighRecordOwnOrigin S T E rho], [HighRecordNames R S O T E rho D], [FGTimingLaws T],
+[V2.D.ScheduleWellFormed E rho], z, r, C, [SetLike.instMembership.mem rho.honest z], [Eq
+(actionSourceFG R E rho T z r) (Option.some (Option.some C))], y, [Eq (O.height C).h y],
+[instLENat.le (instHAdd.hAdd pt.reset.M 1) y], q, x, [SetLike.instMembership.mem rho.honest x],
+[(∀ (j r : Nat) (a : Wire) (h : Nat), instLTNat.lt r q → HonestRowAt S E rho T j x r a → Eq
+(historyRowHeight S D a) (Option.some h) → instLTNat.lt h (instHAdd.hAdd y 1))], nd, [Eq
+(postClock E rho x (T.action q)) (Option.some nd)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: high_record_guards_and_fresh_at_action (`S152:1259`).
+
+### ff2_stored_high_qc_identity
+
+Source: `S017:709`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, S, O, T, E, rho, D, Ef, cfg, pt,
+[(∀ (horizon : Time), FGHistoricalHighChain R O T E rho pt horizon)], [KitFG.FGCertificateLaws Ef
+O.height O.finality], [(∀ (A B : FG.FGBlock (Fin n)), (R.erase A).Preceq (R.erase B) → A.Preceq
+B)], storedCarrier, SourceService, [RQCOrigin R S E rho O T storedCarrier SourceService Ef],
+[HighRecordHead R S O E rho], [FGSafetyClientLaws S Ef cfg], [HighRecordEmission S T E rho Ef
+cfg], [HighRecordOwnOrigin S T E rho], [HighRecordNames R S O T E rho D], [instLTNat.lt
+(Ef.weightOf (historyFaulty S rho)) Ef.q], [(∀ (i : Nat) (x : V) (W : FG.FGBlock (Fin n)), HeldAt
+R E rho i x W → ∀ (a : FG.Row (Fin n)), SetLike.instMembership.mem (FG.chainRows W) a → Exists fun
+wire => Exists fun r => And (Eq (S.decode wire) (Option.some a)) (And (Eq (D.signer wire)
+(Option.some a.signer)) (∀ (z : V), RowSigner S rho D.signer wire z → SetLike.instMembership.mem
+rho.honest z → HonestRowBefore S E rho T i z r wire)))].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: faulty FG-seat weight/count.
+
+FG-SA producer/application: ff2_stored_high_qc_identity (`S152:1410`).
+
+### ff2_high_qc_identity
+
+Source: `S017:770`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, S, O, T, E, rho, D, Ef, cfg, pt,
+[(∀ (horizon : Time), FGHistoricalHighChain R O T E rho pt horizon)], [KitFG.FGCertificateLaws Ef
+O.height O.finality], [(∀ (A B : FG.FGBlock (Fin n)), (R.erase A).Preceq (R.erase B) → A.Preceq
+B)], storedCarrier, SourceService, [RQCOrigin R S E rho O T storedCarrier SourceService Ef],
+[HighRecordHead R S O E rho], [FGSafetyClientLaws S Ef cfg], [HighRecordEmission S T E rho Ef
+cfg], [HighRecordOwnOrigin S T E rho], [HighRecordNames R S O T E rho D], [(∀ (i : Nat) (x : V),
+SetLike.instMembership.mem rho.honest x → KitFG.FGStoreInvariant O.height O.finality (R.core
+(V2.D.Run.stateBefore E rho i x)).fg)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: ff2_high_qc_identity (`S152:1473`).
+
+### ff2_no_high_contest
+
+Source: `S017:872`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, S, O, T, E, rho, D, Ef, cfg, pt,
+[(∀ (horizon : Time), FGHistoricalHighChain R O T E rho pt horizon)], [KitFG.FGCertificateLaws Ef
+O.height O.finality], [(∀ (A B : FG.FGBlock (Fin n)), (R.erase A).Preceq (R.erase B) → A.Preceq
+B)], storedCarrier, SourceService, [RQCOrigin R S E rho O T storedCarrier SourceService Ef],
+[HighRecordHead R S O E rho], [FGSafetyClientLaws S Ef cfg], [HighRecordEmission S T E rho Ef
+cfg], [HighRecordOwnOrigin S T E rho], [HighRecordNames R S O T E rho D], [(∀ (i : Nat) (x : V),
+SetLike.instMembership.mem rho.honest x → KitFG.FGStoreInvariant O.height O.finality (R.core
+(V2.D.Run.stateBefore E rho i x)).fg)], [FGObservationLaws R O], [(∀ (i : Nat) (x : V),
+SetLike.instMembership.mem rho.honest x → FG.ViewRootInj (R.core (V2.D.Run.stateBefore E rho i
+x)).fg.TF)], i, x, [instLENat.le i rho.events.length], [SetLike.instMembership.mem rho.honest x],
+[have controls := O.controls (V2.D.Run.stateBefore E rho i x); Eq controls.contest Bool.true].
+
+F-3: ViewRootInj at the quantified store(s); producer viewRootInj_TF from FG-SA reachable store.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: ff2_no_high_contest (`S152:1519`).
+
+### HighRecordGuard_W_def
+
+Source: `S017:935`.
+
+Translated telescope: n, Λ, y, U.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### ff2_high_record_guards
+
+Source: `S017:942`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, S, O, T, E, rho, D, Ef, cfg, pt,
+[(∀ (horizon : Time), FGHistoricalHighChain R O T E rho pt horizon)], [KitFG.FGCertificateLaws Ef
+O.height O.finality], [(∀ (A B : FG.FGBlock (Fin n)), (R.erase A).Preceq (R.erase B) → A.Preceq
+B)], storedCarrier, SourceService, [RQCOrigin R S E rho O T storedCarrier SourceService Ef],
+[HighRecordHead R S O E rho], [FGSafetyClientLaws S Ef cfg], [HighRecordEmission S T E rho Ef
+cfg], [HighRecordOwnOrigin S T E rho], [HighRecordNames R S O T E rho D], a, r, C,
+[SetLike.instMembership.mem rho.honest a], [Eq (actionSourceFG R E rho T a r) (Option.some
+(Option.some C))], [high R O pt.reset C], i, x, [instLENat.le i rho.events.length],
+[SetLike.instMembership.mem rho.honest x].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: ff2_high_record_guards (`S152:1555`).
+
+### high_target_row_covered
+
+Source: `S017:1016`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, S, O, T, E, rho, D, Ef, cfg, pt,
+[(∀ (horizon : Time), FGHistoricalHighChain R O T E rho pt horizon)], [KitFG.FGCertificateLaws Ef
+O.height O.finality], [(∀ (A B : FG.FGBlock (Fin n)), (R.erase A).Preceq (R.erase B) → A.Preceq
+B)], storedCarrier, SourceService, [RQCOrigin R S E rho O T storedCarrier SourceService Ef],
+[HighRecordHead R S O E rho], [(∀ (nd : P.State), Eq (S.inputs nd).fst (R.source nd))], [(∀ (C :
+FG.FGBlock (Fin n)), Eq { fst := (FG.derive Ef cfg C).h, snd := (FG.derive Ef cfg C).T_h.root } {
+fst := (O.height C).h, snd := (O.height C).T_h.root })], [FGSafetyClientLaws S Ef cfg],
+[HighRecordEmission S T E rho Ef cfg], [HighRecordOwnOrigin S T E rho], [HighRecordNames R S O T E
+rho D], valid, [(∀ (j : Nat) (x : V) (r : Nat) (a : Wire), HonestRowAt S E rho T j x r a → Exists
+fun u => And (Eq (S.decode a) (Option.some u)) (RowComplete S rho D.signer valid x a))],
+[(FGRowPermissionWireLaws S fun a => namedEntry (D.heightPair a))], e, [(∀ (k : Fin n), Eq
+(rho.seatOf S.fgLabel (EquivLike.toFunLike.coe S.fgSeats k)) (EquivLike.toFunLike.coe e k))],
+[FGTimingLaws T], [V2.D.ScheduleWellFormed E rho], [(∀ (r : Nat), Eq (S.enabled (T.action r))
+Bool.true)], x, [SetLike.instMembership.mem rho.honest x], r, C, [Eq (actionSourceFG R E rho T x
+r) (Option.some (Option.some C))], [high R O pt.reset C], [Eq (E.awake x (T.action r)) Bool.true].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: Fin n ≃ V (validator-only runtime path).
+
+FG-SA producer/application: high_target_row_covered (`S152:1007`).
+
+### high_target_first_row
+
+Source: `S017:1060`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, S, O, T, E, rho, D, Ef, cfg, pt,
+[(∀ (horizon : Time), FGHistoricalHighChain R O T E rho pt horizon)], [KitFG.FGCertificateLaws Ef
+O.height O.finality], [(∀ (A B : FG.FGBlock (Fin n)), (R.erase A).Preceq (R.erase B) → A.Preceq
+B)], storedCarrier, SourceService, [RQCOrigin R S E rho O T storedCarrier SourceService Ef],
+[HighRecordHead R S O E rho], [(∀ (nd : P.State), Eq (S.inputs nd).fst (R.source nd))], [(∀ (C :
+FG.FGBlock (Fin n)), Eq { fst := (FG.derive Ef cfg C).h, snd := (FG.derive Ef cfg C).T_h.root } {
+fst := (O.height C).h, snd := (O.height C).T_h.root })], [FGSafetyClientLaws S Ef cfg],
+[HighRecordEmission S T E rho Ef cfg], [HighRecordOwnOrigin S T E rho], [HighRecordNames R S O T E
+rho D], valid, [(∀ (j : Nat) (x : V) (r : Nat) (a : Wire), HonestRowAt S E rho T j x r a → Exists
+fun u => And (Eq (S.decode a) (Option.some u)) (RowComplete S rho D.signer valid x a))],
+[(FGRowPermissionWireLaws S fun a => namedEntry (D.heightPair a))], e, [(∀ (k : Fin n), Eq
+(rho.seatOf S.fgLabel (EquivLike.toFunLike.coe S.fgSeats k)) (EquivLike.toFunLike.coe e k))],
+[FGTimingLaws T], [V2.D.ScheduleWellFormed E rho], [(∀ (r : Nat), Eq (S.enabled (T.action r))
+Bool.true)], x, [SetLike.instMembership.mem rho.honest x], r, C, [Eq (actionSourceFG R E rho T x
+r) (Option.some (Option.some C))], [high R O pt.reset C], [Eq (E.awake x (T.action r)) Bool.true],
+[(∀ (j q : Nat) (a : Wire) (h : Nat), instLTNat.lt q r → HonestRowAt S E rho T j x q a → Eq
+(historyRowHeight S D a) (Option.some h) → instLTNat.lt h (O.height C).h)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: Fin n ≃ V (validator-only runtime path).
+
+FG-SA producer/application: high_target_first_row (`S152:1081`).
+
+### high_target_honest_quorum
+
+Source: `S017:1080`.
+
+Translated telescope: In V, P, inst, n, Wire, S, rho, Ef, e, [(∀ (k : Fin n), Eq (rho.seatOf
+S.fgLabel (EquivLike.toFunLike.coe S.fgSeats k)) (EquivLike.toFunLike.coe e k))], inst_1,
+[FGSafetyUnitLaws Ef], [instLENat.le (Gen.V2.Duty.faulty rho).card (instHDiv.hDiv (instHSub.hSub n
+1) 3)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: Fin n ≃ V (validator-only runtime path); whole-run faulty-node count/bound; holder
+assignment/injectivity or honest-holder FG weight (exact guards in type).
+
+FG-SA producer/application: high_target_honest_quorum (`S152:1121`).
+
+### high_target_quorum_covered
+
+Source: `S017:1124`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, S, O, T, E, rho, D, Ef, cfg, pt,
+[(∀ (horizon : Time), FGHistoricalHighChain R O T E rho pt horizon)], [KitFG.FGCertificateLaws Ef
+O.height O.finality], [(∀ (A B : FG.FGBlock (Fin n)), (R.erase A).Preceq (R.erase B) → A.Preceq
+B)], storedCarrier, SourceService, [RQCOrigin R S E rho O T storedCarrier SourceService Ef],
+[HighRecordHead R S O E rho], [(∀ (nd : P.State), Eq (S.inputs nd).fst (R.source nd))], [(∀ (C :
+FG.FGBlock (Fin n)), Eq { fst := (FG.derive Ef cfg C).h, snd := (FG.derive Ef cfg C).T_h.root } {
+fst := (O.height C).h, snd := (O.height C).T_h.root })], [FGSafetyClientLaws S Ef cfg],
+[HighRecordEmission S T E rho Ef cfg], [HighRecordOwnOrigin S T E rho], [HighRecordNames R S O T E
+rho D], valid, [(∀ (j : Nat) (x : V) (r : Nat) (a : Wire), HonestRowAt S E rho T j x r a → Exists
+fun u => And (Eq (S.decode a) (Option.some u)) (RowComplete S rho D.signer valid x a))],
+[(FGRowPermissionWireLaws S fun a => namedEntry (D.heightPair a))], e, [(∀ (k : Fin n), Eq
+(rho.seatOf S.fgLabel (EquivLike.toFunLike.coe S.fgSeats k)) (EquivLike.toFunLike.coe e k))],
+[FGTimingLaws T], [V2.D.ScheduleWellFormed E rho], [(∀ (r : Nat), Eq (S.enabled (T.action r))
+Bool.true)], inst_1, [FGSafetyUnitLaws Ef], [instLENat.le (Gen.V2.Duty.faulty rho).card
+(instHDiv.hDiv (instHSub.hSub n 1) 3)], blockWireRows, deltaF, [Int.instLEInt.le 0 deltaF],
+[TRowsReceipt R S E rho T blockWireRows deltaF], [(∀ (x : V), SetLike.instMembership.mem
+rho.honest x → ∀ (t : Time), Int.instLEInt.le E.t_GST t → Int.instLEInt.le t rho.horizon → Eq
+(E.awake x t) Bool.true)], r, C, [high R O pt.reset C], [(∀ (x : V), SetLike.instMembership.mem
+rho.honest x → Eq (actionSourceFG R E rho T x r) (Option.some (Option.some C)))],
+[Int.instLEInt.le E.t_GST (T.action r)], [Int.instLEInt.le (instHAdd.hAdd (T.action r) deltaF)
+rho.horizon].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: Fin n ≃ V (validator-only runtime path); whole-run faulty-node count/bound; holder
+assignment/injectivity or honest-holder FG weight (exact guards in type).
+
+FG-SA producer/application: high_target_quorum_covered (`S152:1181`).
+
+### finality_restore_preceq_F
+
+Source: `S018:19`.
+
+Translated telescope: In, P, n, Base Proposal Wire, R, [FGFinalityDurableLaws R], X, nd, t,
+[X.Preceq (R.core nd).fg.F].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: finality_restore_preceq_F (`S153:41`).
+
+### finality_acceptsFinalBefore_of_idx
+
+Source: `S018:28`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, E, rho, [FGFinalityDurableLaws R],
+[V2.D.ScheduleWellFormed E rho], x, X, d, [(Exists fun i => And (instLENat.le i rho.events.length)
+(And (∀ (k : Nat), instLTNat.lt k i → Exists fun e => And (Eq
+(List.instGetElem?NatLtLength.getElem? rho.events k) (Option.some e)) (Int.instLTInt.lt e.time d))
+(X.Preceq (R.core (V2.D.Run.stateBefore E rho i x)).fg.F)))].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: finality_acceptsFinalBefore_of_idx (`S153:50`).
+
+### finality_acceptsFinalBefore_mono_deadline
+
+Source: `S018:39`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, E, rho, [FGFinalityDurableLaws R],
+[V2.D.ScheduleWellFormed E rho], x, X, d d', [Int.instLEInt.le d d'], [AcceptsFinalBefore R E rho
+x X d].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: finality_acceptsFinalBefore_mono_deadline (`S153:62`).
+
+### finality_acceptsFinalBefore_mono_ancestor
+
+Source: `S018:54`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, E, rho, [FGFinalityDurableLaws R],
+[V2.D.ScheduleWellFormed E rho], x, X U, d d', [X.Preceq U], [Int.instLEInt.le d d'],
+[AcceptsFinalBefore R E rho x U d].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: finality_acceptsFinalBefore_mono_ancestor (`S153:71`).
+
+### finality_heldBefore_at_proposal
+
+Source: `S018:66`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, E, rho, I, blockWireRows,
+[V2.D.ScheduleWellFormed E rho], [(∀ (i j : Nat) (x : V) (a : Wire), instLENat.le i j → rowHeld R
+blockWireRows (V2.D.Run.stateBefore E rho i x) a → rowHeld R blockWireRows (V2.D.Run.stateBefore E
+rho j x) a)], [(∀ (nd : P.State) (t : Time) (a : Wire), rowHeld R blockWireRows nd a → rowHeld R
+blockWireRows (P.clock nd t) a)], s, a, d, st, [Eq (proposalStateAt E rho I s) (Option.some st)],
+[HeldBefore R E rho blockWireRows (V2.D.proposerOf rho I s) a d], [Int.instLEInt.le d
+(V2.D.proposalTime I s)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: finality_heldBefore_at_proposal (`S153:115`).
+
+### pending_action_head_capped
+
+Source: `S019:19`.
+
+Translated telescope: In, P, n, Base Proposal Wire, R, O, Ef, cfg, [KitFG.FGHeightLaws Ef
+O.height], [KitFG.HeightBridge Ef cfg O.height], y, D U, nd, [(Exists fun H => And (Eq
+(R.finalityHead nd) (Option.some H)) (SetLike.instMembership.mem (R.core nd).fg.TF H))], [(∀ (H :
+FG.FGBlock (Fin n)), Eq (R.finalityHead nd) (Option.some H) → (R.erase D).Preceq (R.erase H))],
+[(∀ (A B : FG.FGBlock (Fin n)), SetLike.instMembership.mem (R.core nd).fg.TF A →
+SetLike.instMembership.mem (R.core nd).fg.TF B → (R.erase A).Preceq (R.erase B) → A.Preceq B)],
+[SetLike.instMembership.mem (R.core nd).fg.TF D], [Eq (O.height D).h (instHAdd.hAdd y 1)], [Eq
+(O.height D).J U], [Eq (O.height D).h_j y], [(∀ (B : FG.FGBlock (Fin n)),
+SetLike.instMembership.mem (R.core nd).fg.TF B → instLENat.le (O.height B).h (instHAdd.hAdd y
+1))], [(∀ (B : FG.FGBlock (Fin n)), SetLike.instMembership.mem (R.core nd).fg.TF B → instLTNat.lt
+(O.finality B).h_F y)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### pending_action_domain_cap
+
+Source: `S019:44`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, S, O, T, E, rho, before, x, q y,
+nd, [SetLike.instMembership.mem rho.honest x], [Finset.instPartialOrder.le (R.core nd).fg.TF
+(R.core (V2.D.Run.stateBefore E rho before x)).fg.TF], [instLENat.le before (rho.idxBefore
+(T.action q))], [(∀ (cut : Time) (b i : Nat) (x : V) (W : FG.FGBlock (Fin n)), instLENat.le i
+(rho.idxBefore cut) → HeldAt R E rho i x W → (∀ (j : Nat) (z : V) (r : Nat) (a : Wire) (u : FG.Row
+(Fin n)) (h : FG.Height) (B : BlockId) (timeout : Bool), HonestRowAt S E rho T j z r a → Eq
+(S.decode a) (Option.some u) → Eq u.height_pair (FG.NamedHeightPair.vote h B timeout) →
+Int.instLTInt.lt (T.action r) cut → instLTNat.lt h (instHAdd.hAdd b 1)) → instLTNat.lt (O.height
+W).h (instHAdd.hAdd b 2))], [(∀ (j : Nat) (z : V) (r : Nat) (a : Wire) (u : FG.Row (Fin n)) (h :
+FG.Height) (B : BlockId) (timeout : Bool), HonestRowAt S E rho T j z r a → Eq (S.decode a)
+(Option.some u) → Eq u.height_pair (FG.NamedHeightPair.vote h B timeout) → Int.instLTInt.lt
+(T.action r) (T.action q) → instLTNat.lt h (instHAdd.hAdd y 1))], B, [SetLike.instMembership.mem
+(R.core nd).fg.TF B].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: pending_action_domain_cap (`S154:675`).
+
+### pending_action_head
+
+Source: `S019:63`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, S, O, T, E, rho, Ef, cfg,
+[KitFG.FGHeightLaws Ef O.height], [KitFG.HeightBridge Ef cfg O.height], before, x, q y, D U, nd,
+[SetLike.instMembership.mem rho.honest x], [Finset.instPartialOrder.le (R.core nd).fg.TF (R.core
+(V2.D.Run.stateBefore E rho before x)).fg.TF], [instLENat.le before (rho.idxBefore (T.action q))],
+[instLTNat.lt 0 q], [(Exists fun H => And (Eq (R.finalityHead nd) (Option.some H))
+(SetLike.instMembership.mem (R.core nd).fg.TF H))], [(∀ (H : FG.FGBlock (Fin n)), Eq
+(R.finalityHead nd) (Option.some H) → (R.erase D).Preceq (R.erase H))], [(∀ (A B : FG.FGBlock (Fin
+n)), SetLike.instMembership.mem (R.core nd).fg.TF A → SetLike.instMembership.mem (R.core nd).fg.TF
+B → (R.erase A).Preceq (R.erase B) → A.Preceq B)], [SetLike.instMembership.mem (R.core nd).fg.TF
+D], [Eq (O.height D).h (instHAdd.hAdd y 1)], [Eq (O.height D).J U], [Eq (O.height D).h_j y],
+[instLTNat.lt (O.finality D).h_F y], [(∀ (cut : Time) (b i : Nat) (x : V) (W : FG.FGBlock (Fin
+n)), instLENat.le i (rho.idxBefore cut) → HeldAt R E rho i x W → (∀ (j : Nat) (z : V) (r : Nat) (a
+: Wire) (u : FG.Row (Fin n)) (h : FG.Height) (B : BlockId) (timeout : Bool), HonestRowAt S E rho T
+j z r a → Eq (S.decode a) (Option.some u) → Eq u.height_pair (FG.NamedHeightPair.vote h B timeout)
+→ Int.instLTInt.lt (T.action r) cut → instLTNat.lt h (instHAdd.hAdd b 1)) → instLTNat.lt (O.height
+W).h (instHAdd.hAdd b 2))], [(∀ (r y i : Nat) (x : V) (W : FG.FGBlock (Fin n)), instLTNat.lt 0 y →
+instLENat.le i (rho.idxBefore (T.action (instHAdd.hAdd r 1))) → HeldAt R E rho i x W → (∀ (j :
+Nat) (z : V) (s : Nat) (a : Wire) (u : FG.Row (Fin n)) (B : BlockId) (timeout : Bool), HonestRowAt
+S E rho T j z s a → Eq (S.decode a) (Option.some u) → Eq u.height_pair (FG.NamedHeightPair.vote y
+B timeout) → Not (Int.instLTInt.lt (T.action s) (T.action r))) → instLTNat.lt (O.finality W).h_F
+y)], [(∀ (j : Nat) (z : V) (r : Nat) (a : Wire) (u : FG.Row (Fin n)) (h : FG.Height) (B : BlockId)
+(timeout : Bool), HonestRowAt S E rho T j z r a → Eq (S.decode a) (Option.some u) → Eq
+u.height_pair (FG.NamedHeightPair.vote h B timeout) → Int.instLTInt.lt (T.action r) (T.action q) →
+instLTNat.lt h (instHAdd.hAdd y 1))], [(∀ (j : Nat) (z : V) (r : Nat) (a : Wire) (u : FG.Row (Fin
+n)) (B : BlockId) (timeout : Bool), HonestRowAt S E rho T j z r a → Eq (S.decode a) (Option.some
+u) → Eq u.height_pair (FG.NamedHeightPair.vote y B timeout) → Not (Int.instLTInt.lt (T.action r)
+(T.action (instHSub.hSub q 1))))].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: pending_action_head (`S154:708`).
+
+### finality_action_source
+
+Source: `S019:107`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, O, T, E, rho, [FGCoreLaws R], Ef,
+[KitFG.FGHeightLaws Ef O.height], x, q y opening, D, [FGSourceService R E rho x (T.action q)
+opening (instHMul.hMul q T.roundSlots) D], [instLENat.le opening (instHMul.hMul q T.roundSlots)],
+[Eq (O.height D).h (instHAdd.hAdd y 1)], [(∀ (nd : P.State), Eq (postClock E rho x (T.action q))
+(Option.some nd) → ∀ (B : FG.FGBlock (Fin n)), SetLike.instMembership.mem (R.core nd).fg.TF B →
+instLENat.le (O.height B).h (instHAdd.hAdd y 1))].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: finality_action_source (`S154:880`).
+
+### actual_anchor_cap
+
+Source: `S019:121`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, S, O, T, E, rho, q y, [(∀ (cut :
+Time) (b i : Nat) (x : V) (W : FG.FGBlock (Fin n)), instLENat.le i (rho.idxBefore cut) → HeldAt R
+E rho i x W → (∀ (j : Nat) (z : V) (r : Nat) (a : Wire) (u : FG.Row (Fin n)) (h : FG.Height) (B :
+BlockId) (timeout : Bool), HonestRowAt S E rho T j z r a → Eq (S.decode a) (Option.some u) → Eq
+u.height_pair (FG.NamedHeightPair.vote h B timeout) → Int.instLTInt.lt (T.action r) cut →
+instLTNat.lt h (instHAdd.hAdd b 1)) → instLTNat.lt (O.height W).h (instHAdd.hAdd b 2))], [(∀ (j :
+Nat) (x : V) (r : Nat) (a : Wire) (u : FG.Row (Fin n)) (h : FG.Height) (B : BlockId) (timeout :
+Bool), HonestRowAt S E rho T j x r a → Eq (S.decode a) (Option.some u) → Eq u.height_pair
+(FG.NamedHeightPair.vote h B timeout) → Int.instLTInt.lt (T.action r) (T.action (instHAdd.hAdd q
+1)) → instLENat.le h (instHAdd.hAdd y 1))], i, x, W, [instLENat.le i (rho.idxBefore (T.action
+(instHAdd.hAdd q 1)))], [HeldAt R E rho i x W].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: actual_anchor_cap (`S154:1057`).
+
+### actual_anchor_retained_or_covered
+
+Source: `S019:139`.
+
+Translated telescope: n, Ef, cfg, K, [Not (Ef.IsQuorum
+Finset.instEmptyCollection.emptyCollection)], [instLENat.le 2 K], y, D U A, [D.Preceq A],
+[KitFG.Window.RetainedW Ef cfg K D y U], [instLENat.le (KitFG.Window.heightView Ef cfg K A).h
+(instHAdd.hAdd y 2)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: actual_anchor_retained_or_covered (`S154:1088`).
+
+### fresh_unanimous_rows
+
+Source: `S019:196`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, S, O, T, E, rho, D, Ef, cfg, valid,
+[KitFG.FGHeightLaws Ef O.height], [KitFG.HeightBridge Ef cfg O.height], makeWire, [(∀ (row :
+FG.Row (Fin n)), Eq (S.decode (makeWire row)) (Option.some row))], [(∀ (i : Fin n) (y : FG.Height)
+(U B : BlockId), Eq (valid (makeWire { signer := i, height_pair := FG.NamedHeightPair.vote
+(instHAdd.hAdd y 1) B Bool.false, finality_pair := Option.some { height := y, target := U } }))
+Bool.true)], [(∀ (nd : P.State), Eq (S.inputs nd).fst (R.source nd))], [(∀ (i : Fin n) (q : Nat)
+(nd : P.State) (row : FG.Row (Fin n)), Eq (postClock E rho (safetyHolder S rho i) (T.action q))
+(Option.some nd) → Eq (E.awake (safetyHolder S rho i) (T.action q)) Bool.true → Eq
+(FG.createRowOnce Ef cfg (S.record nd) i (S.inputs nd).fst (S.inputs nd).snd).fst (Option.some
+row) → Exists fun j => And (Eq (List.instGetElem?NatLtLength.getElem? rho.events j) (Option.some
+(V2.Event.tick (safetyHolder S rho i) (T.action q)))) (List.instMembership.mem (V2.D.Run.emitsAt E
+rho j) (S.encode (makeWire row))))], q y, B U, seats, [(∀ (i : Fin n), SetLike.instMembership.mem
+seats i → SetLike.instMembership.mem rho.honest (safetyHolder S rho i))], [Ef.IsQuorum seats], [Eq
+(O.height B).h (instHAdd.hAdd y 1)], [(∀ (i : Fin n), SetLike.instMembership.mem seats i → Exists
+fun nd => Exists fun C => And (Eq (postClock E rho (safetyHolder S rho i) (T.action q))
+(Option.some nd)) (And (Eq (E.awake (safetyHolder S rho i) (T.action q)) Bool.true) (And (Eq
+(R.source nd) (Option.some C)) (And (B.Preceq C) (Eq (O.height C).h (instHAdd.hAdd y 1))))))], [(∀
+(i : Fin n), SetLike.instMembership.mem seats i → ∀ (nd : P.State), Eq (postClock E rho
+(safetyHolder S rho i) (T.action q)) (Option.some nd) → And (Eq (S.inputs nd).snd.h_j y) (And (Eq
+(S.inputs nd).snd.J U.root) (instLTNat.lt (S.inputs nd).snd.h_F y)))], [(∀ (i : Fin n),
+SetLike.instMembership.mem seats i → ∀ (nd : P.State), Eq (postClock E rho (safetyHolder S rho i)
+(T.action q)) (Option.some nd) → And (HighRecordGuard_W (S.record nd) y U) (HighRecordFresh
+(instHAdd.hAdd y 1) (S.record nd)))], [(∀ (i : Fin n), SetLike.instMembership.mem seats i → ∀ (j r
+: Nat) (a : Wire) (h : Nat), instLTNat.lt r q → HonestRowAt S E rho T j (safetyHolder S rho i) r a
+→ Eq (historyRowHeight S D a) (Option.some h) → instLTNat.lt h (instHAdd.hAdd y 1))].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: holder assignment/injectivity or honest-holder FG weight (exact guards in type).
+
+FG-SA producer/application: fresh_unanimous_rows (`S154:973`).
+
+### rowsPrem_pending_head
+
+Source: `S020:31`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire Body, R, S, O, T, E, rho, I, D, Ef,
+decodeProposal, bodyErase, bodyRows, blockWireRows, parentFG, parentHeight, validFor, makeFG,
+valid, ac, cfg, K, ΔF, sp, pt, A, m, [KitFG.FGHeightLaws Ef O.height], [KitFG.HeightBridge Ef cfg
+O.height], [(∀ (x : V) (nd : P.State), Eq (postClock E rho x (T.action (instHAdd.hAdd pt.r 2)))
+(Option.some nd) → Eq (R.core (V2.D.Run.stateBefore E rho (afterTicksIdx rho (T.action
+(instHAdd.hAdd pt.r 2))) x)).fg (R.core nd).fg)], [(∀ (x : V) (nd : P.State),
+SetLike.instMembership.mem rho.honest x → Eq (postClock E rho x (T.action (instHAdd.hAdd pt.r 2)))
+(Option.some nd) → Exists fun H => And (Eq (R.finalityHead nd) (Option.some H))
+(SetLike.instMembership.mem (R.core nd).fg.TF H))], [(∀ (x : V) (nd : P.State),
+SetLike.instMembership.mem rho.honest x → Eq (postClock E rho x (T.action (instHAdd.hAdd pt.r 2)))
+(Option.some nd) → ∀ (H : FG.FGBlock (Fin n)), Eq (R.finalityHead nd) (Option.some H) → (R.erase
+m.X_D).Preceq (R.erase H))], [(∀ (nd : P.State) (A B : FG.FGBlock (Fin n)),
+SetLike.instMembership.mem (R.core nd).fg.TF A → SetLike.instMembership.mem (R.core nd).fg.TF B →
+(R.erase A).Preceq (R.erase B) → A.Preceq B)], x, nd, [SetLike.instMembership.mem rho.honest x],
+[Eq (postClock E rho x (T.action (instHAdd.hAdd pt.r 2))) (Option.some nd)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: rowsPrem_pending_head (`S156:982`).
+
+### rowsPrem_action_source
+
+Source: `S020:64`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire Body, R, S, O, T, E, rho, I, D, Ef,
+decodeProposal, bodyErase, bodyRows, blockWireRows, parentFG, parentHeight, validFor, makeFG,
+valid, ac, cfg, K, ΔF, sp, pt, A, m, [FGCoreLaws R], [KitFG.FGHeightLaws Ef O.height], [(∀ (x : V)
+(nd : P.State), Eq (postClock E rho x (T.action (instHAdd.hAdd pt.r 2))) (Option.some nd) → Eq
+(R.core (V2.D.Run.stateBefore E rho (afterTicksIdx rho (T.action (instHAdd.hAdd pt.r 2))) x)).fg
+(R.core nd).fg)], [(∀ (x : V), SetLike.instMembership.mem rho.honest x → FGSourceService R E rho x
+(T.action (instHAdd.hAdd pt.r 2)) m.cD (instHMul.hMul (instHAdd.hAdd pt.r 2) T.roundSlots)
+m.X_D)], x, [SetLike.instMembership.mem rho.honest x].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: rowsPrem_action_source (`S156:1059`).
+
+### rowsPrem_anchor_cap
+
+Source: `S020:86`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire Body, R, S, O, T, E, rho, I, D, Ef,
+decodeProposal, bodyErase, bodyRows, blockWireRows, parentFG, parentHeight, validFor, makeFG,
+valid, ac, cfg, K, ΔF, sp, pt, A, m, [FGCoreLaws R], [FGTimingLaws T], [V2.D.ScheduleWellFormed E
+rho], [HighRecordNames R S O T E rho D], [(∀ (cut : Time) (b i : Nat) (x : V) (W : FG.FGBlock (Fin
+n)), instLENat.le i (rho.idxBefore cut) → HeldAt R E rho i x W → (∀ (j : Nat) (z : V) (r : Nat) (a
+: Wire) (u : FG.Row (Fin n)) (h : FG.Height) (B : BlockId) (timeout : Bool), HonestRowAt S E rho T
+j z r a → Eq (S.decode a) (Option.some u) → Eq u.height_pair (FG.NamedHeightPair.vote h B timeout)
+→ Int.instLTInt.lt (T.action r) cut → instLTNat.lt h (instHAdd.hAdd b 1)) → instLTNat.lt (O.height
+W).h (instHAdd.hAdd b 2))], i, x, W, [instLENat.le i (rho.idxBefore (T.action (instHAdd.hAdd pt.r
+3)))], [HeldAt R E rho i x W].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: rowsPrem_anchor_cap (`S156:1277`).
+
+### rowsPrem_anchor_retained_or_covered
+
+Source: `S020:111`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire Body, R, S, O, T, E, rho, I, D, Ef,
+decodeProposal, bodyErase, bodyRows, blockWireRows, parentFG, parentHeight, validFor, makeFG,
+valid, ac, cfg, K, ΔF, sp, pt, A, m, [Eq O.height (KitFG.Window.heightView Ef cfg K)], [Not
+(Ef.IsQuorum Finset.instEmptyCollection.emptyCollection)], [instLENat.le 2 K], B, [m.X_D.Preceq
+B], [instLENat.le (O.height B).h (instHAdd.hAdd m.d 3)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: rowsPrem_anchor_retained_or_covered (`S156:1308`).
+
+### rowsPrem_fresh_rows
+
+Source: `S020:122`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire Body, R, S, O, T, E, rho, I, D, Ef,
+decodeProposal, bodyErase, bodyRows, blockWireRows, parentFG, parentHeight, validFor, makeFG,
+valid, ac, cfg, K, ΔF, sp, pt, A, m, [KitFG.FGHeightLaws Ef O.height], [KitFG.HeightBridge Ef cfg
+O.height], makeWire, [(∀ (row : FG.Row (Fin n)), Eq (S.decode (makeWire row)) (Option.some row))],
+[(∀ (i : Fin n) (y : FG.Height) (U B : BlockId), Eq (valid (makeWire { signer := i, height_pair :=
+FG.NamedHeightPair.vote (instHAdd.hAdd y 1) B Bool.false, finality_pair := Option.some { height :=
+y, target := U } })) Bool.true)], [(∀ (nd : P.State), Eq (S.inputs nd).fst (R.source nd))], [(∀ (i
+: Fin n) (q : Nat) (nd : P.State) (row : FG.Row (Fin n)), Eq (postClock E rho (safetyHolder S rho
+i) (T.action q)) (Option.some nd) → Eq (E.awake (safetyHolder S rho i) (T.action q)) Bool.true →
+Eq (FG.createRowOnce Ef cfg (S.record nd) i (S.inputs nd).fst (S.inputs nd).snd).fst (Option.some
+row) → Exists fun j => And (Eq (List.instGetElem?NatLtLength.getElem? rho.events j) (Option.some
+(V2.Event.tick (safetyHolder S rho i) (T.action q)))) (List.instMembership.mem (V2.D.Run.emitsAt E
+rho j) (S.encode (makeWire row))))], [(∀ (x : V), SetLike.instMembership.mem rho.honest x → Exists
+fun nd => Exists fun C => And (Eq (postClock E rho x (T.action (instHAdd.hAdd pt.r 2)))
+(Option.some nd)) (And (Eq (R.source nd) (Option.some C)) (And (m.X_D.Preceq C) (And (Eq (O.height
+C).h (instHAdd.hAdd m.d 2)) (Eq (O.height C).T_h (O.height m.X_D).T_h)))))], [(∀ (x : V) (nd :
+P.State), SetLike.instMembership.mem rho.honest x → Eq (postClock E rho x (T.action (instHAdd.hAdd
+pt.r 2))) (Option.some nd) → Exists fun H => And (Eq (R.finalityHead nd) (Option.some H)) (And
+(m.X_D.Preceq H) (And (Eq (O.height H).h (instHAdd.hAdd m.d 2)) (And (Eq (O.height H).J m.U) (And
+(Eq (O.height H).h_j (instHAdd.hAdd m.d 1)) (And (instLTNat.lt (O.finality H).h_F (instHAdd.hAdd
+m.d 1)) (Eq (O.height H).T_h (O.height m.X_D).T_h)))))))], [(∀ (nd : P.State) (H : FG.FGBlock (Fin
+n)), Eq (R.finalityHead nd) (Option.some H) → Eq (S.inputs nd).snd (KitFG.certificateHeadFields
+O.height O.finality H))], [(∀ (x : V) (nd : P.State), SetLike.instMembership.mem rho.honest x → Eq
+(postClock E rho x (T.action (instHAdd.hAdd pt.r 2))) (Option.some nd) → And (HighRecordGuard_W
+(S.record nd) (instHAdd.hAdd m.d 1) m.U) (HighRecordFresh (instHAdd.hAdd m.d 2) (S.record nd)))],
+[FGTimingLaws T], seats, [(∀ (i : Fin n), SetLike.instMembership.mem seats i →
+SetLike.instMembership.mem rho.honest (safetyHolder S rho i))], [Ef.IsQuorum seats], [(∀ (x : V),
+SetLike.instMembership.mem rho.honest x → Eq (E.awake x (T.action (instHAdd.hAdd pt.r 2)))
+Bool.true)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: holder assignment/injectivity or honest-holder FG weight (exact guards in type).
+
+FG-SA producer/application: rowsPrem_fresh_rows (`S156:1184`).
+
+### rowsPrem_earlier_height
+
+Source: `S021:18`.
+
+Translated telescope: In V, P, inst, n, Wire, S, T, E, rho, D, [FGTimingLaws T], q y, [(∀ (j :
+Nat) (x : V) (r : Nat) (a : Wire) (h : Nat) (t : Time), HonestRowAt S E rho T j x r a → Eq
+(historyRowHeight S D a) (Option.some h) → instLENat.le y h → Eq (eventTime rho j) (Option.some t)
+→ Int.instLEInt.le (T.action q) t)], j, x, r, a, h, [instLTNat.lt r q], [HonestRowAt S E rho T j x
+r a], [Eq (historyRowHeight S D a) (Option.some h)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: rowsPrem_earlier_height (`S157:866`).
+
+### rowsPrem_action_record
+
+Source: `S021:43`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire Body, R, S, O, T, E, rho, I, D, Ef,
+decodeProposal, bodyErase, bodyRows, blockWireRows, parentFG, parentHeight, validFor, makeFG,
+valid, ac, cfg, K, ΔF, sp, pt, A, m, [(∀ (horizon : Time), FGHistoricalHighChain R O T E rho sp
+horizon)], [KitFG.FGCertificateLaws Ef O.height O.finality], [(∀ (A B : FG.FGBlock (Fin n)),
+(R.erase A).Preceq (R.erase B) → A.Preceq B)], storedCarrier, SourceService, [RQCOrigin R S E rho
+O T storedCarrier SourceService Ef], [HighRecordHead R S O E rho], [FGSafetyClientLaws S Ef cfg],
+[HighRecordEmission S T E rho Ef cfg], [HighRecordOwnOrigin S T E rho], [HighRecordNames R S O T E
+rho D], [FGTimingLaws T], [V2.D.ScheduleWellFormed E rho], x, nd, [SetLike.instMembership.mem
+rho.honest x], [Eq (postClock E rho x (T.action (instHAdd.hAdd pt.r 2))) (Option.some nd)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: rowsPrem_action_record (`S157:880`).
+
+### progressAttempt_of
+
+Source: `S022:17`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, S, E, rho, O, T, I, A, pair, Jst
+G repairAllowance, [(∀ (k : AttemptKey) (ev : V2.Event V Prot.Object), AttemptValid R S E rho O T
+I A pair Jst k → Eq (List.instGetElem?NatLtLength.getElem? rho.events k.start) (Option.some ev) →
+Int.instLEInt.le (instHAdd.hAdd ev.time (attemptBudget T G repairAllowance k)) rho.horizon → Eq
+k.task AttemptTask.raise → Eq k.phase PhaseKind.contest → AttemptEndsBy R S E rho O T pair k
+(attemptBudget T G repairAllowance k))], [(∀ (k : AttemptKey) (ev : V2.Event V Prot.Object),
+AttemptValid R S E rho O T I A pair Jst k → Eq (List.instGetElem?NatLtLength.getElem? rho.events
+k.start) (Option.some ev) → Int.instLEInt.le (instHAdd.hAdd ev.time (attemptBudget T G
+repairAllowance k)) rho.horizon → Eq k.task AttemptTask.raise → Ne k.phase PhaseKind.contest →
+AttemptEndsBy R S E rho O T pair k (attemptBudget T G repairAllowance k))], [(∀ (k : AttemptKey)
+(ev : V2.Event V Prot.Object), AttemptValid R S E rho O T I A pair Jst k → Eq
+(List.instGetElem?NatLtLength.getElem? rho.events k.start) (Option.some ev) → Int.instLEInt.le
+(instHAdd.hAdd ev.time (attemptBudget T G repairAllowance k)) rho.horizon → Eq k.task
+AttemptTask.firstRow → Eq k.phase PhaseKind.contest → AttemptEndsBy R S E rho O T pair k
+(attemptBudget T G repairAllowance k))], [(∀ (k : AttemptKey) (ev : V2.Event V Prot.Object),
+AttemptValid R S E rho O T I A pair Jst k → Eq (List.instGetElem?NatLtLength.getElem? rho.events
+k.start) (Option.some ev) → Int.instLEInt.le (instHAdd.hAdd ev.time (attemptBudget T G
+repairAllowance k)) rho.horizon → Eq k.task AttemptTask.firstRow → Ne k.phase PhaseKind.contest →
+AttemptEndsBy R S E rho O T pair k (attemptBudget T G repairAllowance k))], k, ev, [AttemptValid R
+S E rho O T I A pair Jst k], [Eq (List.instGetElem?NatLtLength.getElem? rho.events k.start)
+(Option.some ev)], [Int.instLEInt.le (instHAdd.hAdd ev.time (attemptBudget T G repairAllowance k))
+rho.horizon].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_progressAttempt_of (`S160:304`); healing_progressAttempt
+(`S160:485`).
+
+### healing_attempt_firstRow_contest
+
+Source: `S023:439`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, S, E, rho, O, T, I, A, pair,
+Jst, Ef, [FGObservationLaws R O], [KitFG.FGCertificateLaws Ef O.height O.finality], [(∀ (i : Nat)
+(x : V), KitFG.FGStoreInvariant O.height O.finality (R.core (V2.D.Run.stateBefore E rho i
+x)).fg)], [KitFG.FGJustificationLaws O.height], [(∀ (i j : Nat), instLENat.le i j → ∀ (x : V),
+Finset.instPartialOrder.le (TFAt R E rho i x) (TFAt R E rho j x))], [FGTimingLaws T], [FGCoreLaws
+R], [(∀ {B C : FG.FGBlock (Fin n)}, B.Preceq C → (R.erase B).Preceq (R.erase C))], joined,
+receipt, [V2.D.ScheduleWellFormed E rho], [FGRunOrderLaws E rho R], [Eq E.Δ T.delta],
+[Int.instLEInt.le E.t_GST Jst], [(∀ (y : V), SetLike.instMembership.mem rho.honest y → ∀ (t :
+Time), Int.instLEInt.le E.t_GST t → Int.instLEInt.le t rho.horizon → Eq (E.awake y t) Bool.true)],
+[(∀ (iy : Nat) (y : V) (t : Time), SetLike.instMembership.mem rho.honest y → Eq
+(List.instGetElem?NatLtLength.getElem? rho.events iy) (Option.some (V2.Event.tick y t)) →
+Int.instLEInt.le t rho.horizon → Int.instLEInt.le E.t_GST (slotStartZ T (instHSub.hSub (Nat.cast
+(slotAt T t)) 1)) → Eq (joined (Prot.clock (V2.D.Run.stateBefore E rho iy y) t)) Bool.true)], [(∀
+(t : Time), Int.instLEInt.le Jst t → Int.instLEInt.le E.t_GST (slotStartZ T (instHSub.hSub
+(Nat.cast (slotAt T t)) 1)))], [(∀ (i : Nat) (ev : V2.Event V Prot.Object) (m : Nat), Eq
+(List.instGetElem?NatLtLength.getElem? rho.events i) (Option.some ev) → Int.instLEInt.le Jst
+ev.time → instLENat.le 1 m → Eq (frontierAtIdx R E rho (instHAdd.hAdd i 1)) m → Int.instLEInt.le
+(instHAdd.hAdd ev.time T.delta) rho.horizon → PhaseWitnessReceiptScope R E rho O joined receipt
+(instHAdd.hAdd i 1) m (instHAdd.hAdd ev.time T.delta))], [(∀ (W : FG.FGBlock (Fin n)) (d : Time)
+(y : V), SetLike.instMembership.mem rho.honest y → receipt (R.erase W) d y →
+SetLike.instMembership.mem (R.core (V2.D.Run.stateBeforeTime E rho d y)).fg.TF W)], [RXing R E rho
+O], G repairAllowance, leaseSlots, [instLENat.le 2 leaseSlots], [Int.instLEInt.le 0
+repairAllowance], [Int.instLEInt.le (instHMul.hMul 4 T.delta) G], [AttemptRepairService R E rho O
+T I A Jst G repairAllowance leaseSlots], [AttemptOpeningService R S E rho O T I A pair Jst],
+[AttemptProposalFloor R E rho O T I Jst], [AttemptGateCopy R E rho O T I A Jst], [(∀ (q : Slot) (Q
+: Block), HonestProposal E rho I q Q → Int.instLEInt.le Jst (T.proposal q) → AttemptExactService R
+E rho T I A q Q → Int.instLEInt.le (T.gate q) rho.horizon → Exists fun Qfg => Eq (R.erase Qfg)
+Q)], [rho.honest.Nonempty], k, ev, [AttemptValid R S E rho O T I A pair Jst k], [Eq
+(List.instGetElem?NatLtLength.getElem? rho.events k.start) (Option.some ev)], [Int.instLEInt.le
+(instHAdd.hAdd ev.time (attemptBudget T G repairAllowance k)) rho.horizon], [Eq k.task
+AttemptTask.firstRow], [Eq k.phase PhaseKind.contest].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_attempt_firstRow_contest (`S161:757`).
+
+### healing_attempt_firstRow_other
+
+Source: `S023:545`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, S, E, rho, O, T, I, A, pair,
+Jst, Ef, [FGObservationLaws R O], [KitFG.FGCertificateLaws Ef O.height O.finality], [(∀ (i : Nat)
+(x : V), KitFG.FGStoreInvariant O.height O.finality (R.core (V2.D.Run.stateBefore E rho i
+x)).fg)], [KitFG.FGJustificationLaws O.height], [(∀ (i j : Nat), instLENat.le i j → ∀ (x : V),
+Finset.instPartialOrder.le (TFAt R E rho i x) (TFAt R E rho j x))], [FGTimingLaws T], [FGCoreLaws
+R], [(∀ {B C : FG.FGBlock (Fin n)}, B.Preceq C → (R.erase B).Preceq (R.erase C))], joined,
+receipt, [V2.D.ScheduleWellFormed E rho], [FGRunOrderLaws E rho R], [Eq E.Δ T.delta],
+[Int.instLEInt.le E.t_GST Jst], [(∀ (y : V), SetLike.instMembership.mem rho.honest y → ∀ (t :
+Time), Int.instLEInt.le E.t_GST t → Int.instLEInt.le t rho.horizon → Eq (E.awake y t) Bool.true)],
+[(∀ (iy : Nat) (y : V) (t : Time), SetLike.instMembership.mem rho.honest y → Eq
+(List.instGetElem?NatLtLength.getElem? rho.events iy) (Option.some (V2.Event.tick y t)) →
+Int.instLEInt.le t rho.horizon → Int.instLEInt.le E.t_GST (slotStartZ T (instHSub.hSub (Nat.cast
+(slotAt T t)) 1)) → Eq (joined (Prot.clock (V2.D.Run.stateBefore E rho iy y) t)) Bool.true)], [(∀
+(t : Time), Int.instLEInt.le Jst t → Int.instLEInt.le E.t_GST (slotStartZ T (instHSub.hSub
+(Nat.cast (slotAt T t)) 1)))], [(∀ (i : Nat) (ev : V2.Event V Prot.Object) (m : Nat), Eq
+(List.instGetElem?NatLtLength.getElem? rho.events i) (Option.some ev) → Int.instLEInt.le Jst
+ev.time → instLENat.le 1 m → Eq (frontierAtIdx R E rho (instHAdd.hAdd i 1)) m → Int.instLEInt.le
+(instHAdd.hAdd ev.time T.delta) rho.horizon → PhaseWitnessReceiptScope R E rho O joined receipt
+(instHAdd.hAdd i 1) m (instHAdd.hAdd ev.time T.delta))], [(∀ (W : FG.FGBlock (Fin n)) (d : Time)
+(y : V), SetLike.instMembership.mem rho.honest y → receipt (R.erase W) d y →
+SetLike.instMembership.mem (R.core (V2.D.Run.stateBeforeTime E rho d y)).fg.TF W)], [RXing R E rho
+O], G repairAllowance, leaseSlots, [instLENat.le 2 leaseSlots], [Int.instLEInt.le 0
+repairAllowance], [Int.instLEInt.le (instHMul.hMul 4 T.delta) G], [AttemptRepairService R E rho O
+T I A Jst G repairAllowance leaseSlots], [AttemptOpeningService R S E rho O T I A pair Jst],
+[AttemptNextOpeningService R E rho O T I A Jst], [AttemptProposalFloor R E rho O T I Jst],
+[AttemptGateCopy R E rho O T I A Jst], [(∀ (q : Slot) (Q : Block), HonestProposal E rho I q Q →
+Int.instLEInt.le Jst (T.proposal q) → AttemptExactService R E rho T I A q Q → Int.instLEInt.le
+(T.gate q) rho.horizon → Exists fun Qfg => Eq (R.erase Qfg) Q)], [rho.honest.Nonempty], inst_1,
+[Gen.Pure.FaultQ n (Gen.V2.Duty.faulty rho).card], [instLENat.le Ef.q (Ef.weightOf (Finset.filter
+(fun i => SetLike.instMembership.mem rho.honest (safetyHolder S rho i)) Finset.univ))],
+[(Gen.Pure.FaultQ n (Gen.V2.Duty.faulty rho).card → instLENat.le Ef.q (Ef.weightOf (Finset.filter
+(fun i => SetLike.instMembership.mem rho.honest (safetyHolder S rho i)) Finset.univ)) →
+AttemptRenewedPromotion R S E rho O T I A pair Jst G)], k, ev, [AttemptValid R S E rho O T I A
+pair Jst k], [Eq (List.instGetElem?NatLtLength.getElem? rho.events k.start) (Option.some ev)],
+[Int.instLEInt.le (instHAdd.hAdd ev.time (attemptBudget T G repairAllowance k)) rho.horizon], [Eq
+k.task AttemptTask.firstRow], [Ne k.phase PhaseKind.contest].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: whole-run faulty-node count/bound; holder assignment/injectivity or honest-holder FG
+weight (exact guards in type).
+
+FG-SA producer/application: healing_attempt_firstRow_other (`S161:885`).
+
+### healing_attempt_raise_contest
+
+Source: `S023:864`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, S, E, rho, O, T, I, A, pair,
+Jst, Ef, [FGObservationLaws R O], [KitFG.FGCertificateLaws Ef O.height O.finality], [(∀ (i : Nat)
+(x : V), KitFG.FGStoreInvariant O.height O.finality (R.core (V2.D.Run.stateBefore E rho i
+x)).fg)], [KitFG.FGJustificationLaws O.height], [(∀ (i j : Nat), instLENat.le i j → ∀ (x : V),
+Finset.instPartialOrder.le (TFAt R E rho i x) (TFAt R E rho j x))], [FGTimingLaws T], [FGCoreLaws
+R], [(∀ {B C : FG.FGBlock (Fin n)}, B.Preceq C → (R.erase B).Preceq (R.erase C))], joined,
+receipt, [V2.D.ScheduleWellFormed E rho], [FGRunOrderLaws E rho R], [Eq E.Δ T.delta],
+[Int.instLEInt.le E.t_GST Jst], [(∀ (y : V), SetLike.instMembership.mem rho.honest y → ∀ (t :
+Time), Int.instLEInt.le E.t_GST t → Int.instLEInt.le t rho.horizon → Eq (E.awake y t) Bool.true)],
+[(∀ (iy : Nat) (y : V) (t : Time), SetLike.instMembership.mem rho.honest y → Eq
+(List.instGetElem?NatLtLength.getElem? rho.events iy) (Option.some (V2.Event.tick y t)) →
+Int.instLEInt.le t rho.horizon → Int.instLEInt.le E.t_GST (slotStartZ T (instHSub.hSub (Nat.cast
+(slotAt T t)) 1)) → Eq (joined (Prot.clock (V2.D.Run.stateBefore E rho iy y) t)) Bool.true)], [(∀
+(t : Time), Int.instLEInt.le Jst t → Int.instLEInt.le E.t_GST (slotStartZ T (instHSub.hSub
+(Nat.cast (slotAt T t)) 1)))], [(∀ (i : Nat) (ev : V2.Event V Prot.Object) (m : Nat), Eq
+(List.instGetElem?NatLtLength.getElem? rho.events i) (Option.some ev) → Int.instLEInt.le Jst
+ev.time → instLENat.le 1 m → Eq (frontierAtIdx R E rho (instHAdd.hAdd i 1)) m → Int.instLEInt.le
+(instHAdd.hAdd ev.time T.delta) rho.horizon → PhaseWitnessReceiptScope R E rho O joined receipt
+(instHAdd.hAdd i 1) m (instHAdd.hAdd ev.time T.delta))], [(∀ (W : FG.FGBlock (Fin n)) (d : Time)
+(y : V), SetLike.instMembership.mem rho.honest y → receipt (R.erase W) d y →
+SetLike.instMembership.mem (R.core (V2.D.Run.stateBeforeTime E rho d y)).fg.TF W)], [RXing R E rho
+O], G repairAllowance, leaseSlots, [instLENat.le 2 leaseSlots], [Int.instLEInt.le 0
+repairAllowance], [Int.instLEInt.le (instHMul.hMul 4 T.delta) G], [AttemptRepairService R E rho O
+T I A Jst G repairAllowance leaseSlots], [AttemptOpeningService R S E rho O T I A pair Jst],
+[AttemptProposalFloor R E rho O T I Jst], [AttemptGateCopy R E rho O T I A Jst], [(∀ (q : Slot) (Q
+: Block), HonestProposal E rho I q Q → Int.instLEInt.le Jst (T.proposal q) → AttemptExactService R
+E rho T I A q Q → Int.instLEInt.le (T.gate q) rho.horizon → Exists fun Qfg => Eq (R.erase Qfg)
+Q)], inst_1, [Gen.Pure.FaultQ n (Gen.V2.Duty.faulty rho).card], [instLENat.le Ef.q (Ef.weightOf
+(Finset.filter (fun i => SetLike.instMembership.mem rho.honest (safetyHolder S rho i))
+Finset.univ))], [(Gen.Pure.FaultQ n (Gen.V2.Duty.faulty rho).card → instLENat.le Ef.q (Ef.weightOf
+(Finset.filter (fun i => SetLike.instMembership.mem rho.honest (safetyHolder S rho i))
+Finset.univ)) → AttemptTerminalPromotion R S E rho O T I pair Jst G)], k, ev, [AttemptValid R S E
+rho O T I A pair Jst k], [Eq (List.instGetElem?NatLtLength.getElem? rho.events k.start)
+(Option.some ev)], [Int.instLEInt.le (instHAdd.hAdd ev.time (attemptBudget T G repairAllowance k))
+rho.horizon], [Eq k.task AttemptTask.raise], [Eq k.phase PhaseKind.contest].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: whole-run faulty-node count/bound; holder assignment/injectivity or honest-holder FG
+weight (exact guards in type).
+
+FG-SA producer/application: healing_attempt_raise_contest (`S161:1001`).
+
+### healing_attempt_raise_other
+
+Source: `S023:974`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, S, E, rho, O, T, I, A, pair,
+Jst, Ef, [FGObservationLaws R O], [KitFG.FGCertificateLaws Ef O.height O.finality], [(∀ (i : Nat)
+(x : V), KitFG.FGStoreInvariant O.height O.finality (R.core (V2.D.Run.stateBefore E rho i
+x)).fg)], [KitFG.FGJustificationLaws O.height], [(∀ (i j : Nat), instLENat.le i j → ∀ (x : V),
+Finset.instPartialOrder.le (TFAt R E rho i x) (TFAt R E rho j x))], [FGTimingLaws T], [FGCoreLaws
+R], [(∀ {B C : FG.FGBlock (Fin n)}, B.Preceq C → (R.erase B).Preceq (R.erase C))], joined,
+receipt, [V2.D.ScheduleWellFormed E rho], [FGRunOrderLaws E rho R], [Eq E.Δ T.delta],
+[Int.instLEInt.le E.t_GST Jst], [(∀ (y : V), SetLike.instMembership.mem rho.honest y → ∀ (t :
+Time), Int.instLEInt.le E.t_GST t → Int.instLEInt.le t rho.horizon → Eq (E.awake y t) Bool.true)],
+[(∀ (iy : Nat) (y : V) (t : Time), SetLike.instMembership.mem rho.honest y → Eq
+(List.instGetElem?NatLtLength.getElem? rho.events iy) (Option.some (V2.Event.tick y t)) →
+Int.instLEInt.le t rho.horizon → Int.instLEInt.le E.t_GST (slotStartZ T (instHSub.hSub (Nat.cast
+(slotAt T t)) 1)) → Eq (joined (Prot.clock (V2.D.Run.stateBefore E rho iy y) t)) Bool.true)], [(∀
+(t : Time), Int.instLEInt.le Jst t → Int.instLEInt.le E.t_GST (slotStartZ T (instHSub.hSub
+(Nat.cast (slotAt T t)) 1)))], [(∀ (i : Nat) (ev : V2.Event V Prot.Object) (m : Nat), Eq
+(List.instGetElem?NatLtLength.getElem? rho.events i) (Option.some ev) → Int.instLEInt.le Jst
+ev.time → instLENat.le 1 m → Eq (frontierAtIdx R E rho (instHAdd.hAdd i 1)) m → Int.instLEInt.le
+(instHAdd.hAdd ev.time T.delta) rho.horizon → PhaseWitnessReceiptScope R E rho O joined receipt
+(instHAdd.hAdd i 1) m (instHAdd.hAdd ev.time T.delta))], [(∀ (W : FG.FGBlock (Fin n)) (d : Time)
+(y : V), SetLike.instMembership.mem rho.honest y → receipt (R.erase W) d y →
+SetLike.instMembership.mem (R.core (V2.D.Run.stateBeforeTime E rho d y)).fg.TF W)], [RXing R E rho
+O], G repairAllowance, leaseSlots, [instLENat.le 2 leaseSlots], [Int.instLEInt.le 0
+repairAllowance], [Int.instLEInt.le (instHMul.hMul 4 T.delta) G], [AttemptRepairService R E rho O
+T I A Jst G repairAllowance leaseSlots], [AttemptOpeningService R S E rho O T I A pair Jst],
+[AttemptNextOpeningService R E rho O T I A Jst], [AttemptProposalFloor R E rho O T I Jst],
+[AttemptGateCopy R E rho O T I A Jst], [(∀ (q : Slot) (Q : Block), HonestProposal E rho I q Q →
+Int.instLEInt.le Jst (T.proposal q) → AttemptExactService R E rho T I A q Q → Int.instLEInt.le
+(T.gate q) rho.horizon → Exists fun Qfg => Eq (R.erase Qfg) Q)], inst_1, [Gen.Pure.FaultQ n
+(Gen.V2.Duty.faulty rho).card], [instLENat.le Ef.q (Ef.weightOf (Finset.filter (fun i =>
+SetLike.instMembership.mem rho.honest (safetyHolder S rho i)) Finset.univ))], [(Gen.Pure.FaultQ n
+(Gen.V2.Duty.faulty rho).card → instLENat.le Ef.q (Ef.weightOf (Finset.filter (fun i =>
+SetLike.instMembership.mem rho.honest (safetyHolder S rho i)) Finset.univ)) →
+AttemptRenewedPromotion R S E rho O T I A pair Jst G)], [(Gen.Pure.FaultQ n (Gen.V2.Duty.faulty
+rho).card → instLENat.le Ef.q (Ef.weightOf (Finset.filter (fun i => SetLike.instMembership.mem
+rho.honest (safetyHolder S rho i)) Finset.univ)) → AttemptTerminalPromotion R S E rho O T I pair
+Jst G)], k, ev, [AttemptValid R S E rho O T I A pair Jst k], [Eq
+(List.instGetElem?NatLtLength.getElem? rho.events k.start) (Option.some ev)], [Int.instLEInt.le
+(instHAdd.hAdd ev.time (attemptBudget T G repairAllowance k)) rho.horizon], [Eq k.task
+AttemptTask.raise], [Ne k.phase PhaseKind.contest].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: whole-run faulty-node count/bound; holder assignment/injectivity or honest-holder FG
+weight (exact guards in type).
+
+FG-SA producer/application: healing_attempt_raise_other (`S161:1057`).
+
+### healing_attempt_settle_start
+
+Source: `S024:44`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, S, E, rho, O, T, I, A, pair,
+Jst, Ef, [FGObservationLaws R O], [KitFG.FGCertificateLaws Ef O.height O.finality], [(∀ (i : Nat)
+(x : V), KitFG.FGStoreInvariant O.height O.finality (R.core (V2.D.Run.stateBefore E rho i
+x)).fg)], [KitFG.FGJustificationLaws O.height], [(∀ (i j : Nat), instLENat.le i j → ∀ (x : V),
+Finset.instPartialOrder.le (TFAt R E rho i x) (TFAt R E rho j x))], [FGTimingLaws T], [FGCoreLaws
+R], [(∀ {B C : FG.FGBlock (Fin n)}, B.Preceq C → (R.erase B).Preceq (R.erase C))], joined,
+receipt, [V2.D.ScheduleWellFormed E rho], [FGRunOrderLaws E rho R], [Eq E.Δ T.delta],
+[Int.instLEInt.le E.t_GST Jst], [(∀ (y : V), SetLike.instMembership.mem rho.honest y → ∀ (t :
+Time), Int.instLEInt.le E.t_GST t → Int.instLEInt.le t rho.horizon → Eq (E.awake y t) Bool.true)],
+[(∀ (iy : Nat) (y : V) (t : Time), SetLike.instMembership.mem rho.honest y → Eq
+(List.instGetElem?NatLtLength.getElem? rho.events iy) (Option.some (V2.Event.tick y t)) →
+Int.instLEInt.le t rho.horizon → Int.instLEInt.le E.t_GST (slotStartZ T (instHSub.hSub (Nat.cast
+(slotAt T t)) 1)) → Eq (joined (Prot.clock (V2.D.Run.stateBefore E rho iy y) t)) Bool.true)], [(∀
+(t : Time), Int.instLEInt.le Jst t → Int.instLEInt.le E.t_GST (slotStartZ T (instHSub.hSub
+(Nat.cast (slotAt T t)) 1)))], [(∀ (i : Nat) (ev : V2.Event V Prot.Object) (m : Nat), Eq
+(List.instGetElem?NatLtLength.getElem? rho.events i) (Option.some ev) → Int.instLEInt.le Jst
+ev.time → instLENat.le 1 m → Eq (frontierAtIdx R E rho (instHAdd.hAdd i 1)) m → Int.instLEInt.le
+(instHAdd.hAdd ev.time T.delta) rho.horizon → PhaseWitnessReceiptScope R E rho O joined receipt
+(instHAdd.hAdd i 1) m (instHAdd.hAdd ev.time T.delta))], [(∀ (W : FG.FGBlock (Fin n)) (d : Time)
+(y : V), SetLike.instMembership.mem rho.honest y → receipt (R.erase W) d y →
+SetLike.instMembership.mem (R.core (V2.D.Run.stateBeforeTime E rho d y)).fg.TF W)], [RXing R E rho
+O], k, ev, v, [AttemptValid R S E rho O T I A pair Jst k], [Eq
+(List.instGetElem?NatLtLength.getElem? rho.events k.start) (Option.some ev)], [Int.instLEInt.le
+(instHAdd.hAdd ev.time (instHMul.hMul 3 T.delta)) v], [Int.instLEInt.le v rho.horizon], [(∀ (j :
+Nat), instLTNat.lt k.start j → instLTNat.lt j (timeIdx rho v) → Not (EffectiveEvent R E rho O
+j))].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_attempt_settle_start (`S162:302`).
+
+### healing_attempt_raise_contest_settle
+
+Source: `S024:72`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, S, E, rho, O, T, I, A, pair,
+Jst, Ef, [FGObservationLaws R O], [KitFG.FGCertificateLaws Ef O.height O.finality], [(∀ (i : Nat)
+(x : V), KitFG.FGStoreInvariant O.height O.finality (R.core (V2.D.Run.stateBefore E rho i
+x)).fg)], [KitFG.FGJustificationLaws O.height], [(∀ (i j : Nat), instLENat.le i j → ∀ (x : V),
+Finset.instPartialOrder.le (TFAt R E rho i x) (TFAt R E rho j x))], [FGTimingLaws T], [FGCoreLaws
+R], [(∀ {B C : FG.FGBlock (Fin n)}, B.Preceq C → (R.erase B).Preceq (R.erase C))], joined,
+receipt, [V2.D.ScheduleWellFormed E rho], [FGRunOrderLaws E rho R], [Eq E.Δ T.delta],
+[Int.instLEInt.le E.t_GST Jst], [(∀ (y : V), SetLike.instMembership.mem rho.honest y → ∀ (t :
+Time), Int.instLEInt.le E.t_GST t → Int.instLEInt.le t rho.horizon → Eq (E.awake y t) Bool.true)],
+[(∀ (iy : Nat) (y : V) (t : Time), SetLike.instMembership.mem rho.honest y → Eq
+(List.instGetElem?NatLtLength.getElem? rho.events iy) (Option.some (V2.Event.tick y t)) →
+Int.instLEInt.le t rho.horizon → Int.instLEInt.le E.t_GST (slotStartZ T (instHSub.hSub (Nat.cast
+(slotAt T t)) 1)) → Eq (joined (Prot.clock (V2.D.Run.stateBefore E rho iy y) t)) Bool.true)], [(∀
+(t : Time), Int.instLEInt.le Jst t → Int.instLEInt.le E.t_GST (slotStartZ T (instHSub.hSub
+(Nat.cast (slotAt T t)) 1)))], [(∀ (i : Nat) (ev : V2.Event V Prot.Object) (m : Nat), Eq
+(List.instGetElem?NatLtLength.getElem? rho.events i) (Option.some ev) → Int.instLEInt.le Jst
+ev.time → instLENat.le 1 m → Eq (frontierAtIdx R E rho (instHAdd.hAdd i 1)) m → Int.instLEInt.le
+(instHAdd.hAdd ev.time T.delta) rho.horizon → PhaseWitnessReceiptScope R E rho O joined receipt
+(instHAdd.hAdd i 1) m (instHAdd.hAdd ev.time T.delta))], [(∀ (W : FG.FGBlock (Fin n)) (d : Time)
+(y : V), SetLike.instMembership.mem rho.honest y → receipt (R.erase W) d y →
+SetLike.instMembership.mem (R.core (V2.D.Run.stateBeforeTime E rho d y)).fg.TF W)], [RXing R E rho
+O], k, ev, v, [AttemptValid R S E rho O T I A pair Jst k], [Eq
+(List.instGetElem?NatLtLength.getElem? rho.events k.start) (Option.some ev)], [Int.instLEInt.le
+(instHAdd.hAdd ev.time (instHMul.hMul 3 T.delta)) v], [Int.instLEInt.le v rho.horizon], [(∀ (j :
+Nat), instLTNat.lt k.start j → instLTNat.lt j (timeIdx rho v) → Not (EffectiveEvent R E rho O
+j))], [Eq k.task AttemptTask.raise], [Eq k.phase PhaseKind.contest].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_attempt_raise_contest_settle (`S162:343`).
+
+### healing_attempt_raise_other_settle
+
+Source: `S024:93`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, S, E, rho, O, T, I, A, pair,
+Jst, Ef, [FGObservationLaws R O], [KitFG.FGCertificateLaws Ef O.height O.finality], [(∀ (i : Nat)
+(x : V), KitFG.FGStoreInvariant O.height O.finality (R.core (V2.D.Run.stateBefore E rho i
+x)).fg)], [KitFG.FGJustificationLaws O.height], [(∀ (i j : Nat), instLENat.le i j → ∀ (x : V),
+Finset.instPartialOrder.le (TFAt R E rho i x) (TFAt R E rho j x))], [FGTimingLaws T], [FGCoreLaws
+R], [(∀ {B C : FG.FGBlock (Fin n)}, B.Preceq C → (R.erase B).Preceq (R.erase C))], joined,
+receipt, [V2.D.ScheduleWellFormed E rho], [FGRunOrderLaws E rho R], [Eq E.Δ T.delta],
+[Int.instLEInt.le E.t_GST Jst], [(∀ (y : V), SetLike.instMembership.mem rho.honest y → ∀ (t :
+Time), Int.instLEInt.le E.t_GST t → Int.instLEInt.le t rho.horizon → Eq (E.awake y t) Bool.true)],
+[(∀ (iy : Nat) (y : V) (t : Time), SetLike.instMembership.mem rho.honest y → Eq
+(List.instGetElem?NatLtLength.getElem? rho.events iy) (Option.some (V2.Event.tick y t)) →
+Int.instLEInt.le t rho.horizon → Int.instLEInt.le E.t_GST (slotStartZ T (instHSub.hSub (Nat.cast
+(slotAt T t)) 1)) → Eq (joined (Prot.clock (V2.D.Run.stateBefore E rho iy y) t)) Bool.true)], [(∀
+(t : Time), Int.instLEInt.le Jst t → Int.instLEInt.le E.t_GST (slotStartZ T (instHSub.hSub
+(Nat.cast (slotAt T t)) 1)))], [(∀ (i : Nat) (ev : V2.Event V Prot.Object) (m : Nat), Eq
+(List.instGetElem?NatLtLength.getElem? rho.events i) (Option.some ev) → Int.instLEInt.le Jst
+ev.time → instLENat.le 1 m → Eq (frontierAtIdx R E rho (instHAdd.hAdd i 1)) m → Int.instLEInt.le
+(instHAdd.hAdd ev.time T.delta) rho.horizon → PhaseWitnessReceiptScope R E rho O joined receipt
+(instHAdd.hAdd i 1) m (instHAdd.hAdd ev.time T.delta))], [(∀ (W : FG.FGBlock (Fin n)) (d : Time)
+(y : V), SetLike.instMembership.mem rho.honest y → receipt (R.erase W) d y →
+SetLike.instMembership.mem (R.core (V2.D.Run.stateBeforeTime E rho d y)).fg.TF W)], [RXing R E rho
+O], k, ev, v, [AttemptValid R S E rho O T I A pair Jst k], [Eq
+(List.instGetElem?NatLtLength.getElem? rho.events k.start) (Option.some ev)], [Int.instLEInt.le
+(instHAdd.hAdd ev.time (instHMul.hMul 3 T.delta)) v], [Int.instLEInt.le v rho.horizon], [(∀ (j :
+Nat), instLTNat.lt k.start j → instLTNat.lt j (timeIdx rho v) → Not (EffectiveEvent R E rho O
+j))], [Eq k.task AttemptTask.raise], [Ne k.phase PhaseKind.contest].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_attempt_raise_other_settle (`S162:387`).
+
+### healing_attempt_firstRow_contest_settle
+
+Source: `S024:114`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, S, E, rho, O, T, I, A, pair,
+Jst, Ef, [FGObservationLaws R O], [KitFG.FGCertificateLaws Ef O.height O.finality], [(∀ (i : Nat)
+(x : V), KitFG.FGStoreInvariant O.height O.finality (R.core (V2.D.Run.stateBefore E rho i
+x)).fg)], [KitFG.FGJustificationLaws O.height], [(∀ (i j : Nat), instLENat.le i j → ∀ (x : V),
+Finset.instPartialOrder.le (TFAt R E rho i x) (TFAt R E rho j x))], [FGTimingLaws T], [FGCoreLaws
+R], [(∀ {B C : FG.FGBlock (Fin n)}, B.Preceq C → (R.erase B).Preceq (R.erase C))], joined,
+receipt, [V2.D.ScheduleWellFormed E rho], [FGRunOrderLaws E rho R], [Eq E.Δ T.delta],
+[Int.instLEInt.le E.t_GST Jst], [(∀ (y : V), SetLike.instMembership.mem rho.honest y → ∀ (t :
+Time), Int.instLEInt.le E.t_GST t → Int.instLEInt.le t rho.horizon → Eq (E.awake y t) Bool.true)],
+[(∀ (iy : Nat) (y : V) (t : Time), SetLike.instMembership.mem rho.honest y → Eq
+(List.instGetElem?NatLtLength.getElem? rho.events iy) (Option.some (V2.Event.tick y t)) →
+Int.instLEInt.le t rho.horizon → Int.instLEInt.le E.t_GST (slotStartZ T (instHSub.hSub (Nat.cast
+(slotAt T t)) 1)) → Eq (joined (Prot.clock (V2.D.Run.stateBefore E rho iy y) t)) Bool.true)], [(∀
+(t : Time), Int.instLEInt.le Jst t → Int.instLEInt.le E.t_GST (slotStartZ T (instHSub.hSub
+(Nat.cast (slotAt T t)) 1)))], [(∀ (i : Nat) (ev : V2.Event V Prot.Object) (m : Nat), Eq
+(List.instGetElem?NatLtLength.getElem? rho.events i) (Option.some ev) → Int.instLEInt.le Jst
+ev.time → instLENat.le 1 m → Eq (frontierAtIdx R E rho (instHAdd.hAdd i 1)) m → Int.instLEInt.le
+(instHAdd.hAdd ev.time T.delta) rho.horizon → PhaseWitnessReceiptScope R E rho O joined receipt
+(instHAdd.hAdd i 1) m (instHAdd.hAdd ev.time T.delta))], [(∀ (W : FG.FGBlock (Fin n)) (d : Time)
+(y : V), SetLike.instMembership.mem rho.honest y → receipt (R.erase W) d y →
+SetLike.instMembership.mem (R.core (V2.D.Run.stateBeforeTime E rho d y)).fg.TF W)], [RXing R E rho
+O], k, ev, v, [AttemptValid R S E rho O T I A pair Jst k], [Eq
+(List.instGetElem?NatLtLength.getElem? rho.events k.start) (Option.some ev)], [Int.instLEInt.le
+(instHAdd.hAdd ev.time (instHMul.hMul 3 T.delta)) v], [Int.instLEInt.le v rho.horizon], [(∀ (j :
+Nat), instLTNat.lt k.start j → instLTNat.lt j (timeIdx rho v) → Not (EffectiveEvent R E rho O
+j))], [Eq k.task AttemptTask.firstRow], [Eq k.phase PhaseKind.contest].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_attempt_firstRow_contest_settle (`S162:433`).
+
+### healing_attempt_firstRow_other_settle
+
+Source: `S024:135`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, S, E, rho, O, T, I, A, pair,
+Jst, Ef, [FGObservationLaws R O], [KitFG.FGCertificateLaws Ef O.height O.finality], [(∀ (i : Nat)
+(x : V), KitFG.FGStoreInvariant O.height O.finality (R.core (V2.D.Run.stateBefore E rho i
+x)).fg)], [KitFG.FGJustificationLaws O.height], [(∀ (i j : Nat), instLENat.le i j → ∀ (x : V),
+Finset.instPartialOrder.le (TFAt R E rho i x) (TFAt R E rho j x))], [FGTimingLaws T], [FGCoreLaws
+R], [(∀ {B C : FG.FGBlock (Fin n)}, B.Preceq C → (R.erase B).Preceq (R.erase C))], joined,
+receipt, [V2.D.ScheduleWellFormed E rho], [FGRunOrderLaws E rho R], [Eq E.Δ T.delta],
+[Int.instLEInt.le E.t_GST Jst], [(∀ (y : V), SetLike.instMembership.mem rho.honest y → ∀ (t :
+Time), Int.instLEInt.le E.t_GST t → Int.instLEInt.le t rho.horizon → Eq (E.awake y t) Bool.true)],
+[(∀ (iy : Nat) (y : V) (t : Time), SetLike.instMembership.mem rho.honest y → Eq
+(List.instGetElem?NatLtLength.getElem? rho.events iy) (Option.some (V2.Event.tick y t)) →
+Int.instLEInt.le t rho.horizon → Int.instLEInt.le E.t_GST (slotStartZ T (instHSub.hSub (Nat.cast
+(slotAt T t)) 1)) → Eq (joined (Prot.clock (V2.D.Run.stateBefore E rho iy y) t)) Bool.true)], [(∀
+(t : Time), Int.instLEInt.le Jst t → Int.instLEInt.le E.t_GST (slotStartZ T (instHSub.hSub
+(Nat.cast (slotAt T t)) 1)))], [(∀ (i : Nat) (ev : V2.Event V Prot.Object) (m : Nat), Eq
+(List.instGetElem?NatLtLength.getElem? rho.events i) (Option.some ev) → Int.instLEInt.le Jst
+ev.time → instLENat.le 1 m → Eq (frontierAtIdx R E rho (instHAdd.hAdd i 1)) m → Int.instLEInt.le
+(instHAdd.hAdd ev.time T.delta) rho.horizon → PhaseWitnessReceiptScope R E rho O joined receipt
+(instHAdd.hAdd i 1) m (instHAdd.hAdd ev.time T.delta))], [(∀ (W : FG.FGBlock (Fin n)) (d : Time)
+(y : V), SetLike.instMembership.mem rho.honest y → receipt (R.erase W) d y →
+SetLike.instMembership.mem (R.core (V2.D.Run.stateBeforeTime E rho d y)).fg.TF W)], [RXing R E rho
+O], k, ev, v, [AttemptValid R S E rho O T I A pair Jst k], [Eq
+(List.instGetElem?NatLtLength.getElem? rho.events k.start) (Option.some ev)], [Int.instLEInt.le
+(instHAdd.hAdd ev.time (instHMul.hMul 3 T.delta)) v], [Int.instLEInt.le v rho.horizon], [(∀ (j :
+Nat), instLTNat.lt k.start j → instLTNat.lt j (timeIdx rho v) → Not (EffectiveEvent R E rho O
+j))], [Eq k.task AttemptTask.firstRow], [Ne k.phase PhaseKind.contest].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_attempt_firstRow_other_settle (`S162:477`).
+
+### healing_attempt_ends_of_event
+
+Source: `S025:18`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, S, E, rho, O, T, pair, k,
+budget, ev ev', j, [Eq (List.instGetElem?NatLtLength.getElem? rho.events k.start) (Option.some
+ev)], [instLTNat.lt k.start j], [Eq (List.instGetElem?NatLtLength.getElem? rho.events j)
+(Option.some ev')], [Int.instLEInt.le ev'.time (instHAdd.hAdd ev.time budget)], [EffectiveEvent R
+E rho O j].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_attempt_ends_of_event (`S163:254`).
+
+### healing_attempt_ends_of_row
+
+Source: `S025:26`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, S, E, rho, O, T, pair, k,
+budget, ev ev', j, y, r, a, e, [Eq (List.instGetElem?NatLtLength.getElem? rho.events k.start)
+(Option.some ev)], [instLTNat.lt k.start j], [Eq (List.instGetElem?NatLtLength.getElem? rho.events
+j) (Option.some ev')], [Int.instLEInt.le ev'.time (instHAdd.hAdd ev.time budget)], [Eq k.task
+AttemptTask.firstRow], [HonestRowAt S E rho T j y r a], [Eq (namedEntry (pair a)) (Option.some {
+fst := k.frontier, snd := e })].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_attempt_ends_of_row (`S163:266`).
+
+### healing_attempt_ends_mono
+
+Source: `S025:36`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, S, E, rho, O, T, pair, k, budget
+budget', [AttemptEndsBy R S E rho O T pair k budget], [Int.instLEInt.le budget budget'].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_attempt_ends_mono (`S163:284`).
+
+### healing_attempt_no_event
+
+Source: `S025:44`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, S, E, rho, O, T, pair, k,
+budget, ev ev', j, [Eq (List.instGetElem?NatLtLength.getElem? rho.events k.start) (Option.some
+ev)], [Not (AttemptEndsBy R S E rho O T pair k budget)], [instLTNat.lt k.start j], [Eq
+(List.instGetElem?NatLtLength.getElem? rho.events j) (Option.some ev')], [Int.instLEInt.le
+ev'.time (instHAdd.hAdd ev.time budget)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_attempt_no_event (`S163:292`).
+
+### healing_attempt_inclusive_start
+
+Source: `S025:54`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, S, E, rho, O, T, I, A, pair,
+Jst, k, [AttemptValid R S E rho O T I A pair Jst k], [Not (EffectiveEvent R E rho O k.start)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_attempt_inclusive_start (`S163:306`).
+
+### common_entry_of_plateau
+
+Source: `S026:20`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, E, rho, H, T, Ef,
+[KitFG.FGHeightLaws Ef H], r m, Qfg, [Eq (H Qfg).h m], [(∀ (x : V) (K : FG.FGBlock (Fin n)),
+SetLike.instMembership.mem rho.honest x → Eq (actionSourceFG R E rho T x r) (Option.some
+(Option.some K)) → And (Qfg.Preceq K) (instLENat.le (H K).h m))].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: common_entry_of_plateau (`S164:176`).
+
+### common_low_or_high
+
+Source: `S026:31`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, E, rho, H, T, Ef,
+[KitFG.FGHeightLaws Ef H], r m, Qfg, [Eq (H Qfg).h (instHSub.hSub m 1)], [(∀ (x : V) (K :
+FG.FGBlock (Fin n)), SetLike.instMembership.mem rho.honest x → Eq (actionSourceFG R E rho T x r)
+(Option.some (Option.some K)) → And (Qfg.Preceq K) (instLENat.le (H K).h m))].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: common_low_or_high (`S164:188`).
+
+### common_sources_extend_and_cap
+
+Source: `S026:53`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, E, rho, H, T, r m, Qfg, [(∀ (x :
+V) (nd : Prot.State), SetLike.instMembership.mem rho.honest x → Eq (postClock E rho x (T.action
+r)) (Option.some nd) → Exists fun L => And (Eq (R.source nd) (Option.some L)) (Qfg.Preceq L))],
+[(∀ (x : V) (K : FG.FGBlock (Fin n)), SetLike.instMembership.mem rho.honest x → Eq (actionSourceFG
+R E rho T x r) (Option.some (Option.some K)) → instLENat.le (H K).h m)], x, K,
+[SetLike.instMembership.mem rho.honest x], [Eq (actionSourceFG R E rho T x r) (Option.some
+(Option.some K))].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: common_sources_extend_and_cap (`S165:97`).
+
+### common_entry_at_high
+
+Source: `S026:68`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, E, rho, H, T, Ef,
+[KitFG.FGHeightLaws Ef H], r m, Qfg, [(∀ (x : V) (K : FG.FGBlock (Fin n)),
+SetLike.instMembership.mem rho.honest x → Eq (actionSourceFG R E rho T x r) (Option.some
+(Option.some K)) → And (Qfg.Preceq K) (instLENat.le (H K).h m))], [Eq (H Qfg).h m].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: common_entry_at_high (`S165:118`).
+
+### common_next_sources_extend_and_cap
+
+Source: `S026:75`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, E, rho, H, T, r m, K, [(∀ (x :
+V) (nd : Prot.State), SetLike.instMembership.mem rho.honest x → Eq (postClock E rho x (T.action
+(instHAdd.hAdd r 1))) (Option.some nd) → Exists fun D => Exists fun L => And (Eq (R.source nd)
+(Option.some L)) (And (K.Preceq D) (D.Preceq L)))], [(∀ (x : V) (L : FG.FGBlock (Fin n)),
+SetLike.instMembership.mem rho.honest x → Eq (actionSourceFG R E rho T x (instHAdd.hAdd r 1))
+(Option.some (Option.some L)) → instLENat.le (H L).h m)], x, L, [SetLike.instMembership.mem
+rho.honest x], [Eq (actionSourceFG R E rho T x (instHAdd.hAdd r 1)) (Option.some (Option.some
+L))].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: common_next_sources_extend_and_cap (`S165:135`).
+
+### common_next_entry
+
+Source: `S026:89`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, E, rho, H, T, Ef,
+[KitFG.FGHeightLaws Ef H], r m, K, [Eq (H K).h m], [(∀ (x : V) (L : FG.FGBlock (Fin n)),
+SetLike.instMembership.mem rho.honest x → Eq (actionSourceFG R E rho T x (instHAdd.hAdd r 1))
+(Option.some (Option.some L)) → And (K.Preceq L) (instLENat.le (H L).h m))].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: common_next_entry (`S165:174`).
+
+### common_entry_at_low
+
+Source: `S026:97`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, E, rho, H, T, Ef,
+[KitFG.FGHeightLaws Ef H], O, u, J, contested, r m, Qfg, [Eq (H Qfg).h (instHSub.hSub m 1)], [(∀
+(x : V) (K : FG.FGBlock (Fin n)), SetLike.instMembership.mem rho.honest x → Eq (actionSourceFG R E
+rho T x r) (Option.some (Option.some K)) → And (Qfg.Preceq K) (instLENat.le (H K).h m))], [(∀ (y :
+V) (K : FG.FGBlock (Fin n)), SetLike.instMembership.mem rho.honest y → Eq (actionSourceFG R E rho
+T y r) (Option.some (Option.some K)) → PhaseInterval R E rho O u (T.action (instHAdd.hAdd r 1)) m
+J contested → ∀ (x : V) (L : FG.FGBlock (Fin n)), SetLike.instMembership.mem rho.honest x → Eq
+(actionSourceFG R E rho T x (instHAdd.hAdd r 1)) (Option.some (Option.some L)) → And (K.Preceq L)
+(instLENat.le (H L).h m))].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: common_entry_at_low (`S165:192`).
+
+### frontierSearch_age_service
+
+Source: `S027:72`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire Body, R, S, O, T, E, rho, I, D, Ef,
+decodeProposal, bodyErase, bodyRows, blockWireRows, parentFG, parentHeight, validFor, fold,
+[KitFG.FGHeightLaws Ef O.height], [FGTimingLaws T], [V2.D.ScheduleWellFormed E rho], [instLTNat.lt
+(Ef.weightOf (historyFaulty S rho)) Ef.q], G ΔF, [Int.instLEInt.le E.Δ ΔF], [Eq E.Δ T.delta], [(∀
+(t : Time), Int.instLEInt.le E.t_GST t → Int.instLEInt.le (instHAdd.hAdd t G) rho.horizon → Exists
+fun s => And (Int.instLTInt.lt t (T.proposal s)) (And (Int.instLEInt.le (T.proposal s)
+(instHAdd.hAdd t G)) (Gen.V2.Duty.HonestSlot rho I s)))], Jst, [Int.instLEInt.le E.t_GST Jst],
+[PromotionSlotProposal R E rho T I], [PromotionProposalRead R S E rho O I decodeProposal bodyErase
+bodyRows parentFG parentHeight validFor fold], [PromotionRowOrder R E rho O I],
+[PromotionRowSigner S E rho T D], [PromotionSourceParent R E rho O T I Jst], deltaT, [Eq deltaT
+(instHMul.hMul 2 T.roundSlots)], [LivenessBoundW T ΔF], [TRowsReceipt R S E rho T blockWireRows
+ΔF], [(∀ (r height : Nat) (U X : FG.FGBlock (Fin n)), BatchPrem R S O T E rho I D Ef
+decodeProposal bodyErase bodyRows blockWireRows parentFG parentHeight validFor ΔF RowKind.progress
+r height U X → Eq (O.height X.parent).h height → ProgressCoveredByChild Ef O.height X U height)],
+[ProgressFoldAdvance Ef O.height deltaT], [(Exists fun Q => And (∀ (i : Fin n),
+SetLike.instMembership.mem Q i → SetLike.instMembership.mem rho.honest (safetyHolder S rho i))
+(instLENat.le Ef.q (Ef.weightOf Q)))], u D', m height r, J, contested, Q, U, [OpeningEntry R E rho
+O.height T r height], [OpeningCovered R S E rho O.height T D.heightPair r Q], [(Exists fun x =>
+Exists fun K => And (SetLike.instMembership.mem rho.honest x) (And (Eq (actionSourceFG R E rho T x
+r) (Option.some (Option.some K))) (Eq (O.height K).T_h U)))], [(∀ (x y : V) (K L : FG.FGBlock (Fin
+n)), SetLike.instMembership.mem rho.honest x → SetLike.instMembership.mem rho.honest y → Eq
+(actionSourceFG R E rho T x r) (Option.some (Option.some K)) → Eq (actionSourceFG R E rho T y r)
+(Option.some (Option.some L)) → Eq (O.height K).T_h.root (O.height L).T_h.root → Eq (O.height
+K).T_h (O.height L).T_h)], [(∀ (x : V) (K : FG.FGBlock (Fin n)), SetLike.instMembership.mem
+rho.honest x → Eq (actionSourceFG R E rho T x r) (Option.some (Option.some K)) → instLENat.le
+K.slot (instHMul.hMul r T.roundSlots))], [(∀ (x : V) (K A : FG.FGBlock (Fin n)),
+SetLike.instMembership.mem rho.honest x → Eq (actionSourceFG R E rho T x r) (Option.some
+(Option.some K)) → A.Preceq K → instLENat.le A.slot K.slot)], [Int.instLEInt.le Jst u],
+[Int.instLEInt.le E.t_GST (instHMul.hMul r.cast (P T))], [Int.instLEInt.le u (T.vote
+(instHMul.hMul r T.roundSlots))], [PhaseInterval R E rho O u D' m J contested], [Int.instLEInt.le
+(instHAdd.hAdd (Int.instMax.max (instHSub.hSub (instHAdd.hAdd (instHMul.hMul r.cast (P T)) (betaF
+T ΔF)) (instHMul.hMul 4 T.delta)) (instHSub.hSub (instHAdd.hAdd (T.proposal U.slot) (instHMul.hMul
+2 (P T))) (instHMul.hMul 4 T.delta))) G) rho.horizon], [Int.instLEInt.le (Int.instMax.max
+(instHAdd.hAdd (instHAdd.hAdd (instHAdd.hAdd (T.action r) (Γ T G)) (instHMul.hMul 4 T.delta))
+(epsF T ΔF)) (instHAdd.hAdd (instHAdd.hAdd (instHAdd.hAdd (T.proposal U.slot) (instHMul.hMul 2 (P
+T))) (Γ T G)) (instHMul.hMul 2 T.delta))) D'].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: holder assignment/injectivity or honest-holder FG weight (exact guards in type);
+faulty FG-seat weight/count.
+
+FG-SA producer/application: frontierSearch_age_service (`S166:443`).
+
+### frontierSearch_contest_rise_cost
+
+Source: `S028:11`.
+
+Translated telescope: T, [FGTimingLaws T], G ΔF ρbar, [LivenessBoundW T ΔF].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: frontierSearch_contest_rise_cost (`S167:41`).
+
+### frontierSearch_contest_row_cost
+
+Source: `S028:25`.
+
+Translated telescope: T, ρbar.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: frontierSearch_contest_row_cost (`S167:49`).
+
+### frontierSearch_terminal_opening_cost
+
+Source: `S028:32`.
+
+Translated telescope: T, G d a t, [Int.instLEInt.le a (instHAdd.hAdd d (instHSub.hSub (P T)
+(instHMul.hMul 4 T.delta)))], [Int.instLEInt.le t (instHSub.hSub (instHAdd.hAdd (instHAdd.hAdd a
+(instHMul.hMul 2 (P T))) (Γ T G)) (instHMul.hMul 9 T.delta))].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: frontierSearch_terminal_opening_cost (`S167:56`).
+
+### frontierSearch_terminal_horizon_gap8
+
+Source: `S028:41`.
+
+Translated telescope: .
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: frontierSearch_terminal_horizon_gap8 (`S167:67`).
+
+### frontierSearch_terminal_horizon_gap12
+
+Source: `S028:49`.
+
+Translated telescope: .
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: frontierSearch_terminal_horizon_gap12 (`S167:74`).
+
+### frontierSearch_rise_rebase
+
+Source: `S029:64`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, E, rho, [FGRunOrderLaws E rho
+R], i j m, D, [instLENat.le i j], [instLENat.le (frontierAtIdx R E rho (instHAdd.hAdd j 1)) m],
+[FrontierRiseBy R E rho j m D].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: frontierSearch_rise_rebase (`S168:140`).
+
+### frontierSearch_rise_of_stop
+
+Source: `S029:77`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, O, E, rho,
+[V2.D.ScheduleWellFormed E rho], i m, D, [instLENat.le (frontierAtIdx R E rho (instHAdd.hAdd i 1))
+m], [FirstRiseStopBy R E rho O i m D].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: frontierSearch_rise_of_stop (`S168:150`).
+
+### frontierSearch_phase_compose
+
+Source: `S029:88`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, O, T, E, rho, Ef, Jst,
+[FGObservationLaws R O], [KitFG.FGCertificateLaws Ef O.height O.finality], [(∀ (i : Nat) (x : V),
+KitFG.FGStoreInvariant O.height O.finality (R.core (V2.D.Run.stateBefore E rho i x)).fg)],
+[KitFG.FGJustificationLaws O.height], [(∀ (i j : Nat), instLENat.le i j → ∀ (x : V),
+Finset.instPartialOrder.le (TFAt R E rho i x) (TFAt R E rho j x))], [FGTimingLaws T], [RXing R E
+rho O], [V2.D.ScheduleWellFormed E rho], [FGRunOrderLaws E rho R], Served, G ΔF ρbar t0 tail,
+[Int.instLEInt.le (instHMul.hMul 4 T.delta) G], [Int.instLEInt.le 0 ρbar], [Int.instLEInt.le 0
+tail], [(∀ (i : Nat) (ev : V2.Event V Prot.Object) (m : Nat) (kind : PhaseKind),
+FrontierSearchStart R E rho O T Jst i ev m kind → Int.instLEInt.le t0 ev.time → Int.instLEInt.le
+(instHAdd.hAdd ev.time (interruptedRepairBudget T G ΔF ρbar kind)) rho.horizon → Or
+(FirstPhaseStopBy R E rho O i m (instHAdd.hAdd ev.time (interruptedRepairBudget T G ΔF ρbar
+kind))) (Or (FirstRiseStopBy R E rho O i m (instHAdd.hAdd ev.time (interruptedRepairBudget T G ΔF
+ρbar kind))) (Exists fun t => And (Int.instLEInt.le ev.time t) (And (Int.instLEInt.le t
+(instHAdd.hAdd ev.time (interruptedRepairBudget T G ΔF ρbar kind))) (Served m t)))))], i m, ev,
+kind, [FrontierSearchStart R E rho O T Jst i ev m kind], [Int.instLEInt.le t0 ev.time],
+[Int.instLEInt.le (instHAdd.hAdd ev.time (frontierSearch_remaining T G ΔF ρbar tail kind))
+rho.horizon].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: frontierSearch_phase_tail (`S168:176`).
+
+### frontierSearch_phase_tail
+
+Source: `S029:182`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire Body, R, S, O, T, E, rho, I, D, Ef,
+decodeProposal, bodyErase, bodyRows, blockWireRows, parentFG, parentHeight, validFor, fold, Jst,
+leaseSlots, [FGObservationLaws R O], [KitFG.FGCertificateLaws Ef O.height O.finality], [(∀ (i :
+Nat) (x : V), KitFG.FGStoreInvariant O.height O.finality (R.core (V2.D.Run.stateBefore E rho i
+x)).fg)], [KitFG.FGJustificationLaws O.height], [(∀ (i j : Nat), instLENat.le i j → ∀ (x : V),
+Finset.instPartialOrder.le (TFAt R E rho i x) (TFAt R E rho j x))], [Int.instLTInt.lt 0 T.delta],
+[FGCoreLaws R], [(∀ {A B : FG.FGBlock (Fin n)}, A.Preceq B → (R.erase A).Preceq (R.erase B))],
+joined, receipt, [FGTimingLaws T], [instLENat.le 1 leaseSlots], [RXing R E rho O],
+[V2.D.ScheduleWellFormed E rho], [FGRunOrderLaws E rho R], [(∀ (y : V), SetLike.instMembership.mem
+rho.honest y → ∀ (t : Time), Int.instLEInt.le E.t_GST t → Int.instLEInt.le t rho.horizon → Eq
+(E.awake y t) Bool.true)], [(∀ (iy : Nat) (y : V) (t : Time), SetLike.instMembership.mem
+rho.honest y → Eq (List.instGetElem?NatLtLength.getElem? rho.events iy) (Option.some
+(V2.Event.tick y t)) → Int.instLEInt.le t rho.horizon → Int.instLEInt.le E.t_GST (slotStartZ T
+(instHSub.hSub (Nat.cast (slotAt T t)) 1)) → Eq (joined (Prot.clock (V2.D.Run.stateBefore E rho iy
+y) t)) Bool.true)], [(∀ (t : Time), Int.instLEInt.le Jst t → Int.instLEInt.le E.t_GST (slotStartZ
+T (instHSub.hSub (Nat.cast (slotAt T t)) 1)))], [(∀ (i : Nat) (ev : V2.Event V Prot.Object) (m :
+Nat), Eq (List.instGetElem?NatLtLength.getElem? rho.events i) (Option.some ev) → Int.instLEInt.le
+Jst ev.time → instLENat.le 1 m → Eq (frontierAtIdx R E rho (instHAdd.hAdd i 1)) m →
+Int.instLEInt.le (instHAdd.hAdd ev.time T.delta) rho.horizon → PhaseWitnessReceiptScope R E rho O
+joined receipt (instHAdd.hAdd i 1) m (instHAdd.hAdd ev.time T.delta))], [(∀ (W : FG.FGBlock (Fin
+n)) (d : Time) (y : V), SetLike.instMembership.mem rho.honest y → receipt (R.erase W) d y →
+SetLike.instMembership.mem (R.core (V2.D.Run.stateBeforeTime E rho d y)).fg.TF W)], [instLTNat.lt
+(Ef.weightOf (historyFaulty S rho)) Ef.q], G ΔF ρbar, [Int.instLEInt.le E.Δ ΔF], [Eq E.Δ T.delta],
+[(∀ (t : Time), Int.instLEInt.le E.t_GST t → Int.instLEInt.le (instHAdd.hAdd t G) rho.horizon →
+Exists fun s => And (Int.instLTInt.lt t (T.proposal s)) (And (Int.instLEInt.le (T.proposal s)
+(instHAdd.hAdd t G)) (Gen.V2.Duty.HonestSlot rho I s)))], [Int.instLEInt.le E.t_GST Jst],
+[Int.instLEInt.le (instHMul.hMul 4 T.delta) G], [PromotionSlotProposal R E rho T I],
+[PromotionProposalRead R S E rho O I decodeProposal bodyErase bodyRows parentFG parentHeight
+validFor fold], [PromotionRowOrder R E rho O I], [PromotionRowSigner S E rho T D],
+[PromotionSourceParent R E rho O T I Jst], deltaT, [Eq deltaT (instHMul.hMul 2 T.roundSlots)],
+[LivenessBoundW T ΔF], [TRowsReceipt R S E rho T blockWireRows ΔF], [(∀ (r height : Nat) (U X :
+FG.FGBlock (Fin n)), BatchPrem R S O T E rho I D Ef decodeProposal bodyErase bodyRows
+blockWireRows parentFG parentHeight validFor ΔF RowKind.progress r height U X → Eq (O.height
+X.parent).h height → ProgressCoveredByChild Ef O.height X U height)], [ProgressFoldAdvance Ef
+O.height deltaT], [(Exists fun Q => And (∀ (i : Fin n), SetLike.instMembership.mem Q i →
+SetLike.instMembership.mem rho.honest (safetyHolder S rho i)) (instLENat.le Ef.q (Ef.weightOf
+Q)))], [(∀ (r : Nat) (x y : V) (K L : FG.FGBlock (Fin n)), SetLike.instMembership.mem rho.honest x
+→ SetLike.instMembership.mem rho.honest y → Eq (actionSourceFG R E rho T x r) (Option.some
+(Option.some K)) → Eq (actionSourceFG R E rho T y r) (Option.some (Option.some L)) → Eq (O.height
+K).T_h.root (O.height L).T_h.root → Eq (O.height K).T_h (O.height L).T_h)], [(∀ (r : Nat) (x : V)
+(K : FG.FGBlock (Fin n)), SetLike.instMembership.mem rho.honest x → Eq (actionSourceFG R E rho T x
+r) (Option.some (Option.some K)) → instLENat.le K.slot (instHMul.hMul r T.roundSlots))], [(∀ (r :
+Nat) (x : V) (K A : FG.FGBlock (Fin n)), SetLike.instMembership.mem rho.honest x → Eq
+(actionSourceFG R E rho T x r) (Option.some (Option.some K)) → A.Preceq K → instLENat.le A.slot
+K.slot)], [(∀ (A B : FG.FGBlock (Fin n)), (R.erase A).Preceq (R.erase B) → A.Preceq B)],
+[AttemptProposalFloor R E rho O T I Jst], [(∀ (u v : Time) (m : Nat) (J : Option (FG.FGBlock (Fin
+n))) (contested : Bool) (q : Slot) (Q : Block), Int.instLEInt.le Jst u → PhaseInterval R E rho O u
+v m J contested → FrontierSeedQualification T leaseSlots E.t_GST u q → Int.instLEInt.le (T.gate q)
+v → HonestProposal E rho I q Q → Exists fun i => Exists fun x => Exists fun Qfg => And
+(instLENat.le (rho.idxBefore u) i) (And (instLENat.le i (timeIdx rho v)) (And
+(SetLike.instMembership.mem rho.honest x) (And (SetLike.instMembership.mem (R.core
+(V2.D.Run.stateBefore E rho i x)).fg.TF Qfg) (Eq (R.erase Qfg) Q)))))], [(∀ (u v : Time) (m :
+FG.Height) (J : Option (FG.FGBlock (Fin n))) (contested : Bool) (q : Slot) (Q : Block) (Qfg :
+FG.FGBlock (Fin n)), Int.instLEInt.le Jst u → HonestProposal E rho I q Q → Eq (R.erase Qfg) Q → Eq
+(O.height Qfg).h m → FrontierProposalService R E rho T q Q → FrontierSeedQualification T
+leaseSlots E.t_GST u q → Int.instLEInt.le u (T.proposal q) → PhaseInterval R E rho O u (T.gate q)
+m J contested → Int.instLEInt.le (T.gate q) v → Int.instLEInt.le v rho.horizon → (∀ (i : Nat) (x :
+V), instLENat.le (timeIdx rho u) i → instLENat.le i (timeIdx rho v) → SetLike.instMembership.mem
+rho.honest x → instLENat.le (R.core (V2.D.Run.stateBefore E rho i x)).fg.h_max m) →
+FrontierLocalService R S E rho O T I D.heightPair q Q Qfg m v)], [(∀ (u : Time) (m : Nat) (J :
+Option (FG.FGBlock (Fin n))) (contested : Bool) (q : Slot) (Q : Block) (Qfg : FG.FGBlock (Fin n))
+(r : Slot), Int.instLEInt.le Jst u → HonestProposal E rho I q Q → Eq (R.erase Qfg) Q →
+FrontierProposalService R E rho T q Q → FrontierSeedQualification T leaseSlots E.t_GST u q →
+Int.instLEInt.le u (T.proposal q) → instLENat.le q (instHMul.hMul r T.roundSlots) → (∀ (r' :
+Slot), instLENat.le q (instHMul.hMul r' T.roundSlots) → instLENat.le r r') → PhaseInterval R E rho
+O u (T.action r) m J contested → And (OpeningCovered R S E rho O.height T D.heightPair r Q) (Eq
+(O.height Qfg).h (instHSub.hSub m 1) → Or (OpeningEntry R E rho O.height T r (instHSub.hSub m 1))
+(Exists fun x => Exists fun K => And (SetLike.instMembership.mem rho.honest x) (And (Eq
+(actionSourceFG R E rho T x r) (Option.some (Option.some K))) (Eq (O.height K).h m)))))], [(∀ (i :
+Nat) (x : V) (A K : FG.FGBlock (Fin n)), SetLike.instMembership.mem (R.core (V2.D.Run.stateBefore
+E rho i x)).fg.TF K → A.Preceq K → instLENat.le A.slot K.slot)], [(∀ (q : Slot) (Q : Block) (K :
+FG.FGBlock (Fin n)), HonestProposal E rho I q Q → Eq (R.erase K) Q → Eq K.slot q)], [(∀ (i : Nat)
+(x : V), SetLike.instMembership.mem rho.honest x → Ne (R.core (V2.D.Run.stateBefore E rho i
+x)).fg.h_j 0 → Exists fun j => Exists fun y => Exists fun r => Exists fun a => Exists fun K => And
+(instLTNat.lt j i) (And (HonestRowAt S E rho T j y r a) (And (Eq (actionSourceFG R E rho T y r)
+(Option.some (Option.some K))) (Eq (O.height K).T_h (R.core (V2.D.Run.stateBefore E rho i
+x)).fg.J))))], [(∀ (q : Slot) (Q : Block), HonestProposal E rho I q Q → Exists fun j => And (Eq
+(List.instGetElem?NatLtLength.getElem? rho.events j) (Option.some (V2.Event.tick (V2.D.proposerOf
+rho I q) (T.proposal q)))) (∀ (Qfg : FG.FGBlock (Fin n)), Eq (R.erase Qfg) Q → (O.controls
+(V2.D.Run.stateBefore E rho j (V2.D.proposerOf rho I q))).Z.Preceq Qfg.parent))], [(∀ (i : Nat)
+(ev : V2.Event V Prot.Object) (m : Nat) (kind : PhaseKind), FrontierSearchStart R E rho O T Jst i
+ev m kind → Int.instLEInt.le (instHAdd.hAdd Jst (instHMul.hMul 2 (P T))) ev.time →
+FrontierRepairAllowance R E rho O T I Jst leaseSlots G ρbar (instHAdd.hAdd ev.time (instHMul.hMul
+3 T.delta)))], tail, [Int.instLEInt.le 0 tail], i m, ev, kind, [FrontierSearchStart R E rho O T
+Jst i ev m kind], [Int.instLEInt.le (instHAdd.hAdd Jst (instHMul.hMul 2 (P T))) ev.time],
+[Int.instLEInt.le (instHAdd.hAdd ev.time (frontierSearch_remaining T G ΔF ρbar tail kind))
+rho.horizon].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: holder assignment/injectivity or honest-holder FG weight (exact guards in type);
+faulty FG-seat weight/count.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### frontierSearch_family
+
+Source: `S030:46`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire Body, R, S, O, T, E, rho, I, D, Ef,
+decodeProposal, bodyErase, bodyRows, blockWireRows, parentFG, parentHeight, validFor, fold, Jst,
+leaseSlots, [FGObservationLaws R O], [KitFG.FGCertificateLaws Ef O.height O.finality], [(∀ (i :
+Nat) (x : V), KitFG.FGStoreInvariant O.height O.finality (R.core (V2.D.Run.stateBefore E rho i
+x)).fg)], [KitFG.FGJustificationLaws O.height], [(∀ (i j : Nat), instLENat.le i j → ∀ (x : V),
+Finset.instPartialOrder.le (TFAt R E rho i x) (TFAt R E rho j x))], [Int.instLTInt.lt 0 T.delta],
+[FGCoreLaws R], [(∀ {A B : FG.FGBlock (Fin n)}, A.Preceq B → (R.erase A).Preceq (R.erase B))],
+joined, receipt, chainRows, [FGTimingLaws T], [instLENat.le 1 leaseSlots], [RXing R E rho O],
+[V2.D.ScheduleWellFormed E rho], [FGRunOrderLaws E rho R], [(∀ (y : V), SetLike.instMembership.mem
+rho.honest y → ∀ (t : Time), Int.instLEInt.le E.t_GST t → Int.instLEInt.le t rho.horizon → Eq
+(E.awake y t) Bool.true)], [(∀ (iy : Nat) (y : V) (t : Time), SetLike.instMembership.mem
+rho.honest y → Eq (List.instGetElem?NatLtLength.getElem? rho.events iy) (Option.some
+(V2.Event.tick y t)) → Int.instLEInt.le t rho.horizon → Int.instLEInt.le E.t_GST (slotStartZ T
+(instHSub.hSub (Nat.cast (slotAt T t)) 1)) → Eq (joined (Prot.clock (V2.D.Run.stateBefore E rho iy
+y) t)) Bool.true)], [(∀ (t : Time), Int.instLEInt.le Jst t → Int.instLEInt.le E.t_GST (slotStartZ
+T (instHSub.hSub (Nat.cast (slotAt T t)) 1)))], [(∀ (i : Nat) (ev : V2.Event V Prot.Object) (m :
+Nat), Eq (List.instGetElem?NatLtLength.getElem? rho.events i) (Option.some ev) → Int.instLEInt.le
+Jst ev.time → instLENat.le 1 m → Eq (frontierAtIdx R E rho (instHAdd.hAdd i 1)) m →
+Int.instLEInt.le (instHAdd.hAdd ev.time T.delta) rho.horizon → PhaseWitnessReceiptScope R E rho O
+joined receipt (instHAdd.hAdd i 1) m (instHAdd.hAdd ev.time T.delta))], [(∀ (W : FG.FGBlock (Fin
+n)) (d : Time) (y : V), SetLike.instMembership.mem rho.honest y → receipt (R.erase W) d y →
+SetLike.instMembership.mem (R.core (V2.D.Run.stateBeforeTime E rho d y)).fg.TF W)], [instLTNat.lt
+(Ef.weightOf (historyFaulty S rho)) Ef.q], G ΔF, [Int.instLEInt.le E.Δ ΔF], [Eq E.Δ T.delta], [(∀
+(t : Time), Int.instLEInt.le E.t_GST t → Int.instLEInt.le (instHAdd.hAdd t G) rho.horizon → Exists
+fun s => And (Int.instLTInt.lt t (T.proposal s)) (And (Int.instLEInt.le (T.proposal s)
+(instHAdd.hAdd t G)) (Gen.V2.Duty.HonestSlot rho I s)))], [Int.instLEInt.le E.t_GST Jst],
+[Int.instLEInt.le (instHMul.hMul 4 T.delta) G], [PromotionSlotProposal R E rho T I],
+[PromotionProposalRead R S E rho O I decodeProposal bodyErase bodyRows parentFG parentHeight
+validFor fold], [PromotionRowOrder R E rho O I], [PromotionRowSigner S E rho T D],
+[PromotionSourceParent R E rho O T I Jst], deltaT, [TRowsReceipt R S E rho T blockWireRows ΔF],
+[(∀ (r height : Nat) (U X : FG.FGBlock (Fin n)), BatchPrem R S O T E rho I D Ef decodeProposal
+bodyErase bodyRows blockWireRows parentFG parentHeight validFor ΔF RowKind.progress r height U X →
+Eq (O.height X.parent).h height → ProgressCoveredByChild Ef O.height X U height)],
+[ProgressFoldAdvance Ef O.height deltaT], [(Exists fun Q => And (∀ (i : Fin n),
+SetLike.instMembership.mem Q i → SetLike.instMembership.mem rho.honest (safetyHolder S rho i))
+(instLENat.le Ef.q (Ef.weightOf Q)))], [(∀ (r : Nat) (x y : V) (K L : FG.FGBlock (Fin n)),
+SetLike.instMembership.mem rho.honest x → SetLike.instMembership.mem rho.honest y → Eq
+(actionSourceFG R E rho T x r) (Option.some (Option.some K)) → Eq (actionSourceFG R E rho T y r)
+(Option.some (Option.some L)) → Eq (O.height K).T_h.root (O.height L).T_h.root → Eq (O.height
+K).T_h (O.height L).T_h)], [(∀ (r : Nat) (x : V) (K : FG.FGBlock (Fin n)),
+SetLike.instMembership.mem rho.honest x → Eq (actionSourceFG R E rho T x r) (Option.some
+(Option.some K)) → instLENat.le K.slot (instHMul.hMul r T.roundSlots))], [(∀ (r : Nat) (x : V) (K
+A : FG.FGBlock (Fin n)), SetLike.instMembership.mem rho.honest x → Eq (actionSourceFG R E rho T x
+r) (Option.some (Option.some K)) → A.Preceq K → instLENat.le A.slot K.slot)], [(∀ (A B :
+FG.FGBlock (Fin n)), (R.erase A).Preceq (R.erase B) → A.Preceq B)], [AttemptProposalFloor R E rho
+O T I Jst], [(∀ (u v : Time) (m : Nat) (J : Option (FG.FGBlock (Fin n))) (contested : Bool) (q :
+Slot) (Q : Block), Int.instLEInt.le Jst u → PhaseInterval R E rho O u v m J contested →
+FrontierSeedQualification T leaseSlots E.t_GST u q → Int.instLEInt.le (T.gate q) v →
+HonestProposal E rho I q Q → Exists fun i => Exists fun x => Exists fun Qfg => And (instLENat.le
+(rho.idxBefore u) i) (And (instLENat.le i (timeIdx rho v)) (And (SetLike.instMembership.mem
+rho.honest x) (And (SetLike.instMembership.mem (R.core (V2.D.Run.stateBefore E rho i x)).fg.TF
+Qfg) (Eq (R.erase Qfg) Q)))))], [(∀ (u v : Time) (m : FG.Height) (J : Option (FG.FGBlock (Fin n)))
+(contested : Bool) (q : Slot) (Q : Block) (Qfg : FG.FGBlock (Fin n)), Int.instLEInt.le Jst u →
+HonestProposal E rho I q Q → Eq (R.erase Qfg) Q → Eq (O.height Qfg).h m → FrontierProposalService
+R E rho T q Q → FrontierSeedQualification T leaseSlots E.t_GST u q → Int.instLEInt.le u
+(T.proposal q) → PhaseInterval R E rho O u (T.gate q) m J contested → Int.instLEInt.le (T.gate q)
+v → Int.instLEInt.le v rho.horizon → (∀ (i : Nat) (x : V), instLENat.le (timeIdx rho u) i →
+instLENat.le i (timeIdx rho v) → SetLike.instMembership.mem rho.honest x → instLENat.le (R.core
+(V2.D.Run.stateBefore E rho i x)).fg.h_max m) → FrontierLocalService R S E rho O T I D.heightPair
+q Q Qfg m v)], [(∀ (u : Time) (m : Nat) (J : Option (FG.FGBlock (Fin n))) (contested : Bool) (q :
+Slot) (Q : Block) (Qfg : FG.FGBlock (Fin n)) (r : Slot), Int.instLEInt.le Jst u → HonestProposal E
+rho I q Q → Eq (R.erase Qfg) Q → FrontierProposalService R E rho T q Q → FrontierSeedQualification
+T leaseSlots E.t_GST u q → Int.instLEInt.le u (T.proposal q) → instLENat.le q (instHMul.hMul r
+T.roundSlots) → (∀ (r' : Slot), instLENat.le q (instHMul.hMul r' T.roundSlots) → instLENat.le r
+r') → PhaseInterval R E rho O u (T.action r) m J contested → And (OpeningCovered R S E rho
+O.height T D.heightPair r Q) (Eq (O.height Qfg).h (instHSub.hSub m 1) → Or (OpeningEntry R E rho
+O.height T r (instHSub.hSub m 1)) (Exists fun x => Exists fun K => And (SetLike.instMembership.mem
+rho.honest x) (And (Eq (actionSourceFG R E rho T x r) (Option.some (Option.some K))) (Eq (O.height
+K).h m)))))], [(∀ (i : Nat) (x : V) (A K : FG.FGBlock (Fin n)), SetLike.instMembership.mem (R.core
+(V2.D.Run.stateBefore E rho i x)).fg.TF K → A.Preceq K → instLENat.le A.slot K.slot)], [(∀ (q :
+Slot) (Q : Block) (K : FG.FGBlock (Fin n)), HonestProposal E rho I q Q → Eq (R.erase K) Q → Eq
+K.slot q)], [(∀ (i : Nat) (x : V), SetLike.instMembership.mem rho.honest x → Ne (R.core
+(V2.D.Run.stateBefore E rho i x)).fg.h_j 0 → Exists fun j => Exists fun y => Exists fun r =>
+Exists fun a => Exists fun K => And (instLTNat.lt j i) (And (HonestRowAt S E rho T j y r a) (And
+(Eq (actionSourceFG R E rho T y r) (Option.some (Option.some K))) (Eq (O.height K).T_h (R.core
+(V2.D.Run.stateBefore E rho i x)).fg.J))))], [(∀ (q : Slot) (Q : Block), HonestProposal E rho I q
+Q → Exists fun j => And (Eq (List.instGetElem?NatLtLength.getElem? rho.events j) (Option.some
+(V2.Event.tick (V2.D.proposerOf rho I q) (T.proposal q)))) (∀ (Qfg : FG.FGBlock (Fin n)), Eq
+(R.erase Qfg) Q → (O.controls (V2.D.Run.stateBefore E rho j (V2.D.proposerOf rho I q))).Z.Preceq
+Qfg.parent))], [(∀ (X : FG.FGBlock (Fin n)), Eq (R.erase X).parent (R.erase X.parent))],
+[PromotionCapReceipt R E rho O T I], [RCap R S E rho O T (fun a => namedEntry (D.heightPair a))
+chainRows], [rho.honest.Nonempty], ρbar.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: holder assignment/injectivity or honest-holder FG weight (exact guards in type);
+faulty FG-seat weight/count.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### frontierSearch
+
+Source: `S030:243`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire Body, R, S, O, T, E, rho, I, D, Ef,
+decodeProposal, bodyErase, bodyRows, blockWireRows, parentFG, parentHeight, validFor, fold, Jst,
+leaseSlots, [FGObservationLaws R O], [KitFG.FGCertificateLaws Ef O.height O.finality], [(∀ (i :
+Nat) (x : V), KitFG.FGStoreInvariant O.height O.finality (R.core (V2.D.Run.stateBefore E rho i
+x)).fg)], [KitFG.FGJustificationLaws O.height], [(∀ (i j : Nat), instLENat.le i j → ∀ (x : V),
+Finset.instPartialOrder.le (TFAt R E rho i x) (TFAt R E rho j x))], [Int.instLTInt.lt 0 T.delta],
+[FGCoreLaws R], [(∀ {A B : FG.FGBlock (Fin n)}, A.Preceq B → (R.erase A).Preceq (R.erase B))],
+joined, receipt, chainRows, [FGTimingLaws T], [instLENat.le 1 leaseSlots], [RXing R E rho O],
+[V2.D.ScheduleWellFormed E rho], [FGRunOrderLaws E rho R], [(∀ (y : V), SetLike.instMembership.mem
+rho.honest y → ∀ (t : Time), Int.instLEInt.le E.t_GST t → Int.instLEInt.le t rho.horizon → Eq
+(E.awake y t) Bool.true)], [(∀ (iy : Nat) (y : V) (t : Time), SetLike.instMembership.mem
+rho.honest y → Eq (List.instGetElem?NatLtLength.getElem? rho.events iy) (Option.some
+(V2.Event.tick y t)) → Int.instLEInt.le t rho.horizon → Int.instLEInt.le E.t_GST (slotStartZ T
+(instHSub.hSub (Nat.cast (slotAt T t)) 1)) → Eq (joined (Prot.clock (V2.D.Run.stateBefore E rho iy
+y) t)) Bool.true)], [(∀ (t : Time), Int.instLEInt.le Jst t → Int.instLEInt.le E.t_GST (slotStartZ
+T (instHSub.hSub (Nat.cast (slotAt T t)) 1)))], [(∀ (i : Nat) (ev : V2.Event V Prot.Object) (m :
+Nat), Eq (List.instGetElem?NatLtLength.getElem? rho.events i) (Option.some ev) → Int.instLEInt.le
+Jst ev.time → instLENat.le 1 m → Eq (frontierAtIdx R E rho (instHAdd.hAdd i 1)) m →
+Int.instLEInt.le (instHAdd.hAdd ev.time T.delta) rho.horizon → PhaseWitnessReceiptScope R E rho O
+joined receipt (instHAdd.hAdd i 1) m (instHAdd.hAdd ev.time T.delta))], [(∀ (W : FG.FGBlock (Fin
+n)) (d : Time) (y : V), SetLike.instMembership.mem rho.honest y → receipt (R.erase W) d y →
+SetLike.instMembership.mem (R.core (V2.D.Run.stateBeforeTime E rho d y)).fg.TF W)], [instLTNat.lt
+(Ef.weightOf (historyFaulty S rho)) Ef.q], G ΔF, [Int.instLEInt.le E.Δ ΔF], [Eq E.Δ T.delta], [(∀
+(t : Time), Int.instLEInt.le E.t_GST t → Int.instLEInt.le (instHAdd.hAdd t G) rho.horizon → Exists
+fun s => And (Int.instLTInt.lt t (T.proposal s)) (And (Int.instLEInt.le (T.proposal s)
+(instHAdd.hAdd t G)) (Gen.V2.Duty.HonestSlot rho I s)))], [Int.instLEInt.le E.t_GST Jst],
+[Int.instLEInt.le (instHMul.hMul 4 T.delta) G], [PromotionSlotProposal R E rho T I],
+[PromotionProposalRead R S E rho O I decodeProposal bodyErase bodyRows parentFG parentHeight
+validFor fold], [PromotionRowOrder R E rho O I], [PromotionRowSigner S E rho T D],
+[PromotionSourceParent R E rho O T I Jst], deltaT, [TRowsReceipt R S E rho T blockWireRows ΔF],
+[(∀ (r height : Nat) (U X : FG.FGBlock (Fin n)), BatchPrem R S O T E rho I D Ef decodeProposal
+bodyErase bodyRows blockWireRows parentFG parentHeight validFor ΔF RowKind.progress r height U X →
+Eq (O.height X.parent).h height → ProgressCoveredByChild Ef O.height X U height)],
+[ProgressFoldAdvance Ef O.height deltaT], [(Exists fun Q => And (∀ (i : Fin n),
+SetLike.instMembership.mem Q i → SetLike.instMembership.mem rho.honest (safetyHolder S rho i))
+(instLENat.le Ef.q (Ef.weightOf Q)))], [(∀ (r : Nat) (x y : V) (K L : FG.FGBlock (Fin n)),
+SetLike.instMembership.mem rho.honest x → SetLike.instMembership.mem rho.honest y → Eq
+(actionSourceFG R E rho T x r) (Option.some (Option.some K)) → Eq (actionSourceFG R E rho T y r)
+(Option.some (Option.some L)) → Eq (O.height K).T_h.root (O.height L).T_h.root → Eq (O.height
+K).T_h (O.height L).T_h)], [(∀ (r : Nat) (x : V) (K : FG.FGBlock (Fin n)),
+SetLike.instMembership.mem rho.honest x → Eq (actionSourceFG R E rho T x r) (Option.some
+(Option.some K)) → instLENat.le K.slot (instHMul.hMul r T.roundSlots))], [(∀ (r : Nat) (x : V) (K
+A : FG.FGBlock (Fin n)), SetLike.instMembership.mem rho.honest x → Eq (actionSourceFG R E rho T x
+r) (Option.some (Option.some K)) → A.Preceq K → instLENat.le A.slot K.slot)], [(∀ (A B :
+FG.FGBlock (Fin n)), (R.erase A).Preceq (R.erase B) → A.Preceq B)], [AttemptProposalFloor R E rho
+O T I Jst], [(∀ (u v : Time) (m : Nat) (J : Option (FG.FGBlock (Fin n))) (contested : Bool) (q :
+Slot) (Q : Block), Int.instLEInt.le Jst u → PhaseInterval R E rho O u v m J contested →
+FrontierSeedQualification T leaseSlots E.t_GST u q → Int.instLEInt.le (T.gate q) v →
+HonestProposal E rho I q Q → Exists fun i => Exists fun x => Exists fun Qfg => And (instLENat.le
+(rho.idxBefore u) i) (And (instLENat.le i (timeIdx rho v)) (And (SetLike.instMembership.mem
+rho.honest x) (And (SetLike.instMembership.mem (R.core (V2.D.Run.stateBefore E rho i x)).fg.TF
+Qfg) (Eq (R.erase Qfg) Q)))))], [(∀ (u v : Time) (m : FG.Height) (J : Option (FG.FGBlock (Fin n)))
+(contested : Bool) (q : Slot) (Q : Block) (Qfg : FG.FGBlock (Fin n)), Int.instLEInt.le Jst u →
+HonestProposal E rho I q Q → Eq (R.erase Qfg) Q → Eq (O.height Qfg).h m → FrontierProposalService
+R E rho T q Q → FrontierSeedQualification T leaseSlots E.t_GST u q → Int.instLEInt.le u
+(T.proposal q) → PhaseInterval R E rho O u (T.gate q) m J contested → Int.instLEInt.le (T.gate q)
+v → Int.instLEInt.le v rho.horizon → (∀ (i : Nat) (x : V), instLENat.le (timeIdx rho u) i →
+instLENat.le i (timeIdx rho v) → SetLike.instMembership.mem rho.honest x → instLENat.le (R.core
+(V2.D.Run.stateBefore E rho i x)).fg.h_max m) → FrontierLocalService R S E rho O T I D.heightPair
+q Q Qfg m v)], [(∀ (u : Time) (m : Nat) (J : Option (FG.FGBlock (Fin n))) (contested : Bool) (q :
+Slot) (Q : Block) (Qfg : FG.FGBlock (Fin n)) (r : Slot), Int.instLEInt.le Jst u → HonestProposal E
+rho I q Q → Eq (R.erase Qfg) Q → FrontierProposalService R E rho T q Q → FrontierSeedQualification
+T leaseSlots E.t_GST u q → Int.instLEInt.le u (T.proposal q) → instLENat.le q (instHMul.hMul r
+T.roundSlots) → (∀ (r' : Slot), instLENat.le q (instHMul.hMul r' T.roundSlots) → instLENat.le r
+r') → PhaseInterval R E rho O u (T.action r) m J contested → And (OpeningCovered R S E rho
+O.height T D.heightPair r Q) (Eq (O.height Qfg).h (instHSub.hSub m 1) → Or (OpeningEntry R E rho
+O.height T r (instHSub.hSub m 1)) (Exists fun x => Exists fun K => And (SetLike.instMembership.mem
+rho.honest x) (And (Eq (actionSourceFG R E rho T x r) (Option.some (Option.some K))) (Eq (O.height
+K).h m)))))], [(∀ (i : Nat) (x : V) (A K : FG.FGBlock (Fin n)), SetLike.instMembership.mem (R.core
+(V2.D.Run.stateBefore E rho i x)).fg.TF K → A.Preceq K → instLENat.le A.slot K.slot)], [(∀ (q :
+Slot) (Q : Block) (K : FG.FGBlock (Fin n)), HonestProposal E rho I q Q → Eq (R.erase K) Q → Eq
+K.slot q)], [(∀ (i : Nat) (x : V), SetLike.instMembership.mem rho.honest x → Ne (R.core
+(V2.D.Run.stateBefore E rho i x)).fg.h_j 0 → Exists fun j => Exists fun y => Exists fun r =>
+Exists fun a => Exists fun K => And (instLTNat.lt j i) (And (HonestRowAt S E rho T j y r a) (And
+(Eq (actionSourceFG R E rho T y r) (Option.some (Option.some K))) (Eq (O.height K).T_h (R.core
+(V2.D.Run.stateBefore E rho i x)).fg.J))))], [(∀ (q : Slot) (Q : Block), HonestProposal E rho I q
+Q → Exists fun j => And (Eq (List.instGetElem?NatLtLength.getElem? rho.events j) (Option.some
+(V2.Event.tick (V2.D.proposerOf rho I q) (T.proposal q)))) (∀ (Qfg : FG.FGBlock (Fin n)), Eq
+(R.erase Qfg) Q → (O.controls (V2.D.Run.stateBefore E rho j (V2.D.proposerOf rho I q))).Z.Preceq
+Qfg.parent))], [(∀ (X : FG.FGBlock (Fin n)), Eq (R.erase X).parent (R.erase X.parent))],
+[PromotionCapReceipt R E rho O T I], [RCap R S E rho O T (fun a => namedEntry (D.heightPair a))
+chainRows], [rho.honest.Nonempty], [(∀ (rG : Nat) (ρbar : Time), Int.instLEInt.le Jst (T.action
+rG) → (∀ (r : Nat), Int.instLEInt.le Jst (T.action r) → instLENat.le rG r) →
+FrontierRepairAllowance R E rho O T I Jst leaseSlots G ρbar (T.action (instHAdd.hAdd rG 2)) → ∀ (i
+: Nat) (ev : V2.Event V Prot.Object) (m : Nat) (kind : PhaseKind), FrontierSearchStart R E rho O T
+Jst i ev m kind → Int.instLEInt.le (instHAdd.hAdd Jst (instHMul.hMul 2 (P T))) ev.time →
+FrontierRepairAllowance R E rho O T I Jst leaseSlots G ρbar (instHAdd.hAdd ev.time (instHMul.hMul
+3 T.delta)))].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: holder assignment/injectivity or honest-holder FG weight (exact guards in type);
+faulty FG-seat weight/count.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### frontierSearch_period_bound
+
+Source: `S031:39`.
+
+Translated telescope: T, [FGTimingLaws T].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: frontierSearch_period_bound (`S171:56`).
+
+### frontierSearch_gap_phase
+
+Source: `S031:91`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire Body, R, S, O, T, E, rho, I, D, Ef,
+decodeProposal, bodyErase, bodyRows, blockWireRows, parentFG, parentHeight, validFor, fold, Jst,
+leaseSlots, [FGObservationLaws R O], [KitFG.FGCertificateLaws Ef O.height O.finality], [(∀ (i :
+Nat) (x : V), KitFG.FGStoreInvariant O.height O.finality (R.core (V2.D.Run.stateBefore E rho i
+x)).fg)], [FGTimingLaws T], [instLENat.le 1 leaseSlots], [V2.D.ScheduleWellFormed E rho],
+[instLTNat.lt (Ef.weightOf (historyFaulty S rho)) Ef.q], G ΔF ρbar u Dl, [Int.instLEInt.le E.Δ
+ΔF], [Eq E.Δ T.delta], [(∀ (t : Time), Int.instLEInt.le E.t_GST t → Int.instLEInt.le
+(instHAdd.hAdd t G) rho.horizon → Exists fun s => And (Int.instLTInt.lt t (T.proposal s)) (And
+(Int.instLEInt.le (T.proposal s) (instHAdd.hAdd t G)) (Gen.V2.Duty.HonestSlot rho I s)))],
+[Int.instLEInt.le E.t_GST Jst], [Int.instLEInt.le (instHMul.hMul 4 T.delta) G],
+[PromotionSlotProposal R E rho T I], [PromotionProposalRead R S E rho O I decodeProposal bodyErase
+bodyRows parentFG parentHeight validFor fold], [PromotionRowOrder R E rho O I],
+[PromotionRowSigner S E rho T D], [PromotionSourceParent R E rho O T I Jst], deltaT, [Eq deltaT
+(instHMul.hMul 2 T.roundSlots)], [LivenessBoundW T ΔF], [TRowsReceipt R S E rho T blockWireRows
+ΔF], [(∀ (r height : Nat) (U X : FG.FGBlock (Fin n)), BatchPrem R S O T E rho I D Ef
+decodeProposal bodyErase bodyRows blockWireRows parentFG parentHeight validFor ΔF RowKind.progress
+r height U X → Eq (O.height X.parent).h height → ProgressCoveredByChild Ef O.height X U height)],
+[ProgressFoldAdvance Ef O.height deltaT], [(Exists fun Q => And (∀ (i : Fin n),
+SetLike.instMembership.mem Q i → SetLike.instMembership.mem rho.honest (safetyHolder S rho i))
+(instLENat.le Ef.q (Ef.weightOf Q)))], [(∀ (r : Nat) (x y : V) (K L : FG.FGBlock (Fin n)),
+SetLike.instMembership.mem rho.honest x → SetLike.instMembership.mem rho.honest y → Eq
+(actionSourceFG R E rho T x r) (Option.some (Option.some K)) → Eq (actionSourceFG R E rho T y r)
+(Option.some (Option.some L)) → Eq (O.height K).T_h.root (O.height L).T_h.root → Eq (O.height
+K).T_h (O.height L).T_h)], [(∀ (r : Nat) (x : V) (K : FG.FGBlock (Fin n)),
+SetLike.instMembership.mem rho.honest x → Eq (actionSourceFG R E rho T x r) (Option.some
+(Option.some K)) → instLENat.le K.slot (instHMul.hMul r T.roundSlots))], [(∀ (r : Nat) (x : V) (K
+A : FG.FGBlock (Fin n)), SetLike.instMembership.mem rho.honest x → Eq (actionSourceFG R E rho T x
+r) (Option.some (Option.some K)) → A.Preceq K → instLENat.le A.slot K.slot)], [Function.Injective
+R.erase], [(∀ (A B : FG.FGBlock (Fin n)), (R.erase A).Preceq (R.erase B) → A.Preceq B)],
+[AttemptProposalFloor R E rho O T I Jst], [(∀ (u v : Time) (m : Nat) (J : Option (FG.FGBlock (Fin
+n))) (contested : Bool) (q : Slot) (Q : Block), Int.instLEInt.le Jst u → PhaseInterval R E rho O u
+v m J contested → FrontierSeedQualification T leaseSlots E.t_GST u q → Int.instLEInt.le (T.gate q)
+v → HonestProposal E rho I q Q → Exists fun i => Exists fun x => Exists fun Qfg => And
+(instLENat.le (rho.idxBefore u) i) (And (instLENat.le i (timeIdx rho v)) (And
+(SetLike.instMembership.mem rho.honest x) (And (SetLike.instMembership.mem (R.core
+(V2.D.Run.stateBefore E rho i x)).fg.TF Qfg) (Eq (R.erase Qfg) Q)))))], [(∀ (u v : Time) (m :
+FG.Height) (J : Option (FG.FGBlock (Fin n))) (contested : Bool) (q : Slot) (Q : Block) (Qfg :
+FG.FGBlock (Fin n)), Int.instLEInt.le Jst u → HonestProposal E rho I q Q → Eq (R.erase Qfg) Q → Eq
+(O.height Qfg).h m → FrontierProposalService R E rho T q Q → FrontierSeedQualification T
+leaseSlots E.t_GST u q → Int.instLEInt.le u (T.proposal q) → PhaseInterval R E rho O u (T.gate q)
+m J contested → Int.instLEInt.le (T.gate q) v → Int.instLEInt.le v rho.horizon → (∀ (i : Nat) (x :
+V), instLENat.le (timeIdx rho u) i → instLENat.le i (timeIdx rho v) → SetLike.instMembership.mem
+rho.honest x → instLENat.le (R.core (V2.D.Run.stateBefore E rho i x)).fg.h_max m) →
+FrontierLocalService R S E rho O T I D.heightPair q Q Qfg m v)], [(∀ (u : Time) (m : Nat) (J :
+Option (FG.FGBlock (Fin n))) (contested : Bool) (q : Slot) (Q : Block) (Qfg : FG.FGBlock (Fin n))
+(r : Slot), Int.instLEInt.le Jst u → HonestProposal E rho I q Q → Eq (R.erase Qfg) Q →
+FrontierProposalService R E rho T q Q → FrontierSeedQualification T leaseSlots E.t_GST u q →
+Int.instLEInt.le u (T.proposal q) → instLENat.le q (instHMul.hMul r T.roundSlots) → (∀ (r' :
+Slot), instLENat.le q (instHMul.hMul r' T.roundSlots) → instLENat.le r r') → PhaseInterval R E rho
+O u (T.action r) m J contested → And (OpeningCovered R S E rho O.height T D.heightPair r Q) (Eq
+(O.height Qfg).h (instHSub.hSub m 1) → Or (OpeningEntry R E rho O.height T r (instHSub.hSub m 1))
+(Exists fun x => Exists fun K => And (SetLike.instMembership.mem rho.honest x) (And (Eq
+(actionSourceFG R E rho T x r) (Option.some (Option.some K))) (Eq (O.height K).h m)))))], [(∀ (i :
+Nat) (x : V) (A K : FG.FGBlock (Fin n)), SetLike.instMembership.mem (R.core (V2.D.Run.stateBefore
+E rho i x)).fg.TF K → A.Preceq K → instLENat.le A.slot K.slot)], [(∀ (q : Slot) (Q : Block) (K :
+FG.FGBlock (Fin n)), HonestProposal E rho I q Q → Eq (R.erase K) Q → Eq K.slot q)], m,
+[Int.instLEInt.le Jst u], [PhaseInterval R E rho O u Dl m Option.none Bool.false],
+[FrontierRepairAllowance R E rho O T I Jst leaseSlots G ρbar u], [Int.instLEInt.le (instHAdd.hAdd
+(instHAdd.hAdd u ρbar) (instHSub.hSub (instHAdd.hAdd (instHMul.hMul 2 (P T)) (Γ T G))
+(instHMul.hMul 4 T.delta))) Dl].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: holder assignment/injectivity or honest-holder FG weight (exact guards in type);
+faulty FG-seat weight/count.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### frontier_hg3_gap
+
+Source: `S031:322`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire Body, R, S, O, T, E, rho, I, D, Ef,
+decodeProposal, bodyErase, bodyRows, blockWireRows, parentFG, parentHeight, validFor, fold, Jst,
+leaseSlots, [FGObservationLaws R O], [KitFG.FGCertificateLaws Ef O.height O.finality], [(∀ (i :
+Nat) (x : V), KitFG.FGStoreInvariant O.height O.finality (R.core (V2.D.Run.stateBefore E rho i
+x)).fg)], [KitFG.FGJustificationLaws O.height], [(∀ (i j : Nat), instLENat.le i j → ∀ (x : V),
+Finset.instPartialOrder.le (TFAt R E rho i x) (TFAt R E rho j x))], [Int.instLTInt.lt 0 T.delta],
+[FGCoreLaws R], [(∀ {A B : FG.FGBlock (Fin n)}, A.Preceq B → (R.erase A).Preceq (R.erase B))],
+joined, receipt, [FGTimingLaws T], [instLENat.le 1 leaseSlots], [RXing R E rho O],
+[V2.D.ScheduleWellFormed E rho], [FGRunOrderLaws E rho R], [(∀ (y : V), SetLike.instMembership.mem
+rho.honest y → ∀ (t : Time), Int.instLEInt.le E.t_GST t → Int.instLEInt.le t rho.horizon → Eq
+(E.awake y t) Bool.true)], [(∀ (iy : Nat) (y : V) (t : Time), SetLike.instMembership.mem
+rho.honest y → Eq (List.instGetElem?NatLtLength.getElem? rho.events iy) (Option.some
+(V2.Event.tick y t)) → Int.instLEInt.le t rho.horizon → Int.instLEInt.le E.t_GST (slotStartZ T
+(instHSub.hSub (Nat.cast (slotAt T t)) 1)) → Eq (joined (Prot.clock (V2.D.Run.stateBefore E rho iy
+y) t)) Bool.true)], [(∀ (t : Time), Int.instLEInt.le Jst t → Int.instLEInt.le E.t_GST (slotStartZ
+T (instHSub.hSub (Nat.cast (slotAt T t)) 1)))], [(∀ (i : Nat) (ev : V2.Event V Prot.Object) (m :
+Nat), Eq (List.instGetElem?NatLtLength.getElem? rho.events i) (Option.some ev) → Int.instLEInt.le
+Jst ev.time → instLENat.le 1 m → Eq (frontierAtIdx R E rho (instHAdd.hAdd i 1)) m →
+Int.instLEInt.le (instHAdd.hAdd ev.time T.delta) rho.horizon → PhaseWitnessReceiptScope R E rho O
+joined receipt (instHAdd.hAdd i 1) m (instHAdd.hAdd ev.time T.delta))], [(∀ (W : FG.FGBlock (Fin
+n)) (d : Time) (y : V), SetLike.instMembership.mem rho.honest y → receipt (R.erase W) d y →
+SetLike.instMembership.mem (R.core (V2.D.Run.stateBeforeTime E rho d y)).fg.TF W)], [instLTNat.lt
+(Ef.weightOf (historyFaulty S rho)) Ef.q], G ΔF ρbar, [Int.instLEInt.le E.Δ ΔF], [Eq E.Δ T.delta],
+[(∀ (t : Time), Int.instLEInt.le E.t_GST t → Int.instLEInt.le (instHAdd.hAdd t G) rho.horizon →
+Exists fun s => And (Int.instLTInt.lt t (T.proposal s)) (And (Int.instLEInt.le (T.proposal s)
+(instHAdd.hAdd t G)) (Gen.V2.Duty.HonestSlot rho I s)))], [Int.instLEInt.le E.t_GST Jst],
+[Int.instLEInt.le (instHMul.hMul 4 T.delta) G], [PromotionSlotProposal R E rho T I],
+[PromotionProposalRead R S E rho O I decodeProposal bodyErase bodyRows parentFG parentHeight
+validFor fold], [PromotionRowOrder R E rho O I], [PromotionRowSigner S E rho T D],
+[PromotionSourceParent R E rho O T I Jst], deltaT, [Eq deltaT (instHMul.hMul 2 T.roundSlots)],
+[LivenessBoundW T ΔF], [TRowsReceipt R S E rho T blockWireRows ΔF], [(∀ (r height : Nat) (U X :
+FG.FGBlock (Fin n)), BatchPrem R S O T E rho I D Ef decodeProposal bodyErase bodyRows
+blockWireRows parentFG parentHeight validFor ΔF RowKind.progress r height U X → Eq (O.height
+X.parent).h height → ProgressCoveredByChild Ef O.height X U height)], [ProgressFoldAdvance Ef
+O.height deltaT], [(Exists fun Q => And (∀ (i : Fin n), SetLike.instMembership.mem Q i →
+SetLike.instMembership.mem rho.honest (safetyHolder S rho i)) (instLENat.le Ef.q (Ef.weightOf
+Q)))], [(∀ (r : Nat) (x y : V) (K L : FG.FGBlock (Fin n)), SetLike.instMembership.mem rho.honest x
+→ SetLike.instMembership.mem rho.honest y → Eq (actionSourceFG R E rho T x r) (Option.some
+(Option.some K)) → Eq (actionSourceFG R E rho T y r) (Option.some (Option.some L)) → Eq (O.height
+K).T_h.root (O.height L).T_h.root → Eq (O.height K).T_h (O.height L).T_h)], [(∀ (r : Nat) (x : V)
+(K : FG.FGBlock (Fin n)), SetLike.instMembership.mem rho.honest x → Eq (actionSourceFG R E rho T x
+r) (Option.some (Option.some K)) → instLENat.le K.slot (instHMul.hMul r T.roundSlots))], [(∀ (r :
+Nat) (x : V) (K A : FG.FGBlock (Fin n)), SetLike.instMembership.mem rho.honest x → Eq
+(actionSourceFG R E rho T x r) (Option.some (Option.some K)) → A.Preceq K → instLENat.le A.slot
+K.slot)], [(∀ (A B : FG.FGBlock (Fin n)), (R.erase A).Preceq (R.erase B) → A.Preceq B)],
+[AttemptProposalFloor R E rho O T I Jst], [(∀ (u v : Time) (m : Nat) (J : Option (FG.FGBlock (Fin
+n))) (contested : Bool) (q : Slot) (Q : Block), Int.instLEInt.le Jst u → PhaseInterval R E rho O u
+v m J contested → FrontierSeedQualification T leaseSlots E.t_GST u q → Int.instLEInt.le (T.gate q)
+v → HonestProposal E rho I q Q → Exists fun i => Exists fun x => Exists fun Qfg => And
+(instLENat.le (rho.idxBefore u) i) (And (instLENat.le i (timeIdx rho v)) (And
+(SetLike.instMembership.mem rho.honest x) (And (SetLike.instMembership.mem (R.core
+(V2.D.Run.stateBefore E rho i x)).fg.TF Qfg) (Eq (R.erase Qfg) Q)))))], [(∀ (u v : Time) (m :
+FG.Height) (J : Option (FG.FGBlock (Fin n))) (contested : Bool) (q : Slot) (Q : Block) (Qfg :
+FG.FGBlock (Fin n)), Int.instLEInt.le Jst u → HonestProposal E rho I q Q → Eq (R.erase Qfg) Q → Eq
+(O.height Qfg).h m → FrontierProposalService R E rho T q Q → FrontierSeedQualification T
+leaseSlots E.t_GST u q → Int.instLEInt.le u (T.proposal q) → PhaseInterval R E rho O u (T.gate q)
+m J contested → Int.instLEInt.le (T.gate q) v → Int.instLEInt.le v rho.horizon → (∀ (i : Nat) (x :
+V), instLENat.le (timeIdx rho u) i → instLENat.le i (timeIdx rho v) → SetLike.instMembership.mem
+rho.honest x → instLENat.le (R.core (V2.D.Run.stateBefore E rho i x)).fg.h_max m) →
+FrontierLocalService R S E rho O T I D.heightPair q Q Qfg m v)], [(∀ (u : Time) (m : Nat) (J :
+Option (FG.FGBlock (Fin n))) (contested : Bool) (q : Slot) (Q : Block) (Qfg : FG.FGBlock (Fin n))
+(r : Slot), Int.instLEInt.le Jst u → HonestProposal E rho I q Q → Eq (R.erase Qfg) Q →
+FrontierProposalService R E rho T q Q → FrontierSeedQualification T leaseSlots E.t_GST u q →
+Int.instLEInt.le u (T.proposal q) → instLENat.le q (instHMul.hMul r T.roundSlots) → (∀ (r' :
+Slot), instLENat.le q (instHMul.hMul r' T.roundSlots) → instLENat.le r r') → PhaseInterval R E rho
+O u (T.action r) m J contested → And (OpeningCovered R S E rho O.height T D.heightPair r Q) (Eq
+(O.height Qfg).h (instHSub.hSub m 1) → Or (OpeningEntry R E rho O.height T r (instHSub.hSub m 1))
+(Exists fun x => Exists fun K => And (SetLike.instMembership.mem rho.honest x) (And (Eq
+(actionSourceFG R E rho T x r) (Option.some (Option.some K))) (Eq (O.height K).h m)))))], [(∀ (i :
+Nat) (x : V) (A K : FG.FGBlock (Fin n)), SetLike.instMembership.mem (R.core (V2.D.Run.stateBefore
+E rho i x)).fg.TF K → A.Preceq K → instLENat.le A.slot K.slot)], [(∀ (q : Slot) (Q : Block) (K :
+FG.FGBlock (Fin n)), HonestProposal E rho I q Q → Eq (R.erase K) Q → Eq K.slot q)], i m, ev,
+[FrontierSearchStart R E rho O T Jst i ev m PhaseKind.gap], [FrontierRepairAllowance R E rho O T I
+Jst leaseSlots G ρbar (instHAdd.hAdd ev.time (instHMul.hMul 3 T.delta))], [Int.instLEInt.le
+(instHAdd.hAdd ev.time (E_gF T ΔF G ρbar)) rho.horizon].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: holder assignment/injectivity or honest-holder FG weight (exact guards in type);
+faulty FG-seat weight/count.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### frontierSearch_hg2a_bound
+
+Source: `S032:61`.
+
+Translated telescope: T, [FGTimingLaws T], G ΔF d a tU, [LivenessBoundW T ΔF], [Int.instLEInt.le a
+(instHSub.hSub (instHAdd.hAdd d (P T)) (instHMul.hMul 4 T.delta))], [Int.instLEInt.le tU
+(instHSub.hSub d (instHMul.hMul 6 T.delta))].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: frontierSearch_hg2a_bound (`S172:471`).
+
+### frontierSearch_hg2a_gate_cost
+
+Source: `S032:77`.
+
+Translated telescope: T, G ΔF a tU.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: frontierSearch_hg2a_gate_cost (`S172:483`).
+
+### frontierSearch_hg2a_gap
+
+Source: `S032:90`.
+
+Translated telescope: In V, Prot, n, T, E, rho, I, [FGTimingLaws T], G ΔF, [Int.instLEInt.le E.Δ
+ΔF], [Eq E.Δ T.delta], [(∀ (t : Time), Int.instLEInt.le E.t_GST t → Int.instLEInt.le
+(instHAdd.hAdd t G) rho.horizon → Exists fun s => And (Int.instLTInt.lt t (T.proposal s)) (And
+(Int.instLEInt.le (T.proposal s) (instHAdd.hAdd t G)) (Gen.V2.Duty.HonestSlot rho I s)))], r, U,
+[Int.instLEInt.le E.t_GST (instHMul.hMul r.cast (P T))], [Int.instLEInt.le (Int.instMax.max
+(instHAdd.hAdd (instHSub.hSub (instHAdd.hAdd (T.action r) (Γ T G)) T.delta) (epsF T ΔF))
+(instHSub.hSub (instHAdd.hAdd (instHAdd.hAdd (T.proposal U.slot) (instHMul.hMul 2 (P T))) (Γ T G))
+(instHMul.hMul 3 T.delta))) rho.horizon].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: frontierSearch_hg2a_gap (`S172:494`).
+
+### frontier_hg2a_receipt
+
+Source: `S032:127`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire Body, R, S, O, T, E, rho, I, D, Ef,
+decodeProposal, bodyErase, bodyRows, blockWireRows, parentFG, parentHeight, validFor, fold,
+[KitFG.FGHeightLaws Ef O.height], [FGTimingLaws T], [V2.D.ScheduleWellFormed E rho], [instLTNat.lt
+(Ef.weightOf (historyFaulty S rho)) Ef.q], G ΔF, [Int.instLEInt.le E.Δ ΔF], [Eq E.Δ T.delta], [(∀
+(t : Time), Int.instLEInt.le E.t_GST t → Int.instLEInt.le (instHAdd.hAdd t G) rho.horizon → Exists
+fun s => And (Int.instLTInt.lt t (T.proposal s)) (And (Int.instLEInt.le (T.proposal s)
+(instHAdd.hAdd t G)) (Gen.V2.Duty.HonestSlot rho I s)))], Jst, [Int.instLEInt.le E.t_GST Jst],
+[FGRunOrderLaws E rho R], [(∀ (i j : Nat), instLENat.le i j → ∀ (x : V),
+Finset.instPartialOrder.le (TFAt R E rho i x) (TFAt R E rho j x))], [(∀ (X : FG.FGBlock (Fin n)),
+Eq (R.erase X).parent (R.erase X.parent))], [(∀ (A B : FG.FGBlock (Fin n)), (R.erase A).Preceq
+(R.erase B) → A.Preceq B)], [PromotionSlotProposal R E rho T I], [PromotionProposalRead R S E rho
+O I decodeProposal bodyErase bodyRows parentFG parentHeight validFor fold], [PromotionRowOrder R E
+rho O I], [PromotionRowSigner S E rho T D], [PromotionCapReceipt R E rho O T I], deltaT, [Eq
+deltaT (instHMul.hMul 2 T.roundSlots)], [LivenessBoundW T ΔF], [TRowsReceipt R S E rho T
+blockWireRows ΔF], [(∀ (r height : Nat) (U X : FG.FGBlock (Fin n)), BatchPrem R S O T E rho I D Ef
+decodeProposal bodyErase bodyRows blockWireRows parentFG parentHeight validFor ΔF RowKind.progress
+r height U X → Eq (O.height X.parent).h height → ProgressCoveredByChild Ef O.height X U height)],
+[ProgressFoldAdvance Ef O.height deltaT], [(Exists fun Q => And (∀ (i : Fin n),
+SetLike.instMembership.mem Q i → SetLike.instMembership.mem rho.honest (safetyHolder S rho i))
+(instLENat.le Ef.q (Ef.weightOf Q)))], u, i m r q, Q, Qfg U, [Int.instLEInt.le Jst u],
+[HonestProposal E rho I q Q], [Eq (R.erase Qfg) Q], [Eq (O.height Qfg).h m], [Int.instLEInt.le u
+(T.proposal q)], [instLENat.le q (instHMul.hMul r T.roundSlots)], [Eq U (O.height Qfg).T_h], [(∀
+(t : Time), Int.instLEInt.le (T.gate q) t → Int.instLEInt.le t rho.horizon → (∀ (k : Nat) (x : V),
+instLENat.le (timeIdx rho u) k → instLENat.le k (timeIdx rho t) → SetLike.instMembership.mem
+rho.honest x → instLENat.le (R.core (V2.D.Run.stateBefore E rho k x)).fg.h_max m) →
+FrontierLocalService R S E rho O T I D.heightPair q Q Qfg m t)], [(∀ (x y : V) (K L : FG.FGBlock
+(Fin n)), SetLike.instMembership.mem rho.honest x → SetLike.instMembership.mem rho.honest y → Eq
+(actionSourceFG R E rho T x r) (Option.some (Option.some K)) → Eq (actionSourceFG R E rho T y r)
+(Option.some (Option.some L)) → Eq (O.height K).T_h.root (O.height L).T_h.root → Eq (O.height
+K).T_h (O.height L).T_h)], [(∀ (x : V) (K : FG.FGBlock (Fin n)), SetLike.instMembership.mem
+rho.honest x → Eq (actionSourceFG R E rho T x r) (Option.some (Option.some K)) → instLENat.le
+K.slot (instHMul.hMul r T.roundSlots))], [(∀ (x : V) (K A : FG.FGBlock (Fin n)),
+SetLike.instMembership.mem rho.honest x → Eq (actionSourceFG R E rho T x r) (Option.some
+(Option.some K)) → A.Preceq K → instLENat.le A.slot K.slot)], [instLENat.le (frontierAtIdx R E rho
+(instHAdd.hAdd i 1)) m], [Int.instLEInt.le (Int.instMax.max (instHAdd.hAdd (instHSub.hSub
+(instHAdd.hAdd (T.action r) (Γ T G)) T.delta) (epsF T ΔF)) (instHSub.hSub (instHAdd.hAdd
+(instHAdd.hAdd (T.proposal U.slot) (instHMul.hMul 2 (P T))) (Γ T G)) (instHMul.hMul 3 T.delta)))
+rho.horizon].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: holder assignment/injectivity or honest-holder FG weight (exact guards in type);
+faulty FG-seat weight/count.
+
+FG-SA producer/application: frontier_hg2a_receipt (`S172:522`).
+
+### frontierSearch_timeIdx_mono
+
+Source: `S033:33`.
+
+Translated telescope: In V, Prot, rho, u v, [Int.instLEInt.le u v].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: frontierSearch_timeIdx_mono (`S173:137`).
+
+### frontierSearch_phase_cut
+
+Source: `S033:41`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, E, rho, O, u v w, m, J,
+contested, [PhaseInterval R E rho O u v m J contested], [Int.instLEInt.le u w], [Int.instLEInt.le
+w v].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: frontierSearch_phase_cut (`S173:143`); frontierSearch_save_seed
+(`S173:241`).
+
+### frontierSearch_seed_after
+
+Source: `S033:49`.
+
+Translated telescope: T, leaseSlots, [FGTimingLaws T], [instLENat.le 1 leaseSlots], GST u, q,
+[FrontierSeedQualification T leaseSlots GST u q].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: frontierSearch_seed_after (`S173:175`); frontierSearch_save_seed
+(`S173:241`).
+
+### frontierSearch_seed_of_start
+
+Source: `S033:77`.
+
+Translated telescope: V, E, T, leaseSlots, u, l q, [FrontierRepairStart E T leaseSlots u l],
+[Int.instLTInt.lt (T.proposal l) (T.proposal q)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### frontierSearch_seed_later
+
+Source: `S033:86`.
+
+Translated telescope: T, leaseSlots, GST u, q s, [FrontierSeedQualification T leaseSlots GST u q],
+[Int.instLTInt.lt (T.proposal q) (T.proposal s)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### frontierSearch_phase_hmax
+
+Source: `S033:104`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, E, rho, O, [FGObservationLaws R
+O], u v, m, J, contested, [PhaseInterval R E rho O u v m J contested], i, x, [instLENat.le
+(rho.idxBefore u) i], [instLENat.le i (timeIdx rho v)], [SetLike.instMembership.mem rho.honest x].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### frontierSearch_phase_cap
+
+Source: `S033:115`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, E, rho, O, [FGObservationLaws R
+O], u v t, m, J, contested, [PhaseInterval R E rho O u v m J contested], [Int.instLEInt.le t v],
+i, x, [instLENat.le (timeIdx rho u) i], [instLENat.le i (timeIdx rho t)],
+[SetLike.instMembership.mem rho.honest x].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: frontierSearch_save_seed (`S173:241`).
+
+### frontierSearch_proposal_heights
+
+Source: `S033:127`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, E, rho, O, T, I, Jst, Ef,
+[FGObservationLaws R O], [KitFG.FGCertificateLaws Ef O.height O.finality], [(∀ (i : Nat) (x : V),
+KitFG.FGStoreInvariant O.height O.finality (R.core (V2.D.Run.stateBefore E rho i x)).fg)],
+[AttemptProposalFloor R E rho O T I Jst], u D, m q, J, contested, Q, Qfg, [Int.instLEInt.le Jst
+u], [PhaseInterval R E rho O u D m J contested], [Int.instLEInt.le u (T.proposal q)],
+[Int.instLEInt.le (T.gate q) D], [HonestProposal E rho I q Q], [Eq (R.erase Qfg) Q], [(Exists fun
+i => Exists fun x => And (instLENat.le (rho.idxBefore u) i) (And (instLENat.le i (timeIdx rho D))
+(And (SetLike.instMembership.mem rho.honest x) (SetLike.instMembership.mem (R.core
+(V2.D.Run.stateBefore E rho i x)).fg.TF Qfg))))].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: frontierSearch_proposal_heights (`S173:184`).
+
+### frontierSearch_save_seed
+
+Source: `S033:150`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, S, E, rho, O, T, I, pair, Jst,
+leaseSlots, [FGObservationLaws R O], [FGTimingLaws T], [instLENat.le 1 leaseSlots], u D, m q, J,
+contested, Q, Qfg, [Int.instLEInt.le Jst u], [PhaseInterval R E rho O u D m J contested],
+[FrontierSeedQualification T leaseSlots E.t_GST u q], [HonestProposal E rho I q Q], [Eq (R.erase
+Qfg) Q], [Eq (O.height Qfg).h m], [FrontierProposalService R E rho T q Q], [Int.instLEInt.le
+(T.gate q) D], [FrontierLocalService R S E rho O T I pair q Q Qfg m (T.gate q)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### frontier_hg3_contest
+
+Source: `S033:173`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, S, E, rho, O, T, I, pair, Jst,
+leaseSlots, Ef, [FGObservationLaws R O], [KitFG.FGCertificateLaws Ef O.height O.finality], [(∀ (i
+: Nat) (x : V), KitFG.FGStoreInvariant O.height O.finality (R.core (V2.D.Run.stateBefore E rho i
+x)).fg)], [KitFG.FGJustificationLaws O.height], [(∀ (i j : Nat), instLENat.le i j → ∀ (x : V),
+Finset.instPartialOrder.le (TFAt R E rho i x) (TFAt R E rho j x))], [Int.instLTInt.lt 0 T.delta],
+[FGCoreLaws R], [(∀ {A B : FG.FGBlock (Fin n)}, A.Preceq B → (R.erase A).Preceq (R.erase B))],
+joined, receipt, [FGTimingLaws T], [instLENat.le 1 leaseSlots], [RXing R E rho O],
+[V2.D.ScheduleWellFormed E rho], [FGRunOrderLaws E rho R], [Eq E.Δ T.delta], [Int.instLEInt.le
+E.t_GST Jst], [(∀ (y : V), SetLike.instMembership.mem rho.honest y → ∀ (t : Time),
+Int.instLEInt.le E.t_GST t → Int.instLEInt.le t rho.horizon → Eq (E.awake y t) Bool.true)], [(∀
+(iy : Nat) (y : V) (t : Time), SetLike.instMembership.mem rho.honest y → Eq
+(List.instGetElem?NatLtLength.getElem? rho.events iy) (Option.some (V2.Event.tick y t)) →
+Int.instLEInt.le t rho.horizon → Int.instLEInt.le E.t_GST (slotStartZ T (instHSub.hSub (Nat.cast
+(slotAt T t)) 1)) → Eq (joined (Prot.clock (V2.D.Run.stateBefore E rho iy y) t)) Bool.true)], [(∀
+(t : Time), Int.instLEInt.le Jst t → Int.instLEInt.le E.t_GST (slotStartZ T (instHSub.hSub
+(Nat.cast (slotAt T t)) 1)))], [(∀ (i : Nat) (ev : V2.Event V Prot.Object) (m : Nat), Eq
+(List.instGetElem?NatLtLength.getElem? rho.events i) (Option.some ev) → Int.instLEInt.le Jst
+ev.time → instLENat.le 1 m → Eq (frontierAtIdx R E rho (instHAdd.hAdd i 1)) m → Int.instLEInt.le
+(instHAdd.hAdd ev.time T.delta) rho.horizon → PhaseWitnessReceiptScope R E rho O joined receipt
+(instHAdd.hAdd i 1) m (instHAdd.hAdd ev.time T.delta))], [(∀ (W : FG.FGBlock (Fin n)) (d : Time)
+(y : V), SetLike.instMembership.mem rho.honest y → receipt (R.erase W) d y →
+SetLike.instMembership.mem (R.core (V2.D.Run.stateBeforeTime E rho d y)).fg.TF W)], G ρbar,
+[Int.instLEInt.le (instHMul.hMul 4 T.delta) G], [AttemptProposalFloor R E rho O T I Jst], [(∀ (u v
+: Time) (m : Nat) (J : Option (FG.FGBlock (Fin n))) (contested : Bool) (q : Slot) (Q : Block),
+Int.instLEInt.le Jst u → PhaseInterval R E rho O u v m J contested → FrontierSeedQualification T
+leaseSlots E.t_GST u q → Int.instLEInt.le (T.gate q) v → HonestProposal E rho I q Q → Exists fun i
+=> Exists fun x => Exists fun Qfg => And (instLENat.le (rho.idxBefore u) i) (And (instLENat.le i
+(timeIdx rho v)) (And (SetLike.instMembership.mem rho.honest x) (And (SetLike.instMembership.mem
+(R.core (V2.D.Run.stateBefore E rho i x)).fg.TF Qfg) (Eq (R.erase Qfg) Q)))))], [(∀ (u v : Time)
+(m : FG.Height) (J : Option (FG.FGBlock (Fin n))) (contested : Bool) (q : Slot) (Q : Block) (Qfg :
+FG.FGBlock (Fin n)), Int.instLEInt.le Jst u → HonestProposal E rho I q Q → Eq (R.erase Qfg) Q → Eq
+(O.height Qfg).h m → FrontierProposalService R E rho T q Q → FrontierSeedQualification T
+leaseSlots E.t_GST u q → Int.instLEInt.le u (T.proposal q) → PhaseInterval R E rho O u (T.gate q)
+m J contested → Int.instLEInt.le (T.gate q) v → Int.instLEInt.le v rho.horizon → (∀ (i : Nat) (x :
+V), instLENat.le (timeIdx rho u) i → instLENat.le i (timeIdx rho v) → SetLike.instMembership.mem
+rho.honest x → instLENat.le (R.core (V2.D.Run.stateBefore E rho i x)).fg.h_max m) →
+FrontierLocalService R S E rho O T I pair q Q Qfg m v)], i m, ev, [FrontierSearchStart R E rho O T
+Jst i ev m PhaseKind.contest], [FrontierRepairAllowance R E rho O T I Jst leaseSlots G ρbar
+(instHAdd.hAdd ev.time (instHMul.hMul 3 T.delta))], [Int.instLEInt.le (instHAdd.hAdd ev.time
+(instHAdd.hAdd ρbar (instHMul.hMul 3 T.delta))) rho.horizon].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### healing_frontierTail_rise_of_seed
+
+Source: `S034:65`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire Body, R, S, O, T, E, rho, I, D, Ef,
+decodeProposal, bodyErase, bodyRows, blockWireRows, parentFG, parentHeight, validFor, fold, Jst,
+[KitFG.FGCertificateLaws Ef O.height O.finality], [(∀ (i : Nat) (x : V), KitFG.FGStoreInvariant
+O.height O.finality (R.core (V2.D.Run.stateBefore E rho i x)).fg)], [(∀ (i j : Nat), instLENat.le
+i j → ∀ (x : V), Finset.instPartialOrder.le (TFAt R E rho i x) (TFAt R E rho j x))], [FGTimingLaws
+T], [V2.D.ScheduleWellFormed E rho], [instLTNat.lt (Ef.weightOf (historyFaulty S rho)) Ef.q], G
+ΔF, [Int.instLEInt.le E.Δ ΔF], [Eq E.Δ T.delta], [(∀ (t : Time), Int.instLEInt.le E.t_GST t →
+Int.instLEInt.le (instHAdd.hAdd t G) rho.horizon → Exists fun s => And (Int.instLTInt.lt t
+(T.proposal s)) (And (Int.instLEInt.le (T.proposal s) (instHAdd.hAdd t G)) (Gen.V2.Duty.HonestSlot
+rho I s)))], [Int.instLEInt.le E.t_GST Jst], [FGRunOrderLaws E rho R], [(∀ (X : FG.FGBlock (Fin
+n)), Eq (R.erase X).parent (R.erase X.parent))], [(∀ (A B : FG.FGBlock (Fin n)), (R.erase
+A).Preceq (R.erase B) → A.Preceq B)], [PromotionSlotProposal R E rho T I], [PromotionProposalRead
+R S E rho O I decodeProposal bodyErase bodyRows parentFG parentHeight validFor fold],
+[PromotionRowOrder R E rho O I], [PromotionRowSigner S E rho T D], [PromotionCapReceipt R E rho O
+T I], deltaT, [Eq deltaT (instHMul.hMul 2 T.roundSlots)], [LivenessBoundW T ΔF], [TRowsReceipt R S
+E rho T blockWireRows ΔF], [(∀ (r height : Nat) (U X : FG.FGBlock (Fin n)), BatchPrem R S O T E
+rho I D Ef decodeProposal bodyErase bodyRows blockWireRows parentFG parentHeight validFor ΔF
+RowKind.progress r height U X → Eq (O.height X.parent).h height → ProgressCoveredByChild Ef
+O.height X U height)], [ProgressFoldAdvance Ef O.height deltaT], [(Exists fun Q => And (∀ (i : Fin
+n), SetLike.instMembership.mem Q i → SetLike.instMembership.mem rho.honest (safetyHolder S rho i))
+(instLENat.le Ef.q (Ef.weightOf Q)))], [(∀ (r : Nat) (x y : V) (K L : FG.FGBlock (Fin n)),
+SetLike.instMembership.mem rho.honest x → SetLike.instMembership.mem rho.honest y → Eq
+(actionSourceFG R E rho T x r) (Option.some (Option.some K)) → Eq (actionSourceFG R E rho T y r)
+(Option.some (Option.some L)) → Eq (O.height K).T_h.root (O.height L).T_h.root → Eq (O.height
+K).T_h (O.height L).T_h)], [(∀ (r : Nat) (x : V) (K : FG.FGBlock (Fin n)),
+SetLike.instMembership.mem rho.honest x → Eq (actionSourceFG R E rho T x r) (Option.some
+(Option.some K)) → instLENat.le K.slot (instHMul.hMul r T.roundSlots))], [(∀ (r : Nat) (x : V) (K
+A : FG.FGBlock (Fin n)), SetLike.instMembership.mem rho.honest x → Eq (actionSourceFG R E rho T x
+r) (Option.some (Option.some K)) → A.Preceq K → instLENat.le A.slot K.slot)], [(∀ (i : Nat) (x :
+V) (A K : FG.FGBlock (Fin n)), SetLike.instMembership.mem (R.core (V2.D.Run.stateBefore E rho i
+x)).fg.TF K → A.Preceq K → instLENat.le A.slot K.slot)], [(∀ (q : Slot) (Q : Block) (K :
+FG.FGBlock (Fin n)), HonestProposal E rho I q Q → Eq (R.erase K) Q → Eq K.slot q)], u t, i m q, Q,
+Qfg, [Int.instLEInt.le Jst u], [HonestProposal E rho I q Q], [Eq (R.erase Qfg) Q], [Eq (O.height
+Qfg).h m], [Int.instLEInt.le u (T.proposal q)], [Int.instLEInt.le (T.gate q) t], [(Exists fun j =>
+Exists fun x => SetLike.instMembership.mem (R.core (V2.D.Run.stateBefore E rho j x)).fg.TF Qfg)],
+[(∀ (v : Time), Int.instLEInt.le (T.gate q) v → Int.instLEInt.le v rho.horizon → (∀ (k : Nat) (x :
+V), instLENat.le (timeIdx rho u) k → instLENat.le k (timeIdx rho v) → SetLike.instMembership.mem
+rho.honest x → instLENat.le (R.core (V2.D.Run.stateBefore E rho k x)).fg.h_max m) →
+FrontierLocalService R S E rho O T I D.heightPair q Q Qfg m v)], [instLENat.le (frontierAtIdx R E
+rho (instHAdd.hAdd i 1)) m], [Int.instLEInt.le (instHAdd.hAdd t (instHSub.hSub (instHAdd.hAdd
+(instHMul.hMul 2 (P T)) (Γ T G)) (instHMul.hMul 9 T.delta))) rho.horizon].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: holder assignment/injectivity or honest-holder FG weight (exact guards in type);
+faulty FG-seat weight/count.
+
+FG-SA producer/application: healing_frontierTail_rise_of_seed (`S174:542`).
+
+### healing_frontierTail_rise
+
+Source: `S034:150`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire Body, R, S, O, T, E, rho, I, D, Ef,
+decodeProposal, bodyErase, bodyRows, blockWireRows, parentFG, parentHeight, validFor, fold, Jst,
+leaseSlots, [KitFG.FGCertificateLaws Ef O.height O.finality], [(∀ (i : Nat) (x : V),
+KitFG.FGStoreInvariant O.height O.finality (R.core (V2.D.Run.stateBefore E rho i x)).fg)], [(∀ (i
+j : Nat), instLENat.le i j → ∀ (x : V), Finset.instPartialOrder.le (TFAt R E rho i x) (TFAt R E
+rho j x))], [FGTimingLaws T], [V2.D.ScheduleWellFormed E rho], [instLTNat.lt (Ef.weightOf
+(historyFaulty S rho)) Ef.q], G ΔF, [Int.instLEInt.le E.Δ ΔF], [Eq E.Δ T.delta], [(∀ (t : Time),
+Int.instLEInt.le E.t_GST t → Int.instLEInt.le (instHAdd.hAdd t G) rho.horizon → Exists fun s =>
+And (Int.instLTInt.lt t (T.proposal s)) (And (Int.instLEInt.le (T.proposal s) (instHAdd.hAdd t G))
+(Gen.V2.Duty.HonestSlot rho I s)))], [Int.instLEInt.le E.t_GST Jst], [FGRunOrderLaws E rho R], [(∀
+(X : FG.FGBlock (Fin n)), Eq (R.erase X).parent (R.erase X.parent))], [(∀ (A B : FG.FGBlock (Fin
+n)), (R.erase A).Preceq (R.erase B) → A.Preceq B)], [PromotionSlotProposal R E rho T I],
+[PromotionProposalRead R S E rho O I decodeProposal bodyErase bodyRows parentFG parentHeight
+validFor fold], [PromotionRowOrder R E rho O I], [PromotionRowSigner S E rho T D],
+[PromotionCapReceipt R E rho O T I], deltaT, [Eq deltaT (instHMul.hMul 2 T.roundSlots)],
+[LivenessBoundW T ΔF], [TRowsReceipt R S E rho T blockWireRows ΔF], [(∀ (r height : Nat) (U X :
+FG.FGBlock (Fin n)), BatchPrem R S O T E rho I D Ef decodeProposal bodyErase bodyRows
+blockWireRows parentFG parentHeight validFor ΔF RowKind.progress r height U X → Eq (O.height
+X.parent).h height → ProgressCoveredByChild Ef O.height X U height)], [ProgressFoldAdvance Ef
+O.height deltaT], [(Exists fun Q => And (∀ (i : Fin n), SetLike.instMembership.mem Q i →
+SetLike.instMembership.mem rho.honest (safetyHolder S rho i)) (instLENat.le Ef.q (Ef.weightOf
+Q)))], [(∀ (r : Nat) (x y : V) (K L : FG.FGBlock (Fin n)), SetLike.instMembership.mem rho.honest x
+→ SetLike.instMembership.mem rho.honest y → Eq (actionSourceFG R E rho T x r) (Option.some
+(Option.some K)) → Eq (actionSourceFG R E rho T y r) (Option.some (Option.some L)) → Eq (O.height
+K).T_h.root (O.height L).T_h.root → Eq (O.height K).T_h (O.height L).T_h)], [(∀ (r : Nat) (x : V)
+(K : FG.FGBlock (Fin n)), SetLike.instMembership.mem rho.honest x → Eq (actionSourceFG R E rho T x
+r) (Option.some (Option.some K)) → instLENat.le K.slot (instHMul.hMul r T.roundSlots))], [(∀ (r :
+Nat) (x : V) (K A : FG.FGBlock (Fin n)), SetLike.instMembership.mem rho.honest x → Eq
+(actionSourceFG R E rho T x r) (Option.some (Option.some K)) → A.Preceq K → instLENat.le A.slot
+K.slot)], [(∀ (i : Nat) (x : V) (A K : FG.FGBlock (Fin n)), SetLike.instMembership.mem (R.core
+(V2.D.Run.stateBefore E rho i x)).fg.TF K → A.Preceq K → instLENat.le A.slot K.slot)], [(∀ (q :
+Slot) (Q : Block) (K : FG.FGBlock (Fin n)), HonestProposal E rho I q Q → Eq (R.erase K) Q → Eq
+K.slot q)], [Function.Injective R.erase], [(∀ (u v : Time) (m : Nat) (J : Option (FG.FGBlock (Fin
+n))) (contested : Bool) (q : Slot) (Q : Block), Int.instLEInt.le Jst u → PhaseInterval R E rho O u
+v m J contested → FrontierSeedQualification T leaseSlots E.t_GST u q → Int.instLEInt.le (T.gate q)
+v → HonestProposal E rho I q Q → Exists fun i => Exists fun x => Exists fun Qfg => And
+(instLENat.le (rho.idxBefore u) i) (And (instLENat.le i (timeIdx rho v)) (And
+(SetLike.instMembership.mem rho.honest x) (And (SetLike.instMembership.mem (R.core
+(V2.D.Run.stateBefore E rho i x)).fg.TF Qfg) (Eq (R.erase Qfg) Q)))))], [(∀ (u v : Time) (m :
+FG.Height) (J : Option (FG.FGBlock (Fin n))) (contested : Bool) (q : Slot) (Q : Block) (Qfg :
+FG.FGBlock (Fin n)), Int.instLEInt.le Jst u → HonestProposal E rho I q Q → Eq (R.erase Qfg) Q → Eq
+(O.height Qfg).h m → FrontierProposalService R E rho T q Q → FrontierSeedQualification T
+leaseSlots E.t_GST u q → Int.instLEInt.le u (T.proposal q) → PhaseInterval R E rho O u (T.gate q)
+m J contested → Int.instLEInt.le (T.gate q) v → Int.instLEInt.le v rho.horizon → (∀ (i : Nat) (x :
+V), instLENat.le (timeIdx rho u) i → instLENat.le i (timeIdx rho v) → SetLike.instMembership.mem
+rho.honest x → instLENat.le (R.core (V2.D.Run.stateBefore E rho i x)).fg.h_max m) →
+FrontierLocalService R S E rho O T I D.heightPair q Q Qfg m v)], i m, ev, kind,
+[FrontierSearchStart R E rho O T Jst i ev m kind], [StrongServed R S E rho O T I D.heightPair Jst
+leaseSlots m ev.time], [Int.instLEInt.le (instHAdd.hAdd ev.time (instHSub.hSub (instHAdd.hAdd
+(instHMul.hMul 2 (P T)) (Γ T G)) (instHMul.hMul 9 T.delta))) rho.horizon].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: holder assignment/injectivity or honest-holder FG weight (exact guards in type);
+faulty FG-seat weight/count.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### healing_frontierTail
+
+Source: `S034:227`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire Body, R, S, O, T, E, rho, I, D, Ef,
+decodeProposal, bodyErase, bodyRows, blockWireRows, parentFG, parentHeight, validFor, fold, Jst,
+leaseSlots, [KitFG.FGCertificateLaws Ef O.height O.finality], [(∀ (i : Nat) (x : V),
+KitFG.FGStoreInvariant O.height O.finality (R.core (V2.D.Run.stateBefore E rho i x)).fg)], [(∀ (i
+j : Nat), instLENat.le i j → ∀ (x : V), Finset.instPartialOrder.le (TFAt R E rho i x) (TFAt R E
+rho j x))], chainRows, [FGTimingLaws T], [V2.D.ScheduleWellFormed E rho], [RCap R S E rho O T (fun
+a => namedEntry (D.heightPair a)) chainRows], [instLTNat.lt (Ef.weightOf (historyFaulty S rho))
+Ef.q], G ΔF, [Int.instLEInt.le E.Δ ΔF], [Eq E.Δ T.delta], [(∀ (t : Time), Int.instLEInt.le E.t_GST
+t → Int.instLEInt.le (instHAdd.hAdd t G) rho.horizon → Exists fun s => And (Int.instLTInt.lt t
+(T.proposal s)) (And (Int.instLEInt.le (T.proposal s) (instHAdd.hAdd t G)) (Gen.V2.Duty.HonestSlot
+rho I s)))], [Int.instLEInt.le E.t_GST Jst], [FGRunOrderLaws E rho R], [(∀ (X : FG.FGBlock (Fin
+n)), Eq (R.erase X).parent (R.erase X.parent))], [(∀ (A B : FG.FGBlock (Fin n)), (R.erase
+A).Preceq (R.erase B) → A.Preceq B)], [PromotionSlotProposal R E rho T I], [PromotionProposalRead
+R S E rho O I decodeProposal bodyErase bodyRows parentFG parentHeight validFor fold],
+[PromotionRowOrder R E rho O I], [PromotionRowSigner S E rho T D], [PromotionCapReceipt R E rho O
+T I], deltaT, [Eq deltaT (instHMul.hMul 2 T.roundSlots)], [LivenessBoundW T ΔF], [TRowsReceipt R S
+E rho T blockWireRows ΔF], [(∀ (r height : Nat) (U X : FG.FGBlock (Fin n)), BatchPrem R S O T E
+rho I D Ef decodeProposal bodyErase bodyRows blockWireRows parentFG parentHeight validFor ΔF
+RowKind.progress r height U X → Eq (O.height X.parent).h height → ProgressCoveredByChild Ef
+O.height X U height)], [ProgressFoldAdvance Ef O.height deltaT], [(Exists fun Q => And (∀ (i : Fin
+n), SetLike.instMembership.mem Q i → SetLike.instMembership.mem rho.honest (safetyHolder S rho i))
+(instLENat.le Ef.q (Ef.weightOf Q)))], [(∀ (r : Nat) (x y : V) (K L : FG.FGBlock (Fin n)),
+SetLike.instMembership.mem rho.honest x → SetLike.instMembership.mem rho.honest y → Eq
+(actionSourceFG R E rho T x r) (Option.some (Option.some K)) → Eq (actionSourceFG R E rho T y r)
+(Option.some (Option.some L)) → Eq (O.height K).T_h.root (O.height L).T_h.root → Eq (O.height
+K).T_h (O.height L).T_h)], [(∀ (r : Nat) (x : V) (K : FG.FGBlock (Fin n)),
+SetLike.instMembership.mem rho.honest x → Eq (actionSourceFG R E rho T x r) (Option.some
+(Option.some K)) → instLENat.le K.slot (instHMul.hMul r T.roundSlots))], [(∀ (r : Nat) (x : V) (K
+A : FG.FGBlock (Fin n)), SetLike.instMembership.mem rho.honest x → Eq (actionSourceFG R E rho T x
+r) (Option.some (Option.some K)) → A.Preceq K → instLENat.le A.slot K.slot)], [(∀ (i : Nat) (x :
+V) (A K : FG.FGBlock (Fin n)), SetLike.instMembership.mem (R.core (V2.D.Run.stateBefore E rho i
+x)).fg.TF K → A.Preceq K → instLENat.le A.slot K.slot)], [(∀ (q : Slot) (Q : Block) (K :
+FG.FGBlock (Fin n)), HonestProposal E rho I q Q → Eq (R.erase K) Q → Eq K.slot q)],
+[Function.Injective R.erase], [(∀ (u v : Time) (m : Nat) (J : Option (FG.FGBlock (Fin n)))
+(contested : Bool) (q : Slot) (Q : Block), Int.instLEInt.le Jst u → PhaseInterval R E rho O u v m
+J contested → FrontierSeedQualification T leaseSlots E.t_GST u q → Int.instLEInt.le (T.gate q) v →
+HonestProposal E rho I q Q → Exists fun i => Exists fun x => Exists fun Qfg => And (instLENat.le
+(rho.idxBefore u) i) (And (instLENat.le i (timeIdx rho v)) (And (SetLike.instMembership.mem
+rho.honest x) (And (SetLike.instMembership.mem (R.core (V2.D.Run.stateBefore E rho i x)).fg.TF
+Qfg) (Eq (R.erase Qfg) Q)))))], [(∀ (u v : Time) (m : FG.Height) (J : Option (FG.FGBlock (Fin n)))
+(contested : Bool) (q : Slot) (Q : Block) (Qfg : FG.FGBlock (Fin n)), Int.instLEInt.le Jst u →
+HonestProposal E rho I q Q → Eq (R.erase Qfg) Q → Eq (O.height Qfg).h m → FrontierProposalService
+R E rho T q Q → FrontierSeedQualification T leaseSlots E.t_GST u q → Int.instLEInt.le u
+(T.proposal q) → PhaseInterval R E rho O u (T.gate q) m J contested → Int.instLEInt.le (T.gate q)
+v → Int.instLEInt.le v rho.horizon → (∀ (i : Nat) (x : V), instLENat.le (timeIdx rho u) i →
+instLENat.le i (timeIdx rho v) → SetLike.instMembership.mem rho.honest x → instLENat.le (R.core
+(V2.D.Run.stateBefore E rho i x)).fg.h_max m) → FrontierLocalService R S E rho O T I D.heightPair
+q Q Qfg m v)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: holder assignment/injectivity or honest-holder FG weight (exact guards in type);
+faulty FG-seat weight/count.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### frontierSearch_event_time_le
+
+Source: `S035:35`.
+
+Translated telescope: In V, Prot, E, rho, [V2.D.ScheduleWellFormed E rho], j, ev, deadline, [Eq
+(List.instGetElem?NatLtLength.getElem? rho.events j) (Option.some ev)], [instLTNat.lt j (timeIdx
+rho deadline)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: frontierSearch_event_time_le (`S175:92`).
+
+### frontierSearch_first_effective_split
+
+Source: `S035:48`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, E, rho, O,
+[V2.D.ScheduleWellFormed E rho], i, deadline.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: frontierSearch_first_effective_split (`S175:101`).
+
+### frontierSearch_classify_stop
+
+Source: `S035:71`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, E, rho, O, [FGRunOrderLaws E rho
+R], i m, deadline, [Eq (frontierAtIdx R E rho (instHAdd.hAdd i 1)) m], [FirstEffectiveBy R E rho O
+i deadline].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: frontierSearch_classify_stop (`S175:112`).
+
+### frontierSearch_first_rise
+
+Source: `S035:89`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, E, rho, [V2.D.ScheduleWellFormed
+E rho], i m, deadline, [(Exists fun j => And (instLTNat.lt i j) (And (instLTNat.lt j (timeIdx rho
+deadline)) (instLTNat.lt m (frontierAtIdx R E rho (instHAdd.hAdd j 1)))))], [instLENat.le
+(frontierAtIdx R E rho (instHAdd.hAdd i 1)) m].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: frontierSearch_first_rise (`S175:125`).
+
+### frontierSearch_first_row
+
+Source: `S035:116`.
+
+Translated telescope: In V, Prot, inst, n, Wire, S, E, rho, T, pair, [FGTimingLaws T], m r,
+deadline, [HeightRow S E rho T (fun a => namedEntry (pair a)) r m], [Int.instLEInt.le (T.action r)
+deadline].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: frontierSearch_first_row (`S175:138`).
+
+### frontierSearch_first_row_unique
+
+Source: `S035:141`.
+
+Translated telescope: In V, Prot, inst, n, Wire, S, E, rho, T, pair, m r r', [HeightRow S E rho T
+(fun a => namedEntry (pair a)) r m], [(∀ (s : Nat), HeightRow S E rho T (fun a => namedEntry (pair
+a)) s m → instLENat.le r s)], [HeightRow S E rho T (fun a => namedEntry (pair a)) r' m], [(∀ (s :
+Nat), HeightRow S E rho T (fun a => namedEntry (pair a)) s m → instLENat.le r' s)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: frontierSearch_first_row_unique (`S175:149`).
+
+### frontierSearch_skipped_row
+
+Source: `S035:151`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, S, E, rho, O, T, pair,
+chainRows, [RCap R S E rho O T (fun a => namedEntry (pair a)) chainRows], M i, x, W, [HeldAt R E
+rho i x W], [instLENat.le (instHAdd.hAdd M 2) (O.height W).h].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: frontierSearch_skipped_row (`S175:161`).
+
+### frontierSearch_phase_step_of_crossing
+
+Source: `S035:164`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, E, rho, O, T, Jst, Ef,
+[FGObservationLaws R O], [KitFG.FGCertificateLaws Ef O.height O.finality], [(∀ (i : Nat) (x : V),
+KitFG.FGStoreInvariant O.height O.finality (R.core (V2.D.Run.stateBefore E rho i x)).fg)],
+[KitFG.FGJustificationLaws O.height], [(∀ (i j : Nat), instLENat.le i j → ∀ (x : V),
+Finset.instPartialOrder.le (TFAt R E rho i x) (TFAt R E rho j x))], [RXing R E rho O],
+[FGRunOrderLaws E rho R], [V2.D.ScheduleWellFormed E rho], i m, kind, ev, deadline,
+[FrontierSearchStart R E rho O T Jst i ev m kind], [FirstPhaseStopBy R E rho O i m deadline].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: frontierSearch_phase_step_of_crossing (`S175:181`).
+
+### frontierSearch_strict_cap_or_rise
+
+Source: `S035:232`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, E, rho, [V2.D.ScheduleWellFormed
+E rho], [FGRunOrderLaws E rho R], i m, D, [instLENat.le (frontierAtIdx R E rho (instHAdd.hAdd i
+1)) m].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: frontierSearch_strict_cap_or_rise (`S175:222`).
+
+### frontierSearch_timeIdx_le_idxBefore
+
+Source: `S035:273`.
+
+Translated telescope: In V, Prot, rho, t D, [Int.instLTInt.lt t D].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: frontierSearch_timeIdx_le_idxBefore (`S175:236`).
+
+### frontierSearch_rise_mono
+
+Source: `S035:283`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, E, rho, i m, d D,
+[Int.instLEInt.le d D], [FrontierRiseBy R E rho i m d].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: frontierSearch_rise_mono (`S175:243`).
+
+### frontierSearch_rise_of_receipt
+
+Source: `S035:291`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, E, rho, O, [(∀ (i : Nat) (x :
+V), KitFG.FGStoreInvariant O.height O.finality (R.core (V2.D.Run.stateBefore E rho i x)).fg)], [(∀
+(i j : Nat), instLENat.le i j → ∀ (x : V), Finset.instPartialOrder.le (TFAt R E rho i x) (TFAt R E
+rho j x))], [V2.D.ScheduleWellFormed E rho], [FGRunOrderLaws E rho R], i m, d D, x, X,
+[instLENat.le (frontierAtIdx R E rho (instHAdd.hAdd i 1)) m], [SetLike.instMembership.mem
+rho.honest x], [instLENat.le (instHAdd.hAdd m 1) (O.height X).h], [Gen.V2.Duty.HoldsBefore E rho
+(fun nd => SetLike.instMembership.mem (R.core nd).fg.TF X) d x], [Int.instLEInt.le d D].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: frontierSearch_rise_of_receipt (`S175:251`).
+
+### frontier_seed_prior_cut
+
+Source: `S035:314`.
+
+Translated telescope: T, [FGTimingLaws T], leaseSlots, [instLENat.le 2 leaseSlots], GST Jst, u, q,
+[Int.instLEInt.le GST Jst], [Int.instLEInt.le Jst u], [FrontierSeedQualification T leaseSlots GST
+u q].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: frontier_seed_prior_cut (`S179:74`).
+
+### healing_frontierTail_row
+
+Source: `S036:66`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, S, E, rho, O, T, I, pair,
+chainRows, Ef, [KitFG.FGCertificateLaws Ef O.height O.finality], [(∀ (i : Nat) (x : V),
+KitFG.FGStoreInvariant O.height O.finality (R.core (V2.D.Run.stateBefore E rho i x)).fg)],
+[FGTimingLaws T], [V2.D.ScheduleWellFormed E rho], [FGRunOrderLaws E rho R], [RCap R S E rho O T
+(fun a => namedEntry (pair a)) chainRows], u t, m q, J, contested, Q, Qfg, [PhaseInterval R E rho
+O u (T.gate q) m J contested], [HonestProposal E rho I q Q], [Int.instLEInt.le (T.gate q) t], [(∀
+(v : Time), Int.instLEInt.le (T.gate q) v → Int.instLEInt.le v rho.horizon → (∀ (i : Nat) (x : V),
+instLENat.le (timeIdx rho u) i → instLENat.le i (timeIdx rho v) → SetLike.instMembership.mem
+rho.honest x → instLENat.le (R.core (V2.D.Run.stateBefore E rho i x)).fg.h_max m) →
+FrontierLocalService R S E rho O T I pair q Q Qfg m v)], [Int.instLEInt.le (instHAdd.hAdd t
+(instHSub.hSub (P T) (instHMul.hMul 4 T.delta))) rho.horizon].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_frontierTail_row (`S176:152`).
+
+### frontierSearch_task_bounds
+
+Source: `S037:45`.
+
+Translated telescope: T, [FGTimingLaws T], G ΔF ρbar, [Int.instLEInt.le (instHMul.hMul 4 T.delta)
+G], [LivenessBoundW T ΔF], [Int.instLEInt.le 0 ρbar], kind.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: frontierSearch_task_bounds (`S177:139`).
+
+### frontierSearch_rise_task
+
+Source: `S037:82`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire Body, R, S, O, T, E, rho, I, D, Ef,
+decodeProposal, bodyErase, bodyRows, blockWireRows, parentFG, parentHeight, validFor, fold, Jst,
+leaseSlots, [FGObservationLaws R O], [KitFG.FGCertificateLaws Ef O.height O.finality], [(∀ (i :
+Nat) (x : V), KitFG.FGStoreInvariant O.height O.finality (R.core (V2.D.Run.stateBefore E rho i
+x)).fg)], [KitFG.FGJustificationLaws O.height], [(∀ (i j : Nat), instLENat.le i j → ∀ (x : V),
+Finset.instPartialOrder.le (TFAt R E rho i x) (TFAt R E rho j x))], [Int.instLTInt.lt 0 T.delta],
+[FGCoreLaws R], [(∀ {A B : FG.FGBlock (Fin n)}, A.Preceq B → (R.erase A).Preceq (R.erase B))],
+joined, receipt, [FGTimingLaws T], [instLENat.le 1 leaseSlots], [RXing R E rho O],
+[V2.D.ScheduleWellFormed E rho], [FGRunOrderLaws E rho R], [(∀ (y : V), SetLike.instMembership.mem
+rho.honest y → ∀ (t : Time), Int.instLEInt.le E.t_GST t → Int.instLEInt.le t rho.horizon → Eq
+(E.awake y t) Bool.true)], [(∀ (iy : Nat) (y : V) (t : Time), SetLike.instMembership.mem
+rho.honest y → Eq (List.instGetElem?NatLtLength.getElem? rho.events iy) (Option.some
+(V2.Event.tick y t)) → Int.instLEInt.le t rho.horizon → Int.instLEInt.le E.t_GST (slotStartZ T
+(instHSub.hSub (Nat.cast (slotAt T t)) 1)) → Eq (joined (Prot.clock (V2.D.Run.stateBefore E rho iy
+y) t)) Bool.true)], [(∀ (t : Time), Int.instLEInt.le Jst t → Int.instLEInt.le E.t_GST (slotStartZ
+T (instHSub.hSub (Nat.cast (slotAt T t)) 1)))], [(∀ (i : Nat) (ev : V2.Event V Prot.Object) (m :
+Nat), Eq (List.instGetElem?NatLtLength.getElem? rho.events i) (Option.some ev) → Int.instLEInt.le
+Jst ev.time → instLENat.le 1 m → Eq (frontierAtIdx R E rho (instHAdd.hAdd i 1)) m →
+Int.instLEInt.le (instHAdd.hAdd ev.time T.delta) rho.horizon → PhaseWitnessReceiptScope R E rho O
+joined receipt (instHAdd.hAdd i 1) m (instHAdd.hAdd ev.time T.delta))], [(∀ (W : FG.FGBlock (Fin
+n)) (d : Time) (y : V), SetLike.instMembership.mem rho.honest y → receipt (R.erase W) d y →
+SetLike.instMembership.mem (R.core (V2.D.Run.stateBeforeTime E rho d y)).fg.TF W)], [instLTNat.lt
+(Ef.weightOf (historyFaulty S rho)) Ef.q], G ΔF ρbar, [Int.instLEInt.le E.Δ ΔF], [Eq E.Δ T.delta],
+[(∀ (t : Time), Int.instLEInt.le E.t_GST t → Int.instLEInt.le (instHAdd.hAdd t G) rho.horizon →
+Exists fun s => And (Int.instLTInt.lt t (T.proposal s)) (And (Int.instLEInt.le (T.proposal s)
+(instHAdd.hAdd t G)) (Gen.V2.Duty.HonestSlot rho I s)))], [Int.instLEInt.le E.t_GST Jst],
+[Int.instLEInt.le (instHMul.hMul 4 T.delta) G], [PromotionSlotProposal R E rho T I],
+[PromotionProposalRead R S E rho O I decodeProposal bodyErase bodyRows parentFG parentHeight
+validFor fold], [PromotionRowOrder R E rho O I], [PromotionRowSigner S E rho T D],
+[PromotionSourceParent R E rho O T I Jst], deltaT, [Eq deltaT (instHMul.hMul 2 T.roundSlots)],
+[LivenessBoundW T ΔF], [TRowsReceipt R S E rho T blockWireRows ΔF], [(∀ (r height : Nat) (U X :
+FG.FGBlock (Fin n)), BatchPrem R S O T E rho I D Ef decodeProposal bodyErase bodyRows
+blockWireRows parentFG parentHeight validFor ΔF RowKind.progress r height U X → Eq (O.height
+X.parent).h height → ProgressCoveredByChild Ef O.height X U height)], [ProgressFoldAdvance Ef
+O.height deltaT], [(Exists fun Q => And (∀ (i : Fin n), SetLike.instMembership.mem Q i →
+SetLike.instMembership.mem rho.honest (safetyHolder S rho i)) (instLENat.le Ef.q (Ef.weightOf
+Q)))], [(∀ (r : Nat) (x y : V) (K L : FG.FGBlock (Fin n)), SetLike.instMembership.mem rho.honest x
+→ SetLike.instMembership.mem rho.honest y → Eq (actionSourceFG R E rho T x r) (Option.some
+(Option.some K)) → Eq (actionSourceFG R E rho T y r) (Option.some (Option.some L)) → Eq (O.height
+K).T_h.root (O.height L).T_h.root → Eq (O.height K).T_h (O.height L).T_h)], [(∀ (r : Nat) (x : V)
+(K : FG.FGBlock (Fin n)), SetLike.instMembership.mem rho.honest x → Eq (actionSourceFG R E rho T x
+r) (Option.some (Option.some K)) → instLENat.le K.slot (instHMul.hMul r T.roundSlots))], [(∀ (r :
+Nat) (x : V) (K A : FG.FGBlock (Fin n)), SetLike.instMembership.mem rho.honest x → Eq
+(actionSourceFG R E rho T x r) (Option.some (Option.some K)) → A.Preceq K → instLENat.le A.slot
+K.slot)], [(∀ (A B : FG.FGBlock (Fin n)), (R.erase A).Preceq (R.erase B) → A.Preceq B)],
+[AttemptProposalFloor R E rho O T I Jst], [(∀ (u v : Time) (m : Nat) (J : Option (FG.FGBlock (Fin
+n))) (contested : Bool) (q : Slot) (Q : Block), Int.instLEInt.le Jst u → PhaseInterval R E rho O u
+v m J contested → FrontierSeedQualification T leaseSlots E.t_GST u q → Int.instLEInt.le (T.gate q)
+v → HonestProposal E rho I q Q → Exists fun i => Exists fun x => Exists fun Qfg => And
+(instLENat.le (rho.idxBefore u) i) (And (instLENat.le i (timeIdx rho v)) (And
+(SetLike.instMembership.mem rho.honest x) (And (SetLike.instMembership.mem (R.core
+(V2.D.Run.stateBefore E rho i x)).fg.TF Qfg) (Eq (R.erase Qfg) Q)))))], [(∀ (u v : Time) (m :
+FG.Height) (J : Option (FG.FGBlock (Fin n))) (contested : Bool) (q : Slot) (Q : Block) (Qfg :
+FG.FGBlock (Fin n)), Int.instLEInt.le Jst u → HonestProposal E rho I q Q → Eq (R.erase Qfg) Q → Eq
+(O.height Qfg).h m → FrontierProposalService R E rho T q Q → FrontierSeedQualification T
+leaseSlots E.t_GST u q → Int.instLEInt.le u (T.proposal q) → PhaseInterval R E rho O u (T.gate q)
+m J contested → Int.instLEInt.le (T.gate q) v → Int.instLEInt.le v rho.horizon → (∀ (i : Nat) (x :
+V), instLENat.le (timeIdx rho u) i → instLENat.le i (timeIdx rho v) → SetLike.instMembership.mem
+rho.honest x → instLENat.le (R.core (V2.D.Run.stateBefore E rho i x)).fg.h_max m) →
+FrontierLocalService R S E rho O T I D.heightPair q Q Qfg m v)], [(∀ (u : Time) (m : Nat) (J :
+Option (FG.FGBlock (Fin n))) (contested : Bool) (q : Slot) (Q : Block) (Qfg : FG.FGBlock (Fin n))
+(r : Slot), Int.instLEInt.le Jst u → HonestProposal E rho I q Q → Eq (R.erase Qfg) Q →
+FrontierProposalService R E rho T q Q → FrontierSeedQualification T leaseSlots E.t_GST u q →
+Int.instLEInt.le u (T.proposal q) → instLENat.le q (instHMul.hMul r T.roundSlots) → (∀ (r' :
+Slot), instLENat.le q (instHMul.hMul r' T.roundSlots) → instLENat.le r r') → PhaseInterval R E rho
+O u (T.action r) m J contested → And (OpeningCovered R S E rho O.height T D.heightPair r Q) (Eq
+(O.height Qfg).h (instHSub.hSub m 1) → Or (OpeningEntry R E rho O.height T r (instHSub.hSub m 1))
+(Exists fun x => Exists fun K => And (SetLike.instMembership.mem rho.honest x) (And (Eq
+(actionSourceFG R E rho T x r) (Option.some (Option.some K))) (Eq (O.height K).h m)))))], [(∀ (i :
+Nat) (x : V) (A K : FG.FGBlock (Fin n)), SetLike.instMembership.mem (R.core (V2.D.Run.stateBefore
+E rho i x)).fg.TF K → A.Preceq K → instLENat.le A.slot K.slot)], [(∀ (q : Slot) (Q : Block) (K :
+FG.FGBlock (Fin n)), HonestProposal E rho I q Q → Eq (R.erase K) Q → Eq K.slot q)], [(∀ (i : Nat)
+(x : V), SetLike.instMembership.mem rho.honest x → Ne (R.core (V2.D.Run.stateBefore E rho i
+x)).fg.h_j 0 → Exists fun j => Exists fun y => Exists fun r => Exists fun a => Exists fun K => And
+(instLTNat.lt j i) (And (HonestRowAt S E rho T j y r a) (And (Eq (actionSourceFG R E rho T y r)
+(Option.some (Option.some K))) (Eq (O.height K).T_h (R.core (V2.D.Run.stateBefore E rho i
+x)).fg.J))))], [(∀ (q : Slot) (Q : Block), HonestProposal E rho I q Q → Exists fun j => And (Eq
+(List.instGetElem?NatLtLength.getElem? rho.events j) (Option.some (V2.Event.tick (V2.D.proposerOf
+rho I q) (T.proposal q)))) (∀ (Qfg : FG.FGBlock (Fin n)), Eq (R.erase Qfg) Q → (O.controls
+(V2.D.Run.stateBefore E rho j (V2.D.proposerOf rho I q))).Z.Preceq Qfg.parent))], [(∀ (i : Nat)
+(ev : V2.Event V Prot.Object) (m : Nat) (kind : PhaseKind), FrontierSearchStart R E rho O T Jst i
+ev m kind → Int.instLEInt.le (instHAdd.hAdd Jst (instHMul.hMul 2 (P T))) ev.time →
+FrontierRepairAllowance R E rho O T I Jst leaseSlots G ρbar (instHAdd.hAdd ev.time (instHMul.hMul
+3 T.delta)))], [(∀ (X : FG.FGBlock (Fin n)), Eq (R.erase X).parent (R.erase X.parent))],
+[PromotionCapReceipt R E rho O T I], i m, ev, kind, [FrontierSearchStart R E rho O T Jst i ev m
+kind], [Int.instLEInt.le (instHAdd.hAdd Jst (instHMul.hMul 2 (P T))) ev.time], [Int.instLEInt.le
+(instHAdd.hAdd ev.time (frontierSearchRiseBudget T G ΔF ρbar)) rho.horizon].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: holder assignment/injectivity or honest-holder FG weight (exact guards in type);
+faulty FG-seat weight/count.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### frontierSearch_row_of_rise
+
+Source: `S037:218`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, S, O, T, E, rho, D, Ef,
+[KitFG.FGCertificateLaws Ef O.height O.finality], [(∀ (i : Nat) (x : V), KitFG.FGStoreInvariant
+O.height O.finality (R.core (V2.D.Run.stateBefore E rho i x)).fg)], chainRows, [FGTimingLaws T],
+[V2.D.ScheduleWellFormed E rho], [RCap R S E rho O T (fun a => namedEntry (D.heightPair a))
+chainRows], i m, Dl, [instLENat.le 1 m], [FrontierRiseBy R E rho i m Dl].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: frontierSearch_row_of_rise (`S177:202`).
+
+### frontierSearch_row_task
+
+Source: `S037:241`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire Body, R, S, O, T, E, rho, I, D, Ef,
+decodeProposal, bodyErase, bodyRows, blockWireRows, parentFG, parentHeight, validFor, fold, Jst,
+leaseSlots, [FGObservationLaws R O], [KitFG.FGCertificateLaws Ef O.height O.finality], [(∀ (i :
+Nat) (x : V), KitFG.FGStoreInvariant O.height O.finality (R.core (V2.D.Run.stateBefore E rho i
+x)).fg)], [KitFG.FGJustificationLaws O.height], [(∀ (i j : Nat), instLENat.le i j → ∀ (x : V),
+Finset.instPartialOrder.le (TFAt R E rho i x) (TFAt R E rho j x))], [Int.instLTInt.lt 0 T.delta],
+[FGCoreLaws R], [(∀ {A B : FG.FGBlock (Fin n)}, A.Preceq B → (R.erase A).Preceq (R.erase B))],
+joined, receipt, chainRows, [FGTimingLaws T], [instLENat.le 1 leaseSlots], [RXing R E rho O],
+[V2.D.ScheduleWellFormed E rho], [FGRunOrderLaws E rho R], [(∀ (y : V), SetLike.instMembership.mem
+rho.honest y → ∀ (t : Time), Int.instLEInt.le E.t_GST t → Int.instLEInt.le t rho.horizon → Eq
+(E.awake y t) Bool.true)], [(∀ (iy : Nat) (y : V) (t : Time), SetLike.instMembership.mem
+rho.honest y → Eq (List.instGetElem?NatLtLength.getElem? rho.events iy) (Option.some
+(V2.Event.tick y t)) → Int.instLEInt.le t rho.horizon → Int.instLEInt.le E.t_GST (slotStartZ T
+(instHSub.hSub (Nat.cast (slotAt T t)) 1)) → Eq (joined (Prot.clock (V2.D.Run.stateBefore E rho iy
+y) t)) Bool.true)], [(∀ (t : Time), Int.instLEInt.le Jst t → Int.instLEInt.le E.t_GST (slotStartZ
+T (instHSub.hSub (Nat.cast (slotAt T t)) 1)))], [(∀ (i : Nat) (ev : V2.Event V Prot.Object) (m :
+Nat), Eq (List.instGetElem?NatLtLength.getElem? rho.events i) (Option.some ev) → Int.instLEInt.le
+Jst ev.time → instLENat.le 1 m → Eq (frontierAtIdx R E rho (instHAdd.hAdd i 1)) m →
+Int.instLEInt.le (instHAdd.hAdd ev.time T.delta) rho.horizon → PhaseWitnessReceiptScope R E rho O
+joined receipt (instHAdd.hAdd i 1) m (instHAdd.hAdd ev.time T.delta))], [(∀ (W : FG.FGBlock (Fin
+n)) (d : Time) (y : V), SetLike.instMembership.mem rho.honest y → receipt (R.erase W) d y →
+SetLike.instMembership.mem (R.core (V2.D.Run.stateBeforeTime E rho d y)).fg.TF W)], [instLTNat.lt
+(Ef.weightOf (historyFaulty S rho)) Ef.q], G ΔF ρbar, [Int.instLEInt.le E.Δ ΔF], [Eq E.Δ T.delta],
+[(∀ (t : Time), Int.instLEInt.le E.t_GST t → Int.instLEInt.le (instHAdd.hAdd t G) rho.horizon →
+Exists fun s => And (Int.instLTInt.lt t (T.proposal s)) (And (Int.instLEInt.le (T.proposal s)
+(instHAdd.hAdd t G)) (Gen.V2.Duty.HonestSlot rho I s)))], [Int.instLEInt.le E.t_GST Jst],
+[Int.instLEInt.le (instHMul.hMul 4 T.delta) G], [PromotionSlotProposal R E rho T I],
+[PromotionProposalRead R S E rho O I decodeProposal bodyErase bodyRows parentFG parentHeight
+validFor fold], [PromotionRowOrder R E rho O I], [PromotionRowSigner S E rho T D],
+[PromotionSourceParent R E rho O T I Jst], deltaT, [Eq deltaT (instHMul.hMul 2 T.roundSlots)],
+[LivenessBoundW T ΔF], [TRowsReceipt R S E rho T blockWireRows ΔF], [(∀ (r height : Nat) (U X :
+FG.FGBlock (Fin n)), BatchPrem R S O T E rho I D Ef decodeProposal bodyErase bodyRows
+blockWireRows parentFG parentHeight validFor ΔF RowKind.progress r height U X → Eq (O.height
+X.parent).h height → ProgressCoveredByChild Ef O.height X U height)], [ProgressFoldAdvance Ef
+O.height deltaT], [(Exists fun Q => And (∀ (i : Fin n), SetLike.instMembership.mem Q i →
+SetLike.instMembership.mem rho.honest (safetyHolder S rho i)) (instLENat.le Ef.q (Ef.weightOf
+Q)))], [(∀ (r : Nat) (x y : V) (K L : FG.FGBlock (Fin n)), SetLike.instMembership.mem rho.honest x
+→ SetLike.instMembership.mem rho.honest y → Eq (actionSourceFG R E rho T x r) (Option.some
+(Option.some K)) → Eq (actionSourceFG R E rho T y r) (Option.some (Option.some L)) → Eq (O.height
+K).T_h.root (O.height L).T_h.root → Eq (O.height K).T_h (O.height L).T_h)], [(∀ (r : Nat) (x : V)
+(K : FG.FGBlock (Fin n)), SetLike.instMembership.mem rho.honest x → Eq (actionSourceFG R E rho T x
+r) (Option.some (Option.some K)) → instLENat.le K.slot (instHMul.hMul r T.roundSlots))], [(∀ (r :
+Nat) (x : V) (K A : FG.FGBlock (Fin n)), SetLike.instMembership.mem rho.honest x → Eq
+(actionSourceFG R E rho T x r) (Option.some (Option.some K)) → A.Preceq K → instLENat.le A.slot
+K.slot)], [(∀ (A B : FG.FGBlock (Fin n)), (R.erase A).Preceq (R.erase B) → A.Preceq B)],
+[AttemptProposalFloor R E rho O T I Jst], [(∀ (u v : Time) (m : Nat) (J : Option (FG.FGBlock (Fin
+n))) (contested : Bool) (q : Slot) (Q : Block), Int.instLEInt.le Jst u → PhaseInterval R E rho O u
+v m J contested → FrontierSeedQualification T leaseSlots E.t_GST u q → Int.instLEInt.le (T.gate q)
+v → HonestProposal E rho I q Q → Exists fun i => Exists fun x => Exists fun Qfg => And
+(instLENat.le (rho.idxBefore u) i) (And (instLENat.le i (timeIdx rho v)) (And
+(SetLike.instMembership.mem rho.honest x) (And (SetLike.instMembership.mem (R.core
+(V2.D.Run.stateBefore E rho i x)).fg.TF Qfg) (Eq (R.erase Qfg) Q)))))], [(∀ (u v : Time) (m :
+FG.Height) (J : Option (FG.FGBlock (Fin n))) (contested : Bool) (q : Slot) (Q : Block) (Qfg :
+FG.FGBlock (Fin n)), Int.instLEInt.le Jst u → HonestProposal E rho I q Q → Eq (R.erase Qfg) Q → Eq
+(O.height Qfg).h m → FrontierProposalService R E rho T q Q → FrontierSeedQualification T
+leaseSlots E.t_GST u q → Int.instLEInt.le u (T.proposal q) → PhaseInterval R E rho O u (T.gate q)
+m J contested → Int.instLEInt.le (T.gate q) v → Int.instLEInt.le v rho.horizon → (∀ (i : Nat) (x :
+V), instLENat.le (timeIdx rho u) i → instLENat.le i (timeIdx rho v) → SetLike.instMembership.mem
+rho.honest x → instLENat.le (R.core (V2.D.Run.stateBefore E rho i x)).fg.h_max m) →
+FrontierLocalService R S E rho O T I D.heightPair q Q Qfg m v)], [(∀ (u : Time) (m : Nat) (J :
+Option (FG.FGBlock (Fin n))) (contested : Bool) (q : Slot) (Q : Block) (Qfg : FG.FGBlock (Fin n))
+(r : Slot), Int.instLEInt.le Jst u → HonestProposal E rho I q Q → Eq (R.erase Qfg) Q →
+FrontierProposalService R E rho T q Q → FrontierSeedQualification T leaseSlots E.t_GST u q →
+Int.instLEInt.le u (T.proposal q) → instLENat.le q (instHMul.hMul r T.roundSlots) → (∀ (r' :
+Slot), instLENat.le q (instHMul.hMul r' T.roundSlots) → instLENat.le r r') → PhaseInterval R E rho
+O u (T.action r) m J contested → And (OpeningCovered R S E rho O.height T D.heightPair r Q) (Eq
+(O.height Qfg).h (instHSub.hSub m 1) → Or (OpeningEntry R E rho O.height T r (instHSub.hSub m 1))
+(Exists fun x => Exists fun K => And (SetLike.instMembership.mem rho.honest x) (And (Eq
+(actionSourceFG R E rho T x r) (Option.some (Option.some K))) (Eq (O.height K).h m)))))], [(∀ (i :
+Nat) (x : V) (A K : FG.FGBlock (Fin n)), SetLike.instMembership.mem (R.core (V2.D.Run.stateBefore
+E rho i x)).fg.TF K → A.Preceq K → instLENat.le A.slot K.slot)], [(∀ (q : Slot) (Q : Block) (K :
+FG.FGBlock (Fin n)), HonestProposal E rho I q Q → Eq (R.erase K) Q → Eq K.slot q)], [(∀ (i : Nat)
+(x : V), SetLike.instMembership.mem rho.honest x → Ne (R.core (V2.D.Run.stateBefore E rho i
+x)).fg.h_j 0 → Exists fun j => Exists fun y => Exists fun r => Exists fun a => Exists fun K => And
+(instLTNat.lt j i) (And (HonestRowAt S E rho T j y r a) (And (Eq (actionSourceFG R E rho T y r)
+(Option.some (Option.some K))) (Eq (O.height K).T_h (R.core (V2.D.Run.stateBefore E rho i
+x)).fg.J))))], [(∀ (q : Slot) (Q : Block), HonestProposal E rho I q Q → Exists fun j => And (Eq
+(List.instGetElem?NatLtLength.getElem? rho.events j) (Option.some (V2.Event.tick (V2.D.proposerOf
+rho I q) (T.proposal q)))) (∀ (Qfg : FG.FGBlock (Fin n)), Eq (R.erase Qfg) Q → (O.controls
+(V2.D.Run.stateBefore E rho j (V2.D.proposerOf rho I q))).Z.Preceq Qfg.parent))], [(∀ (i : Nat)
+(ev : V2.Event V Prot.Object) (m : Nat) (kind : PhaseKind), FrontierSearchStart R E rho O T Jst i
+ev m kind → Int.instLEInt.le (instHAdd.hAdd Jst (instHMul.hMul 2 (P T))) ev.time →
+FrontierRepairAllowance R E rho O T I Jst leaseSlots G ρbar (instHAdd.hAdd ev.time (instHMul.hMul
+3 T.delta)))], [RCap R S E rho O T (fun a => namedEntry (D.heightPair a)) chainRows], i m, ev,
+kind, [FrontierSearchStart R E rho O T Jst i ev m kind], [Int.instLEInt.le (instHAdd.hAdd Jst
+(instHMul.hMul 2 (P T))) ev.time], [Int.instLEInt.le (instHAdd.hAdd ev.time
+(frontierSearchRowBudget T G ΔF ρbar)) rho.horizon].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: holder assignment/injectivity or honest-holder FG weight (exact guards in type);
+faulty FG-seat weight/count.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### frontierSearch_phase_exists
+
+Source: `S037:372`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, O, E, rho, i m.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: frontierSearch_phase_exists (`S177:340`).
+
+### frontierSearch_cut_start
+
+Source: `S037:385`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, O, T, E, rho, Ef, Jst,
+[KitFG.FGCertificateLaws Ef O.height O.finality], [(∀ (i : Nat) (x : V), KitFG.FGStoreInvariant
+O.height O.finality (R.core (V2.D.Run.stateBefore E rho i x)).fg)], [FGTimingLaws T],
+[V2.D.ScheduleWellFormed E rho], [rho.honest.Nonempty], [(∀ (y : V), SetLike.instMembership.mem
+rho.honest y → ∀ (t : Time), Int.instLEInt.le E.t_GST t → Int.instLEInt.le t rho.horizon → Eq
+(E.awake y t) Bool.true)], [Eq E.Δ T.delta], [Int.instLEInt.le E.t_GST Jst], rG M, u₀,
+[Int.instLEInt.le Jst (T.action rG)], [(∀ (r : Nat), Int.instLEInt.le Jst (T.action r) →
+instLENat.le rG r)], [Eq u₀ (T.action (instHAdd.hAdd rG 2))], [Int.instLEInt.le (instHAdd.hAdd Jst
+(instHMul.hMul 2 (P T))) u₀], [Eq M (honestFrontier R E rho u₀)], [Int.instLEInt.le u₀
+rho.horizon].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: frontierSearch_cut_start (`S177:293`).
+
+### frontierSearch_event_time_mono
+
+Source: `S037:430`.
+
+Translated telescope: In V, Prot, E, rho, [V2.D.ScheduleWellFormed E rho], i j, ev ev', [Eq
+(List.instGetElem?NatLtLength.getElem? rho.events i) (Option.some ev)], [Eq
+(List.instGetElem?NatLtLength.getElem? rho.events j) (Option.some ev')], [instLENat.le i j].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: frontierSearch_event_time_mono (`S177:331`).
+
+### frontierSearch_initial_J_age
+
+Source: `S038:60`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, S, O, T, E, rho, Ef,
+[KitFG.FGCertificateLaws Ef O.height O.finality], [FGTimingLaws T], [V2.D.ScheduleWellFormed E
+rho], [(∀ (i : Nat) (x : V), SetLike.instMembership.mem rho.honest x → Ne (R.core
+(V2.D.Run.stateBefore E rho i x)).fg.h_j 0 → Exists fun j => Exists fun y => Exists fun r =>
+Exists fun a => Exists fun K => And (instLTNat.lt j i) (And (HonestRowAt S E rho T j y r a) (And
+(Eq (actionSourceFG R E rho T y r) (Option.some (Option.some K))) (Eq (O.height K).T_h (R.core
+(V2.D.Run.stateBefore E rho i x)).fg.J))))], [(∀ (r : Nat) (x : V) (K : FG.FGBlock (Fin n)),
+SetLike.instMembership.mem rho.honest x → Eq (actionSourceFG R E rho T x r) (Option.some
+(Option.some K)) → instLENat.le K.slot (instHMul.hMul r T.roundSlots))], [(∀ (r : Nat) (x : V) (K
+A : FG.FGBlock (Fin n)), SetLike.instMembership.mem rho.honest x → Eq (actionSourceFG R E rho T x
+r) (Option.some (Option.some K)) → A.Preceq K → instLENat.le A.slot K.slot)], i, ev, x, [Eq
+(List.instGetElem?NatLtLength.getElem? rho.events i) (Option.some ev)],
+[SetLike.instMembership.mem rho.honest x], [Ne (R.core (V2.D.Run.stateBefore E rho (instHAdd.hAdd
+i 1) x)).fg.h_j 0].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: frontierSearch_initial_J_age (`S178:259`).
+
+### frontier_hg3_topJ
+
+Source: `S038:551`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire Body, R, S, O, T, E, rho, I, D, Ef,
+decodeProposal, bodyErase, bodyRows, blockWireRows, parentFG, parentHeight, validFor, fold, Jst,
+leaseSlots, [FGObservationLaws R O], [KitFG.FGCertificateLaws Ef O.height O.finality], [(∀ (i :
+Nat) (x : V), KitFG.FGStoreInvariant O.height O.finality (R.core (V2.D.Run.stateBefore E rho i
+x)).fg)], [KitFG.FGJustificationLaws O.height], [(∀ (i j : Nat), instLENat.le i j → ∀ (x : V),
+Finset.instPartialOrder.le (TFAt R E rho i x) (TFAt R E rho j x))], [Int.instLTInt.lt 0 T.delta],
+[FGCoreLaws R], [(∀ {A B : FG.FGBlock (Fin n)}, A.Preceq B → (R.erase A).Preceq (R.erase B))],
+joined, receipt, [FGTimingLaws T], [instLENat.le 1 leaseSlots], [RXing R E rho O],
+[V2.D.ScheduleWellFormed E rho], [FGRunOrderLaws E rho R], [(∀ (y : V), SetLike.instMembership.mem
+rho.honest y → ∀ (t : Time), Int.instLEInt.le E.t_GST t → Int.instLEInt.le t rho.horizon → Eq
+(E.awake y t) Bool.true)], [(∀ (iy : Nat) (y : V) (t : Time), SetLike.instMembership.mem
+rho.honest y → Eq (List.instGetElem?NatLtLength.getElem? rho.events iy) (Option.some
+(V2.Event.tick y t)) → Int.instLEInt.le t rho.horizon → Int.instLEInt.le E.t_GST (slotStartZ T
+(instHSub.hSub (Nat.cast (slotAt T t)) 1)) → Eq (joined (Prot.clock (V2.D.Run.stateBefore E rho iy
+y) t)) Bool.true)], [(∀ (t : Time), Int.instLEInt.le Jst t → Int.instLEInt.le E.t_GST (slotStartZ
+T (instHSub.hSub (Nat.cast (slotAt T t)) 1)))], [(∀ (i : Nat) (ev : V2.Event V Prot.Object) (m :
+Nat), Eq (List.instGetElem?NatLtLength.getElem? rho.events i) (Option.some ev) → Int.instLEInt.le
+Jst ev.time → instLENat.le 1 m → Eq (frontierAtIdx R E rho (instHAdd.hAdd i 1)) m →
+Int.instLEInt.le (instHAdd.hAdd ev.time T.delta) rho.horizon → PhaseWitnessReceiptScope R E rho O
+joined receipt (instHAdd.hAdd i 1) m (instHAdd.hAdd ev.time T.delta))], [(∀ (W : FG.FGBlock (Fin
+n)) (d : Time) (y : V), SetLike.instMembership.mem rho.honest y → receipt (R.erase W) d y →
+SetLike.instMembership.mem (R.core (V2.D.Run.stateBeforeTime E rho d y)).fg.TF W)], [instLTNat.lt
+(Ef.weightOf (historyFaulty S rho)) Ef.q], G ΔF ρbar, [Int.instLEInt.le E.Δ ΔF], [Eq E.Δ T.delta],
+[(∀ (t : Time), Int.instLEInt.le E.t_GST t → Int.instLEInt.le (instHAdd.hAdd t G) rho.horizon →
+Exists fun s => And (Int.instLTInt.lt t (T.proposal s)) (And (Int.instLEInt.le (T.proposal s)
+(instHAdd.hAdd t G)) (Gen.V2.Duty.HonestSlot rho I s)))], [Int.instLEInt.le E.t_GST Jst],
+[Int.instLEInt.le (instHMul.hMul 4 T.delta) G], [PromotionSlotProposal R E rho T I],
+[PromotionProposalRead R S E rho O I decodeProposal bodyErase bodyRows parentFG parentHeight
+validFor fold], [PromotionRowOrder R E rho O I], [PromotionRowSigner S E rho T D],
+[PromotionSourceParent R E rho O T I Jst], deltaT, [Eq deltaT (instHMul.hMul 2 T.roundSlots)],
+[LivenessBoundW T ΔF], [TRowsReceipt R S E rho T blockWireRows ΔF], [(∀ (r height : Nat) (U X :
+FG.FGBlock (Fin n)), BatchPrem R S O T E rho I D Ef decodeProposal bodyErase bodyRows
+blockWireRows parentFG parentHeight validFor ΔF RowKind.progress r height U X → Eq (O.height
+X.parent).h height → ProgressCoveredByChild Ef O.height X U height)], [ProgressFoldAdvance Ef
+O.height deltaT], [(Exists fun Q => And (∀ (i : Fin n), SetLike.instMembership.mem Q i →
+SetLike.instMembership.mem rho.honest (safetyHolder S rho i)) (instLENat.le Ef.q (Ef.weightOf
+Q)))], [(∀ (r : Nat) (x y : V) (K L : FG.FGBlock (Fin n)), SetLike.instMembership.mem rho.honest x
+→ SetLike.instMembership.mem rho.honest y → Eq (actionSourceFG R E rho T x r) (Option.some
+(Option.some K)) → Eq (actionSourceFG R E rho T y r) (Option.some (Option.some L)) → Eq (O.height
+K).T_h.root (O.height L).T_h.root → Eq (O.height K).T_h (O.height L).T_h)], [(∀ (r : Nat) (x : V)
+(K : FG.FGBlock (Fin n)), SetLike.instMembership.mem rho.honest x → Eq (actionSourceFG R E rho T x
+r) (Option.some (Option.some K)) → instLENat.le K.slot (instHMul.hMul r T.roundSlots))], [(∀ (r :
+Nat) (x : V) (K A : FG.FGBlock (Fin n)), SetLike.instMembership.mem rho.honest x → Eq
+(actionSourceFG R E rho T x r) (Option.some (Option.some K)) → A.Preceq K → instLENat.le A.slot
+K.slot)], [(∀ (A B : FG.FGBlock (Fin n)), (R.erase A).Preceq (R.erase B) → A.Preceq B)],
+[AttemptProposalFloor R E rho O T I Jst], [(∀ (u v : Time) (m : Nat) (J : Option (FG.FGBlock (Fin
+n))) (contested : Bool) (q : Slot) (Q : Block), Int.instLEInt.le Jst u → PhaseInterval R E rho O u
+v m J contested → FrontierSeedQualification T leaseSlots E.t_GST u q → Int.instLEInt.le (T.gate q)
+v → HonestProposal E rho I q Q → Exists fun i => Exists fun x => Exists fun Qfg => And
+(instLENat.le (rho.idxBefore u) i) (And (instLENat.le i (timeIdx rho v)) (And
+(SetLike.instMembership.mem rho.honest x) (And (SetLike.instMembership.mem (R.core
+(V2.D.Run.stateBefore E rho i x)).fg.TF Qfg) (Eq (R.erase Qfg) Q)))))], [(∀ (u v : Time) (m :
+FG.Height) (J : Option (FG.FGBlock (Fin n))) (contested : Bool) (q : Slot) (Q : Block) (Qfg :
+FG.FGBlock (Fin n)), Int.instLEInt.le Jst u → HonestProposal E rho I q Q → Eq (R.erase Qfg) Q → Eq
+(O.height Qfg).h m → FrontierProposalService R E rho T q Q → FrontierSeedQualification T
+leaseSlots E.t_GST u q → Int.instLEInt.le u (T.proposal q) → PhaseInterval R E rho O u (T.gate q)
+m J contested → Int.instLEInt.le (T.gate q) v → Int.instLEInt.le v rho.horizon → (∀ (i : Nat) (x :
+V), instLENat.le (timeIdx rho u) i → instLENat.le i (timeIdx rho v) → SetLike.instMembership.mem
+rho.honest x → instLENat.le (R.core (V2.D.Run.stateBefore E rho i x)).fg.h_max m) →
+FrontierLocalService R S E rho O T I D.heightPair q Q Qfg m v)], [(∀ (u : Time) (m : Nat) (J :
+Option (FG.FGBlock (Fin n))) (contested : Bool) (q : Slot) (Q : Block) (Qfg : FG.FGBlock (Fin n))
+(r : Slot), Int.instLEInt.le Jst u → HonestProposal E rho I q Q → Eq (R.erase Qfg) Q →
+FrontierProposalService R E rho T q Q → FrontierSeedQualification T leaseSlots E.t_GST u q →
+Int.instLEInt.le u (T.proposal q) → instLENat.le q (instHMul.hMul r T.roundSlots) → (∀ (r' :
+Slot), instLENat.le q (instHMul.hMul r' T.roundSlots) → instLENat.le r r') → PhaseInterval R E rho
+O u (T.action r) m J contested → And (OpeningCovered R S E rho O.height T D.heightPair r Q) (Eq
+(O.height Qfg).h (instHSub.hSub m 1) → Or (OpeningEntry R E rho O.height T r (instHSub.hSub m 1))
+(Exists fun x => Exists fun K => And (SetLike.instMembership.mem rho.honest x) (And (Eq
+(actionSourceFG R E rho T x r) (Option.some (Option.some K))) (Eq (O.height K).h m)))))], [(∀ (i :
+Nat) (x : V), SetLike.instMembership.mem rho.honest x → Ne (R.core (V2.D.Run.stateBefore E rho i
+x)).fg.h_j 0 → Exists fun j => Exists fun y => Exists fun r => Exists fun a => Exists fun K => And
+(instLTNat.lt j i) (And (HonestRowAt S E rho T j y r a) (And (Eq (actionSourceFG R E rho T y r)
+(Option.some (Option.some K))) (Eq (O.height K).T_h (R.core (V2.D.Run.stateBefore E rho i
+x)).fg.J))))], [(∀ (q : Slot) (Q : Block), HonestProposal E rho I q Q → Exists fun j => And (Eq
+(List.instGetElem?NatLtLength.getElem? rho.events j) (Option.some (V2.Event.tick (V2.D.proposerOf
+rho I q) (T.proposal q)))) (∀ (Qfg : FG.FGBlock (Fin n)), Eq (R.erase Qfg) Q → (O.controls
+(V2.D.Run.stateBefore E rho j (V2.D.proposerOf rho I q))).Z.Preceq Qfg.parent))], i m, ev,
+[FrontierSearchStart R E rho O T Jst i ev m PhaseKind.topJ], [FrontierRepairAllowance R E rho O T
+I Jst leaseSlots G ρbar (instHAdd.hAdd ev.time (instHMul.hMul 3 T.delta))], [Int.instLEInt.le
+(instHAdd.hAdd ev.time (E_jF T ΔF G ρbar)) rho.horizon].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: holder assignment/injectivity or honest-holder FG weight (exact guards in type);
+faulty FG-seat weight/count.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### healing_phase_height_le
+
+Source: `S039:36`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, E, rho, O, [(∀ (i : Nat) (x : V),
+KitFG.FGStoreInvariant O.height O.finality (R.core (V2.D.Run.stateBefore E rho i x)).fg)], i, x,
+W, [SetLike.instMembership.mem (R.core (V2.D.Run.stateBefore E rho i x)).fg.TF W].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_phase_height_le (`S180:41`).
+
+### healing_phase_justified_lt
+
+Source: `S039:44`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, E, rho, O, Ef,
+[KitFG.FGCertificateLaws Ef O.height O.finality], [(∀ (i : Nat) (x : V), KitFG.FGStoreInvariant
+O.height O.finality (R.core (V2.D.Run.stateBefore E rho i x)).fg)], i, x.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_phase_justified_lt (`S180:54`).
+
+### healing_phase_finality_le
+
+Source: `S039:54`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, E, rho, O, Ef,
+[KitFG.FGCertificateLaws Ef O.height O.finality], [(∀ (i : Nat) (x : V), KitFG.FGStoreInvariant
+O.height O.finality (R.core (V2.D.Run.stateBefore E rho i x)).fg)], i, x, K,
+[SetLike.instMembership.mem (R.core (V2.D.Run.stateBefore E rho i x)).fg.TF K], [Eq (O.finality
+K).F (R.core (V2.D.Run.stateBefore E rho i x)).fg.F].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_phase_finality_le (`S180:68`).
+
+### healing_phase_frontier_witness
+
+Source: `S039:65`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, E, rho, O, Ef,
+[KitFG.FGCertificateLaws Ef O.height O.finality], [(∀ (i : Nat) (x : V), KitFG.FGStoreInvariant
+O.height O.finality (R.core (V2.D.Run.stateBefore E rho i x)).fg)], i, x.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_phase_frontier_witness (`S180:84`).
+
+### healing_phase_frontier_root
+
+Source: `S039:76`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, E, rho, O, Ef, [FGObservationLaws R
+O], [KitFG.FGCertificateLaws Ef O.height O.finality], [(∀ (i : Nat) (x : V),
+KitFG.FGStoreInvariant O.height O.finality (R.core (V2.D.Run.stateBefore E rho i x)).fg)], [RXing
+R E rho O], i, x, B, [SetLike.instMembership.mem rho.honest x], [SetLike.instMembership.mem
+(R.core (V2.D.Run.stateBefore E rho i x)).fg.TF B], [Eq (O.height B).h (O.controls
+(V2.D.Run.stateBefore E rho i x)).H].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_phase_frontier_root (`S180:100`).
+
+### healing_frontier_mem
+
+Source: `S039:120`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, E, rho, O, Ef, [FGObservationLaws R
+O], [KitFG.FGCertificateLaws Ef O.height O.finality], [(∀ (i : Nat) (x : V),
+KitFG.FGStoreInvariant O.height O.finality (R.core (V2.D.Run.stateBefore E rho i x)).fg)], [RXing
+R E rho O], i, x, m, X, B, [SetLike.instMembership.mem rho.honest x], [instLENat.le i
+rho.events.length], [instLENat.le 1 m], [Eq (O.controls (V2.D.Run.stateBefore E rho i x)).H m],
+[Finset.instPartialOrder.le X (R.core (V2.D.Run.stateBefore E rho i x)).fg.TF],
+[SetLike.instMembership.mem X B], [(∀ (A : FG.FGBlock (Fin n)), A.Preceq B →
+SetLike.instMembership.mem X A)], [Eq (O.height B).h m].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_frontier_mem (`S180:120`); healing_rPhase_recovery
+(`S182:432`).
+
+### healing_phase_frame
+
+Source: `S039:152`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, E, rho, O, Ef, [FGObservationLaws R
+O], [KitFG.FGCertificateLaws Ef O.height O.finality], [(∀ (i : Nat) (x : V),
+KitFG.FGStoreInvariant O.height O.finality (R.core (V2.D.Run.stateBefore E rho i x)).fg)], [RXing
+R E rho O], i, x, m, J, contested, [SetLike.instMembership.mem rho.honest x], [instLENat.le 1 m],
+[Eq (O.controls (V2.D.Run.stateBefore E rho i x)).H m], [Eq (O.controls (V2.D.Run.stateBefore E
+rho i x)).contest contested], [(healing_phase_frame.match_1 (fun J => Prop) J (fun B => And (Eq
+(O.controls (V2.D.Run.stateBefore E rho i x)).rootIsJ Bool.true) (Eq (O.controls
+(V2.D.Run.stateBefore E rho i x)).J B)) fun _ => Eq (O.controls (V2.D.Run.stateBefore E rho i
+x)).rootIsJ Bool.false)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_phase_frame (`S180:141`).
+
+### healing_settled_frame
+
+Source: `S039:243`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, E, rho, O, Ef, [FGObservationLaws R
+O], [KitFG.FGCertificateLaws Ef O.height O.finality], [(∀ (i : Nat) (x : V),
+KitFG.FGStoreInvariant O.height O.finality (R.core (V2.D.Run.stateBefore E rho i x)).fg)], [RXing
+R E rho O], u v, m, J, contested, [Int.instLEInt.le E.t_GST u], [PhaseInterval R E rho O u v m J
+contested], i, x, [instLENat.le (timeIdx rho u) i], [instLENat.le i (timeIdx rho v)],
+[SetLike.instMembership.mem rho.honest x].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_settled_frame (`S180:166`).
+
+### healing_settled_frame_ready
+
+Source: `S039:256`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, E, rho, O, Ef, [FGObservationLaws R
+O], [KitFG.FGCertificateLaws Ef O.height O.finality], [(∀ (i : Nat) (x : V),
+KitFG.FGStoreInvariant O.height O.finality (R.core (V2.D.Run.stateBefore E rho i x)).fg)], Jst,
+[RXing R E rho O], u v, m, J, contested, [Int.instLEInt.le Jst u], [PhaseInterval R E rho O u v m
+J contested], i, x, [instLENat.le (timeIdx rho u) i], [instLENat.le i (timeIdx rho v)],
+[SetLike.instMembership.mem rho.honest x].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_settled_frame_ready (`S180:186`); healing_rPhase_recovery
+(`S182:432`).
+
+### healing_phase_local_le_frontier
+
+Source: `S040:23`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, E, rho, i, x,
+[SetLike.instMembership.mem rho.honest x].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_phase_local_le_frontier (`S181:42`).
+
+### healing_phase_top_persist_all
+
+Source: `S040:32`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, E, rho, O, Ef,
+[KitFG.FGCertificateLaws Ef O.height O.finality], [(∀ (i : Nat) (x : V), KitFG.FGStoreInvariant
+O.height O.finality (R.core (V2.D.Run.stateBefore E rho i x)).fg)], [FGRunOrderLaws E rho R], i j
+m, x, [SetLike.instMembership.mem rho.honest x], [instLENat.le i j], [Eq (frontierAtIdx R E rho j)
+m], [Eq (instHAdd.hAdd (R.core (V2.D.Run.stateBefore E rho i x)).fg.h_j 1) m].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_phase_top_persist_all (`S181:53`).
+
+### healing_phase_top_persist
+
+Source: `S040:45`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, E, rho, O, Ef,
+[KitFG.FGCertificateLaws Ef O.height O.finality], [(∀ (i : Nat) (x : V), KitFG.FGStoreInvariant
+O.height O.finality (R.core (V2.D.Run.stateBefore E rho i x)).fg)], [(V2.D.NoRestart rho →
+FGRunOrderLaws E rho R)], [V2.D.NoRestart rho], i j m, x, [SetLike.instMembership.mem rho.honest
+x], [instLENat.le i j], [Eq (frontierAtIdx R E rho j) m], [Eq (instHAdd.hAdd (R.core
+(V2.D.Run.stateBefore E rho i x)).fg.h_j 1) m].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_phase_top_persist (`S181:69`).
+
+### healing_phase_entries_eq
+
+Source: `S040:59`.
+
+Translated telescope: n, Ef, H, f, [KitFG.FGCertificateLaws Ef H f], [KitFG.FGJustificationLaws
+H], C D W, [Eq (H C).h_j (H D).h_j], [(H C).J.Preceq W], [(H D).J.Preceq W].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_phase_entries_eq (`S181:88`).
+
+### healing_phase_contest_persist_of_crossing_all
+
+Source: `S040:72`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, E, rho, O, Ef, [FGObservationLaws R
+O], [KitFG.FGCertificateLaws Ef O.height O.finality], [(∀ (i : Nat) (x : V),
+KitFG.FGStoreInvariant O.height O.finality (R.core (V2.D.Run.stateBefore E rho i x)).fg)],
+[KitFG.FGJustificationLaws O.height], [(∀ (i j : Nat), instLENat.le i j → ∀ (x : V),
+Finset.instPartialOrder.le (TFAt R E rho i x) (TFAt R E rho j x))], [RXing R E rho O],
+[FGRunOrderLaws E rho R], i j m, x, [SetLike.instMembership.mem rho.honest x], [instLENat.le i j],
+[Eq (frontierAtIdx R E rho j) m], [Eq (O.controls (V2.D.Run.stateBefore E rho i x)).H m], [Eq
+(O.controls (V2.D.Run.stateBefore E rho i x)).contest Bool.true].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_phase_contest_persist_of_crossing_all (`S181:100`).
+
+### healing_phase_contest_persist_of_crossing
+
+Source: `S040:140`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, E, rho, O, Ef, [FGObservationLaws R
+O], [KitFG.FGCertificateLaws Ef O.height O.finality], [(∀ (i : Nat) (x : V),
+KitFG.FGStoreInvariant O.height O.finality (R.core (V2.D.Run.stateBefore E rho i x)).fg)],
+[KitFG.FGJustificationLaws O.height], [(∀ (i j : Nat), instLENat.le i j → ∀ (x : V),
+Finset.instPartialOrder.le (TFAt R E rho i x) (TFAt R E rho j x))], [RXing R E rho O],
+[(V2.D.NoRestart rho → FGRunOrderLaws E rho R)], [V2.D.NoRestart rho], i j m, x,
+[SetLike.instMembership.mem rho.honest x], [instLENat.le i j], [Eq (frontierAtIdx R E rho j) m],
+[Eq (O.controls (V2.D.Run.stateBefore E rho i x)).H m], [Eq (O.controls (V2.D.Run.stateBefore E
+rho i x)).contest Bool.true].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_phase_contest_persist_of_crossing (`S181:121`).
+
+### healing_phase_order_of_crossing_all
+
+Source: `S040:157`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, E, rho, O, Ef, [FGObservationLaws R
+O], [KitFG.FGCertificateLaws Ef O.height O.finality], [(∀ (i : Nat) (x : V),
+KitFG.FGStoreInvariant O.height O.finality (R.core (V2.D.Run.stateBefore E rho i x)).fg)],
+[KitFG.FGJustificationLaws O.height], [(∀ (i j : Nat), instLENat.le i j → ∀ (x : V),
+Finset.instPartialOrder.le (TFAt R E rho i x) (TFAt R E rho j x))], [RXing R E rho O],
+[FGRunOrderLaws E rho R], a b m, [instLENat.le a b], [instLENat.le b rho.events.length],
+[instLENat.le 1 m], [(∀ (i : Nat), instLENat.le a i → instLENat.le i b → Eq (frontierAtIdx R E rho
+i) m)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_phase_order_of_crossing_all (`S181:145`);
+healing_rPhase_recovery (`S182:432`).
+
+### healing_phase_order_of_crossing
+
+Source: `S040:193`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, E, rho, O, Ef, [FGObservationLaws R
+O], [KitFG.FGCertificateLaws Ef O.height O.finality], [(∀ (i : Nat) (x : V),
+KitFG.FGStoreInvariant O.height O.finality (R.core (V2.D.Run.stateBefore E rho i x)).fg)],
+[KitFG.FGJustificationLaws O.height], [(∀ (i j : Nat), instLENat.le i j → ∀ (x : V),
+Finset.instPartialOrder.le (TFAt R E rho i x) (TFAt R E rho j x))], [RXing R E rho O],
+[(V2.D.NoRestart rho → FGRunOrderLaws E rho R)], [V2.D.NoRestart rho], a b m, [instLENat.le a b],
+[instLENat.le b rho.events.length], [instLENat.le 1 m], [(∀ (i : Nat), instLENat.le a i →
+instLENat.le i b → Eq (frontierAtIdx R E rho i) m)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_phase_order_of_crossing (`S181:166`).
+
+### healing_phase_head_inclusion
+
+Source: `S041:31`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, E, rho, O, Jst, T, voterBlocks, [(∀
+(d : Time) (y : V) (W : FG.FGBlock (Fin n)) (s : Slot) (nd : P.State), Int.instLEInt.le Jst d →
+Int.instLTInt.lt 0 d → SetLike.instMembership.mem rho.honest y → instLENat.le (frontierAtIdx R E
+rho (timeIdx rho (T.vote s))) (O.height W).h → Int.instLEInt.le d (T.vote s) → Int.instLEInt.le d
+(T.freeze (instHSub.hSub s 1)) → SetLike.instMembership.mem (R.core (V2.D.Run.stateBefore E rho
+(rho.idxBefore d) y)).fg.TF W → Eq (postClock E rho y (T.vote s)) (Option.some nd) →
+SetLike.instMembership.mem (voterBlocks nd s) W)], d, y, W, s, nd, [Int.instLEInt.le Jst d],
+[Int.instLTInt.lt 0 d], [SetLike.instMembership.mem rho.honest y], [instLENat.le (frontierAtIdx R
+E rho (timeIdx rho (T.vote s))) (O.height W).h], [Int.instLEInt.le d (T.vote s)],
+[Int.instLEInt.le d (T.freeze (instHSub.hSub s 1))], [SetLike.instMembership.mem (R.core
+(V2.D.Run.stateBefore E rho (rho.idxBefore d) y)).fg.TF W], [Eq (postClock E rho y (T.vote s))
+(Option.some nd)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_evidence_spread_recovery (`S182:367`).
+
+### phase_top_carrier
+
+Source: `S041:80`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, E, rho, O, Ef,
+[KitFG.FGCertificateLaws Ef O.height O.finality], [(∀ (i : Nat) (x : V), KitFG.FGStoreInvariant
+O.height O.finality (R.core (V2.D.Run.stateBefore E rho i x)).fg)], [KitFG.FGJustificationLaws
+O.height], [RXing R E rho O], k m, y, C, [SetLike.instMembership.mem rho.honest y],
+[SetLike.instMembership.mem (R.core (V2.D.Run.stateBefore E rho k y)).fg.TF C], [Eq (O.height C).h
+m], [Eq (instHAdd.hAdd (O.height C).h_j 1) m], [instLENat.le (frontierAtIdx R E rho k) m].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_phase_top_node (`S183:136`).
+
+### healing_phase_window_all
+
+Source: `S041:178`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, E, rho, O, [FGRunOrderLaws E rho
+R], i m, v, [Eq (frontierAtIdx R E rho (instHAdd.hAdd i 1)) m], [(∀ (j : Nat), instLTNat.lt i j →
+instLTNat.lt j (timeIdx rho v) → Not (EffectiveEvent R E rho O j))], k, [instLENat.le
+(instHAdd.hAdd i 1) k], [instLENat.le k (timeIdx rho v)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_phase_window (`S183:118`); healing_phase_window_all
+(`S183:352`).
+
+### phase_settle_from_carriers
+
+Source: `S041:213`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, E, rho, O, Ef, [FGObservationLaws R
+O], [KitFG.FGCertificateLaws Ef O.height O.finality], [(∀ (i : Nat) (x : V),
+KitFG.FGStoreInvariant O.height O.finality (R.core (V2.D.Run.stateBefore E rho i x)).fg)],
+[KitFG.FGJustificationLaws O.height], [(∀ (i j : Nat), instLENat.le i j → ∀ (x : V),
+Finset.instPartialOrder.le (TFAt R E rho i x) (TFAt R E rho j x))], T, [Int.instLTInt.lt 0
+T.delta], [FGCoreLaws R], [RXing R E rho O], [V2.D.ScheduleWellFormed E rho], i, ev, v, m, kind,
+[Int.instLEInt.le (instHAdd.hAdd ev.time (instHMul.hMul 3 T.delta)) v], [Int.instLEInt.le v
+rho.horizon], [instLENat.le 1 m], [instLENat.le (instHAdd.hAdd i 1) (rho.idxBefore (instHAdd.hAdd
+ev.time T.delta))], [(∀ (k : Nat), instLENat.le (instHAdd.hAdd i 1) k → instLENat.le k (timeIdx
+rho v) → And (Eq (frontierAtIdx R E rho k) m) (And (TopEvidence R E rho k m → TopEvidence R E rho
+(instHAdd.hAdd i 1) m) (ContestEvidence R E rho O k m → ContestEvidence R E rho O (instHAdd.hAdd i
+1) m)))], hkind, [(Exists fun x => Exists fun W => And (HeldAt R E rho (instHAdd.hAdd i 1) x W)
+(And (Eq (O.height W).h m) (∀ (y : V), SetLike.instMembership.mem rho.honest y →
+SetLike.instMembership.mem (R.core (V2.D.Run.stateBefore E rho (rho.idxBefore (instHAdd.hAdd
+ev.time T.delta)) y)).fg.TF W)))], [(TopEvidence R E rho (instHAdd.hAdd i 1) m → Exists fun x =>
+Exists fun C => And (HeldAt R E rho (instHAdd.hAdd i 1) x C) (And (Eq (O.height C).h m) (And (Eq
+(instHAdd.hAdd (O.height C).h_j 1) m) (And (Eq (O.height C).J (R.core (V2.D.Run.stateBefore E rho
+(instHAdd.hAdd i 1) x)).fg.J) (∀ (y : V), SetLike.instMembership.mem rho.honest y →
+SetLike.instMembership.mem (R.core (V2.D.Run.stateBefore E rho (rho.idxBefore (instHAdd.hAdd
+ev.time T.delta)) y)).fg.TF C)))))], [(ContestEvidence R E rho O (instHAdd.hAdd i 1) m → Exists
+fun x => Exists fun C => Exists fun W => And (HeldAt R E rho (instHAdd.hAdd i 1) x C) (And (HeldAt
+R E rho (instHAdd.hAdd i 1) x W) (And (Eq (O.height C).h m) (And (Eq (O.height W).h m) (And (Eq
+(instHAdd.hAdd (O.height C).h_j 1) m) (And (Not ((O.height C).J.Preceq W)) (And (∀ (y : V),
+SetLike.instMembership.mem rho.honest y → SetLike.instMembership.mem (R.core (V2.D.Run.stateBefore
+E rho (rho.idxBefore (instHAdd.hAdd ev.time T.delta)) y)).fg.TF C) (∀ (y : V),
+SetLike.instMembership.mem rho.honest y → SetLike.instMembership.mem (R.core (V2.D.Run.stateBefore
+E rho (rho.idxBefore (instHAdd.hAdd ev.time T.delta)) y)).fg.TF W))))))))].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_settle_start (`S183:216`).
+
+### healing_settle_start_on
+
+Source: `S041:372`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, E, rho, O, Ef, [FGObservationLaws R
+O], [KitFG.FGCertificateLaws Ef O.height O.finality], [(∀ (i : Nat) (x : V),
+KitFG.FGStoreInvariant O.height O.finality (R.core (V2.D.Run.stateBefore E rho i x)).fg)],
+[KitFG.FGJustificationLaws O.height], [(∀ (i j : Nat), instLENat.le i j → ∀ (x : V),
+Finset.instPartialOrder.le (TFAt R E rho i x) (TFAt R E rho j x))], Jst, T, [Int.instLTInt.lt 0
+T.delta], [FGCoreLaws R], [(∀ {A B : FG.FGBlock (Fin n)}, A.Preceq B → (R.erase A).Preceq (R.erase
+B))], joined, receipt, [RXing R E rho O], [V2.D.ScheduleWellFormed E rho], [FGRunOrderLaws E rho
+R], [Eq E.Δ T.delta], [Int.instLEInt.le E.t_GST Jst], [(∀ (y : V), SetLike.instMembership.mem
+rho.honest y → ∀ (t : Time), Int.instLEInt.le E.t_GST t → Int.instLEInt.le t rho.horizon → Eq
+(E.awake y t) Bool.true)], [(∀ (iy : Nat) (y : V) (t : Time), SetLike.instMembership.mem
+rho.honest y → Eq (List.instGetElem?NatLtLength.getElem? rho.events iy) (Option.some
+(V2.Event.tick y t)) → Int.instLEInt.le t rho.horizon → Int.instLEInt.le E.t_GST (slotStartZ T
+(instHSub.hSub (Nat.cast (slotAt T t)) 1)) → Eq (joined (P.clock (V2.D.Run.stateBefore E rho iy y)
+t)) Bool.true)], [(∀ (t : Time), Int.instLEInt.le Jst t → Int.instLEInt.le E.t_GST (slotStartZ T
+(instHSub.hSub (Nat.cast (slotAt T t)) 1)))], [(∀ (i : Nat) (ev : V2.Event V P.Object) (m : Nat),
+Eq (List.instGetElem?NatLtLength.getElem? rho.events i) (Option.some ev) → Int.instLEInt.le Jst
+ev.time → instLENat.le 1 m → Eq (frontierAtIdx R E rho (instHAdd.hAdd i 1)) m → Int.instLEInt.le
+(instHAdd.hAdd ev.time T.delta) rho.horizon → PhaseWitnessReceiptScope R E rho O joined receipt
+(instHAdd.hAdd i 1) m (instHAdd.hAdd ev.time T.delta))], [(∀ (W : FG.FGBlock (Fin n)) (d : Time)
+(y : V), SetLike.instMembership.mem rho.honest y → receipt (R.erase W) d y →
+SetLike.instMembership.mem (R.core (V2.D.Run.stateBeforeTime E rho d y)).fg.TF W)], i, ev, v, m,
+kind, [Eq (List.instGetElem?NatLtLength.getElem? rho.events i) (Option.some ev)],
+[Int.instLEInt.le Jst ev.time], [Int.instLEInt.le (instHAdd.hAdd ev.time (instHMul.hMul 3
+T.delta)) v], [Int.instLEInt.le v rho.horizon], [instLENat.le 1 m], [Eq (frontierAtIdx R E rho
+(instHAdd.hAdd i 1)) m], [AttemptPhaseAt R E rho O (instHAdd.hAdd i 1) m kind], [(∀ (j : Nat),
+instLTNat.lt i j → instLTNat.lt j (timeIdx rho v) → Not (EffectiveEvent R E rho O j))].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_settle_start_on (`S183:366`).
+
+### healing_promotion_fixed_rows
+
+Source: `S042:18`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, S, E, rho, H, T, pair, Ef,
+[KitFG.FGHeightLaws Ef H], r height, Q, [rho.honest.Nonempty], [OpeningEntry R E rho H T r
+height], [OpeningCovered R S E rho H T pair r Q], [(∀ (x y : V) (K L : FG.FGBlock (Fin n)),
+SetLike.instMembership.mem rho.honest x → SetLike.instMembership.mem rho.honest y → Eq
+(actionSourceFG R E rho T x r) (Option.some (Option.some K)) → Eq (actionSourceFG R E rho T y r)
+(Option.some (Option.some L)) → Eq (H K).T_h.root (H L).T_h.root → Eq (H K).T_h (H L).T_h)], [(∀
+(x : V) (K : FG.FGBlock (Fin n)), SetLike.instMembership.mem rho.honest x → Eq (actionSourceFG R E
+rho T x r) (Option.some (Option.some K)) → instLENat.le K.slot (instHMul.hMul r T.roundSlots))].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_promotion_fixed_rows (`S184:172`).
+
+### healing_promotion_entry_slot
+
+Source: `S042:54`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, E, rho, H, T, Ef,
+[KitFG.FGHeightLaws Ef H], x, r, K U, [SetLike.instMembership.mem rho.honest x], [Eq
+(actionSourceFG R E rho T x r) (Option.some (Option.some K))], [Eq (H K).T_h U], [(∀ (y : V) (L :
+FG.FGBlock (Fin n)), SetLike.instMembership.mem rho.honest y → Eq (actionSourceFG R E rho T y r)
+(Option.some (Option.some L)) → instLENat.le L.slot (instHMul.hMul r T.roundSlots))], [(∀ (y : V)
+(L A : FG.FGBlock (Fin n)), SetLike.instMembership.mem rho.honest y → Eq (actionSourceFG R E rho T
+y r) (Option.some (Option.some L)) → A.Preceq L → instLENat.le A.slot L.slot)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_promotion_entry_slot (`S184:203`).
+
+### p0d3_bound_batch
+
+Source: `S042:66`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, S, E, rho, H, T, pair, r height,
+Q, [rho.honest.Nonempty], [(Exists fun U => And (EntryAt H U height) (FixedRows R S E rho H T pair
+r height Q U))], [(∀ (x : V) (K U : FG.FGBlock (Fin n)), SetLike.instMembership.mem rho.honest x →
+Eq (actionSourceFG R E rho T x r) (Option.some (Option.some K)) → Eq (H K).T_h U → instLENat.le
+U.slot (instHMul.hMul r T.roundSlots))].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### healing_promotion_bounded_rows
+
+Source: `S042:81`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, S, E, rho, H, T, pair, Ef,
+[KitFG.FGHeightLaws Ef H], r height, Q, [rho.honest.Nonempty], [OpeningEntry R E rho H T r
+height], [OpeningCovered R S E rho H T pair r Q], [(∀ (x y : V) (K L : FG.FGBlock (Fin n)),
+SetLike.instMembership.mem rho.honest x → SetLike.instMembership.mem rho.honest y → Eq
+(actionSourceFG R E rho T x r) (Option.some (Option.some K)) → Eq (actionSourceFG R E rho T y r)
+(Option.some (Option.some L)) → Eq (H K).T_h.root (H L).T_h.root → Eq (H K).T_h (H L).T_h)], [(∀
+(x : V) (K : FG.FGBlock (Fin n)), SetLike.instMembership.mem rho.honest x → Eq (actionSourceFG R E
+rho T x r) (Option.some (Option.some K)) → instLENat.le K.slot (instHMul.hMul r T.roundSlots))],
+[(∀ (x : V) (K A : FG.FGBlock (Fin n)), SetLike.instMembership.mem rho.honest x → Eq
+(actionSourceFG R E rho T x r) (Option.some (Option.some K)) → A.Preceq K → instLENat.le A.slot
+K.slot)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_promotion_bounded_rows (`S184:218`).
+
+### promotion_age_grid
+
+Source: `S043:73`.
+
+Translated telescope: n, T, [FGTimingLaws T], r s, U, ΔF, [Int.instLTInt.lt (Int.instMax.max
+(instHSub.hSub (instHAdd.hAdd (instHMul.hMul r.cast (P T)) (betaF T ΔF)) (instHMul.hMul 4
+T.delta)) (instHSub.hSub (instHAdd.hAdd (T.proposal U.slot) (instHMul.hMul 2 (P T)))
+(instHMul.hMul 4 T.delta))) (T.proposal s)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: promotion_age_grid (`S185:469`).
+
+### healing_promotion_age_receipt
+
+Source: `S043:114`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire Body, R, S, O, T, E, rho, I, D, Ef,
+decodeProposal, bodyErase, bodyRows, blockWireRows, parentFG, parentHeight, validFor, fold,
+[KitFG.FGHeightLaws Ef O.height], [FGTimingLaws T], [V2.D.ScheduleWellFormed E rho], [instLTNat.lt
+(Ef.weightOf (historyFaulty S rho)) Ef.q], G ΔF, [Int.instLEInt.le E.Δ ΔF], [Eq E.Δ T.delta], [(∀
+(t : Time), Int.instLEInt.le E.t_GST t → Int.instLEInt.le (instHAdd.hAdd t G) rho.horizon → Exists
+fun s => And (Int.instLTInt.lt t (T.proposal s)) (And (Int.instLEInt.le (T.proposal s)
+(instHAdd.hAdd t G)) (Gen.V2.Duty.HonestSlot rho I s)))], Jst, [Int.instLEInt.le E.t_GST Jst],
+[rho.honest.Nonempty], [PromotionSlotProposal R E rho T I], [PromotionProposalRead R S E rho O I
+decodeProposal bodyErase bodyRows parentFG parentHeight validFor fold], [PromotionRowOrder R E rho
+O I], [PromotionRowSigner S E rho T D], [PromotionSourceParent R E rho O T I Jst],
+[PromotionPhaseReceipt R E rho O T I Jst], deltaT, [Eq deltaT (instHMul.hMul 2 T.roundSlots)],
+[LivenessBoundW T ΔF], [TRowsReceipt R S E rho T blockWireRows ΔF], [(∀ (r height : Nat) (U X :
+FG.FGBlock (Fin n)), BatchPrem R S O T E rho I D Ef decodeProposal bodyErase bodyRows
+blockWireRows parentFG parentHeight validFor ΔF RowKind.progress r height U X → Eq (O.height
+X.parent).h height → ProgressCoveredByChild Ef O.height X U height)], [ProgressFoldAdvance Ef
+O.height deltaT], [(Exists fun Q => And (∀ (i : Fin n), SetLike.instMembership.mem Q i →
+SetLike.instMembership.mem rho.honest (safetyHolder S rho i)) (instLENat.le Ef.q (Ef.weightOf
+Q)))], u, m, J, contested, r height, Q, [OpeningEntry R E rho O.height T r height],
+[OpeningCovered R S E rho O.height T D.heightPair r Q], [(∀ (x y : V) (K L : FG.FGBlock (Fin n)),
+SetLike.instMembership.mem rho.honest x → SetLike.instMembership.mem rho.honest y → Eq
+(actionSourceFG R E rho T x r) (Option.some (Option.some K)) → Eq (actionSourceFG R E rho T y r)
+(Option.some (Option.some L)) → Eq (O.height K).T_h.root (O.height L).T_h.root → Eq (O.height
+K).T_h (O.height L).T_h)], [(∀ (x : V) (K : FG.FGBlock (Fin n)), SetLike.instMembership.mem
+rho.honest x → Eq (actionSourceFG R E rho T x r) (Option.some (Option.some K)) → instLENat.le
+K.slot (instHMul.hMul r T.roundSlots))], [(∀ (x : V) (K A : FG.FGBlock (Fin n)),
+SetLike.instMembership.mem rho.honest x → Eq (actionSourceFG R E rho T x r) (Option.some
+(Option.some K)) → A.Preceq K → instLENat.le A.slot K.slot)], [Int.instLEInt.le Jst u],
+[Int.instLEInt.le E.t_GST (instHMul.hMul r.cast (P T))], [Int.instLEInt.le u (T.vote
+(instHMul.hMul r T.roundSlots))].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: holder assignment/injectivity or honest-holder FG weight (exact guards in type);
+faulty FG-seat weight/count.
+
+FG-SA producer/application: healing_promotion_age_receipt (`S185:480`).
+
+### healing_promotion_age_service_tail
+
+Source: `S043:221`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, O, T, E, rho, I, [FGTimingLaws
+T], G ΔF, [Int.instLEInt.le E.Δ ΔF], [Eq E.Δ T.delta], u, m r, J, contested, l s, U X,
+[Int.instLTInt.lt (T.proposal l) (instHMul.hMul r.cast (P T))], [(∀ (v : Time), PhaseInterval R E
+rho O u v m J contested → ∀ (s : Slot) (Q : Block), Int.instLTInt.lt (T.proposal l) (T.proposal s)
+→ Int.instLEInt.le (T.gate s) v → HonestProposal E rho I s Q → FrontierProposalService R E rho T s
+Q)], [HonestProposal E rho I s (R.erase X)], [Int.instLTInt.lt (Int.instMax.max (instHSub.hSub
+(instHAdd.hAdd (instHMul.hMul r.cast (P T)) (betaF T ΔF)) (instHMul.hMul 4 T.delta))
+(instHSub.hSub (instHAdd.hAdd (T.proposal U.slot) (instHMul.hMul 2 (P T))) (instHMul.hMul 4
+T.delta))) (T.proposal s)], [Int.instLEInt.le (T.proposal s) (instHAdd.hAdd (Int.instMax.max
+(instHSub.hSub (instHAdd.hAdd (instHMul.hMul r.cast (P T)) (betaF T ΔF)) (instHMul.hMul 4
+T.delta)) (instHSub.hSub (instHAdd.hAdd (T.proposal U.slot) (instHMul.hMul 2 (P T)))
+(instHMul.hMul 4 T.delta))) (Γ T G))], [PhaseInterval R E rho O u (T.gate s) m J contested].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_promotion_age_service_tail (`S185:560`).
+
+### healing_promotion_age_service
+
+Source: `S043:265`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire Body, R, S, O, T, E, rho, I, D, Ef,
+decodeProposal, bodyErase, bodyRows, blockWireRows, parentFG, parentHeight, validFor, fold,
+[KitFG.FGHeightLaws Ef O.height], [FGTimingLaws T], [V2.D.ScheduleWellFormed E rho], [instLTNat.lt
+(Ef.weightOf (historyFaulty S rho)) Ef.q], G ΔF, [Int.instLEInt.le E.Δ ΔF], [Eq E.Δ T.delta], [(∀
+(t : Time), Int.instLEInt.le E.t_GST t → Int.instLEInt.le (instHAdd.hAdd t G) rho.horizon → Exists
+fun s => And (Int.instLTInt.lt t (T.proposal s)) (And (Int.instLEInt.le (T.proposal s)
+(instHAdd.hAdd t G)) (Gen.V2.Duty.HonestSlot rho I s)))], Jst, [Int.instLEInt.le E.t_GST Jst],
+[rho.honest.Nonempty], [PromotionSlotProposal R E rho T I], [PromotionProposalRead R S E rho O I
+decodeProposal bodyErase bodyRows parentFG parentHeight validFor fold], [PromotionRowOrder R E rho
+O I], [PromotionRowSigner S E rho T D], [PromotionSourceParent R E rho O T I Jst],
+[PromotionPhaseReceipt R E rho O T I Jst], deltaT, [Eq deltaT (instHMul.hMul 2 T.roundSlots)],
+[LivenessBoundW T ΔF], [TRowsReceipt R S E rho T blockWireRows ΔF], [(∀ (r height : Nat) (U X :
+FG.FGBlock (Fin n)), BatchPrem R S O T E rho I D Ef decodeProposal bodyErase bodyRows
+blockWireRows parentFG parentHeight validFor ΔF RowKind.progress r height U X → Eq (O.height
+X.parent).h height → ProgressCoveredByChild Ef O.height X U height)], [ProgressFoldAdvance Ef
+O.height deltaT], [(Exists fun Q => And (∀ (i : Fin n), SetLike.instMembership.mem Q i →
+SetLike.instMembership.mem rho.honest (safetyHolder S rho i)) (instLENat.le Ef.q (Ef.weightOf
+Q)))], u, m, J, contested, r height, l, Q, [OpeningEntry R E rho O.height T r height],
+[OpeningCovered R S E rho O.height T D.heightPair r Q], [(∀ (x y : V) (K L : FG.FGBlock (Fin n)),
+SetLike.instMembership.mem rho.honest x → SetLike.instMembership.mem rho.honest y → Eq
+(actionSourceFG R E rho T x r) (Option.some (Option.some K)) → Eq (actionSourceFG R E rho T y r)
+(Option.some (Option.some L)) → Eq (O.height K).T_h.root (O.height L).T_h.root → Eq (O.height
+K).T_h (O.height L).T_h)], [(∀ (x : V) (K : FG.FGBlock (Fin n)), SetLike.instMembership.mem
+rho.honest x → Eq (actionSourceFG R E rho T x r) (Option.some (Option.some K)) → instLENat.le
+K.slot (instHMul.hMul r T.roundSlots))], [(∀ (x : V) (K A : FG.FGBlock (Fin n)),
+SetLike.instMembership.mem rho.honest x → Eq (actionSourceFG R E rho T x r) (Option.some
+(Option.some K)) → A.Preceq K → instLENat.le A.slot K.slot)], [Int.instLEInt.le Jst u],
+[Int.instLEInt.le E.t_GST (instHMul.hMul r.cast (P T))], [Int.instLEInt.le u (T.vote
+(instHMul.hMul r T.roundSlots))], [Int.instLTInt.lt (T.proposal l) (instHMul.hMul r.cast (P T))],
+[(∀ (v : Time), PhaseInterval R E rho O u v m J contested → ∀ (s : Slot) (Q : Block),
+Int.instLTInt.lt (T.proposal l) (T.proposal s) → Int.instLEInt.le (T.gate s) v → HonestProposal E
+rho I s Q → FrontierProposalService R E rho T s Q)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: holder assignment/injectivity or honest-holder FG weight (exact guards in type);
+faulty FG-seat weight/count.
+
+FG-SA producer/application: healing_promotion_age_service (`S185:598`).
+
+### healing_promotion_gap_remainder
+
+Source: `S044:73`.
+
+Translated telescope: T, [FGTimingLaws T], G.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_promotion_gap_remainder (`S186:99`).
+
+### healing_promotion_held_mono
+
+Source: `S044:87`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, E, rho, blockRows,
+[V2.D.ScheduleWellFormed E rho], [(∀ (i j : Nat) (x : V) (a : Wire), instLENat.le i j → rowHeld R
+blockRows (V2.D.Run.stateBefore E rho i x) a → rowHeld R blockRows (V2.D.Run.stateBefore E rho j
+x) a)], d d', [Int.instLEInt.le d d'], x, a, [HeldBefore R E rho blockRows x a d].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_promotion_held_mono (`S186:110`).
+
+### healing_promotion_gap
+
+Source: `S044:111`.
+
+Translated telescope: In V, Prot, T, [FGTimingLaws T], I, E, rho, G, [(∀ (t : Time),
+Int.instLEInt.le E.t_GST t → Int.instLEInt.le (instHAdd.hAdd t G) rho.horizon → Exists fun s =>
+And (Int.instLTInt.lt t (T.proposal s)) (And (Int.instLEInt.le (T.proposal s) (instHAdd.hAdd t G))
+(Gen.V2.Duty.HonestSlot rho I s)))], r, [Int.instLEInt.le E.t_GST (T.action r)], [Int.instLEInt.le
+(instHSub.hSub (instHAdd.hAdd (instHAdd.hAdd (T.action r) (instHMul.hMul 2 (P T))) (Γ T G))
+(instHMul.hMul 4 T.delta)) rho.horizon].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_promotion_gap (`S186:121`).
+
+### healing_promotion_row_deadline
+
+Source: `S044:164`.
+
+Translated telescope: V, T, [FGTimingLaws T], E, ΔF, [Int.instLEInt.le 0 ΔF], [LivenessBoundW T
+ΔF], r rSent, [instLENat.le rSent r], [Int.instLEInt.le E.t_GST (T.action r)], s,
+[Int.instLEInt.le (carrierTimeW T ΔF r) (T.proposal s)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_promotion_row_deadline (`S186:142`).
+
+### healing_promotion_row_deadline_strict
+
+Source: `S044:198`.
+
+Translated telescope: V, T, [FGTimingLaws T], E, ΔF, [Int.instLEInt.le 0 ΔF], [LivenessBoundW T
+ΔF], r rSent, [instLENat.le rSent r], [Int.instLEInt.le E.t_GST (T.action r)], s,
+[Int.instLEInt.le (instHAdd.hAdd (instHMul.hMul r.cast (P T)) (instHMul.hMul 2 (P T))) (T.proposal
+s)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_promotion_row_deadline_strict (`S186:162`).
+
+### healing_promotion_row_receipt
+
+Source: `S044:218`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, T, [FGTimingLaws T], R, S, E, rho,
+blockRows, [V2.D.ScheduleWellFormed E rho], [(∀ (i j : Nat) (x : V) (a : Wire), instLENat.le i j →
+rowHeld R blockRows (V2.D.Run.stateBefore E rho i x) a → rowHeld R blockRows (V2.D.Run.stateBefore
+E rho j x) a)], ΔF, [Int.instLEInt.le 0 ΔF], [LivenessBoundW T ΔF], [(∀ (j : Nat) (y : V) (r :
+Nat) (a : Wire), HonestRowAt S E rho T j y r a → Int.instLEInt.le (instHAdd.hAdd (Int.instMax.max
+(T.action r) E.t_GST) ΔF) rho.horizon → ∀ (x : V), SetLike.instMembership.mem rho.honest x →
+HeldBefore R E rho blockRows x a (instHAdd.hAdd (Int.instMax.max (T.action r) E.t_GST) ΔF))], r j
+rSent, y, a, [instLENat.le rSent r], [HonestRowAt S E rho T j y rSent a], [Int.instLEInt.le
+E.t_GST (T.action r)], s, [Int.instLEInt.le (carrierTimeW T ΔF r) (T.proposal s)],
+[Int.instLEInt.le (T.proposal s) rho.horizon].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_promotion_row_receipt (`S186:182`).
+
+### healing_promotion_row_receipt_strict
+
+Source: `S044:250`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, T, [FGTimingLaws T], R, S, E, rho,
+blockRows, [V2.D.ScheduleWellFormed E rho], [(∀ (i j : Nat) (x : V) (a : Wire), instLENat.le i j →
+rowHeld R blockRows (V2.D.Run.stateBefore E rho i x) a → rowHeld R blockRows (V2.D.Run.stateBefore
+E rho j x) a)], ΔF, [Int.instLEInt.le 0 ΔF], [LivenessBoundW T ΔF], [(∀ (j : Nat) (y : V) (r :
+Nat) (a : Wire), HonestRowAt S E rho T j y r a → Int.instLEInt.le (instHAdd.hAdd (Int.instMax.max
+(T.action r) E.t_GST) ΔF) rho.horizon → ∀ (x : V), SetLike.instMembership.mem rho.honest x →
+HeldBefore R E rho blockRows x a (instHAdd.hAdd (Int.instMax.max (T.action r) E.t_GST) ΔF))], r j
+rSent, y, a, [instLENat.le rSent r], [HonestRowAt S E rho T j y rSent a], [Int.instLEInt.le
+E.t_GST (T.action r)], s, [Int.instLEInt.le (instHAdd.hAdd (instHMul.hMul r.cast (P T))
+(instHMul.hMul 2 (P T))) (T.proposal s)], [Int.instLEInt.le (T.proposal s) rho.horizon].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_promotion_row_receipt_strict (`S186:212`).
+
+### healing_promotion_maturity
+
+Source: `S044:283`.
+
+Translated telescope: n, T, [FGTimingLaws T], δt, [Eq δt (instHMul.hMul 2 T.roundSlots)], s, U,
+[Int.instLEInt.le (instHAdd.hAdd (T.proposal U.slot) (instHMul.hMul 2 (P T))) (T.proposal s)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_promotion_maturity (`S186:241`).
+
+### healing_promotion_maturity_of_action
+
+Source: `S044:299`.
+
+Translated telescope: n, T, [FGTimingLaws T], δt, [Eq δt (instHMul.hMul 2 T.roundSlots)], r s, U,
+[instLENat.le U.slot (instHMul.hMul r T.roundSlots)], [Int.instLEInt.le (instHAdd.hAdd
+(instHMul.hMul r.cast (P T)) (instHMul.hMul 2 (P T))) (T.proposal s)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_promotion_maturity_of_action (`S186:249`).
+
+### healing_promotion_age_gap
+
+Source: `S044:319`.
+
+Translated telescope: In V, Prot, T, [FGTimingLaws T], I, E, rho, G, [(∀ (t : Time),
+Int.instLEInt.le E.t_GST t → Int.instLEInt.le (instHAdd.hAdd t G) rho.horizon → Exists fun s =>
+And (Int.instLTInt.lt t (T.proposal s)) (And (Int.instLEInt.le (T.proposal s) (instHAdd.hAdd t G))
+(Gen.V2.Duty.HonestSlot rho I s)))], ΔF, [Int.instLEInt.le 0 ΔF], r, q, [Int.instLEInt.le E.t_GST
+(instHMul.hMul r.cast (P T))], [Int.instLEInt.le (instHAdd.hAdd (Int.instMax.max (instHSub.hSub
+(instHAdd.hAdd (instHMul.hMul r.cast (P T)) (betaF T ΔF)) (instHMul.hMul 4 T.delta))
+(instHSub.hSub (instHAdd.hAdd (T.proposal q) (instHMul.hMul 2 (P T))) (instHMul.hMul 4 T.delta)))
+G) rho.horizon].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_promotion_age_gap (`S186:259`).
+
+### p0d3_same_row
+
+Source: `S045:26`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, S, E, rho, H, I, pair, parentFG,
+parentHeight, validFor, fold, Ef, [KitFG.FGHeightLaws Ef H], s, X U, height, nd, [Eq X.slot s],
+[EntryAt H U height], [U.Preceq X.parent], [Eq (H X.parent).h height], [Eq (proposalStateAt E rho
+I s) (Option.some nd)], [Eq (parentFG nd (R.erase X).parent) (Option.some X.parent)], [And (Eq
+(fold nd s X.parent).h (H X.parent).h) (Eq (fold nd s X.parent).T_h (H X.parent).T_h)], [Eq
+(parentHeight nd s X.parent) { fst := (fold nd s X.parent).h, snd := (fold nd s X.parent).T_h.root
+}], a, [(Exists fun b => And (Eq (S.decode a) (Option.some b)) (Eq b.height_pair (pair a)))],
+[NamesEntry pair RowKind.progress a height U], [Eq (validFor nd s X.parent a)
+(p0d3_same_row.match_1 (fun x => Bool) (S.decode a) (fun _ => Bool.false) fun b => FG.Window.r6w
+(fold nd s X.parent) b)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### p0d3_same_batch_on
+
+Source: `S045:62`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, S, E, rho, H, T, I, pair,
+parentFG, parentHeight, validFor, fold, Ef, [KitFG.FGHeightLaws Ef H], r height, s, Q, X U,
+[rho.honest.Nonempty], [EntryAt H U height], [FixedRows R S E rho H T pair r height Q U], [(∀ (x :
+V) (K : FG.FGBlock (Fin n)), SetLike.instMembership.mem rho.honest x → Eq (actionSourceFG R E rho
+T x r) (Option.some (Option.some K)) → K.Preceq X.parent)], [Eq X.slot s], [(Exists fun nd => And
+(Eq (proposalStateAt E rho I s) (Option.some nd)) (And (Eq (parentFG nd (R.erase X).parent)
+(Option.some X.parent)) (And (Eq (fold nd s X.parent).h (H X.parent).h) (And (Eq (fold nd s
+X.parent).T_h (H X.parent).T_h) (And (Eq (parentHeight nd s X.parent) { fst := (fold nd s
+X.parent).h, snd := (fold nd s X.parent).T_h.root }) (∀ (a : Wire), Eq (validFor nd s X.parent a)
+(p0d3_same_row.match_1 (fun x => Bool) (S.decode a) (fun _ => Bool.false) fun b => FG.Window.r6w
+(fold nd s X.parent) b)))))))], [(∀ (j : Nat) (x : V) (rSent : Nat) (a : Wire), HonestRowAt S E
+rho T j x rSent a → Exists fun b => And (Eq (S.decode a) (Option.some b)) (Eq b.height_pair (pair
+a)))].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### p0d3_same_batch
+
+Source: `S045:105`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, S, E, rho, H, T, I, pair,
+parentFG, parentHeight, validFor, fold, Ef, [KitFG.FGHeightLaws Ef H], r height, s, Q, X,
+[rho.honest.Nonempty], [(Exists fun U => And (EntryAt H U height) (And (instLENat.le U.slot
+(instHMul.hMul r T.roundSlots)) (FixedRows R S E rho H T pair r height Q U)))], [(∀ (x : V) (K :
+FG.FGBlock (Fin n)), SetLike.instMembership.mem rho.honest x → Eq (actionSourceFG R E rho T x r)
+(Option.some (Option.some K)) → K.Preceq X.parent)], [Eq X.slot s], [(Exists fun nd => And (Eq
+(proposalStateAt E rho I s) (Option.some nd)) (And (Eq (parentFG nd (R.erase X).parent)
+(Option.some X.parent)) (And (Eq (fold nd s X.parent).h (H X.parent).h) (And (Eq (fold nd s
+X.parent).T_h (H X.parent).T_h) (And (Eq (parentHeight nd s X.parent) { fst := (fold nd s
+X.parent).h, snd := (fold nd s X.parent).T_h.root }) (∀ (a : Wire), Eq (validFor nd s X.parent a)
+(p0d3_same_row.match_1 (fun x => Bool) (S.decode a) (fun _ => Bool.false) fun b => FG.Window.r6w
+(fold nd s X.parent) b)))))))], [(∀ (j : Nat) (x : V) (rSent : Nat) (a : Wire), HonestRowAt S E
+rho T j x rSent a → Exists fun b => And (Eq (S.decode a) (Option.some b)) (Eq b.height_pair (pair
+a)))].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### healing_promotion_same_rows_on
+
+Source: `S045:139`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, S, E, rho, H, T, I, pair,
+parentFG, parentHeight, validFor, fold, Ef, [KitFG.FGHeightLaws Ef H], r height, s, Q, X,
+[rho.honest.Nonempty], [OpeningEntry R E rho H T r height], [OpeningCovered R S E rho H T pair r
+Q], [(∀ (x y : V) (K L : FG.FGBlock (Fin n)), SetLike.instMembership.mem rho.honest x →
+SetLike.instMembership.mem rho.honest y → Eq (actionSourceFG R E rho T x r) (Option.some
+(Option.some K)) → Eq (actionSourceFG R E rho T y r) (Option.some (Option.some L)) → Eq (H
+K).T_h.root (H L).T_h.root → Eq (H K).T_h (H L).T_h)], [(∀ (x : V) (K : FG.FGBlock (Fin n)),
+SetLike.instMembership.mem rho.honest x → Eq (actionSourceFG R E rho T x r) (Option.some
+(Option.some K)) → instLENat.le K.slot (instHMul.hMul r T.roundSlots))], [(∀ (x : V) (K A :
+FG.FGBlock (Fin n)), SetLike.instMembership.mem rho.honest x → Eq (actionSourceFG R E rho T x r)
+(Option.some (Option.some K)) → A.Preceq K → instLENat.le A.slot K.slot)], [(∀ (x : V) (K :
+FG.FGBlock (Fin n)), SetLike.instMembership.mem rho.honest x → Eq (actionSourceFG R E rho T x r)
+(Option.some (Option.some K)) → K.Preceq X.parent)], [Eq X.slot s], [(Exists fun nd => And (Eq
+(proposalStateAt E rho I s) (Option.some nd)) (And (Eq (parentFG nd (R.erase X).parent)
+(Option.some X.parent)) (And (Eq (fold nd s X.parent).h (H X.parent).h) (And (Eq (fold nd s
+X.parent).T_h (H X.parent).T_h) (And (Eq (parentHeight nd s X.parent) { fst := (fold nd s
+X.parent).h, snd := (fold nd s X.parent).T_h.root }) (∀ (a : Wire), Eq (validFor nd s X.parent a)
+(p0d3_same_row.match_1 (fun x => Bool) (S.decode a) (fun _ => Bool.false) fun b => FG.Window.r6w
+(fold nd s X.parent) b)))))))], [(∀ (j : Nat) (x : V) (rSent : Nat) (a : Wire), HonestRowAt S E
+rho T j x rSent a → Exists fun b => And (Eq (S.decode a) (Option.some b)) (Eq b.height_pair (pair
+a)))].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_promotion_same_rows_on (`S187:354`).
+
+### healing_promotion_same_rows
+
+Source: `S045:182`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, S, E, rho, H, T, I, pair,
+parentFG, parentHeight, validFor, fold, Ef, [KitFG.FGHeightLaws Ef H], r height, s, Q, X,
+[rho.honest.Nonempty], [OpeningEntry R E rho H T r height], [OpeningCovered R S E rho H T pair r
+Q], [(∀ (x y : V) (K L : FG.FGBlock (Fin n)), SetLike.instMembership.mem rho.honest x →
+SetLike.instMembership.mem rho.honest y → Eq (actionSourceFG R E rho T x r) (Option.some
+(Option.some K)) → Eq (actionSourceFG R E rho T y r) (Option.some (Option.some L)) → Eq (H
+K).T_h.root (H L).T_h.root → Eq (H K).T_h (H L).T_h)], [(∀ (x : V) (K : FG.FGBlock (Fin n)),
+SetLike.instMembership.mem rho.honest x → Eq (actionSourceFG R E rho T x r) (Option.some
+(Option.some K)) → instLENat.le K.slot (instHMul.hMul r T.roundSlots))], [(∀ (x : V) (K A :
+FG.FGBlock (Fin n)), SetLike.instMembership.mem rho.honest x → Eq (actionSourceFG R E rho T x r)
+(Option.some (Option.some K)) → A.Preceq K → instLENat.le A.slot K.slot)], [(∀ (x : V) (K :
+FG.FGBlock (Fin n)), SetLike.instMembership.mem rho.honest x → Eq (actionSourceFG R E rho T x r)
+(Option.some (Option.some K)) → K.Preceq X.parent)], [Eq X.slot s], [(Exists fun nd => And (Eq
+(proposalStateAt E rho I s) (Option.some nd)) (And (Eq (parentFG nd (R.erase X).parent)
+(Option.some X.parent)) (And (Eq (fold nd s X.parent).h (H X.parent).h) (And (Eq (fold nd s
+X.parent).T_h (H X.parent).T_h) (And (Eq (parentHeight nd s X.parent) { fst := (fold nd s
+X.parent).h, snd := (fold nd s X.parent).T_h.root }) (∀ (a : Wire), Eq (validFor nd s X.parent a)
+(p0d3_same_row.match_1 (fun x => Bool) (S.decode a) (fun _ => Bool.false) fun b => FG.Window.r6w
+(fold nd s X.parent) b)))))))], [(∀ (j : Nat) (x : V) (rSent : Nat) (a : Wire), HonestRowAt S E
+rho T j x rSent a → Exists fun b => And (Eq (S.decode a) (Option.some b)) (Eq b.height_pair (pair
+a)))].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_promotion_same_rows (`S187:295`).
+
+### promotion_age_advance_of_source
+
+Source: `S046:31`.
+
+Translated telescope: In V, Prot, inst, n, Base Proposal Wire Body, R, S, O, T, E, rho, I, D, Ef,
+decodeProposal, bodyErase, bodyRows, blockWireRows, parentFG, parentHeight, validFor, fold,
+[KitFG.FGHeightLaws Ef O.height], [FGTimingLaws T], [V2.D.ScheduleWellFormed E rho], [instLTNat.lt
+(Ef.weightOf (historyFaulty S rho)) Ef.q], ΔF, [Int.instLEInt.le E.Δ ΔF], [Eq E.Δ T.delta], deltaT
+r height, U X, s, [PromotionSourceAt R S E rho O T I D ΔF r height U s X], [Eq deltaT
+(instHMul.hMul 2 T.roundSlots)], [LivenessBoundW T ΔF], [TRowsReceipt R S E rho T blockWireRows
+ΔF], [(∀ (r height : Nat) (U X : FG.FGBlock (Fin n)), BatchPrem R S O T E rho I D Ef
+decodeProposal bodyErase bodyRows blockWireRows parentFG parentHeight validFor ΔF RowKind.progress
+r height U X → Eq (O.height X.parent).h height → ProgressCoveredByChild Ef O.height X U height)],
+[ProgressFoldAdvance Ef O.height deltaT], [(Exists fun Q => And (∀ (i : Fin n),
+SetLike.instMembership.mem Q i → SetLike.instMembership.mem rho.honest (safetyHolder S rho i))
+(instLENat.le Ef.q (Ef.weightOf Q)))], [PromotionProposalRead R S E rho O I decodeProposal
+bodyErase bodyRows parentFG parentHeight validFor fold], [PromotionRowOrder R E rho O I],
+[PromotionRowSigner S E rho T D].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: holder assignment/injectivity or honest-holder FG weight (exact guards in type);
+faulty FG-seat weight/count.
+
+FG-SA producer/application: promotion_age_advance_of_source (`S188:350`).
+
+### healing_reset_budget_sum
+
+Source: `S047:19`.
+
+Translated telescope: T, G ΔF ρbar.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_reset_budget_sum (`S189:49`).
+
+### healing_reset_budget_lt
+
+Source: `S047:29`.
+
+Translated telescope: T, G ΔF Jst u₀ ρbar budget, [Eq budget (instHAdd.hAdd (instHAdd.hAdd
+(instHMul.hMul 3 (P T)) (instHAdd.hAdd (instHAdd.hAdd (E_gF T ΔF G ρbar) (E_jF T ΔF G ρbar)) (B_cF
+T ΔF G ρbar))) (instHAdd.hAdd (instHAdd.hAdd (E_gF T ΔF G ρbar) (E_jF T ΔF G ρbar)) (D_cF T
+ρbar)))], [Int.instLTInt.lt u₀ (instHAdd.hAdd Jst (instHMul.hMul 3 (P T)))].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_reset_budget_lt (`S189:76`).
+
+### healing_reset_rowCap
+
+Source: `S047:60`.
+
+Translated telescope: T, L, Jst, In V, Prot, inst, n, Base Proposal Wire, R, S, E, rho, O, pair,
+[FGCoreLaws R], [FGTreeKeepLaws R], [(∀ (i : Nat) (x : V), KitFG.FGStoreInvariant O.height
+O.finality (R.core (V2.D.Run.stateBefore E rho i x)).fg)], [(∀ {j : Nat} {x : V} {r : Nat} {a :
+Wire} {e : Prod FG.Height BlockId}, HonestRowAt S E rho T j x r a → Eq (namedEntry (pair a))
+(Option.some e) → Exists fun C => And (Eq (actionSourceFG R E rho T x r) (Option.some (Option.some
+C))) (Eq e { fst := (O.height C).h, snd := (O.height C).T_h.root }))], [V2.D.ScheduleWellFormed E
+rho], j, y, r, a, h, e, t, [HonestRowAt S E rho T j y r a], [Eq
+(List.instGetElem?NatLtLength.getElem? rho.events j) (Option.some (V2.Event.tick y t))],
+[Int.instLEInt.le t (resetCutTime T L Jst)], [Eq (namedEntry (pair a)) (Option.some { fst := h,
+snd := e })].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_reset_rowCap (`S189:215`).
+
+### healing_reset_mu_le
+
+Source: `S047:74`.
+
+Translated telescope: T, L, Jst, In V, Prot, inst, n, Base Proposal Wire, R, S, E, rho, O, pair,
+Ef, [KitFG.FGHeightLaws Ef O.height], [FGCoreLaws R], [FGTreeKeepLaws R], [(∀ (i : Nat) (x : V),
+KitFG.FGStoreInvariant O.height O.finality (R.core (V2.D.Run.stateBefore E rho i x)).fg)], [(∀ {j
+: Nat} {x : V} {r : Nat} {a : Wire} {e : Prod FG.Height BlockId}, HonestRowAt S E rho T j x r a →
+Eq (namedEntry (pair a)) (Option.some e) → Exists fun C => And (Eq (actionSourceFG R E rho T x r)
+(Option.some (Option.some C))) (Eq e { fst := (O.height C).h, snd := (O.height C).T_h.root }))],
+[V2.D.ScheduleWellFormed E rho], r h, [HeightRow S E rho T (fun a => namedEntry (pair a)) r h].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_reset_mu_le (`S189:232`).
+
+### healing_reset_fresh
+
+Source: `S047:88`.
+
+Translated telescope: T, In V, Prot, inst, n, Base Proposal Wire, R, S, E, rho, O, pair, [(∀ {j :
+Nat} {x : V} {r : Nat} {a : Wire} {e : Prod FG.Height BlockId}, HonestRowAt S E rho T j x r a → Eq
+(namedEntry (pair a)) (Option.some e) → Exists fun C => And (Eq (actionSourceFG R E rho T x r)
+(Option.some (Option.some C))) (Eq e { fst := (O.height C).h, snd := (O.height C).T_h.root }))], r
+M, [HeightRow S E rho T (fun a => namedEntry (pair a)) r (instHAdd.hAdd M 1)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_reset_fresh (`S189:248`).
+
+### healing_reset_synchronous
+
+Source: `S047:106`.
+
+Translated telescope: T, L, Jst, In V, Prot, inst, n, Base Proposal Wire, R, S, E, rho, pair,
+[Int.instLEInt.le E.t_GST Jst], r, [(∀ (j : Nat) (y : V) (r : Nat) (a : Wire) (h : FG.Height) (e :
+BlockId) (t : Time), HonestRowAt S E rho T j y r a → Eq (List.instGetElem?NatLtLength.getElem?
+rho.events j) (Option.some (V2.Event.tick y t)) → Int.instLEInt.le t (resetCutTime T L Jst) → Eq
+(namedEntry (pair a)) (Option.some { fst := h, snd := e }) → instLENat.le h (resetCutFrontier R E
+rho T L Jst))], [HeightRow S E rho T (fun a => namedEntry (pair a)) r (instHAdd.hAdd
+(resetCutFrontier R E rho T L Jst) 1)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_reset_synchronous (`S189:268`).
+
+### healing_reset_reset_first
+
+Source: `S047:129`.
+
+Translated telescope: T, In V, Prot, inst, n, Wire, S, E, rho, pair, M, deadline,
+[FirstHeightRowBy S E rho T pair (instHAdd.hAdd M 1) deadline].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### healing_reset_fields
+
+Source: `S047:147`.
+
+Translated telescope: T, L, Jst, In V, Prot, inst, n, Base Proposal Wire, R, S, E, rho, O, pair,
+Ef, [KitFG.FGHeightLaws Ef O.height], [FGCoreLaws R], [FGTreeKeepLaws R], [(∀ (i : Nat) (x : V),
+KitFG.FGStoreInvariant O.height O.finality (R.core (V2.D.Run.stateBefore E rho i x)).fg)], [(∀ {j
+: Nat} {x : V} {r : Nat} {a : Wire} {e : Prod FG.Height BlockId}, HonestRowAt S E rho T j x r a →
+Eq (namedEntry (pair a)) (Option.some e) → Exists fun C => And (Eq (actionSourceFG R E rho T x r)
+(Option.some (Option.some C))) (Eq e { fst := (O.height C).h, snd := (O.height C).T_h.root }))],
+[V2.D.ScheduleWellFormed E rho], [Int.instLEInt.le 0 Jst], [Int.instLEInt.le E.t_GST Jst],
+deadline, [FirstHeightRowBy S E rho T pair (instHAdd.hAdd (resetCutFrontier R E rho T L Jst) 1)
+deadline].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: healing_reset_fields (`S189:313`).
+
+### healing_resetWitness
+
+Source: `S047:189`.
+
+Translated telescope: T, L, Jst, In V, Prot, inst, n, Base Proposal Wire, R, S, E, rho, O, I,
+pair, Ef, [KitFG.FGHeightLaws Ef O.height], [FGCoreLaws R], [FGTreeKeepLaws R], [(∀ (i : Nat) (x :
+V), KitFG.FGStoreInvariant O.height O.finality (R.core (V2.D.Run.stateBefore E rho i x)).fg)], [(∀
+{j : Nat} {x : V} {r : Nat} {a : Wire} {e : Prod FG.Height BlockId}, HonestRowAt S E rho T j x r a
+→ Eq (namedEntry (pair a)) (Option.some e) → Exists fun C => And (Eq (actionSourceFG R E rho T x
+r) (Option.some (Option.some C))) (Eq e { fst := (O.height C).h, snd := (O.height C).T_h.root
+}))], leaseSlots deltaT, [V2.D.ScheduleWellFormed E rho], [Int.instLEInt.le 0 Jst],
+[Int.instLEInt.le E.t_GST Jst], G ΔF ρbar budget, [Eq deltaT (instHMul.hMul 2 T.roundSlots)],
+[LivenessBoundW T ΔF], [Int.instLEInt.le 0 ρbar], [(∀ (i : Nat) (ev : V2.Event V Prot.Object) (m :
+Nat) (kind : PhaseKind), FrontierSearchStart R E rho O T Jst i ev m kind → Int.instLEInt.le
+(instHAdd.hAdd Jst (instHMul.hMul 2 (P T))) ev.time → FrontierRepairAllowance R E rho O T I Jst
+leaseSlots G ρbar (instHAdd.hAdd ev.time (instHMul.hMul 3 T.delta)))],
+[FrontierSearchFamilyStatement R S E rho O T I pair Jst leaseSlots deltaT G ΔF ρbar], [Eq budget
+(instHAdd.hAdd (instHAdd.hAdd (instHMul.hMul 3 (P T)) (instHAdd.hAdd (instHAdd.hAdd (E_gF T ΔF G
+ρbar) (E_jF T ΔF G ρbar)) (B_cF T ΔF G ρbar))) (instHAdd.hAdd (instHAdd.hAdd (E_gF T ΔF G ρbar)
+(E_jF T ΔF G ρbar)) (D_cF T ρbar)))], [Int.instLEInt.le (instHAdd.hAdd Jst budget) rho.horizon].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### reset_period_lower
+
+Source: `S048:23`.
+
+Translated telescope: T, [FGTimingLaws T].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: reset_period_lower (`S190:58`).
+
+### reset_action_exists
+
+Source: `S048:30`.
+
+Translated telescope: T, [FGTimingLaws T], Jst.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: reset_action_exists (`S190:63`).
+
+### reset_rG_after
+
+Source: `S048:42`.
+
+Translated telescope: T, L, Jst.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: reset_rG_after (`S190:81`).
+
+### reset_rG_first
+
+Source: `S048:46`.
+
+Translated telescope: T, L, Jst, r, [Int.instLEInt.le Jst (T.action r)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: reset_rG_first (`S190:85`).
+
+### reset_cut
+
+Source: `S048:49`.
+
+Translated telescope: T, L, Jst.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: reset_cut (`S190:90`).
+
+### reset_first_action_upper
+
+Source: `S048:52`.
+
+Translated telescope: T, L, Jst, [Int.instLEInt.le 0 Jst].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: reset_first_action_upper (`S190:95`).
+
+### reset_cut_lower
+
+Source: `S048:68`.
+
+Translated telescope: T, L, Jst.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: reset_cut_lower (`S190:101`).
+
+### reset_cut_upper
+
+Source: `S048:75`.
+
+Translated telescope: T, L, Jst, [Int.instLEInt.le 0 Jst].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: reset_cut_upper (`S190:105`).
+
+### reset_frontier
+
+Source: `S048:89`.
+
+Translated telescope: T, L, Jst, In V, P, inst, n, Base Proposal Wire, R, E, rho.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: reset_frontier (`S190:178`).
+
+### reset_inclusive_frontier
+
+Source: `S048:93`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, E, rho, [V2.D.ScheduleWellFormed E
+rho], t.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: reset_inclusive_frontier (`S190:186`).
+
+### reset_inclusive_start_iff
+
+Source: `S048:100`.
+
+Translated telescope: In V, P, E, rho, [V2.D.ScheduleWellFormed E rho], t.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: reset_inclusive_start_iff (`S190:199`).
+
+### reset_row_cap
+
+Source: `S048:130`.
+
+Translated telescope: T, In V, P, inst, n, Base Proposal Wire, R, S, E, rho, O, entry, [FGCoreLaws
+R], [FGTreeKeepLaws R], [(∀ (i : Nat) (x : V), KitFG.FGStoreInvariant O.height O.finality (R.core
+(V2.D.Run.stateBefore E rho i x)).fg)], [V2.D.ScheduleWellFormed E rho], [(∀ {j : Nat} {x : V} {r
+: Nat} {a : Wire} {h : FG.Height} {e : BlockId}, HonestRowAt S E rho T j x r a → Eq (entry a)
+(Option.some { fst := h, snd := e }) → Exists fun C => And (Eq (actionSourceFG R E rho T x r)
+(Option.some (Option.some C))) (Eq h (O.height C).h))], j r h, y, a, e, t u, [HonestRowAt S E rho
+T j y r a], [Eq (List.instGetElem?NatLtLength.getElem? rho.events j) (Option.some (V2.Event.tick y
+t))], [Int.instLEInt.le t u], [Eq (entry a) (Option.some { fst := h, snd := e })].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: reset_row_cap (`S190:207`).
+
+### reset_old_row_before_cut
+
+Source: `S048:161`.
+
+Translated telescope: T, L, Jst, r, [Int.instLTInt.lt (T.vote (instHMul.hMul r T.roundSlots))
+Jst].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: reset_old_row_before_cut (`S190:240`).
+
+### reset_old_height_sup_le
+
+Source: `S048:172`.
+
+Translated telescope: T, L, Jst, In V, P, inst, n, Base Proposal Wire, R, S, E, rho, O, entry,
+[FGCoreLaws R], [FGTreeKeepLaws R], [(∀ (i : Nat) (x : V), KitFG.FGStoreInvariant O.height
+O.finality (R.core (V2.D.Run.stateBefore E rho i x)).fg)], [V2.D.ScheduleWellFormed E rho], [(∀ {j
+: Nat} {x : V} {r : Nat} {a : Wire} {h : FG.Height} {e : BlockId}, HonestRowAt S E rho T j x r a →
+Eq (entry a) (Option.some { fst := h, snd := e }) → Exists fun C => And (Eq (actionSourceFG R E
+rho T x r) (Option.some (Option.some C))) (Eq h (O.height C).h))].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: reset_old_height_sup_le (`S190:249`).
+
+### reset_mu_le_iff
+
+Source: `S048:186`.
+
+Translated telescope: T, L, Jst, In V, P, inst, n, Base Proposal Wire, R, S, E, rho, O, entry, Ef,
+[KitFG.FGHeightLaws Ef O.height], [FGCoreLaws R], [FGTreeKeepLaws R], [(∀ (i : Nat) (x : V),
+KitFG.FGStoreInvariant O.height O.finality (R.core (V2.D.Run.stateBefore E rho i x)).fg)],
+[V2.D.ScheduleWellFormed E rho], [(∀ {j : Nat} {x : V} {r : Nat} {a : Wire} {h : FG.Height} {e :
+BlockId}, HonestRowAt S E rho T j x r a → Eq (entry a) (Option.some { fst := h, snd := e }) →
+Exists fun C => And (Eq (actionSourceFG R E rho T x r) (Option.some (Option.some C))) (Eq h
+(O.height C).h))].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: reset_mu_le_iff (`S190:278`).
+
+### historicalLookup_spec
+
+Source: `S049:23`.
+
+Translated telescope: Body, inst, root, tree, r, B.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### historical_read_sound
+
+Source: `S049:81`.
+
+Translated telescope: In Body, P, n, Base Proposal Wire, R, H, Good, [FGHistoricalLaws R H Good],
+st, r, b, [Eq (H.readBlock st r) (Option.some b)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### historical_read_complete
+
+Source: `S049:86`.
+
+Translated telescope: In Body, P, n, Base Proposal Wire, R, H, Good, [FGHistoricalLaws R H Good],
+st, [Good st], b, [List.instMembership.mem (H.acceptedBodies st) b].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### historical_read_ambiguous
+
+Source: `S049:90`.
+
+Translated telescope: In Body, P, n, Base Proposal Wire, R, H, Good, [FGHistoricalLaws R H Good],
+st, b c, [List.instMembership.mem (H.acceptedBodies st) b], [List.instMembership.mem
+(H.acceptedBodies st) c], [Eq (H.root b) (H.root c)], [Ne b c].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### historical_parent_held
+
+Source: `S049:99`.
+
+Translated telescope: In Body, P, n, Base Proposal Wire, R, H, Good, [FGHistoricalLaws R H Good],
+st, [Good st], b, [List.instMembership.mem (H.acceptedBodies st) b].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### historical_lca_held
+
+Source: `S049:119`.
+
+Translated telescope: In Body, P, n, Base Proposal Wire, R, H, Good, [FGHistoricalLaws R H Good],
+st, [Good st], b c, [List.instMembership.mem (H.acceptedBodies st) b], [List.instMembership.mem
+(H.acceptedBodies st) c].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### historical_read_step
+
+Source: `S049:136`.
+
+Translated telescope: In Body, P, n, Base Proposal Wire, R, H, Good, [FGHistoricalLaws R H Good],
+st st', [FGHistoryStep P st st'], [Good st'], r, b, [Eq (H.readBlock st r) (Option.some b)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### historical_read_frame_eq
+
+Source: `S049:143`.
+
+Translated telescope: In Body, P, n, Base Proposal Wire, R, H, Good, [FGHistoricalLaws R H Good],
+st st', [Eq (H.acceptedBodies st) (H.acceptedBodies st')], r.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### historical_read_restore_eq
+
+Source: `S049:147`.
+
+Translated telescope: In Body, P, n, Base Proposal Wire, R, H, Good, [FGHistoricalLaws R H Good],
+st, t, r.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### historical_geometry_restore_eq
+
+Source: `S049:151`.
+
+Translated telescope: In Body, P, n, Base Proposal Wire, R, H, Good, [FGHistoricalLaws R H Good],
+st, t.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### holder_record_at_duty
+
+Source: `S050:47`.
+
+Translated telescope: In V, P, inst, n, Wire, S, Ef, cfg, E, rho, O, holder, [FGExecutionObsLaws E
+rho O], [FGHolderClientLaws S Ef cfg E rho O holder], x, j, t, [Eq
+(List.instGetElem?NatLtLength.getElem? rho.events j) (Option.some (V2.Event.tick x t))].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: holder-aware FGHolderClientLaws; no global bijection.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### safety_client_trace_obs
+
+Source: `S050:154`.
+
+Translated telescope: In V, P, inst, n, Wire, S, Ef, cfg, E, rho, O, holder, [FGExecutionObsLaws E
+rho O], [FGHolderClientLaws S Ef cfg E rho O holder].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: holder-aware FGHolderClientLaws; no global bijection.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### safety_client_trace_driver
+
+Source: `S050:178`.
+
+Translated telescope: In V, P, inst, n, Wire Body, S, Ef, cfg, E, rho, holder, F, T, Op.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### safety_emitted_noSlash_obs
+
+Source: `S050:199`.
+
+Translated telescope: In V, P, inst, n, Wire, S, Ef, cfg, E, rho, O, holder, [FGExecutionObsLaws E
+rho O], [FGHolderClientLaws S Ef cfg E rho O holder], [FGSafetyWireLaws S], i,
+[SetLike.instMembership.mem rho.honest (holder i)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: holder-aware FGHolderClientLaws; no global bijection.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### safety_emitted_noSlash_driver
+
+Source: `S050:212`.
+
+Translated telescope: In V, P, inst, n, Wire Body, S, Ef, cfg, E, rho, holder, F, T, Op.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### rowPermission_covered_obs
+
+Source: `S050:221`.
+
+Translated telescope: In V, P, inst, n, Wire, S, Ef, cfg, E, rho, O, holder, [FGExecutionObsLaws E
+rho O], [FGHolderClientLaws S Ef cfg E rho O holder], H, timing, [FGTimingLaws timing], entry,
+[FGRowPermissionWireLaws S entry], [V2.D.ScheduleWellFormed E rho], [(∀ (C : FG.FGBlock (Fin n)),
+Eq { fst := (FG.derive Ef cfg C).h, snd := (FG.derive Ef cfg C).T_h.root } { fst := (H C).h, snd
+:= (H C).T_h.root })], j r, i, [SetLike.instMembership.mem rho.honest (holder i)], [Eq
+(List.instGetElem?NatLtLength.getElem? rho.events j) (Option.some (V2.Event.tick (holder i)
+(timing.action r)))], C, [FGRowPermissionInputs S H (obsDutyState O (holder i) j) C],
+[FGRowRecordHistory (S.record (obsDutyState O (holder i) j))], [(∀ (b : Prod FG.NamedHeightPair
+(Option FG.FinalityPair)), List.instMembership.mem (S.record (O.stateBefore j (holder i))).sent b
+→ Exists fun k => Exists fun rSent => Exists fun a => And (instLTNat.lt k j) (And (obsHonestRowAt
+S rho O timing k (holder i) rSent a) (Eq (entry a) (namedEntry b.fst))))], [Eq (E.awake (holder i)
+(timing.action r)) Bool.true], [Eq (S.enabled (timing.action r)) Bool.true].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: holder-aware FGHolderClientLaws; no global bijection.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### rowPermission_covered_driver
+
+Source: `S050:280`.
+
+Translated telescope: In V, P, inst, n, Wire Body, S, Ef, cfg, E, rho, holder, F, T, Op, H,
+timing, entry.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### selection_at_read
+
+Source: `S051:18`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, S, O, Q, Good, fields, E, rho,
+[FGSelectionLaws R O Q Good fields], [FGSelectionClientLaws Q S], x, t, nd, C, [Eq (postClock E
+rho x t) (Option.some nd)], [Good nd], [Eq (R.source nd) (Option.some C)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### selection_tick_rows
+
+Source: `S051:34`.
+
+Translated telescope: In V, P, inst, n, Wire, S, Q, E, rho, Ef, cfg, [FGSelectionClientLaws Q S],
+[FGSafetyClientLaws S Ef cfg], e, [(∀ (i : Fin n), Eq (rho.seatOf S.fgLabel
+(EquivLike.toFunLike.coe S.fgSeats i)) (EquivLike.toFunLike.coe e i))], nd, x, t.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: Fin n ≃ V (validator-only runtime path).
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### action_source_at_read
+
+Source: `S051:47`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, E, rho, T, x, r, nd, [Eq (postClock
+E rho x (T.action r)) (Option.some nd)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### ordinary_obsDutyState_tick
+
+Source: `S052:19`.
+
+Translated telescope: In V, P, inst, E, rho, x, j, t, [Eq (List.instGetElem?NatLtLength.getElem?
+rho.events j) (Option.some (V2.Event.tick x t))].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### ordinary_obsSafetyInputAt
+
+Source: `S052:28`.
+
+Translated telescope: In V, P, inst, n, Wire, S, E, rho, x, j.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### ordinary_obsOwnReleased
+
+Source: `S052:47`.
+
+Translated telescope: In V, P, inst, E, rho, x, j.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### ordinary_obsOwnReleasedBefore
+
+Source: `S052:80`.
+
+Translated telescope: In V, P, inst, E, rho, x, k.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### ordinary_obsSafetyNoSlash_iff
+
+Source: `S052:90`.
+
+Translated telescope: In V, P, inst, n, Wire, S, E, rho, x.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### ordinary_obsHonestRowAt_iff
+
+Source: `S052:99`.
+
+Translated telescope: In V, P, inst, n, Wire, S, E, rho, T, j, x, r, a.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### ordinary_FGHolderClientTrace_iff
+
+Source: `S052:117`.
+
+Translated telescope: In V, P, inst, n, Wire, S, Ef, cfg, E, rho, holder.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### ordinary_rowPermission_covered
+
+Source: `S052:131`.
+
+Translated telescope: In V, P, inst, n, Wire, S, E, rho, T, entry, x, j r, target,
+[FGHolderRowCoverage S rho (ordinaryFGExecutionObs E rho) T entry x j r target].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### ordinary_FGHolderClientLaws
+
+Source: `S052:185`.
+
+Translated telescope: In V, P, inst, n, Wire, S, Ef, cfg, E, rho, [FGSafetyClientLaws S Ef cfg],
+e, [(∀ (i : Fin n), Eq (rho.seatOf S.fgLabel (EquivLike.toFunLike.coe S.fgSeats i))
+(EquivLike.toFunLike.coe e i))].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: Fin n ≃ V (validator-only runtime path); holder-aware FGHolderClientLaws; no global
+bijection.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### tf_cumulative_all
+
+Source: `S053:15`.
+
+Translated telescope: V In, P, inst, n, Base Proposal Wire, R, E, rho, [FGCoreLaws R],
+[FGTreeKeepLaws R], i j, [instLENat.le i j], x.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### head_held_from_all
+
+Source: `S053:25`.
+
+Translated telescope: V In, P, inst, n, Base Proposal Wire, R, E, rho, [FGCoreLaws R], [FGHeadLaws
+R E rho], [V2.D.ScheduleWellFormed E rho], [FGTreeKeepLaws R], s, t, X, x, [Eq (Option.map (fun nd
+=> R.headVote nd s) (postClock E rho x t)) (Option.some (R.erase X))], k, cut, [Int.instLEInt.le t
+cut], [instLENat.le (afterTicksIdx rho cut) k].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### tf_before_tick_eq_beforeTime
+
+Source: `S053:37`.
+
+Translated telescope: V In, P, inst, n, Base Proposal Wire, R, E, rho, [V2.D.ScheduleWellFormed E
+rho], [FGTreeRestoreLaws R], i, x, t, [Eq (List.instGetElem?NatLtLength.getElem? rho.events i)
+(Option.some (V2.Event.tick x t))].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### chainRows_of_head_all
+
+Source: `S053:88`.
+
+Translated telescope: V In, P, inst, n, Base Proposal Wire, R, E, rho, [FGCoreLaws R], [FGHeadLaws
+R E rho], [V2.D.ScheduleWellFormed E rho], [FGTreeRestoreLaws R], s, t, X, x,
+[SetLike.instMembership.mem rho.honest x], [Eq (Option.map (fun nd => R.headVote nd s) (postClock
+E rho x t)) (Option.some (R.erase X))], cut, [Int.instLTInt.lt t cut].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### p0d2_pair_of_lock
+
+Source: `S054:13`.
+
+Translated telescope: Λ, h, T, fp, [Or (Eq (FG.own_lock Λ h fp) Option.none) (Eq (FG.own_lock Λ h
+fp) (Option.some T))].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### rowPermission_pair
+
+Source: `S054:38`.
+
+Translated telescope: In, P, n, Wire, S, H, nd, C, [FGRowPermissionInputs S H nd C].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: rowPermission_pair (`S159:404`).
+
+### p0d2_once_coverage
+
+Source: `S054:49`.
+
+Translated telescope: n, Ef, cfg, Λ, seat, source, hd, h, T, [KitFG.RecordInv Λ.toRecord], [(∀ (g
+: FG.Height) (U : BlockId) (timeout : Bool) (fp : Option FG.FinalityPair), List.instMembership.mem
+Λ.sent { fst := FG.NamedHeightPair.vote g U timeout, snd := fp } → And (Eq timeout Bool.false → Eq
+(Λ.target g) (Option.some U)) (Eq timeout Bool.true → Eq (Λ.timeout g) Bool.true))], [Eq
+(namedEntry (FG.height_pair Λ.toRecord (Option.map (fun C => { fst := (FG.derive Ef cfg C).h, snd
+:= (FG.derive Ef cfg C).T_h.root }) source) (FG.finality_pair Λ.toRecord hd))) (Option.some { fst
+:= h, snd := T })].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### rowPermission_covered
+
+Source: `S054:119`.
+
+Translated telescope: In V, P, inst, n, Wire, S, H, Ef, cfg, T, [FGTimingLaws T], E, rho,
+[FGSafetyClientLaws S Ef cfg], entry, [FGRowPermissionWireLaws S entry], e, [(∀ (k : Fin n), Eq
+(rho.seatOf S.fgLabel (EquivLike.toFunLike.coe S.fgSeats k)) (EquivLike.toFunLike.coe e k))],
+[V2.D.ScheduleWellFormed E rho], [(∀ (C : FG.FGBlock (Fin n)), Eq { fst := (FG.derive Ef cfg C).h,
+snd := (FG.derive Ef cfg C).T_h.root } { fst := (H C).h, snd := (H C).T_h.root })], x,
+[SetLike.instMembership.mem rho.honest x], r i, nd, [Eq (List.instGetElem?NatLtLength.getElem?
+rho.events i) (Option.some (V2.Event.tick x (T.action r)))], [Eq (P.clock (V2.D.Run.stateBefore E
+rho i x) (T.action r)) nd], C, [FGRowPermissionInputs S H nd C], [FGRowRecordHistory (S.record
+nd)], [(∀ (b : Prod FG.NamedHeightPair (Option FG.FinalityPair)), List.instMembership.mem
+(S.record (V2.D.Run.stateBefore E rho i x)).sent b → Exists fun j => Exists fun rSent => Exists
+fun a => And (instLTNat.lt j i) (And (HonestRowAt S E rho T j x rSent a) (Eq (entry a) (namedEntry
+b.fst))))], [Eq (E.awake x (T.action r)) Bool.true], [Eq (S.enabled (T.action r)) Bool.true].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: Fin n ≃ V (validator-only runtime path).
+
+FG-SA producer/application: rowPermission_covered (`S159:612`).
+
+### safety_runBlock_accountable
+
+Source: `S055:29`.
+
+Translated telescope: In V, P, n, Base Proposal Wire, R, S, Ef, H, f, inst, E, rho, Q,
+[KitFG.FGCertificateLaws Ef H f], [FGSafetyScopeLaws R S E rho Q], [safetyScopedRoots R Q], A B,
+[safetyRunBlock R S E rho A], [safetyRunBlock R S E rho B].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### safety_store_accountable
+
+Source: `S055:49`.
+
+Translated telescope: In, P, n, Base Proposal Wire, R, Ef, H, f, Q, [KitFG.FGCertificateLaws Ef H
+f], [safetyScopedRoots R Q], st st', [KitFG.FGStoreInvariant H f st], [KitFG.FGStoreInvariant H f
+st'], [(∀ (B : FG.FGBlock (Fin n)), SetLike.instMembership.mem st.TF B → Q (R.erase B))], [(∀ (B :
+FG.FGBlock (Fin n)), SetLike.instMembership.mem st'.TF B → Q (R.erase B))].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### safety_store_agreement
+
+Source: `S055:66`.
+
+Translated telescope: In V, P, n, Base Proposal Wire, R, S, Ef, H, f, inst, E, rho, Q,
+[KitFG.FGCertificateLaws Ef H f], [FGSafetyScopeLaws R S E rho Q], [safetyScopedRoots R Q],
+[safetyBound R S Ef E rho], st st', [KitFG.FGStoreInvariant H f st], [KitFG.FGStoreInvariant H f
+st'], [(∀ (B : FG.FGBlock (Fin n)), SetLike.instMembership.mem st.TF B → Ne B FG.FGBlock.genesis →
+safetyRunBlock R S E rho B)], [(∀ (B : FG.FGBlock (Fin n)), SetLike.instMembership.mem st'.TF B →
+Ne B FG.FGBlock.genesis → safetyRunBlock R S E rho B)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### safety_run_accountable
+
+Source: `S055:91`.
+
+Translated telescope: In V, P, n, Base Proposal Wire, R, S, Ef, H, f, inst, E, rho, Good, Q,
+[FGCoreLaws R], [FGSafetyStoreLaws R S H f Good], [KitFG.FGCertificateLaws Ef H f],
+[FGSafetyScopeLaws R S E rho Q], [safetyScopedRoots R Q].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### safety_run_agreement
+
+Source: `S055:108`.
+
+Translated telescope: In V, P, n, Base Proposal Wire, R, S, Ef, H, f, inst, E, rho, Good, Q,
+[FGCoreLaws R], [FGSafetyStoreLaws R S H f Good], [KitFG.FGCertificateLaws Ef H f],
+[FGSafetyScopeLaws R S E rho Q], [safetyScopedRoots R Q], [safetyBound R S Ef E rho].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### safety_event_agreement
+
+Source: `S055:122`.
+
+Translated telescope: In V, P, n, Base Proposal Wire, R, S, Ef, H, f, inst, E, rho, Good, Q,
+[FGCoreLaws R], [FGSafetyStoreLaws R S H f Good], [KitFG.FGCertificateLaws Ef H f],
+[FGSafetyScopeLaws R S E rho Q], [safetyScopedRoots R Q], [safetyBound R S Ef E rho], i j, x y.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### safetyRecordStep_some
+
+Source: `S056:23`.
+
+Translated telescope: In, P, n, Wire, S, rec, o, u, [Eq (S.decodeObject o) (Option.some u)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### safetyRecordStep_none
+
+Source: `S056:28`.
+
+Translated telescope: In, P, n, Wire, S, rec, o, [Eq (S.decodeObject o) Option.none].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### safetyInputAt_tick
+
+Source: `S056:33`.
+
+Translated telescope: In V, P, n, Wire, S, inst, E, rho, x, k, t, [Eq
+(List.instGetElem?NatLtLength.getElem? rho.events k) (Option.some (V2.Event.tick x t))].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### safetyInputAt_other
+
+Source: `S056:46`.
+
+Translated telescope: In V, P, n, Wire, S, inst, E, rho, x, k, [(∀ (t : Time), Ne
+(List.instGetElem?NatLtLength.getElem? rho.events k) (Option.some (V2.Event.tick x t)))].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### safety_linked_seats
+
+Source: `S056:64`.
+
+Translated telescope: In V, P, n, Wire, S, rho, linked, [linked S.fgLabel], [V2.D.Linked linked
+rho].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### safety_record_fold
+
+Source: `S056:74`.
+
+Translated telescope: In, P, n, Wire, S, rec, l.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### safety_client_trace
+
+Source: `S056:174`.
+
+Translated telescope: In V, P, n, Wire, S, Ef, cfg, inst, E, rho, [FGSafetyClientLaws S Ef cfg],
+e, [(∀ (i : Fin n), Eq (rho.seatOf S.fgLabel (EquivLike.toFunLike.coe S.fgSeats i))
+(EquivLike.toFunLike.coe e i))], x, k.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: Fin n ≃ V (validator-only runtime path).
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### safety_emitted_noSlash
+
+Source: `S056:227`.
+
+Translated telescope: In V, P, n, Wire, S, Ef, cfg, inst, E, rho, [FGSafetyWireLaws S],
+[FGSafetyClientLaws S Ef cfg], linked, [linked S.fgLabel], [V2.D.Linked linked rho], x.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### safety_slashable_faulty_count
+
+Source: `S057:21`.
+
+Translated telescope: In V, P, n, Wire, S, Ef, inst, E, rho, inst_1, [FGSafetyUnitLaws Ef],
+linked, [linked S.fgLabel], [V2.D.Linked linked rho], [(∀ (x : V), SetLike.instMembership.mem
+rho.honest x → safetyNoSlash S E rho x)], A B, [safetyCarriage S E rho A], [safetyCarriage S E rho
+B], [FG.HasSlashableWeightBetween Ef A B].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: whole-run faulty-node count/bound.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### safety_fault_count_bound
+
+Source: `S057:56`.
+
+Translated telescope: In V, P, n, Base Proposal Wire, R, S, Ef, inst, E, rho, inst_1,
+[FGSafetyUnitLaws Ef], linked, [linked S.fgLabel], [V2.D.Linked linked rho], [(∀ (B : FG.FGBlock
+(Fin n)), safetyRunBlock R S E rho B → safetyCarriage S E rho (FG.chainRows B))], [(∀ (x : V),
+SetLike.instMembership.mem rho.honest x → safetyNoSlash S E rho x)], [instLENat.le
+(Gen.V2.Duty.faulty rho).card (instHDiv.hDiv (instHSub.hSub n 1) 3)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: whole-run faulty-node count/bound.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### safety_fault_count_bound_lt
+
+Source: `S057:72`.
+
+Translated telescope: In V, P, n, Base Proposal Wire, R, S, Ef, inst, E, rho, inst_1,
+[FGSafetyUnitLaws Ef], linked, [linked S.fgLabel], [V2.D.Linked linked rho], [(∀ (B : FG.FGBlock
+(Fin n)), safetyRunBlock R S E rho B → safetyCarriage S E rho (FG.chainRows B))], [(∀ (x : V),
+SetLike.instMembership.mem rho.honest x → safetyNoSlash S E rho x)], [instLTNat.lt
+(Gen.V2.Duty.faulty rho).card (instHSub.hSub (instHMul.hMul 2 (Gen.Pure.qF n)) n)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: whole-run faulty-node count/bound.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### safety_slashable_fg_faulty_count
+
+Source: `S057:86`.
+
+Translated telescope: In V, P, n, Wire, S, Ef, inst, E, rho, [FGSafetyUnitLaws Ef], [(∀ (x : V),
+SetLike.instMembership.mem rho.honest x → safetyNoSlash S E rho x)], A B, [safetyCarriage S E rho
+A], [safetyCarriage S E rho B], [FG.HasSlashableWeightBetween Ef A B].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: holder assignment/injectivity or honest-holder FG weight (exact guards in type).
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### safety_fault_count_bound_fg_lt
+
+Source: `S057:112`.
+
+Translated telescope: In V, P, n, Base Proposal Wire, R, S, Ef, inst, E, rho, [FGSafetyUnitLaws
+Ef], [(∀ (B : FG.FGBlock (Fin n)), safetyRunBlock R S E rho B → safetyCarriage S E rho
+(FG.chainRows B))], [(∀ (x : V), SetLike.instMembership.mem rho.honest x → safetyNoSlash S E rho
+x)], [instLTNat.lt (Finset.filter (fun i => Not (SetLike.instMembership.mem rho.honest
+(safetyHolder S rho i))) Finset.univ).card (instHSub.hSub (instHMul.hMul 2 (Gen.Pure.qF n)) n)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: holder assignment/injectivity or honest-holder FG weight (exact guards in type).
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### safety_F_mono
+
+Source: `S058:21`.
+
+Translated telescope: In V, P, n, Base Proposal Wire, R, S, inst, E, rho, [FGCoreLaws R],
+[FGSafetyOrderLaws R S], [V2.D.NoRestart rho], i j, [instLENat.le i j], x.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### safety_F_mono_all
+
+Source: `S058:38`.
+
+Translated telescope: In V, P, n, Base Proposal Wire, R, S, inst, E, rho, [FGCoreLaws R],
+[FGSafetyOrderLaws R S], [FGSafetyRestartLaws R], i j, [instLENat.le i j], x.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### safety_readAt_prefix
+
+Source: `S058:70`.
+
+Translated telescope: In V, P, inst, E, rho, [List.Pairwise (fun a b => (Prod.Lex.instLE Time
+Nat).le a.key b.key) rho.events], t.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### safety_finalized_monotone
+
+Source: `S058:84`.
+
+Translated telescope: In V, P, n, Base Proposal Wire, R, S, inst, E, rho, [FGCoreLaws R],
+[FGSafetyOrderLaws R S], [List.Pairwise (fun a b => (Prod.Lex.instLE Time Nat).le a.key b.key)
+rho.events], [V2.D.NoRestart rho], x, [SetLike.instMembership.mem rho.honest x], t t',
+[Int.instLEInt.le t t'].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### safety_finalized_monotone_all
+
+Source: `S058:98`.
+
+Translated telescope: In V, P, n, Base Proposal Wire, R, S, inst, E, rho, [FGCoreLaws R],
+[FGSafetyOrderLaws R S], [FGSafetyRestartLaws R], [List.Pairwise (fun a b => (Prod.Lex.instLE Time
+Nat).le a.key b.key) rho.events], x, [SetLike.instMembership.mem rho.honest x], t t',
+[Int.instLEInt.le t t'].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### safety_read_row_origin
+
+Source: `S059:27`.
+
+Translated telescope: In V, P, n, Base Proposal Wire, R, S, H, f, inst, E, rho, Good, [FGCoreLaws
+R], [FGSafetyStoreLaws R S H f Good], t, x, B, [SetLike.instMembership.mem (R.core
+(V2.D.Run.readAt E rho t x)).fg.TF B], u, [SetLike.instMembership.mem (FG.chainRows B) u].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### safety_read_carriage
+
+Source: `S059:49`.
+
+Translated telescope: In V, P, n, Base Proposal Wire, R, S, H, f, inst, E, rho, Good, [FGCoreLaws
+R], [FGSafetyStoreLaws R S H f Good], [FGSafetyWireLaws S], [V2.D.UnforgeableSignatures E rho], t,
+x.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### safety_honest_never_slashed
+
+Source: `S059:73`.
+
+Translated telescope: In V, P, n, Base Proposal Wire, R, S, Ef, H, f, cfg, inst, E, rho, Good,
+[FGCoreLaws R], [FGSafetyWireLaws S], [FGSafetyStoreLaws R S H f Good], [FGSafetyClientLaws S Ef
+cfg], linked, [linked S.fgLabel], I, [safetySlashesRead R S E rho I], [V2.D.UnforgeableSignatures
+E rho], [V2.D.Linked linked rho].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### safety_good_stateBefore
+
+Source: `S060:23`.
+
+Translated telescope: In V, P, n, Base Proposal Wire, R, S, H, f, inst, Good, [FGSafetyStoreLaws R
+S H f Good], E, rho, i, x.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### safety_readAt_replay
+
+Source: `S060:92`.
+
+Translated telescope: In V, P, inst, E, rho, t.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### safety_good_readAt
+
+Source: `S060:106`.
+
+Translated telescope: In V, P, n, Base Proposal Wire, R, S, H, f, inst, Good, [FGSafetyStoreLaws R
+S H f Good], E, rho, t, x.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### safety_stored_delivery
+
+Source: `S060:113`.
+
+Translated telescope: In V, P, n, Base Proposal Wire, R, S, H, f, inst, Good, [FGCoreLaws R],
+[FGSafetyStoreLaws R S H f Good], E, rho, i, x, B, [SetLike.instMembership.mem (R.core
+(V2.D.Run.stateBefore E rho i x)).fg.TF B], [Ne B FG.FGBlock.genesis].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### safety_read_delivery
+
+Source: `S060:121`.
+
+Translated telescope: In V, P, n, Base Proposal Wire, R, S, H, f, inst, Good, [FGCoreLaws R],
+[FGSafetyStoreLaws R S H f Good], E, rho, t, x, B, [SetLike.instMembership.mem (R.core
+(V2.D.Run.readAt E rho t x)).fg.TF B], [Ne B FG.FGBlock.genesis].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### safety_stored_runBlock
+
+Source: `S060:132`.
+
+Translated telescope: In V, P, n, Base Proposal Wire, R, S, H, f, inst, Good, [FGCoreLaws R],
+[FGSafetyStoreLaws R S H f Good], E, rho, i, x, B, [SetLike.instMembership.mem (R.core
+(V2.D.Run.stateBefore E rho i x)).fg.TF B], [Ne B FG.FGBlock.genesis].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### safety_read_runBlock
+
+Source: `S060:139`.
+
+Translated telescope: In V, P, n, Base Proposal Wire, R, S, H, f, inst, Good, [FGCoreLaws R],
+[FGSafetyStoreLaws R S H f Good], E, rho, t, x, B, [SetLike.instMembership.mem (R.core
+(V2.D.Run.readAt E rho t x)).fg.TF B], [Ne B FG.FGBlock.genesis].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### safety_stored_scope
+
+Source: `S060:146`.
+
+Translated telescope: In V, P, n, Base Proposal Wire, R, S, H, f, inst, Good, Q, E, rho,
+[FGCoreLaws R], [FGSafetyStoreLaws R S H f Good], [FGSafetyScopeLaws R S E rho Q], i, x,
+[SetLike.instMembership.mem rho.honest x], B, [SetLike.instMembership.mem (R.core
+(V2.D.Run.stateBefore E rho i x)).fg.TF B].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### safety_read_scope
+
+Source: `S060:157`.
+
+Translated telescope: In V, P, n, Base Proposal Wire, R, S, H, f, inst, Good, Q, E, rho,
+[FGCoreLaws R], [FGSafetyStoreLaws R S H f Good], [FGSafetyScopeLaws R S E rho Q], t, x,
+[SetLike.instMembership.mem rho.honest x], B, [SetLike.instMembership.mem (R.core (V2.D.Run.readAt
+E rho t x)).fg.TF B].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### safety_invariant_stateBefore
+
+Source: `S060:168`.
+
+Translated telescope: In V, P, n, Base Proposal Wire, R, S, H, f, inst, Good, [FGSafetyStoreLaws R
+S H f Good], E, rho, i, x.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### safety_invariant_readAt
+
+Source: `S060:173`.
+
+Translated telescope: In V, P, n, Base Proposal Wire, R, S, H, f, inst, Good, [FGSafetyStoreLaws R
+S H f Good], E, rho, t, x.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### historical_transfer_reseed
+
+Source: `S061:17`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, O, T, E, rho, I, sp sp', [Eq
+sp.reset sp'.reset], horizon.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### historical_chain_reseed
+
+Source: `S061:25`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, O, T, E, rho, sp sp', [Eq sp.reset
+sp'.reset], horizon.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### historical_transfer_horizon
+
+Source: `S061:33`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, O, T, E, rho, I, sp, a b,
+[Int.instLEInt.le a b], [FGHistoricalHighTransfer R O T E rho I sp b].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### historical_chain_horizon
+
+Source: `S061:39`.
+
+Translated telescope: In V, P, inst, n, Base Proposal Wire, R, O, T, E, rho, sp, a b,
+[Int.instLEInt.le a b], [FGHistoricalHighChain R O T E rho sp b].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### service_head_coverage
+
+Source: `S061:47`.
+
+Translated telescope: V, A, Q, i, [(∀ (x : V), A.honest x → Exists fun H => Eq (A.headAtLabel x i)
+(Option.some H))], [(∀ (x : V), A.honest x → A.headScope x i)], [(∀ (x : V) (H : Block), A.honest
+x → A.headScope x i → Eq (A.headAtLabel x i) (Option.some H) → A.below Q H)], x, [A.honest x].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### service_proposal_coverage
+
+Source: `S061:60`.
+
+Translated telescope: V, A, sp, start horizon, [FGACServiceLaws A sp start horizon], s i, Q,
+[A.proposal s Q], [A.proposalScope s Q], [Int.instLEInt.le sp.serviceStart (A.proposalTime s)],
+[instLENat.le (instHAdd.hAdd s 1) i], [Int.instLEInt.le (A.voteTime i) horizon], [(∀ (x : V),
+A.honest x → Exists fun H => Eq (A.headAtLabel x i) (Option.some H))], [(∀ (x : V), A.honest x →
+A.headScope x i)], x, [A.honest x].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### service_source_next
+
+Source: `S061:74`.
+
+Translated telescope: V, A, sp, start horizon, [FGACServiceLaws A sp start horizon], y x, r i, C
+H, [A.honest y], [A.sourceScope y r C], [Eq (A.source y r) (Option.some (Option.some C))],
+[InSuffix sp horizon (A.actionTime r)], [A.honest x], [A.headScope x i], [instLENat.le
+(instHAdd.hAdd (A.gateLabel r) 1) i], [Int.instLEInt.le (A.voteTime i) horizon], [Eq
+(A.headAtLabel x i) (Option.some H)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### service_start_before_opening
+
+Source: `S061:84`.
+
+Translated telescope: T, deltaF horizon, sp, pt, honestSlot, quorum weight timeout capacity,
+[KernelPrem_W T deltaF horizon sp pt honestSlot quorum weight timeout capacity].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: KernelPrem_W: supplied honest FG weight ≥ q.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### postClock_tick
+
+Source: `S062:13`.
+
+Translated telescope: V In, P, inst, E, rho, x, t, nd, [Eq (postClock E rho x t) (Option.some
+nd)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### tick_lt_afterTicks
+
+Source: `S062:23`.
+
+Translated telescope: V In, P, E, rho, [V2.D.ScheduleWellFormed E rho], i, x, t' t, [Eq
+(List.instGetElem?NatLtLength.getElem? rho.events i) (Option.some (V2.Event.tick x t'))],
+[Int.instLEInt.le t' t].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### tf_cumulative
+
+Source: `S062:32`.
+
+Translated telescope: V In, P, inst, n, Base Proposal RowWire, R, E, rho, [FGCoreLaws R],
+[V2.D.NoRestart rho], i j, [instLENat.le i j], x.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### source_mem_TF
+
+Source: `S062:40`.
+
+Translated telescope: In, P, n, Base Proposal RowWire, R, [FGCoreLaws R], nd, C, [Eq (R.source nd)
+(Option.some C)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: kmid_source_mem_TF (`S149:815`).
+
+### head_held
+
+Source: `S062:43`.
+
+Translated telescope: V In, P, inst, n, Base Proposal RowWire, R, E, rho, [FGCoreLaws R],
+[FGHeadLaws R E rho], s, t, X, x, [Eq (Option.map (fun nd => R.headVote nd s) (postClock E rho x
+t)) (Option.some (R.erase X))].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: kernel_opening_and_middle (`S148:1260`); kmid_head_held (`S149:793`).
+
+### head_held_from
+
+Source: `S062:57`.
+
+Translated telescope: V In, P, inst, n, Base Proposal RowWire, R, E, rho, [FGCoreLaws R],
+[FGHeadLaws R E rho], [V2.D.ScheduleWellFormed E rho], [V2.D.NoRestart rho], s, t, X, x, [Eq
+(Option.map (fun nd => R.headVote nd s) (postClock E rho x t)) (Option.some (R.erase X))], k, cut,
+[Int.instLEInt.le t cut], [instLENat.le (afterTicksIdx rho cut) k].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### chainRows_of_head
+
+Source: `S062:66`.
+
+Translated telescope: V In, P, inst, n, Base Proposal RowWire, R, E, rho, [FGCoreLaws R],
+[FGHeadLaws R E rho], [V2.D.ScheduleWellFormed E rho], [V2.D.NoRestart rho], s, t, X, x,
+[SetLike.instMembership.mem rho.honest x], [Eq (Option.map (fun nd => R.headVote nd s) (postClock
+E rho x t)) (Option.some (R.erase X))], cut, [Int.instLTInt.lt t cut].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### source_height_entry
+
+Source: `S062:78`.
+
+Translated telescope: n, Ef, H, [KitFG.FGHeightLaws Ef H], D C, y, [D.Preceq C], [Eq (H D).h
+(instHAdd.hAdd y 1)], [instLENat.le (H C).h (instHAdd.hAdd y 1)].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### action_source_capped
+
+Source: `S062:84`.
+
+Translated telescope: V In, P, inst, n, Base Proposal RowWire, R, E, rho, [FGCoreLaws R], Ef, H,
+[KitFG.FGHeightLaws Ef H], x, t, opening roundSlot y, D, [FGSourceService R E rho x t opening
+roundSlot D], [instLENat.le opening roundSlot], [Eq (H D).h (instHAdd.hAdd y 1)], [(∀ (nd :
+P.State), Eq (postClock E rho x t) (Option.some nd) → ∀ (B : FG.FGBlock (Fin n)),
+SetLike.instMembership.mem (R.core nd).fg.TF B → instLENat.le (H B).h (instHAdd.hAdd y 1))].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### action_eq_early_next
+
+Source: `S063:11`.
+
+Translated telescope: T, [FGTimingLaws T], q.
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA production application: no direct frozen-wrapper application found in this release census.
+This is a conditional generic interface/helper; no FG-SA producer is credited by this entry. PC
+must supply the cited telescope (E1F/E2 for driver/holder/acceptance mechanics; P7/P8 for search;
+P10 for finality).
+
+### finality_action_time_bounds
+
+Source: `S063:18`.
+
+Translated telescope: T, [FGTimingLaws T], r q, [instLENat.le r q], G Δ horizon, [Int.instLEInt.le
+G (T.proposal (instHMul.hMul r T.roundSlots))], [Eq Δ T.delta], [Int.instLEInt.le (T.action q)
+horizon].
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: no explicit global runtime cardinality/bijection/fault-count premise in this
+telescope.
+
+FG-SA producer/application: finality_action_time_bounds (`S138:36`).
+
+## Kernel argument to FG-SA fact ledger
+
+All applications below are verified in the body of test-private d7c_kernel,
+AvailableChainFGSAProofs/Tests/P0d7c.lean:2046. Each row gives the actual named argument and the
+expression supplying it; these are proof producers, not assumptions about the test run. Its
+recovery form at :2614 builds hK from Recovery₂ and the public Foundations suppliers.
+
+### R
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2114:
+
+```text
+fgsaCoreReads p c
+```
+
+### T
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2115:
+
+```text
+d7n_timing p
+```
+
+### I
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2116:
+
+```text
+fgsaInterface p c
+```
+
+### decodeProposal
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2117:
+
+```text
+d7n_decodeProposal p
+```
+
+### bodyRows
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2118:
+
+```text
+NamedProposal.rows
+```
+
+### chainWireRows
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2119:
+
+```text
+fun nd => FGSA.chainWireRows nd.st
+```
+
+### parentFG
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2120:
+
+```text
+fun nd => FGSA.fgBlockOf nd.st
+```
+
+### parentHeight
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2121:
+
+```text
+fun _ s H => ((parentFoldState p s H).h, (parentFoldState p s H).T_h.root)
+```
+
+### validFor
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2123:
+
+```text
+fun _ s H => Window.rowValidW (parentFoldState p s H)
+```
+
+### makeFG
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2124:
+
+```text
+FGSA.fgBlock
+```
+
+### cfg
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2125:
+
+```text
+p.cfg
+```
+
+### Jst
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2126:
+
+```text
+recoveryStart p E
+```
+
+### CL
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2127:
+
+```text
+fgsaCoreLaws p c
+```
+
+### keep
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2128:
+
+```text
+d7n_tree_keep p c
+```
+
+### hc
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2129:
+
+```text
+fgCertificateLaws p
+```
+
+### heightBridge
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2130:
+
+```text
+heightView_bridge p
+```
+
+### finality_eq
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2131:
+
+```text
+d7nw_finality_eq p
+```
+
+### target
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2132:
+
+```text
+by intro y U X hX hU hp hc hn exact fgsa_justifyAt p y U X hX hU hp hc hn
+```
+
+### foldTarget
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2135:
+
+```text
+by intro y U X hX hU hp hc exact (fgsa_foldTrichotomy_target p y U X hX hU hp hc (fun h => by
+cases h)).1
+```
+
+### noMixed
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2138:
+
+```text
+fgsa_noMixedMaturity p
+```
+
+### honestSlot
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2139:
+
+```text
+Gen.V2.Duty.HonestSlot rho (fgsaInterface p c)
+```
+
+### hK
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2140:
+
+```text
+d7n_kernel p c E rho hK hδ
+```
+
+### run
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2141:
+
+```text
+{ schedule := hs fault_weight := by rw [d7n_faulty_eq] exact kmid_faulty_weight p c E rho
+hK.set.base hK.set.faultQ deltaF := hK.set.deltaF linked := (hK.set.base.linked.toCStar (.base
+.fg) trivial).1 awake := hK.set.awake }
+```
+
+### hreset
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2149:
+
+```text
+lower
+```
+
+### reset
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2150:
+
+```text
+d7n_reset p c E rho pt.w hK.input.wit.toH0Reset
+```
+
+### history
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2151:
+
+```text
+d7n_transfer p c E rho pt.w hK.input.t.h2 rho.horizon
+```
+
+### chain
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2152:
+
+```text
+fun horizon => d7n_f_chain p c E rho pt.w hK.input.t.h1 horizon
+```
+
+### reflect
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2153:
+
+```text
+by intro X Y h rw [d7n_erase, d7n_erase] at h exact eraseFG_preceq_iff.mp h
+```
+
+### parent
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2157:
+
+```text
+by intro X; rw [d7n_erase, d7n_erase]; exact (eraseFG_parent X).symm
+```
+
+### hOrigin
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2158:
+
+```text
+d7n_origin p c E rho horigin
+```
+
+### emission
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2159:
+
+```text
+d7n_emission p c E rho
+```
+
+### receipt
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2160:
+
+```text
+(d7n_receipt_eq p c E rho ΔF).mpr hK.input.t.rows.receipt
+```
+
+### honest_slot
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2161:
+
+```text
+fun _ hs => ⟨_, hs.2⟩
+```
+
+### proposal
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2162:
+
+```text
+fun s hs hlo hhi => kmid_window_proposal hK hs hlo hhi
+```
+
+### terminalProposal
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2163:
+
+```text
+by intro hslot have hlo : pt.r * p.R ≤ (pt.r + 2) * p.R + kappaF p ΔF := (Nat.mul_le_mul_right p.R
+(show pt.r ≤ pt.r + 2 by omega)).trans (Nat.le_add_right _ _) exact kmid_honest_proposal_exists p
+c E rho hs hK.set.base.delta _ hslot (finality_recovery_joined p c E rho hK.set hslot.2
+(kmid_window_join_cut hK hlo) (kmid_slot_gst hK hlo) hThor) hThor
+```
+
+### carrier
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2171:
+
+```text
+fun _ _ hp => d7n_carrier p c E rho hs hp
+```
+
+### exactService
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2172:
+
+```text
+fun s Q hp hlo => d7n_exact p c E rho pt.w s Q (kmid_window_exact hK hp hlo)
+```
+
+### source_read
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2174:
+
+```text
+by intro s Q r x hex hh hv hx hlo exact (hex.2 hh x hx (kmid_window_confirmed hK hlo hh hx)).2 r
+hv
+```
+
+### source_eq
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2177:
+
+```text
+by intro x r change actionSource p c E rho x r = _ rw [d7n_source_eq, d7n_reads_eq] rfl
+```
+
+### head_read
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2182:
+
+```text
+by intro s Q x hex hlo hhi hx rw [d7n_head_eq] exact hex.1 (kmid_slot_horizon hK hhi).2.1 x hx
+(kmid_window_joined hK hlo hhi hx)
+```
+
+### head_held
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2186:
+
+```text
+by intro s X x hh exact FGCompose.head_held (fgsaCoreReads p c) E rho (fgsaCoreLaws p c)
+(fgsaHeadLaws p c E rho) hh
+```
+
+### slot_chain
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2190:
+
+```text
+by intro i x X hX rw [d7n_fg] at hX exact kmid_stored_slotChain p c E rho hK.set.base.valid i x X
+hX
+```
+
+### closed
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2194:
+
+```text
+by intro s nd hnd rw [d7n_fg] exact (storeInvariant p nd.st (d7n_proposal_reachable p c E rho s nd
+hnd)).fg.closed
+```
+
+### roots
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2198:
+
+```text
+by intro s nd hnd rw [d7n_fg] exact viewRootInj_TF p nd.st (storeInvariant p nd.st
+(d7n_proposal_reachable p c E rho s nd hnd))
+```
+
+### validRows
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2203:
+
+```text
+by intro s nd hnd rw [d7n_fg] exact d7n_validRows p nd.st (d7n_proposal_reachable p c E rho s nd
+hnd)
+```
+
+### parentEq
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2207:
+
+```text
+by intro nd s X have h := kmid_parentFold_height p s X exact Prod.ext h.1 (congrArg FGBlock.root
+h.2)
+```
+
+### matchValid
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2211:
+
+```text
+fun _ s X a hv hm => d7n_matching_valid p s X a hv hm
+```
+
+### hBatch
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2212:
+
+```text
+by intro q y U X h hp exact hBatch c E rho q y U X (d7n_batch_from p c E rho ΔF hK.set.base
+hK.set.faultQ .target q y U X h) hp
+```
+
+### hSOCOVTarget
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2216:
+
+```text
+by intro x hx r C hsrc hhigh hawake rw [d7n_source_eq] at hsrc obtain ⟨j, rSent, a, hr, ha, hc,
+hp⟩ := high_target_row_covered p c E rho pt.w hK.input.t.h1 hQC hNames hK.set.base.linked hs x hx
+r C hsrc hhigh hawake exact ⟨j, rSent, a, hr, (d7n_row_eq p c E rho j rSent x a).mpr ha,
+(d7n_complete_eq p c rho x a).mpr hc, hp⟩
+```
+
+### action
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2223:
+
+```text
+fun _ m => d7c_action p c E rho hK hServices hQC hXing hNames m
+```
+
+### makeWire
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2224:
+
+```text
+d7n_makeWire p
+```
+
+### wireDecode
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2225:
+
+```text
+by intro row; rw [d7n_safety_def p c]; rfl
+```
+
+### wireValid
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2226:
+
+```text
+by intro i y U B change (decide (1 ≤ y + 1) && decide (y < y + 1)) = true simp only
+[Nat.le_add_left, Nat.lt_succ_self, decide_true, Bool.and_self]
+```
+
+### client
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2230:
+
+```text
+by intro nd; rw [d7n_reads_eq, d7n_safety_def p c]; rfl
+```
+
+### release
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2231:
+
+```text
+by intro i q nd row hn hw hr simp only [d7n_safety_def p c] at hr simp only [d7n_holder,
+d7n_action_eq] at hn hw obtain ⟨j, hj, he⟩ := d7n_release p c E rho i q nd row hn hw hr refine ⟨j,
+?_, ?_⟩ · simpa only [d7n_holder, d7n_action_eq] using hj · rw [d7n_safety_def p c] exact he
+```
+
+### fields
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2240:
+
+```text
+by intro nd H hH rw [d7n_reads_eq] at hH simpa only [d7n_safety_def p c, d7n_observations_eq,
+certificateHeadFields_def] using fgInputs_headFields p nd.st H hH
+```
+
+### hQC
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2245:
+
+```text
+d7n_f_qc p c E rho hQC
+```
+
+### recordHead
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2246:
+
+```text
+d7n_f_head p c E rho
+```
+
+### clientLaws
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2247:
+
+```text
+(d7n_safety_eq p c).symm ▸ fgsaSafetyClientLaws p c
+```
+
+### own
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2248:
+
+```text
+d7n_f_own p c E rho
+```
+
+### hsel
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2249:
+
+```text
+d7n_selection p c E rho hsel
+```
+
+### decode
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2250:
+
+```text
+by intro a i hsig change d7n_signer p a = some i at hsig rw [d7n_safety_def p c] exact
+d7n_decode_wire p a i hsig
+```
+
+### occurrence
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2255:
+
+```text
+by intro s Q H nd a u hn hp hm hd rw [d7n_safety_def p c] at hd exact d7n_occurrence p c E rho s Q
+H nd a u hn hp hm hd
+```
+
+### validFor_eq
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2259:
+
+```text
+fun _ s B a => d7n_validFor p c s B a
+```
+
+### pathValid
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2260:
+
+```text
+fun s nd hnd H hH => d7c_pathValid p c E rho hK.set.base.valid s nd hnd H hH
+```
+
+### dutyTime
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2262:
+
+```text
+fun _ => rfl
+```
+
+### rowDurable
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2263:
+
+```text
+fun i j x a hij h => by rw [d7n_rowHeld_eq] at h ⊢ exact d7n_held_durable p c E rho i j x a hij h
+```
+
+### rowClock
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2266:
+
+```text
+fun nd t a h => by rw [d7n_rowHeld_eq] at h ⊢ exact d7n_held_clock p nd.st t a h
+```
+
+### ready
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2269:
+
+```text
+fun i x W t => Ready_W p c E rho i x W t
+```
+
+### step
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2270:
+
+```text
+d7n_step p c E rho
+```
+
+### inv
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2271:
+
+```text
+fun i x _ => d7n_inv p c E rho i x
+```
+
+### finBlock
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2272:
+
+```text
+FinalityBlock p c E rho
+```
+
+### hI3
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2273:
+
+```text
+fun C W hC hW => hI3 ⟨hK.set.base, hK.set.fault⟩ C W _ _ _ _ hC hW ((FinalityFinalizedAt_def p C _
+_).mpr ⟨rfl, rfl⟩) ((FinalityFinalizedAt_def p W _ _).mpr ⟨rfl, rfl⟩)
+```
+
+### readyBlock
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2276:
+
+```text
+fun i x X t h => receipt_ready_block p c E rho i x X t h
+```
+
+### stored
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2277:
+
+```text
+fun i x C hC hne => receipt_stored_block p c E rho i x C (by rw [d7n_core_fg] at hC; exact hC) hne
+```
+
+### rootScope
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2279:
+
+```text
+by intro i x hx C k u r a B hC hrow hsrc hroot rw [d7n_core_fg] at hC rw [d7n_source_eq] at hsrc
+exact rootScope_eq hK.set.base.idealization (rootScope_justified (rootScope_store hx hC))
+(rootScope_entry (rootScope_source ((d7n_row_eq p c E rho k r u a).mp hrow).1 hsrc)) hroot
+```
+
+### hStrat
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2287:
+
+```text
+by intro j z W hz hW J hJ hne rw [d7n_core_fg] at hW obtain ⟨u, r, a, hrow, hn⟩ := hStrat j z W hz
+hW J (by rw [certified_def] exact hJ) hne obtain ⟨k, hk, hrow⟩ := (HonestRowBefore_def p c E rho j
+u r a).mp hrow refine ⟨u, r, a, ⟨k, hk, (d7n_row_eq p c E rho k r u a).mpr hrow⟩, ?_⟩ have he :
+FGCompose.namedEntry a.payload.height_pair = namedEntry a.payload.height_pair := by cases
+a.payload.height_pair <;> rfl change FGCompose.namedEntry a.payload.height_pair = _ rw [he] exact
+hn
+```
+
+### hEmittedSource
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2301:
+
+```text
+by intro j z r a e hrow he obtain ⟨C, hsrc, hC, hT⟩ := hEmittedSource j z r a e ((d7n_row_eq p c E
+rho j r z a).mp hrow) (by rw [← d7n_f_entry_eq]; exact he) exact ⟨C, by rw [d7n_source_eq]; exact
+hsrc, hC, hT⟩
+```
+
+### hcapBefore
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2307:
+
+```text
+by intro cut b j z W hj hW hrow rw [d7n_held_eq] at hW exact hcapBefore cut b j z W hj hW (fun k u
+r a row h B timeout ha hd hp hlt => hrow k u r a row h B timeout ((d7n_row_eq p c E rho k r u
+a).mpr ha) (by rw [d7n_safety_def p c]; exact hd) hp hlt)
+```
+
+### delivery
+
+Producer at AvailableChainFGSAProofs/Tests/P0d7c.lean:2313:
+
+```text
+by intro X U rows hcar hgst hhor hfinal obtain ⟨d⟩ := receipt_delivery p c E rho G ΔF hK.set X U
+rows (by have hc := (d7n_carrier_eq p c E rho _ _ _).mp hcar rw [d7n_erase] at hc exact hc) hgst
+hhor (by have h := hfinal rw [← d7nw_derive_eq] at h exact h) hI3 exact ⟨d7n_delivery p c E rho d⟩
+```
+
+wireDecode is specifically the definitional toRow? decoding of d7n_makeWire, after d7n_safety_def
+(:2225), proved by rfl. wireValid is specifically the two row-validity inequalities 1 ≤ y+1 and y
+< y+1 (:2226–2229), proved by Nat.le_add_left and Nat.lt_succ_self. Neither argument is supplied
+by a receipt or an emission theorem.
+
+## Shared declaration and source index
+
+S keys used above resolve here. Every production Compose source declaration is listed, including
+observation records and statement equations. Frozen FG-SA keys list their corresponding theorem
+register above. Generated constructors/recursors and private adapters are covered by the compiled
+snapshot rather than counted as source declarations.
+
+### S001
+
+AvailableChainFGCompose/Proofs/Dependency.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ dependency_effect_step                                             │ theorem    │ 16     │
+│ dependency_effect_prefix                                           │ theorem    │ 26     │
+│ dependency_refusal_descendants                                     │ theorem    │ 54     │
+│ dependency_arrival_order                                           │ theorem    │ 87     │
+│ dependency_reconstruct_metadata                                    │ theorem    │ 118    │
+│ dependency_origin_same_receiver                                    │ theorem    │ 129    │
+│ dependency_origin_at_read                                          │ theorem    │ 148    │
+│ dependency_read_completion                                         │ theorem    │ 156    │
+│ dependency_hook_read_completion                                    │ theorem    │ 170    │
+│ dependency_accepted_origin_bridge                                  │ theorem    │ 203    │
+│ dependency_hook_origin_at_read                                     │ theorem    │ 211    │
+│ dependency_hook_accepted_origin_bridge                             │ theorem    │ 220    │
+│ dependency_drain_before_deadline                                   │ theorem    │ 230    │
+│ dependency_finite_path_resolved_before                             │ theorem    │ 297    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S002
+
+AvailableChainFGCompose/Proofs/ExecutionAcceptance.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ acceptance_F_keep                                                  │ theorem    │ 136    │
+│ selectedAcceptance_keep                                            │ theorem    │ 145    │
+│ acceptance_at_strict_read                                          │ theorem    │ 154    │
+│ acceptBefore_driver                                                │ theorem    │ 181    │
+│ finalizePending_driver                                             │ theorem    │ 205    │
+│ ordinary_acceptsFinalBefore_iff                                    │ theorem    │ 227    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S003
+
+AvailableChainFGCompose/Proofs/ExecutionAcceptanceOrdinary.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ ordinary_acceptance_cut_eq                                         │ theorem    │ 18     │
+│ ordinary_selectedAcceptance                                        │ def        │ 31     │
+│ ordinary_selectedAcceptance_fields                                 │ theorem    │ 66     │
+│ ordinary_acceptanceEffect_iff                                      │ theorem    │ 84     │
+│ acceptBefore_ordinary                                              │ theorem    │ 95     │
+│ finalizePending_ordinary                                           │ theorem    │ 109    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S004
+
+AvailableChainFGCompose/Proofs/ExecutionHistory.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ accepted_body_origin_driver_at                                     │ theorem    │ 20     │
+│ accepted_body_origin_driver                                        │ theorem    │ 46     │
+│ chainRows_of_held_obs                                              │ theorem    │ 69     │
+│ chainRows_of_head_driver                                           │ theorem    │ 102    │
+│ ordinary_chainRows_atCut_of_before                                 │ theorem    │ 136    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S005
+
+AvailableChainFGCompose/Proofs/ExecutionObs.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ ordinaryFGExecutionObs_laws                                        │ theorem    │ 136    │
+│ ordinary_obsEmits_iff                                              │ theorem    │ 240    │
+│ chainRows_of_head_obs                                              │ theorem    │ 260    │
+│ ordinaryFGExecutionObs_core                                        │ theorem    │ 320    │
+│ ordinaryFGExecutionObs_finality                                    │ theorem    │ 357    │
+│ ordinaryFGExecutionObs_order                                       │ theorem    │ 374    │
+│ ordinaryFGExecutionObs_pool                                        │ theorem    │ 380    │
+│ ordinaryFGExecutionObs_safety                                      │ theorem    │ 427    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S006
+
+AvailableChainFGCompose/Proofs/Finality/Accept.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ acceptBefore_W                                                     │ theorem    │ 135    │
+│ finalizePending_W                                                  │ theorem    │ 193    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S007
+
+AvailableChainFGCompose/Proofs/Finality/Batch.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ finalityRow_bit_or_carried_W                                       │ theorem    │ 22     │
+│ finalityBatchCoverage_W_of_tRowsSelect                             │ theorem    │ 72     │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S008
+
+AvailableChainFGCompose/Proofs/Finality/Carry.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ terminalCarriage_general_W                                         │ theorem    │ 24     │
+│ terminalCarriage_W_of_tRowsSelect                                  │ theorem    │ 161    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S009
+
+AvailableChainFGCompose/Proofs/Finality/Forward.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ finality_window_nonneg                                             │ theorem    │ 12     │
+│ forward_round_FE                                                   │ theorem    │ 21     │
+│ forward_witness_FE_of                                              │ theorem    │ 64     │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S010
+
+AvailableChainFGCompose/Proofs/Finality/History.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ noMixedPreBatchParent                                              │ theorem    │ 76     │
+│ justifyFresh_W                                                     │ theorem    │ 220    │
+│ raw_causal_cap_before                                              │ theorem    │ 304    │
+│ raw_causal_cap_at_tick                                             │ theorem    │ 320    │
+│ raw_causal_cap_through_action                                      │ theorem    │ 338    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S011
+
+AvailableChainFGCompose/Proofs/Finality/Joined.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ finality_kernel_prem_W_of_joined                                   │ theorem    │ 12     │
+│ finality_kernel_joined_W_of                                        │ theorem    │ 41     │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S012
+
+AvailableChainFGCompose/Proofs/Finality/Kernel.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ kernel_terminal_bounds_W                                           │ theorem    │ 14     │
+│ finality_kernel_W_of                                               │ theorem    │ 79     │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S013
+
+AvailableChainFGCompose/Proofs/Finality/Local.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ finality_liveness_of_forward_W                                     │ theorem    │ 38     │
+│ finality_liveness_FE_W_of                                          │ theorem    │ 88     │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S014
+
+AvailableChainFGCompose/Proofs/Finality/Middle.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ middle_reset_opening_height                                        │ theorem    │ 18     │
+│ kernel_opening_and_middle                                          │ theorem    │ 62     │
+│ kernel_middle_fresh_U                                              │ theorem    │ 446    │
+│ kernel_middle_early_justification                                  │ theorem    │ 453    │
+│ kernel_middle_source_cap                                           │ theorem    │ 461    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S015
+
+AvailableChainFGCompose/Proofs/Finality/MiddleSupport.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ kmid_actionTime_eq                                                 │ theorem    │ 14     │
+│ kmid_action_strictMono                                             │ theorem    │ 20     │
+│ kmid_slot_scale_le                                                 │ theorem    │ 30     │
+│ kmid_slot_scale_lt                                                 │ theorem    │ 37     │
+│ kmid_kappa_cover                                                   │ theorem    │ 44     │
+│ kmid_period_eq                                                     │ theorem    │ 57     │
+│ kmid_lift_preceq                                                   │ theorem    │ 64     │
+│ kmid_parent_preceq                                                 │ theorem    │ 70     │
+│ kmid_slot_le_of_preceq                                             │ theorem    │ 76     │
+│ kmid_slot_lt_of_strict                                             │ theorem    │ 90     │
+│ kmid_kernel_bounds                                                 │ theorem    │ 103    │
+│ kmid_slot_horizon                                                  │ theorem    │ 136    │
+│ kmid_slot_gst                                                      │ theorem    │ 148    │
+│ kmid_vote_lt_action                                                │ theorem    │ 156    │
+│ kmid_proposal_le_action                                            │ theorem    │ 164    │
+│ kmid_batch_horizon                                                 │ theorem    │ 172    │
+│ kmid_event_time                                                    │ theorem    │ 192    │
+│ kmid_row_source_height                                             │ theorem    │ 199    │
+│ kmid_rows_at_source                                                │ theorem    │ 213    │
+│ kmid_rows_below_opening                                            │ theorem    │ 225    │
+│ middle_seed_opening_height                                         │ theorem    │ 254    │
+│ middle_shield_rows_below_opening                                   │ theorem    │ 269    │
+│ kmid_matching_height                                               │ theorem    │ 299    │
+│ kmid_honest_seat                                                   │ theorem    │ 313    │
+│ kmid_tick_lt_afterTicks                                            │ theorem    │ 322    │
+│ kmid_source_held_at_tick                                           │ theorem    │ 327    │
+│ kmid_chainRows_of_head                                             │ theorem    │ 343    │
+│ kmid_head_held_from                                                │ theorem    │ 351    │
+│ kmid_source_of_exact                                               │ theorem    │ 360    │
+│ kmid_delivery_before_afterTicks                                    │ theorem    │ 378    │
+│ kmid_held_height_le                                                │ theorem    │ 402    │
+│ kmid_held_cap_afterTicks                                           │ theorem    │ 426    │
+│ kmid_held_finality_afterTicks                                      │ theorem    │ 438    │
+│ kmid_row_action                                                    │ theorem    │ 467    │
+│ kmid_row_fin_lt                                                    │ theorem    │ 478    │
+│ kmid_rows_cut                                                      │ theorem    │ 501    │
+│ kmid_fin_cut                                                       │ theorem    │ 525    │
+│ kmid_faulty_weight                                                 │ theorem    │ 551    │
+│ kmid_parentFold_height                                             │ theorem    │ 571    │
+│ kmid_rows_above_entry                                              │ theorem    │ 579    │
+│ kmid_batchPrem                                                     │ theorem    │ 630    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S016
+
+AvailableChainFGCompose/Proofs/Finality/Receipt.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ receipt_kernel_fields                                              │ theorem    │ 27     │
+│ receipt_finalized_of_carriage                                      │ theorem    │ 69     │
+│ receipt_finCmp_of_block                                            │ theorem    │ 106    │
+│ receipt_finCmp                                                     │ theorem    │ 140    │
+│ receipt_cap                                                        │ theorem    │ 186    │
+│ receipt_receiver_finalityLag                                       │ theorem    │ 224    │
+│ receipt_jPath_of_cached_anchor                                     │ theorem    │ 252    │
+│ receipt_jPath                                                      │ theorem    │ 275    │
+│ receipt_acceptPrem_W                                               │ theorem    │ 372    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S017
+
+AvailableChainFGCompose/Proofs/Finality/RecordInv.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ HighRecordOwnOrigin_def                                            │ theorem    │ 37     │
+│ high_source_entry_eq                                               │ theorem    │ 46     │
+│ high_record_target_choice                                          │ theorem    │ 87     │
+│ high_entry_record_invariant                                        │ theorem    │ 305    │
+│ shield_record_before_cut                                           │ theorem    │ 328    │
+│ high_record_fresh_at_cut                                           │ theorem    │ 448    │
+│ shield_high_entry_record_invariant                                 │ theorem    │ 489    │
+│ high_record_reset_fresh                                            │ theorem    │ 524    │
+│ high_record_guards_and_fresh                                       │ theorem    │ 560    │
+│ high_action_target_choice                                          │ theorem    │ 578    │
+│ high_record_guards_and_fresh_at_action                             │ theorem    │ 626    │
+│ ff2_stored_high_qc_identity                                        │ theorem    │ 709    │
+│ ff2_high_qc_identity                                               │ theorem    │ 770    │
+│ ff2_no_high_contest                                                │ theorem    │ 872    │
+│ HighRecordGuard_W_def                                              │ theorem    │ 935    │
+│ ff2_high_record_guards                                             │ theorem    │ 942    │
+│ high_target_row_covered                                            │ theorem    │ 1016   │
+│ high_target_first_row                                              │ theorem    │ 1060   │
+│ high_target_honest_quorum                                          │ theorem    │ 1080   │
+│ high_target_quorum_covered                                         │ theorem    │ 1124   │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S018
+
+AvailableChainFGCompose/Proofs/Finality/RestoreReads.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ finality_restore_preceq_F                                          │ theorem    │ 19     │
+│ finality_acceptsFinalBefore_of_idx                                 │ theorem    │ 28     │
+│ finality_acceptsFinalBefore_mono_deadline                          │ theorem    │ 39     │
+│ finality_acceptsFinalBefore_mono_ancestor                          │ theorem    │ 54     │
+│ finality_heldBefore_at_proposal                                    │ theorem    │ 66     │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S019
+
+AvailableChainFGCompose/Proofs/Finality/Rows.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ pending_action_head_capped                                         │ theorem    │ 19     │
+│ pending_action_domain_cap                                          │ theorem    │ 44     │
+│ pending_action_head                                                │ theorem    │ 63     │
+│ finality_action_source                                             │ theorem    │ 107    │
+│ actual_anchor_cap                                                  │ theorem    │ 121    │
+│ actual_anchor_retained_or_covered                                  │ theorem    │ 139    │
+│ fresh_unanimous_rows                                               │ theorem    │ 196    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S020
+
+AvailableChainFGCompose/Proofs/Finality/RowsPrem.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ rowsPrem_pending_head                                              │ theorem    │ 31     │
+│ rowsPrem_action_source                                             │ theorem    │ 64     │
+│ rowsPrem_anchor_cap                                                │ theorem    │ 86     │
+│ rowsPrem_anchor_retained_or_covered                                │ theorem    │ 111    │
+│ rowsPrem_fresh_rows                                                │ theorem    │ 122    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S021
+
+AvailableChainFGCompose/Proofs/Finality/RowsRecords.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ rowsPrem_earlier_height                                            │ theorem    │ 18     │
+│ rowsPrem_action_record                                             │ theorem    │ 43     │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S022
+
+AvailableChainFGCompose/Proofs/Healing/Attempt.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ progressAttempt_of                                                 │ theorem    │ 17     │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S023
+
+AvailableChainFGCompose/Proofs/Healing/AttemptRows.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ healing_attempt_firstRow_contest                                   │ theorem    │ 439    │
+│ healing_attempt_firstRow_other                                     │ theorem    │ 545    │
+│ healing_attempt_raise_contest                                      │ theorem    │ 864    │
+│ healing_attempt_raise_other                                        │ theorem    │ 974    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S024
+
+AvailableChainFGCompose/Proofs/Healing/AttemptSettle.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ healing_attempt_settle_start                                       │ theorem    │ 44     │
+│ healing_attempt_raise_contest_settle                               │ theorem    │ 72     │
+│ healing_attempt_raise_other_settle                                 │ theorem    │ 93     │
+│ healing_attempt_firstRow_contest_settle                            │ theorem    │ 114    │
+│ healing_attempt_firstRow_other_settle                              │ theorem    │ 135    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S025
+
+AvailableChainFGCompose/Proofs/Healing/AttemptStop.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ healing_attempt_ends_of_event                                      │ theorem    │ 18     │
+│ healing_attempt_ends_of_row                                        │ theorem    │ 26     │
+│ healing_attempt_ends_mono                                          │ theorem    │ 36     │
+│ healing_attempt_no_event                                           │ theorem    │ 44     │
+│ healing_attempt_inclusive_start                                    │ theorem    │ 54     │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S026
+
+AvailableChainFGCompose/Proofs/Healing/CommonEntry.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ common_entry_of_plateau                                            │ theorem    │ 20     │
+│ common_low_or_high                                                 │ theorem    │ 31     │
+│ common_sources_extend_and_cap                                      │ theorem    │ 53     │
+│ common_entry_at_high                                               │ theorem    │ 68     │
+│ common_next_sources_extend_and_cap                                 │ theorem    │ 75     │
+│ common_next_entry                                                  │ theorem    │ 89     │
+│ common_entry_at_low                                                │ theorem    │ 97     │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S027
+
+AvailableChainFGCompose/Proofs/Healing/FrontierSearchAge.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ frontierSearch_age_service                                         │ theorem    │ 72     │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S028
+
+AvailableChainFGCompose/Proofs/Healing/FrontierSearchBudget.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ frontierSearch_contest_rise_cost                                   │ theorem    │ 11     │
+│ frontierSearch_contest_row_cost                                    │ theorem    │ 25     │
+│ frontierSearch_terminal_opening_cost                               │ theorem    │ 32     │
+│ frontierSearch_terminal_horizon_gap8                               │ theorem    │ 41     │
+│ frontierSearch_terminal_horizon_gap12                              │ theorem    │ 49     │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S029
+
+AvailableChainFGCompose/Proofs/Healing/FrontierSearchCompose.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ frontierSearch_rise_rebase                                         │ theorem    │ 64     │
+│ frontierSearch_rise_of_stop                                        │ theorem    │ 77     │
+│ frontierSearch_phase_compose                                       │ theorem    │ 88     │
+│ frontierSearch_phase_tail                                          │ theorem    │ 182    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S030
+
+AvailableChainFGCompose/Proofs/Healing/FrontierSearchFull.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ frontierSearch_family                                              │ theorem    │ 46     │
+│ frontierSearch                                                     │ theorem    │ 243    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S031
+
+AvailableChainFGCompose/Proofs/Healing/FrontierSearchGap.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ frontierSearch_period_bound                                        │ theorem    │ 39     │
+│ frontierSearch_gap_phase                                           │ theorem    │ 91     │
+│ frontier_hg3_gap                                                   │ theorem    │ 322    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S032
+
+AvailableChainFGCompose/Proofs/Healing/FrontierSearchHG2a.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ frontierSearch_hg2a_bound                                          │ theorem    │ 61     │
+│ frontierSearch_hg2a_gate_cost                                      │ theorem    │ 77     │
+│ frontierSearch_hg2a_gap                                            │ theorem    │ 90     │
+│ frontier_hg2a_receipt                                              │ theorem    │ 127    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S033
+
+AvailableChainFGCompose/Proofs/Healing/FrontierSearchRepair.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ frontierSearch_timeIdx_mono                                        │ theorem    │ 33     │
+│ frontierSearch_phase_cut                                           │ theorem    │ 41     │
+│ frontierSearch_seed_after                                          │ theorem    │ 49     │
+│ frontierSearch_seed_of_start                                       │ theorem    │ 77     │
+│ frontierSearch_seed_later                                          │ theorem    │ 86     │
+│ frontierSearch_phase_hmax                                          │ theorem    │ 104    │
+│ frontierSearch_phase_cap                                           │ theorem    │ 115    │
+│ frontierSearch_proposal_heights                                    │ theorem    │ 127    │
+│ frontierSearch_save_seed                                           │ theorem    │ 150    │
+│ frontier_hg3_contest                                               │ theorem    │ 173    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S034
+
+AvailableChainFGCompose/Proofs/Healing/FrontierSearchRise.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ healing_frontierTail_rise_of_seed                                  │ theorem    │ 65     │
+│ healing_frontierTail_rise                                          │ theorem    │ 150    │
+│ healing_frontierTail                                               │ theorem    │ 227    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S035
+
+AvailableChainFGCompose/Proofs/Healing/FrontierSearchStop.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ frontierSearch_event_time_le                                       │ theorem    │ 35     │
+│ frontierSearch_first_effective_split                               │ theorem    │ 48     │
+│ frontierSearch_classify_stop                                       │ theorem    │ 71     │
+│ frontierSearch_first_rise                                          │ theorem    │ 89     │
+│ frontierSearch_first_row                                           │ theorem    │ 116    │
+│ frontierSearch_first_row_unique                                    │ theorem    │ 141    │
+│ frontierSearch_skipped_row                                         │ theorem    │ 151    │
+│ frontierSearch_phase_step_of_crossing                              │ theorem    │ 164    │
+│ frontierSearch_strict_cap_or_rise                                  │ theorem    │ 232    │
+│ frontierSearch_timeIdx_le_idxBefore                                │ theorem    │ 273    │
+│ frontierSearch_rise_mono                                           │ theorem    │ 283    │
+│ frontierSearch_rise_of_receipt                                     │ theorem    │ 291    │
+│ frontier_seed_prior_cut                                            │ theorem    │ 314    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S036
+
+AvailableChainFGCompose/Proofs/Healing/FrontierSearchTail.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ healing_frontierTail_row                                           │ theorem    │ 66     │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S037
+
+AvailableChainFGCompose/Proofs/Healing/FrontierSearchTasks.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ frontierSearch_task_bounds                                         │ theorem    │ 45     │
+│ frontierSearch_rise_task                                           │ theorem    │ 82     │
+│ frontierSearch_row_of_rise                                         │ theorem    │ 218    │
+│ frontierSearch_row_task                                            │ theorem    │ 241    │
+│ frontierSearch_phase_exists                                        │ theorem    │ 372    │
+│ frontierSearch_cut_start                                           │ theorem    │ 385    │
+│ frontierSearch_event_time_mono                                     │ theorem    │ 430    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S038
+
+AvailableChainFGCompose/Proofs/Healing/FrontierSearchTop.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ frontierSearch_initial_J_age                                       │ theorem    │ 60     │
+│ frontier_hg3_topJ                                                  │ theorem    │ 551    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S039
+
+AvailableChainFGCompose/Proofs/Healing/PhaseFrame.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ healing_phase_height_le                                            │ theorem    │ 36     │
+│ healing_phase_justified_lt                                         │ theorem    │ 44     │
+│ healing_phase_finality_le                                          │ theorem    │ 54     │
+│ healing_phase_frontier_witness                                     │ theorem    │ 65     │
+│ healing_phase_frontier_root                                        │ theorem    │ 76     │
+│ healing_frontier_mem                                               │ theorem    │ 120    │
+│ healing_phase_frame                                                │ theorem    │ 152    │
+│ healing_settled_frame                                              │ theorem    │ 243    │
+│ healing_settled_frame_ready                                        │ theorem    │ 256    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S040
+
+AvailableChainFGCompose/Proofs/Healing/PhaseOrder.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ healing_phase_local_le_frontier                                    │ theorem    │ 23     │
+│ healing_phase_top_persist_all                                      │ theorem    │ 32     │
+│ healing_phase_top_persist                                          │ theorem    │ 45     │
+│ healing_phase_entries_eq                                           │ theorem    │ 59     │
+│ healing_phase_contest_persist_of_crossing_all                      │ theorem    │ 72     │
+│ healing_phase_contest_persist_of_crossing                          │ theorem    │ 140    │
+│ healing_phase_order_of_crossing_all                                │ theorem    │ 157    │
+│ healing_phase_order_of_crossing                                    │ theorem    │ 193    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S041
+
+AvailableChainFGCompose/Proofs/Healing/PhaseSettle.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ healing_phase_head_inclusion                                       │ theorem    │ 31     │
+│ phase_top_carrier                                                  │ theorem    │ 80     │
+│ healing_phase_window_all                                           │ theorem    │ 178    │
+│ phase_settle_from_carriers                                         │ theorem    │ 213    │
+│ healing_settle_start_on                                            │ theorem    │ 372    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S042
+
+AvailableChainFGCompose/Proofs/Healing/Promotion.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ healing_promotion_fixed_rows                                       │ theorem    │ 18     │
+│ healing_promotion_entry_slot                                       │ theorem    │ 54     │
+│ p0d3_bound_batch                                                   │ theorem    │ 66     │
+│ healing_promotion_bounded_rows                                     │ theorem    │ 81     │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S043
+
+AvailableChainFGCompose/Proofs/Healing/PromotionAge.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ promotion_age_grid                                                 │ theorem    │ 73     │
+│ healing_promotion_age_receipt                                      │ theorem    │ 114    │
+│ healing_promotion_age_service_tail                                 │ theorem    │ 221    │
+│ healing_promotion_age_service                                      │ theorem    │ 265    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S044
+
+AvailableChainFGCompose/Proofs/Healing/PromotionArithmetic.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ healing_promotion_gap_remainder                                    │ theorem    │ 73     │
+│ healing_promotion_held_mono                                        │ theorem    │ 87     │
+│ healing_promotion_gap                                              │ theorem    │ 111    │
+│ healing_promotion_row_deadline                                     │ theorem    │ 164    │
+│ healing_promotion_row_deadline_strict                              │ theorem    │ 198    │
+│ healing_promotion_row_receipt                                      │ theorem    │ 218    │
+│ healing_promotion_row_receipt_strict                               │ theorem    │ 250    │
+│ healing_promotion_maturity                                         │ theorem    │ 283    │
+│ healing_promotion_maturity_of_action                               │ theorem    │ 299    │
+│ healing_promotion_age_gap                                          │ theorem    │ 319    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S045
+
+AvailableChainFGCompose/Proofs/Healing/PromotionRows.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ p0d3_same_row                                                      │ theorem    │ 26     │
+│ p0d3_same_batch_on                                                 │ theorem    │ 62     │
+│ p0d3_same_batch                                                    │ theorem    │ 105    │
+│ healing_promotion_same_rows_on                                     │ theorem    │ 139    │
+│ healing_promotion_same_rows                                        │ theorem    │ 182    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S046
+
+AvailableChainFGCompose/Proofs/Healing/PromotionSource.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ promotion_age_advance_of_source                                    │ theorem    │ 31     │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S047
+
+AvailableChainFGCompose/Proofs/Healing/Reset.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ healing_reset_budget_sum                                           │ theorem    │ 19     │
+│ healing_reset_budget_lt                                            │ theorem    │ 29     │
+│ healing_reset_rowCap                                               │ theorem    │ 60     │
+│ healing_reset_mu_le                                                │ theorem    │ 74     │
+│ healing_reset_fresh                                                │ theorem    │ 88     │
+│ healing_reset_synchronous                                          │ theorem    │ 106    │
+│ healing_reset_reset_first                                          │ theorem    │ 129    │
+│ healing_reset_fields                                               │ theorem    │ 147    │
+│ healing_resetWitness                                               │ theorem    │ 189    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S048
+
+AvailableChainFGCompose/Proofs/Healing/ResetCut.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ reset_period_lower                                                 │ theorem    │ 23     │
+│ reset_action_exists                                                │ theorem    │ 30     │
+│ reset_rG_after                                                     │ theorem    │ 42     │
+│ reset_rG_first                                                     │ theorem    │ 46     │
+│ reset_cut                                                          │ theorem    │ 49     │
+│ reset_first_action_upper                                           │ theorem    │ 52     │
+│ reset_cut_lower                                                    │ theorem    │ 68     │
+│ reset_cut_upper                                                    │ theorem    │ 75     │
+│ reset_frontier                                                     │ theorem    │ 89     │
+│ reset_inclusive_frontier                                           │ theorem    │ 93     │
+│ reset_inclusive_start_iff                                          │ theorem    │ 100    │
+│ reset_row_cap                                                      │ theorem    │ 130    │
+│ reset_old_row_before_cut                                           │ theorem    │ 161    │
+│ reset_old_height_sup_le                                            │ theorem    │ 172    │
+│ reset_mu_le_iff                                                    │ theorem    │ 186    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S049
+
+AvailableChainFGCompose/Proofs/HistoricalReads.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ historicalLookup_spec                                              │ theorem    │ 23     │
+│ historical_read_sound                                              │ theorem    │ 81     │
+│ historical_read_complete                                           │ theorem    │ 86     │
+│ historical_read_ambiguous                                          │ theorem    │ 90     │
+│ historical_parent_held                                             │ theorem    │ 99     │
+│ historical_lca_held                                                │ theorem    │ 119    │
+│ historical_read_step                                               │ theorem    │ 136    │
+│ historical_read_frame_eq                                           │ theorem    │ 143    │
+│ historical_read_restore_eq                                         │ theorem    │ 147    │
+│ historical_geometry_restore_eq                                     │ theorem    │ 151    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S050
+
+AvailableChainFGCompose/Proofs/HolderClient.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ holder_record_at_duty                                              │ theorem    │ 47     │
+│ safety_client_trace_obs                                            │ theorem    │ 154    │
+│ safety_client_trace_driver                                         │ theorem    │ 178    │
+│ safety_emitted_noSlash_obs                                         │ theorem    │ 199    │
+│ safety_emitted_noSlash_driver                                      │ theorem    │ 212    │
+│ rowPermission_covered_obs                                          │ theorem    │ 221    │
+│ rowPermission_covered_driver                                       │ theorem    │ 280    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S051
+
+AvailableChainFGCompose/Proofs/ObservationTransport.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ selection_at_read                                                  │ theorem    │ 18     │
+│ selection_tick_rows                                                │ theorem    │ 34     │
+│ action_source_at_read                                              │ theorem    │ 47     │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S052
+
+AvailableChainFGCompose/Proofs/OrdinaryHolderClient.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ ordinary_obsDutyState_tick                                         │ theorem    │ 19     │
+│ ordinary_obsSafetyInputAt                                          │ theorem    │ 28     │
+│ ordinary_obsOwnReleased                                            │ theorem    │ 47     │
+│ ordinary_obsOwnReleasedBefore                                      │ theorem    │ 80     │
+│ ordinary_obsSafetyNoSlash_iff                                      │ theorem    │ 90     │
+│ ordinary_obsHonestRowAt_iff                                        │ theorem    │ 99     │
+│ ordinary_FGHolderClientTrace_iff                                   │ theorem    │ 117    │
+│ ordinary_rowPermission_covered                                     │ theorem    │ 131    │
+│ ordinary_FGHolderClientLaws                                        │ theorem    │ 185    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S053
+
+AvailableChainFGCompose/Proofs/Restart.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ tf_cumulative_all                                                  │ theorem    │ 15     │
+│ head_held_from_all                                                 │ theorem    │ 25     │
+│ tf_before_tick_eq_beforeTime                                       │ theorem    │ 37     │
+│ chainRows_of_head_all                                              │ theorem    │ 88     │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S054
+
+AvailableChainFGCompose/Proofs/RowPermission.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ p0d2_pair_of_lock                                                  │ theorem    │ 13     │
+│ rowPermission_pair                                                 │ theorem    │ 38     │
+│ p0d2_once_coverage                                                 │ theorem    │ 49     │
+│ rowPermission_covered                                              │ theorem    │ 119    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S055
+
+AvailableChainFGCompose/Proofs/SafetyAccountable.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ safety_runBlock_accountable                                        │ theorem    │ 29     │
+│ safety_store_accountable                                           │ theorem    │ 49     │
+│ safety_store_agreement                                             │ theorem    │ 66     │
+│ safety_run_accountable                                             │ theorem    │ 91     │
+│ safety_run_agreement                                               │ theorem    │ 108    │
+│ safety_event_agreement                                             │ theorem    │ 122    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S056
+
+AvailableChainFGCompose/Proofs/SafetyClient.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ safetyRecordStep_some                                              │ theorem    │ 23     │
+│ safetyRecordStep_none                                              │ theorem    │ 28     │
+│ safetyInputAt_tick                                                 │ theorem    │ 33     │
+│ safetyInputAt_other                                                │ theorem    │ 46     │
+│ safety_linked_seats                                                │ theorem    │ 64     │
+│ safety_record_fold                                                 │ theorem    │ 74     │
+│ safety_client_trace                                                │ theorem    │ 174    │
+│ safety_emitted_noSlash                                             │ theorem    │ 227    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S057
+
+AvailableChainFGCompose/Proofs/SafetyCount.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ safety_slashable_faulty_count                                      │ theorem    │ 21     │
+│ safety_fault_count_bound                                           │ theorem    │ 56     │
+│ safety_fault_count_bound_lt                                        │ theorem    │ 72     │
+│ safety_slashable_fg_faulty_count                                   │ theorem    │ 86     │
+│ safety_fault_count_bound_fg_lt                                     │ theorem    │ 112    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S058
+
+AvailableChainFGCompose/Proofs/SafetyMonotone.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ safety_F_mono                                                      │ theorem    │ 21     │
+│ safety_F_mono_all                                                  │ theorem    │ 38     │
+│ safety_readAt_prefix                                               │ theorem    │ 70     │
+│ safety_finalized_monotone                                          │ theorem    │ 84     │
+│ safety_finalized_monotone_all                                      │ theorem    │ 98     │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S059
+
+AvailableChainFGCompose/Proofs/SafetySlashing.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ safety_read_row_origin                                             │ theorem    │ 27     │
+│ safety_read_carriage                                               │ theorem    │ 49     │
+│ safety_honest_never_slashed                                        │ theorem    │ 73     │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S060
+
+AvailableChainFGCompose/Proofs/SafetyStore.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ safety_good_stateBefore                                            │ theorem    │ 23     │
+│ safety_readAt_replay                                               │ theorem    │ 92     │
+│ safety_good_readAt                                                 │ theorem    │ 106    │
+│ safety_stored_delivery                                             │ theorem    │ 113    │
+│ safety_read_delivery                                               │ theorem    │ 121    │
+│ safety_stored_runBlock                                             │ theorem    │ 132    │
+│ safety_read_runBlock                                               │ theorem    │ 139    │
+│ safety_stored_scope                                                │ theorem    │ 146    │
+│ safety_read_scope                                                  │ theorem    │ 157    │
+│ safety_invariant_stateBefore                                       │ theorem    │ 168    │
+│ safety_invariant_readAt                                            │ theorem    │ 173    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S061
+
+AvailableChainFGCompose/Proofs/ServiceTransport.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ historical_transfer_reseed                                         │ theorem    │ 17     │
+│ historical_chain_reseed                                            │ theorem    │ 25     │
+│ historical_transfer_horizon                                        │ theorem    │ 33     │
+│ historical_chain_horizon                                           │ theorem    │ 39     │
+│ service_head_coverage                                              │ theorem    │ 47     │
+│ service_proposal_coverage                                          │ theorem    │ 60     │
+│ service_source_next                                                │ theorem    │ 74     │
+│ service_start_before_opening                                       │ theorem    │ 84     │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S062
+
+AvailableChainFGCompose/Proofs/SourceHead.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ postClock_tick                                                     │ theorem    │ 13     │
+│ tick_lt_afterTicks                                                 │ theorem    │ 23     │
+│ tf_cumulative                                                      │ theorem    │ 32     │
+│ source_mem_TF                                                      │ theorem    │ 40     │
+│ head_held                                                          │ theorem    │ 43     │
+│ head_held_from                                                     │ theorem    │ 57     │
+│ chainRows_of_head                                                  │ theorem    │ 66     │
+│ source_height_entry                                                │ theorem    │ 78     │
+│ action_source_capped                                               │ theorem    │ 84     │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S063
+
+AvailableChainFGCompose/Proofs/Timing.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ action_eq_early_next                                               │ theorem    │ 11     │
+│ finality_action_time_bounds                                        │ theorem    │ 18     │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S064
+
+AvailableChainFGCompose/Statements/Attempt.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ AttemptTask                                                        │ inductive  │ 11     │
+│ AttemptKey                                                         │ structure  │ 14     │
+│ FGAttemptGateReads                                                 │ structure  │ 22     │
+│ AttemptJoinedAt                                                    │ def        │ 38     │
+│ p0d4_AttemptJoinedAt_def                                           │ theorem    │ 45     │
+│ AttemptEnabledGate                                                 │ def        │ 54     │
+│ p0d4_AttemptEnabledGate_def                                        │ theorem    │ 60     │
+│ AttemptGatePassed                                                  │ def        │ 69     │
+│ p0d4_AttemptGatePassed_def                                         │ theorem    │ 74     │
+│ AttemptCaughtUp                                                    │ def        │ 83     │
+│ p0d4_AttemptCaughtUp_def                                           │ theorem    │ 92     │
+│ AttemptGateResult                                                  │ def        │ 104    │
+│ p0d4_AttemptGateResult_def                                         │ theorem    │ 111    │
+│ AttemptExactService                                                │ def        │ 121    │
+│ p0d4_AttemptExactService_def                                       │ theorem    │ 134    │
+│ ServedFrontier                                                     │ def        │ 150    │
+│ p0d4_ServedFrontier_def                                            │ theorem    │ 154    │
+│ AttemptValid                                                       │ def        │ 162    │
+│ p0d4_AttemptValid_def                                              │ theorem    │ 173    │
+│ attemptBudget                                                      │ def        │ 188    │
+│ p0d4_attemptBudget_def                                             │ theorem    │ 195    │
+│ AttemptEndsBy                                                      │ def        │ 205    │
+│ p0d4_AttemptEndsBy_def                                             │ theorem    │ 213    │
+│ AttemptRepairAfter                                                 │ def        │ 225    │
+│ p0d4_AttemptRepairAfter_def                                        │ theorem    │ 229    │
+│ AttemptRepairService                                               │ def        │ 237    │
+│ p0d4_AttemptRepairService_def                                      │ theorem    │ 246    │
+│ AttemptOpeningService                                              │ def        │ 258    │
+│ p0d4_AttemptOpeningService_def                                     │ theorem    │ 267    │
+│ AttemptNextOpeningService                                          │ def        │ 279    │
+│ p0d4_AttemptNextOpeningService_def                                 │ theorem    │ 288    │
+│ AttemptProposalFloor                                               │ def        │ 300    │
+│ p0d4_AttemptProposalFloor_def                                      │ theorem    │ 305    │
+│ AttemptGateCopy                                                    │ def        │ 313    │
+│ p0d4_AttemptGateCopy_def                                           │ theorem    │ 320    │
+│ AttemptRenewedPromotion                                            │ def        │ 330    │
+│ p0d4_AttemptRenewedPromotion_def                                   │ theorem    │ 352    │
+│ AttemptTerminalPromotion                                           │ def        │ 377    │
+│ p0d4_AttemptTerminalPromotion_def                                  │ theorem    │ 393    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S065
+
+AvailableChainFGCompose/Statements/Bounds.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ P                                                                  │ def        │ 8      │
+│ Γ                                                                  │ def        │ 9      │
+│ kappaF                                                             │ def        │ 11     │
+│ betaF                                                              │ def        │ 13     │
+│ epsF                                                               │ def        │ 15     │
+│ E_gF                                                               │ def        │ 16     │
+│ E_jF                                                               │ def        │ 19     │
+│ B_cF                                                               │ def        │ 22     │
+│ D_cF                                                               │ def        │ 25     │
+│ B_resetF                                                           │ def        │ 27     │
+│ carrierTimeW                                                       │ def        │ 31     │
+│ kernelDeadlineW                                                    │ def        │ 33     │
+│ ActionDeliveryBoundsW                                              │ def        │ 36     │
+│ KernelBeforeNextActionW                                            │ def        │ 41     │
+│ LivenessBoundW                                                     │ structure  │ 44     │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S066
+
+AvailableChainFGCompose/Statements/ChannelLaws.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ RXing                                                              │ def        │ 22     │
+│ RCap                                                               │ def        │ 29     │
+│ RStrat                                                             │ def        │ 35     │
+│ RQCOrigin                                                          │ def        │ 41     │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S067
+
+AvailableChainFGCompose/Statements/Channels.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ HonestProposal                                                     │ def        │ 32     │
+│ certified                                                          │ def        │ 38     │
+│ namedEntry                                                         │ def        │ 42     │
+│ EntryBelow                                                         │ def        │ 46     │
+│ RowSigner                                                          │ def        │ 49     │
+│ HonestRowAt                                                        │ def        │ 52     │
+│ HonestRowBefore                                                    │ def        │ 56     │
+│ RowComplete                                                        │ def        │ 59     │
+│ HeldAt                                                             │ def        │ 62     │
+│ BlockInRunBefore                                                   │ def        │ 65     │
+│ HonestCarrier                                                      │ def        │ 68     │
+│ actionSourceFG                                                     │ def        │ 73     │
+│ actionHead                                                         │ def        │ 76     │
+│ actionTriple                                                       │ def        │ 79     │
+│ proposalStateAt                                                    │ def        │ 82     │
+│ proposalHeadAt                                                     │ def        │ 85     │
+│ headAtLabel                                                        │ def        │ 88     │
+│ rowHeld                                                            │ def        │ 91     │
+│ heldAtProposal                                                     │ def        │ 94     │
+│ onParentChain                                                      │ def        │ 97     │
+│ HeldBefore                                                         │ def        │ 100    │
+│ ValidForParent                                                     │ def        │ 103    │
+│ HeightMatch                                                        │ def        │ 107    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S068
+
+AvailableChainFGCompose/Statements/CoreReads.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ FGCore                                                             │ structure  │ 12     │
+│ FGCoreReads                                                        │ structure  │ 17     │
+│ FGCoreLaws                                                         │ structure  │ 25     │
+│ FGHeadLaws                                                         │ structure  │ 35     │
+│ TFAt                                                               │ def        │ 41     │
+│ TFAt_def                                                           │ theorem    │ 43     │
+│ ChainRowsBefore                                                    │ def        │ 45     │
+│ ChainRowsBefore_def                                                │ theorem    │ 49     │
+│ FGSourceService                                                    │ structure  │ 55     │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S069
+
+AvailableChainFGCompose/Statements/Dependency.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ FGDependencyOutcome                                                │ inductive  │ 8      │
+│ FGDependencyStepKind                                               │ inductive  │ 12     │
+│ FGDependencyReads                                                  │ structure  │ 18     │
+│ dependencyRefused                                                  │ def        │ 36     │
+│ dependencyResolved                                                 │ def        │ 40     │
+│ Effect                                                             │ def        │ 44     │
+│ FGDependencyLeaf                                                   │ structure  │ 50     │
+│ FGDependencyRefusalEvidence                                        │ inductive  │ 58     │
+│ FGDependencyStateLaws                                              │ structure  │ 73     │
+│ FGDependencyStepLaws                                               │ structure  │ 90     │
+│ FGDependencyArrivalLeafLaws                                        │ structure  │ 115    │
+│ FGDependencyEnabled                                                │ inductive  │ 165    │
+│ dependencyClosed                                                   │ def        │ 177    │
+│ FGDependencySteps                                                  │ inductive  │ 182    │
+│ FGDependencyReadKind                                               │ inductive  │ 188    │
+│ FGDependencyReadSite                                               │ structure  │ 193    │
+│ FGDependencyPath                                                   │ inductive  │ 201    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S070
+
+AvailableChainFGCompose/Statements/DependencyTrace.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ dependencyReceiverEpoch                                            │ def        │ 12     │
+│ FGReceiptToken                                                     │ structure  │ 19     │
+│ FGDependencyWireReads                                              │ structure  │ 27     │
+│ FGReceiptOrigin                                                    │ structure  │ 35     │
+│ FGDependencyOperation                                              │ inductive  │ 49     │
+│ dependencyOperationKind                                            │ def        │ 64     │
+│ FGDependencyCommand                                                │ inductive  │ 81     │
+│ FGDependencyWorkRead                                               │ structure  │ 85     │
+│ FGDependencyWorkResult                                             │ structure  │ 90     │
+│ FGDependencyProgram                                                │ inductive  │ 96     │
+│ dependencyExecuteProgram                                           │ def        │ 101    │
+│ FGDependencyDriver                                                 │ structure  │ 109    │
+│ dependencyExecuteOperation                                         │ def        │ 127    │
+│ dependencyExecuteWork                                              │ def        │ 132    │
+│ dependencyReleased                                                 │ def        │ 147    │
+│ dependencyEventEntry                                               │ def        │ 157    │
+│ dependencyEventReads                                               │ def        │ 167    │
+│ dependencyEventStep                                                │ def        │ 179    │
+│ dependencyStateBefore                                              │ def        │ 186    │
+│ dependencyDrainInput                                               │ def        │ 191    │
+│ dependencyDutyState                                                │ def        │ 197    │
+│ dependencyEmits                                                    │ def        │ 203    │
+│ dependencyReadCode                                                 │ def        │ 208    │
+│ dependencyReadRequired                                             │ def        │ 212    │
+│ dependencyReadState                                                │ def        │ 218    │
+│ dependencyActualRead                                               │ def        │ 225    │
+│ FGDependencyTrace                                                  │ structure  │ 232    │
+│ dependencyStrictPrefix                                             │ def        │ 243    │
+│ FGDependencyTraceLaws                                              │ structure  │ 251    │
+│ FGDependencyReadClosureLaws                                        │ structure  │ 516    │
+│ FGDependencyDeliveryLaws                                           │ structure  │ 559    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S071
+
+AvailableChainFGCompose/Statements/EventReads.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ cutPred                                                            │ def        │ 7      │
+│ cutPred_def                                                        │ theorem    │ 8      │
+│ afterTicksIdx                                                      │ def        │ 10     │
+│ afterTicksIdx_def                                                  │ theorem    │ 11     │
+│ timeIdx                                                            │ def        │ 13     │
+│ timeIdx_def                                                        │ theorem    │ 15     │
+│ afterTicks                                                         │ def        │ 18     │
+│ afterTicks_def                                                     │ theorem    │ 20     │
+│ preTick                                                            │ def        │ 23     │
+│ preTick_def                                                        │ theorem    │ 25     │
+│ postClock                                                          │ def        │ 28     │
+│ postClock_def                                                      │ theorem    │ 30     │
+│ postTick                                                           │ def        │ 32     │
+│ postTick_def                                                       │ theorem    │ 34     │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S072
+
+AvailableChainFGCompose/Statements/ExecutionAcceptance.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ FGAcceptanceEffectLaws                                             │ structure  │ 25     │
+│ FGAcceptanceGuards                                                 │ structure  │ 38     │
+│ AcceptsFinalBefore_obs                                             │ def        │ 52     │
+│ AcceptsFinalBefore_obs_def                                         │ theorem    │ 56     │
+│ AcceptBeforeDriverStatement                                        │ def        │ 62     │
+│ AcceptBeforeDriverStatement_def                                    │ theorem    │ 76     │
+│ FinalizePendingDriverStatement                                     │ def        │ 93     │
+│ FinalizePendingDriverStatement_def                                 │ theorem    │ 107    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S073
+
+AvailableChainFGCompose/Statements/ExecutionBridges.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ FGAcceptedBodyOrigin                                               │ structure  │ 21     │
+│ AcceptedBodyOriginDriverStatement                                  │ def        │ 35     │
+│ AcceptedBodyOriginDriverStatement_def                              │ theorem    │ 51     │
+│ FGHolderClientLaws                                                 │ structure  │ 75     │
+│ FGChainRowsAtCut                                                   │ def        │ 99     │
+│ FGChainRowsAtCut_def                                               │ theorem    │ 108    │
+│ ChainRowsOfHeadObsStatement                                        │ def        │ 119    │
+│ ChainRowsOfHeadObsStatement_def                                    │ theorem    │ 127    │
+│ FGSelectedAcceptance                                               │ structure  │ 141    │
+│ SelectedAcceptanceKeepStatement                                    │ def        │ 165    │
+│ SelectedAcceptanceKeepStatement_def                                │ theorem    │ 175    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S074
+
+AvailableChainFGCompose/Statements/ExecutionObs.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ fgEventToken                                                       │ def        │ 18     │
+│ fgEventToken_def                                                   │ theorem    │ 22     │
+│ FGExecutionObs                                                     │ structure  │ 32     │
+│ obsOwnReleased                                                     │ def        │ 49     │
+│ obsOwnReleased_def                                                 │ theorem    │ 53     │
+│ obsEmits                                                           │ def        │ 57     │
+│ obsEmits_def                                                       │ theorem    │ 61     │
+│ obsDutyState                                                       │ def        │ 66     │
+│ obsDutyState_def                                                   │ theorem    │ 69     │
+│ obsStrictState                                                     │ def        │ 73     │
+│ obsStrictState_def                                                 │ theorem    │ 77     │
+│ obsAfterTicksState                                                 │ def        │ 81     │
+│ obsAfterTicksState_def                                             │ theorem    │ 85     │
+│ obsInclusiveState                                                  │ def        │ 89     │
+│ obsInclusiveState_def                                              │ theorem    │ 93     │
+│ FGExecutionObsLaws                                                 │ structure  │ 98     │
+│ FGObservedCoreLaws                                                 │ structure  │ 141    │
+│ FGObservedFinalityLaws                                             │ structure  │ 154    │
+│ ordinaryEntryStep                                                  │ def        │ 164    │
+│ ordinaryEntryStep_def                                              │ theorem    │ 169    │
+│ ordinaryReleaseStep                                                │ def        │ 178    │
+│ ordinaryReleaseStep_def                                            │ theorem    │ 183    │
+│ ordinaryEntry                                                      │ def        │ 192    │
+│ ordinaryEntry_def                                                  │ theorem    │ 196    │
+│ ordinaryCutState                                                   │ def        │ 202    │
+│ ordinaryCutState_def                                               │ theorem    │ 208    │
+│ ordinaryFGExecutionObs                                             │ def        │ 216    │
+│ ordinaryFGExecutionObs_def                                         │ theorem    │ 234    │
+│ driverReleaseStep                                                  │ def        │ 256    │
+│ driverReleaseStep_def                                              │ theorem    │ 263    │
+│ driverOwnWrite                                                     │ def        │ 273    │
+│ driverOwnWrite_def                                                 │ theorem    │ 278    │
+│ driverFGExecutionObs                                               │ def        │ 290    │
+│ driverFGExecutionObs_def                                           │ theorem    │ 307    │
+│ DriverTraceLaws                                                    │ def        │ 328    │
+│ DriverTraceLaws_def                                                │ theorem    │ 342    │
+│ DriverOwnTraceLaws                                                 │ structure  │ 362    │
+│ DriverExecutionObsStatement                                        │ def        │ 376    │
+│ DriverExecutionObsStatement_def                                    │ theorem    │ 391    │
+│ DriverCoreStepLaws                                                 │ structure  │ 412    │
+│ DriverObservedCoreStatement                                        │ def        │ 431    │
+│ DriverObservedCoreStatement_def                                    │ theorem    │ 448    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S075
+
+AvailableChainFGCompose/Statements/ExecutionRecords.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ FGObservedSafetyLaws                                               │ structure  │ 23     │
+│ FGObservedOrderLaws                                                │ structure  │ 49     │
+│ FGObservedPoolLaws                                                 │ structure  │ 59     │
+│ DriverSafetyStepLaws                                               │ structure  │ 70     │
+│ DriverObservedSafetyStatement                                      │ def        │ 88     │
+│ DriverObservedSafetyStatement_def                                  │ theorem    │ 107    │
+│ DriverObservedOrderStatement                                       │ def        │ 130    │
+│ DriverObservedOrderStatement_def                                   │ theorem    │ 150    │
+│ DriverObservedPoolStatement                                        │ def        │ 174    │
+│ DriverObservedPoolStatement_def                                    │ theorem    │ 193    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S076
+
+AvailableChainFGCompose/Statements/Finality.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ KernelPt                                                           │ structure  │ 25     │
+│ KernelPrem_W                                                       │ structure  │ 28     │
+│ OpeningCarrier_W                                                   │ def        │ 45     │
+│ AcceptsFinalBefore                                                 │ def        │ 58     │
+│ KernelConclusion_W                                                 │ def        │ 61     │
+│ W_W                                                                │ def        │ 81     │
+│ FE_W                                                               │ def        │ 85     │
+│ KernelJoinedPrem                                                   │ structure  │ 92     │
+│ ForwardWitness_W                                                   │ def        │ 105    │
+│ FinalityLivenessConcl_W                                            │ def        │ 127    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S077
+
+AvailableChainFGCompose/Statements/FinalityHistory.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ FGHistoryWireReads                                                 │ structure  │ 13     │
+│ historyRowHeight                                                   │ def        │ 21     │
+│ historyFinHeight                                                   │ def        │ 26     │
+│ historyFaulty                                                      │ def        │ 29     │
+│ eventTime                                                          │ def        │ 34     │
+│ RawHistoryOrigin                                                   │ def        │ 41     │
+│ EntryAt                                                            │ def        │ 48     │
+│ JustifiedCross                                                     │ def        │ 51     │
+│ MixedCross                                                         │ def        │ 55     │
+│ NoMixedOnPath                                                      │ def        │ 58     │
+│ TargetCoveredByChild                                               │ def        │ 62     │
+│ TargetJustification                                                │ def        │ 69     │
+│ PreBatchPrem                                                       │ structure  │ 74     │
+│ FreshPrem                                                          │ structure  │ 86     │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S078
+
+AvailableChainFGCompose/Statements/FinalityKernel.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ RowNames                                                           │ def        │ 20     │
+│ SlotChain                                                          │ def        │ 27     │
+│ KernelExactService                                                 │ def        │ 31     │
+│ kernelCarrier                                                      │ def        │ 43     │
+│ BatchPrem                                                          │ structure  │ 51     │
+│ KernelMiddleWitness_W                                              │ structure  │ 82     │
+│ KernelRunFacts                                                     │ structure  │ 178    │
+│ KernelActionSupply_W                                               │ structure  │ 188    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S079
+
+AvailableChainFGCompose/Statements/FinalityReceipts.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ ReceiverService                                                    │ structure  │ 26     │
+│ FreshHeadService                                                   │ structure  │ 50     │
+│ TargetReceiptService                                               │ def        │ 74     │
+│ FinalityActionReceipts                                             │ structure  │ 81     │
+│ ReceiptWitness_W                                                   │ structure  │ 104    │
+│ receiptInsert_W                                                    │ def        │ 112    │
+│ BlockDelivery_W                                                    │ structure  │ 119    │
+│ AcceptGuards_W                                                     │ structure  │ 128    │
+│ AcceptPrem_W                                                       │ structure  │ 151    │
+│ PendingFold_W                                                      │ structure  │ 160    │
+│ FinalizePrem_W                                                     │ structure  │ 167    │
+│ AcceptStep_W                                                       │ def        │ 176    │
+│ FGFinalityDurableLaws                                              │ structure  │ 186    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S080
+
+AvailableChainFGCompose/Statements/FinalityRecords.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ highRecordEntry                                                    │ def        │ 20     │
+│ HighRecordInvariant                                                │ def        │ 28     │
+│ HighRecordFresh                                                    │ def        │ 35     │
+│ HighRecordGuard_W                                                  │ abbrev     │ 40     │
+│ HighRecordNames                                                    │ def        │ 45     │
+│ HighRecordEmission                                                 │ def        │ 52     │
+│ HighRecordOwnOrigin                                                │ def        │ 59     │
+│ HighRecordHead                                                     │ def        │ 67     │
+│ HighRecordShieldRows                                               │ def        │ 75     │
+│ HighRecordSeedLeaves                                               │ def        │ 82     │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S081
+
+AvailableChainFGCompose/Statements/FinalityRows.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ FinRowNames                                                        │ def        │ 20     │
+│ FinalityNames                                                      │ def        │ 25     │
+│ FinalityCoveredByChild_W                                           │ def        │ 29     │
+│ FreshFinalityRows_W                                                │ def        │ 35     │
+│ FinalityBatchPrem_W                                                │ structure  │ 56     │
+│ TerminalCarriagePrem_W                                             │ structure  │ 86     │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S082
+
+AvailableChainFGCompose/Statements/FrontierMaturity.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ PromotionSourceAt                                                  │ structure  │ 24     │
+│ FrontierHG2aResult                                                 │ def        │ 39     │
+│ FrontierHG2aResult_def                                             │ theorem    │ 48     │
+│ PromotionSlotProposal                                              │ def        │ 60     │
+│ PromotionSlotProposal_def                                          │ theorem    │ 64     │
+│ PromotionProposalRead                                              │ def        │ 78     │
+│ PromotionProposalRead_def                                          │ theorem    │ 90     │
+│ PromotionRowOrder                                                  │ def        │ 107    │
+│ PromotionRowOrder_def                                              │ theorem    │ 113    │
+│ PromotionRowSigner                                                 │ def        │ 120    │
+│ PromotionRowSigner_def                                             │ theorem    │ 124    │
+│ PromotionSourceParent                                              │ def        │ 131    │
+│ PromotionSourceParent_def                                          │ theorem    │ 138    │
+│ PromotionPhaseReceipt                                              │ def        │ 148    │
+│ PromotionPhaseReceipt_def                                          │ theorem    │ 154    │
+│ PromotionCapReceipt                                                │ def        │ 163    │
+│ PromotionCapReceipt_def                                            │ theorem    │ 172    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S083
+
+AvailableChainFGCompose/Statements/FrontierSearch.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ FrontierSeedQualification                                          │ def        │ 17     │
+│ FrontierSeedQualification_def                                      │ theorem    │ 33     │
+│ FrontierProposalService                                            │ def        │ 48     │
+│ FrontierLocalService                                               │ def        │ 53     │
+│ StrongServed                                                       │ def        │ 73     │
+│ StrongServed_def                                                   │ theorem    │ 84     │
+│ FrontierRepairStart                                                │ inductive  │ 97     │
+│ FrontierRepairAllowance                                            │ def        │ 107    │
+│ PhaseTransfers                                                     │ def        │ 119    │
+│ PhaseTransfers_def                                                 │ theorem    │ 128    │
+│ PhasePermanence                                                    │ def        │ 140    │
+│ PhasePermanence_def                                                │ theorem    │ 144    │
+│ ProgressCoveredByChild                                             │ def        │ 150    │
+│ ProgressCoveredByChild_def                                         │ theorem    │ 155    │
+│ ProgressFoldAdvance                                                │ def        │ 162    │
+│ ProgressFoldAdvance_def                                            │ theorem    │ 169    │
+│ TerminalPromotionFact                                              │ def        │ 193    │
+│ FrontierSearchStart                                                │ def        │ 238    │
+│ FrontierSearchStart_def                                            │ theorem    │ 249    │
+│ FirstPhaseStopBy                                                   │ def        │ 259    │
+│ FirstPhaseStopBy_def                                               │ theorem    │ 265    │
+│ FirstRiseStopBy                                                    │ def        │ 273    │
+│ FirstRiseStopBy_def                                                │ theorem    │ 279    │
+│ FrontierHG3Result                                                  │ def        │ 286    │
+│ FrontierHG3Result_def                                              │ theorem    │ 292    │
+│ interruptedRepairBudget                                            │ def        │ 298    │
+│ interruptedRepairBudget_gap_def                                    │ theorem    │ 305    │
+│ interruptedRepairBudget_topJ_def                                   │ theorem    │ 309    │
+│ interruptedRepairBudget_contest_def                                │ theorem    │ 313    │
+│ FirstEffectiveBy                                                   │ def        │ 318    │
+│ FirstEffectiveBy_def                                               │ theorem    │ 324    │
+│ FrontierRiseBy                                                     │ def        │ 332    │
+│ FrontierRiseBy_def                                                 │ theorem    │ 338    │
+│ FirstHeightRowBy                                                   │ def        │ 346    │
+│ FirstHeightRowBy_def                                               │ theorem    │ 351    │
+│ InterruptedRepairStatement                                         │ def        │ 359    │
+│ FrontierTailStatement                                              │ def        │ 374    │
+│ frontierSearchRiseBudget                                           │ def        │ 385    │
+│ frontierSearchRowBudget                                            │ def        │ 390    │
+│ FrontierSearchStatement                                            │ def        │ 398    │
+│ FrontierTailStatement_def                                          │ theorem    │ 428    │
+│ FrontierSearchStatement_def                                        │ theorem    │ 440    │
+│ frontierSearchRiseBudget_def                                       │ theorem    │ 471    │
+│ frontierSearchRowBudget_def                                        │ theorem    │ 478    │
+│ frontierSearch_phaseRank                                           │ def        │ 485    │
+│ frontierSearch_phaseRank_gap_def                                   │ theorem    │ 488    │
+│ frontierSearch_phaseRank_topJ_def                                  │ theorem    │ 489    │
+│ frontierSearch_phaseRank_contest_def                               │ theorem    │ 490    │
+│ frontierSearch_remaining                                           │ def        │ 494    │
+│ frontierSearch_remaining_def                                       │ theorem    │ 500    │
+│ FrontierSearchFamilyStatement                                      │ def        │ 516    │
+│ FrontierSearchFamilyStatement_def                                  │ theorem    │ 543    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S084
+
+AvailableChainFGCompose/Statements/HistoricalReads.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ historicalLookup                                                   │ def        │ 10     │
+│ historicalLookup_def                                               │ theorem    │ 16     │
+│ FGHistoricalReads                                                  │ structure  │ 24     │
+│ FGHistoryStep                                                      │ inductive  │ 37     │
+│ FGHistoricalLaws                                                   │ structure  │ 47     │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S085
+
+AvailableChainFGCompose/Statements/HolderClient.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ obsSafetyInputAt                                                   │ def        │ 19     │
+│ obsSafetyInputAt_def                                               │ theorem    │ 27     │
+│ obsOwnReleasedBefore                                               │ def        │ 36     │
+│ obsOwnReleasedBefore_def                                           │ theorem    │ 40     │
+│ obsSafetyNoSlash                                                   │ def        │ 44     │
+│ obsSafetyNoSlash_def                                               │ theorem    │ 50     │
+│ obsHonestRowAt                                                     │ def        │ 57     │
+│ obsHonestRowAt_def                                                 │ theorem    │ 62     │
+│ FGHolderClientTrace                                                │ def        │ 68     │
+│ FGHolderClientTrace_def                                            │ theorem    │ 77     │
+│ FGHolderRowCoverage                                                │ def        │ 88     │
+│ FGHolderRowCoverage_def                                            │ theorem    │ 95     │
+│ SafetyClientTraceDriverStatement                                   │ def        │ 107    │
+│ SafetyClientTraceDriverStatement_def                               │ theorem    │ 112    │
+│ SafetyEmittedNoSlashDriverStatement                                │ def        │ 119    │
+│ SafetyEmittedNoSlashDriverStatement_def                            │ theorem    │ 124    │
+│ RowPermissionCoveredDriverStatement                                │ def        │ 132    │
+│ RowPermissionCoveredDriverStatement_def                            │ theorem    │ 150    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S086
+
+AvailableChainFGCompose/Statements/Observations.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ FGObservationReads                                                 │ structure  │ 17     │
+│ FGObservationLaws                                                  │ structure  │ 24     │
+│ FGRunOrderLaws                                                     │ structure  │ 30     │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S087
+
+AvailableChainFGCompose/Statements/Phase.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ PhaseKind                                                          │ inductive  │ 19     │
+│ TopEvidence                                                        │ def        │ 22     │
+│ ContestEvidence                                                    │ def        │ 26     │
+│ EffectiveEvent                                                     │ def        │ 31     │
+│ AttemptPhaseAt                                                     │ def        │ 38     │
+│ SettledPhaseFrame                                                  │ def        │ 45     │
+│ PhaseInterval                                                      │ def        │ 60     │
+│ RPhase                                                             │ def        │ 68     │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S088
+
+AvailableChainFGCompose/Statements/PhaseReceipts.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ WitnessReceiptScope                                                │ structure  │ 21     │
+│ PhaseWitnessReceiptScope                                           │ structure  │ 28     │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S089
+
+AvailableChainFGCompose/Statements/Promotion.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ RowKind                                                            │ inductive  │ 19     │
+│ NamesEntry                                                         │ def        │ 22     │
+│ OpeningEntry                                                       │ def        │ 28     │
+│ OpeningCovered                                                     │ def        │ 32     │
+│ FixedRows                                                          │ def        │ 39     │
+│ PromotionGap                                                       │ def        │ 48     │
+│ PromotionRowDeadline                                               │ def        │ 56     │
+│ PromotionRowDeadlineStrict                                         │ def        │ 64     │
+│ PromotionAgeGap                                                    │ def        │ 71     │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S090
+
+AvailableChainFGCompose/Statements/ResetCut.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ period                                                             │ def        │ 10     │
+│ resetFirstRound                                                    │ def        │ 13     │
+│ resetCutTime                                                       │ def        │ 27     │
+│ frontierAtIdx                                                      │ def        │ 34     │
+│ resetCutFrontier                                                   │ def        │ 39     │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S091
+
+AvailableChainFGCompose/Statements/ResetHistory.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ FGResetHistory                                                     │ structure  │ 24     │
+│ FGServicePoint                                                     │ structure  │ 32     │
+│ oldRowHeights                                                      │ def        │ 40     │
+│ muOf                                                               │ def        │ 44     │
+│ honestFrontier                                                     │ def        │ 46     │
+│ HeightRow                                                          │ def        │ 48     │
+│ high                                                               │ def        │ 50     │
+│ H0Reset                                                            │ structure  │ 52     │
+│ FGServiceStartLaws                                                 │ structure  │ 72     │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S092
+
+AvailableChainFGCompose/Statements/Restart.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ FGTreeKeepLaws                                                     │ structure  │ 11     │
+│ FGTreeRestoreLaws                                                  │ structure  │ 16     │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S093
+
+AvailableChainFGCompose/Statements/RowPermission.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ FGRowRecordHistory                                                 │ structure  │ 13     │
+│ FGRowPermissionWireLaws                                            │ structure  │ 20     │
+│ FGRowPermissionInputs                                              │ structure  │ 26     │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S094
+
+AvailableChainFGCompose/Statements/SafetyClaims.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ SafetyWholeAccountable                                             │ def        │ 21     │
+│ SafetyWholeAccountable_def                                         │ theorem    │ 40     │
+│ SafetyWholeAgreement                                               │ def        │ 60     │
+│ SafetyWholeAgreement_def                                           │ theorem    │ 69     │
+│ safetySlashesRead                                                  │ def        │ 79     │
+│ safetySlashesRead_def                                              │ theorem    │ 86     │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S095
+
+AvailableChainFGCompose/Statements/SafetyClient.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ FGSafetyClientLaws                                                 │ structure  │ 19     │
+│ FGSafetyUnitLaws                                                   │ structure  │ 38     │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S096
+
+AvailableChainFGCompose/Statements/SafetyReads.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ FGSafetyReads                                                      │ structure  │ 17     │
+│ safetyFinalizedAt                                                  │ def        │ 36     │
+│ safetyFinalizedAt_def                                              │ theorem    │ 39     │
+│ safetyRunBlock                                                     │ def        │ 43     │
+│ safetyRunBlock_def                                                 │ theorem    │ 49     │
+│ safetyRows                                                         │ def        │ 56     │
+│ safetyRows_def                                                     │ theorem    │ 59     │
+│ safetyEmits                                                        │ def        │ 63     │
+│ safetyEmits_def                                                    │ theorem    │ 67     │
+│ safetyHolder                                                       │ def        │ 72     │
+│ safetyHolder_def                                                   │ theorem    │ 75     │
+│ safetyCarriage                                                     │ def        │ 79     │
+│ safetyCarriage_def                                                 │ theorem    │ 84     │
+│ safetyNoSlash                                                      │ def        │ 90     │
+│ safetyNoSlash_def                                                  │ theorem    │ 94     │
+│ safetyBound                                                        │ def        │ 99     │
+│ safetyBound_def                                                    │ theorem    │ 103    │
+│ safetyInputAt                                                      │ def        │ 108    │
+│ safetyInputAt_def                                                  │ theorem    │ 117    │
+│ safetyRecordStep                                                   │ def        │ 126    │
+│ safetyRecordStep_def                                               │ theorem    │ 131    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S097
+
+AvailableChainFGCompose/Statements/SafetyStore.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ FGSafetyWireLaws                                                   │ structure  │ 19     │
+│ FGSafetyStoreLaws                                                  │ structure  │ 28     │
+│ FGSafetyRestartLaws                                                │ structure  │ 45     │
+│ FGSafetyOrderLaws                                                  │ structure  │ 50     │
+│ FGSafetyScopeLaws                                                  │ structure  │ 57     │
+│ safetyScopedRoots                                                  │ def        │ 66     │
+│ safetyScopedRoots_def                                              │ theorem    │ 69     │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S098
+
+AvailableChainFGCompose/Statements/Selection.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ FGSelectionReads                                                   │ structure  │ 17     │
+│ FGSelectionLaws                                                    │ structure  │ 21     │
+│ FGSelectionClientLaws                                              │ structure  │ 35     │
+│ FGActionSelectionLaws                                              │ structure  │ 39     │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S099
+
+AvailableChainFGCompose/Statements/Service.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ FGACServiceReads                                                   │ structure  │ 23     │
+│ InSuffix                                                           │ def        │ 46     │
+│ FGACServiceObservationLaws                                         │ structure  │ 49     │
+│ FGACServiceLaws                                                    │ structure  │ 91     │
+│ FGHistoricalHighTransfer                                           │ def        │ 133    │
+│ FGHistoricalHighChain                                              │ def        │ 143    │
+│ TRowsSelect                                                        │ def        │ 155    │
+│ TRowsSync                                                          │ def        │ 161    │
+│ TRowsReceipt                                                       │ def        │ 169    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S100
+
+AvailableChainFGCompose/Statements/Timing.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ FGTiming                                                           │ structure  │ 8      │
+│ FGTimingLaws                                                       │ structure  │ 19     │
+│ slotStartZ                                                         │ def        │ 30     │
+│ slotAt                                                             │ def        │ 31     │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S101
+
+AvailableChainFGSA/Model/ContestFrame.lean
+
+### S102
+
+AvailableChainFGSA/Model/WindowViews.lean
+
+### S103
+
+AvailableChainFGSA/Proofs/EmissionFields.lean
+
+### S104
+
+AvailableChainFGSA/Proofs/Fields.lean
+
+### S105
+
+AvailableChainFGSA/Proofs/Head.lean
+
+### S106
+
+AvailableChainFGSA/Proofs/Head/Pool.lean
+
+### S107
+
+AvailableChainFGSA/Proofs/Head/Walk.lean
+
+### S108
+
+AvailableChainFGSA/Proofs/HeadResolution.lean
+
+### S109
+
+AvailableChainFGSA/Proofs/Join.lean
+
+### S110
+
+AvailableChainFGSA/Proofs/Port/Carry.lean
+
+### S111
+
+AvailableChainFGSA/Proofs/Port/ContestFrame.lean
+
+### S112
+
+AvailableChainFGSA/Proofs/Port/Resolution.lean
+
+### S113
+
+AvailableChainFGSA/Proofs/Port/Support.lean
+
+### S114
+
+AvailableChainFGSA/Proofs/Port/Tree.lean
+
+### S115
+
+AvailableChainFGSA/Proofs/Port/VoteMerge.lean
+
+### S116
+
+AvailableChainFGSA/Proofs/Restart.lean
+
+### S117
+
+AvailableChainFGSA/Proofs/RowValidity.lean
+
+### S118
+
+AvailableChainFGSA/Proofs/Spec/Clock.lean
+
+### S119
+
+AvailableChainFGSA/Proofs/Spec/Frame.lean
+
+### S120
+
+AvailableChainFGSA/Proofs/WindowCertificates.lean
+
+### S121
+
+AvailableChainFGSA/Proofs/WindowHeightBridge.lean
+
+### S122
+
+AvailableChainFGSA/Proofs/WindowHistory.lean
+
+### S123
+
+AvailableChainFGSA/Proofs/WindowInvariant.lean
+
+### S124
+
+AvailableChainFGSA/Proofs/WindowLiveness.lean
+
+### S125
+
+AvailableChainFGSA/Proofs/WindowOccurrences.lean
+
+### S126
+
+AvailableChainFGSA/Proofs/WindowProvenance.lean
+
+### S127
+
+AvailableChainFGSA/Proofs/WindowReaders.lean
+
+### S128
+
+AvailableChainFGSA/Proofs/WindowRetention.lean
+
+### S129
+
+AvailableChainFGSA/Proofs/WindowSelection.lean
+
+### S130
+
+AvailableChainFGSA/Proofs/WindowSteps.lean
+
+### S131
+
+AvailableChainFGSA/Proofs/WindowStore.lean
+
+### S132
+
+AvailableChainFGSA/Proofs/WindowTerminal.lean
+
+### S133
+
+AvailableChainFGSA/Proofs/WindowValidity.lean
+
+### S134
+
+AvailableChainFGSA/Statements/FinalityView.lean
+
+### S135
+
+AvailableChainFGSA/Statements/WindowCertificate.lean
+
+### S136
+
+AvailableChainFGSAProofs/Proofs/Assembly/Finality.lean
+
+### S137
+
+AvailableChainFGSAProofs/Proofs/Finality/Accept.lean
+
+### S138
+
+AvailableChainFGSAProofs/Proofs/Finality/ActionTime.lean
+
+### S139
+
+AvailableChainFGSAProofs/Proofs/Finality/Batch.lean
+
+### S140
+
+AvailableChainFGSAProofs/Proofs/Finality/Carry.lean
+
+### S141
+
+AvailableChainFGSAProofs/Proofs/Finality/Export.lean
+
+### S142
+
+AvailableChainFGSAProofs/Proofs/Finality/Forward.lean
+
+### S143
+
+AvailableChainFGSAProofs/Proofs/Finality/FrontierBound.lean
+
+### S144
+
+AvailableChainFGSAProofs/Proofs/Finality/History.lean
+
+### S145
+
+AvailableChainFGSAProofs/Proofs/Finality/Joined.lean
+
+### S146
+
+AvailableChainFGSAProofs/Proofs/Finality/Kernel.lean
+
+### S147
+
+AvailableChainFGSAProofs/Proofs/Finality/Local.lean
+
+### S148
+
+AvailableChainFGSAProofs/Proofs/Finality/Middle.lean
+
+### S149
+
+AvailableChainFGSAProofs/Proofs/Finality/MiddleSupport.lean
+
+### S150
+
+AvailableChainFGSAProofs/Proofs/Finality/Receipt.lean
+
+### S151
+
+AvailableChainFGSAProofs/Proofs/Finality/ReceiptSuppliers.lean
+
+### S152
+
+AvailableChainFGSAProofs/Proofs/Finality/RecordInv.lean
+
+### S153
+
+AvailableChainFGSAProofs/Proofs/Finality/RestoreReads.lean
+
+### S154
+
+AvailableChainFGSAProofs/Proofs/Finality/Rows.lean
+
+### S155
+
+AvailableChainFGSAProofs/Proofs/Finality/RowsBatch.lean
+
+### S156
+
+AvailableChainFGSAProofs/Proofs/Finality/RowsPrem.lean
+
+### S157
+
+AvailableChainFGSAProofs/Proofs/Finality/RowsRecords.lean
+
+### S158
+
+AvailableChainFGSAProofs/Proofs/Foundations/FGSafetyBridge.lean
+
+### S159
+
+AvailableChainFGSAProofs/Proofs/Foundations/RowPermission.lean
+
+### S160
+
+AvailableChainFGSAProofs/Proofs/Healing/Attempt.lean
+
+### S161
+
+AvailableChainFGSAProofs/Proofs/Healing/AttemptRows.lean
+
+### S162
+
+AvailableChainFGSAProofs/Proofs/Healing/AttemptSettle.lean
+
+### S163
+
+AvailableChainFGSAProofs/Proofs/Healing/AttemptStop.lean
+
+### S164
+
+AvailableChainFGSAProofs/Proofs/Healing/CommonEntryFacts.lean
+
+### S165
+
+AvailableChainFGSAProofs/Proofs/Healing/CommonEntryHeight.lean
+
+### S166
+
+AvailableChainFGSAProofs/Proofs/Healing/FrontierSearchAge.lean
+
+### S167
+
+AvailableChainFGSAProofs/Proofs/Healing/FrontierSearchBudget.lean
+
+### S168
+
+AvailableChainFGSAProofs/Proofs/Healing/FrontierSearchCompose.lean
+
+### S169
+
+AvailableChainFGSAProofs/Proofs/Healing/FrontierSearchDefs.lean
+
+### S170
+
+AvailableChainFGSAProofs/Proofs/Healing/FrontierSearchFull.lean
+
+### S171
+
+AvailableChainFGSAProofs/Proofs/Healing/FrontierSearchGap.lean
+
+### S172
+
+AvailableChainFGSAProofs/Proofs/Healing/FrontierSearchHG2a.lean
+
+### S173
+
+AvailableChainFGSAProofs/Proofs/Healing/FrontierSearchRepair.lean
+
+### S174
+
+AvailableChainFGSAProofs/Proofs/Healing/FrontierSearchRise.lean
+
+### S175
+
+AvailableChainFGSAProofs/Proofs/Healing/FrontierSearchStop.lean
+
+### S176
+
+AvailableChainFGSAProofs/Proofs/Healing/FrontierSearchTail.lean
+
+### S177
+
+AvailableChainFGSAProofs/Proofs/Healing/FrontierSearchTasks.lean
+
+### S178
+
+AvailableChainFGSAProofs/Proofs/Healing/FrontierSearchTop.lean
+
+### S179
+
+AvailableChainFGSAProofs/Proofs/Healing/FrontierSeedDefs.lean
+
+### S180
+
+AvailableChainFGSAProofs/Proofs/Healing/PhaseFrame.lean
+
+### S181
+
+AvailableChainFGSAProofs/Proofs/Healing/PhaseOrder.lean
+
+### S182
+
+AvailableChainFGSAProofs/Proofs/Healing/PhaseService.lean
+
+### S183
+
+AvailableChainFGSAProofs/Proofs/Healing/PhaseSettle.lean
+
+### S184
+
+AvailableChainFGSAProofs/Proofs/Healing/Promotion.lean
+
+### S185
+
+AvailableChainFGSAProofs/Proofs/Healing/PromotionAge.lean
+
+### S186
+
+AvailableChainFGSAProofs/Proofs/Healing/PromotionArithmetic.lean
+
+### S187
+
+AvailableChainFGSAProofs/Proofs/Healing/PromotionRows.lean
+
+### S188
+
+AvailableChainFGSAProofs/Proofs/Healing/PromotionSource.lean
+
+### S189
+
+AvailableChainFGSAProofs/Proofs/Healing/Reset.lean
+
+### S190
+
+AvailableChainFGSAProofs/Proofs/Healing/ResetCut.lean
+
+### S191
+
+AvailableChainFGSAProofs/Proofs/Shared/FGCompose.lean
+
+### S192
+
+AvailableChainFGSAProofs/Proofs/Shared/FGSafetyStore.lean
+
+## P0/X1 map completion
+
+Only GREEN lines were appended for current required Compose modules absent from older maps.
+TARGETS, EXPECTED-FAIL and their owners were preserved. The following is the exact map list and
+addition count; the changed maps themselves enumerate every module. Current maps not listed needed
+no edit. These changes are committed separately from this document.
+
+```text
+┌──────────────────────────────────────────────────────┬──────────────────────┐
+│ Map under scripts/dev-pkg                            │ GREEN additions      │
+├──────────────────────────────────────────────────────┼──────────────────────┤
+│ P0a.txt                                              │ 112                  │
+│ P0b1.txt                                             │ 115                  │
+│ P0b2C.txt                                            │ 112                  │
+│ P0b2H.txt                                            │ 115                  │
+│ P0b3.txt                                             │ 104                  │
+│ P0c1.txt                                             │ 104                  │
+│ P0c2.txt                                             │ 97                   │
+│ P0c3.txt                                             │ 96                   │
+│ P0c3a.txt                                            │ 68                   │
+│ P0c3b.txt                                            │ 44                   │
+│ P0c4.txt                                             │ 101                  │
+│ P0d1.txt                                             │ 88                   │
+│ P0d2.txt                                             │ 101                  │
+│ P0d3.txt                                             │ 80                   │
+│ P0d4.txt                                             │ 73                   │
+│ P0d5a.txt                                            │ 51                   │
+│ P0d5b.txt                                            │ 45                   │
+│ P0d5c.txt                                            │ 39                   │
+│ P0d5d-a.txt                                          │ 18                   │
+│ P0d6a.txt                                            │ 91                   │
+│ P0d7a1.txt                                           │ 88                   │
+│ P0d7a2.txt                                           │ 82                   │
+│ P0d7a3.txt                                           │ 78                   │
+│ P0d7a4.txt                                           │ 48                   │
+│ P0d7a5.txt                                           │ 40                   │
+│ P0d7b-a.txt                                          │ 18                   │
+│ P0z0.txt                                             │ 115                  │
+│ X1a.txt                                              │ 18                   │
+│ X1b.txt                                              │ 18                   │
+└──────────────────────────────────────────────────────┴──────────────────────┘
+```
+
