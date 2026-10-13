@@ -86,5 +86,25 @@ private theorem node_faults_do_not_count_seats :
     ext i <;> have hi : i = 0 := Subsingleton.elim _ _
   all_goals subst i; simp [historyFaulty, safetyHolder]
 
+/-- Two faults are below q=3, but leave only two honest votes. -/
+private theorem fault_weight_not_honest_quorum :
+    (electorate 4).weightOf (historyFaulty (reads 4) four) < (electorate 4).q ∧
+    ¬ (electorate 4).IsQuorum (FGHonestSeats (reads 4) four) := by
+  have hF : historyFaulty (reads 4) four = {2, 3} := by
+    ext i
+    simp only [historyFaulty, Finset.mem_filter, Finset.mem_univ, true_and]
+    rcases i with ⟨i, hi⟩
+    have hc : i = 0 ∨ i = 1 ∨ i = 2 ∨ i = 3 := by omega
+    rcases hc with rfl | rfl | rfl | rfl <;> decide +revert
+  have hH : FGHonestSeats (reads 4) four = {0, 1} := by
+    ext i
+    simp only [FGHonestSeats_def, Finset.mem_filter, Finset.mem_univ, true_and]
+    rcases i with ⟨i, hi⟩
+    have hc : i = 0 ∨ i = 1 ∨ i = 2 ∨ i = 3 := by omega
+    rcases hc with rfl | rfl | rfl | rfl <;> decide +revert
+  rw [hF, hH]
+  change 2 < 3 ∧ ¬ 3 ≤ 2
+  decide
+
 end AvailableChain.FGCompose.Tests.PopulationCounts
 end
