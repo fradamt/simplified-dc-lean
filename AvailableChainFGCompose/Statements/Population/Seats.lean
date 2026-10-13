@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGCompose.Statements.FinalityHistory
+public import AvailableChainFGCompose.Statements.SafetyReads
 
 @[expose] public section
 

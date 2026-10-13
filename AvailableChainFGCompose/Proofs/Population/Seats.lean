@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGCompose.Statements.Population.Seats
+public import AvailableChainFGCompose.Statements.FinalityHistory
 public import AvailableChainFGCompose.Statements.SafetyClient
 
 public section
