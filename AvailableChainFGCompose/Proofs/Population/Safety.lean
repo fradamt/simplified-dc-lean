@@ -37,5 +37,25 @@ theorem selection_tick_rows_holder (Ef : Electorate (Fin n)) (cfg : FGConfig)
   rw [hd, ← client.inputs_eq] at h
   exact h
 
+/-- A nonholder may release raw objects, but none can witness a decoded slashable row. -/
+theorem safety_nonholder_noSlash (Ef : Electorate (Fin n)) (cfg : FGConfig)
+    (rows : FGHolderClientLaws S Ef cfg E rho (ordinaryFGExecutionObs E rho)
+      (safetyHolder S rho)) (W : FGSafetyWireLaws S) (x : V)
+    (hn : ∀ i, safetyHolder S rho i ≠ x) : safetyNoSlash S E rho x := by
+  intro a _ ha _ u _ hu _
+  obtain ⟨j, t, ht, hem⟩ := ha
+  have hd := (W.decode_encode a).trans hu
+  have hm : u ∈ (V2.D.Engine.ownReleasedAt E rho x j).filterMap S.decodeObject := by
+    apply List.mem_filterMap.mpr
+    refine ⟨S.encode a, ?_, hd⟩
+    rw [V2.D.Engine.ownReleasedAt_def, ht]
+    rw [ite_eq_left (show Option.map V2.Event.node
+      (some (.tick x t : V2.Event V P.Object)) = some x from rfl)]
+    exact List.mem_filter.mpr ⟨hem, W.decoded_visible _ _ hd⟩
+  have hs := rows.nonholder_rows j x t ht hn
+  rw [ordinary_obsOwnReleased] at hs
+  rw [hs] at hm
+  exact (List.not_mem_nil hm).elim
+
 end AvailableChain.FGCompose
 end
