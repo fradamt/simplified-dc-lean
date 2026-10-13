@@ -35,5 +35,17 @@ theorem fg_fault_weight_of_count (Ef : Electorate (Fin n)) (unit : FGSafetyUnitL
   have := unit.n_pos
   omega
 
+/-- Honest FG seats form a unit quorum under the seat fault bound. -/
+theorem high_target_honest_quorum_holder (Ef : Electorate (Fin n))
+    (unit : FGSafetyUnitLaws Ef) (hf : (historyFaulty S rho).card ≤ (n - 1) / 3) :
+    Ef.IsQuorum (FGHonestSeats S rho) := by
+  classical
+  have hsum : (FGHonestSeats S rho).card + (historyFaulty S rho).card = n := by
+    rw [fgHonestSeats_eq_compl, Finset.card_compl_add_card, Fintype.card_fin]
+  change Ef.q ≤ Ef.weightOf (FGHonestSeats S rho)
+  rw [unit.quorum, unit.weight, Gen.Pure.qF_def]
+  have := unit.n_pos
+  omega
+
 end AvailableChain.FGCompose
 end
