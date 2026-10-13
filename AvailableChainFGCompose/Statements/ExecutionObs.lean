@@ -27,7 +27,8 @@ theorem fgEventToken_def (rho : V2.D.Run V P) (x : V) (j : Nat) (wire : P.Object
 local cuts of a receiver: before the event, after the raw entry (clock, raw restore or
 raw delivery entry), the duty state (clock and first drain complete, before own records)
 and the completed event. `accepts x k o` says that the microstep from local cut `k`
-accepts the body of the original receipt token `o`. -/
+accepts the body of the original receipt token `o`. `ownWrites x k` lists the own records
+that the microstep from cut `k` writes, in order (empty for every other microstep). -/
 structure FGExecutionObs (V : Type) (P : V2.ProtocolSpecD In) where
   stateBefore : Nat → V → P.State
   cutLength : V → Nat
@@ -40,6 +41,7 @@ structure FGExecutionObs (V : Type) (P : V2.ProtocolSpecD In) where
   released : V → Nat → List P.Object
   finish : V → P.State → P.State
   accepts : V → Nat → FGReceiptToken V P.Object → Prop
+  ownWrites : V → Nat → List P.Object
 
 variable (O : FGExecutionObs V P)
 
@@ -123,6 +125,15 @@ structure FGExecutionObsLaws (E : Generic.Env V) (rho : V2.D.Run V P)
       o.receiptEpoch = dependencyReceiverEpoch rho x o.eventIndex ∧
       O.start x o.eventIndex ≤ k
   accept_time : ∀ x k o, O.accepts x k o → o.receiptTime ≤ O.cutTime x k
+  tail_state : ∀ j x, rho.events.length ≤ j →
+    O.stateBefore j x = O.stateBefore rho.events.length x
+  own_source : ∀ x k, O.ownWrites x k ≠ [] → k < O.cutLength x ∧
+    ∃ j t, rho.events[j]? = some (.tick x t) ∧ O.duty x j ≤ k ∧ k < O.done x j
+  own_state : ∀ x k, O.ownWrites x k ≠ [] →
+    O.cutState x (k + 1) = (O.ownWrites x k).foldl P.recordOwn (O.cutState x k)
+  own_complete : ∀ j x t, rho.events[j]? = some (.tick x t) →
+    (List.range (O.done x j - O.duty x j)).flatMap (fun i => O.ownWrites x (O.duty x j + i)) =
+      obsOwnReleased O x j
 
 variable {n : Nat} {Base Proposal Wire : Type}
 
@@ -217,6 +228,8 @@ def ordinaryFGExecutionObs (E : Generic.Env V) (rho : V2.D.Run V P) :
   finish _ st := st
   accepts x k o := ∃ j wire t, rho.events[j]? = some (.deliver x wire t) ∧ k = 3 * j ∧
     o = fgEventToken rho x j wire t
+  ownWrites x k := if k % 3 = 1 then (((rho.events[k / 3]?).map (ordinaryReleaseStep E rho x
+    (V2.D.Run.stateBefore E rho (k / 3) x))).getD []).filter P.objSelfVisible else []
 
 theorem ordinaryFGExecutionObs_def (E : Generic.Env V) (rho : V2.D.Run V P) :
     ordinaryFGExecutionObs E rho =
@@ -232,7 +245,10 @@ theorem ordinaryFGExecutionObs_def (E : Generic.Env V) (rho : V2.D.Run V P) :
           (ordinaryReleaseStep E rho x (V2.D.Run.stateBefore E rho j x))).getD []
         finish := fun _ st => st
         accepts := fun x k o => ∃ j wire t, rho.events[j]? = some (.deliver x wire t) ∧
-          k = 3 * j ∧ o = fgEventToken rho x j wire t } := rfl
+          k = 3 * j ∧ o = fgEventToken rho x j wire t
+        ownWrites := fun x k => if k % 3 = 1 then (((rho.events[k / 3]?).map
+          (ordinaryReleaseStep E rho x (V2.D.Run.stateBefore E rho (k / 3) x))).getD []).filter
+            P.objSelfVisible else [] } := rfl
 
 /-! ### Dependency-driver fold instance (statement only; E1F proves it) -/
 
@@ -253,6 +269,20 @@ theorem driverReleaseStep_def {Body : Type} (E : Generic.Env V) (rho : V2.D.Run 
         (fun _ _ _ => []) e := by
   cases e <;> rfl
 
+/-- The own record written by one executed driver operation. -/
+def driverOwnWrite {Body Origin : Type} :
+    FGDependencyOperation Body Origin P.Object → List P.Object
+  | .ownRecord wire => [wire]
+  | _ => []
+
+theorem driverOwnWrite_def {Body Origin : Type}
+    (op : FGDependencyOperation Body Origin P.Object) :
+    driverOwnWrite op = FGDependencyOperation.rec (motive := fun _ => List P.Object)
+      (fun _ _ => []) (fun _ _ _ => []) (fun _ _ => []) (fun _ _ => []) (fun _ _ => [])
+      (fun _ => []) (fun _ => []) (fun wire => [wire]) (fun _ => []) (fun _ => [])
+      (fun _ => []) [] op := by
+  cases op <;> rfl
+
 /-- The canonical driver observation of the c3 dependency fold. `T x` and `Op x` are the
 finite trace and the executed operations of receiver `x`. Releases are read at the canonical
 drained duty state, own records are followed by the second drain, and a delivery body is
@@ -272,6 +302,7 @@ def driverFGExecutionObs {Body : Type} (E : Generic.Env V) (rho : V2.D.Run V P)
   released x j := ((rho.events[j]?).map (driverReleaseStep E rho F x j)).getD []
   finish _ st := F.drain st
   accepts x k o := k < (T x).length ∧ ∃ b, Op x k = .leaf b o .accepted
+  ownWrites x k := if k < (T x).length then driverOwnWrite (Op x k) else []
 
 theorem driverFGExecutionObs_def {Body : Type} (E : Generic.Env V) (rho : V2.D.Run V P)
     (F : FGDependencyDriver V Body P) (T : V → FGDependencyTrace P.State)
@@ -287,9 +318,41 @@ theorem driverFGExecutionObs_def {Body : Type} (E : Generic.Env V) (rho : V2.D.R
         done := fun x j => (T x).done j
         released := fun x j => ((rho.events[j]?).map (driverReleaseStep E rho F x j)).getD []
         finish := fun _ st => F.drain st
-        accepts := fun x k o => k < (T x).length ∧ ∃ b, Op x k = .leaf b o .accepted } := rfl
+        accepts := fun x k o => k < (T x).length ∧ ∃ b, Op x k = .leaf b o .accepted
+        ownWrites := fun x k => if k < (T x).length then driverOwnWrite (Op x k) else [] } :=
+  rfl
 
 variable {LeafIn Body Row Latest : Type} {Leaf : V2.ProtocolSpecD LeafIn}
+
+/-- The c3 trace laws of every receiver of the driver run. -/
+def DriverTraceLaws (E : Generic.Env V) (rho : V2.D.Run V P)
+    (H : FGHistoricalReads P.State Body) (W : FGDependencyWireReads P Body Row)
+    (D : FGDependencyReads P.State Body (FGReceiptToken V P.Object) Latest)
+    (L : FGDependencyLeaf P.State Body (FGReceiptToken V P.Object))
+    (Step : FGDependencyStepKind → V → P.State → P.State → Prop)
+    (F : FGDependencyDriver V Body P) (T : V → FGDependencyTrace P.State)
+    (Op : V → Nat → FGDependencyOperation Body (FGReceiptToken V P.Object) P.Object)
+    (Arrival : P.State → Body → FGReceiptToken V P.Object → P.State → Prop)
+    (Notify : P.State → Body → P.State → Prop)
+    (leafState : P.State → Leaf.State) (leafWire : P.Object → Leaf.Object)
+    (ActualRead : V → Nat → P.State → Prop) : Prop :=
+  ∀ x, FGDependencyTraceLaws E rho x H W D L Step (T x) F (Op x) Arrival Notify
+    leafState leafWire ActualRead
+
+theorem DriverTraceLaws_def (E : Generic.Env V) (rho : V2.D.Run V P)
+    (H : FGHistoricalReads P.State Body) (W : FGDependencyWireReads P Body Row)
+    (D : FGDependencyReads P.State Body (FGReceiptToken V P.Object) Latest)
+    (L : FGDependencyLeaf P.State Body (FGReceiptToken V P.Object))
+    (Step : FGDependencyStepKind → V → P.State → P.State → Prop)
+    (F : FGDependencyDriver V Body P) (T : V → FGDependencyTrace P.State)
+    (Op : V → Nat → FGDependencyOperation Body (FGReceiptToken V P.Object) P.Object)
+    (Arrival : P.State → Body → FGReceiptToken V P.Object → P.State → Prop)
+    (Notify : P.State → Body → P.State → Prop)
+    (leafState : P.State → Leaf.State) (leafWire : P.Object → Leaf.Object)
+    (ActualRead : V → Nat → P.State → Prop) :
+    DriverTraceLaws E rho H W D L Step F T Op Arrival Notify leafState leafWire ActualRead =
+      ∀ x, FGDependencyTraceLaws E rho x H W D L Step (T x) F (Op x) Arrival Notify
+        leafState leafWire ActualRead := rfl
 
 /-- E1F obligation (PC line): the driver trace laws of every receiver give the shared
 execution laws of the canonical driver observation. Stated here; not proved in X1a. -/
@@ -304,8 +367,7 @@ def DriverExecutionObsStatement (E : Generic.Env V) (rho : V2.D.Run V P)
     (Notify : P.State → Body → P.State → Prop)
     (leafState : P.State → Leaf.State) (leafWire : P.Object → Leaf.Object)
     (ActualRead : V → Nat → P.State → Prop) : Prop :=
-  (∀ x, FGDependencyTraceLaws E rho x H W D L Step (T x) F (Op x) Arrival Notify
-    leafState leafWire ActualRead) →
+  DriverTraceLaws E rho H W D L Step F T Op Arrival Notify leafState leafWire ActualRead →
   FGExecutionObsLaws E rho (driverFGExecutionObs E rho F T Op)
 
 theorem DriverExecutionObsStatement_def (E : Generic.Env V) (rho : V2.D.Run V P)
@@ -321,8 +383,8 @@ theorem DriverExecutionObsStatement_def (E : Generic.Env V) (rho : V2.D.Run V P)
     (ActualRead : V → Nat → P.State → Prop) :
     DriverExecutionObsStatement E rho H W D L Step F T Op Arrival Notify leafState leafWire
         ActualRead =
-      ((∀ x, FGDependencyTraceLaws E rho x H W D L Step (T x) F (Op x) Arrival Notify
-        leafState leafWire ActualRead) →
+      (DriverTraceLaws E rho H W D L Step F T Op Arrival Notify leafState leafWire
+        ActualRead →
       FGExecutionObsLaws E rho (driverFGExecutionObs E rho F T Op)) := rfl
 
 /-- Local step laws that the driver core obligation consumes. `Good` is a reachable
@@ -359,8 +421,7 @@ def DriverObservedCoreStatement (R : FGCoreReads P n Base Proposal Wire)
     (Notify : P.State → Body → P.State → Prop)
     (leafState : P.State → Leaf.State) (leafWire : P.Object → Leaf.Object)
     (ActualRead : V → Nat → P.State → Prop) (Good : P.State → Prop) : Prop :=
-  (∀ x, FGDependencyTraceLaws E rho x H W D L Step (T x) F (Op x) Arrival Notify
-    leafState leafWire ActualRead) →
+  DriverTraceLaws E rho H W D L Step F T Op Arrival Notify leafState leafWire ActualRead →
   DriverCoreStepLaws R H D Step Good →
   FGObservedCoreLaws R rho (driverFGExecutionObs E rho F T Op) ∧
     FGObservedFinalityLaws R rho (driverFGExecutionObs E rho F T Op)
@@ -379,8 +440,8 @@ theorem DriverObservedCoreStatement_def (R : FGCoreReads P n Base Proposal Wire)
     (ActualRead : V → Nat → P.State → Prop) (Good : P.State → Prop) :
     DriverObservedCoreStatement R E rho H W D L Step F T Op Arrival Notify leafState
         leafWire ActualRead Good =
-      ((∀ x, FGDependencyTraceLaws E rho x H W D L Step (T x) F (Op x) Arrival Notify
-        leafState leafWire ActualRead) →
+      (DriverTraceLaws E rho H W D L Step F T Op Arrival Notify leafState leafWire
+        ActualRead →
       DriverCoreStepLaws R H D Step Good →
       FGObservedCoreLaws R rho (driverFGExecutionObs E rho F T Op) ∧
         FGObservedFinalityLaws R rho (driverFGExecutionObs E rho F T Op)) := rfl
