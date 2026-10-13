@@ -5,8 +5,6 @@ public import AvailableChainFGSAProofs.Proofs.Healing.Promotion
 -- shake: keep (promotion helper tests)
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionCarrier
 -- shake: keep (actual proposal tests)
-public import AvailableChainFGSAProofs.Proofs.Healing.PromotionRows
--- shake: keep (same-row validity tests)
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionRenewed
 -- shake: keep (expanded frozen promotion test)
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionAge

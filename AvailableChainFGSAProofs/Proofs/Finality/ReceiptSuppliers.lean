@@ -261,11 +261,9 @@ theorem finality_fresh_head_service {G ΔF : Time}
   · change (fgsa p c).excludes (rho.stateBeforeTime E (max a E.t_GST + p.Δ) x) o = false
     simpa only [max_eq_left hGST.le, hadEq] using hNX
 
-/-- A held target has an original proposal acceptance, including before a restart.
-The finality guard is at the service deadline. -/
-theorem finality_target_service_of_held {G ΔF : Time}
+/-- The original proposal acceptance behind a held target, before it is wrapped. -/
+private theorem d7a5s_target_core {G ΔF : Time}
     (h : Recovery₂ p c E rho G ΔF)
-    (hGenesis : ∀ D x, TargetReceiptService E rho .genesis D x)
     {i : Nat} {v x : V} {a : Time}
     {K : Block} (hv : v ∈ rho.honest) (hx : x ∈ rho.honest)
     (hi : rho.events[i]? = some (.tick v a))
@@ -273,9 +271,12 @@ theorem finality_target_service_of_held {G ΔF : Time}
     (ha : 0 ≤ a) (hpub : V2.PublicTime E a) (hGST : E.t_GST < a)
     (hhor : a + p.Δ ≤ rho.horizon)
     (hF : Block.Preceq (eraseFG (rho.stateBeforeTime E (a + p.Δ) x).st.fg.F) K) :
-    TargetReceiptService E rho K (a + p.Δ) x := by
+    K = .genesis ∨ ∃ s N send, NamedProposal.erase N = K ∧
+      Nonempty (ReceiverService E rho (ofWire p ⟨.proposer s, .proposal N⟩) send (a + p.Δ)
+        x) := by
   by_cases hg : K = .genesis
-  · exact hg ▸ hGenesis (a + p.Δ) x
+  · exact Or.inl hg
+  right
   obtain ⟨j, hj, send, o, ho, hacc⟩ := fgsa_block_accepted_origin E rho i v K hg hK
   have hsa : send ≤ a := by
     obtain ⟨parent, he, _⟩ := hacc.1
@@ -295,9 +296,25 @@ theorem finality_target_service_of_held {G ΔF : Time}
       rw [toWire_ofWire]
       exact decode_eq_block.mp hd
     subst o
-    rw [← ho]
-    exact fgsa_target_service_of_proposal E rho s N send (a + p.Δ) x
-      (finality_proposal_receiver_service h hx hv hacc hsa ha hpub hGST hhor (ho ▸ hF))
+    exact ⟨s, N, send, ho,
+      finality_proposal_receiver_service h hx hv hacc hsa ha hpub hGST hhor (ho ▸ hF)⟩
+
+/-- A held target has an original proposal acceptance, including before a restart.
+The finality guard is at the service deadline. -/
+theorem finality_target_service_of_held {G ΔF : Time}
+    (h : Recovery₂ p c E rho G ΔF)
+    (hGenesis : ∀ D x, TargetReceiptService E rho .genesis D x)
+    {i : Nat} {v x : V} {a : Time}
+    {K : Block} (hv : v ∈ rho.honest) (hx : x ∈ rho.honest)
+    (hi : rho.events[i]? = some (.tick v a))
+    (hK : K ∈ (rho.stateBefore E i v).st.base.blocks)
+    (ha : 0 ≤ a) (hpub : V2.PublicTime E a) (hGST : E.t_GST < a)
+    (hhor : a + p.Δ ≤ rho.horizon)
+    (hF : Block.Preceq (eraseFG (rho.stateBeforeTime E (a + p.Δ) x).st.fg.F) K) :
+    TargetReceiptService E rho K (a + p.Δ) x := by
+  rcases d7a5s_target_core h hv hx hi hK ha hpub hGST hhor hF with hg | ⟨s, N, send, he, hs⟩
+  · exact hg ▸ hGenesis (a + p.Δ) x
+  · exact he ▸ fgsa_target_service_of_proposal E rho s N send (a + p.Δ) x hs
 
 
 omit [Fintype V] in
@@ -343,14 +360,24 @@ theorem finality_F_before_postClock (hS : V2.D.ScheduleWellFormed E rho)
   rw [Gen.V2.Duty.stateBefore_idxBefore E rho t hS] at hm
   exact hm
 
-/-- Recovery proves action receipts in the exact receiver and finality scope.
-Only the opaque Shared genesis constructor is left as an API input. -/
-theorem finality_action_receipts {G ΔF : Time}
-    (h : Recovery₂ p c E rho G ΔF)
-    (hGenesis : ∀ D x, TargetReceiptService E rho .genesis D x) :
-    FinalityActionReceipts p c E rho := by
-  constructor
-  intro r x hx hact hcut hhor nd hnd q K hv hhead hFK
+/-- The action-receipt derivation, for any wrapping of the held target's service. -/
+private theorem d7a5s_action_core {G ΔF : Time}
+    (h : Recovery₂ p c E rho G ΔF) {TRS : Block → Time → V → Prop}
+    (target : ∀ {i : Nat} {v x : V} {a : Time} {K : Block}, v ∈ rho.honest →
+      x ∈ rho.honest → rho.events[i]? = some (.tick v a) →
+      K ∈ (rho.stateBefore E i v).st.base.blocks → 0 ≤ a → V2.PublicTime E a →
+      E.t_GST < a → a + p.Δ ≤ rho.horizon →
+      Block.Preceq (eraseFG (rho.stateBeforeTime E (a + p.Δ) x).st.fg.F) K → TRS K (a + p.Δ) x)
+    (r : Nat) (x : V) (hx : x ∈ rho.honest) (_hact : E.t_GST < p.actionTime r)
+    (hcut : E.t_GST ≤ slotStartZ p (((r * p.R + 1 : Nat) : Int) - 1))
+    (hhor : p.actionTime r ≤ rho.horizon) (nd : Node p)
+    (hnd : postClock E rho x (p.actionTime r) = some nd) (q : Fin p.n) (K : Block)
+    (hv : rho.seatOf (.base (.head (r * p.R + 1))) q ∈ rho.honest)
+    (hhead : headAtLabel p c E rho (rho.seatOf (.base (.head (r * p.R + 1))) q)
+      (r * p.R + 1) = some K)
+    (hFK : Block.Preceq (eraseFG nd.st.fg.F) K) :
+    Nonempty (FreshHeadService E rho (r * p.R + 1) q K.root (p.actionTime r) x) ∧
+      TRS K (p.actionTime r) x := by
   let s := r * p.R + 1
   let v := rho.seatOf (.base (.head s)) q
   have hearly : SA.earlyTime p.toParams s = p.actionTime r := by
@@ -406,10 +433,22 @@ theorem finality_action_receipts {G ΔF : Time}
       4 * p.Δ * ((r * p.R : Nat) : Int) + 6 * p.Δ
     push_cast
     ring
-  have htarget := finality_target_service_of_held h hGenesis hv hx hi hKheld ha hpub
+  have htarget := target hv hx hi hKheld ha hpub
     hGST (by simpa only [he] using hhor) (by simpa only [he] using hF)
   have hheadService := finality_fresh_head_service h hx hv hi hem hcut hearly.le hhor
   exact ⟨hheadService, by simpa only [he] using htarget⟩
+
+/-- Recovery proves action receipts in the exact receiver and finality scope.
+Only the opaque Shared genesis constructor is left as an API input. -/
+theorem finality_action_receipts {G ΔF : Time}
+    (h : Recovery₂ p c E rho G ΔF)
+    (hGenesis : ∀ D x, TargetReceiptService E rho .genesis D x) :
+    FinalityActionReceipts p c E rho := by
+  constructor
+  intro r x hx hact hcut hhor nd hnd q K hv hhead hFK
+  exact d7a5s_action_core h (fun hv hx hi hK ha hpub hGST hhor hF =>
+    finality_target_service_of_held h hGenesis hv hx hi hK ha hpub hGST hhor hF)
+    r x hx hact hcut hhor nd hnd q K hv hhead hFK
 
 /-- The Tail target is relayed as a durable proposal from the actual action read. -/
 theorem finality_tail_head_receipts {G ΔF : Time} {pt : TailKernelPt p}
@@ -517,6 +556,108 @@ theorem finality_vote_receipts {G ΔF : Time}
       exact le_rfl
     exact (List.mem_filter.mp ((finality_full_vote_at_scoped_read h hx hcut
       hfreeze hhor hnd) y a hy hem hl).1).1
+
+section
+variable (p : Params) {In V : Type} [DecidableEq V] [Fintype V]
+    (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+
+private def d7a5s_timing : FGCompose.FGTiming where
+  delta := p.Δ
+  roundSlots := p.R
+  proposal := SA.proposalTime p.toParams
+  vote := SA.voteTime p.toParams
+  early := SA.earlyTime p.toParams
+  freeze := SA.freezeTime p.toParams
+  release := SA.releaseTime p.toParams
+  gate := SA.gateTime p.toParams
+  action := p.actionTime
+
+/-- The actual FG-SA service reads (the receipt service reads only the HEAD label). -/
+private def d7a5s_ac (w : HealingWitness) : FGCompose.FGACServiceReads V where
+  honest x := x ∈ rho.honest
+  proposal := HonestProposal E rho (fgsaInterface p c)
+  proposalTime := SA.proposalTime p.toParams
+  voteTime := SA.voteTime p.toParams
+  gateTime := SA.gateTime p.toParams
+  gateLabel q := q * p.R
+  actionHeadLabel q := q * p.R + 1
+  actionTime := p.actionTime
+  proposalScope s _ := w.sStar + 2 ≤ s
+  sourceScope x r B := ∃ C, actionSourceFG p c E rho x r = some (some C) ∧
+    eraseFG C = B ∧ high p w C
+  headScope x s := joinedAt p E rho x s (SA.voteTime p.toParams s)
+  gateScope x s := confirmedReaderAtIdx p c E rho x
+    (afterTicksIdx rho (SA.gateTime p.toParams s)) (SA.gateTime p.toParams s)
+  actionScope x q := ∃ nd, postClock E rho x (p.actionTime q) = some nd
+  headAtLabel := headAtLabel p c E rho
+  actionHead x q := (postClock E rho x (p.actionTime q)).map
+    (fun nd => (fgBlockOf nd.st (fgHead p nd.st)).map eraseFG)
+  gate := gateResult p c E rho
+  source := actionSource p c E rho
+  parent := proposalHeadAt p c E rho
+  gateFloor x s := (gateIn p c E rho x s).map (fun st => eraseFG st.fg.F)
+  frame x q B := ∀ nd, postClock E rho x (p.actionTime q) = some nd →
+    ∃ D, eraseFG D = B ∧ D ∈ nd.st.fg.TF ∧
+      FGBlock.Preceq (FGSA.controls p nd.st).F D ∧
+      FGBlock.Preceq (FGSA.controls p nd.st).Z D ∧
+      (FGSA.controls p nd.st).lo ≤ (heightView p D).h
+  below := Block.Preceq
+
+omit [Fintype V] in
+/-- A receiver service is the generic receiver service, field by field. -/
+private theorem d7a5s_receiver {o : Obj p} {send freeze : Time} {x : V}
+    (h : ReceiverService E rho o send freeze x) :
+    Nonempty (FGCompose.ReceiverService (fun o => ¬ isRowObject o) (fgsaTimely p) E rho o
+      send freeze x) :=
+  ⟨⟨h.dl, h.cut, h.anchor, h.within, h.ready, h.send_le, h.nonneg, h.later, h.cut_le,
+    h.horizon, h.freeze_le, h.history, h.epoch, h.handlers, h.not_excluded⟩⟩
+
+/-- Receipt ruling (option A): the generic target service is produced from the original
+proposal acceptance, before the FG-SA wrapper hides it. -/
+private theorem d7a5s_target_generic {G ΔF : Time}
+    (h : Recovery₂ p c E rho G ΔF) {i : Nat} {v x : V} {a : Time}
+    {K : Block} (hv : v ∈ rho.honest) (hx : x ∈ rho.honest)
+    (hi : rho.events[i]? = some (.tick v a))
+    (hK : K ∈ (rho.stateBefore E i v).st.base.blocks)
+    (ha : 0 ≤ a) (hpub : V2.PublicTime E a) (hGST : E.t_GST < a)
+    (hhor : a + p.Δ ≤ rho.horizon)
+    (hF : Block.Preceq (eraseFG (rho.stateBeforeTime E (a + p.Δ) x).st.fg.F) K) :
+    FGCompose.TargetReceiptService (fun s N => ofWire p ⟨.proposer s, .proposal N⟩)
+      NamedProposal.erase (fun o => ¬ isRowObject o) (fgsaTimely p) E rho K (a + p.Δ) x := by
+  rcases d7a5s_target_core h hv hx hi hK ha hpub hGST hhor hF with
+    hg | ⟨s, N, send, he, ⟨hs⟩⟩
+  · exact Or.inl hg
+  · exact Or.inr ⟨s, N, send, he, d7a5s_receiver p c E rho hs⟩
+
+private theorem d7a5s_core_fg (nd : (fgsa p c).State) :
+    ((fgsaCoreReads p c).core nd).fg = nd.st.fg := by
+  rw [fgsaCoreReads_def]
+
+private theorem d7a5s_erase : (fgsaCoreReads p c).erase = eraseFG := by
+  rw [fgsaCoreReads_def]
+
+/-- Receipt ruling (option A): the generic action receipts, from the same original
+witnesses as `finality_action_receipts`. -/
+private theorem d7a5s_action_receipts {G ΔF : Time}
+    (h : Recovery₂ p c E rho G ΔF) (w : HealingWitness) :
+    FGCompose.FinalityActionReceipts (d7a5s_timing p) (fgsaCoreReads p c)
+      (d7a5s_ac p c E rho w) E rho (fun s a => rho.seatOf (.base (.head s)) a)
+      (fun o => ¬ isRowObject o) (fgsaTimely p)
+      (fun s q b => ofHead p ⟨.seat (.head s) q, b⟩)
+      (fun s N => ofWire p ⟨.proposer s, .proposal N⟩) NamedProposal.erase := by
+  constructor
+  intro r x hx hact hcut hhor nd hnd q K hv hhead hFK
+  rw [d7a5s_core_fg, d7a5s_erase] at hFK
+  obtain ⟨⟨hs⟩, ht⟩ := d7a5s_action_core h (TRS := fun K D x =>
+    FGCompose.TargetReceiptService (fun s N => ofWire p ⟨.proposer s, .proposal N⟩)
+      NamedProposal.erase (fun o => ¬ isRowObject o) (fgsaTimely p) E rho K D x)
+    (fun hv hx hi hK ha hpub hGST hhor hF =>
+      d7a5s_target_generic p c E rho h hv hx hi hK ha hpub hGST hhor hF)
+    r x hx hact hcut hhor nd hnd q K hv hhead hFK
+  exact ⟨⟨⟨hs.dl, hs.cut, hs.within, hs.ready, hs.later, hs.cut_le, hs.horizon, hs.freeze_le,
+    hs.epoch, hs.handlers, hs.not_excluded⟩⟩, ht⟩
+
+end
 
 end AvailableChain.FGSA.Run
 end

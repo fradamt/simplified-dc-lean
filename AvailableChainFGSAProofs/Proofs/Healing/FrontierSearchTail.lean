@@ -1,7 +1,7 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchStop
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchDefs
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierService
-public import AvailableChainFGSAProofs.Proofs.Healing.CommonEntryFacts
+public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchTail
 
 public section
 
@@ -14,7 +14,136 @@ INLINE rowCoverage: rowPermission_covered (Foundations/RowPermission). -/
 namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
 
+private def p0d5cTailCore (p : Params) {In : Type} (c : AppCodec In) :
+    FGCompose.FGCoreReads (fgsa p c) p.n (GridCO.State p.n .root) (Wire p.n) (RowWire p.n) :=
+  { core := fun nd => ⟨nd.st.base, nd.st.fg, nd.st.proposals, nd.st.rowPool⟩
+    erase := eraseFG
+    source := fun nd => FGSA.fgSource p nd.st
+    headVote := fun nd s => FGSA.headVote p nd.st s
+    finalityHead := fun nd => FGSA.fgBlockOf nd.st (FGSA.fgHead p nd.st)
+    proposalFG := fun nd o => match (toWire p o).decode with
+      | some (.block _ N) => (parentFG nd.st N.erase).map (fun P => fgBlock P N.erase N.rows)
+      | some (.vote _ _ _) => none
+      | some (.row _ _) => none
+      | none => none }
+
+private theorem p0d5cTailCoreLaws (p : Params) {In : Type} (c : AppCodec In) :
+    FGCompose.FGCoreLaws (p0d5cTailCore p c) := by
+  have h : p0d5cTailCore p c = fgsaCoreReads p c := (fgsaCoreReads_def p c).symm
+  rw [h]
+  exact fgsaCoreLaws p c
+
+private def p0d5cTailTiming (p : Params) : FGCompose.FGTiming where
+  delta := p.Δ
+  roundSlots := p.R
+  proposal := SA.proposalTime p.toParams
+  vote := SA.voteTime p.toParams
+  early := SA.earlyTime p.toParams
+  freeze := SA.freezeTime p.toParams
+  release := SA.releaseTime p.toParams
+  gate := SA.gateTime p.toParams
+  action := p.actionTime
+
+private theorem p0d5cTailTimingLaws (p : Params) :
+    FGCompose.FGTimingLaws (p0d5cTailTiming p) where
+  delta_pos := p.deltaPos
+  rounds := p.RLarge
+  proposal_eq s := by
+    change 4 * p.Δ * (s : Time) = 4 * (s : Time) * p.Δ
+    ring
+  vote_eq _ := rfl
+  early_eq _ := rfl
+  freeze_eq _ := rfl
+  release_eq _ := rfl
+  gate_eq _ := rfl
+  action_eq _ := rfl
+
+private def p0d5cTailObs (p : Params) {In : Type} (c : AppCodec In) :
+    FGCompose.FGObservationReads (p0d5cTailCore p c) where
+  height := heightView p
+  finality := finalityView p
+  controls nd := FGSA.controls p nd.st
+  viable nd X := domainR p nd.st X
+
+private theorem p0d5cTailObsLaws (p : Params) {In : Type} (c : AppCodec In) :
+    FGCompose.FGObservationLaws (p0d5cTailCore p c) (p0d5cTailObs p c) where
+  controls_eq _ := rfl
+  viable_eq _ _ := rfl
+
+private def p0d5cTailSafety (p : Params) {In : Type} (c : AppCodec In) :
+    FGCompose.FGSafetyReads (fgsa p c) p.n (RowWire p.n) where
+  proposalErase := safetyProposalErase p
+  proposalRows := safetyProposalRows p
+  encode := ofRow p
+  decode := RowWire.toRow?
+  decodeObject := decodeRowObject p
+  fgLabel := .base .fg
+  fgSeats := Equiv.refl _
+  record := Node.record
+  inputs := fun nd => fgInputs p nd.st
+  enabled := fun t => decide (p.actionTime ((p.slotOf t - 1) / p.R) = t)
+  finalizedOut := finalizedOut
+
+
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
+
+private def p0d5cTailKind : PhaseKind → FGCompose.PhaseKind
+  | .gap => .gap
+  | .topJ => .topJ
+  | .contest => .contest
+
+private abbrev p0d5cTailPair (a : RowWire p.n) : NamedHeightPair := a.payload.height_pair
+
+private theorem p0d5cTailPhase_iff (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool} :
+    FGCompose.PhaseInterval (p0d5cTailCore p c) E rho (p0d5cTailObs p c) u v m J contested ↔
+      PhaseInterval p c E rho u v m J contested := by
+  cases J <;> exact Iff.rfl
+
+omit [DecidableEq V] in
+private theorem p0d5cTailSeed_iff (E : Generic.Env V) {u : Time} {q : Slot} :
+    FGCompose.FrontierSeedQualification (p0d5cTailTiming p) p.k E.t_GST u q ↔
+      FrontierSeedQualification p E u q :=
+  (frontierSeedQualification_iff p E u q).symm
+
+private theorem p0d5cTailStart (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    {i m : Nat} {ev : V2.Event V (Obj p)} {kind : PhaseKind}
+    (h : FrontierSearchStart p c E rho i ev m kind) :
+    FGCompose.FrontierSearchStart (p0d5cTailCore p c) E rho (p0d5cTailObs p c) (p0d5cTailTiming p)
+      (recoveryStart p E) i ev m (p0d5cTailKind kind) := by
+  have h' := (frontierSearchStart_iff p c E rho i ev m kind).mp h
+  cases kind <;> exact h'
+
+
+-- Continuing local service of the frozen exact-service seed (TFrontier).
+private theorem p0d5cTailLocal (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (frontier : TFrontier p c E rho) {u : Time} {m q : Nat}
+    {J : Option (FGBlock (Fin p.n))} {contested : Bool} {Q : Block} {Qfg : FGBlock (Fin p.n)}
+    (hready : recoveryStart p E ≤ u) (hQ : HonestProposal E rho (fgsaInterface p c) q Q)
+    (he : eraseFG Qfg = Q) (hh : (heightView p Qfg).h = m)
+    (hexact : ExactService p c E rho q Q) (hseed : FrontierSeedQualification p E u q)
+    (hu : u ≤ SA.proposalTime p.toParams q)
+    (hp : PhaseInterval p c E rho u (SA.gateTime p.toParams q) m J contested) :
+    ∀ v, SA.gateTime p.toParams q ≤ v → v ≤ rho.horizon →
+      (∀ i x, timeIdx rho u ≤ i → i ≤ timeIdx rho v → x ∈ rho.honest →
+        ((p0d5cTailCore p c).core (rho.stateBefore E i x)).fg.h_max ≤ m) →
+      FGCompose.FrontierLocalService (p0d5cTailCore p c) (p0d5cTailSafety p c) E rho (p0d5cTailObs
+        p c)
+        (p0d5cTailTiming p) (fgsaInterface p c) p0d5cTailPair q Q Qfg m v := by
+  intro v hg hv hcap
+  obtain ⟨htransfer, hrepair, hopen⟩ := frontier u v m J contested q Q Qfg hready hQ he hh
+    hexact ((frontierSeedQualification_iff p E u q).mp hseed) hu hp hg hv hcap
+  refine ⟨htransfer.1, htransfer.2.1, htransfer.2.2, ?_, ?_⟩
+  · intro s B hqs hgate hprop
+    exact (hrepair s B hqs hgate hprop).1
+  · intro r hqr hrt
+    obtain ⟨hcov, hent, hheight, htime⟩ := hopen r hqr hrt
+    refine ⟨?_, hent, hheight, htime⟩
+    intro x hx
+    obtain ⟨K, nd, j, rSent, a, hnd, hK, hm, hQ', hr, ha, hn⟩ := hcov x hx
+    have htf : K ∈ nd.st.fg.TF := (KitFG.mem_filteredFromView _ _ _ _).mp hm |>.1
+    exact ⟨K, nd, j, rSent, a, hnd, hK, htf, hQ', hr, ha, hn⟩
+
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 HG.4 and IF.3(a); frontier plan §3.3/§4.
@@ -56,60 +185,17 @@ theorem healing_frontierTail_row [Fintype V] (E : Generic.Env V)
     {m : Nat} {t : Time} (hserved : StrongServed p c E rho m t)
     (hhor : t + (P p - 4 * p.Δ) ≤ rho.horizon) :
     FirstHeightRowBy p c E rho m (t + (P p - 4 * p.Δ)) := by
-  classical
   obtain ⟨u, J, contested, q, Q, Qfg, hgst, hQ, hErase, hHeight, hService,
     hseed, hu, hphase, hqt, _, _⟩ := (strongServed_iff p c E rho m t).mp hserved
-  let D := t + (P p - 4 * p.Δ)
-  have hm : 1 ≤ m := hphase.2.2.1
-  have hs := hrec.base.valid.toScheduleWellFormed
-  have hP : 0 ≤ P p := by
-    change 0 ≤ 4 * (p.R : Time) * p.Δ
-    have hd := p.deltaPos
-    positivity
-  by_cases hhigh : ∃ x, x ∈ rho.honest ∧
-      m < (storeAt p c E rho (timeIdx rho D) x).fg.h_max
-  · obtain ⟨x, hx, hh⟩ := hhigh
-    obtain ⟨W, hW, hWh⟩ := healing_phase_frontier_witness p c E rho (timeIdx rho D) x
-    obtain ⟨j, z, r, a, e, hj, hr, hn, _⟩ := cap (m - 1) (timeIdx rho D) x W
-      ⟨hx, hW⟩ (by simp only [Height] at *; omega)
-    have hn' : namedEntry a.payload.height_pair = some (m, e) := by
-      simpa only [Nat.sub_add_cancel hm] using hn
-    exact frontierSearch_first_row p c E rho ⟨j, z, a, e, hr, hn'⟩
-      (frontierSearch_event_time_le p c E rho hs hr.2.1 hj)
-  · have hcap (i : Nat) (x : V) (hi : i ≤ timeIdx rho D) (hx : x ∈ rho.honest) :
-        (storeAt p c E rho i x).fg.h_max ≤ m := by
-      have hfront : frontierAtIdx p c E rho (timeIdx rho D) ≤ m :=
-        Finset.sup_le (fun y hy => le_of_not_gt (fun hh => hhigh ⟨y, hy, hh⟩))
-      exact (healing_phase_local_le_frontier p c E rho hx).trans
-        ((healing_frontier_mono_all p c E rho mono hi).trans hfront)
-    have hex : ∃ r, q ≤ r * p.R := by
-      refine ⟨q, ?_⟩
-      simpa only [Nat.mul_one] using
-        Nat.mul_le_mul_left q (show 1 ≤ p.R by have := p.RLarge; omega)
-    let r := Nat.find hex
-    have hqr : q ≤ r * p.R := Nat.find_spec hex
-    have hfirst : ∀ r', q ≤ r' * p.R → r ≤ r' := fun r' hr' => Nat.find_min' hex hr'
-    obtain ⟨hlo, hhi⟩ := common_first_time_bound (p := p) q r hqr hfirst
-    have har : p.actionTime r ≤ D := by dsimp only [D]; linarith
-    have hqD : SA.gateTime p.toParams q ≤ D := by linarith
-    have hf := frontier_service E rho hrec mono crossing scopeProducer writes rowCoverage
-      u D m J contested q Q Qfg hgst hQ hErase hHeight hService
-      ((frontierSeedQualification_iff p E u q).mp hseed) hu hphase hqD hhor
-      (fun i x _ hi hx => hcap i x hi hx)
-    obtain ⟨hc, ⟨e, he⟩, _⟩ := hf.2.2 r hqr har
-    let x := V2.D.proposerOf rho (fgsaInterface p c) q
-    have hx : x ∈ rho.honest := hQ.1.2
-    obtain ⟨K, nd, j, rSent, a, _, hK, _, _, hrs, hr, hn⟩ := hc x hx
-    have hKh := (he x K hx hK).1
-    rw [hKh] at hn
-    have hrow : HeightRow p c E rho rSent m := ⟨j, x, a, _, hr, hn⟩
-    apply frontierSearch_first_row p c E rho hrow
-    have hrsI : (rSent : Time) ≤ r := by exact_mod_cast hrs
-    have hat : p.actionTime rSent ≤ p.actionTime r := by
-      rw [actionTime_periodW, actionTime_periodW]
-      have hmul := mul_le_mul_of_nonneg_right hrsI hP
-      linarith only [hmul]
-    exact hat.trans har
+  have frontier := frontier_service E rho hrec mono crossing scopeProducer writes rowCoverage
+  have h := FGCompose.healing_frontierTail_row (p0d5cTailCore p c) (p0d5cTailSafety p c) E rho
+      (p0d5cTailObs p c)
+    (p0d5cTailTiming p) (fgsaInterface p c) p0d5cTailPair (fun nd B => chainWireRows nd.st B) p.E
+    (fgCertificateLaws p) (fun i x => (storeBundle_stateBefore E rho i x).cstore.fg)
+    (p0d5cTailTimingLaws p) hrec.base.valid.toScheduleWellFormed ⟨mono⟩ cap
+    ((p0d5cTailPhase_iff E rho).mpr hphase) hQ hqt
+    (p0d5cTailLocal E rho frontier hgst hQ hErase hHeight hService hseed hu hphase) hhor
+  exact (firstHeightRowBy_iff p c E rho m _).mpr h
 
 end AvailableChain.FGSA.Run
 end

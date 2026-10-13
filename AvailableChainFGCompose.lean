@@ -63,6 +63,16 @@ public import AvailableChainFGCompose.Proofs.Finality.History
 public import AvailableChainFGCompose.Statements.FrontierSearch
 public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchBudget
 public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchStop
+public import AvailableChainFGCompose.Statements.FrontierMaturity
+public import AvailableChainFGCompose.Proofs.Healing.PromotionSource
+public import AvailableChainFGCompose.Proofs.Healing.PromotionAge
+public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchAge
+public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchHG2a
+public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchRepair
+public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchGap
+public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchTop
+public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchTail
+public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchRise
 public import AvailableChainFGCompose.Statements.FinalityRecords
 public import AvailableChainFGCompose.Proofs.Finality.RecordInv
 
@@ -81,3 +91,6 @@ public import AvailableChainFGCompose.Statements.ExecutionObs
 public import AvailableChainFGCompose.Statements.ExecutionBridges
 public import AvailableChainFGCompose.Statements.ExecutionRecords
 public import AvailableChainFGCompose.Proofs.ExecutionObs
+public import AvailableChainFGCompose.Proofs.Finality.RestoreReads
+public import AvailableChainFGCompose.Proofs.Finality.Receipt
+public import AvailableChainFGCompose.Proofs.Finality.Accept

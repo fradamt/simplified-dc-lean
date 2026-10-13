@@ -5,6 +5,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchRepair
 public import AvailableChainFGSAProofs.Proofs.Healing.CommonEntryFacts
 
 public import AvailableChainFGSAProofs.Proofs.Healing.ResetScope
+public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchGap
 
 public section
 
@@ -16,7 +17,35 @@ FaultQ and honestQuorum are the same explicit inputs as PromotionAge. -/
 namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
 
+private def p0d5cGapTiming (p : Params) : FGCompose.FGTiming where
+  delta := p.Δ
+  roundSlots := p.R
+  proposal := SA.proposalTime p.toParams
+  vote := SA.voteTime p.toParams
+  early := SA.earlyTime p.toParams
+  freeze := SA.freezeTime p.toParams
+  release := SA.releaseTime p.toParams
+  gate := SA.gateTime p.toParams
+  action := p.actionTime
+
+private theorem p0d5cGapTimingLaws (p : Params) :
+    FGCompose.FGTimingLaws (p0d5cGapTiming p) where
+  delta_pos := p.deltaPos
+  rounds := p.RLarge
+  proposal_eq s := by
+    change 4 * p.Δ * (s : Time) = 4 * (s : Time) * p.Δ
+    ring
+  vote_eq _ := rfl
+  early_eq _ := rfl
+  freeze_eq _ := rfl
+  release_eq _ := rfl
+  gate_eq _ := rfl
+  action_eq _ := rfl
+
+
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
+
+
 
 /-- ROOT-DIGEST W2b. Blueprint 21 HG.3. DC: SAME lift the source path by root injectivity. -/
 private theorem frontierSearch_lift {A B : FGBlock (Fin p.n)}
@@ -25,9 +54,7 @@ private theorem frontierSearch_lift {A B : FGBlock (Fin p.n)}
 
 /-- Blueprint 21 HG.3. DC: SAME period bound for the first opening. -/
 theorem frontierSearch_period_bound (p : Params) : 8 * p.Δ ≤ P p := by
-  have hR : (2 : Time) ≤ p.R := by exact_mod_cast p.RLarge
-  change 8 * p.Δ ≤ 4 * (p.R : Time) * p.Δ
-  nlinarith [p.deltaPos]
+  exact FGCompose.frontierSearch_period_bound (p0d5cGapTiming p) (p0d5cGapTimingLaws p)
 
 /-- ROOT-DIGEST W2b. Blueprint 21 HG.3 gap. DC: SAME finish repair in a quiet settled phase.
 The initial seed and every later seed keep the frozen first-label qualification. -/

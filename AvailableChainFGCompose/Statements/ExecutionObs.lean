@@ -280,7 +280,7 @@ theorem driverOwnWrite_def {Body Origin : Type}
     driverOwnWrite op = FGDependencyOperation.rec (motive := fun _ => List P.Object)
       (fun _ _ => []) (fun _ _ _ => []) (fun _ _ => []) (fun _ _ => []) (fun _ _ => [])
       (fun _ => []) (fun _ => []) (fun wire => [wire]) (fun _ => []) (fun _ => [])
-      (fun _ => []) [] op := by
+      (fun _ => []) (fun _ => []) [] op := by
   cases op <;> rfl
 
 /-- The canonical driver observation of the c3 dependency fold. `T x` and `Op x` are the

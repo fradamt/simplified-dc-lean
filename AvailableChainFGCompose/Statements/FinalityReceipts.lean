@@ -2,6 +2,7 @@ module
 public import AvailableChainFGCompose.Statements.Service
 public import AvailableChainGeneric.Statements.V2.Duty.Receipt -- shake: keep (re-export)
 public import AvailableChainGeneric.Statements.V2.Duty.DeliveryBy
+public import AvailableChainSimplexFG.WindowStore
 
 @[expose] public section
 
@@ -95,6 +96,97 @@ structure FinalityActionReceipts {Body : Type} (T : FGTiming)
     Nonempty (FreshHeadService family timely T headObject E rho
       (q * T.roundSlots + 1) a K.root (T.action q) x) ∧
       TargetReceiptService bodyObject bodyErase family timely E rho K (T.action q) x
+
+/-! P0d7a5: selected receipt and acceptance. The selected receipt `ready` is a
+parameter; its handler equation is the exact step consequence in `AcceptStep_W`. -/
+
+/-- The selected receipt event of one honest receiver. -/
+structure ReceiptWitness_W where
+  index : Nat
+  time : Time
+
+variable (Ef : Electorate (Fin n)) (cfg : FGConfig) (K : Nat)
+variable (ready : Nat → V → FGBlock (Fin n) → Time → Prop)
+
+/-- The inserted tree and maximum height before the window J/F tests. -/
+def receiptInsert_W (i : Nat) (x : V) (W : FGBlock (Fin n)) : Store (Fin n) :=
+  let st := (R.core (V2.D.Run.stateBefore E rho i x)).fg
+  { st with
+    TF := insert W st.TF
+    h_max := max st.h_max (SimplexFG.Window.derive Ef cfg K W).h }
+
+/-- One selected event per honest receiver: prior coverage or the selected receipt. -/
+structure BlockDelivery_W (W U : FGBlock (Fin n)) (a₀ d : Time) where
+  selected : ∀ x, x ∈ rho.honest → ReceiptWitness_W
+  witness : ∀ x (hx : x ∈ rho.honest),
+    let w := selected x hx
+    rho.events[w.index]?.map V2.Event.time = some w.time ∧ w.time < d ∧
+    (FGBlock.Preceq U (R.core (V2.D.Run.stateBefore E rho (w.index + 1) x)).fg.F ∨
+      (a₀ ≤ w.time ∧ ready w.index x W w.time))
+
+/-- The acceptance guards at the same selected events. -/
+structure AcceptGuards_W (W U : FGBlock (Fin n)) (a₀ d : Time)
+    (delivery : BlockDelivery_W R E rho ready W U a₀ d) : Prop where
+  finCmp : ∀ x (hx : x ∈ rho.honest),
+    let w := delivery.selected x hx
+    ready w.index x W w.time →
+    FGBlock.Preceq (R.core (V2.D.Run.stateBefore E rho w.index x)).fg.F U ∨
+      FGBlock.Preceq U (R.core (V2.D.Run.stateBefore E rho w.index x)).fg.F
+  jPath : ∀ x (hx : x ∈ rho.honest),
+    let w := delivery.selected x hx
+    ready w.index x W w.time →
+    ¬ FGBlock.Preceq U (R.core (V2.D.Run.stateBefore E rho w.index x)).fg.F →
+    FGBlock.Preceq (R.core (V2.D.Run.stateBefore E rho w.index x)).fg.J W ∨
+      (R.core (V2.D.Run.stateBefore E rho w.index x)).fg.h_j <
+        (SimplexFG.Window.derive Ef cfg K W).h_j
+  cap : ∀ x (hx : x ∈ rho.honest),
+    let w := delivery.selected x hx
+    ready w.index x W w.time →
+    ¬ FGBlock.Preceq U (R.core (V2.D.Run.stateBefore E rho w.index x)).fg.F →
+    (receiptInsert_W R E rho Ef cfg K w.index x W).h_max ≤
+      (SimplexFG.Window.derive Ef cfg K W).h + 1
+
+/-- The selected receipt, its guards and the carrier finality. The aggregate
+execution input is split: only the schedule is read. -/
+structure AcceptPrem_W (W U : FGBlock (Fin n)) (a₀ d : Time) where
+  schedule : V2.D.ScheduleWellFormed E rho
+  finalized : FGBlock.Preceq U (SimplexFG.Window.derive Ef cfg K W).F
+  deliver : BlockDelivery_W R E rho ready W U a₀ d
+  guards : AcceptGuards_W R E rho Ef cfg K ready W U a₀ d deliver
+  horizon : d ≤ rho.horizon
+
+/-- Fieldwise form of `PendingFold_W`: a real child whose rows complete one retained bit
+set. The cover is the body of `FinalityCoveredByChild_W` with `FinRowNames` unfolded. -/
+structure PendingFold_W (y : Nat) (U X : FGBlock (Fin n)) : Prop where
+  child : X ≠ .genesis
+  cover : ∃ e ∈ (SimplexFG.Window.derive Ef cfg K X.parent).W, e.j = y ∧ e.X = U ∧
+    ∃ Q : Finset (Fin n), Ef.IsQuorum Q ∧ ∀ i ∈ Q,
+      i ∈ e.Q ∨ ∃ row ∈ X.rows, row.signer = i ∧ row.finality_pair = some ⟨y, U.root⟩
+
+/-- The pending pair with the selected receipts and guards. -/
+structure FinalizePrem_W (y : Nat) (U X : FGBlock (Fin n)) (a₀ d : Time) where
+  fold : PendingFold_W Ef cfg K y U X
+  schedule : V2.D.ScheduleWellFormed E rho
+  deliver : BlockDelivery_W R E rho ready X U a₀ d
+  guards : AcceptGuards_W R E rho Ef cfg K ready X U a₀ d deliver
+  horizon : d ≤ rho.horizon
+
+/-- The exact selected one-step consequence: the receipt inserts `W`, applies the
+window finality update, and the carrier finality is in the inserted tree. -/
+def AcceptStep_W : Prop :=
+  ∀ i x W t, x ∈ rho.honest → ready i x W t →
+    (R.core (V2.D.Run.stateBefore E rho (i + 1) x)).fg =
+      SimplexFG.Window.update_finality Ef cfg K
+        { (R.core (V2.D.Run.stateBefore E rho i x)).fg with
+          TF := insert W (R.core (V2.D.Run.stateBefore E rho i x)).fg.TF } W ∧
+    (SimplexFG.Window.derive Ef cfg K W).F ∈
+      insert W (R.core (V2.D.Run.stateBefore E rho i x)).fg.TF
+
+/-- Durable finality: monotone along steps and kept by restore. -/
+structure FGFinalityDurableLaws : Prop where
+  mono : ∀ X : FGBlock (Fin n),
+    Gen.V2.Duty.MonoAlong (P := P) (fun nd => FGBlock.Preceq X (R.core nd).fg.F)
+  restore : ∀ nd t, (R.core (P.restore (P.durable nd) t)).fg.F = (R.core nd).fg.F
 
 end AvailableChain.FGCompose
 end
