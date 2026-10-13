@@ -57,5 +57,19 @@ theorem safety_nonholder_noSlash (Ef : Electorate (Fin n)) (cfg : FGConfig)
   rw [hs] at hm
   exact (List.not_mem_nil hm).elim
 
+/-- Supply the existing all-honest count API by splitting holders from nonholders. -/
+theorem safety_noSlash_all_of_holder (Ef : Electorate (Fin n)) (cfg : FGConfig)
+    (rows : FGHolderClientLaws S Ef cfg E rho (ordinaryFGExecutionObs E rho)
+      (safetyHolder S rho)) (W : FGSafetyWireLaws S)
+    (he : ∀ i, safetyHolder S rho i ∈ rho.honest →
+      safetyNoSlash S E rho (safetyHolder S rho i)) :
+    ∀ x ∈ rho.honest, safetyNoSlash S E rho x := by
+  classical
+  intro x hx
+  by_cases hh : ∃ i, safetyHolder S rho i = x
+  · obtain ⟨i, rfl⟩ := hh
+    exact he i hx
+  · exact safety_nonholder_noSlash S E rho Ef cfg rows W x (by simpa using hh)
+
 end AvailableChain.FGCompose
 end
