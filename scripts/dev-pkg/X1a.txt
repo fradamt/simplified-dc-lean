@@ -2,6 +2,7 @@
 [TARGETS]
 AvailableChainFGCompose.Statements.ExecutionObs
 AvailableChainFGCompose.Statements.ExecutionBridges
+AvailableChainFGCompose.Statements.ExecutionRecords
 AvailableChainFGCompose.Proofs.ExecutionObs
 AvailableChainFGCompose.Tests.X1a
 [GREEN]
@@ -92,6 +93,7 @@ AvailableChainFGCompose.Statements.DependencyTrace
 AvailableChainFGCompose.Statements.EventReads
 AvailableChainFGCompose.Statements.ExecutionBridges
 AvailableChainFGCompose.Statements.ExecutionObs
+AvailableChainFGCompose.Statements.ExecutionRecords
 AvailableChainFGCompose.Statements.Finality
 AvailableChainFGCompose.Statements.FinalityHistory
 AvailableChainFGCompose.Statements.FinalityKernel

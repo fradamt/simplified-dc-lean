@@ -1080,6 +1080,7 @@ COMPOSE_EDGES |= frozenset({
 COMPOSE_MODULES += (
     'AvailableChainFGCompose.Statements.ExecutionObs',
     'AvailableChainFGCompose.Statements.ExecutionBridges',
+    'AvailableChainFGCompose.Statements.ExecutionRecords',
     'AvailableChainFGCompose.Proofs.ExecutionObs',
 )
 

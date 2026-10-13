@@ -42,6 +42,7 @@ public import AvailableChainFGCompose.Proofs.Restart -- shake: keep (#print axio
 
 public import AvailableChainFGCompose.Statements.ExecutionObs -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Statements.ExecutionBridges -- shake: keep (#print axioms)
+public import AvailableChainFGCompose.Statements.ExecutionRecords -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Proofs.ExecutionObs -- shake: keep (#print axioms)
 
 public import AvailableChainFGCompose.Statements.ResetHistory -- shake: keep (#print axioms)
@@ -1140,6 +1141,8 @@ public import AvailableChainFGCompose.Proofs.Healing.ResetCut -- shake: keep (#p
 #print axioms AvailableChain.FGCompose.DriverExecutionObsStatement_def
 #print axioms AvailableChain.FGCompose.DriverObservedCoreStatement
 #print axioms AvailableChain.FGCompose.DriverObservedCoreStatement_def
+#print axioms AvailableChain.FGCompose.DriverTraceLaws
+#print axioms AvailableChain.FGCompose.DriverTraceLaws_def
 #print axioms AvailableChain.FGCompose.FGExecutionObs
 #print axioms AvailableChain.FGCompose.FGExecutionObs.accepts
 #print axioms AvailableChain.FGCompose.FGExecutionObs.cutLength
@@ -1149,6 +1152,7 @@ public import AvailableChainFGCompose.Proofs.Healing.ResetCut -- shake: keep (#p
 #print axioms AvailableChain.FGCompose.FGExecutionObs.duty
 #print axioms AvailableChain.FGCompose.FGExecutionObs.entry
 #print axioms AvailableChain.FGCompose.FGExecutionObs.finish
+#print axioms AvailableChain.FGCompose.FGExecutionObs.ownWrites
 #print axioms AvailableChain.FGCompose.FGExecutionObs.released
 #print axioms AvailableChain.FGCompose.FGExecutionObs.start
 #print axioms AvailableChain.FGCompose.FGExecutionObs.stateBefore
@@ -1159,11 +1163,15 @@ public import AvailableChainFGCompose.Proofs.Healing.ResetCut -- shake: keep (#p
 #print axioms AvailableChain.FGCompose.FGExecutionObsLaws.done_state
 #print axioms AvailableChain.FGCompose.FGExecutionObsLaws.event_order
 #print axioms AvailableChain.FGCompose.FGExecutionObsLaws.init_state
+#print axioms AvailableChain.FGCompose.FGExecutionObsLaws.own_complete
+#print axioms AvailableChain.FGCompose.FGExecutionObsLaws.own_source
+#print axioms AvailableChain.FGCompose.FGExecutionObsLaws.own_state
 #print axioms AvailableChain.FGCompose.FGExecutionObsLaws.released_other
 #print axioms AvailableChain.FGCompose.FGExecutionObsLaws.released_tick
 #print axioms AvailableChain.FGCompose.FGExecutionObsLaws.restart_entry
 #print axioms AvailableChain.FGCompose.FGExecutionObsLaws.segment_time
 #print axioms AvailableChain.FGCompose.FGExecutionObsLaws.start_state
+#print axioms AvailableChain.FGCompose.FGExecutionObsLaws.tail_state
 #print axioms AvailableChain.FGCompose.FGExecutionObsLaws.tick_done
 #print axioms AvailableChain.FGCompose.FGExecutionObsLaws.tick_entry
 #print axioms AvailableChain.FGCompose.FGObservedCoreLaws
@@ -1176,6 +1184,8 @@ public import AvailableChainFGCompose.Proofs.Healing.ResetCut -- shake: keep (#p
 #print axioms AvailableChain.FGCompose.FGObservedFinalityLaws.restore_f
 #print axioms AvailableChain.FGCompose.driverFGExecutionObs
 #print axioms AvailableChain.FGCompose.driverFGExecutionObs_def
+#print axioms AvailableChain.FGCompose.driverOwnWrite
+#print axioms AvailableChain.FGCompose.driverOwnWrite_def
 #print axioms AvailableChain.FGCompose.driverReleaseStep
 #print axioms AvailableChain.FGCompose.driverReleaseStep_def
 #print axioms AvailableChain.FGCompose.fgEventToken
@@ -1211,27 +1221,60 @@ public import AvailableChainFGCompose.Proofs.Healing.ResetCut -- shake: keep (#p
 #print axioms AvailableChain.FGCompose.FGChainRowsAtCut
 #print axioms AvailableChain.FGCompose.FGChainRowsAtCut_def
 #print axioms AvailableChain.FGCompose.FGHolderClientLaws
-#print axioms AvailableChain.FGCompose.FGHolderClientLaws.duty_record
 #print axioms AvailableChain.FGCompose.FGHolderClientLaws.holder_eq
 #print axioms AvailableChain.FGCompose.FGHolderClientLaws.holder_inj
 #print axioms AvailableChain.FGCompose.FGHolderClientLaws.holder_rows
 #print axioms AvailableChain.FGCompose.FGHolderClientLaws.initial_record
 #print axioms AvailableChain.FGCompose.FGHolderClientLaws.nonholder_rows
-#print axioms AvailableChain.FGCompose.FGHolderClientLaws.own_record
-#print axioms AvailableChain.FGCompose.FGHolderClientLaws.quiet_record
+#print axioms AvailableChain.FGCompose.FGHolderClientLaws.record_step
 #print axioms AvailableChain.FGCompose.FGSelectedAcceptance
 #print axioms AvailableChain.FGCompose.FGSelectedAcceptance.accepts
 #print axioms AvailableChain.FGCompose.FGSelectedAcceptance.before_deadline
+#print axioms AvailableChain.FGCompose.FGSelectedAcceptance.body
 #print axioms AvailableChain.FGCompose.FGSelectedAcceptance.effect
+#print axioms AvailableChain.FGCompose.FGSelectedAcceptance.erase_eq
 #print axioms AvailableChain.FGCompose.FGSelectedAcceptance.eventIndex
 #print axioms AvailableChain.FGCompose.FGSelectedAcceptance.event_some
 #print axioms AvailableChain.FGCompose.FGSelectedAcceptance.honest
+#print axioms AvailableChain.FGCompose.FGSelectedAcceptance.origin
+#print axioms AvailableChain.FGCompose.FGSelectedAcceptance.rows_eq
 #print axioms AvailableChain.FGCompose.FGSelectedAcceptance.segment
 #print axioms AvailableChain.FGCompose.FGSelectedAcceptance.step
 #print axioms AvailableChain.FGCompose.FGSelectedAcceptance.token
 #print axioms AvailableChain.FGCompose.SelectedAcceptanceKeepStatement
 #print axioms AvailableChain.FGCompose.SelectedAcceptanceKeepStatement_def
+#print axioms AvailableChain.FGCompose.DriverObservedOrderStatement
+#print axioms AvailableChain.FGCompose.DriverObservedOrderStatement_def
+#print axioms AvailableChain.FGCompose.DriverObservedPoolStatement
+#print axioms AvailableChain.FGCompose.DriverObservedPoolStatement_def
+#print axioms AvailableChain.FGCompose.DriverObservedSafetyStatement
+#print axioms AvailableChain.FGCompose.DriverObservedSafetyStatement_def
+#print axioms AvailableChain.FGCompose.DriverSafetyStepLaws
+#print axioms AvailableChain.FGCompose.DriverSafetyStepLaws.body_rows
+#print axioms AvailableChain.FGCompose.DriverSafetyStepLaws.erase_reads
+#print axioms AvailableChain.FGCompose.DriverSafetyStepLaws.initial_tf
+#print axioms AvailableChain.FGCompose.DriverSafetyStepLaws.invariant
+#print axioms AvailableChain.FGCompose.DriverSafetyStepLaws.row_reads
+#print axioms AvailableChain.FGCompose.DriverSafetyStepLaws.view_blocks
+#print axioms AvailableChain.FGCompose.DriverSafetyStepLaws.view_bodies
+#print axioms AvailableChain.FGCompose.FGObservedOrderLaws
+#print axioms AvailableChain.FGCompose.FGObservedOrderLaws.mono
+#print axioms AvailableChain.FGCompose.FGObservedPoolLaws
+#print axioms AvailableChain.FGCompose.FGObservedPoolLaws.proposals_keep
+#print axioms AvailableChain.FGCompose.FGObservedPoolLaws.row_keep
+#print axioms AvailableChain.FGCompose.FGObservedSafetyLaws
+#print axioms AvailableChain.FGCompose.FGObservedSafetyLaws.body_rows
+#print axioms AvailableChain.FGCompose.FGObservedSafetyLaws.cut_invariant
+#print axioms AvailableChain.FGCompose.FGObservedSafetyLaws.initial_tf
+#print axioms AvailableChain.FGCompose.FGObservedSafetyLaws.new_block
+#print axioms AvailableChain.FGCompose.FGObservedSafetyLaws.prefix_invariant
+#print axioms AvailableChain.FGCompose.FGObservedSafetyLaws.view_blocks
+#print axioms AvailableChain.FGCompose.FGObservedSafetyLaws.view_bodies
+#print axioms AvailableChain.FGCompose.chainRows_of_head_obs
 #print axioms AvailableChain.FGCompose.ordinaryFGExecutionObs_core
 #print axioms AvailableChain.FGCompose.ordinaryFGExecutionObs_finality
 #print axioms AvailableChain.FGCompose.ordinaryFGExecutionObs_laws
+#print axioms AvailableChain.FGCompose.ordinaryFGExecutionObs_order
+#print axioms AvailableChain.FGCompose.ordinaryFGExecutionObs_pool
+#print axioms AvailableChain.FGCompose.ordinaryFGExecutionObs_safety
 #print axioms AvailableChain.FGCompose.ordinary_obsEmits_iff

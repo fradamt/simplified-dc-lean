@@ -86,6 +86,7 @@
     "laneUpstream": [
       "AvailableChainFGCompose.Statements.ExecutionObs",
       "AvailableChainFGCompose.Statements.ExecutionBridges",
+      "AvailableChainFGCompose.Statements.ExecutionRecords",
       "AvailableChainFGCompose.Proofs.ExecutionObs",
       "AvailableChainFGCompose.Statements.FinalityRows",
       "AvailableChainFGCompose.Proofs.Finality.Rows",

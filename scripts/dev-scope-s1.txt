@@ -3,6 +3,7 @@
 [REQUIRED]
 AvailableChainFGCompose.Statements.ExecutionObs
 AvailableChainFGCompose.Statements.ExecutionBridges
+AvailableChainFGCompose.Statements.ExecutionRecords
 AvailableChainFGCompose.Proofs.ExecutionObs
 AvailableChainFGCompose.Tests.X1a
 AvailableChainFGCompose.Proofs.Healing.Attempt

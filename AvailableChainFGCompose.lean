@@ -79,4 +79,5 @@ public import AvailableChainFGCompose.Proofs.Finality.Carry
 
 public import AvailableChainFGCompose.Statements.ExecutionObs
 public import AvailableChainFGCompose.Statements.ExecutionBridges
+public import AvailableChainFGCompose.Statements.ExecutionRecords
 public import AvailableChainFGCompose.Proofs.ExecutionObs
