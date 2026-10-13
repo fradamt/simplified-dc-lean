@@ -1521,6 +1521,277 @@ private theorem ladHorizon :
     obtain ⟨rfl, rfl⟩ := ladriseWitness hj hev hh hcap
     exact ⟨_, _, hev, rfl, ht⟩
 
+/-! G0 for the start-family companion (`FrontierSearchFamilyStatement`) on `lad`. -/
+
+/-- G0 (POSITIVE, companion): `frontierSearch_family` applied on `lad` for the allowance 7,
+with every premise proved and no transfer. -/
+private theorem ladFamily :
+    FrontierSearchFamilyStatement ladR ladS v5env ladrho ladO v5T ladI ladD.heightPair 12 1 4
+      4 1 7 :=
+  frontierSearch_family (R := ladR) (S := ladS) (O := ladO) (T := v5T) (E := v5env) (rho := ladrho)
+    (I := ladI) (D := ladD) (Ef := v5E) (decodeProposal := laddecode) (bodyErase := id)
+    (bodyRows := fun _ => []) (blockWireRows := fun _ => []) (parentFG := ladparentFG)
+    (parentHeight := ladparentHeight) (validFor := ladvalidFor) (fold := ladfold) (Jst := 12)
+    (leaseSlots := 1) (obs := ladobs) (cert := v5cert) (inv := ladinv) (justif := v5justif)
+    (keep := ladkeep) (positive := by decide) (coreLaws := ladcore)
+    (erasePreceq := fun h => v5erase_mono h) (joined := fun _ => true) (receipt := ladreceipt)
+    (chainRows := fun _ _ => ladAllRows) (G := 4) (ΔF := 1) (deltaT := 4)
+    (hT := v5TLaws) (hk := le_rfl) (crossing := ladcrossing) (schedule := ladschedule) (mono :=
+      ladmono) (awake := ladawake) (joinedTick := ladjoinedTick) (readyCut := ladready)
+      (hServices := ladservices) (receiptHeld := ladreceiptHeld) (faultWeight := ladfault)
+      (deltaF := le_rfl) (hdelta := rfl) (gap := ladgap) (hJst := ladJst) (hG := ladG)
+      (slotProposal := ladslot) (read := ladread) (order := ladorder) (signer := ladsigner)
+      (sourceParent := ladsourceParent) (rowsReceipt := ladrowsReceipt) (progressCoverage :=
+      ladprogressCoverage) (hfold := v9foldAdvance) (honestQuorum := ladquorum) (entryAgreement
+      := ladentryAgreement) (sourceSlot := ladsourceSlot) (ancestorSlot := ladancestorSlot)
+      (eraseReflect := v9erase_reflect) (floor := ladfloor) (gateCopy := ladgateCopy) (service :=
+      ladserviceLeaf) (common := ladcommon) (heldSlot := ladheldSlot) (proposalSlot :=
+      ladproposalSlot) (justifiedSource := ladjustified) (parentFrame := ladparentFrame)
+      (eraseParent := v9erase_parent) (capReceipt := ladcapReceipt) (cap := ladcap) (hne :=
+      ladne) 7
+
+/-- Every premise of `ladFamily` on the exact run (41 leaves, in the order of the call). -/
+private theorem ladFamily_premises_sat :
+    (FGTimingLaws v5T) ∧
+    (1 ≤ 1) ∧
+    (RXing ladR v5env ladrho ladO) ∧
+    (V2.D.ScheduleWellFormed v5env ladrho) ∧
+    (FGRunOrderLaws v5env ladrho ladR) ∧
+    (∀ y ∈ ladrho.honest, ∀ t, v5env.t_GST ≤ t → t ≤ ladrho.horizon → v5env.awake y t = true) ∧
+    (∀ iy y t, y ∈ ladrho.honest → ladrho.events[iy]? = some (.tick y t) → t ≤ ladrho.horizon →
+      v5env.t_GST ≤ slotStartZ v5T (((slotAt v5T t : Slot) : Int) - 1) → (fun _ => true)
+      (ladP.clock (ladrho.stateBefore v5env iy y) t) = true) ∧
+    (∀ t, 12 ≤ t → v5env.t_GST ≤ slotStartZ v5T (((slotAt v5T t : Slot) : Int) - 1)) ∧
+    (∀ i (ev : V2.Event Unit ladP.Object) m, ladrho.events[i]? = some ev → 12 ≤ ev.time → 1 ≤ m →
+      frontierAtIdx ladR v5env ladrho (i + 1) = m → ev.time + v5T.delta ≤ ladrho.horizon →
+      PhaseWitnessReceiptScope ladR v5env ladrho ladO (fun _ => true) ladreceipt (i + 1) m
+      (ev.time + v5T.delta)) ∧
+    (∀ W d y, y ∈ ladrho.honest → ladreceipt (ladR.erase W) d y → W ∈ (ladR.core
+      (ladrho.stateBeforeTime v5env d y)).fg.TF) ∧
+    (v5E.weightOf (historyFaulty ladS ladrho) < v5E.q) ∧
+    (v5env.Δ ≤ 1) ∧
+    (v5env.Δ = v5T.delta) ∧
+    (∀ t, v5env.t_GST ≤ t → t + 4 ≤ ladrho.horizon → ∃ s, t < v5T.proposal s ∧ v5T.proposal s ≤ t
+      + 4 ∧ Gen.V2.Duty.HonestSlot ladrho ladI s) ∧
+    (v5env.t_GST ≤ 12) ∧
+    (4 * v5T.delta ≤ 4) ∧
+    (PromotionSlotProposal ladR v5env ladrho v5T ladI) ∧
+    (PromotionProposalRead ladR ladS v5env ladrho ladO ladI laddecode id (fun _ => [])
+      ladparentFG ladparentHeight ladvalidFor ladfold) ∧
+    (PromotionRowOrder ladR v5env ladrho ladO ladI) ∧
+    (PromotionRowSigner ladS v5env ladrho v5T ladD) ∧
+    (PromotionSourceParent ladR v5env ladrho ladO v5T ladI 12) ∧
+    (TRowsReceipt ladR ladS v5env ladrho v5T (fun _ => []) 1) ∧
+    (∀ (r height : Nat) (U X : FGBlock (Fin 1)), BatchPrem ladR ladS ladO v5T v5env ladrho ladI
+      ladD v5E laddecode id (fun _ => []) (fun _ => []) ladparentFG ladparentHeight ladvalidFor 1
+      .progress r height U X → (ladO.height X.parent).h = height → ProgressCoveredByChild v5E
+      ladO.height X U height) ∧
+    (ProgressFoldAdvance v5E ladO.height 4) ∧
+    (∃ Q : Finset (Fin 1), (∀ i ∈ Q, safetyHolder ladS ladrho i ∈ ladrho.honest) ∧ v5E.q ≤
+      v5E.weightOf Q) ∧
+    (∀ r x y K L, x ∈ ladrho.honest → y ∈ ladrho.honest → actionSourceFG ladR v5env ladrho v5T x
+      r = some (some K) → actionSourceFG ladR v5env ladrho v5T y r = some (some L) → (ladO.height
+      K).T_h.root = (ladO.height L).T_h.root → (ladO.height K).T_h = (ladO.height L).T_h) ∧
+    (∀ r x K, x ∈ ladrho.honest → actionSourceFG ladR v5env ladrho v5T x r = some (some K) →
+      K.slot ≤ r * v5T.roundSlots) ∧
+    (∀ r x K A, x ∈ ladrho.honest → actionSourceFG ladR v5env ladrho v5T x r = some (some K) →
+      FGBlock.Preceq A K → A.slot ≤ K.slot) ∧
+    (∀ A B : FGBlock (Fin 1), Block.Preceq (ladR.erase A) (ladR.erase B) → FGBlock.Preceq A B) ∧
+    (AttemptProposalFloor ladR v5env ladrho ladO v5T ladI 12) ∧
+    (∀ u v m J contested q Q, 12 ≤ u → PhaseInterval ladR v5env ladrho ladO u v m J contested →
+      FrontierSeedQualification v5T 1 v5env.t_GST u q → v5T.gate q ≤ v → HonestProposal v5env
+      ladrho ladI q Q → ∃ i x Qfg, V2.D.Run.idxBefore ladrho u ≤ i ∧ i ≤ timeIdx ladrho v ∧ x ∈
+      ladrho.honest ∧ Qfg ∈ (ladR.core (ladrho.stateBefore v5env i x)).fg.TF ∧ ladR.erase Qfg =
+      Q) ∧
+    (∀ u v m J contested q Q Qfg, 12 ≤ u → HonestProposal v5env ladrho ladI q Q → ladR.erase Qfg
+      = Q → (ladO.height Qfg).h = m → FrontierProposalService ladR v5env ladrho v5T q Q →
+      FrontierSeedQualification v5T 1 v5env.t_GST u q → u ≤ v5T.proposal q → PhaseInterval ladR
+      v5env ladrho ladO u (v5T.gate q) m J contested → v5T.gate q ≤ v → v ≤ ladrho.horizon → (∀ i
+      x, timeIdx ladrho u ≤ i → i ≤ timeIdx ladrho v → x ∈ ladrho.honest → (ladR.core
+      (ladrho.stateBefore v5env i x)).fg.h_max ≤ m) → FrontierLocalService ladR ladS v5env ladrho
+      ladO v5T ladI ladD.heightPair q Q Qfg m v) ∧
+    (∀ u m J contested q Q Qfg r, 12 ≤ u → HonestProposal v5env ladrho ladI q Q → ladR.erase Qfg
+      = Q → FrontierProposalService ladR v5env ladrho v5T q Q → FrontierSeedQualification v5T 1
+      v5env.t_GST u q → u ≤ v5T.proposal q → q ≤ r * v5T.roundSlots → (∀ r', q ≤ r' *
+      v5T.roundSlots → r ≤ r') → PhaseInterval ladR v5env ladrho ladO u (v5T.action r) m J
+      contested → OpeningCovered ladR ladS v5env ladrho ladO.height v5T ladD.heightPair r Q ∧
+      ((ladO.height Qfg).h = m - 1 → OpeningEntry ladR v5env ladrho ladO.height v5T r (m - 1) ∨ ∃
+      x K, x ∈ ladrho.honest ∧ actionSourceFG ladR v5env ladrho v5T x r = some (some K) ∧
+      (ladO.height K).h = m)) ∧
+    (∀ i x A K, K ∈ (ladR.core (ladrho.stateBefore v5env i x)).fg.TF → FGBlock.Preceq A K →
+      A.slot ≤ K.slot) ∧
+    (∀ q Q K, HonestProposal v5env ladrho ladI q Q → ladR.erase K = Q → K.slot = q) ∧
+    (∀ i x, x ∈ ladrho.honest → (ladR.core (ladrho.stateBefore v5env i x)).fg.h_j ≠ 0 → ∃ j y r a
+      K, j < i ∧ HonestRowAt ladS v5env ladrho v5T j y r a ∧ actionSourceFG ladR v5env ladrho v5T
+      y r = some (some K) ∧ (ladO.height K).T_h = (ladR.core (ladrho.stateBefore v5env i
+      x)).fg.J) ∧
+    (∀ q Q, HonestProposal v5env ladrho ladI q Q → ∃ j, ladrho.events[j]? = some (.tick
+      (V2.D.proposerOf ladrho ladI q) (v5T.proposal q)) ∧ ∀ Qfg, ladR.erase Qfg = Q →
+      FGBlock.Preceq (ladO.controls (ladrho.stateBefore v5env j (V2.D.proposerOf ladrho ladI
+      q))).Z Qfg.parent) ∧
+    (∀ X : FGBlock (Fin 1), (ladR.erase X).parent = ladR.erase X.parent) ∧
+    (PromotionCapReceipt ladR v5env ladrho ladO v5T ladI) ∧
+    (RCap ladR ladS v5env ladrho ladO v5T (fun a => namedEntry (ladD.heightPair a)) (fun _ _ =>
+      ladAllRows)) ∧
+    (ladrho.honest.Nonempty) :=
+  ⟨v5TLaws, le_rfl, ladcrossing, ladschedule, ladmono, ladawake, ladjoinedTick, ladready,
+    ladservices, ladreceiptHeld, ladfault, le_rfl, rfl, ladgap, ladJst, ladG, ladslot, ladread,
+    ladorder, ladsigner, ladsourceParent, ladrowsReceipt, ladprogressCoverage, v9foldAdvance,
+    ladquorum, ladentryAgreement, ladsourceSlot, ladancestorSlot, v9erase_reflect, ladfloor,
+    ladgateCopy, ladserviceLeaf, ladcommon, ladheldSlot, ladproposalSlot, ladjustified,
+    ladparentFrame, v9erase_parent, ladcapReceipt, ladcap, ladne⟩
+
+/-- The premises of the companion statement itself on `lad` for the allowance 7: the
+allowance is nonnegative and holds at `ev.time + 3Δ` for every actual start (in fact at
+every time); with the cut guards of `ladSearch_premises_sat` and the deadline 161 ≤ 168. -/
+private theorem ladFamilyStatement_premises_sat :
+    (4 : Nat) = 2 * v5T.roundSlots ∧ LivenessBoundW v5T 1 ∧ (0 : Time) ≤ 7 ∧
+    (∀ i ev m kind, FrontierSearchStart ladR v5env ladrho ladO v5T 12 i ev m kind →
+      (12 : Time) + 2 * FGCompose.P v5T ≤ ev.time →
+      FrontierRepairAllowance ladR v5env ladrho ladO v5T ladI 12 1 4 7
+        (ev.time + 3 * v5T.delta)) ∧
+    (∃ kind, FrontierSearchStart ladR v5env ladrho ladO v5T 12 44 (ladDel (ladp 4) 37) 5
+      kind ∧ (12 : Time) + 2 * FGCompose.P v5T ≤ (ladDel (ladp 4) 37).time) ∧
+    (30 : Time) + frontierSearchRiseBudget v5T 4 1 7 + frontierSearchRowBudget v5T 4 1 7 ≤
+      ladrho.horizon := by
+  obtain ⟨_, _, kind, _, _, _, _, kind', hst, _⟩ := ladChain
+  exact ⟨rfl, ⟨by decide⟩, by decide, fun _ _ _ _ _ _ => ladallow 7 _ (by decide),
+    ⟨kind', hst, by decide⟩, by decide +kernel⟩
+
+/-- G0 inspection (companion): the rise is the p_4 delivery (index 44, time 37) and the
+least height-5 row is the row of action 4 (time 38), inside the row deadline. -/
+private theorem ladFamilyExit :
+    (∃ j ev, ladrho.events[j]? = some ev ∧ j = 44 ∧ ev = ladDel (ladp 4) 37 ∧
+      ev.time ≤ 30 + frontierSearchRiseBudget v5T 4 1 7) ∧
+    ∃ rStar, ladHR rStar 5 ∧ (∀ r, ladHR r 5 → rStar ≤ r) ∧ rStar = 4 ∧
+      ∃ j ev, ladrho.events[j]? = some ev ∧ j = 44 ∧
+        v5T.action rStar ≤ ev.time + frontierSearchRowBudget v5T 4 1 7 := by
+  obtain ⟨h1, h2, h3, h4, h5, _, _, _, _, _, _, _⟩ := ladSearch_premises_sat
+  obtain ⟨hd, hb, hρ, hfam, _, _⟩ := ladFamilyStatement_premises_sat
+  obtain ⟨hrise, hrow⟩ := (FrontierSearchFamilyStatement_def ladR ladS v5env ladrho ladO v5T
+    ladI ladD.heightPair 12 1 4 4 1 7).mp ladFamily hd hb hρ hfam 1 30 4 h1 h2 h3 h4 h5
+    ladrowCap
+  refine ⟨?_, ?_⟩
+  · obtain ⟨j, ev, hj, hev, ht, hh, hcap⟩ := hrise (by decide +kernel)
+    obtain ⟨rfl, rfl⟩ := ladriseWitness hj hev hh hcap
+    exact ⟨_, _, hev, rfl, rfl, ht⟩
+  · obtain ⟨rStar, hr, hfirst, j, ev, hj, hev, _, hh, hcap, hrowt⟩ := hrow (by decide +kernel)
+    obtain ⟨rfl, rfl⟩ := ladriseWitness hj hev hh hcap
+    exact ⟨rStar, hr, hfirst, (ladrow5 rStar).mp hr, _, _, hev, rfl, hrowt⟩
+
+/-! Negative for the family premise. Run `ladc` is `lad` with the p_3 delivery moved from 29
+to 30, right after the tick of the cut. Same core, observations and timing. The phase
+changes at the cut, so the allowance 0 holds there vacuously; at the actual later start
+(the p_3 delivery, time 30) it fails at 33, where the phase [33, 36] has no repaired
+proposal. The family premise rejects this allowance; only these facts are proved on `ladc`
+(the other leaves are not re-proved on it). -/
+
+private noncomputable abbrev ladcrho : V2.D.Run Unit ladP where
+  honest := {()}
+  horizon := 168
+  events := [
+    .tick () 0, .tick () 1, .tick () 2, .tick () 3, .tick () 4, ladDel (ladX 1) 4, .tick () 5,
+    .tick () 6, .tick () 7, .tick () 8, ladDel (ladX 2) 8, .tick () 9, .tick () 10, .tick () 11,
+    .tick () 12, ladDel (ladX 3) 12, .tick () 13, ladDel (ladp 1) 13, .tick () 14, .tick () 15,
+    .tick () 16, .tick () 17, .tick () 18, .tick () 19, .tick () 20, .tick () 21,
+    ladDel (ladp 2) 21, .tick () 22, .tick () 23, .tick () 24, .tick () 25, .tick () 26,
+    .tick () 27, .tick () 28, .tick () 29, .tick () 30, ladDel (ladp 3) 30, .tick () 31,
+    .tick () 32, .tick () 33, .tick () 34, .tick () 35, .tick () 36, .tick () 37,
+    ladDel (ladp 4) 37, .tick () 38, .tick () 39, .tick () 40, .tick () 41, .tick () 42,
+    .tick () 43, .tick () 44, .tick () 45, ladDel (ladp 5) 45, .tick () 46, .tick () 47,
+    .tick () 48, .tick () 49, .tick () 50, .tick () 51, .tick () 52, .tick () 53,
+    ladDel (ladp 6) 53, .tick () 54, .tick () 55, .tick () 56, .tick () 57, .tick () 58,
+    .tick () 59, .tick () 60, .tick () 61, ladDel (ladp 7) 61, .tick () 62, .tick () 63,
+    .tick () 64, .tick () 65, .tick () 66, .tick () 67, .tick () 68, .tick () 69,
+    ladDel (ladp 8) 69, .tick () 70, .tick () 71, .tick () 72, .tick () 73, .tick () 74,
+    .tick () 75, .tick () 76, .tick () 77, ladDel (ladp 9) 77, .tick () 78, .tick () 79,
+    .tick () 80, .tick () 81, .tick () 82, .tick () 83, .tick () 84, .tick () 85,
+    ladDel (ladp 10) 85, .tick () 86, .tick () 87, .tick () 88, .tick () 89, .tick () 90,
+    .tick () 91, .tick () 92, .tick () 93, ladDel (ladp 11) 93, .tick () 94, .tick () 95,
+    .tick () 96, .tick () 97, .tick () 98, .tick () 99, .tick () 100, .tick () 101,
+    ladDel (ladp 12) 101, .tick () 102, .tick () 103, .tick () 104, .tick () 105, .tick () 106,
+    .tick () 107, .tick () 108, .tick () 109, ladDel (ladp 13) 109, .tick () 110, .tick () 111,
+    .tick () 112, .tick () 113, .tick () 114, .tick () 115, .tick () 116, .tick () 117,
+    ladDel (ladp 14) 117, .tick () 118, .tick () 119, .tick () 120, .tick () 121, .tick () 122,
+    .tick () 123, .tick () 124, .tick () 125, ladDel (ladp 15) 125, .tick () 126, .tick () 127,
+    .tick () 128, .tick () 129, .tick () 130, .tick () 131, .tick () 132, .tick () 133,
+    ladDel (ladp 16) 133, .tick () 134, .tick () 135, .tick () 136, .tick () 137, .tick () 138,
+    .tick () 139, .tick () 140, .tick () 141, ladDel (ladp 17) 141, .tick () 142, .tick () 143,
+    .tick () 144, .tick () 145, .tick () 146, .tick () 147, .tick () 148, .tick () 149,
+    ladDel (ladp 18) 149, .tick () 150, .tick () 151, .tick () 152, .tick () 153, .tick () 154,
+    .tick () 155, .tick () 156, .tick () 157, ladDel (ladp 19) 157, .tick () 158, .tick () 159,
+    .tick () 160, .tick () 161, .tick () 162, .tick () 163, .tick () 164, .tick () 165,
+    ladDel (ladp 20) 165, .tick () 166, .tick () 167, .tick () 168]
+  seatOf := fun _ _ => ()
+  input := fun _ _ => ()
+
+private theorem ladcphase33 : PhaseInterval ladR v5env ladcrho ladO 33 36 4 none false := by
+  refine ⟨by decide, by decide, by decide, ?_⟩
+  intro i x hi hi' _
+  cases x
+  have h1 : V2.D.Run.idxBefore ladcrho 33 = 39 := by decide +kernel
+  have h2 : timeIdx ladcrho 36 = 43 := by decide +kernel
+  rw [h1] at hi
+  rw [h2] at hi'
+  interval_cases i <;> decide +kernel
+
+private theorem ladcBad :
+    (30 : Time) = v5T.action (1 + 2) ∧
+    FrontierRepairAllowance ladR v5env ladcrho ladO v5T ladI 12 1 4 0 30 ∧
+    (∃ kind, FrontierSearchStart ladR v5env ladcrho ladO v5T 12 36 (ladDel (ladp 3) 30) 4
+      kind) ∧
+    (12 : Time) + 2 * FGCompose.P v5T ≤ (ladDel (ladp 3) 30).time ∧
+    ¬ FrontierRepairAllowance ladR v5env ladcrho ladO v5T ladI 12 1 4 0
+      ((ladDel (ladp 3) 30).time + 3 * v5T.delta) ∧
+    ¬ ∀ i ev m kind, FrontierSearchStart ladR v5env ladcrho ladO v5T 12 i ev m kind →
+      (12 : Time) + 2 * FGCompose.P v5T ≤ ev.time →
+      FrontierRepairAllowance ladR v5env ladcrho ladO v5T ladI 12 1 4 0
+        (ev.time + 3 * v5T.delta) := by
+  have hallow : FrontierRepairAllowance ladR v5env ladcrho ladO v5T ladI 12 1 4 0 30 := by
+    refine ⟨le_rfl, 8 + 2 * 1 - 1, FrontierRepairStart.two (u := 30) 8 (by decide)
+      (fun (b : Nat) hb => ?_), ?_⟩
+    · have hb' : (30 : Int) < 4 * ((b : Nat) : Int) := hb
+      change (8 : Nat) ≤ b
+      omega
+    · intro _ (v : Int) m J c _ hp
+      exfalso
+      have hv : (30 : Int) ≤ v := hp.1
+      have hi1 : V2.D.Run.idxBefore ladcrho 30 = 35 := by decide +kernel
+      have hi2 : timeIdx ladcrho 30 = 37 := by decide +kernel
+      have ht := v9timeIdx_mono ladcrho hv
+      have a1 := (hp.2.2.2 35 () (by omega) (by omega) (by decide)).1
+      have a2 := (hp.2.2.2 37 () (by omega) (by omega) (by decide)).1
+      rw [← a1] at a2
+      revert a2
+      decide +kernel
+  obtain ⟨kind, hkind⟩ := frontierSearch_phase_exists ladR ladO v5env ladcrho (36 + 1) 4
+  have hstart : FrontierSearchStart ladR v5env ladcrho ladO v5T 12 36 (ladDel (ladp 3) 30)
+      4 kind :=
+    (FrontierSearchStart_def ladR v5env ladcrho ladO v5T 12 36 _ 4 kind).mpr
+      ⟨by decide +kernel, by decide, Or.inl (Or.inl (by decide +kernel)), by decide +kernel,
+        by decide, hkind⟩
+  have hbad : ¬ FrontierRepairAllowance ladR v5env ladcrho ladO v5T ladI 12 1 4 0
+      ((ladDel (ladp 3) 30).time + 3 * v5T.delta) := by
+    rintro ⟨_, l, hl, hrep⟩
+    obtain ⟨s, Q, hls, hg, _⟩ := (hrep (by decide) 36 4 none false (by decide) ladcphase33).2
+      (by decide)
+    have hg' : 4 * ((s : Nat) : Int) + 6 ≤ 33 + 0 := hg
+    cases hl with
+    | two β after _ =>
+      have h1 : (33 : Int) < 4 * ((β : Nat) : Int) := after
+      have h2 : 4 * (((β + 2 * 1 - 1 : Nat) : Nat) : Int) < 4 * ((s : Nat) : Int) := hls
+      have h3 : ((β + 2 * 1 - 1 : Nat) : Int) = (β : Int) + 1 := by
+        push_cast
+        omega
+      omega
+    | one b after _ _ _ =>
+      have h1 : (33 : Int) ≤ 4 * ((b : Nat) : Int) + 1 := after
+      have h2 : 4 * (((b + 1 : Nat) : Nat) : Int) < 4 * ((s : Nat) : Int) := hls
+      push_cast at h2
+      omega
+  exact ⟨by decide, hallow, ⟨kind, hstart⟩, by decide, hbad,
+    fun h => hbad (h _ _ _ _ hstart (by decide))⟩
+
 
 end AvailableChain.FGCompose.Tests.P0d5db
 end
