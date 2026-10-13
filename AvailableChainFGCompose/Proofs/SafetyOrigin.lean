@@ -104,5 +104,70 @@ theorem safety_origin_stateBefore (C : FGCoreLaws R)
     rw [Function.update_self]
     exact hM
 
+private theorem safety_origin_good_readAt (C : FGCoreLaws R)
+    (L : FGSafetyStoreOriginLaws R S H f Good pending)
+    (E : Generic.Env V) (rho : V2.D.Run V P) (t : Time) (x : V) :
+    Good (V2.D.Run.readAt E rho t x) := by
+  obtain ⟨rho', -, h⟩ := safety_readAt_replay E rho t
+  rw [h]
+  exact (safety_origin_stateBefore C L E rho' _ x).1
+
+private theorem safety_origin_read_delivery (C : FGCoreLaws R)
+    (L : FGSafetyStoreOriginLaws R S H f Good pending)
+    (E : Generic.Env V) (rho : V2.D.Run V P) (t : Time) (x : V) (B : FGBlock (Fin n))
+    (hB : B ∈ (R.core (V2.D.Run.readAt E rho t x)).fg.TF) (hne : B ≠ .genesis) :
+    ∃ o t', V2.Event.deliver x o t' ∈ rho.events ∧
+      S.proposalErase o = some (R.erase B) ∧
+      B.rows = (S.proposalRows o).filterMap S.decode := by
+  obtain ⟨rho', hsub, h⟩ := safety_readAt_replay E rho t
+  rw [h] at hB
+  obtain ⟨o, t', hd, hp, hrows⟩ :=
+    ((safety_origin_stateBefore C L E rho' _ x).2.1 B hB).resolve_left hne
+  exact ⟨o, t', hsub _ hd, hp, hrows⟩
+
+private theorem safety_origin_preceq_refl (b : Block) : Block.Preceq b b := by
+  cases b <;> simp [Block.Preceq, Block.preceq]
+
+private theorem safety_origin_stored_runBlock (C : FGCoreLaws R)
+    (L : FGSafetyStoreOriginLaws R S H f Good pending)
+    (E : Generic.Env V) (rho : V2.D.Run V P) (i : Nat) (x : V) (B : FGBlock (Fin n))
+    (hB : B ∈ (R.core (V2.D.Run.stateBefore E rho i x)).fg.TF) (hne : B ≠ .genesis) :
+    safetyRunBlock R S E rho B := by
+  obtain ⟨o, t, hd, hp, -⟩ :=
+    ((safety_origin_stateBefore C L E rho i x).2.1 B hB).resolve_left hne
+  exact ⟨o, R.erase B, hp, Or.inr ⟨x, t, hd⟩, safety_origin_preceq_refl _⟩
+
+private theorem safety_origin_read_runBlock (C : FGCoreLaws R)
+    (L : FGSafetyStoreOriginLaws R S H f Good pending)
+    (E : Generic.Env V) (rho : V2.D.Run V P) (t : Time) (x : V) (B : FGBlock (Fin n))
+    (hB : B ∈ (R.core (V2.D.Run.readAt E rho t x)).fg.TF) (hne : B ≠ .genesis) :
+    safetyRunBlock R S E rho B := by
+  obtain ⟨o, t', hd, hp, -⟩ := safety_origin_read_delivery C L E rho t x B hB hne
+  exact ⟨o, R.erase B, hp, Or.inr ⟨x, t', hd⟩, safety_origin_preceq_refl _⟩
+
+private theorem safety_origin_stored_scope (C : FGCoreLaws R)
+    (L : FGSafetyStoreOriginLaws R S H f Good pending)
+    (N : FGSafetyScopeLaws R S E rho Q) (i : Nat) (x : V) (hx : x ∈ rho.honest)
+    (B : FGBlock (Fin n)) (hB : B ∈ (R.core (V2.D.Run.stateBefore E rho i x)).fg.TF) :
+    Q (R.erase B) := by
+  by_cases hne : B = .genesis
+  · subst B
+    exact N.genesis_scope x hx
+  obtain ⟨o, t, hd, hp, -⟩ :=
+    ((safety_origin_stateBefore C L E rho i x).2.1 B hB).resolve_left hne
+  exact N.delivered_scope x o t _ hd hp
+
+/-- `safety_read_scope` under the origin record. -/
+theorem safety_read_scope_origin (C : FGCoreLaws R)
+    (L : FGSafetyStoreOriginLaws R S H f Good pending)
+    (N : FGSafetyScopeLaws R S E rho Q) (t : Time) (x : V) (hx : x ∈ rho.honest)
+    (B : FGBlock (Fin n)) (hB : B ∈ (R.core (V2.D.Run.readAt E rho t x)).fg.TF) :
+    Q (R.erase B) := by
+  by_cases hne : B = .genesis
+  · subst B
+    exact N.genesis_scope x hx
+  obtain ⟨o, t', hd, hp, -⟩ := safety_origin_read_delivery C L E rho t x B hB hne
+  exact N.delivered_scope x o t' _ hd hp
+
 end AvailableChain.FGCompose
 end
