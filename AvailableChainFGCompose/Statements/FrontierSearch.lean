@@ -503,5 +503,69 @@ theorem frontierSearch_remaining_def (G ΔF ρbar tail : Time) (kind : PhaseKind
         (if frontierSearch_phaseRank kind = 2 then 0 else E_jF T ΔF G ρbar) +
         (ρbar + 3 * T.delta + tail) := rfl
 
+/-! Start-family companion of `FrontierSearchStatement` (additive; lead ruling 2026-10-13).
+The landed statement gives the repair allowance at the cut only. The phase tail reads it
+at every actual phase start. This form fixes one allowance value and takes the semantic
+allowance at `ev.time + 3Δ` for every actual start after `Jst + 2P`. The conclusion reads
+only the nonnegativity of the allowance at the cut. The first row is the least one, so it
+does not depend on the allowance. -/
+
+/-- Blueprint 21 HG.5/H.11; plan §3.3.
+DC: SAME the search conclusion of `FrontierSearchStatement` for one allowance value, under
+the allowance at every actual phase start. Both complete horizon guards are retained. -/
+def FrontierSearchFamilyStatement (G ΔF ρbar : Time) : Prop :=
+  deltaT = 2 * T.roundSlots → LivenessBoundW T ΔF → 0 ≤ ρbar →
+  (∀ i ev m kind, FrontierSearchStart R E rho O T Jst i ev m kind →
+    Jst + 2 * FGCompose.P T ≤ ev.time →
+    FrontierRepairAllowance R E rho O T I Jst leaseSlots G ρbar (ev.time + 3 * T.delta)) →
+  ∀ rG u₀ M, Jst ≤ T.action rG →
+    (∀ r, Jst ≤ T.action r → rG ≤ r) → u₀ = T.action (rG + 2) →
+    Jst + 2 * FGCompose.P T ≤ u₀ → M = honestFrontier R E rho u₀ →
+    (∀ j y r a h e t, HonestRowAt S E rho T j y r a →
+      rho.events[j]? = some (.tick y t) → t ≤ u₀ →
+      namedEntry (pair a) = some (h, e) → h ≤ M) →
+    (u₀ + frontierSearchRiseBudget T G ΔF ρbar ≤ rho.horizon →
+      ∃ j ev, timeIdx rho u₀ ≤ j ∧ rho.events[j]? = some ev ∧
+        ev.time ≤ u₀ + frontierSearchRiseBudget T G ΔF ρbar ∧
+        M < frontierAtIdx R E rho (j + 1) ∧
+        (∀ k, timeIdx rho u₀ ≤ k → k ≤ j → frontierAtIdx R E rho k ≤ M)) ∧
+    (u₀ + frontierSearchRiseBudget T G ΔF ρbar +
+        frontierSearchRowBudget T G ΔF ρbar ≤ rho.horizon →
+      ∃ rStar, HeightRow S E rho T (fun a => namedEntry (pair a)) rStar (M + 1) ∧
+        (∀ r, HeightRow S E rho T (fun a => namedEntry (pair a)) r (M + 1) → rStar ≤ r) ∧
+        ∃ j ev, timeIdx rho u₀ ≤ j ∧ rho.events[j]? = some ev ∧
+          ev.time ≤ u₀ + frontierSearchRiseBudget T G ΔF ρbar ∧
+          M < frontierAtIdx R E rho (j + 1) ∧
+          (∀ k, timeIdx rho u₀ ≤ k → k ≤ j → frontierAtIdx R E rho k ≤ M) ∧
+          T.action rStar ≤ ev.time + frontierSearchRowBudget T G ΔF ρbar)
+
+/-- Blueprint 21 HG.5/H.11. DC: SAME expose the companion contract for its producer. -/
+theorem FrontierSearchFamilyStatement_def (G ΔF ρbar : Time) :
+    FrontierSearchFamilyStatement R S E rho O T I pair Jst leaseSlots deltaT G ΔF ρbar ↔
+  deltaT = 2 * T.roundSlots → LivenessBoundW T ΔF → 0 ≤ ρbar →
+  (∀ i ev m kind, FrontierSearchStart R E rho O T Jst i ev m kind →
+    Jst + 2 * FGCompose.P T ≤ ev.time →
+    FrontierRepairAllowance R E rho O T I Jst leaseSlots G ρbar (ev.time + 3 * T.delta)) →
+  ∀ rG u₀ M, Jst ≤ T.action rG →
+    (∀ r, Jst ≤ T.action r → rG ≤ r) → u₀ = T.action (rG + 2) →
+    Jst + 2 * FGCompose.P T ≤ u₀ → M = honestFrontier R E rho u₀ →
+    (∀ j y r a h e t, HonestRowAt S E rho T j y r a →
+      rho.events[j]? = some (.tick y t) → t ≤ u₀ →
+      namedEntry (pair a) = some (h, e) → h ≤ M) →
+    (u₀ + frontierSearchRiseBudget T G ΔF ρbar ≤ rho.horizon →
+      ∃ j ev, timeIdx rho u₀ ≤ j ∧ rho.events[j]? = some ev ∧
+        ev.time ≤ u₀ + frontierSearchRiseBudget T G ΔF ρbar ∧
+        M < frontierAtIdx R E rho (j + 1) ∧
+        (∀ k, timeIdx rho u₀ ≤ k → k ≤ j → frontierAtIdx R E rho k ≤ M)) ∧
+    (u₀ + frontierSearchRiseBudget T G ΔF ρbar +
+        frontierSearchRowBudget T G ΔF ρbar ≤ rho.horizon →
+      ∃ rStar, HeightRow S E rho T (fun a => namedEntry (pair a)) rStar (M + 1) ∧
+        (∀ r, HeightRow S E rho T (fun a => namedEntry (pair a)) r (M + 1) → rStar ≤ r) ∧
+        ∃ j ev, timeIdx rho u₀ ≤ j ∧ rho.events[j]? = some ev ∧
+          ev.time ≤ u₀ + frontierSearchRiseBudget T G ΔF ρbar ∧
+          M < frontierAtIdx R E rho (j + 1) ∧
+          (∀ k, timeIdx rho u₀ ≤ k → k ≤ j → frontierAtIdx R E rho k ≤ M) ∧
+          T.action rStar ≤ ev.time + frontierSearchRowBudget T G ΔF ρbar) := Iff.rfl
+
 end AvailableChain.FGCompose
 end

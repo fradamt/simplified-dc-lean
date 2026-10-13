@@ -14,6 +14,9 @@ public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchTop -- shake:
 public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchTail -- shake: keep (audit)
 public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchRise -- shake: keep (audit)
 public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchCompose -- shake: keep (audit)
+public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchTasks -- shake: keep (audit)
+public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchFull -- shake: keep (audit)
+public import AvailableChainFGCompose.Proofs.Healing.Reset -- shake: keep (audit)
 public import AvailableChainFGCompose.Proofs.Healing.Attempt -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Proofs.Healing.AttemptRows -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Proofs.Healing.AttemptSettle -- shake: keep (#print axioms)
@@ -920,6 +923,26 @@ public import AvailableChainFGCompose.Proofs.Healing.ResetCut -- shake: keep (#p
 #print axioms AvailableChain.FGCompose.frontierSearch_rise_of_stop
 #print axioms AvailableChain.FGCompose.frontierSearch_phase_compose
 #print axioms AvailableChain.FGCompose.frontierSearch_phase_tail
+#print axioms AvailableChain.FGCompose.frontierSearch_task_bounds
+#print axioms AvailableChain.FGCompose.frontierSearch_rise_task
+#print axioms AvailableChain.FGCompose.frontierSearch_row_of_rise
+#print axioms AvailableChain.FGCompose.frontierSearch_row_task
+#print axioms AvailableChain.FGCompose.frontierSearch_phase_exists
+#print axioms AvailableChain.FGCompose.frontierSearch_cut_start
+#print axioms AvailableChain.FGCompose.frontierSearch_event_time_mono
+#print axioms AvailableChain.FGCompose.frontierSearch
+#print axioms AvailableChain.FGCompose.FrontierSearchFamilyStatement
+#print axioms AvailableChain.FGCompose.FrontierSearchFamilyStatement_def
+#print axioms AvailableChain.FGCompose.frontierSearch_family
+#print axioms AvailableChain.FGCompose.healing_reset_budget_sum
+#print axioms AvailableChain.FGCompose.healing_reset_budget_lt
+#print axioms AvailableChain.FGCompose.healing_reset_rowCap
+#print axioms AvailableChain.FGCompose.healing_reset_mu_le
+#print axioms AvailableChain.FGCompose.healing_reset_fresh
+#print axioms AvailableChain.FGCompose.healing_reset_synchronous
+#print axioms AvailableChain.FGCompose.healing_reset_reset_first
+#print axioms AvailableChain.FGCompose.healing_reset_fields
+#print axioms AvailableChain.FGCompose.healing_resetWitness
 #print axioms AvailableChain.FGCompose.FrontierRepairStart.two
 #print axioms AvailableChain.FGCompose.FrontierRepairStart.one
 

@@ -580,6 +580,11 @@ AvailableChainFGCompose.Proofs.Healing.FrontierSearchRise
 AvailableChainFGCompose.Tests.P0d5c
 AvailableChainFGCompose.Proofs.Healing.FrontierSearchCompose
 AvailableChainFGCompose.Tests.P0d5da
+AvailableChainFGCompose.Proofs.Healing.FrontierSearchTasks
+AvailableChainFGCompose.Proofs.Healing.FrontierSearchFull
+AvailableChainFGCompose.Tests.P0d5db
+AvailableChainFGCompose.Proofs.Healing.Reset
+AvailableChainFGCompose.Tests.P0d6b
 [DEFERRED]
 AvailableChainFGSAProofs.Proofs.Shared.Claims P-ShA
 
