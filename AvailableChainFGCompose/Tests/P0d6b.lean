@@ -1,6 +1,5 @@
 module
 public import AvailableChainFGCompose.Proofs.Healing.Reset
-public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchRepair
 public import AvailableChainFGCompose.Proofs.Finality.History -- shake: keep (window views)
 
 set_option linter.privateModule false
