@@ -71,5 +71,22 @@ theorem safety_noSlash_all_of_holder (Ef : Electorate (Fin n)) (cfg : FGConfig)
     exact he i hx
   · exact safety_nonholder_noSlash S E rho Ef cfg rows W x (by simpa using hh)
 
+/-- Read evidence never slashes any honest node, including honest nonholders.
+Only carriage and honest-holder client safety are needed at this boundary. -/
+theorem safety_honest_never_slashed_holder {Base Proposal : Type}
+    (R : FGCoreReads P n Base Proposal Wire)
+    (hc : ∀ t x, safetyCarriage S E rho (safetyRows R (V2.D.Run.readAt E rho t x)))
+    (he : ∀ i, safetyHolder S rho i ∈ rho.honest →
+      safetyNoSlash S E rho (safetyHolder S rho i))
+    (I : Gen.V2.Duty.SlashingInterface (V := V) P)
+    (hi : safetySlashesRead R S E rho I) : Gen.V2.Duty.HonestNeverSlashed I rho := by
+  intro v hv hs
+  obtain ⟨x, y, t, t', i, ⟨a, ha, b, hb, hai, hbi, hab⟩, rfl⟩ := (hi v).mp hs
+  obtain ⟨wa, hwa, hea⟩ := hc t x a ha
+  obtain ⟨wb, hwb, heb⟩ := hc t' y b hb
+  rw [hai] at hea
+  rw [hbi] at heb
+  exact he i hv wa wb (hea hv) (heb hv) a b hwa hwb hab
+
 end AvailableChain.FGCompose
 end
