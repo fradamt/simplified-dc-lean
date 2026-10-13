@@ -61,6 +61,22 @@ def ordinary_selectedAcceptance {j : Nat} {x : V} {o : P.Object} {t d : Time}
     rw [hc]
     exact effect
 
+/-- Equality bridge for the constructor's chosen cut and immutable original token. -/
+theorem ordinary_selectedAcceptance_fields {j : Nat} {x : V} {o : P.Object} {t d : Time}
+    {b : Body} {W : FGBlock (Fin n)}
+    (hx : x ∈ rho.honest) (he : rho.events[j]? = some (.deliver x o t))
+    (origin : FGReceiptOrigin E rho H Wr x b (fgEventToken rho x j o t))
+    (herase : R.erase W = H.erase b) (hrows : W.rows = (Wr.bodyRows b).filterMap S.decode)
+    (ht : t < d)
+    (effect : (R.core (V2.D.Run.stateBefore E rho (j + 1) x)).fg =
+      SimplexFG.Window.update_finality Ef cfg K
+        { (R.core (V2.D.Run.stateBefore E rho j x)).fg with
+          TF := insert W (R.core (V2.D.Run.stateBefore E rho j x)).fg.TF } W) :
+    let A := ordinary_selectedAcceptance R S E rho H Wr Ef cfg K
+      hx he origin herase hrows ht effect
+    A.step = 3 * j ∧ A.eventIndex = j ∧ A.token = fgEventToken rho x j o t ∧ A.body = b :=
+  ⟨rfl, rfl, rfl, rfl⟩
+
 /-- Iff: once the successful delivery is selected explicitly, its local effect law is
 exactly carrier-finality membership and global observed retention. The effect equation
 itself is already carried by the selected witness. -/
