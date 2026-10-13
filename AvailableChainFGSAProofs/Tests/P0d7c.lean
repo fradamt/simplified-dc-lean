@@ -2384,8 +2384,8 @@ private theorem forward_output_le {ΔF t : Time} {w : HealingWitness} {r : Nat} 
 
 /-- The generic forward witness `FGCompose.forward_witness_FE_of` at the FG-SA instances.
 The kernel supplier is the generic kernel `d7c_kernel` at the same witness; no kernel
-conclusion is assumed. `opening` is the one input left to the run (see the report: the
-generic premise has no `t ≤ r·P` guard). -/
+conclusion is assumed. The guarded `opening` premise is produced here from the join cut
+(tstar ≤ t ≤ r·P) and the recovery regime. -/
 private theorem d7c_forward
     (hServices : FinalityActionReceipts p c E rho) (G ΔF : Time) (g : Nat)
     (w : HealingWitness) (hδ : p.δt = 2 * p.R) (pt : PtT)
@@ -2418,10 +2418,7 @@ private theorem d7c_forward
       j ≤ V2.D.Run.idxBefore rho cut → HeldAt p c E rho j z W →
       (∀ k u r a row h T timeout, HonestRowAt p c E rho k u r a →
         RowWire.toRow? a = some row → row.height_pair = .vote h T timeout →
-        p.actionTime r < cut → h < b + 1) → (heightView p W).h < b + 2)
-    (opening : ∀ r, Gen.V2.Duty.HonestSlot rho (fgsaInterface p c) (r * p.R) →
-      SA.proposalTime p.toParams (r * p.R) ≤ rho.horizon →
-      ∃ A, HonestProposal E rho (fgsaInterface p c) (r * p.R) A) :
+        p.actionTime r < cut → h < b + 1) → (heightView p W).h < b + 2) :
     FGCompose.ForwardWitness_W (fgsaCoreReads p c) E rho (d7n_observations p c)
       (d7n_timing p) (fgsaInterface p c) (d7n_decodeProposal p) NamedProposal.erase
       NamedProposal.rows (fun (nd : Node p) (Q : Block) => FGSA.fgBlockOf nd.st Q.parent)
@@ -2477,7 +2474,24 @@ private theorem d7c_forward
         hhor := hKg.hhor, input := h.input
         services := fgsa_coreServices E rho hrec₂.base w (finality_vote_receipts hrec₂) }
       hsel horigin hBatch hQC hXing hI3 hStrat hEmittedSource hcapBefore)
-    (opening := opening)
+    (opening := by
+      intro r hslot htr hh
+      have htr' : pt.t ≤ (r : Time) * P p := htr
+      have hst := h.start.trans htr'
+      rw [kmid_period_eq] at hst
+      have hlow : (w.sStar : Int) + 2 ≤ (w.u : Int) := by
+        exact_mod_cast h.input.wit.proposal_lower
+      have hsync := h.input.wit.synchronous
+      change 4 * p.Δ * (w.u : Int) + 6 * p.Δ ≤ 4 * p.Δ * ((r * p.R : Nat) : Int) at hst
+      change E.t_GST ≤ 4 * p.Δ * (w.sStar : Int) + p.Δ at hsync
+      have hcut : E.t_GST ≤ slotStartZ p (((r * p.R : Nat) : Int) - 1) := by
+        change E.t_GST ≤ 4 * p.Δ * (((r * p.R : Nat) : Int) - 1)
+        nlinarith [p.deltaPos]
+      have hG : E.t_GST ≤ SA.proposalTime p.toParams (r * p.R) := by
+        change E.t_GST ≤ 4 * p.Δ * ((r * p.R : Nat) : Int)
+        nlinarith [p.deltaPos]
+      exact kmid_honest_proposal_exists p c E rho hs hrec₂.base.delta _ hslot
+        (finality_recovery_joined p c E rho hrec₂ hslot.2 hcut hG hh) hh)
     (reset := d7n_reset p c E rho w h.input.wit.toH0Reset)
     (history := d7n_transfer p c E rho w h.input.t.h2 rho.horizon)
     (height := (fgCertificateLaws p).height)
@@ -2522,10 +2536,7 @@ private theorem d7c_liveness
       j ≤ V2.D.Run.idxBefore rho cut → HeldAt p c E rho j z W →
       (∀ k u r a row h T timeout, HonestRowAt p c E rho k u r a →
         RowWire.toRow? a = some row → row.height_pair = .vote h T timeout →
-        p.actionTime r < cut → h < b + 1) → (heightView p W).h < b + 2)
-    (opening : ∀ r, Gen.V2.Duty.HonestSlot rho (fgsaInterface p c) (r * p.R) →
-      SA.proposalTime p.toParams (r * p.R) ≤ rho.horizon →
-      ∃ A, HonestProposal E rho (fgsaInterface p c) (r * p.R) A) :
+        p.actionTime r < cut → h < b + 1) → (heightView p W).h < b + 2) :
     FGCompose.FinalityLivenessConcl_W (fgsaCoreReads p c) E rho (d7n_observations p c)
       (fun nd : Node p => nd.st.base.stableRecord) pt.t
       (pt.t + FGCompose.W_W (d7n_timing p) ΔF g) := by
@@ -2596,7 +2607,7 @@ private theorem d7c_liveness
       rw [hout, hread]
       exact hFS)
     (hf := d7c_forward p c E rho hServices G ΔF g w hδ pt h hsel horigin hBatch hQC hXing
-      hI3 hStrat hEmittedSource hcapBefore opening)
+      hI3 hStrat hEmittedSource hcapBefore)
 
 /-- `d7c_kernel` with the FG-SA suppliers of the frozen kernel produced from `Recovery₂`
 (the same public producers as Assembly/Finality.fgsa_finalityKernel_W). -/
@@ -2645,10 +2656,7 @@ private theorem d7c_kernelOfRecovery (G ΔF : Time) (hδ : p.δt = 2 * p.R) (pt 
 /-- `d7c_liveness` with the same suppliers produced from the recovery regime. -/
 private theorem d7c_livenessOfRecovery (G ΔF : Time) (g : Nat) (w : HealingWitness)
     (hδ : p.δt = 2 * p.R) (pt : PtT)
-    (h : FinalityLivenessPrem_W p c G ΔF .recFE g w E rho pt)
-    (opening : ∀ r, Gen.V2.Duty.HonestSlot rho (fgsaInterface p c) (r * p.R) →
-      SA.proposalTime p.toParams (r * p.R) ≤ rho.horizon →
-      ∃ A, HonestProposal E rho (fgsaInterface p c) (r * p.R) A) :
+    (h : FinalityLivenessPrem_W p c G ΔF .recFE g w E rho pt) :
     FGCompose.FinalityLivenessConcl_W (fgsaCoreReads p c) E rho (d7n_observations p c)
       (fun nd : Node p => nd.st.base.stableRecord) pt.t
       (pt.t + FGCompose.W_W (d7n_timing p) ΔF g) := by
@@ -2658,7 +2666,7 @@ private theorem d7c_livenessOfRecovery (G ΔF : Time) (g : Nat) (w : HealingWitn
     G ΔF g w hδ pt h (fgsa_tRowsSelect p c E rho hR.base.valid)
     (held_chain_row_origin_before p c E rho hR.base.valid.toUnforgeableSignatures
       hR.base.valid.toScheduleWellFormed)
-    (fgsa_batchCoverage p ΔF .target) ?_ ?_ ?_ ?_ ?_ ?_ opening
+    (fgsa_batchCoverage p ΔF .target) ?_ ?_ ?_ ?_ ?_ ?_
   · exact sourceDiscipline_qcOrigin p c E rho (pt := ()) ⟨hR.base, hR.faultQ⟩
       (fgsa_rStore p c E rho)
   · exact fgsa_rXing (hroots := hR.base.idealization) p c E rho hR.base.linked
@@ -2691,10 +2699,7 @@ private theorem d7c_livenessOfRecovery (G ΔF : Time) (g : Nat) (w : HealingWitn
 /-- `d7c_forward` with the same suppliers produced from the recovery regime. -/
 private theorem d7c_forwardOfRecovery (G ΔF : Time) (g : Nat) (w : HealingWitness)
     (hδ : p.δt = 2 * p.R) (pt : PtT)
-    (h : FinalityLivenessPrem_W p c G ΔF .recFE g w E rho pt)
-    (opening : ∀ r, Gen.V2.Duty.HonestSlot rho (fgsaInterface p c) (r * p.R) →
-      SA.proposalTime p.toParams (r * p.R) ≤ rho.horizon →
-      ∃ A, HonestProposal E rho (fgsaInterface p c) (r * p.R) A) :
+    (h : FinalityLivenessPrem_W p c G ΔF .recFE g w E rho pt) :
     FGCompose.ForwardWitness_W (fgsaCoreReads p c) E rho (d7n_observations p c)
       (d7n_timing p) (fgsaInterface p c) (d7n_decodeProposal p) NamedProposal.erase
       NamedProposal.rows (fun (nd : Node p) (Q : Block) => FGSA.fgBlockOf nd.st Q.parent)
@@ -2706,7 +2711,7 @@ private theorem d7c_forwardOfRecovery (G ΔF : Time) (g : Nat) (w : HealingWitne
     G ΔF g w hδ pt h (fgsa_tRowsSelect p c E rho hR.base.valid)
     (held_chain_row_origin_before p c E rho hR.base.valid.toUnforgeableSignatures
       hR.base.valid.toScheduleWellFormed)
-    (fgsa_batchCoverage p ΔF .target) ?_ ?_ ?_ ?_ ?_ ?_ opening
+    (fgsa_batchCoverage p ΔF .target) ?_ ?_ ?_ ?_ ?_ ?_
   · exact sourceDiscipline_qcOrigin p c E rho (pt := ()) ⟨hR.base, hR.faultQ⟩
       (fgsa_rStore p c E rho)
   · exact fgsa_rXing (hroots := hR.base.idealization) p c E rho hR.base.linked
@@ -4549,22 +4554,6 @@ theorem localPrem_premises_sat :
     FinalityLivenessPrem_W params unitCodec gap deltaF .recFE 1 w' env run ⟨50⟩ :=
   ⟨nvFinalitySet, nvHealingInput, by rw [nvTstarValue], by rw [nvRunHorizon]; decide⟩
 
-/-- premises_sat (opening): every honest opening slot inside the horizon has an actual honest
-proposal. GST is 0 on this run, so the unguarded generic premise is provable here. -/
-theorem opening_premises_sat (r : Nat)
-    (hslot : Gen.V2.Duty.HonestSlot run (fgsaInterface params unitCodec) (r * params.R))
-    (hh : SA.proposalTime params.toParams (r * params.R) ≤ run.horizon) :
-    ∃ A, HonestProposal env run (fgsaInterface params unitCodec) (r * params.R) A := by
-  have hpos : 0 < r * params.R := hslot.1
-  refine kmid_honest_proposal_exists params unitCodec env run nvSchedule env_delta _ hslot
-    (finality_recovery_joined params unitCodec env run nvRecovery.toRecovery₂ hslot.2
-      ?_ ?_ hh) hh
-  · change (0 : Time) ≤ 4 * 1 * (((r * params.R : Nat) : Int) - 1)
-    have : (1 : Int) ≤ ((r * params.R : Nat) : Int) := by exact_mod_cast hpos
-    linarith
-  · change (0 : Time) ≤ 4 * 1 * ((r * params.R : Nat) : Int)
-    positivity
-
 /-- premises_sat (kernel): every field of the FG-SA kernel premise for w' and round 5, from
 which `d7c_kernel` produces every argument of the generic kernel. -/
 theorem kernelPrem_premises_sat :
@@ -4636,7 +4625,7 @@ theorem forwardGeneric :
       FGSA.fgBlock (Gen.V2.Duty.HonestSlot run (fgsaInterface params unitCodec)) deltaF 1
       (d7n_point params w') 50 :=
   d7c_forwardOfRecovery params unitCodec env run gap deltaF 1 w' nvClock ⟨50⟩
-    localPrem_premises_sat opening_premises_sat
+    localPrem_premises_sat
 
 /-- POSITIVE 4: the generic local liveness `FGCompose.finality_liveness_of_forward_W` on the
 generic forward witness, with the actual stable record as the AC output. -/
@@ -4646,7 +4635,7 @@ theorem livenessGeneric :
       (fun nd : Node params => nd.st.base.stableRecord) 50
       (50 + FGCompose.W_W (d7n_timing params) deltaF 1) :=
   d7c_livenessOfRecovery params unitCodec env run gap deltaF 1 w' nvClock ⟨50⟩
-    localPrem_premises_sat opening_premises_sat
+    localPrem_premises_sat
 
 /-- The forward witness inspected: the selected round is exactly q = r = 5, the opening is an
 actual honest proposal at slot 15 with its carrier above the reset frontier, U is a strict
@@ -4702,7 +4691,6 @@ theorem livenessInspected : ∃ U : FGBlock (Fin params.n),
 
 #print axioms kernelPrem_premises_sat
 #print axioms localPrem_premises_sat
-#print axioms opening_premises_sat
 #print axioms joined_premises_sat
 #print axioms kernelGeneric
 #print axioms joinedGeneric
