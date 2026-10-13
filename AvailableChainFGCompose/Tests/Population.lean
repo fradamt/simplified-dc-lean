@@ -241,5 +241,14 @@ private theorem mixed_all_honest_safe :
     mixed_client_premises_sat mixed_wire_premises_sat mixed_safety_premises_sat.2.1,
     h, h 7 (by decide), h 9 (by decide)⟩
 
+/-- Each old population premise fails solely because the runtime is infinite. -/
+private theorem mixed_old_population_blocked :
+    ¬ Nonempty (Fin 1 ≃ Nat) ∧ ¬ V2.D.Linked (fun _ => False) run := by
+  constructor
+  · rintro ⟨e⟩
+    exact not_surjective_finite_infinite e e.surjective
+  · rintro ⟨N, e, _⟩
+    exact not_surjective_finite_infinite e e.surjective
+
 end AvailableChain.FGCompose.Tests.Population
 end
