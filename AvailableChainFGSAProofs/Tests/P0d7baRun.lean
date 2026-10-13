@@ -5,7 +5,7 @@ public import AvailableChainFGSAProofs.Proofs.Assembly.Finality
 public meta import AvailableChainFGSAProofs.Proofs.Foundations.RowPermission
 -- shake: keep (cached prefix checks)
 
-@[expose] public section
+set_option linter.privateModule false
 
 set_option maxSynthPendingDepth 100
 set_option maxRecDepth 10000
@@ -15,7 +15,8 @@ set_option exponentiation.threshold 2000
 /-! P0d7b-a bounded whole-kernel G0. The fixture and prefix proofs through `nvHealingInput`
 are copied verbatim from Tests/NonVacuity/HealingClaims.lean (horizon 310, the smallest
 fixture horizon that closes HealingInput; the kernel deadline used below is 97). Only the
-namespace and this comment change; the kernel section at the end is new. -/
+namespace, this comment and module privacy change (no public section, so the copy adds
+no inventory entries); the kernel section at the end is new. -/
 namespace AvailableChain.FGSA.Run.Tests.P0d7baRun
 
 /-- S5 NV6: S5 fixture: one honest node, positive horizon, and unchanged SA clocks.
@@ -1881,4 +1882,3 @@ theorem kernelWitnessInspected :
 #print axioms kernelWitnessInspected
 
 end AvailableChain.FGSA.Run.Tests.P0d7baRun
-end
