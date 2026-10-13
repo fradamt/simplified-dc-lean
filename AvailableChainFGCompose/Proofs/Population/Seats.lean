@@ -47,5 +47,22 @@ theorem high_target_honest_quorum_holder (Ef : Electorate (Fin n))
   have := unit.n_pos
   omega
 
+/-- Frozen all-holder bridge: seat faults and node faults have exactly the same count. -/
+theorem fg_fault_count_eq_nodes_of_equiv [Fintype V] (e : Fin n ≃ V)
+    (he : ∀ i, safetyHolder S rho i = e i) :
+    (historyFaulty S rho).card = (Gen.V2.Duty.faulty rho).card := by
+  classical
+  have himage : (historyFaulty S rho).image e = Gen.V2.Duty.faulty rho := by
+    ext x
+    simp only [Finset.mem_image, historyFaulty, Finset.mem_filter, Finset.mem_univ,
+      true_and, he, Gen.V2.Duty.faulty_def, Finset.mem_sdiff]
+    constructor
+    · rintro ⟨i, hi, rfl⟩
+      exact hi
+    · intro hx
+      exact ⟨e.symm x, by simpa using hx, e.apply_symm_apply x⟩
+  exact (Finset.card_image_of_injective _ e.injective).symm.trans
+    (congrArg Finset.card himage)
+
 end AvailableChain.FGCompose
 end
