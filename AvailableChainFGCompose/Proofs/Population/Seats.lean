@@ -26,7 +26,8 @@ theorem fgHonestSeats_nonempty_of_quorum (Ef : Electorate (Fin n))
   by_contra hn
   have he := Finset.not_nonempty_iff_eq_empty.mp hn
   change Ef.q ≤ Ef.weightOf (FGHonestSeats S rho) at hH
-  rw [he, Electorate.weightOf, Finset.sum_empty] at hH
+  delta Electorate.weightOf at hH
+  rw [he, Finset.sum_empty] at hH
   omega
 
 /-- Unit-seat fault counts give the weighted fault premise without counting nonholders. -/
