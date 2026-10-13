@@ -1,7 +1,7 @@
 module
-public import AvailableChainFGCompose.Statements.ExecutionObs
+public import AvailableChainFGCompose.Statements.ExecutionRecords
 public import AvailableChainFGCompose.Statements.Restart
-public import AvailableChainFGCompose.Statements.SafetyStore
+public import AvailableChainFGCompose.Proofs.SafetyStore
 public import AvailableChainKitFG.Correspondence -- shake: keep (Compose import policy)
 
 public section
@@ -100,6 +100,38 @@ private theorem time_at {j : Nat} {e : V2.Event V P.Object} (h : rho.events[j]? 
   rw [show k / 3 = j by omega, h]
   rfl
 
+private theorem own_at (x : V) (j : Nat) :
+    (ordinaryFGExecutionObs E rho).ownWrites x (3 * j + 1) =
+      ((ordinaryFGExecutionObs E rho).released x j).filter P.objSelfVisible := by
+  rw [ordinaryFGExecutionObs_def]
+  change (if (3 * j + 1) % 3 = 1 then _ else []) = _
+  rw [ite_eq_left (by omega), show (3 * j + 1) / 3 = j by omega]
+
+private theorem own_off (x : V) (k : Nat) (hk : k % 3 ≠ 1) :
+    (ordinaryFGExecutionObs E rho).ownWrites x k = [] := by
+  rw [ordinaryFGExecutionObs_def]
+  change (if k % 3 = 1 then _ else []) = []
+  rw [ite_eq_right hk]
+
+private theorem released_tick_of_ne (x : V) (j : Nat)
+    (hne : (ordinaryFGExecutionObs E rho).released x j ≠ []) :
+    ∃ t, rho.events[j]? = some (.tick x t) := by
+  cases h : rho.events[j]? with
+  | none =>
+    rw [ordinaryFGExecutionObs_def] at hne
+    change ((rho.events[j]?).map _).getD [] ≠ [] at hne
+    rw [h] at hne
+    exact absurd rfl hne
+  | some e =>
+    rw [released_some E rho x h] at hne
+    cases e with
+    | tick y t =>
+      by_cases hy : y = x
+      · subst hy; exact ⟨t, rfl⟩
+      · exact absurd (ite_eq_right hy) hne
+    | restart y t => exact absurd rfl hne
+    | deliver y o t => exact absurd rfl hne
+
 /-- The ordinary Duty fold meets the shared execution laws, with no premise. -/
 theorem ordinaryFGExecutionObs_laws :
     FGExecutionObsLaws E rho (ordinaryFGExecutionObs E rho) where
@@ -160,6 +192,49 @@ theorem ordinaryFGExecutionObs_laws :
     obtain ⟨j, wire, t, h, rfl, rfl⟩ := hacc
     rw [time_at E rho h x (le_refl _) (by omega)]
     exact le_refl _
+  tail_state j x h := by
+    change (rho.events.take j).foldl (V2.D.World.step E rho) V2.D.World.init x =
+      (rho.events.take rho.events.length).foldl (V2.D.World.step E rho) V2.D.World.init x
+    rw [List.take_of_length_le h, List.take_of_length_le le_rfl]
+  own_source x k hne := by
+    obtain ⟨j, r, hr, rfl⟩ : ∃ j r, r < 3 ∧ k = 3 * j + r :=
+      ⟨k / 3, k % 3, by omega, by omega⟩
+    by_cases h1 : r = 1
+    · subst h1
+      rw [own_at] at hne
+      have hrel : (ordinaryFGExecutionObs E rho).released x j ≠ [] := by
+        intro h0; rw [h0] at hne; exact hne rfl
+      obtain ⟨t, ht⟩ := released_tick_of_ne E rho x j hrel
+      have := idx_lt rho ht
+      refine ⟨?_, j, t, ht, ?_, ?_⟩
+      · change 3 * j + 1 < 3 * rho.events.length
+        omega
+      · change 3 * j + 1 ≤ 3 * j + 1
+        omega
+      · change 3 * j + 1 < 3 * j + 2
+        omega
+    · exact absurd (own_off E rho x _ (by omega)) hne
+  own_state x k hne := by
+    obtain ⟨j, r, hr, rfl⟩ : ∃ j r, r < 3 ∧ k = 3 * j + r :=
+      ⟨k / 3, k % 3, by omega, by omega⟩
+    by_cases h1 : r = 1
+    · subst h1
+      rw [own_at] at hne ⊢
+      have hrel : (ordinaryFGExecutionObs E rho).released x j ≠ [] := by
+        intro h0; rw [h0] at hne; exact hne rfl
+      obtain ⟨t, ht⟩ := released_tick_of_ne E rho x j hrel
+      change ordinaryCutState E rho x (3 * j + 1 + 1) =
+        List.foldl P.recordOwn (ordinaryCutState E rho x (3 * j + 1)) _
+      rw [show 3 * j + 1 + 1 = 3 * j + 2 by omega, cut_done, cut_entry, entry_some E rho x ht,
+        released_some E rho x ht, succ_tick E rho x ht, entryStep_tick, releaseStep_tick]
+    · exact absurd (own_off E rho x _ (by omega)) hne
+  own_complete j x t h := by
+    change (List.range (3 * j + 2 - (3 * j + 1))).flatMap
+      (fun i => (ordinaryFGExecutionObs E rho).ownWrites x (3 * j + 1 + i)) = _
+    rw [show 3 * j + 2 - (3 * j + 1) = 1 by omega]
+    simp only [List.range_one, List.flatMap_cons, List.flatMap_nil, List.append_nil,
+      Nat.add_zero]
+    rw [own_at, obsOwnReleased_def]
 
 /-- Ordinary emissions are exactly the Duty-fold emissions. -/
 theorem ordinary_obsEmits_iff (x : V) (o : P.Object) (t : Time) :
@@ -176,6 +251,23 @@ theorem ordinary_obsEmits_iff (x : V) (o : P.Object) (t : Time) :
     rw [(V2.D.Run.step_tick_eq E rho h).2] at ho
     rw [released_some E rho x h, releaseStep_tick]
     exact ho
+
+variable {n : Nat} {Base Proposal Wire : Type}
+
+/-- The strict-cut HEAD history bridge holds for every observation: the HEAD block is held
+at the actual duty cut, inside the segment of its tick, with the whole prefix before the
+deadline. -/
+theorem chainRows_of_head_obs (R : FGCoreReads P n Base Proposal Wire)
+    (O : FGExecutionObs V P) : ChainRowsOfHeadObsStatement R E rho O := by
+  rw [ChainRowsOfHeadObsStatement_def]
+  intro L EL CL j x t s X deadline hx hj hh hpre W hW _ _
+  obtain ⟨B, hB, hBe⟩ := CL.head_mem j x t s hj
+  have hBX : B = X := L.erase_inj (hBe.trans hh)
+  subst hBX
+  obtain ⟨h1, h2, h3, h4⟩ := EL.cut_order j _ x hj
+  have hcl := CL.parent_closed x (O.duty x j) (h3.trans h4)
+  refine ⟨x, hx, Or.inr ⟨j, _, O.duty x j, hj, by omega, h3, hpre, ?_⟩⟩
+  exact ancestor_closed_of_parent_closed _ hcl B hB W hW
 
 /-- A relation kept by every ordinary microstep holds across each local cut step. -/
 private theorem cut_step {Q : P.State → P.State → Prop} (hrefl : ∀ st, Q st st)
@@ -216,7 +308,6 @@ private theorem cut_step {Q : P.State → P.State → Prop} (hrefl : ∀ st, Q s
   · rw [cut_done, show 3 * j + 2 + 1 = 3 * (j + 1) by omega, cut_start]
     exact hrefl _
 
-variable {n : Nat} {Base Proposal Wire : Type}
 variable (R : FGCoreReads P n Base Proposal Wire)
 
 private theorem own_fold_core (L : FGCoreLaws R) (st : P.State) (l : List P.Object) :
@@ -277,6 +368,119 @@ theorem ordinaryFGExecutionObs_finality (L : FGCoreLaws R)
     change (R.core (ordinaryCutState E rho x (3 * j + 1))).fg.F =
       (R.core (ordinaryCutState E rho x (3 * j))).fg.F
     rw [cut_entry, cut_start, entry_some E rho x h, entryStep_restart, SR.restart_F]
+
+/-- The ordinary Duty fold meets the observed order record exactly when the run order laws
+hold (the fields are the same statement). -/
+theorem ordinaryFGExecutionObs_order (L : FGRunOrderLaws E rho R) :
+    FGObservedOrderLaws R rho (ordinaryFGExecutionObs E rho) :=
+  ⟨fun i j x hx hij => L.mono i j x hx hij⟩
+
+/-- The ordinary Duty fold meets the observed pool record from the old prefix keep
+premises (the same statements). -/
+theorem ordinaryFGExecutionObs_pool (blockRows : P.State → List Wire)
+    (keep : ∀ i j x a, i ≤ j →
+      rowHeld R blockRows (V2.D.Run.stateBefore E rho i x) a →
+      rowHeld R blockRows (V2.D.Run.stateBefore E rho j x) a)
+    (proposals_keep : ∀ i j x, i ≤ j →
+      (R.core (V2.D.Run.stateBefore E rho i x)).proposals <+:
+        (R.core (V2.D.Run.stateBefore E rho j x)).proposals) :
+    FGObservedPoolLaws R blockRows rho (ordinaryFGExecutionObs E rho) :=
+  ⟨keep, proposals_keep⟩
+
+section Safety
+variable {Body : Type} (S : FGSafetyReads P n Wire) (Hv : FGHeightView (Fin n))
+variable (f : FGFinalityView (Fin n)) (H : FGHistoricalReads P.State Body)
+variable (W : FGDependencyWireReads P Body Wire) {Good : P.State → Prop}
+
+private theorem good_cut (SL : FGSafetyStoreLaws R S Hv f Good) (x : V) (k : Nat) :
+    Good (ordinaryCutState E rho x k) := by
+  obtain ⟨j, r, hr, rfl⟩ : ∃ j r, r < 3 ∧ k = 3 * j + r :=
+    ⟨k / 3, k % 3, by omega, by omega⟩
+  have hg := safety_good_stateBefore SL E rho j x
+  obtain rfl | rfl | rfl : r = 0 ∨ r = 1 ∨ r = 2 := by omega
+  · rw [Nat.add_zero, cut_start]; exact hg
+  · rw [cut_entry]
+    cases he : rho.events[j]? with
+    | none => rw [entry_none E rho x he]; exact hg
+    | some e =>
+      rw [entry_some E rho x he]
+      cases e with
+      | restart y t =>
+        change Good (if y = x then _ else _)
+        split_ifs
+        · exact SL.restart_good _ _ hg
+        · exact hg
+      | tick y t =>
+        change Good (if y = x then _ else _)
+        split_ifs
+        · exact SL.clock_good _ _ hg
+        · exact hg
+      | deliver y o t =>
+        change Good (if y = x then _ else _)
+        split_ifs
+        · exact SL.process_good _ _ hg
+        · exact hg
+  · rw [cut_done]; exact safety_good_stateBefore SL E rho (j + 1) x
+
+/-- The ordinary Duty fold meets the observed safety record from the old store, history
+and row-binding laws. A new block appears only at a delivery entry, with its token. -/
+theorem ordinaryFGExecutionObs_safety (L : FGCoreLaws R) (SL : FGSafetyStoreLaws R S Hv f Good)
+    (HL : FGHistoricalLaws R H Good)
+    (hrows : ∀ st, Good st → ∀ b ∈ H.acceptedBodies st, ∀ B ∈ (R.core st).fg.TF,
+      R.erase B = H.erase b → B.rows = (W.bodyRows b).filterMap S.decode) :
+    FGObservedSafetyLaws R S Hv f H W rho (ordinaryFGExecutionObs E rho) where
+  initial_tf x B hB := SL.initial_tf B hB
+  prefix_invariant j x := safety_invariant_stateBefore SL E rho j x
+  cut_invariant x k _ := SL.invariant _ (good_cut E rho R S Hv f SL x k)
+  new_block x k B hk hB hnot := by
+    change k < 3 * rho.events.length at hk
+    change B ∈ (R.core (ordinaryCutState E rho x (k + 1))).fg.TF at hB
+    change B ∉ (R.core (ordinaryCutState E rho x k)).fg.TF at hnot
+    obtain ⟨j, r, hr, rfl⟩ : ∃ j r, r < 3 ∧ k = 3 * j + r :=
+      ⟨k / 3, k % 3, by omega, by omega⟩
+    have hj : j < rho.events.length := by omega
+    obtain ⟨e, he⟩ : ∃ e, rho.events[j]? = some e := ⟨_, List.getElem?_eq_getElem hj⟩
+    have hg := safety_good_stateBefore SL E rho j x
+    obtain rfl | rfl | rfl : r = 0 ∨ r = 1 ∨ r = 2 := by omega
+    · rw [Nat.add_zero] at hnot ⊢
+      rw [cut_entry, entry_some E rho x he] at hB
+      rw [cut_start] at hnot
+      cases e with
+      | restart y t =>
+        change B ∈ (R.core (if y = x then _ else _)).fg.TF at hB
+        split_ifs at hB
+        · exact absurd (SL.restart_tf _ _ B hg hB) hnot
+        · exact absurd hB hnot
+      | tick y t =>
+        change B ∈ (R.core (if y = x then _ else _)).fg.TF at hB
+        split_ifs at hB
+        · rw [L.clock_fg] at hB; exact absurd hB hnot
+        · exact absurd hB hnot
+      | deliver y o t =>
+        change B ∈ (R.core (if y = x then _ else _)).fg.TF at hB
+        split_ifs at hB with hy
+        · subst hy
+          obtain ⟨he1, he2⟩ := SL.process_new _ o B hg hB hnot
+          exact ⟨o, Or.inl ⟨fgEventToken rho y j o t, ⟨j, o, t, he, rfl, rfl⟩, rfl⟩,
+            he1, he2⟩
+        · exact absurd hB hnot
+    · rw [cut_entry, entry_some E rho x he] at hnot
+      rw [show 3 * j + 1 + 1 = 3 * j + 2 by omega, cut_done] at hB
+      by_cases ht : ∃ t, e = .tick x t
+      · obtain ⟨t, rfl⟩ := ht
+        rw [succ_tick E rho x he, own_fold_core R L, L.clock_fg] at hB
+        rw [entryStep_tick, L.clock_fg] at hnot
+        exact absurd hB hnot
+      · rw [succ_not_tick E rho x he (fun t h => ht ⟨t, h⟩)] at hB
+        exact absurd hB hnot
+    · rw [cut_done] at hnot
+      rw [show 3 * j + 2 + 1 = 3 * (j + 1) by omega, cut_start] at hB
+      exact absurd hB hnot
+  view_blocks x k _ := HL.blocks_eq _ (good_cut E rho R S Hv f SL x k)
+  view_bodies x k _ := HL.bodies_eq _ (good_cut E rho R S Hv f SL x k)
+  body_rows x k _ := hrows _ (good_cut E rho R S Hv f SL x k)
+
+end Safety
 
 end AvailableChain.FGCompose
 end
