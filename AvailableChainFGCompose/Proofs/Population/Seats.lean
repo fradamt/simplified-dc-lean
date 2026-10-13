@@ -15,5 +15,16 @@ theorem fgHonestSeats_eq_compl : FGHonestSeats S rho = (historyFaulty S rho)ᶜ 
   ext i
   simp [FGHonestSeats_def, historyFaulty]
 
+/-- A positive quorum threshold supplies a seat, even with an infinite node universe. -/
+theorem fgHonestSeats_nonempty_of_quorum (Ef : Electorate (Fin n))
+    (hq : 0 < Ef.q) (hH : Ef.IsQuorum (FGHonestSeats S rho)) :
+    (FGHonestSeats S rho).Nonempty := by
+  classical
+  by_contra hn
+  have he := Finset.not_nonempty_iff_eq_empty.mp hn
+  change Ef.q ≤ Ef.weightOf (FGHonestSeats S rho) at hH
+  rw [he, Electorate.weightOf, Finset.sum_empty] at hH
+  omega
+
 end AvailableChain.FGCompose
 end
