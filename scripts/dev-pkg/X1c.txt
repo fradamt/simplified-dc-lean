@@ -590,4 +590,8 @@ AvailableChainFGCompose.Tests.P0d6b
 AvailableChainFGCompose.Tests.X1e
 AvailableChainFGCompose.Tests.X1eRefusal
 
+AvailableChainFGCompose.Proofs.Finality.Forward
+AvailableChainFGCompose.Proofs.Finality.Joined
+AvailableChainFGCompose.Proofs.Finality.Local
+AvailableChainFGCompose.Tests.P0d7bb
 [EXPECTED-FAIL]

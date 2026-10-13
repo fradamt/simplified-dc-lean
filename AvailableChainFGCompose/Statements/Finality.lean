@@ -74,5 +74,63 @@ def KernelConclusion_W {Body : Type}
       ∀ x ∈ rho.honest,
         AcceptsFinalBefore R E rho x U (kernelDeadlineW T deltaF (r + 2))
 
+/-! P0d7b-b: exporter statements. The joined premise names one service point; the forward
+witness and the local conclusion keep the kernel's opening and fresh extension. -/
+
+/-- The local finality window: g + 2 periods, the carrier offset and one delay. -/
+def W_W (T : FGTiming) (deltaF : Time) (g : Nat) : Time :=
+  ((g : Time) + 2) * FGCompose.P T + betaF T deltaF + T.delta
+
+/-- The W recurrence of good windows from an explicit recurrence start. -/
+def FE_W (T : FGTiming) (deltaF : Time) (honestSlot : Slot → Prop)
+    (start horizon : Time) (g : Nat) : Prop :=
+  Gen.Pure.RecFE_W honestSlot T.roundSlots (kappaF T deltaF) (FGCompose.P T) T.delta
+    (betaF T deltaF) start horizon g
+
+/-- The joined kernel premise: one service point supplies the service facts and the start.
+The independent FG quorum, the timeout and the capacity stay explicit. -/
+structure KernelJoinedPrem (T : FGTiming) (deltaF horizon : Time) (r : Nat)
+    (honestSlot : Slot → Prop) (fgQuorum fgHonestWeight timeoutSlots capacity : Nat)
+    (Service : FGServicePoint → Prop) : Prop where
+  bound : LivenessBoundW T deltaF
+  window : Gen.Pure.FGoodE_W honestSlot T.roundSlots (kappaF T deltaF) r
+  start : ∃ sp, Service sp ∧ sp.serviceStart ≤ (r : Time) * FGCompose.P T
+  hhor : kernelDeadlineW T deltaF (r + 2) ≤ horizon
+  honest_quorum : fgQuorum ≤ fgHonestWeight
+  timeout_eq : timeoutSlots = 2 * T.roundSlots
+  capacity_ge : 2 ≤ capacity
+
+/-- The forward witness: an aligned round in the window, its honest opening, the same
+carrier and fresh extension as the kernel, and strict acceptance before the deadline. -/
+def ForwardWitness_W {Body : Type}
+    (decodeProposal : P.Object → Option (Slot × Body))
+    (bodyErase : Body → Block) (bodyRows : Body → List Wire)
+    (parentFG : P.State → Block → Option (FGBlock (Fin n)))
+    (makeFG : (FGBlock (Fin n)) → Block → List Wire → (FGBlock (Fin n)))
+    (honestSlot : Slot → Prop) (deltaF : Time) (g : Nat) (sp : FGServicePoint)
+    (t : Time) : Prop :=
+  ∃ (q r : Nat) (A : Block) (Afg U : FGBlock (Fin n)) (d : Nat) (D : Time),
+    t ≤ (q : Time) * FGCompose.P T ∧ (q : Time) * FGCompose.P T < t + FGCompose.P T ∧
+    Gen.Pure.InWindow q g r ∧
+    Gen.Pure.FGoodE_W honestSlot T.roundSlots (kappaF T deltaF) r ∧
+    t ≤ (r : Time) * FGCompose.P T ∧ HonestProposal E rho I (r * T.roundSlots) A ∧
+    R.erase Afg = A ∧
+    OpeningCarrier_W decodeProposal bodyErase bodyRows parentFG makeFG E rho I
+      (r * T.roundSlots) A Afg ∧
+    (O.height Afg).h = d ∧ sp.reset.M + 1 ≤ d ∧
+    FGBlock.Preceq Afg U ∧ Afg ≠ U ∧ (O.height U).h = d + 1 ∧
+    D = kernelDeadlineW T deltaF (r + 2) ∧ D < t + W_W T deltaF g ∧ D ≤ rho.horizon ∧
+    ∀ x ∈ rho.honest, AcceptsFinalBefore R E rho x U D
+
+/-- Local finality liveness at time t: one block strictly above the supplied output read
+and above every stored finality certificate, accepted strictly before d. -/
+def FinalityLivenessConcl_W (output : P.State → Block) (t d : Time) : Prop :=
+  ∃ U : FGBlock (Fin n),
+    (∀ x ∈ rho.honest, Block.Prec (output (V2.D.Run.readAt E rho t x)) (R.erase U)) ∧
+    (∀ x ∈ rho.honest, ∀ K ∈ (R.core (V2.D.Run.readAt E rho t x)).fg.TF,
+      (O.finality K).F = (R.core (V2.D.Run.readAt E rho t x)).fg.F →
+      (O.finality K).h_F < (O.height U).h) ∧
+    ∀ x ∈ rho.honest, AcceptsFinalBefore R E rho x U d
+
 end AvailableChain.FGCompose
 end
