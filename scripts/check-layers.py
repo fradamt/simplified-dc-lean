@@ -622,6 +622,8 @@ def test_scope(ctx: Context, m: Module, dep: str) -> bool:
     if (m.name, dep) in {
         (PROOFS + ".Tests.P0d5a", COMPOSE + ".Statements.FrontierSearch"),
         (PROOFS + ".Tests.P0d4", COMPOSE + ".Proofs.Healing.AttemptStop"),
+        (PROOFS + ".Tests.P0d7c", COMPOSE + ".Proofs.Finality.Joined"),
+        (PROOFS + ".Tests.P0d7c", COMPOSE + ".Proofs.Finality.Local"),
         (COMPOSE + ".Tests.P0d3", KITFG + ".WindowHeightBridge"),
         (PROOFS + ".Tests.P0c1", COMPOSE + ".Proofs.ObservationTransport"),
         (PROOFS + ".Tests.P0HistoricalReads", COMPOSE + ".Proofs.HistoricalReads"),
@@ -1426,5 +1428,30 @@ COMPOSE_EDGES |= frozenset({
     ('AvailableChainFGSAProofs.Proofs.Healing.Reset',
      'AvailableChainFGCompose.Proofs.Healing.Reset'),
 })
+# P0d7b-b: exact generic finality exporter entries.
+COMPOSE_MODULES += (
+    'AvailableChainFGCompose.Proofs.Finality.Joined',
+    'AvailableChainFGCompose.Proofs.Finality.Forward',
+    'AvailableChainFGCompose.Proofs.Finality.Local',
+)
+COMPOSE_PROOF_IMPORTS |= frozenset({
+    ('AvailableChainFGCompose.Proofs.Finality.Forward',
+     'AvailableChainGeneric.Proofs.Pure.ScheduleW'),
+    ('AvailableChainFGCompose.Proofs.Finality.Local',
+     'AvailableChainGeneric.Proofs.Pure.BlockOrder'),
+})
+COMPOSE_EDGES |= frozenset({
+    ('AvailableChainFGSAProofs.Proofs.Finality.Forward',
+     'AvailableChainFGCompose.Proofs.Finality.Forward'),
+})
+
+# P0d7c: exact private test-adapter edges (generic finality chain G0).
+COMPOSE_EDGES |= frozenset({
+    ('AvailableChainFGSAProofs.Tests.P0d7c',
+     'AvailableChainFGCompose.Proofs.Finality.Joined'),
+    ('AvailableChainFGSAProofs.Tests.P0d7c',
+     'AvailableChainFGCompose.Proofs.Finality.Local'),
+})
+
 if __name__ == "__main__":
     sys.exit(main())

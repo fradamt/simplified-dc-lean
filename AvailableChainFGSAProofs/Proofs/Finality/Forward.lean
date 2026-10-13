@@ -2,6 +2,7 @@ module
 public import AvailableChainFGSAProofs.Proofs.Finality.Joined
 public import AvailableChainFGSAClaims.Statements.Packages.Finality
 public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowthReads
+public import AvailableChainFGCompose.Proofs.Finality.Forward
 
 public section
 
@@ -50,6 +51,31 @@ theorem ForwardWitness_W_def (p : Params) {In V : Type} [DecidableEq V] [Fintype
     (∀ x ∈ rho.honest,
       Block.Preceq (V2.D.Run.readAt E rho t x).st.base.stableRecord A) ∧
     ∀ x ∈ rho.honest, AcceptsFinalBefore p c E rho x U D) := by rfl
+
+/-- The SA slot clock as the shared FG timing (fieldwise, definitional). -/
+private def d7bf_timing (p : Params) : FGCompose.FGTiming where
+  delta := p.Δ
+  roundSlots := p.R
+  proposal := SA.proposalTime p.toParams
+  vote := SA.voteTime p.toParams
+  early := SA.earlyTime p.toParams
+  freeze := SA.freezeTime p.toParams
+  release := SA.releaseTime p.toParams
+  gate := SA.gateTime p.toParams
+  action := p.actionTime
+
+private theorem d7bf_timing_laws (p : Params) : FGCompose.FGTimingLaws (d7bf_timing p) where
+  delta_pos := p.deltaPos
+  rounds := p.RLarge
+  proposal_eq s := by
+    change 4 * p.Δ * (s : Time) = 4 * (s : Time) * p.Δ
+    ring
+  vote_eq _ := rfl
+  early_eq _ := rfl
+  freeze_eq _ := rfl
+  release_eq _ := rfl
+  gate_eq _ := rfl
+  action_eq _ := rfl
 
 variable (p : Params) {In V : Type} [DecidableEq V] [Fintype V]
     (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
@@ -159,9 +185,6 @@ theorem forward_witness_FE_of
         RowWire.toRow? a = some row → row.height_pair = .vote h T timeout →
         p.actionTime r < cut → h < b + 1) → (heightView p W).h < b + 2) :
     ForwardWitness_W p c E rho ΔF g w pt.t := by
-  have hP : 0 < P p := by
-    have hR : 0 < p.R := by have := p.RLarge; omega
-    exact mul_pos (mul_pos (by decide) (Int.natCast_pos.mpr hR)) p.deltaPos
   have ht : 0 < pt.t := by
     have hd := p.deltaPos
     have hu := Int.natCast_nonneg w.u
@@ -171,14 +194,14 @@ theorem forward_witness_FE_of
   have hstart := (finality_healing_recoveryStart p c E rho h.input).trans h.start
   have hrec : FE_W p ΔF (Gen.V2.Duty.HonestSlot rho (fgsaInterface p c))
       (recoveryStart p E) rho.horizon g := h.set.recur
-  obtain ⟨q, r, htq, hqt, hr, hgood⟩ := Gen.Pure.recFE_W_extract hrec hP ht hstart
-    (by simpa only [W_W_def, Int.add_assoc] using h.hhor)
-  have htr : pt.t ≤ (r : Time) * P p := htq.trans
-    (mul_le_mul_of_nonneg_right (Int.ofNat_le.mpr hr.1) hP.le)
-  have hD : kernelDeadlineW p ΔF (r + 2) < pt.t + W_W p ΔF g := by
-    simpa only [kernelDeadlineW_def, W_W_def, Nat.cast_add, Nat.cast_ofNat,
-      Int.add_assoc] using Gen.Pure.recFE_W_receipt_lt hP hqt hr
-  have hhor := hD.le.trans h.hhor
+  obtain ⟨q, r, htq, hqt, hr, hgood, htr, hD, hhor⟩ :
+      ∃ q r : Nat, pt.t ≤ (q : Time) * P p ∧ (q : Time) * P p < pt.t + P p ∧
+        Gen.Pure.InWindow q g r ∧
+        Gen.Pure.FGoodE_W (Gen.V2.Duty.HonestSlot rho (fgsaInterface p c))
+          p.R (kappaF p ΔF) r ∧
+        pt.t ≤ (r : Time) * P p ∧ kernelDeadlineW p ΔF (r + 2) < pt.t + W_W p ΔF g ∧
+        kernelDeadlineW p ΔF (r + 2) ≤ rho.horizon :=
+    FGCompose.forward_round_FE (d7bf_timing p) (d7bf_timing_laws p) hrec ht hstart h.hhor
   let kpt : KernelPt := ⟨w, r⟩
   have hK : KernelPrem_W p c G ΔF E rho kpt := {
     set := h.set.core.toRecovery₂, bound := h.set.bound, window := hgood

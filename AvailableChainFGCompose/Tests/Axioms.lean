@@ -40,6 +40,9 @@ public import AvailableChainFGCompose.Proofs.Finality.RestoreReads -- shake: kee
 public import AvailableChainFGCompose.Proofs.Finality.Receipt -- shake: keep (axiom audit)
 public import AvailableChainFGCompose.Proofs.Finality.Accept -- shake: keep (axiom audit)
 public import AvailableChainFGCompose.Proofs.Finality.Kernel -- shake: keep (axiom audit)
+public import AvailableChainFGCompose.Proofs.Finality.Joined -- shake: keep (axiom audit)
+public import AvailableChainFGCompose.Proofs.Finality.Forward -- shake: keep (axiom audit)
+public import AvailableChainFGCompose.Proofs.Finality.Local -- shake: keep (axiom audit)
 public import AvailableChainFGCompose.Statements.FinalityKernel -- shake: keep (axiom audit)
 public import AvailableChainFGCompose.Proofs.Finality.MiddleSupport -- shake: keep (axiom audit)
 public import AvailableChainFGCompose.Proofs.Finality.Middle -- shake: keep (axiom audit)
@@ -1534,3 +1537,24 @@ public import AvailableChainFGCompose.Proofs.Healing.ResetCut -- shake: keep (#p
 #print axioms AvailableChain.FGCompose.ordinary_selectedAcceptance
 #print axioms AvailableChain.FGCompose.selectedAcceptance_keep
 #print axioms AvailableChain.FGCompose.ordinary_selectedAcceptance_fields
+-- P0d7b-b: generic finality exporters and their statements.
+#print axioms AvailableChain.FGCompose.FE_W
+#print axioms AvailableChain.FGCompose.FinalityLivenessConcl_W
+#print axioms AvailableChain.FGCompose.ForwardWitness_W
+#print axioms AvailableChain.FGCompose.KernelJoinedPrem
+#print axioms AvailableChain.FGCompose.KernelJoinedPrem.bound
+#print axioms AvailableChain.FGCompose.KernelJoinedPrem.capacity_ge
+#print axioms AvailableChain.FGCompose.KernelJoinedPrem.hhor
+#print axioms AvailableChain.FGCompose.KernelJoinedPrem.honest_quorum
+#print axioms AvailableChain.FGCompose.KernelJoinedPrem.mk
+#print axioms AvailableChain.FGCompose.KernelJoinedPrem.start
+#print axioms AvailableChain.FGCompose.KernelJoinedPrem.timeout_eq
+#print axioms AvailableChain.FGCompose.KernelJoinedPrem.window
+#print axioms AvailableChain.FGCompose.W_W
+#print axioms AvailableChain.FGCompose.finality_kernel_joined_W_of
+#print axioms AvailableChain.FGCompose.finality_kernel_prem_W_of_joined
+#print axioms AvailableChain.FGCompose.finality_window_nonneg
+#print axioms AvailableChain.FGCompose.forward_round_FE
+#print axioms AvailableChain.FGCompose.forward_witness_FE_of
+#print axioms AvailableChain.FGCompose.finality_liveness_FE_W_of
+#print axioms AvailableChain.FGCompose.finality_liveness_of_forward_W
