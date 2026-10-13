@@ -12,6 +12,7 @@ public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchGap -- shake:
 public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchTop -- shake: keep (audit)
 public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchTail -- shake: keep (audit)
 public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchRise -- shake: keep (audit)
+public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchCompose -- shake: keep (audit)
 public import AvailableChainFGCompose.Proofs.Healing.Attempt -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Proofs.Healing.AttemptRows -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Proofs.Healing.AttemptSettle -- shake: keep (#print axioms)
@@ -908,6 +909,12 @@ public import AvailableChainFGCompose.Proofs.Healing.ResetCut -- shake: keep (#p
 #print axioms AvailableChain.FGCompose.frontierSearch_phaseRank_gap_def
 #print axioms AvailableChain.FGCompose.frontierSearch_phaseRank_topJ_def
 #print axioms AvailableChain.FGCompose.frontierSearch_phaseRank_contest_def
+#print axioms AvailableChain.FGCompose.frontierSearch_remaining
+#print axioms AvailableChain.FGCompose.frontierSearch_remaining_def
+#print axioms AvailableChain.FGCompose.frontierSearch_rise_rebase
+#print axioms AvailableChain.FGCompose.frontierSearch_rise_of_stop
+#print axioms AvailableChain.FGCompose.frontierSearch_phase_compose
+#print axioms AvailableChain.FGCompose.frontierSearch_phase_tail
 #print axioms AvailableChain.FGCompose.FrontierRepairStart.two
 #print axioms AvailableChain.FGCompose.FrontierRepairStart.one
 

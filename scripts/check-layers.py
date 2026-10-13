@@ -1380,5 +1380,13 @@ COMPOSE_EDGES |= frozenset({
     ('AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchRise',
      'AvailableChainFGCompose.Proofs.Healing.FrontierSearchRise'),
 })
+# P0d5d-a: exact generic home.
+COMPOSE_MODULES += ('AvailableChainFGCompose.Proofs.Healing.FrontierSearchCompose',)
+
+# P0d5d-a: exact frozen-wrapper edge.
+COMPOSE_EDGES |= frozenset({
+    ('AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchCompose',
+     'AvailableChainFGCompose.Proofs.Healing.FrontierSearchCompose'),
+})
 if __name__ == "__main__":
     sys.exit(main())

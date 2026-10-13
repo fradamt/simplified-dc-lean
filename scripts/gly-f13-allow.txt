@@ -367,3 +367,7 @@ F-13 dup healing_frontierTail_row AvailableChainFGCompose AvailableChainFGSAProo
 F-13 dup healing_frontierTail_rise_of_seed AvailableChainFGCompose AvailableChainFGSAProofs # P0: generic home; FG-SA copy frozen (plan v3 §1)
 F-13 dup healing_frontierTail_rise AvailableChainFGCompose AvailableChainFGSAProofs # P0: generic home; FG-SA copy frozen (plan v3 §1)
 F-13 dup healing_frontierTail AvailableChainFGCompose AvailableChainFGSAProofs # P0: generic home; FG-SA copy frozen (plan v3 §1)
+# P0d5d-a
+F-13 dup frontierSearch_rise_rebase AvailableChainFGCompose AvailableChainFGSAProofs # P0: generic home; FG-SA copy frozen (plan v3 §1)
+F-13 dup frontierSearch_rise_of_stop AvailableChainFGCompose AvailableChainFGSAProofs # P0: generic home; FG-SA copy frozen (plan v3 §1)
+F-13 dup frontierSearch_phase_tail AvailableChainFGCompose AvailableChainFGSAProofs # P0: generic home; FG-SA copy frozen (plan v3 §1)

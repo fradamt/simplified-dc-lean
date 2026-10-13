@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchTop
+public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchCompose
 
 public section
 
@@ -11,6 +12,59 @@ namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
+
+private def p0d5dCmpCore (p : Params) {In : Type} (c : AppCodec In) :
+    FGCompose.FGCoreReads (fgsa p c) p.n (GridCO.State p.n .root) (Wire p.n) (RowWire p.n) :=
+  { core := fun nd => ⟨nd.st.base, nd.st.fg, nd.st.proposals, nd.st.rowPool⟩
+    erase := eraseFG
+    source := fun nd => FGSA.fgSource p nd.st
+    headVote := fun nd s => FGSA.headVote p nd.st s
+    finalityHead := fun nd => FGSA.fgBlockOf nd.st (FGSA.fgHead p nd.st)
+    proposalFG := fun nd o => match (toWire p o).decode with
+      | some (.block _ N) => (parentFG nd.st N.erase).map (fun P => fgBlock P N.erase N.rows)
+      | some (.vote _ _ _) => none
+      | some (.row _ _) => none
+      | none => none }
+
+private def p0d5dCmpTiming (p : Params) : FGCompose.FGTiming where
+  delta := p.Δ
+  roundSlots := p.R
+  proposal := SA.proposalTime p.toParams
+  vote := SA.voteTime p.toParams
+  early := SA.earlyTime p.toParams
+  freeze := SA.freezeTime p.toParams
+  release := SA.releaseTime p.toParams
+  gate := SA.gateTime p.toParams
+  action := p.actionTime
+
+private theorem p0d5dCmpTimingLaws (p : Params) :
+    FGCompose.FGTimingLaws (p0d5dCmpTiming p) where
+  delta_pos := p.deltaPos
+  rounds := p.RLarge
+  proposal_eq s := by
+    change 4 * p.Δ * (s : Time) = 4 * (s : Time) * p.Δ
+    ring
+  vote_eq _ := rfl
+  early_eq _ := rfl
+  freeze_eq _ := rfl
+  release_eq _ := rfl
+  gate_eq _ := rfl
+  action_eq _ := rfl
+
+private def p0d5dCmpObs (p : Params) {In : Type} (c : AppCodec In) :
+    FGCompose.FGObservationReads (p0d5dCmpCore p c) where
+  height := heightView p
+  finality := finalityView p
+  controls nd := FGSA.controls p nd.st
+  viable nd X := domainR p nd.st X
+
+private theorem p0d5dCmpObsLaws (p : Params) {In : Type} (c : AppCodec In) :
+    FGCompose.FGObservationLaws (p0d5dCmpCore p c) (p0d5dCmpObs p c) where
+  controls_eq _ := rfl
+  viable_eq _ _ := rfl
+
+private def p0d5dCmpKind : PhaseKind → FGCompose.PhaseKind
+  | .gap => .gap | .topJ => .topJ | .contest => .contest
 
 omit [DecidableEq V] in
 /-- Blueprint 21:1722–1800; S5 F3, allowance geometry.
@@ -87,13 +141,9 @@ theorem frontierSearch_rise_rebase (E : Generic.Env V) (rho : V2.D.Run V (fgsa p
     (mono : RMonoAll p c E rho) {i j m : Nat} {D : Time} (hij : i ≤ j)
     (hf : frontierAtIdx p c E rho (j + 1) ≤ m) (hr : FrontierRiseBy p c E rho j m D) :
     FrontierRiseBy p c E rho i m D := by
-  obtain ⟨k, ev, hjk, hk, ht, hh, hcap⟩ := (frontierRiseBy_iff p c E rho j m D).mp hr
-  apply (frontierRiseBy_iff p c E rho i m D).mpr
-  refine ⟨k, ev, by omega, hk, ht, hh, ?_⟩
-  intro l hil hlk
-  by_cases hlj : l ≤ j + 1
-  · exact (healing_frontier_mono_all p c E rho mono hlj).trans hf
-  · exact hcap l (by omega) hlk
+  simp only [frontierRiseBy_iff] at *
+  exact FGCompose.frontierSearch_rise_rebase (R := p0d5dCmpCore p c) (E := E) (rho := rho)
+    ⟨mono⟩ hij hf hr
 
 /-- Blueprint 21:1722–1800; S5 F3.
 DC: SAME the HG.3 rise stop supplies the first frontier rise, including equal times. -/
@@ -101,9 +151,9 @@ theorem frontierSearch_rise_of_stop (E : Generic.Env V) (rho : V2.D.Run V (fgsa 
     (hs : V2.D.ScheduleWellFormed E rho) {i m : Nat} {D : Time}
     (hf : frontierAtIdx p c E rho (i + 1) ≤ m)
     (hr : FirstRiseStopBy p c E rho i m D) : FrontierRiseBy p c E rho i m D := by
-  obtain ⟨j, ev, hij, hj, ht, _, hh, _⟩ := (firstRiseStopBy_iff p c E rho i m D).mp hr
-  exact frontierSearch_first_rise p c E rho hs
-    ⟨j, hij, healing_phase_lt_timeIdx p c E rho hs hj ht, hh⟩ hf
+  simp only [firstRiseStopBy_iff, frontierRiseBy_iff] at *
+  exact FGCompose.frontierSearch_rise_of_stop (R := p0d5dCmpCore p c) (O := p0d5dCmpObs p c)
+    (E := E) (rho := rho) hs hf hr
 
 /-- Blueprint 21:1722–1800; S5 F3.
 DC: SAME the unused phase charges remain available until the terminal tail. -/
@@ -151,108 +201,60 @@ theorem frontierSearch_phase_tail [Fintype V] (E : Generic.Env V)
       ev.time + frontierSearch_remaining p G ΔF ρbar tail kind ∧ StrongServed p c E rho m t := by
   classical
   have hs := hrec.base.valid.toScheduleWellFormed
-  have hρ := frontierSearch_allowance_nonneg E rho hrec hmode
-  have hP := frontierSearch_period_bound p
-  have hΓ : 4 * p.Δ ≤ Γ p G := hrec.gapPos.trans (fgsa_gamma_bounds p G).1
-  have hF : 0 ≤ ΔF := by
-    have := hrec.deltaF
-    rw [hrec.base.delta] at this
-    linarith [p.deltaPos]
-  have heps := epsF_nonneg p ΔF hF
-  have hg : 0 ≤ E_gF p ΔF G ρbar := by
-    rw [E_gF_eq p ΔF G ρbar hbound]
-    change 0 ≤ ρbar + 2 * P p + Γ p G - p.Δ
-    linarith [p.deltaPos]
-  have hj : 0 ≤ E_jF p ΔF G ρbar := by
-    change 0 ≤ max _ _
-    apply le_trans _ (le_max_right _ _)
-    linarith [p.deltaPos]
-  have go : ∀ n, ∀ {i m : Nat} {ev : V2.Event V (Obj p)} {kind : PhaseKind},
-      2 - frontierSearch_phaseRank kind = n →
-      FrontierSearchStart p c E rho i ev m kind → recoveryStart p E + 2 * P p ≤ ev.time →
-      ev.time + frontierSearch_remaining p G ΔF ρbar tail kind ≤ rho.horizon →
-      FrontierRiseBy p c E rho i m
-        (ev.time + frontierSearch_remaining p G ΔF ρbar tail kind) ∨
-      ∃ t, ev.time ≤ t ∧ t + tail ≤
-        ev.time + frontierSearch_remaining p G ΔF ρbar tail kind ∧
-        StrongServed p c E rho m t := by
-    intro n
-    induction n using Nat.strong_induction_on with
-    | h n ih =>
-      intro i m ev kind hn hstart hdelay hhor
-      have hfront := ((frontierSearchStart_iff p c E rho i ev m kind).mp hstart).2.2.2.1
-      have mode := frontierSearch_repair_start E G hdelay hmode
-      have hb : interruptedRepairBudget p G ΔF ρbar kind ≤
-          frontierSearch_remaining p G ΔF ρbar tail kind := by
-        cases kind <;> simp only [interruptedRepairBudget_gap, interruptedRepairBudget_topJ,
-          interruptedRepairBudget_contest, frontierSearch_remaining_eq,
-          frontierSearch_phaseRank_gap,
-          frontierSearch_phaseRank_topJ, frontierSearch_phaseRank_contest, Nat.reduceEqDiff,
-          ↓reduceIte] <;> linarith [p.deltaPos]
-      have hbTail : interruptedRepairBudget p G ΔF ρbar kind + tail ≤
-          frontierSearch_remaining p G ΔF ρbar tail kind := by
-        cases kind <;> simp only [interruptedRepairBudget_gap, interruptedRepairBudget_topJ,
-          interruptedRepairBudget_contest, frontierSearch_remaining_eq,
-          frontierSearch_phaseRank_gap,
-          frontierSearch_phaseRank_topJ, frontierSearch_phaseRank_contest, Nat.reduceEqDiff,
-          ↓reduceIte] <;> linarith [p.deltaPos]
-      have hpHor : ev.time + interruptedRepairBudget p G ΔF ρbar kind ≤ rho.horizon := by
-        linarith only [hb, hhor]
-      have result : FrontierHG3Result p c E rho i m ev.time
-          (ev.time + interruptedRepairBudget p G ΔF ρbar kind) := by
-        cases kind with
-        | gap =>
-          rw [interruptedRepairBudget_gap] at hpHor ⊢
-          exact frontier_hg3_gap E rho hrec crossing mono repair common hδ hbound perm
-            rowsReceipt progressCoverage hfold faultQ honestQuorum hstart mode hpHor
-        | topJ =>
-          rw [interruptedRepairBudget_topJ] at hpHor ⊢
-          exact frontier_hg3_topJ E rho hrec crossing mono origin repair common
-            hδ hbound
-            perm rowsReceipt progressCoverage hfold faultQ honestQuorum hstart mode hpHor
-        | contest =>
-          rw [interruptedRepairBudget_contest] at hpHor ⊢
-          exact frontier_hg3_contest E rho hrec crossing mono repair hstart mode hpHor
-      rcases (frontierHG3Result_iff p c E rho i m ev.time _).mp result with
-          hphase | hrise | ⟨t, hwt, ht, hserved⟩
-      · obtain ⟨j, nextEv, nextKind, hij, ht, hnext, hrank⟩ :=
-          frontierSearch_phase_step_of_crossing p c E rho crossing mono
-            hs hstart hphase
-        have htime : ev.time ≤ nextEv.time := by
-          obtain ⟨hi, _⟩ := (frontierSearchStart_iff p c E rho i ev m kind).mp hstart
-          obtain ⟨hjEv, _⟩ := (frontierSearchStart_iff p c E rho j nextEv m nextKind).mp hnext
-          obtain ⟨hil, hie⟩ := List.getElem?_eq_some_iff.mp hi
-          obtain ⟨hjl, hje⟩ := List.getElem?_eq_some_iff.mp hjEv
-          have hk := (List.pairwise_iff_getElem.mp hs.sorted) i j hil hjl hij
-          rw [hie, hje] at hk
-          exact V2.D.Engine.time_le_of_key_le _ _ hk
-        have hcost : nextEv.time + frontierSearch_remaining p G ΔF ρbar tail nextKind ≤
-            ev.time + frontierSearch_remaining p G ΔF ρbar tail kind := by
-          cases kind <;> cases nextKind <;>
-            simp only [frontierSearch_phaseRank_gap,
-              frontierSearch_phaseRank_topJ, frontierSearch_phaseRank_contest] at hrank <;>
-            try omega
-          all_goals simp only [interruptedRepairBudget_gap, interruptedRepairBudget_topJ] at ht
-          all_goals simp only [frontierSearch_remaining_eq, frontierSearch_phaseRank_gap,
-          frontierSearch_phaseRank_topJ, frontierSearch_phaseRank_contest,
-            Nat.reduceEqDiff, ↓reduceIte]
-          all_goals linarith only [ht, hj]
-        have hmeasure : 2 - frontierSearch_phaseRank nextKind < n := by
-          rw [← hn]
-          cases kind <;> cases nextKind <;> simp only [frontierSearch_phaseRank_gap,
-            frontierSearch_phaseRank_topJ, frontierSearch_phaseRank_contest] at * <;> omega
-        rcases ih _ hmeasure rfl hnext (hdelay.trans htime) (hcost.trans hhor) with
-            hr | ⟨t, hnt, ht, hserved⟩
-        · left
-          have hf := ((frontierSearchStart_iff p c E rho j nextEv m nextKind).mp hnext).2.2.2.1
-          exact frontierSearch_rise_mono p c E rho hcost
-            (frontierSearch_rise_rebase E rho mono hij.le hf.le hr)
-        · exact Or.inr ⟨t, htime.trans hnt, ht.trans hcost, hserved⟩
-      · left
-        exact frontierSearch_rise_mono p c E rho (by linarith only [hb])
-          (frontierSearch_rise_of_stop E rho hs hfront.le hrise)
-      · exact Or.inr ⟨t, hwt, by linarith only [ht, hbTail], hserved⟩
-  exact go _ rfl hstart hdelay hhor
+  have hrem : ∀ k, frontierSearch_remaining p G ΔF ρbar tail k =
+      FGCompose.frontierSearch_remaining (p0d5dCmpTiming p) G ΔF ρbar tail (p0d5dCmpKind k) := by
+    intro k
+    cases k
+    · change _ = FGCompose.frontierSearch_remaining (p0d5dCmpTiming p) G ΔF ρbar tail .gap
+      simp only [frontierSearch_remaining_eq, FGCompose.frontierSearch_remaining_def,
+        frontierSearch_phaseRank_gap, FGCompose.frontierSearch_phaseRank_gap_def,
+        Nat.reduceEqDiff, ↓reduceIte]
+      rfl
+    · change _ = FGCompose.frontierSearch_remaining (p0d5dCmpTiming p) G ΔF ρbar tail .topJ
+      simp only [frontierSearch_remaining_eq, FGCompose.frontierSearch_remaining_def,
+        frontierSearch_phaseRank_topJ, FGCompose.frontierSearch_phaseRank_topJ_def,
+        Nat.reduceEqDiff, ↓reduceIte]
+      rfl
+    · change _ = FGCompose.frontierSearch_remaining (p0d5dCmpTiming p) G ΔF ρbar tail .contest
+      simp only [frontierSearch_remaining_eq, FGCompose.frontierSearch_remaining_def,
+        frontierSearch_phaseRank_contest, FGCompose.frontierSearch_phaseRank_contest_def,
+        Nat.reduceEqDiff, ↓reduceIte]
+      rfl
+  have hst0 : FGCompose.FrontierSearchStart (p0d5dCmpCore p c) E rho (p0d5dCmpObs p c)
+      (p0d5dCmpTiming p) (recoveryStart p E) i ev m (p0d5dCmpKind kind) := by
+    simp only [frontierSearchStart_iff] at hstart
+    cases kind <;> exact hstart
+  rw [hrem] at hhor ⊢
+  simp only [frontierRiseBy_iff]
+  exact FGCompose.frontierSearch_phase_compose (R := p0d5dCmpCore p c) (O := p0d5dCmpObs p c)
+    (T := p0d5dCmpTiming p) (E := E) (rho := rho) (Ef := p.E) (Jst := recoveryStart p E)
+    (obs := p0d5dCmpObsLaws p c) (cert := fgCertificateLaws p)
+    (inv := fun i x => (storeBundle_stateBefore E rho i x).cstore.fg)
+    (justif := fgJustificationLaws p)
+    (keep := fun _ _ hij x => (fgsa_store_durable p c E rho hij x).1)
+    (p0d5dCmpTimingLaws p) crossing hs ⟨mono⟩ (StrongServed p c E rho) hrec.gapPos
+    (frontierSearch_allowance_nonneg E rho hrec hmode) htail
+    (fun i ev m k hst hdl hph => by
+      have mode := frontierSearch_repair_start E G hdl hmode
+      cases k with
+      | gap =>
+        have h := frontier_hg3_gap E rho hrec crossing mono repair common hδ hbound perm
+          rowsReceipt progressCoverage hfold faultQ honestQuorum
+          ((frontierSearchStart_iff p c E rho i ev m .gap).mpr hst) mode hph
+        simp only [frontierHG3Result_iff, firstPhaseStopBy_iff, firstRiseStopBy_iff] at h
+        exact h
+      | topJ =>
+        have h := frontier_hg3_topJ E rho hrec crossing mono origin repair common hδ hbound
+          perm rowsReceipt progressCoverage hfold faultQ honestQuorum
+          ((frontierSearchStart_iff p c E rho i ev m .topJ).mpr hst) mode hph
+        simp only [frontierHG3Result_iff, firstPhaseStopBy_iff, firstRiseStopBy_iff] at h
+        exact h
+      | contest =>
+        have h := frontier_hg3_contest E rho hrec crossing mono repair
+          ((frontierSearchStart_iff p c E rho i ev m .contest).mpr hst) mode hph
+        simp only [frontierHG3Result_iff, firstPhaseStopBy_iff, firstRiseStopBy_iff] at h
+        exact h)
+    hst0 hdelay hhor
 
 end AvailableChain.FGSA.Run
 end

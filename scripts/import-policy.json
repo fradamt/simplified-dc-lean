@@ -109,6 +109,7 @@
       "AvailableChainFGCompose.Proofs.Healing.FrontierSearchTop",
       "AvailableChainFGCompose.Proofs.Healing.FrontierSearchTail",
       "AvailableChainFGCompose.Proofs.Healing.FrontierSearchRise",
+      "AvailableChainFGCompose.Proofs.Healing.FrontierSearchCompose",
       "AvailableChainFGCompose.Proofs.Healing.FrontierSearchBudget",
       "AvailableChainFGCompose.Statements.FrontierSearch",
       "AvailableChainFGCompose.Proofs.Healing.Attempt",
