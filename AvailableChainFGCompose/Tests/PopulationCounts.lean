@@ -106,5 +106,15 @@ private theorem fault_weight_not_honest_quorum :
   change 2 < 3 ∧ ¬ 3 ≤ 2
   decide
 
+private theorem all_holders_count_bridge :
+    (historyFaulty (reads 4) frozen).card = (Gen.V2.Duty.faulty frozen).card ∧
+    (electorate 4).IsQuorum (FGHonestSeats (reads 4) frozen) ∧
+    FGHonestSeats (reads 4) frozen = (historyFaulty (reads 4) frozen)ᶜ := by
+  have he := counts_premises_sat.2.2.2.2.2.2.1
+  have hc := fg_fault_count_eq_nodes_of_equiv (reads 4) frozen (Equiv.refl _) he
+  exact ⟨hc, high_target_honest_quorum_holder (reads 4) frozen (electorate 4)
+    counts_premises_sat.2.2.2.2.2.1 (hc ▸ counts_premises_sat.2.2.2.2.2.2.2),
+    fgHonestSeats_eq_compl (reads 4) frozen⟩
+
 end AvailableChain.FGCompose.Tests.PopulationCounts
 end
