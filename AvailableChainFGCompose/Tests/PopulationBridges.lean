@@ -35,5 +35,20 @@ private theorem legacy_tick_specialization (Ef : Electorate (Fin n)) (cfg : FGCo
   have h := selection_tick_rows_holder S E rho Ef cfg Q client rows i j t (hh.symm ▸ ht)
   simpa only [hh, J.clock_record, Equiv.symm_apply_apply] using h
 
+/-- The old store/Linked/client premises supply the new minimal safety boundary. -/
+private theorem legacy_safety_specialization
+    (R : FGCoreReads P n Base Proposal Wire) (Ef : Electorate (Fin n))
+    (H : FGHeightView (Fin n)) (f : FGFinalityView (Fin n)) (cfg : FGConfig)
+    (Good : P.State → Prop) (C : FGCoreLaws R) (W : FGSafetyWireLaws S)
+    (L : FGSafetyStoreLaws R S H f Good) (J : FGSafetyClientLaws S Ef cfg)
+    (linked : P.Label → Prop) (hfg : linked S.fgLabel)
+    (I : Gen.V2.Duty.SlashingInterface (V := V) P) (hi : safetySlashesRead R S E rho I)
+    (hu : V2.D.UnforgeableSignatures E rho) (hl : V2.D.Linked linked rho) :
+    Gen.V2.Duty.HonestNeverSlashed I rho := by
+  apply safety_honest_never_slashed_holder S E rho R
+    (fun t x => safety_read_carriage C L W hu t x) _ I hi
+  intro i _
+  exact safety_emitted_noSlash S Ef cfg E rho W J linked hfg hl (safetyHolder S rho i)
+
 end AvailableChain.FGCompose.Tests.PopulationBridges
 end
