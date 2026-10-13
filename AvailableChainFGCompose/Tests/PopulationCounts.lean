@@ -116,5 +116,11 @@ private theorem all_holders_count_bridge :
     counts_premises_sat.2.2.2.2.2.1 (hc ▸ counts_premises_sat.2.2.2.2.2.2.2),
     fgHonestSeats_eq_compl (reads 4) frozen⟩
 
+private theorem duplicate_holder_rejected :
+    ¬ Function.Injective (fun _ : Fin 2 => (9 : Nat)) := by
+  intro h
+  have he : (0 : Fin 2) = 1 := h rfl
+  exact (by decide : (0 : Fin 2) ≠ 1) he
+
 end AvailableChain.FGCompose.Tests.PopulationCounts
 end
