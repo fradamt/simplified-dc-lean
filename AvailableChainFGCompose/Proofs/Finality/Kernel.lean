@@ -275,8 +275,8 @@ theorem finality_kernel_W_of
   have hseats : ∀ i ∈ Finset.univ \ historyFaulty S rho,
       safetyHolder S rho i ∈ rho.honest := by
     intro i hi
-    have hi' := (Finset.mem_sdiff.mp hi).2
-    simpa only [historyFaulty, Finset.mem_filter, Finset.mem_univ, true_and, not_not] using hi'
+    exact kmid_honest_seat (S := S) (rho := rho) ⟨i, .empty, none⟩
+      (Finset.mem_sdiff.mp hi).2
   obtain ⟨rows, hfresh, hentry, _⟩ := rowsPrem_fresh_rows m height heightBridge makeWire
     wireDecode wireValid client release sources heads fields records L _ hseats
     hK.honest_quorum hawake
@@ -301,7 +301,8 @@ theorem finality_kernel_W_of
     obtain ⟨nd, C, hnd, hsrc, hDC, hCh, _⟩ := sources _ hxh
     have hsource : actionSourceFG R E rho T (V2.D.proposerOf rho I X.slot) (pt.r + 2) =
         some (some C) := by
-      rw [actionSourceFG, hnd]
+      change (postClock E rho _ (T.action (pt.r + 2))).map R.source = some (some C)
+      rw [hnd]
       exact congrArg some hsrc
     have hhigh : sp.reset.M + 1 ≤ (O.height C).h := by
       rw [hCh]
