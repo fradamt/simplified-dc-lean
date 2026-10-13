@@ -1,7 +1,6 @@
 module
 import AvailableChainFGCompose.Proofs.Finality.Joined
 import AvailableChainFGCompose.Proofs.Finality.Local
-import AvailableChainFGSA.Proofs.EmissionFields
 import AvailableChainFGSAProofs.Proofs.Assembly.Healing
 import AvailableChainFGSAProofs.Proofs.Assembly.ResetArrival
 import AvailableChainFGSAProofs.Proofs.Finality.Forward
@@ -21,8 +20,6 @@ import AvailableChainFGSAProofs.Proofs.Shared.Reads
 import AvailableChainFGSAProofs.Proofs.Shared.Regimes
 import AvailableChainFGSAProofs.Proofs.Shared.Roots
 import AvailableChainFGSAProofs.Proofs.Shared.RowReads
-import AvailableChainFGSARun.Proofs.WindowExclusion
-public import AvailableChainFGSARun.Model.Protocol
 public meta import AvailableChainFGSAProofs.Proofs.Foundations.RowPermission
 -- shake: keep (cached prefix checks)
 
