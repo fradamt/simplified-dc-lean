@@ -50,5 +50,8 @@ private theorem legacy_safety_specialization
   intro i _
   exact safety_emitted_noSlash S Ef cfg E rho W J linked hfg hl (safetyHolder S rho i)
 
+#print axioms legacy_tick_specialization
+#print axioms legacy_safety_specialization
+
 end AvailableChain.FGCompose.Tests.PopulationBridges
 end

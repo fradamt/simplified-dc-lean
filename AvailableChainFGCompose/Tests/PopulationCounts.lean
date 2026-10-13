@@ -122,5 +122,11 @@ private theorem duplicate_holder_rejected :
   have he : (0 : Fin 2) = 1 := h rfl
   exact (by decide : (0 : Fin 2) ≠ 1) he
 
+#print axioms counts_premises_sat
+#print axioms node_faults_do_not_count_seats
+#print axioms fault_weight_not_honest_quorum
+#print axioms all_holders_count_bridge
+#print axioms duplicate_holder_rejected
+
 end AvailableChain.FGCompose.Tests.PopulationCounts
 end

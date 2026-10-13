@@ -331,5 +331,16 @@ private theorem frozen_safety_and_rows :
     selection ⟨fun _ => rfl⟩ frozen_premises_sat.1 0 0 6 rfl
   exact h.trans (by decide)
 
+#print axioms mixed_client_premises_sat
+#print axioms mixed_wire_premises_sat
+#print axioms mixed_premises_sat
+#print axioms mixed_seats_and_rows
+#print axioms mixed_safety_premises_sat
+#print axioms mixed_all_honest_safe
+#print axioms mixed_old_population_blocked
+#print axioms frozen_premises_sat
+#print axioms frozen_safety_premises_sat
+#print axioms frozen_safety_and_rows
+
 end AvailableChain.FGCompose.Tests.Population
 end
