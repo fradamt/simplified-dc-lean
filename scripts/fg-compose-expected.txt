@@ -1489,4 +1489,8 @@
     'AvailableChain.FGCompose.ordinaryReleaseStep',
     'AvailableChain.FGCompose.ordinaryReleaseStep_def',
     'AvailableChain.FGCompose.ordinary_obsEmits_iff',
+    'AvailableChain.FGCompose.DriverOwnTraceLaws',
+    'AvailableChain.FGCompose.DriverOwnTraceLaws.own_ops',
+    'AvailableChain.FGCompose.DriverOwnTraceLaws.own_only_ticks',
+    'AvailableChain.FGCompose.DriverOwnTraceLaws.mk',
 )

@@ -1137,6 +1137,9 @@ public import AvailableChainFGCompose.Proofs.Healing.ResetCut -- shake: keep (#p
 #print axioms AvailableChain.FGCompose.DriverCoreStepLaws.restore_f
 #print axioms AvailableChain.FGCompose.DriverCoreStepLaws.restore_tf
 #print axioms AvailableChain.FGCompose.DriverCoreStepLaws.tf_step
+#print axioms AvailableChain.FGCompose.DriverOwnTraceLaws
+#print axioms AvailableChain.FGCompose.DriverOwnTraceLaws.own_ops
+#print axioms AvailableChain.FGCompose.DriverOwnTraceLaws.own_only_ticks
 #print axioms AvailableChain.FGCompose.DriverExecutionObsStatement
 #print axioms AvailableChain.FGCompose.DriverExecutionObsStatement_def
 #print axioms AvailableChain.FGCompose.DriverObservedCoreStatement

@@ -3,6 +3,9 @@
 {
     'AvailableChainFGCompose.Tests.Axioms': {
         'AvailableChainFGCompose.Statements.ExecutionObs': (
+            'AvailableChain.FGCompose.DriverOwnTraceLaws',
+            'AvailableChain.FGCompose.DriverOwnTraceLaws.own_ops',
+            'AvailableChain.FGCompose.DriverOwnTraceLaws.own_only_ticks',
             'AvailableChain.FGCompose.DriverCoreStepLaws',
             'AvailableChain.FGCompose.DriverCoreStepLaws.f_step',
             'AvailableChain.FGCompose.DriverCoreStepLaws.good_init',
