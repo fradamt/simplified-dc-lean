@@ -205,5 +205,20 @@ theorem safety_run_agreement_origin
       (fun B hB hne => safety_origin_read_runBlock C L E rho t x B hB hne)
       (fun B hB hne => safety_origin_read_runBlock C L E rho t' y B hB hne)
 
+variable (R S Ef H f E rho Good pending Q) in
+/-- `safety_event_agreement` under the origin record. -/
+theorem safety_event_agreement_origin
+    (C : FGCoreLaws R) (L : FGSafetyStoreOriginLaws R S H f Good pending)
+    (K : FGCertificateLaws Ef H f) (N : FGSafetyScopeLaws R S E rho Q)
+    (hr : safetyScopedRoots R Q) (hb : safetyBound R S Ef E rho)
+    (i j : Nat) (x y : V) :
+    FGBlock.compatible (R.core (V2.D.Run.stateBefore E rho i x)).fg.F
+      (R.core (V2.D.Run.stateBefore E rho j y)).fg.F = true :=
+  safety_store_agreement K N hr hb
+    (L.invariant _ (safety_origin_stateBefore C L E rho i x).1)
+    (L.invariant _ (safety_origin_stateBefore C L E rho j y).1)
+    (fun B hB hne => safety_origin_stored_runBlock C L E rho i x B hB hne)
+    (fun B hB hne => safety_origin_stored_runBlock C L E rho j y B hB hne)
+
 end AvailableChain.FGCompose
 end
