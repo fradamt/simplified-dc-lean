@@ -204,11 +204,22 @@ theorem frontierSearch_phase_tail [Fintype V] (E : Generic.Env V)
   have hrem : ∀ k, frontierSearch_remaining p G ΔF ρbar tail k =
       FGCompose.frontierSearch_remaining (p0d5dCmpTiming p) G ΔF ρbar tail (p0d5dCmpKind k) := by
     intro k
-    cases k <;> simp only [frontierSearch_remaining_eq, FGCompose.frontierSearch_remaining_def,
-      frontierSearch_phaseRank_gap, frontierSearch_phaseRank_topJ,
-      frontierSearch_phaseRank_contest, p0d5dCmpKind, FGCompose.frontierSearch_phaseRank_gap_def,
-      FGCompose.frontierSearch_phaseRank_topJ_def,
-      FGCompose.frontierSearch_phaseRank_contest_def, Nat.reduceEqDiff, ↓reduceIte] <;> rfl
+    cases k
+    · change _ = FGCompose.frontierSearch_remaining (p0d5dCmpTiming p) G ΔF ρbar tail .gap
+      simp only [frontierSearch_remaining_eq, FGCompose.frontierSearch_remaining_def,
+        frontierSearch_phaseRank_gap, FGCompose.frontierSearch_phaseRank_gap_def,
+        Nat.reduceEqDiff, ↓reduceIte]
+      rfl
+    · change _ = FGCompose.frontierSearch_remaining (p0d5dCmpTiming p) G ΔF ρbar tail .topJ
+      simp only [frontierSearch_remaining_eq, FGCompose.frontierSearch_remaining_def,
+        frontierSearch_phaseRank_topJ, FGCompose.frontierSearch_phaseRank_topJ_def,
+        Nat.reduceEqDiff, ↓reduceIte]
+      rfl
+    · change _ = FGCompose.frontierSearch_remaining (p0d5dCmpTiming p) G ΔF ρbar tail .contest
+      simp only [frontierSearch_remaining_eq, FGCompose.frontierSearch_remaining_def,
+        frontierSearch_phaseRank_contest, FGCompose.frontierSearch_phaseRank_contest_def,
+        Nat.reduceEqDiff, ↓reduceIte]
+      rfl
   have hst0 : FGCompose.FrontierSearchStart (p0d5dCmpCore p c) E rho (p0d5dCmpObs p c)
       (p0d5dCmpTiming p) (recoveryStart p E) i ev m (p0d5dCmpKind kind) := by
     simp only [frontierSearchStart_iff] at hstart
