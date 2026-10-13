@@ -22,9 +22,9 @@ private abbrev head : HeadFields := ⟨0, genesisRoot, 0⟩
 private abbrev row : Row (Fin 1) := ⟨0, .vote 1 genesisRoot false, none⟩
 private abbrev protocol : V2.ProtocolSpecD Unit where
   State := RecordOnce
-  Label := Unit
+  Label := Time
   Duty := Time
-  signLabel := fun _ => ()
+  signLabel := id
   seats := fun _ => 1
   Payload := Row (Fin 1)
   Durable := RecordOnce
@@ -50,11 +50,11 @@ private abbrev protocol : V2.ProtocolSpecD Unit where
   handles := fun _ _ _ => False
   carries := fun _ _ => False
 
-private abbrev wire : protocol.Object := ⟨.seat () 0, row⟩
+private abbrev wire : protocol.Object := ⟨.seat 6 0, row⟩
 private abbrev raw : protocol.Object := ⟨.none, row⟩
 private abbrev decode (o : protocol.Object) : Option (Row (Fin 1)) :=
   match o.auth with
-  | .seat _ _ => some o.payload
+  | .seat l _ => if l = 6 then some o.payload else none
   | .none => none
 private abbrev reads : FGSafetyReads protocol 1 protocol.Object where
   proposalErase := fun _ => none
@@ -62,7 +62,7 @@ private abbrev reads : FGSafetyReads protocol 1 protocol.Object where
   encode := id
   decode := decode
   decodeObject := decode
-  fgLabel := ()
+  fgLabel := 6
   fgSeats := Equiv.refl _
   record := id
   inputs := fun _ => (some .genesis, head)
@@ -130,11 +130,12 @@ private theorem mixed_wire_premises_sat : FGSafetyWireLaws reads where
     cases auth with
     | none => cases hd
     | seat l i =>
-      have hu : payload = u := Option.some.inj hd
-      subst u
-      have hi : i = payload.signer := Subsingleton.elim _ _
-      cases l
-      exact congrArg (V2.Auth.seat ()) hi
+      change (if l = 6 then some payload else none) = some u at hd
+      split_ifs at hd with hl
+      · subst l
+        have hu : payload = u := Option.some.inj hd
+        subst u
+        exact congrArg (V2.Auth.seat 6) (Subsingleton.elim i payload.signer)
   decoded_visible o u hd := by
     rcases o with ⟨auth, payload⟩
     cases auth with
