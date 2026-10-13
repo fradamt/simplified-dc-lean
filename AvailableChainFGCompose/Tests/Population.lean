@@ -122,5 +122,25 @@ private theorem mixed_client_premises_sat :
       rcases hxt with ⟨rfl, rfl⟩
       decide
 
+private theorem mixed_wire_premises_sat : FGSafetyWireLaws reads where
+  encode_injective := Function.injective_id
+  decode_encode _ := rfl
+  decode_auth a u hd := by
+    rcases a with ⟨auth, payload⟩
+    cases auth with
+    | none => cases hd
+    | seat l i =>
+      have hu : payload = u := Option.some.inj hd
+      subst u
+      have hi : i = payload.signer := Subsingleton.elim _ _
+      cases l
+      exact congrArg (V2.Auth.seat ()) hi
+  decoded_visible o u hd := by
+    rcases o with ⟨auth, payload⟩
+    cases auth with
+    | none => cases hd
+    | seat l i => rfl
+  carried _ _ ha := False.elim (List.not_mem_nil ha)
+
 end AvailableChain.FGCompose.Tests.Population
 end
