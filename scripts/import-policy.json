@@ -84,6 +84,7 @@
       "AvailableChainGeneric.Statements.**"
     ],
     "laneUpstream": [
+      "AvailableChainFGCompose.Proofs.Finality.Kernel",
       "AvailableChainFGCompose.Proofs.Finality.RestoreReads",
       "AvailableChainFGCompose.Proofs.Finality.Receipt",
       "AvailableChainFGCompose.Proofs.Finality.Accept",

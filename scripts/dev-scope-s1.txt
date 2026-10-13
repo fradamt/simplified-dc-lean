@@ -18,6 +18,8 @@ AvailableChainFGCompose.Tests.P0d7a5
 AvailableChainFGCompose.Proofs.Finality.RestoreReads
 AvailableChainFGCompose.Proofs.Finality.Receipt
 AvailableChainFGCompose.Proofs.Finality.Accept
+AvailableChainFGCompose.Tests.P0d7ba
+AvailableChainFGCompose.Proofs.Finality.Kernel
 AvailableChainFGCompose.Statements.FinalityKernel
 AvailableChainFGCompose.Proofs.Finality.MiddleSupport
 AvailableChainFGCompose.Proofs.Finality.Middle
