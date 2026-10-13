@@ -289,25 +289,25 @@ private def kReady (late : Bool) (i : Nat) (x : Unit) (W : FGBlock (Fin 1)) (t :
       FGBlock.preceq (V2.D.Run.stateBefore kEnv (kRun late) i x).F W = false ∨
       W.slot ≤ W.parent.slot)
 
-private abbrev kSet : Finset (FGBlock (Fin 1)) := {.genesis, kA, kU, kB, kD, kX}
+private abbrev kBlocks : Finset (FGBlock (Fin 1)) := {.genesis, kA, kU, kB, kD, kX}
 
 private theorem kNonempty : ¬ kE.IsQuorum ∅ := by
   unfold Electorate.IsQuorum
   decide +kernel
 
-private theorem kClosed : ∀ B ∈ kSet, B.parent ∈ kSet := by decide
+private theorem kClosed : ∀ B ∈ kBlocks, B.parent ∈ kBlocks := by decide
 
 private theorem kRoots (st : SimplexFG.Store (Fin 1)) (B : FGBlock (Fin 1))
-    (hst : st.TF ⊆ kSet) (hB : B ∈ kSet) : StoreStepRoots st B := by
-  have hsub : insert B st.TF ⊆ kSet := Finset.insert_subset hB hst
+    (hst : st.TF ⊆ kBlocks) (hB : B ∈ kBlocks) : StoreStepRoots st B := by
+  have hsub : insert B st.TF ⊆ kBlocks := Finset.insert_subset hB hst
   intro X Y ⟨W, hW, hXW⟩ ⟨W', hW', hYW'⟩ hr
-  have hX := KitFG.ancestor_closed_of_parent_closed kSet kClosed W (hsub hW) X hXW
-  have hY := KitFG.ancestor_closed_of_parent_closed kSet kClosed W' (hsub hW') Y hYW'
-  exact (by decide : ∀ X ∈ kSet, ∀ Y ∈ kSet, X.root = Y.root → X = Y) X hX Y hY hr
+  have hX := KitFG.ancestor_closed_of_parent_closed kBlocks kClosed W (hsub hW) X hXW
+  have hY := KitFG.ancestor_closed_of_parent_closed kBlocks kClosed W' (hsub hW') Y hYW'
+  exact (by decide : ∀ X ∈ kBlocks, ∀ Y ∈ kBlocks, X.root = Y.root → X = Y) X hX Y hY hr
 
 private theorem kEvents (late : Bool) (i : Nat) (e : V2.Event Unit kP.Object)
     (he : (kRun late).events[i]? = some e) :
-    (∃ v o t, e = .deliver v o t ∧ o.payload ∈ kSet) ∨ ∃ v t, e = .tick v t := by
+    (∃ v o t, e = .deliver v o t ∧ o.payload ∈ kBlocks) ∨ ∃ v t, e = .tick v t := by
   have hm := List.mem_of_getElem? he
   cases late <;> simp only [Bool.false_eq_true, ↓reduceIte, List.cons_append,
     List.nil_append, List.mem_cons, List.not_mem_nil, or_false] at hm <;>
@@ -334,11 +334,11 @@ private theorem kReach (late : Bool) (i : Nat) (x : Unit) :
     FGStoreInvariant (KitFG.Window.certificateHeight kE kCfg 2)
       (KitFG.Window.certificateFinality kE kCfg 2)
       (V2.D.Run.stateBefore kEnv (kRun late) i x) ∧
-    (V2.D.Run.stateBefore kEnv (kRun late) i x).TF ⊆ kSet := by
+    (V2.D.Run.stateBefore kEnv (kRun late) i x).TF ⊆ kBlocks := by
   induction i with
   | zero =>
     refine ⟨KitFG.Window.windowStoreInvariant_init kE kCfg 2, ?_⟩
-    change ({.genesis} : Finset (FGBlock (Fin 1))) ⊆ kSet
+    change ({.genesis} : Finset (FGBlock (Fin 1))) ⊆ kBlocks
     decide
   | succ i ih =>
     cases he : (kRun late).events[i]? with
@@ -432,7 +432,7 @@ private theorem kGuards : AcceptGuards_W kR kEnv (kRun false) kE kCfg 2 (kReady 
     dsimp only
     intro _
     exact receipt_finCmp_of_block kR kEnv (kRun false) kE kCfg 2 kNonempty (by decide) kO rfl
-      (· ∈ kSet) (fun C W hC hW => (by decide +kernel : ∀ C ∈ kSet, ∀ W ∈ kSet,
+      (· ∈ kBlocks) (fun C W hC hW => (by decide +kernel : ∀ C ∈ kBlocks, ∀ W ∈ kBlocks,
         FGBlock.compatible (KitFG.Window.certificateFinality kE kCfg 2 C).F
           (KitFG.Window.certificateFinality kE kCfg 2 W).F = true) C hC W hW)
       5 () (kReach false 5 ()).1
