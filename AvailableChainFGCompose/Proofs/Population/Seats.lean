@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGCompose.Statements.Population.Seats
+public import AvailableChainFGCompose.Statements.SafetyClient
 
 public section
 
@@ -24,6 +25,14 @@ theorem fgHonestSeats_nonempty_of_quorum (Ef : Electorate (Fin n))
   have he := Finset.not_nonempty_iff_eq_empty.mp hn
   change Ef.q ≤ Ef.weightOf (FGHonestSeats S rho) at hH
   rw [he, Electorate.weightOf, Finset.sum_empty] at hH
+  omega
+
+/-- Unit-seat fault counts give the weighted fault premise without counting nonholders. -/
+theorem fg_fault_weight_of_count (Ef : Electorate (Fin n)) (unit : FGSafetyUnitLaws Ef)
+    (hf : (historyFaulty S rho).card ≤ (n - 1) / 3) :
+    Ef.weightOf (historyFaulty S rho) < Ef.q := by
+  rw [unit.weight, unit.quorum, Gen.Pure.qF_def]
+  have := unit.n_pos
   omega
 
 end AvailableChain.FGCompose
