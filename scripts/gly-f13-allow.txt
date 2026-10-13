@@ -379,3 +379,13 @@ F-13 dup frontierSearch_row_task AvailableChainFGCompose AvailableChainFGSAProof
 F-13 dup frontierSearch_cut_start AvailableChainFGCompose AvailableChainFGSAProofs # P0: generic home; FG-SA copy frozen (plan v3 §1)
 F-13 dup frontierSearch_event_time_mono AvailableChainFGCompose AvailableChainFGSAProofs # P0: generic home; FG-SA copy frozen (plan v3 §1)
 F-13 dup frontierSearch_phase_exists AvailableChainFGCompose AvailableChainFGSAProofs # P0: generic home; FG-SA copy frozen (plan v3 §1)
+# P0d6b
+F-13 dup healing_reset_budget_sum AvailableChainFGCompose AvailableChainFGSAProofs # P0: generic home; FG-SA copy frozen (plan v3 §1)
+F-13 dup healing_reset_budget_lt AvailableChainFGCompose AvailableChainFGSAProofs # P0: generic home; FG-SA copy frozen (plan v3 §1)
+F-13 dup healing_reset_rowCap AvailableChainFGCompose AvailableChainFGSAProofs # P0: generic home; FG-SA copy frozen (plan v3 §1)
+F-13 dup healing_reset_mu_le AvailableChainFGCompose AvailableChainFGSAProofs # P0: generic home; FG-SA copy frozen (plan v3 §1)
+F-13 dup healing_reset_fresh AvailableChainFGCompose AvailableChainFGSAProofs # P0: generic home; FG-SA copy frozen (plan v3 §1)
+F-13 dup healing_reset_synchronous AvailableChainFGCompose AvailableChainFGSAProofs # P0: generic home; FG-SA copy frozen (plan v3 §1)
+F-13 dup healing_reset_reset_first AvailableChainFGCompose AvailableChainFGSAProofs # P0: generic home; FG-SA copy frozen (plan v3 §1)
+F-13 dup healing_reset_fields AvailableChainFGCompose AvailableChainFGSAProofs # P0: generic home; FG-SA copy frozen (plan v3 §1)
+F-13 dup healing_resetWitness AvailableChainFGCompose AvailableChainFGSAProofs # P0: generic home; FG-SA copy frozen (plan v3 §1)
