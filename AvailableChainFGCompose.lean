@@ -73,6 +73,7 @@ public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchGap
 public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchTop
 public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchTail
 public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchRise
+public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchCompose
 public import AvailableChainFGCompose.Statements.FinalityRecords
 public import AvailableChainFGCompose.Proofs.Finality.RecordInv
 
