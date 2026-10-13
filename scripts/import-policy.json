@@ -89,6 +89,7 @@
       "AvailableChainFGCompose.Statements.ExecutionRecords",
       "AvailableChainFGCompose.Proofs.ExecutionObs",
       "AvailableChainFGCompose.Proofs.ExecutionHistory",
+      "AvailableChainFGCompose.Proofs.Finality.Kernel",
       "AvailableChainFGCompose.Proofs.Finality.RestoreReads",
       "AvailableChainFGCompose.Proofs.Finality.Receipt",
       "AvailableChainFGCompose.Proofs.Finality.Accept",

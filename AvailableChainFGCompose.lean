@@ -96,3 +96,5 @@ public import AvailableChainFGCompose.Proofs.ExecutionHistory
 public import AvailableChainFGCompose.Proofs.Finality.RestoreReads
 public import AvailableChainFGCompose.Proofs.Finality.Receipt
 public import AvailableChainFGCompose.Proofs.Finality.Accept
+
+public import AvailableChainFGCompose.Proofs.Finality.Kernel

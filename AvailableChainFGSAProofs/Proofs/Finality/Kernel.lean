@@ -2,6 +2,7 @@ module
 public import AvailableChainFGSAProofs.Proofs.Finality.RowsPrem
 public import AvailableChainFGSAProofs.Proofs.Finality.Receipt
 public import AvailableChainFGSAProofs.Proofs.Finality.Accept
+public import AvailableChainFGCompose.Proofs.Finality.Kernel
 
 public section
 
@@ -59,9 +60,35 @@ private theorem kernel_rows_before {G ΔF : Time} {pt : KernelPt} {A : Block}
     exact m.capThroughFinalAction i x C (hilt.le.trans (List.length_filter_le _ _))
       (hilt.le.trans hcut) hheld
 
+/-- The SA slot clock as the shared FG timing (fieldwise, definitional). -/
+private def d7b_timing (p : Params) : FGCompose.FGTiming where
+  delta := p.Δ
+  roundSlots := p.R
+  proposal := SA.proposalTime p.toParams
+  vote := SA.voteTime p.toParams
+  early := SA.earlyTime p.toParams
+  freeze := SA.freezeTime p.toParams
+  release := SA.releaseTime p.toParams
+  gate := SA.gateTime p.toParams
+  action := p.actionTime
+
+private theorem d7b_timing_laws (p : Params) : FGCompose.FGTimingLaws (d7b_timing p) where
+  delta_pos := p.deltaPos
+  rounds := p.RLarge
+  proposal_eq s := by
+    change 4 * p.Δ * (s : Time) = 4 * (s : Time) * p.Δ
+    ring
+  vote_eq _ := rfl
+  early_eq _ := rfl
+  freeze_eq _ := rfl
+  release_eq _ := rfl
+  gate_eq _ := rfl
+  action_eq _ := rfl
+
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Paper 22:1265–1289: the terminal proposal is after row delivery and before
-the next action. DC: INTENTIONAL: the kernel deadline bounds the actual read. -/
+the next action. DC: INTENTIONAL: the kernel deadline bounds the actual read.
+P0d7b-a: through the generic `FGCompose.kernel_terminal_bounds_W`. -/
 private theorem kernel_terminal_bounds {G ΔF : Time} {pt : KernelPt}
     (hK : KernelPrem_W p c G ΔF E rho pt) :
     max (p.actionTime (pt.r + 2)) E.t_GST + ΔF ≤
@@ -72,21 +99,15 @@ private theorem kernel_terminal_bounds {G ΔF : Time} {pt : KernelPt}
   have hG := (kmid_kernel_bounds hK).2.2.2.2.2.1
   have hGa : E.t_GST ≤ p.actionTime (pt.r + 2) :=
     hG.trans (kmid_proposal_le_action p (Nat.mul_le_mul_right p.R (by omega)))
-  have ht : SA.proposalTime p.toParams ((pt.r + 2) * p.R + kappaF p ΔF) =
-      carrierTimeW p ΔF (pt.r + 2) := by
-    rw [← fgsa_grid_sa_proposalTime, fgsa_grid_carrier_timeW]
-  have hdelivery := action_delivery_boundsW p ΔF (pt.r + 2) (kmid_kernel_bounds hK).1
-    hK.bound
-  rw [ActionDeliveryBoundsW_def] at hdelivery
-  have hb := hdelivery.2.1
-  have hn := kernel_before_next_actionW p ΔF (pt.r + 2) hK.bound
-  rw [KernelBeforeNextActionW_def, kernelDeadlineW_def] at hn
+  have hF : 0 ≤ ΔF := le_trans (le_of_lt E.Δ_pos) hK.set.deltaF
+  obtain ⟨h1, h2, h3⟩ := FGCompose.kernel_terminal_bounds_W (d7b_timing p)
+    (d7b_timing_laws p) (pt.r + 2) ⟨hK.bound.kappa_le_R⟩ hF hGa
+  change _ = kernelDeadlineW p ΔF (pt.r + 2) at h2
   have hh := hK.hhor
-  rw [kernelDeadlineW_def] at hh
-  rw [max_eq_left hGa, ht]
   have hd := p.deltaPos
-  rw [carrierTimeW_def] at hb ⊢
-  exact ⟨hb, by linarith, by linarith⟩
+  refine ⟨h1, ?_, h3⟩
+  change SA.proposalTime p.toParams ((pt.r + 2) * p.R + kappaF p ΔF) + p.Δ = _ at h2
+  linarith
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Paper 22:1171–1305 (F1–F9): the forward W kernel gives a strict fresh

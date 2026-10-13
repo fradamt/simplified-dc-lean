@@ -35,6 +35,7 @@ public import AvailableChainFGCompose.Proofs.Finality.Carry -- shake: keep (axio
 public import AvailableChainFGCompose.Proofs.Finality.RestoreReads -- shake: keep (axiom audit)
 public import AvailableChainFGCompose.Proofs.Finality.Receipt -- shake: keep (axiom audit)
 public import AvailableChainFGCompose.Proofs.Finality.Accept -- shake: keep (axiom audit)
+public import AvailableChainFGCompose.Proofs.Finality.Kernel -- shake: keep (axiom audit)
 public import AvailableChainFGCompose.Statements.FinalityKernel -- shake: keep (axiom audit)
 public import AvailableChainFGCompose.Proofs.Finality.MiddleSupport -- shake: keep (axiom audit)
 public import AvailableChainFGCompose.Proofs.Finality.Middle -- shake: keep (axiom audit)
@@ -1425,3 +1426,19 @@ public import AvailableChainFGCompose.Proofs.Healing.ResetCut -- shake: keep (#p
 #print axioms AvailableChain.FGCompose.chainRows_of_head_driver
 #print axioms AvailableChain.FGCompose.chainRows_of_held_obs
 #print axioms AvailableChain.FGCompose.ordinary_chainRows_atCut_of_before
+-- P0d7b-a: generic finality kernel and its kernel-input records.
+#print axioms AvailableChain.FGCompose.KernelActionSupply_W
+#print axioms AvailableChain.FGCompose.KernelActionSupply_W.head
+#print axioms AvailableChain.FGCompose.KernelActionSupply_W.mk
+#print axioms AvailableChain.FGCompose.KernelActionSupply_W.read
+#print axioms AvailableChain.FGCompose.KernelActionSupply_W.service
+#print axioms AvailableChain.FGCompose.KernelActionSupply_W.walk
+#print axioms AvailableChain.FGCompose.KernelRunFacts
+#print axioms AvailableChain.FGCompose.KernelRunFacts.awake
+#print axioms AvailableChain.FGCompose.KernelRunFacts.deltaF
+#print axioms AvailableChain.FGCompose.KernelRunFacts.fault_weight
+#print axioms AvailableChain.FGCompose.KernelRunFacts.linked
+#print axioms AvailableChain.FGCompose.KernelRunFacts.mk
+#print axioms AvailableChain.FGCompose.KernelRunFacts.schedule
+#print axioms AvailableChain.FGCompose.finality_kernel_W_of
+#print axioms AvailableChain.FGCompose.kernel_terminal_bounds_W

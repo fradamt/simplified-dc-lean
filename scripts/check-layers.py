@@ -1388,5 +1388,12 @@ COMPOSE_EDGES |= frozenset({
     ('AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchCompose',
      'AvailableChainFGCompose.Proofs.Healing.FrontierSearchCompose'),
 })
+# P0d7b-a: exact generic finality kernel entries.
+COMPOSE_MODULES += ('AvailableChainFGCompose.Proofs.Finality.Kernel',)
+COMPOSE_EDGES |= frozenset({
+    ('AvailableChainFGSAProofs.Proofs.Finality.Kernel',
+     'AvailableChainFGCompose.Proofs.Finality.Kernel'),
+})
+
 if __name__ == "__main__":
     sys.exit(main())

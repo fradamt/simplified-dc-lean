@@ -185,6 +185,7 @@ def composeImportAllowed (m dep : Name) : Bool :=
      `AvailableChainFGCompose.Proofs.Finality.RestoreReads,
      `AvailableChainFGCompose.Proofs.Finality.Receipt,
      `AvailableChainFGCompose.Proofs.Finality.Accept,
+     `AvailableChainFGCompose.Proofs.Finality.Kernel,
      `AvailableChainFGCompose.Statements.ResetCut,
      `AvailableChainFGCompose.Statements.FinalityKernel,
      `AvailableChainFGCompose.Proofs.Finality.MiddleSupport,
