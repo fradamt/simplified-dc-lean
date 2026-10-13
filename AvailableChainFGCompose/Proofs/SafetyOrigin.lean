@@ -128,7 +128,8 @@ private theorem safety_origin_read_delivery (C : FGCoreLaws R)
 private theorem safety_origin_preceq_refl (b : Block) : Block.Preceq b b := by
   cases b <;> simp [Block.Preceq, Block.preceq]
 
-private theorem safety_origin_stored_runBlock (C : FGCoreLaws R)
+/-- `safety_stored_runBlock` under the origin record. -/
+theorem safety_stored_runBlock_origin (C : FGCoreLaws R)
     (L : FGSafetyStoreOriginLaws R S H f Good pending)
     (E : Generic.Env V) (rho : V2.D.Run V P) (i : Nat) (x : V) (B : FGBlock (Fin n))
     (hB : B ∈ (R.core (V2.D.Run.stateBefore E rho i x)).fg.TF) (hne : B ≠ .genesis) :
@@ -217,8 +218,8 @@ theorem safety_event_agreement_origin
   safety_store_agreement K N hr hb
     (L.invariant _ (safety_origin_stateBefore C L E rho i x).1)
     (L.invariant _ (safety_origin_stateBefore C L E rho j y).1)
-    (fun B hB hne => safety_origin_stored_runBlock C L E rho i x B hB hne)
-    (fun B hB hne => safety_origin_stored_runBlock C L E rho j y B hB hne)
+    (fun B hB hne => safety_stored_runBlock_origin C L E rho i x B hB hne)
+    (fun B hB hne => safety_stored_runBlock_origin C L E rho j y B hB hne)
 
 private theorem safety_origin_read_row (C : FGCoreLaws R)
     (L : FGSafetyStoreOriginLaws R S H f Good pending)
