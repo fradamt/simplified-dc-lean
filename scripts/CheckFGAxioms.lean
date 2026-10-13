@@ -130,6 +130,8 @@ def composeImportAllowed (m dep : Name) : Bool :=
      `AvailableChainKitFG.WindowEntriesDef),
     (`AvailableChainFGCompose.Statements.FinalityRows,
      `AvailableChainKitFG.WindowViewsDef),
+    (`AvailableChainFGCompose.Statements.ExecutionAcceptance,
+     `AvailableChainKitFG.WindowViewsDef),
     (`AvailableChainFGCompose.Statements.FinalityReceipts,
      `AvailableChainSimplexFG.WindowStore),
     (`AvailableChainFGCompose.Statements.FinalityRecords,
