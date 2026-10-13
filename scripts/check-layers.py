@@ -1088,6 +1088,13 @@ COMPOSE_MODULES += (
 COMPOSE_MODULES += ('AvailableChainFGCompose.Proofs.ExecutionHistory',)
 
 
+# X1e: window views in the additive selected-acceptance statement.
+COMPOSE_SAFETY_IMPORTS |= frozenset({
+    ('AvailableChainFGCompose.Statements.ExecutionAcceptance',
+     'AvailableChainKitFG.WindowViewsDef'),
+})
+
+
 def compose_base(dep: str) -> bool:
     return (foundation(dep) or under(dep, "AvailableChainModel.Objects")
             or any_under(dep, ("AvailableChainEngineV2.Engine",
