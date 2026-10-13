@@ -19,18 +19,18 @@ variable (H : FGHistoricalReads P.State Body) (Wr : FGDependencyWireReads P Body
 variable (O : FGExecutionObs V P)
 variable (Ef : Electorate (Fin n)) (cfg : FGConfig) (K : Nat)
 
-/-- One-body leaf effect, including carrier-finality membership, and F retention through
-all subsequent microsteps. No ordinary `P.process` equation is required. The original
-receipt origin and both body representation equations select the inserted FG block. -/
-structure FGAcceptanceEffectLaws : Prop where
-  leaf : ∀ x k o b W, O.accepts x k o → FGReceiptOrigin E rho H Wr x b o →
-    R.erase W = H.erase b → W.rows = (Wr.bodyRows b).filterMap S.decode →
-    (R.core (O.cutState x (k + 1))).fg =
+/-- One-body effect ONLY at the selected successful leaf, with carrier-finality
+membership. Ordinary observations mark refused deliveries too: selecting `A` explicitly
+requires its successful effect. F retention still covers every later microstep. -/
+structure FGAcceptanceEffectLaws (x : V) (W : FGBlock (Fin n)) (d : Time)
+    (A : FGSelectedAcceptance R S E rho H Wr O
+      (SimplexFG.Window.update_finality Ef cfg K) x W d) : Prop where
+  leaf : (R.core (O.cutState x (A.step + 1))).fg =
       SimplexFG.Window.update_finality Ef cfg K
-        { (R.core (O.cutState x k)).fg with
-          TF := insert W (R.core (O.cutState x k)).fg.TF } W ∧
+        { (R.core (O.cutState x A.step)).fg with
+          TF := insert W (R.core (O.cutState x A.step)).fg.TF } W ∧
     (SimplexFG.Window.derive Ef cfg K W).F ∈
-      insert W (R.core (O.cutState x k)).fg.TF
+      insert W (R.core (O.cutState x A.step)).fg.TF
   finality : FGObservedFinalityLaws R rho O
 
 /-- Receiver guards at the accepting leaf, never at the original receipt event. Prior
@@ -61,9 +61,10 @@ theorem AcceptsFinalBefore_obs_def (x : V) (U : FGBlock (Fin n)) (d : Time) :
 deadline read, and retention to any later bounded cut of this same receiver. -/
 def AcceptBeforeDriverStatement : Prop :=
   ¬ Ef.IsQuorum ∅ → 2 ≤ K → FGExecutionObsLaws E rho O →
-  V2.D.ScheduleWellFormed E rho → FGAcceptanceEffectLaws R S E rho H Wr O Ef cfg K →
+  V2.D.ScheduleWellFormed E rho →
   ∀ x W U d (A : FGSelectedAcceptance R S E rho H Wr O
       (SimplexFG.Window.update_finality Ef cfg K) x W d),
+    FGAcceptanceEffectLaws R S E rho H Wr O Ef cfg K x W d A →
     d ≤ rho.horizon → FGBlock.Preceq U (SimplexFG.Window.derive Ef cfg K W).F →
     FGAcceptanceGuards R O Ef cfg K x A.step W U →
     A.token.receiptTime < d ∧
@@ -75,9 +76,10 @@ def AcceptBeforeDriverStatement : Prop :=
 theorem AcceptBeforeDriverStatement_def :
     AcceptBeforeDriverStatement R S E rho H Wr O Ef cfg K =
       (¬ Ef.IsQuorum ∅ → 2 ≤ K → FGExecutionObsLaws E rho O →
-      V2.D.ScheduleWellFormed E rho → FGAcceptanceEffectLaws R S E rho H Wr O Ef cfg K →
+      V2.D.ScheduleWellFormed E rho →
       ∀ x W U d (A : FGSelectedAcceptance R S E rho H Wr O
           (SimplexFG.Window.update_finality Ef cfg K) x W d),
+        FGAcceptanceEffectLaws R S E rho H Wr O Ef cfg K x W d A →
         d ≤ rho.horizon → FGBlock.Preceq U (SimplexFG.Window.derive Ef cfg K W).F →
         FGAcceptanceGuards R O Ef cfg K x A.step W U →
         A.token.receiptTime < d ∧
@@ -90,9 +92,10 @@ theorem AcceptBeforeDriverStatement_def :
 The fold is the accepted pure window predicate; no search or finality claim is assumed. -/
 def FinalizePendingDriverStatement : Prop :=
   ¬ Ef.IsQuorum ∅ → 2 ≤ K → FGExecutionObsLaws E rho O →
-  V2.D.ScheduleWellFormed E rho → FGAcceptanceEffectLaws R S E rho H Wr O Ef cfg K →
+  V2.D.ScheduleWellFormed E rho →
   ∀ x y U X d (A : FGSelectedAcceptance R S E rho H Wr O
       (SimplexFG.Window.update_finality Ef cfg K) x X d),
+    FGAcceptanceEffectLaws R S E rho H Wr O Ef cfg K x X d A →
     d ≤ rho.horizon → PendingFold_W Ef cfg K y U X →
     FGAcceptanceGuards R O Ef cfg K x A.step X U →
     A.token.receiptTime < d ∧
@@ -104,9 +107,10 @@ def FinalizePendingDriverStatement : Prop :=
 theorem FinalizePendingDriverStatement_def :
     FinalizePendingDriverStatement R S E rho H Wr O Ef cfg K =
       (¬ Ef.IsQuorum ∅ → 2 ≤ K → FGExecutionObsLaws E rho O →
-      V2.D.ScheduleWellFormed E rho → FGAcceptanceEffectLaws R S E rho H Wr O Ef cfg K →
+      V2.D.ScheduleWellFormed E rho →
       ∀ x y U X d (A : FGSelectedAcceptance R S E rho H Wr O
           (SimplexFG.Window.update_finality Ef cfg K) x X d),
+        FGAcceptanceEffectLaws R S E rho H Wr O Ef cfg K x X d A →
         d ≤ rho.horizon → PendingFold_W Ef cfg K y U X →
         FGAcceptanceGuards R O Ef cfg K x A.step X U →
         A.token.receiptTime < d ∧

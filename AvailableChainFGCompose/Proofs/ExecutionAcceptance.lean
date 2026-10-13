@@ -181,7 +181,7 @@ theorem acceptance_at_strict_read (OL : FGExecutionObsLaws E rho O)
 /-- Conditional selected acceptance at the actual cut, retaining the original token. -/
 theorem acceptBefore_driver : AcceptBeforeDriverStatement R S E rho H Wr O Ef cfg K := by
   rw [AcceptBeforeDriverStatement_def]
-  intro hne hK OL hs EL x W U d A _ hfinal G
+  intro hne hK OL hs x W U d A EL _ hfinal G
   have hbound := (OL.accept_origin x A.step A.token A.accepts).1
   have hcover : FGBlock.Preceq U (R.core (O.cutState x (A.step + 1))).fg.F := by
     by_cases hc : FGBlock.Preceq U (R.core (O.cutState x A.step)).fg.F
@@ -191,7 +191,7 @@ theorem acceptBefore_driver : AcceptBeforeDriverStatement R S E rho H Wr O Ef cf
     exact KitFG.preceq_trans hfinal
       (acceptance_update Ef cfg K hne hK _ G.invariant W
         (KitFG.preceq_trans hF hfinal)
-        (EL.leaf x A.step A.token A.body W A.accepts A.origin A.erase_eq A.rows_eq).2
+        EL.leaf.2
         (G.jPath hc) (G.cap hc))
   refine ⟨(OL.accept_time x A.step A.token A.accepts).trans_lt A.before_deadline,
     hcover, ?_, ?_⟩
@@ -205,7 +205,7 @@ theorem acceptBefore_driver : AcceptBeforeDriverStatement R S E rho H Wr O Ef cf
 /-- Pending fold followed by acceptance of exactly the same carrier and target. -/
 theorem finalizePending_driver : FinalizePendingDriverStatement R S E rho H Wr O Ef cfg K := by
   rw [FinalizePendingDriverStatement_def]
-  intro hne hK OL hs EL x y U X d A hhor fold G
+  intro hne hK OL hs x y U X d A EL hhor fold G
   have hfinal : FGBlock.Preceq U (SimplexFG.Window.derive Ef cfg K X).F := by
     obtain ⟨child, e, he, hj, hX, Q, hQ, cover⟩ := fold
     cases X with
@@ -221,7 +221,7 @@ theorem finalizePending_driver : FinalizePendingDriverStatement R S E rho H Wr O
         Q hQ hc
       rw [hX] at r
       exact r.1
-  exact acceptBefore_driver R S E rho H Wr O Ef cfg K hne hK OL hs EL x X U d A hhor hfinal G
+  exact acceptBefore_driver R S E rho H Wr O Ef cfg K hne hK OL hs x X U d A EL hhor hfinal G
 
 /-- Ordinary bridge, IFF: the actual strict-prefix conclusion is the frozen strict-time
 read under the sorted schedule. This equivalence asserts coverage, not a receipt. -/
