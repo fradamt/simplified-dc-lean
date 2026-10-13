@@ -579,4 +579,14 @@ AvailableChainKitV2.Tests.Counterexamples
 AvailableChainKitV2.Tests.Duties
 AvailableChainKitV2.Tests.Sleep
 AvailableChainKitV2.Tests.Toy
+AvailableChainFGCompose.Proofs.Healing.FrontierSearchFull
+AvailableChainFGCompose.Proofs.Healing.FrontierSearchTasks
+AvailableChainFGCompose.Proofs.Healing.Reset
+AvailableChainFGCompose.Proofs.HolderClient
+AvailableChainFGCompose.Proofs.OrdinaryHolderClient
+AvailableChainFGCompose.Statements.HolderClient
+AvailableChainFGCompose.Tests.P0d5db
+AvailableChainFGCompose.Tests.P0d6b
+AvailableChainFGCompose.Tests.X1c
+
 [EXPECTED-FAIL]

@@ -574,4 +574,22 @@ AvailableChainKitV2.Tests.Duties
 AvailableChainKitV2.Tests.Sleep
 AvailableChainKitV2.Tests.Toy
 
+AvailableChainFGCompose.Proofs.ExecutionAcceptance
+AvailableChainFGCompose.Proofs.ExecutionAcceptanceOrdinary
+AvailableChainFGCompose.Proofs.ExecutionHistory
+AvailableChainFGCompose.Proofs.ExecutionObs
+AvailableChainFGCompose.Proofs.Finality.Kernel
+AvailableChainFGCompose.Proofs.HolderClient
+AvailableChainFGCompose.Proofs.OrdinaryHolderClient
+AvailableChainFGCompose.Statements.ExecutionAcceptance
+AvailableChainFGCompose.Statements.ExecutionBridges
+AvailableChainFGCompose.Statements.ExecutionObs
+AvailableChainFGCompose.Statements.ExecutionRecords
+AvailableChainFGCompose.Statements.HolderClient
+AvailableChainFGCompose.Tests.P0d7ba
+AvailableChainFGCompose.Tests.X1a
+AvailableChainFGCompose.Tests.X1c
+AvailableChainFGCompose.Tests.X1e
+AvailableChainFGCompose.Tests.X1eRefusal
+
 [EXPECTED-FAIL]
