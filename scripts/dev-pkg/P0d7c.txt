@@ -11,6 +11,8 @@ AvailableChainFGCompose.Tests.Axioms
 AvailableChainFGSAProofs.Proofs.Assembly.Finality
 AvailableChainFGSAProofs.Proofs.Assembly.Root
 [GREEN]
+AvailableChainFGSAProofs.Proofs.Finality.Forward
+AvailableChainFGSAProofs.Proofs.Finality.Local
 AvailableChainFGSAProofs.Tests.P0d7c
 AvailableChainFGCompose
 AvailableChainFGCompose.Tests.Axioms
