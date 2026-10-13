@@ -8,7 +8,7 @@ public section
 namespace AvailableChain.FGCompose.Tests.DependencyOrigins
 
 /-- A finite interface model. This is not an ExecutionValid protocol fixture. -/
-noncomputable abbrev do_protocol : V2.ProtocolSpecD Unit where
+private noncomputable abbrev do_protocol : V2.ProtocolSpecD Unit where
   State := Nat
   Label := Unit
   Duty := Empty
@@ -37,21 +37,21 @@ noncomputable abbrev do_protocol : V2.ProtocolSpecD Unit where
   handles := fun _ _ _ => False
   carries := fun _ _ => False
 
-noncomputable abbrev do_leafProtocol : V2.ProtocolSpecD Unit :=
+private noncomputable abbrev do_leafProtocol : V2.ProtocolSpecD Unit :=
   { do_protocol with process := fun st wire =>
     if st = 2 ∧ wire.payload = 1 then 3
     else if st = 3 ∧ wire.payload = 2 then 4 else st }
 
-noncomputable abbrev do_env : Generic.Env Bool where
+private noncomputable abbrev do_env : Generic.Env Bool where
   Δ := 3
   Δ_pos := by decide
   t_GST := 0
   t_GST_nonneg := by decide
   awake := fun _ _ => true
 
-noncomputable abbrev do_wire (b : Fin 4) : do_protocol.Object := ⟨.seat () 0, b⟩
+private noncomputable abbrev do_wire (b : Fin 4) : do_protocol.Object := ⟨.seat () 0, b⟩
 
-noncomputable abbrev do_run : V2.D.Run Bool do_protocol where
+private noncomputable abbrev do_run : V2.D.Run Bool do_protocol where
   honest := {false}
   horizon := 10
   events := [.deliver false (do_wire 2) 0, .restart false 1,
@@ -59,11 +59,11 @@ noncomputable abbrev do_run : V2.D.Run Bool do_protocol where
   seatOf := fun _ _ => false
   input := fun _ _ => ()
 
-noncomputable abbrev do_body (b : Fin 4) : Block :=
+private noncomputable abbrev do_body (b : Fin 4) : Block :=
   if b = 0 then .genesis else if b = 1 then .node .genesis 1 ⟨1⟩ 0
   else .node (.node .genesis 1 ⟨1⟩ 0) 2 ⟨2⟩ 0
 
-noncomputable abbrev do_history : FGHistoricalReads Nat (Fin 4) where
+private noncomputable abbrev do_history : FGHistoricalReads Nat (Fin 4) where
   acceptedBlocks st := (if 4 ≤ st then [do_body 0, do_body 1, do_body 2]
     else if 3 ≤ st then [do_body 0, do_body 1] else [do_body 0]).toFinset
   acceptedBodies st := if 4 ≤ st then [0, 1, 2] else if 3 ≤ st then [0, 1] else [0]
@@ -76,7 +76,7 @@ noncomputable abbrev do_history : FGHistoricalReads Nat (Fin 4) where
   depth b := (do_body b).depth
   lca b c := Block.meet (do_body b) (do_body c)
 
-noncomputable abbrev do_wireReads : FGDependencyWireReads do_protocol (Fin 4) Nat where
+private noncomputable abbrev do_wireReads : FGDependencyWireReads do_protocol (Fin 4) Nat where
   decodeBody wire := some wire.payload
   namedRoots wire := some (do_history.root wire.payload,
     do_history.root (do_history.parent wire.payload))
@@ -84,12 +84,12 @@ noncomputable abbrev do_wireReads : FGDependencyWireReads do_protocol (Fin 4) Na
   decodedRows wire := [wire.payload.val]
   bodyRows b := [b.val]
 
-noncomputable abbrev do_child : FGReceiptToken Bool do_protocol.Object :=
+private noncomputable abbrev do_child : FGReceiptToken Bool do_protocol.Object :=
   ⟨false, 0, do_wire 2, 0, 0⟩
-noncomputable abbrev do_parent : FGReceiptToken Bool do_protocol.Object :=
+private noncomputable abbrev do_parent : FGReceiptToken Bool do_protocol.Object :=
   ⟨false, 2, do_wire 1, 1, 2⟩
 
-noncomputable abbrev do_reads : FGDependencyReads Nat (Fin 4)
+private noncomputable abbrev do_reads : FGDependencyReads Nat (Fin 4)
     (FGReceiptToken Bool do_protocol.Object) Nat where
   accepted st b := b = 0 ∨ (b = 1 ∧ 3 ≤ st) ∨ (b = 2 ∧ 4 ≤ st)
   refused _ _ _ _ := False
@@ -108,7 +108,7 @@ noncomputable abbrev do_reads : FGDependencyReads Nat (Fin 4)
   latestKey _ _ := some (2, do_history.root 2)
   latestCompanion st _ := if 6 ≤ st then some 2 else none
 
-noncomputable abbrev do_leaf : FGDependencyLeaf Nat (Fin 4)
+private noncomputable abbrev do_leaf : FGDependencyLeaf Nat (Fin 4)
     (FGReceiptToken Bool do_protocol.Object) where
   step a b o outcome z := outcome = .accepted ∧
     ((a = 2 ∧ b = 1 ∧ o = do_parent ∧ z = 3) ∨
@@ -119,12 +119,12 @@ noncomputable abbrev do_leaf : FGDependencyLeaf Nat (Fin 4)
   initial := 0
   genesis := 0
 
-noncomputable abbrev do_step (kind : FGDependencyStepKind) (_ : Bool) (a z : Nat) : Prop :=
+private noncomputable abbrev do_step (kind : FGDependencyStepKind) (_ : Bool) (a z : Nat) : Prop :=
   a = z ∨ (kind = .arrival ∧ ((a = 0 ∧ z = 1) ∨ (a = 1 ∧ z = 2))) ∨
     (kind = .leafRetry ∧ ((a = 2 ∧ z = 3) ∨ (a = 3 ∧ z = 4))) ∨
     (kind = .notification ∧ ((a = 4 ∧ z = 5) ∨ (a = 5 ∧ z = 6)))
 
-noncomputable abbrev do_driver : FGDependencyDriver Bool (Fin 4) do_protocol where
+private noncomputable abbrev do_driver : FGDependencyDriver Bool (Fin 4) do_protocol where
   enter st wire _ := if st = 0 ∧ wire.payload = 2 then 1
     else if st = 1 ∧ wire.payload = 1 then 2 else st
   enterProgram st wire _ := .finish (if st = 0 ∧ wire.payload = 2 then 1
@@ -150,7 +150,7 @@ noncomputable abbrev do_driver : FGDependencyDriver Bool (Fin 4) do_protocol whe
   notify st b _ := if st = 4 ∧ b = 1 then 5 else if st = 5 ∧ b = 2 then 6 else st
   replay st _ _ := st
 
-noncomputable abbrev do_op (k : Nat) :
+private noncomputable abbrev do_op (k : Nat) :
     FGDependencyOperation (Fin 4) (FGReceiptToken Bool do_protocol.Object) do_protocol.Object :=
   match k with
   | 0 => .arrival 2 do_child
@@ -165,7 +165,7 @@ noncomputable abbrev do_op (k : Nat) :
   | 13 => .clock 4
   | _ => .idle
 
-noncomputable abbrev do_trace : FGDependencyTrace Nat where
+private noncomputable abbrev do_trace : FGDependencyTrace Nat where
   length := 14
   state k := [0, 1, 1, 1, 1, 1, 1, 1, 2, 3, 4, 5, 6, 6, 6][k]?.getD 6
   time k := [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 4][k]?.getD 4
@@ -176,7 +176,7 @@ noncomputable abbrev do_trace : FGDependencyTrace Nat where
   dutyCut j := [2, 5, 12, 14][j]?.getD 14
   hookRead j index kind cut st := j = 2 ∧ index = 0 ∧ kind = .ac ∧ cut = 12 ∧ st = 6
 
-noncomputable abbrev do_read (_ : Bool) (i st : Nat) : Prop :=
+private noncomputable abbrev do_read (_ : Bool) (i st : Nat) : Prop :=
   12 ≤ i ∧ i < 16 ∧ st = 6
 
 private theorem do_child_origin :
@@ -281,12 +281,12 @@ private theorem do_state_laws : FGDependencyStateLaws do_history do_reads do_lea
         by decide, Or.inr (Or.inr ⟨rfl, by decide⟩),
         Or.inl ⟨rfl, by omega, rfl⟩⟩
 
-noncomputable abbrev do_arrival (a : Nat) (b : Fin 4)
+private noncomputable abbrev do_arrival (a : Nat) (b : Fin 4)
     (o : FGReceiptToken Bool do_protocol.Object) (z : Nat) : Prop :=
   (a = 0 ∧ b = 2 ∧ o = do_child ∧ z = 1) ∨
     (a = 1 ∧ b = 1 ∧ o = do_parent ∧ z = 2)
 
-noncomputable abbrev do_notify (a : Nat) (b : Fin 4) (z : Nat) : Prop :=
+private noncomputable abbrev do_notify (a : Nat) (b : Fin 4) (z : Nat) : Prop :=
   (a = 4 ∧ b = 1 ∧ z = 5) ∨ (a = 5 ∧ b = 2 ∧ z = 6)
 
 private theorem do_arrival_laws :
@@ -349,7 +349,7 @@ private theorem do_entry_steps (x : Bool) : FGDependencySteps do_step x 2 6 := b
   exact .tail .notification (.tail .notification
     (.tail .leafRetry (.tail .leafRetry (.refl 2) s1) s2) s3) s4
 
-theorem do_trace_laws :
+private theorem do_trace_laws :
     FGDependencyTraceLaws do_env do_run false do_history do_wireReads do_reads do_leaf
       do_step do_trace do_driver do_op do_arrival do_notify
       (Leaf := do_leafProtocol) id id do_read where
