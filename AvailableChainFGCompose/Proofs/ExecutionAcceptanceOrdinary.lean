@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGCompose.Proofs.ExecutionAcceptance
+public import AvailableChainFGCompose.Proofs.ExecutionObs
 
 public section
 

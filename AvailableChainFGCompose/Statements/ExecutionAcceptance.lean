@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGCompose.Statements.ExecutionBridges
-public import AvailableChainFGCompose.Statements.SafetyStore
+public import AvailableChainFGCompose.Statements.SafetyStore -- shake: keep (policy)
 public import AvailableChainFGCompose.Statements.FinalityReceipts
 public import AvailableChainKitFG.WindowViewsDef
 

@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGCompose.Proofs.ExecutionAcceptanceOrdinary
+public import AvailableChainFGCompose.Proofs.ExecutionAcceptance
 
 set_option linter.privateModule false
 

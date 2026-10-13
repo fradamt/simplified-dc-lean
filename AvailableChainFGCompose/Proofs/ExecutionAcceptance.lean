@@ -1,7 +1,6 @@
 module
 public import AvailableChainFGCompose.Statements.ExecutionAcceptance
-public import AvailableChainFGCompose.Proofs.ExecutionHistory
-public import AvailableChainFGCompose.Proofs.Finality.Accept
+public import AvailableChainFGCompose.Proofs.Finality.Accept -- shake: keep (policy)
 
 public section
 
