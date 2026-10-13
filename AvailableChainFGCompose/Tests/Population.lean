@@ -166,5 +166,25 @@ private theorem mixed_premises_sat :
   · decide
   · decide
 
+private theorem mixed_seats_and_rows :
+    (FGHonestSeats reads run).card = 1 ∧ run.honest.card = 2 ∧
+    (electorate 1).IsQuorum (FGHonestSeats reads run) ∧
+    (FGHonestSeats reads run).Nonempty ∧
+    (electorate 1).weightOf (historyFaulty reads run) < (electorate 1).q ∧
+    ((V2.D.Run.emitsAt env run 0).filter protocol.objSelfVisible).filterMap
+      reads.decodeObject = [row] ∧
+    (V2.D.Run.emitsAt env run 1).filterMap reads.decodeObject = [] := by
+  have hU := mixed_premises_sat.2.2.2.1
+  have hF := mixed_premises_sat.2.2.2.2.2.2.2.2.1
+  have hf : (historyFaulty reads run).card ≤ (1 - 1) / 3 := by rw [hF]; decide
+  have hQ := high_target_honest_quorum_holder reads run (electorate 1) hU hf
+  refine ⟨?_, by decide, hQ,
+    fgHonestSeats_nonempty_of_quorum reads run (electorate 1) (by decide) hQ,
+    fg_fault_weight_of_count reads run (electorate 1) hU hf, ?_, by decide⟩
+  · rw [mixed_premises_sat.2.2.2.2.2.2.2.1]; decide
+  · have h := selection_tick_rows_holder reads env run (electorate 1) cfg selection
+      mixed_premises_sat.2.2.2.2.1 mixed_client_premises_sat 0 0 6 rfl
+    exact h.trans (by decide)
+
 end AvailableChain.FGCompose.Tests.Population
 end
