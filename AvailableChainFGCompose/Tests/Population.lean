@@ -142,5 +142,28 @@ private theorem mixed_wire_premises_sat : FGSafetyWireLaws reads where
     | seat l i => rfl
   carried _ _ ha := False.elim (List.not_mem_nil ha)
 
+private theorem mixed_premises_sat :
+    run.honest = {7, 9} ∧ run.horizon = 20 ∧
+    run.events = [.tick 9 6, .tick 7 7] ∧
+    FGSafetyUnitLaws (electorate 1) ∧
+    FGSelectionClientLaws selection reads ∧
+    FGHolderClientLaws reads (electorate 1) cfg env run (ordinaryFGExecutionObs env run)
+      (safetyHolder reads run) ∧ FGSafetyWireLaws reads ∧
+    FGHonestSeats reads run = {0} ∧ historyFaulty reads run = ∅ ∧
+    V2.D.Run.emitsAt env run 0 = [wire, raw] ∧
+    V2.D.Run.emitsAt env run 1 = [raw] ∧ reads.decode raw = none := by
+  refine ⟨rfl, rfl, rfl, ?_, ⟨fun _ => rfl⟩, mixed_client_premises_sat,
+    mixed_wire_premises_sat, ?_, ?_, ?_, ?_, rfl⟩
+  · exact ⟨by decide, by decide,
+      fun A => by simp [Electorate.weightOf], by decide⟩
+  · ext i
+    have hi : i = 0 := Subsingleton.elim _ _
+    subst i
+    simp [FGHonestSeats_def, safetyHolder, reads, run]
+  · ext i
+    simp [historyFaulty, safetyHolder]
+  · decide
+  · decide
+
 end AvailableChain.FGCompose.Tests.Population
 end
