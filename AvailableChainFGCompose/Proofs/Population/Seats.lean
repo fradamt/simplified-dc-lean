@@ -15,7 +15,8 @@ variable (S : FGSafetyReads P n Wire) (rho : V2.D.Run V P)
 theorem fgHonestSeats_eq_compl : FGHonestSeats S rho = (historyFaulty S rho)ᶜ := by
   classical
   ext i
-  simp [FGHonestSeats_def, historyFaulty]
+  delta historyFaulty
+  simp [FGHonestSeats_def]
 
 /-- A positive quorum threshold supplies a seat, even with an infinite node universe. -/
 theorem fgHonestSeats_nonempty_of_quorum (Ef : Electorate (Fin n))
