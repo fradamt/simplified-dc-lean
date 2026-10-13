@@ -24,6 +24,7 @@ public import AvailableChainFGCompose.Statements.SafetyReads
 public import AvailableChainFGCompose.Statements.SafetyStore
 public import AvailableChainFGCompose.Statements.SafetyClient
 public import AvailableChainFGCompose.Statements.SafetyClaims
+public import AvailableChainFGCompose.Statements.SafetyOrigin
 public import AvailableChainFGCompose.Proofs.SafetyStore
 public import AvailableChainFGCompose.Proofs.SafetyAccountable
 public import AvailableChainFGCompose.Proofs.SafetyClient
