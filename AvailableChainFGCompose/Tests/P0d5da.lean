@@ -536,20 +536,38 @@ private theorem q5compose :
     (ρbar := 1) (t0 := 4) (tail := 0) (by decide) (by decide) le_rfl q5step q5start le_rfl
     (by decide +kernel)
 
--- Every premise of q5compose on the exact run: schedule, nonempty honest set, horizon at
--- least the deadline, the start, and the phase result at every start.
+-- Every premise of q5compose on the exact run, in the order of the call: observation,
+-- certificate, store invariant, justification and retention laws; timing laws; crossing,
+-- schedule and order; 4Δ ≤ G, allowance and tail nonnegative; the quantified per-start
+-- phase result; the start, its delay guard, and the deadline within the horizon. Also the
+-- nonempty honest scope and the actual repair allowance at the start.
 private theorem q5compose_premises_sat :
-    V2.D.ScheduleWellFormed q5env q5rho ∧ q5rho.honest.Nonempty ∧
+    FGObservationLaws q5R q5O ∧ FGCertificateLaws q5E q5O.height q5O.finality ∧
+    (∀ i x, FGStoreInvariant q5O.height q5O.finality
+      (q5R.core (q5rho.stateBefore q5env i x)).fg) ∧
+    FGJustificationLaws q5O.height ∧
+    (∀ i j, i ≤ j → ∀ x, TFAt q5R q5env q5rho i x ⊆ TFAt q5R q5env q5rho j x) ∧
+    FGTimingLaws q5T ∧ RXing q5R q5env q5rho q5O ∧ V2.D.ScheduleWellFormed q5env q5rho ∧
+    FGRunOrderLaws q5env q5rho q5R ∧ (4 : Time) * q5T.delta ≤ 4 ∧ (0 : Time) ≤ 1 ∧
+    (0 : Time) ≤ 0 ∧
+    (∀ i ev m kind,
+      FrontierSearchStart q5R q5env q5rho q5O q5T 4 i ev m kind → (4 : Time) ≤ ev.time →
+      ev.time + interruptedRepairBudget q5T 4 1 1 kind ≤ q5rho.horizon →
+      FirstPhaseStopBy q5R q5env q5rho q5O i m
+        (ev.time + interruptedRepairBudget q5T 4 1 1 kind) ∨
+      FirstRiseStopBy q5R q5env q5rho q5O i m
+        (ev.time + interruptedRepairBudget q5T 4 1 1 kind) ∨
+      ∃ t, ev.time ≤ t ∧ t ≤ ev.time + interruptedRepairBudget q5T 4 1 1 kind ∧
+        StrongServed q5R q5S q5env q5rho q5O q5T q5I Row.height_pair 4 1 m t) ∧
+    FrontierSearchStart q5R q5env q5rho q5O q5T 4 5 (.deliver () ⟨.none, q5r 9 ⟨9⟩⟩ 4) 3
+      .contest ∧ (4 : Time) ≤ 4 ∧
     (4 : Time) + frontierSearch_remaining q5T 4 1 1 0 .contest = 8 ∧
     (4 : Time) + frontierSearch_remaining q5T 4 1 1 0 .contest ≤ q5rho.horizon ∧
-    FrontierSearchStart q5R q5env q5rho q5O q5T 4 5 (.deliver () ⟨.none, q5r 9 ⟨9⟩⟩ 4) 3
-      .contest ∧
-    FGRunOrderLaws q5env q5rho q5R ∧ RXing q5R q5env q5rho q5O ∧
-    FGCertificateLaws q5E q5O.height q5O.finality ∧ FGJustificationLaws q5O.height ∧
-    (4 : Time) * q5T.delta ≤ 4 ∧
+    q5rho.honest.Nonempty ∧
     FrontierRepairAllowance q5R q5env q5rho q5O q5T q5I 4 1 4 1 (4 + 3 * q5T.delta) :=
-  ⟨q5schedule, ⟨(), by decide⟩, by decide +kernel, by decide +kernel, q5start, q5mono,
-    q5crossing, q5cert, q5justif, by decide, q5allowance 1 le_rfl⟩
+  ⟨q5obs, q5cert, q5inv, q5justif, q5keep, q5TLaws, q5crossing, q5schedule, q5mono,
+    by decide, by decide, le_rfl, q5step, q5start, le_rfl, by decide +kernel,
+    by decide +kernel, ⟨(), by decide⟩, q5allowance 1 le_rfl⟩
 
 -- Interruption before repair: the composed result is the rise arm (index 10, time 8),
 -- the repair window [7, 8] saves no seed, and there is no rise by 7.
@@ -579,6 +597,17 @@ private theorem q5composeExit :
 private theorem q5riseOfStop : FrontierRiseBy q5R q5env q5rho 5 3 8 := by
   obtain ⟨h, _, _, _⟩ := q5contestExit
   exact frontierSearch_rise_of_stop q5R q5O q5env q5rho q5schedule (by decide +kernel) h
+
+-- Every premise of q5riseOfStop on the exact run: schedule, nonempty honest scope, the
+-- frontier at the start cut is 3, the actual first rise stop (index 10, time 8), and its
+-- deadline 8 within the horizon 8.
+private theorem q5riseOfStop_premises_sat :
+    V2.D.ScheduleWellFormed q5env q5rho ∧ q5rho.honest.Nonempty ∧
+    frontierAtIdx q5R q5env q5rho (5 + 1) ≤ 3 ∧
+    FirstRiseStopBy q5R q5env q5rho q5O 5 3 8 ∧
+    q5rho.events[10]? = some (.deliver () ⟨.none, q5r 9 ⟨9⟩⟩ 8) ∧
+    (8 : Time) ≤ q5rho.horizon :=
+  ⟨q5schedule, ⟨(), by decide⟩, by decide +kernel, q5contestExit.1, rfl, le_rfl⟩
 
 -- Isolated negative (shortened allowance 0, deadline 4 + 3 = 7): all other premises are
 -- those above. The phase result at the actual start fails (no repair is served), and so
@@ -647,18 +676,36 @@ private theorem mvmono : FGRunOrderLaws q5env mvRho mvR := by
 
 -- Positive: the rise from index 1 (at index 2, time 29) rebases to index 0 across the
 -- move of the lower F between indices 1 and 2, while the frontier stays 3.
+private theorem mvRise1 : FrontierRiseBy mvR q5env mvRho 1 3 29 :=
+  ⟨2, _, by decide, rfl, le_rfl, by decide +kernel, fun k hk hk' => by
+    have : k = 2 := by omega
+    subst this
+    decide +kernel⟩
+
 private theorem mvRebase :
     (mvR.core (mvRho.stateBefore q5env 1 ())).fg.F ≠
       (mvR.core (mvRho.stateBefore q5env 2 ())).fg.F ∧
     frontierAtIdx mvR q5env mvRho 1 = 3 ∧ frontierAtIdx mvR q5env mvRho 2 = 3 ∧
-    FrontierRiseBy mvR q5env mvRho 1 3 29 ∧ FrontierRiseBy mvR q5env mvRho 0 3 29 := by
-  have hr : FrontierRiseBy mvR q5env mvRho 1 3 29 :=
-    ⟨2, _, by decide, rfl, le_rfl, by decide +kernel, fun k hk hk' => by
+    FrontierRiseBy mvR q5env mvRho 1 3 29 ∧ FrontierRiseBy mvR q5env mvRho 0 3 29 :=
+  ⟨by decide +kernel, by decide +kernel, by decide +kernel, mvRise1,
+    frontierSearch_rise_rebase mvR q5env mvRho mvmono (by decide) (by decide +kernel) mvRise1⟩
+
+-- Every premise of mvRebase on the exact event fold (no schedule premise: rebase does not
+-- read one): nonempty honest scope, order law, index order 0 ≤ 1, frontier at index 2 is at
+-- most 3, the rise from index 1 with its event (index 2, delivery at 29), the frontier rise
+-- 3 < 4, the cap over indices 2..2, and deadline 29 within the horizon 29.
+private theorem mvRebase_premises_sat :
+    mvRho.honest.Nonempty ∧ FGRunOrderLaws q5env mvRho mvR ∧ (0 : Nat) ≤ 1 ∧
+    frontierAtIdx mvR q5env mvRho (1 + 1) ≤ 3 ∧ FrontierRiseBy mvR q5env mvRho 1 3 29 ∧
+    mvRho.events[2]? = some (.deliver () ⟨.none, q5r 9 ⟨9⟩⟩ 29) ∧
+    3 < frontierAtIdx mvR q5env mvRho (2 + 1) ∧
+    (∀ k, 1 + 1 ≤ k → k ≤ 2 → frontierAtIdx mvR q5env mvRho k ≤ 3) ∧
+    (29 : Time) ≤ mvRho.horizon :=
+  ⟨⟨(), by decide⟩, mvmono, by decide, by decide +kernel, mvRise1, rfl, by decide +kernel,
+    fun k hk hk' => by
       have : k = 2 := by omega
       subst this
-      decide +kernel⟩
-  exact ⟨by decide +kernel, by decide +kernel, by decide +kernel, hr,
-    frontierSearch_rise_rebase mvR q5env mvRho mvmono (by decide) (by decide +kernel) hr⟩
+      decide +kernel, le_rfl⟩
 
 -- Isolated negative (order law dropped): the frontier dips 5 -> 3 at index 2. The rise
 -- from index 1 and the frontier premise hold, but no rise from index 0 exists.
