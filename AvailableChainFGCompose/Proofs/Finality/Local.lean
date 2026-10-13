@@ -100,8 +100,8 @@ theorem finality_liveness_FE_W_of {deltaF recurStart t : Time} {g : Nat} {Jst : 
         fgHonestWeight timeoutSlots capacity →
       KernelConclusion_W R E rho O T I decodeProposal bodyErase bodyRows parentFG makeFG
         deltaF r)
-    (opening : ∀ r, honestSlot (r * T.roundSlots) →
-      T.proposal (r * T.roundSlots) ≤ rho.horizon →
+    (opening : ∀ r : Nat, honestSlot (r * T.roundSlots) →
+      t ≤ (r : Time) * FGCompose.P T → T.proposal (r * T.roundSlots) ≤ rho.horizon →
       ∃ A, HonestProposal E rho I (r * T.roundSlots) A)
     (reset : H0Reset R S E rho O T (fun a => namedEntry (D.heightPair a)) Jst sp.reset)
     (history : FGHistoricalHighTransfer R O T E rho I sp rho.horizon)

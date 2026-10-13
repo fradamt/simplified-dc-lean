@@ -76,8 +76,8 @@ theorem forward_witness_FE_of {deltaF recurStart t : Time} {g : Nat} {Jst : Time
         fgHonestWeight timeoutSlots capacity →
       KernelConclusion_W R E rho O T I decodeProposal bodyErase bodyRows parentFG makeFG
         deltaF r)
-    (opening : ∀ r, honestSlot (r * T.roundSlots) →
-      T.proposal (r * T.roundSlots) ≤ rho.horizon →
+    (opening : ∀ r : Nat, honestSlot (r * T.roundSlots) →
+      t ≤ (r : Time) * FGCompose.P T → T.proposal (r * T.roundSlots) ≤ rho.horizon →
       ∃ A, HonestProposal E rho I (r * T.roundSlots) A)
     (reset : H0Reset R S E rho O T (fun a => namedEntry (D.heightPair a)) Jst sp.reset)
     (history : FGHistoricalHighTransfer R O T E rho I sp rho.horizon)
@@ -98,7 +98,7 @@ theorem forward_witness_FE_of {deltaF recurStart t : Time} {g : Nat} {Jst : Time
   rw [Gen.Pure.FGoodE_W_def] at hwin
   have hprop := (kmid_slot_horizon T L hhorA
     (Nat.mul_le_mul_right T.roundSlots (show r ≤ r + 2 by omega))).1
-  obtain ⟨A, hA⟩ := opening r hwin.1 hprop
+  obtain ⟨A, hA⟩ := opening r hwin.1 htr hprop
   obtain ⟨Afg, heA, hcA, _, U, hAU, hne, hU, hacc⟩ := kernel r hK A hA
   have highA : sp.reset.M + 1 ≤ (O.height Afg).h :=
     middle_reset_opening_height R S O T L E rho I D Ef sp rho.horizon Jst reset history
