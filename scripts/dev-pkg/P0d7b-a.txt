@@ -7,6 +7,7 @@ AvailableChainFGCompose
 AvailableChainFGCompose.Tests.Axioms
 AvailableChainFGSAProofs.Proofs.Finality.Kernel
 AvailableChainFGSAProofs.Tests.P0d7ba
+AvailableChainFGSAProofs.Tests.P0d7baRun
 [GREEN]
 AvailableChainFGCompose.Tests.P0d7ba
 AvailableChainFGCompose.Statements.FinalityKernel
@@ -15,6 +16,7 @@ AvailableChainFGCompose
 AvailableChainFGCompose.Tests.Axioms
 AvailableChainFGSAProofs.Proofs.Finality.Kernel
 AvailableChainFGSAProofs.Tests.P0d7ba
+AvailableChainFGSAProofs.Tests.P0d7baRun
 AvailableChainFGCompose.Proofs.Healing.Attempt
 AvailableChainFGCompose.Proofs.Healing.AttemptRows
 AvailableChainFGCompose.Proofs.Healing.AttemptSettle
