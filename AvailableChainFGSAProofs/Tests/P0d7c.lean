@@ -1,25 +1,25 @@
 module
-import AvailableChainFGCompose.Proofs.Finality.Joined
-import AvailableChainFGCompose.Proofs.Finality.Local
-import AvailableChainFGSAProofs.Proofs.Assembly.Healing
-import AvailableChainFGSAProofs.Proofs.Assembly.ResetArrival
-import AvailableChainFGSAProofs.Proofs.Finality.Forward
-import AvailableChainFGSAProofs.Proofs.Finality.Height
-import AvailableChainFGSAProofs.Proofs.Finality.MiddleSupport
-import AvailableChainFGSAProofs.Proofs.Finality.Receipt
-import AvailableChainFGSAProofs.Proofs.Finality.ReceiptSuppliers
-import AvailableChainFGSAProofs.Proofs.Finality.RowsBatch
-import AvailableChainFGSAProofs.Proofs.Finality.RowsFrame
-import AvailableChainFGSAProofs.Proofs.Foundations.RowService
-import AvailableChainFGSAProofs.Proofs.Foundations.Sources
-import AvailableChainFGSAProofs.Proofs.Foundations.Store
-import AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient
-import AvailableChainFGSAProofs.Proofs.Shared.Gate
-import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowthReads
-import AvailableChainFGSAProofs.Proofs.Shared.Reads
-import AvailableChainFGSAProofs.Proofs.Shared.Regimes
-import AvailableChainFGSAProofs.Proofs.Shared.Roots
-import AvailableChainFGSAProofs.Proofs.Shared.RowReads
+public import AvailableChainFGCompose.Proofs.Finality.Joined
+public import AvailableChainFGCompose.Proofs.Finality.Local
+public import AvailableChainFGSAProofs.Proofs.Assembly.Healing
+public import AvailableChainFGSAProofs.Proofs.Assembly.ResetArrival
+public import AvailableChainFGSAProofs.Proofs.Finality.Forward
+public import AvailableChainFGSAProofs.Proofs.Finality.Height
+public import AvailableChainFGSAProofs.Proofs.Finality.MiddleSupport
+public import AvailableChainFGSAProofs.Proofs.Finality.Receipt
+public import AvailableChainFGSAProofs.Proofs.Finality.ReceiptSuppliers
+public import AvailableChainFGSAProofs.Proofs.Finality.RowsBatch
+public import AvailableChainFGSAProofs.Proofs.Finality.RowsFrame
+public import AvailableChainFGSAProofs.Proofs.Foundations.RowService
+public import AvailableChainFGSAProofs.Proofs.Foundations.Sources
+public import AvailableChainFGSAProofs.Proofs.Foundations.Store
+public import AvailableChainFGSAProofs.Proofs.Shared.FGSafetyClient
+public import AvailableChainFGSAProofs.Proofs.Shared.Gate
+public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowthReads
+public import AvailableChainFGSAProofs.Proofs.Shared.Reads
+public import AvailableChainFGSAProofs.Proofs.Shared.Regimes
+public import AvailableChainFGSAProofs.Proofs.Shared.Roots
+public import AvailableChainFGSAProofs.Proofs.Shared.RowReads
 public meta import AvailableChainFGSAProofs.Proofs.Foundations.RowPermission
 -- shake: keep (cached prefix checks)
 
