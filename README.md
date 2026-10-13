@@ -12,6 +12,34 @@ The earlier model decisions in [docs/CONTRACT.md §1](docs/CONTRACT.md#1-decisio
 
 The PC-SA libraries (`AvailableChainPCSA`, `AvailableChainPCSARun`, `AvailableChainPCSAClaims`, `AvailableChainPCSAProofs`) are an older variant with preconfirmations. They are not ported to the current sleep model, the checks skip them, and they are not part of the FG-SA result; see [docs/PCSA-DISABLED.md](docs/PCSA-DISABLED.md). Earlier or auxiliary developments remain: [docs/SA-STATUS.md](docs/SA-STATUS.md) records the SA contract and fast P1 as proved; [docs/SAPC-STATUS.md](docs/SAPC-STATUS.md) records the SA-PC base and strong bundles as proved; [docs/GRIDCO-STATUS.md](docs/GRIDCO-STATUS.md) records all Grid CO contract claims as proved. SAPC is distinct from the PC-SA libraries. For LStar, [docs/MAP.md](docs/MAP.md#l-instance-definitions-and-statement-no-claim-proofs) records model and contract definitions, hook proofs and smoke tests, with the general P1 proof pending. The FG-SA blueprint's partial/open items are recorded separately in [docs/FGSA-BLUEPRINT-LEAN.json](docs/FGSA-BLUEPRINT-LEAN.json) and [docs/FGSA-BLUEPRINT-OPEN.md](docs/FGSA-BLUEPRINT-OPEN.md); the aggregate theorem is not a claim that every blueprint item is closed.
 
+## Repository map
+
+Each library is a top-level folder `AvailableChainX/` with a root file `AvailableChainX.lean`. The folders are not grouped yet; a regrouping into five folders is planned. Until then, read them in these groups.
+
+```text
+┌──────────────────────┬──────────────────────────────────────────────────────────────┐
+│ Group                │ Libraries (prefix AvailableChain)                            │
+├──────────────────────┼──────────────────────────────────────────────────────────────┤
+│ FG-SA (start here)   │ FGSA (model, statements), FGSARun (run-level statements),    │
+│                      │ FGSAClaims (the claims), FGSAProofs (the proofs; root        │
+│                      │ theorem in Proofs/Assembly/Root.lean), FGSAInhabit           │
+│                      │ (non-vacuity witnesses)                                      │
+│ Generic libraries    │ Generic, Kit, KitV2, KitFG (available-chain and finality     │
+│                      │ building blocks), FGCompose (the finality-gadget results in  │
+│                      │ a protocol-independent form)                                 │
+│ Engine               │ EngineV2 (the execution model with sleep and duties), Model, │
+│                      │ Statements, Witnesses, Framework, Registry                   │
+│ Older protocols      │ SA, SAPC, GridCO, LStar, SimplexFG                           │
+│ PC-SA (not ported)   │ PCSA, PCSARun, PCSAClaims, PCSAProofs                        │
+└──────────────────────┴──────────────────────────────────────────────────────────────┘
+```
+
+Other folders: `scripts/` holds the checkers and gates named below; `docs/` holds the contract ([docs/CONTRACT.md](docs/CONTRACT.md)), the architecture map ([docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)), the API manifests ([docs/FGSA-API.md](docs/FGSA-API.md)) and internal working notes.
+
+A short reading path for FG-SA: [AvailableChainFGSAClaims/FGSAClaims.lean](AvailableChainFGSAClaims/FGSAClaims.lean) (what is claimed), then [AvailableChainFGSAProofs/Proofs/Assembly/Root.lean](AvailableChainFGSAProofs/Proofs/Assembly/Root.lean) (how the claims are assembled), then the model under [AvailableChainFGSA/](AvailableChainFGSA/).
+
+## Build and checks
+
 Use the version pinned in [lean-toolchain](lean-toolchain) (`leanprover/lean4:v4.34.1`):
 
 ```sh
