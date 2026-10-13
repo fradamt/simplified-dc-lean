@@ -1087,6 +1087,13 @@ COMPOSE_MODULES += (
 # X1b: strict-cut history and accepted-body origin proofs.
 COMPOSE_MODULES += ('AvailableChainFGCompose.Proofs.ExecutionHistory',)
 
+# X1c: holder client observations, proofs and ordinary bridges.
+COMPOSE_MODULES += (
+    'AvailableChainFGCompose.Statements.HolderClient',
+    'AvailableChainFGCompose.Proofs.HolderClient',
+    'AvailableChainFGCompose.Proofs.OrdinaryHolderClient',
+)
+
 
 def compose_base(dep: str) -> bool:
     return (foundation(dep) or under(dep, "AvailableChainModel.Objects")
