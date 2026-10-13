@@ -1412,5 +1412,22 @@ COMPOSE_EDGES |= frozenset({
     ('AvailableChainFGSAProofs.Proofs.Healing.Reset',
      'AvailableChainFGCompose.Proofs.Healing.Reset'),
 })
+# P0d7b-b: exact generic finality exporter entries.
+COMPOSE_MODULES += (
+    'AvailableChainFGCompose.Proofs.Finality.Joined',
+    'AvailableChainFGCompose.Proofs.Finality.Forward',
+    'AvailableChainFGCompose.Proofs.Finality.Local',
+)
+COMPOSE_PROOF_IMPORTS |= frozenset({
+    ('AvailableChainFGCompose.Proofs.Finality.Forward',
+     'AvailableChainGeneric.Proofs.Pure.ScheduleW'),
+    ('AvailableChainFGCompose.Proofs.Finality.Local',
+     'AvailableChainGeneric.Proofs.Pure.BlockOrder'),
+})
+COMPOSE_EDGES |= frozenset({
+    ('AvailableChainFGSAProofs.Proofs.Finality.Forward',
+     'AvailableChainFGCompose.Proofs.Finality.Forward'),
+})
+
 if __name__ == "__main__":
     sys.exit(main())

@@ -101,3 +101,7 @@ public import AvailableChainFGCompose.Proofs.Finality.Receipt
 public import AvailableChainFGCompose.Proofs.Finality.Accept
 
 public import AvailableChainFGCompose.Proofs.Finality.Kernel
+
+public import AvailableChainFGCompose.Proofs.Finality.Joined
+public import AvailableChainFGCompose.Proofs.Finality.Forward
+public import AvailableChainFGCompose.Proofs.Finality.Local

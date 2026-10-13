@@ -182,9 +182,22 @@
             'AvailableChain.FGCompose.terminalCarriage_W_of_tRowsSelect',
             'AvailableChain.FGCompose.terminalCarriage_general_W',
         ),
+        'AvailableChainFGCompose.Proofs.Finality.Forward': (
+            'AvailableChain.FGCompose.finality_window_nonneg',
+            'AvailableChain.FGCompose.forward_round_FE',
+            'AvailableChain.FGCompose.forward_witness_FE_of',
+        ),
+        'AvailableChainFGCompose.Proofs.Finality.Joined': (
+            'AvailableChain.FGCompose.finality_kernel_joined_W_of',
+            'AvailableChain.FGCompose.finality_kernel_prem_W_of_joined',
+        ),
         'AvailableChainFGCompose.Proofs.Finality.Kernel': (
             'AvailableChain.FGCompose.finality_kernel_W_of',
             'AvailableChain.FGCompose.kernel_terminal_bounds_W',
+        ),
+        'AvailableChainFGCompose.Proofs.Finality.Local': (
+            'AvailableChain.FGCompose.finality_liveness_FE_W_of',
+            'AvailableChain.FGCompose.finality_liveness_of_forward_W',
         ),
         'AvailableChainFGCompose.Proofs.Finality.Receipt': (
             'AvailableChain.FGCompose.receipt_acceptPrem_W',
@@ -757,7 +770,19 @@
         ),
         'AvailableChainFGCompose.Statements.Finality': (
             'AvailableChain.FGCompose.AcceptsFinalBefore',
+            'AvailableChain.FGCompose.FE_W',
+            'AvailableChain.FGCompose.FinalityLivenessConcl_W',
+            'AvailableChain.FGCompose.ForwardWitness_W',
             'AvailableChain.FGCompose.KernelConclusion_W',
+            'AvailableChain.FGCompose.KernelJoinedPrem',
+            'AvailableChain.FGCompose.KernelJoinedPrem.bound',
+            'AvailableChain.FGCompose.KernelJoinedPrem.capacity_ge',
+            'AvailableChain.FGCompose.KernelJoinedPrem.hhor',
+            'AvailableChain.FGCompose.KernelJoinedPrem.honest_quorum',
+            'AvailableChain.FGCompose.KernelJoinedPrem.mk',
+            'AvailableChain.FGCompose.KernelJoinedPrem.start',
+            'AvailableChain.FGCompose.KernelJoinedPrem.timeout_eq',
+            'AvailableChain.FGCompose.KernelJoinedPrem.window',
             'AvailableChain.FGCompose.KernelPrem_W',
             'AvailableChain.FGCompose.KernelPrem_W.bound',
             'AvailableChain.FGCompose.KernelPrem_W.capacity_ge',
@@ -769,6 +794,7 @@
             'AvailableChain.FGCompose.KernelPt',
             'AvailableChain.FGCompose.KernelPt.r',
             'AvailableChain.FGCompose.OpeningCarrier_W',
+            'AvailableChain.FGCompose.W_W',
         ),
         'AvailableChainFGCompose.Statements.FinalityReceipts': (
             'AvailableChain.FGCompose.AcceptGuards_W',
