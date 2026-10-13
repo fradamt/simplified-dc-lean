@@ -186,5 +186,49 @@ private theorem mixed_seats_and_rows :
       mixed_premises_sat.2.2.2.2.1 mixed_client_premises_sat 0 0 6 rfl
     exact h.trans (by decide)
 
+private abbrev tip : FGBlock (Fin 1) := .node .genesis 1 genesisRoot 0 [row]
+private abbrev core : FGCoreReads protocol 1 Unit Unit protocol.Object where
+  core nd := ⟨(), { Store.init with TF := if nd.sent = [] then {.genesis} else {tip} },
+    [], []⟩
+  erase := fun _ => .genesis
+  source := fun _ => none
+  headVote := fun _ _ => .genesis
+  finalityHead := fun _ => none
+  proposalFG := fun _ _ => none
+private def slashing : Gen.V2.Duty.SlashingInterface (V := Nat) protocol where
+  confirmed := fun _ => .genesis
+  stable := fun _ => .genesis
+  block := fun _ => none
+  opening := fun _ => True
+  propLabel := fun s => (s : Int)
+  propDuty := fun s => (s : Int)
+  propDuty_label _ := rfl
+  propLabel_single _ := rfl
+  propLabel_injective := Int.ofNat_injective
+  finalized := fun _ => .genesis
+  slashes rho v := ∃ x y t t' i,
+    SlashableBetween (safetyRows core (V2.D.Run.readAt env rho t x))
+      (safetyRows core (V2.D.Run.readAt env rho t' y)) i ∧ safetyHolder reads rho i = v
+
+private theorem mixed_safety_premises_sat :
+    (∀ t x, safetyCarriage reads env run (safetyRows core (V2.D.Run.readAt env run t x))) ∧
+    (∀ i, safetyHolder reads run i ∈ run.honest →
+      safetyNoSlash reads env run (safetyHolder reads run i)) ∧
+    safetySlashesRead core reads env run slashing ∧
+    row ∈ safetyRows core (V2.D.Run.readAt env run 6 9) := by
+  refine ⟨?_, ?_, fun _ => Iff.rfl, by decide⟩
+  · intro t x u hu
+    change u ∈ Finset.biUnion (if _ then {FGBlock.genesis} else {tip}) chainRows at hu
+    split_ifs at hu with hn
+    · simp [chainRows] at hu
+    · have hur : u = row := by simpa [tip, chainRows] using hu
+      subst u
+      exact ⟨wire, rfl, fun _ => ⟨0, 6, rfl, by decide⟩⟩
+  · intro i hi
+    exact (ordinary_obsSafetyNoSlash_iff reads env run _).1
+      (safety_emitted_noSlash_obs reads (electorate 1) cfg env run _
+        (ordinaryFGExecutionObs_laws env run) mixed_client_premises_sat
+        mixed_wire_premises_sat i hi)
+
 end AvailableChain.FGCompose.Tests.Population
 end
