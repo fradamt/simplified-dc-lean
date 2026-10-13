@@ -57,7 +57,8 @@ theorem fg_fault_count_eq_nodes_of_equiv [Fintype V] (e : Fin n ≃ V)
   classical
   have himage : (historyFaulty S rho).image e = Gen.V2.Duty.faulty rho := by
     ext x
-    simp only [Finset.mem_image, historyFaulty, Finset.mem_filter, Finset.mem_univ,
+    delta historyFaulty
+    simp only [Finset.mem_image, Finset.mem_filter, Finset.mem_univ,
       true_and, he, Gen.V2.Duty.faulty_def, Finset.mem_sdiff]
     constructor
     · rintro ⟨i, hi, rfl⟩
