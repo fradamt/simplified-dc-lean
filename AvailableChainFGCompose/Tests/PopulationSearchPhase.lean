@@ -66,6 +66,23 @@ private theorem c5erase_inj : Function.Injective c5erase := by
 
 #print axioms c5erase_inj
 
+private theorem c5erase_mono {A B : FGBlock (Fin 1)} (h : FGBlock.Preceq A B) :
+    Block.Preceq (c5erase A) (c5erase B) := by
+  induction B with
+  | genesis =>
+    rw [(preceq_genesis).mp h]
+    rfl
+  | node P s r x rs ih =>
+    change (decide (A = .node P s r x rs) || FGBlock.preceq A P) = true at h
+    change (decide (c5erase A = c5erase (.node P s r x rs)) ||
+      Block.preceq (c5erase A) (c5erase P)) = true
+    rw [Bool.or_eq_true] at h ⊢
+    rcases h with he | hp
+    · exact Or.inl (decide_eq_true (congrArg c5erase (of_decide_eq_true he)))
+    · exact Or.inr (ih hp)
+
+#print axioms c5erase_mono
+
 -- POP-5 local fixture support ends here.
 
 end Fixture
