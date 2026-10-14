@@ -436,5 +436,60 @@ private theorem frozen_premises_sat :
 
 #print axioms frozen_premises_sat
 
+/-- The holder theorem recovers the complete old same-row conclusion in the frozen run. -/
+private theorem frozen_same_rows (s : Slot) (hs : s ∈ ({2, 3} : Finset Nat)) :
+    ∃ U, EntryAt height U 1 ∧ U.slot ≤ 0 * timing.roundSlots ∧
+      FGBlock.Preceq U (child s).parent ∧
+      ∀ x ∈ frozenRun.honest, ∃ K nd j rSent a,
+        postClock frozenEnv frozenRun x (timing.action 0) = some nd ∧
+        actionSourceFG core frozenEnv frozenRun timing x 0 = some (some K) ∧
+        K ∈ (core.core nd).fg.TF ∧ Block.Preceq .genesis (core.erase K) ∧
+        FGBlock.Preceq U K ∧ K.slot ≤ 0 * timing.roundSlots ∧
+        (height K).h = 1 ∧ (height K).T_h = U ∧ rSent ≤ 0 ∧
+        HonestRowAt reads frozenEnv frozenRun timing j x rSent a ∧
+        NamesEntry Row.height_pair .progress a 1 U ∧
+        ((height (child s).parent).h = 1 →
+          ValidForParent frozenEnv frozenRun interface parent valid
+            (child s).slot (core.erase (child s)) a ∧
+          HeightMatch frozenEnv frozenRun interface (fun b => namedEntry b.height_pair)
+            parent parentHeight (child s).slot (core.erase (child s)) a) := by
+  have hp := frozen_premises_sat
+  have hcov := (openingCoveredFG_frozen_iff core reads frozenEnv frozenRun height timing
+    Row.height_pair (Equiv.refl _) hp.1 0 .genesis).2 hp.2.2.1
+  have hne : (FGHonestSeats reads frozenRun).Nonempty := by rw [hp.2.1]; simp
+  have hslot : ∀ x K, x ∈ frozenRun.honest →
+      actionSourceFG core frozenEnv frozenRun timing x 0 = some (some K) →
+      K.slot ≤ 0 * timing.roundSlots := by
+    intro x K _ hK
+    rw [hp.2.2.2.2.1 x K hK]
+    exact le_rfl
+  have hancestor : ∀ x K U, x ∈ frozenRun.honest →
+      actionSourceFG core frozenEnv frozenRun timing x 0 = some (some K) →
+      FGBlock.Preceq U K → U.slot ≤ K.slot := by
+    intro x K U _ hK hUK
+    have hk := hp.2.2.2.2.1 x K hK
+    subst K
+    have hu : U = .genesis := by simpa [FGBlock.Preceq, FGBlock.preceq] using hUK
+    subst U
+    exact le_rfl
+  have hparent : ∀ x K, x ∈ frozenRun.honest →
+      actionSourceFG core frozenEnv frozenRun timing x 0 = some (some K) →
+      FGBlock.Preceq K (child s).parent := by
+    intro x K _ hK
+    rw [hp.2.2.2.2.1 x K hK]
+    exact preceq_refl _
+  obtain ⟨U, hU, hUs, hUP, rows⟩ := healing_promotion_same_rows_holder
+    core reads frozenEnv frozenRun height timing interface Row.height_pair
+    parent parentHeight valid fold (electorate 1) height_premises_sat
+    (Finset.Subset.refl _) hne hp.2.2.2.1 hcov (fun _ _ _ _ _ _ _ _ _ => rfl)
+    hslot hancestor hparent (X := child s) rfl (hp.2.2.2.2.2 s hs).2
+    (fun _ _ _ a _ => ⟨a, rfl, rfl⟩)
+  refine ⟨U, hU, hUs, hUP, ?_⟩
+  intro x hx
+  exact rows x (by simpa only [FGHonestSeats_def, Finset.mem_filter,
+    Finset.mem_univ, true_and, hp.1, Equiv.refl_apply] using hx)
+
+#print axioms frozen_same_rows
+
 end AvailableChain.FGCompose.Tests.PopulationPromotion
 end
