@@ -97,6 +97,22 @@ private theorem c5cert : FGCertificateLaws c5E c5H c5F :=
 
 #print axioms c5cert
 
+private theorem m9erase_reflect (A B : FGBlock (Fin 1))
+    (h : Block.Preceq (c5erase A) (c5erase B)) : FGBlock.Preceq A B := by
+  induction B with
+  | genesis =>
+    have he : c5erase A = c5erase .genesis := of_decide_eq_true h
+    exact c5erase_inj he ▸ preceq_refl _
+  | node P slot root app rows ih =>
+    change (decide (c5erase A = c5erase (.node P slot root app rows)) ||
+      Block.preceq (c5erase A) (c5erase P)) = true at h
+    rw [Bool.or_eq_true] at h
+    rcases h with he | hp
+    · exact c5erase_inj (of_decide_eq_true he) ▸ preceq_refl _
+    · exact preceq_node_of_preceq slot root app rows (ih hp)
+
+#print axioms m9erase_reflect
+
 -- POP-5 local fixture support ends here.
 
 end Fixture
