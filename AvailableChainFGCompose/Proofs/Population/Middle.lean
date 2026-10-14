@@ -439,5 +439,13 @@ theorem kernel_middle_early_justification_holder :
     KitFG.Window.RetainedW Ef cfg K m.X_D (m.d + 1) m.U :=
   ⟨m.heightD, m.justifiedD, m.justifiedHeightD, m.pendingD, m.retainedD⟩
 
+/-- The cap includes the actual source read at the final action. -/
+theorem kernel_middle_source_cap_holder (CL : FGCoreLaws R) (hs : V2.D.ScheduleWellFormed E rho)
+    {x : V} {C : FGBlock (Fin n)} (hx : x ∈ rho.honest)
+    (hsrc : actionSourceFG R E rho T x (pt.r + 2) = some (some C)) :
+    (O.height C).h ≤ m.d + 2 := by
+  obtain ⟨i, hi, hcut, hheld⟩ := kmid_source_held_at_tick R T E rho CL hs hx hsrc
+  exact m.capThroughFinalAction i x C (List.getElem?_eq_some_iff.mp hi).1.le hcut.le hheld
+
 end AvailableChain.FGCompose
 end
