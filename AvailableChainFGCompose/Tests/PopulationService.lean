@@ -338,5 +338,57 @@ private theorem frozen_premises_sat :
 
 #print axioms frozen_premises_sat
 
+/-- All five frozen iff bridges, plus only one-way coverage for a strict subset. -/
+private theorem frozen_bridges :
+    (FrontierLocalServiceFG core reads frozenEnv frozenRun obs timing interface Row.height_pair
+      2 .genesis .genesis 1 18 ↔
+      FrontierLocalService core reads frozenEnv frozenRun obs timing interface Row.height_pair
+        2 .genesis .genesis 1 18) ∧
+    (StrongServedFG core reads frozenEnv frozenRun obs timing interface Row.height_pair 0 1 1 18 ↔
+      StrongServed core reads frozenEnv frozenRun obs timing interface Row.height_pair 0 1 1 18) ∧
+    (FrontierHG3ResultFG core reads frozenEnv frozenRun obs timing interface Row.height_pair
+      0 1 0 1 0 18 ↔
+      FrontierHG3Result core reads frozenEnv frozenRun obs timing interface Row.height_pair
+        0 1 0 1 0 18) ∧
+    (∀ G ΔF ρbar,
+      InterruptedRepairStatementFG core reads frozenEnv frozenRun obs timing interface
+        Row.height_pair 0 1 4 G ΔF ρbar ↔
+      InterruptedRepairStatement core reads frozenEnv frozenRun obs timing interface
+        Row.height_pair 0 1 4 G ΔF ρbar) ∧
+    (∀ G ΔF,
+      FrontierTailStatementFG core reads frozenEnv frozenRun obs timing interface
+        Row.height_pair 0 1 4 G ΔF ↔
+      FrontierTailStatement core reads frozenEnv frozenRun obs timing interface
+        Row.height_pair 0 1 4 G ΔF) ∧
+    (∅ : Finset (Fin 1)) ⊂ FGHonestSeats reads frozenRun ∧
+    (∀ A, A ⊆ FGHonestSeats reads frozenRun →
+      OpeningCovered core reads frozenEnv frozenRun height timing Row.height_pair 1 .genesis →
+      OpeningCoveredFG core reads frozenEnv frozenRun height timing Row.height_pair A 1 .genesis) ∧
+    OpeningCoveredFG core reads frozenEnv frozenRun height timing Row.height_pair ∅ 1 .genesis := by
+  obtain ⟨he, hH, _, _, hc⟩ := frozen_premises_sat
+  have restrict (A : Finset (Fin 1)) (hA : A ⊆ FGHonestSeats reads frozenRun)
+      (ho : OpeningCovered core reads frozenEnv frozenRun height timing Row.height_pair 1
+        .genesis) :
+      OpeningCoveredFG core reads frozenEnv frozenRun height timing Row.height_pair A 1
+        .genesis := by
+    have hall := (openingCoveredFG_frozen_iff core reads frozenEnv frozenRun height timing
+      Row.height_pair (Equiv.refl _) he 1 .genesis).2 ho
+    exact fun i hi => hall i (hA hi)
+  refine ⟨frontierLocalServiceFG_frozen_iff core reads frozenEnv frozenRun obs timing interface
+    Row.height_pair (Equiv.refl _) he 2 .genesis .genesis 1 18,
+    strongServedFG_frozen_iff core reads frozenEnv frozenRun obs timing interface
+      Row.height_pair 0 1 (Equiv.refl _) he 1 18,
+    frontierHG3ResultFG_frozen_iff core reads frozenEnv frozenRun obs timing interface
+      Row.height_pair 0 1 (Equiv.refl _) he 0 1 0 18,
+    fun G ΔF ρbar => interruptedRepairStatementFG_frozen_iff core reads frozenEnv frozenRun
+      obs timing interface Row.height_pair 0 1 4 (Equiv.refl _) he G ΔF ρbar,
+    fun G ΔF => frontierTailStatementFG_frozen_iff core reads frozenEnv frozenRun obs timing
+      interface Row.height_pair 0 1 4 (Equiv.refl _) he G ΔF, ?_, restrict,
+    restrict ∅ (Finset.empty_subset _) hc⟩
+  rw [hH]
+  decide
+
+#print axioms frozen_bridges
+
 end AvailableChain.FGCompose.Tests.PopulationService
 end
