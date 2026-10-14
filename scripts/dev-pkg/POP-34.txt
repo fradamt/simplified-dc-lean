@@ -1,14 +1,18 @@
 # POP-3 source/age and POP-4 service/served holder variants.
 [TARGETS]
 AvailableChainFGCompose.Proofs.Population.FrontierSearchAge
+AvailableChainFGCompose.Proofs.Population.FrontierSearchBridges
 AvailableChainFGCompose.Proofs.Population.PromotionAge
 AvailableChainFGCompose.Proofs.Population.PromotionSource
 AvailableChainFGCompose.Proofs.Population.PromotionSourceBridges
 AvailableChainFGCompose.Statements.Population.FrontierMaturity
+AvailableChainFGCompose.Statements.Population.FrontierSearch
 AvailableChainFGCompose.Tests.PopulationAge
 AvailableChainFGCompose.Tests.PopulationAgeAxioms
 AvailableChainFGCompose.Tests.PopulationAgeDeadline
 AvailableChainFGCompose.Tests.PopulationAgeSpecialization
+AvailableChainFGCompose.Tests.PopulationService
+AvailableChainFGCompose.Tests.PopulationServiceAxioms
 [GREEN]
 AvailableChainEngineV2
 AvailableChainEngineV2.Conditions.Committees
@@ -102,6 +106,7 @@ AvailableChainFGCompose.Proofs.HolderClient
 AvailableChainFGCompose.Proofs.ObservationTransport
 AvailableChainFGCompose.Proofs.OrdinaryHolderClient
 AvailableChainFGCompose.Proofs.Population.FrontierSearchAge
+AvailableChainFGCompose.Proofs.Population.FrontierSearchBridges
 AvailableChainFGCompose.Proofs.Population.Promotion
 AvailableChainFGCompose.Proofs.Population.PromotionAge
 AvailableChainFGCompose.Proofs.Population.PromotionBridges
@@ -147,6 +152,7 @@ AvailableChainFGCompose.Statements.Observations
 AvailableChainFGCompose.Statements.Phase
 AvailableChainFGCompose.Statements.PhaseReceipts
 AvailableChainFGCompose.Statements.Population.FrontierMaturity
+AvailableChainFGCompose.Statements.Population.FrontierSearch
 AvailableChainFGCompose.Statements.Population.Promotion
 AvailableChainFGCompose.Statements.Population.Seats
 AvailableChainFGCompose.Statements.Promotion
@@ -195,6 +201,8 @@ AvailableChainFGCompose.Tests.PopulationBridges
 AvailableChainFGCompose.Tests.PopulationCounts
 AvailableChainFGCompose.Tests.PopulationPromotion
 AvailableChainFGCompose.Tests.PopulationPromotionAxioms
+AvailableChainFGCompose.Tests.PopulationService
+AvailableChainFGCompose.Tests.PopulationServiceAxioms
 AvailableChainFGCompose.Tests.Reads
 AvailableChainFGCompose.Tests.Restart
 AvailableChainFGCompose.Tests.RestartKeep

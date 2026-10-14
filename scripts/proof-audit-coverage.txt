@@ -9050,4 +9050,25 @@
             'AvailableChain.FGCompose.PromotionSourceAtFG.sync',
         ),
     },
+    'AvailableChainFGCompose.Tests.PopulationServiceAxioms': {
+        'AvailableChainFGCompose.Proofs.Population.FrontierSearchBridges': (
+            'AvailableChain.FGCompose.frontierHG3ResultFG_frozen_iff',
+            'AvailableChain.FGCompose.frontierLocalServiceFG_frozen_iff',
+            'AvailableChain.FGCompose.frontierTailStatementFG_frozen_iff',
+            'AvailableChain.FGCompose.interruptedRepairStatementFG_frozen_iff',
+            'AvailableChain.FGCompose.strongServedFG_frozen_iff',
+        ),
+        'AvailableChainFGCompose.Statements.Population.FrontierSearch': (
+            'AvailableChain.FGCompose.FrontierHG3ResultFG',
+            'AvailableChain.FGCompose.FrontierHG3ResultFG_def',
+            'AvailableChain.FGCompose.FrontierLocalServiceFG',
+            'AvailableChain.FGCompose.FrontierLocalServiceFG_def',
+            'AvailableChain.FGCompose.FrontierTailStatementFG',
+            'AvailableChain.FGCompose.FrontierTailStatementFG_def',
+            'AvailableChain.FGCompose.InterruptedRepairStatementFG',
+            'AvailableChain.FGCompose.InterruptedRepairStatementFG_def',
+            'AvailableChain.FGCompose.StrongServedFG',
+            'AvailableChain.FGCompose.StrongServedFG_def',
+        ),
+    },
 }
