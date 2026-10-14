@@ -1,0 +1,60 @@
+module
+public import AvailableChainFGCompose.Statements.Population.Promotion
+public import AvailableChainFGCompose.Proofs.Healing.Promotion
+
+public section
+
+namespace AvailableChain.FGCompose
+open AvailableChain.SimplexFG AvailableChain.KitFG
+
+variable {In V : Type} {Prot : V2.ProtocolSpecD In} [DecidableEq V]
+variable {n : Nat} {Base Proposal Wire : Type}
+variable (R : FGCoreReads Prot n Base Proposal Wire) (S : FGSafetyReads Prot n Wire)
+variable (E : Generic.Env V) (rho : V2.D.Run V Prot)
+variable (H : FGHeightView (Fin n)) (T : FGTiming) (pair : Wire → NamedHeightPair)
+variable (Ef : Electorate (Fin n)) (laws : FGHeightLaws Ef H)
+
+include laws in
+/-- SAME: choose the opening's coverage witnesses once, before any terminal carrier. -/
+theorem healing_promotion_fixed_rows_holder {A : Finset (Fin n)} {r height : Nat} {Q : Block}
+    (hA : A ⊆ FGHonestSeats S rho) (hne : A.Nonempty)
+    (hentry : OpeningEntry R E rho H T r height)
+    (hcovered : OpeningCoveredFG R S E rho H T pair A r Q)
+    (entryAgreement : ∀ x y K L, x ∈ rho.honest → y ∈ rho.honest →
+      actionSourceFG R E rho T x r = some (some K) →
+      actionSourceFG R E rho T y r = some (some L) →
+      (H K).T_h.root = (H L).T_h.root → (H K).T_h = (H L).T_h)
+    (sourceSlot : ∀ x K, x ∈ rho.honest →
+      actionSourceFG R E rho T x r = some (some K) → K.slot ≤ r * T.roundSlots) :
+    ∃ U, EntryAt H U height ∧ FixedRowsFG R S E rho H T pair A r height Q U := by
+  have honest (i) (hi : i ∈ A) : safetyHolder S rho i ∈ rho.honest := by
+    simpa only [FGHonestSeats_def, Finset.mem_filter, Finset.mem_univ, true_and] using hA hi
+  obtain ⟨e, he⟩ := hentry
+  obtain ⟨i₀, hi₀⟩ := hne
+  let x₀ := safetyHolder S rho i₀
+  have hx₀ := honest i₀ hi₀
+  obtain ⟨K₀, _, _, _, _, _, hK₀, _⟩ := hcovered i₀ hi₀
+  obtain ⟨hh₀, hr₀⟩ := he x₀ K₀ hx₀ hK₀
+  let U := (H K₀).T_h
+  refine ⟨U, ⟨(laws.entry_same_height K₀).trans hh₀, laws.entry_idem K₀⟩, ?_⟩
+  intro i hi
+  let x := safetyHolder S rho i
+  have hx := honest i hi
+  obtain ⟨K, nd, j, rSent, a, hnd, hK, hmem, hQ, hr, ha, hn⟩ := hcovered i hi
+  obtain ⟨hh, hroot⟩ := he x K hx hK
+  have hU : (H K).T_h = U := entryAgreement x x₀ K K₀ hx hx₀ hK hK₀
+    (hroot.trans hr₀.symm)
+  refine ⟨K, nd, j, rSent, a, hnd, hK, hmem, hQ, hU ▸ laws.entry_preceq K,
+    sourceSlot x K hx hK, hh, hU, hr, ha, ?_⟩
+  rw [hh, hU] at hn
+  change ∃ timeout, pair a = .vote height U.root timeout
+  cases hp : pair a with
+  | empty => rw [hp] at hn; cases hn
+  | vote h root timeout =>
+    rw [hp] at hn
+    have heq : (h, root) = (height, U.root) := Option.some.inj hn
+    cases heq
+    exact ⟨timeout, rfl⟩
+
+end AvailableChain.FGCompose
+end
