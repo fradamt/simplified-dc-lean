@@ -212,6 +212,44 @@ private theorem proposal_unique {s : Slot} {B : Block}
 
 #print axioms proposal_unique
 
+private theorem mixed_service :
+    FrontierLocalServiceFG core reads env run obs timing interface Row.height_pair
+      2 .genesis .genesis 1 18 := by
+  obtain ⟨_, _, _, _, _, _, _, _, _, _, _, he, hc⟩ := service_premises_sat
+  refine ⟨?_, ?_, ?_, ?_, ?_⟩
+  · intro x s H _ _ _ hH
+    change (postClock env run x (timing.vote s)).map (fun _ => Block.genesis) = some H at hH
+    obtain ⟨_, _, h⟩ := Option.map_eq_some_iff.mp hH
+    change Block.genesis = H at h
+    subst H
+    decide
+  · intro s B _ _ hp
+    have hB := (proposal_unique hp).2
+    subst B
+    decide
+  · intro i x _ _ _ _
+    change Block.Preceq .genesis .genesis
+    decide
+  · intro s B hs _ hp
+    have hq := (proposal_unique hp).1
+    subst s
+    exact (lt_irrefl _ hs).elim
+  · intro r hq hv
+    have hr : r = 1 := by
+      change 2 ≤ r * 2 at hq
+      change 8 * (r : Int) + 6 ≤ 18 at hv
+      have hlo : 1 ≤ r := by
+        by_contra hn
+        have hz : r = 0 := Nat.eq_zero_of_not_pos hn
+        subst r
+        exact (by decide : ¬ ((2 : Nat) ≤ 0)) hq
+      have hlo' : (1 : Int) ≤ (r : Int) := Int.ofNat_le.mpr hlo
+      exact Int.ofNat.inj (show (r : Int) = 1 by omega)
+    subst r
+    exact ⟨hc, he, fun _ _ _ _ => rfl, fun _ => by decide⟩
+
+#print axioms mixed_service
+
 -- POP-5 local fixture support ends here.
 
 end Fixture
