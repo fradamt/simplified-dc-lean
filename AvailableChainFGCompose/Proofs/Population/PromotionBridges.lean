@@ -30,5 +30,23 @@ theorem openingCoveredFG_frozen_iff (e : Fin n ≃ V)
       simpa only [FGHonestSeats_def, Finset.mem_filter, Finset.mem_univ, true_and] using hi
     exact hc (safetyHolder S rho i) hh
 
+/-- Iff at all honest seats under the frozen all-holder equivalence. -/
+theorem fixedRowsFG_frozen_iff (e : Fin n ≃ V)
+    (he : ∀ i, safetyHolder S rho i = e i) (r height : Nat)
+    (Q : Block) (U : FGBlock (Fin n)) :
+    FixedRowsFG R S E rho H T pair (FGHonestSeats S rho) r height Q U ↔
+      FixedRows R S E rho H T pair r height Q U := by
+  constructor
+  · intro hc x hx
+    obtain ⟨i, hi⟩ := e.surjective x
+    have hh : safetyHolder S rho i = x := (he i).trans hi
+    have hm : i ∈ FGHonestSeats S rho := by
+      simp only [FGHonestSeats_def, Finset.mem_filter, Finset.mem_univ, true_and, hh, hx]
+    simpa only [hh] using hc i hm
+  · intro hc i hi
+    have hh : safetyHolder S rho i ∈ rho.honest := by
+      simpa only [FGHonestSeats_def, Finset.mem_filter, Finset.mem_univ, true_and] using hi
+    exact hc (safetyHolder S rho i) hh
+
 end AvailableChain.FGCompose
 end
