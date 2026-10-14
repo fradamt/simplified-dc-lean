@@ -1,0 +1,165 @@
+module
+public import AvailableChainFGCompose.Proofs.Population.FrontierSearchBridges
+
+set_option linter.privateModule false
+
+noncomputable section
+public section
+
+/-! Generic ordinary-event-fold controls, not a concrete PC execution.
+Both honest nodes have HEAD and action cuts. Only holder 9 emits an FG wire.
+The only proposal time is 8 (slot 2); the served endpoint 18 triggers opening 1. -/
+namespace AvailableChain.FGCompose.Tests.PopulationService
+open AvailableChain.SimplexFG AvailableChain.KitFG
+
+private abbrev electorate (n : Nat) : Electorate (Fin n) :=
+  ⟨fun _ => 1, fun _ => by decide⟩
+private abbrev cfg : FGConfig := ⟨4⟩
+private abbrev head : HeadFields := ⟨0, genesisRoot, 0⟩
+private abbrev row : Row (Fin 1) := ⟨0, .vote 1 genesisRoot false, none⟩
+private abbrev protocol : V2.ProtocolSpecD Unit where
+  State := RecordOnce
+  Label := Time
+  Duty := Time
+  signLabel := id
+  seats := fun _ => 1
+  Payload := Row (Fin 1)
+  Durable := RecordOnce
+  init := RecordOnce.initial
+  clock := fun st _ => st
+  actTime := id
+  duties := fun t => [t]
+  duties_spec := by intro d t; simp
+  duties_nodup := by intro t; simp
+  act := fun st _ _ => (createRowOnce (electorate 1) cfg st 0 (some .genesis) head).1
+  gossip := fun _ _ => [row]
+  process := fun st _ => st
+  selfVisible := fun _ => true
+  recordOwn := fun st o => match o.auth with
+    | .none => st
+    | .seat _ _ => record_row_once st o.payload
+  durable := id
+  restore := fun st _ => st
+  wellFormed := fun _ => true
+  depsPresent := fun _ _ => true
+  processed := fun _ _ => false
+  excludes := fun _ _ => false
+  handles := fun _ _ _ => False
+  carries := fun _ _ => False
+
+private abbrev decode (o : protocol.Object) : Option (Row (Fin 1)) :=
+  match o.auth with
+  | .seat l _ => if l = 6 then some o.payload else none
+  | .none => none
+private abbrev reads : FGSafetyReads protocol 1 (Row (Fin 1)) where
+  proposalErase := fun _ => none
+  proposalRows := fun _ => []
+  encode := fun a => ⟨.seat 6 0, a⟩
+  decode := some
+  decodeObject := decode
+  fgLabel := 6
+  fgSeats := Equiv.refl _
+  record := id
+  inputs := fun _ => (some .genesis, head)
+  enabled := fun _ => true
+  finalizedOut := fun _ => .genesis
+private abbrev env : Generic.Env Nat where
+  Δ := 1
+  Δ_pos := by decide
+  t_GST := 0
+  t_GST_nonneg := by decide
+  awake := fun _ _ => true
+private abbrev run : V2.D.Run Nat protocol where
+  honest := {7, 9}
+  horizon := 18
+  events := [.tick 9 6, .tick 7 8, .tick 7 9, .tick 9 9, .tick 7 13,
+    .tick 9 13, .tick 7 14, .tick 9 14, .tick 7 18, .tick 9 18]
+  seatOf := fun l _ => if l = 6 then 9 else 7
+  input := fun _ _ => ()
+private noncomputable abbrev timing : FGTiming where
+  delta := 1
+  roundSlots := 2
+  proposal s := 4 * (s : Time)
+  vote s := 4 * (s : Time) + 1
+  early s := 4 * (s : Time) + 2
+  freeze s := 4 * (s : Time) + 3
+  release s := 4 * (s : Time) + 5
+  gate s := 4 * (s : Time) + 6
+  action r := 8 * (r : Time) + 6
+private abbrev core : FGCoreReads protocol 1 Unit Unit (Row (Fin 1)) where
+  core _ := ⟨(), Store.init, [], []⟩
+  erase := fun _ => .genesis
+  source := fun _ => some .genesis
+  headVote := fun _ _ => .genesis
+  finalityHead := fun _ => some .genesis
+  proposalFG := fun _ _ => none
+private noncomputable abbrev height : FGHeightView (Fin 1) :=
+  fun _ => ⟨.genesis, 0, 1, .genesis, ∅, ∅, 0, .genesis⟩
+private abbrev interface : V2.D.Interface protocol where
+  confirmed _ := .genesis
+  stable _ := .genesis
+  block _ := some .genesis
+  opening _ := True
+  propLabel s := 4 * (s : Time)
+  propDuty s := 4 * (s : Time)
+  propDuty_label _ := rfl
+  propLabel_single _ := rfl
+  propLabel_injective := by
+    intro a b h
+    change 4 * (a : Int) = 4 * (b : Int) at h
+    exact Int.ofNat.inj (show (a : Int) = (b : Int) by omega)
+
+private abbrev obs : FGObservationReads core where
+  height := height
+  finality := fun _ => ⟨.genesis, 0⟩
+  controls _ := ⟨.genesis, 1, 0, .genesis, false⟩
+  viable _ X := X
+
+private theorem service_premises_sat :
+    run.honest = {7, 9} ∧ run.horizon = 18 ∧
+    run.events = [.tick 9 6, .tick 7 8, .tick 7 9, .tick 9 9, .tick 7 13,
+      .tick 9 13, .tick 7 14, .tick 9 14, .tick 7 18, .tick 9 18] ∧
+    (∀ i, safetyHolder reads run i = 9) ∧ FGHonestSeats reads run = {0} ∧
+    protocol.objSelfVisible (reads.encode row) = true ∧
+    reads.decodeObject (reads.encode row) = some row ∧
+    HonestRowAt reads env run timing 0 9 0 row ∧
+    (∀ x ∈ run.honest, headAtLabel core env run timing x 2 = some .genesis) ∧
+    (∀ x ∈ run.honest, headAtLabel core env run timing x 3 = some .genesis) ∧
+    (∀ x ∈ run.honest,
+      actionSourceFG core env run timing x 1 = some (some .genesis)) ∧
+    OpeningEntry core env run height timing 1 1 ∧
+    OpeningCoveredFG core reads env run height timing Row.height_pair
+      (FGHonestSeats reads run) 1 .genesis := by
+  refine ⟨rfl, rfl, rfl, fun _ => rfl, ?_, rfl, rfl, ?_, ?_, ?_, ?_, ?_, ?_⟩
+  · ext i
+    have hi : i = 0 := Subsingleton.elim _ _
+    subst i
+    simp [FGHonestSeats_def, safetyHolder, reads, run]
+  · unfold HonestRowAt
+    decide +kernel
+  · intro x hx
+    have hx' : x = 7 ∨ x = 9 := by simpa using hx
+    rcases hx' with rfl | rfl <;> decide +kernel
+  · intro x hx
+    have hx' : x = 7 ∨ x = 9 := by simpa using hx
+    rcases hx' with rfl | rfl <;> decide +kernel
+  · intro x hx
+    have hx' : x = 7 ∨ x = 9 := by simpa using hx
+    rcases hx' with rfl | rfl <;> decide +kernel
+  · exact ⟨genesisRoot, fun _ _ _ _ => ⟨rfl, rfl⟩⟩
+  · intro i _
+    have hi : i = 0 := Subsingleton.elim _ _
+    subst i
+    refine ⟨.genesis, V2.D.Run.stateBefore env run 7 9, 0, 0, row,
+      ?_, ?_, ?_, ?_, by decide, ?_, rfl⟩
+    · rfl
+    · decide +kernel
+    · decide
+    · decide
+    · unfold HonestRowAt
+      decide +kernel
+
+#print axioms service_premises_sat
+
+end AvailableChain.FGCompose.Tests.PopulationService
+end
