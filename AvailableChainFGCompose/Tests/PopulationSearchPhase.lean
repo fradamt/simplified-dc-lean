@@ -431,5 +431,65 @@ private theorem opening_premises_sat (top : Bool) (r : Nat) (hr : 1 ≤ r) (hr4 
 
 #print axioms opening_premises_sat
 
+private theorem transport_premises_sat (top : Bool) :
+    (∀ t, env.t_GST ≤ t → t + 20 ≤ run.horizon →
+      ∃ s, t < d5cTiming.proposal s ∧ d5cTiming.proposal s ≤ t + 20 ∧
+        Gen.V2.Duty.HonestSlot run iface s) ∧
+    PromotionSlotProposal (core top) env run d5cTiming iface ∧
+    PromotionProposalRead (core top) reads env run (obs top) iface decodeProposal c5erase
+      FGBlock.rows parentFG parentHeight validFor fold ∧
+    PromotionSourceParent (core top) env run (obs top) d5cTiming iface 0 ∧
+    PromotionRowSigner reads env run d5cTiming wire ∧
+    TRowsReceipt (core top) reads env run d5cTiming (fun _ => [firstRow, nextRow]) 1 := by
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩
+  · intro t ht hh
+    change 0 ≤ t at ht
+    change t + 20 ≤ 42 at hh
+    by_cases h20 : t < 20
+    · refine ⟨5, h20, ?_, (proposal_premises_sat.2 5 (Or.inr (Or.inl rfl))).1.1⟩
+      change 20 ≤ t + 20
+      linarith
+    · refine ⟨7, ?_, ?_, (proposal_premises_sat.2 7 (Or.inr (Or.inr rfl))).1.1⟩
+      · change t < 28
+        linarith
+      · change 28 ≤ t + 20
+        linarith
+  · intro s hs _ _
+    have hslots := proposal_premises_sat.1 s hs
+    refine ⟨chainAt s, (proposal_premises_sat.2 s hslots).1, ?_⟩
+    rcases hslots with rfl | rfl | rfl <;> rfl
+  · intro s X hp _
+    obtain ⟨hs, he⟩ := proposal_unique hp
+    have hX : X = chainAt s := c5erase_inj he
+    subst X
+    rcases hs with rfl | rfl | rfl
+    · exact ⟨⟨(chainAt 1).rows, proposal_premises_sat.2 1 (Or.inl rfl), rfl⟩,
+        4, by decide +kernel, rfl, rfl, rfl, rfl, fun _ => rfl⟩
+    · exact ⟨⟨(chainAt 5).rows, proposal_premises_sat.2 5 (Or.inr (Or.inl rfl)), rfl⟩,
+        20, by decide +kernel, rfl, rfl, rfl, rfl, fun _ => rfl⟩
+    · exact ⟨⟨(chainAt 7).rows, proposal_premises_sat.2 7 (Or.inr (Or.inr rfl)), rfl⟩,
+        28, by decide +kernel, rfl, rfl, rfl, rfl, fun _ => rfl⟩
+  · intro u m J c r s X x K _ _ _ _ hafter hp _ hk
+    obtain ⟨hs, he⟩ := proposal_unique hp
+    have hX : X = chainAt s := c5erase_inj he
+    subst X
+    rw [(source_premises_sat top).1 r x K hk]
+    change @LE.le Nat _ (r * 2 + 2) s at hafter
+    rcases hs with rfl | rfl | rfl
+    · omega
+    · have hr : @LE.le Nat _ r 1 := by omega
+      interval_cases r <;> decide +kernel
+    · have hr : @LE.le Nat _ r 2 := by omega
+      interval_cases r <;> decide +kernel
+  · refine ⟨fun _ _ _ a _ => ⟨a, rfl⟩, ?_⟩
+    intro i j r a _
+    exact congrArg some (Subsingleton.elim a.signer i)
+  · intro j x r a hrow _ y _
+    rcases row_identity hrow with ⟨_, _, _, rfl⟩ | ⟨_, _, _, rfl⟩
+    · exact Or.inl (by simp)
+    · exact Or.inl (by simp)
+
+#print axioms transport_premises_sat
+
 end AvailableChain.FGCompose.Tests.PopulationSearchPhase
 end
