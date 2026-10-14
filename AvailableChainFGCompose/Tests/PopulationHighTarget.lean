@@ -116,5 +116,13 @@ private theorem empty_seats_no_fallback :
     exact Empty.elim (rows 0)
 
 #print axioms empty_seats_no_fallback
+-- The extra honest receiver contributes no additional FG vote.
+private theorem honest_nodes_are_not_seat_votes :
+    (FGHonestSeats reads run).card = 1 ∧ run.honest.card = 2 ∧
+    (FGHonestSeats reads run).card ≠ run.honest.card := by
+  rw [mixed_actions_premises_sat.1]
+  decide
+
+#print axioms honest_nodes_are_not_seat_votes
 end AvailableChain.FGCompose.Tests.PopulationHighTarget
 end
