@@ -431,5 +431,13 @@ theorem kernel_middle_fresh_U_holder :
   refine ⟨m.strictAU.1, m.strictAU.2, ?_, m.pathUB⟩
   rw [m.freshEntry.1, m.heightA]
 
+/-- The selected early carrier retains the same pending justification. -/
+theorem kernel_middle_early_justification_holder :
+    (O.height m.X_D).h = m.d + 2 ∧ (O.height m.X_D).J = m.U ∧
+    (O.height m.X_D).h_j = m.d + 1 ∧
+    (SimplexFG.Window.derive Ef cfg K m.X_D).h_F < m.d + 1 ∧
+    KitFG.Window.RetainedW Ef cfg K m.X_D (m.d + 1) m.U :=
+  ⟨m.heightD, m.justifiedD, m.justifiedHeightD, m.pendingD, m.retainedD⟩
+
 end AvailableChain.FGCompose
 end
