@@ -92,5 +92,31 @@ theorem FrontierHG3ResultFG_def (i m : Nat) (start deadline : Time) :
   FirstRiseStopBy R E rho O i m deadline ∨
   ∃ t, start ≤ t ∧ t ≤ deadline ∧ StrongServedFG R S E rho O T I pair Jst leaseSlots m t := Iff.rfl
 
+/-- Interrupted repair with holder-served seeds and the original horizon guard. -/
+def InterruptedRepairStatementFG (G ΔF ρbar : Time) : Prop :=
+  deltaT = 2 * T.roundSlots → LivenessBoundW T ΔF →
+  ∀ i ev m kind, FrontierSearchStart R E rho O T Jst i ev m kind →
+    FrontierRepairAllowance R E rho O T I Jst leaseSlots G ρbar (ev.time + 3 * T.delta) →
+    ev.time + interruptedRepairBudget T G ΔF ρbar kind ≤ rho.horizon →
+    FirstEffectiveBy R E rho O i
+      (ev.time + interruptedRepairBudget T G ΔF ρbar kind) ∨
+    FrontierRiseBy R E rho i m
+      (ev.time + interruptedRepairBudget T G ΔF ρbar kind) ∨
+    (∃ t, ev.time ≤ t ∧ t ≤ ev.time + interruptedRepairBudget T G ΔF ρbar kind ∧
+      StrongServedFG R S E rho O T I pair Jst leaseSlots m t)
+
+theorem InterruptedRepairStatementFG_def (G ΔF ρbar : Time) :
+    InterruptedRepairStatementFG R S E rho O T I pair Jst leaseSlots deltaT G ΔF ρbar ↔
+  deltaT = 2 * T.roundSlots → LivenessBoundW T ΔF →
+  ∀ i ev m kind, FrontierSearchStart R E rho O T Jst i ev m kind →
+    FrontierRepairAllowance R E rho O T I Jst leaseSlots G ρbar (ev.time + 3 * T.delta) →
+    ev.time + interruptedRepairBudget T G ΔF ρbar kind ≤ rho.horizon →
+    FirstEffectiveBy R E rho O i
+      (ev.time + interruptedRepairBudget T G ΔF ρbar kind) ∨
+    FrontierRiseBy R E rho i m
+      (ev.time + interruptedRepairBudget T G ΔF ρbar kind) ∨
+    (∃ t, ev.time ≤ t ∧ t ≤ ev.time + interruptedRepairBudget T G ΔF ρbar kind ∧
+      StrongServedFG R S E rho O T I pair Jst leaseSlots m t) := Iff.rfl
+
 end AvailableChain.FGCompose
 end
