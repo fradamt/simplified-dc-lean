@@ -1,4 +1,5 @@
 module
+public import AvailableChainGeneric.Proofs.Pure.BlockOrder
 public import Mathlib.Tactic.IntervalCases
 public import AvailableChainFGCompose.Proofs.Population.FrontierSearchBridges
 
@@ -200,6 +201,37 @@ private theorem proposal_unique {s : Slot} {B : Block}
     omega
 
 #print axioms proposal_unique
+
+private theorem mixed_service :
+    FrontierLocalServiceFG core reads env run obs timing interface Row.height_pair
+      2 .genesis .genesis 1 18 := by
+  obtain ⟨_, _, _, _, _, _, _, _, _, _, _, he, hc⟩ := service_premises_sat
+  refine ⟨?_, ?_, ?_, ?_, ?_⟩
+  · intro x s H _ _ _ _
+    exact Gen.Pure.block_genesis_preceq H
+  · intro s B _ _ _
+    exact Gen.Pure.block_genesis_preceq B.parent
+  · intro i x _ _ _ _
+    exact Gen.Pure.block_genesis_preceq _
+  · intro s B hs _ hp
+    have hq := (proposal_unique hp).1
+    subst s
+    exact (lt_irrefl _ hs).elim
+  · intro r hq hv
+    have hr : r = 1 := by
+      change 2 ≤ r * 2 at hq
+      change 8 * (r : Int) + 6 ≤ 18 at hv
+      have hlo : 1 ≤ r := by
+        by_contra hn
+        have hz : r = 0 := Nat.eq_zero_of_not_pos hn
+        subst r
+        exact (by decide : ¬ ((2 : Nat) ≤ 0)) hq
+      have hlo' : (1 : Int) ≤ (r : Int) := Int.ofNat_le.mpr hlo
+      exact Int.ofNat.inj (show (r : Int) = 1 by omega)
+    subst r
+    exact ⟨hc, he, fun _ _ _ _ => rfl, fun _ => by decide⟩
+
+#print axioms mixed_service
 
 end AvailableChain.FGCompose.Tests.PopulationService
 end
