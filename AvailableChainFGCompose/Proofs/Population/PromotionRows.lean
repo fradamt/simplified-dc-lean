@@ -66,5 +66,39 @@ theorem p0d3_same_batch_on_holder {A : Finset (Fin n)} {r height : Nat} {s : Slo
     hslot hentry hUP hheight hread hparent ⟨hfh, hft⟩ hph
     (decodeRows j x rSent a ha) hn (hv a)
 
+include laws in
+/-- SAME: select the opening batch before using the new proposal's parent read. -/
+theorem p0d3_same_batch_holder {A : Finset (Fin n)} {r height : Nat} {s : Slot} {Q : Block}
+    {X : FGBlock (Fin n)} (hA : A ⊆ FGHonestSeats S rho) (hne : A.Nonempty)
+    (batch : ∃ U, EntryAt H U height ∧ U.slot ≤ r * T.roundSlots ∧
+      FixedRowsFG R S E rho H T pair A r height Q U)
+    (hParents : ∀ x K, x ∈ rho.honest →
+      actionSourceFG R E rho T x r = some (some K) → FGBlock.Preceq K X.parent)
+    (hslot : X.slot = s)
+    (read : ∃ nd, proposalStateAt E rho I s = some nd ∧
+      parentFG nd (R.erase X).parent = some X.parent ∧
+      (fold nd s X.parent).h = (H X.parent).h ∧
+      (fold nd s X.parent).T_h = (H X.parent).T_h ∧
+      parentHeight nd s X.parent = ((fold nd s X.parent).h, (fold nd s X.parent).T_h.root) ∧
+      ∀ a, validFor nd s X.parent a =
+        match S.decode a with | none => false | some b => Window.r6w (fold nd s X.parent) b)
+    (decodeRows : ∀ j x rSent a, HonestRowAt S E rho T j x rSent a →
+      ∃ b, S.decode a = some b ∧ b.height_pair = pair a) :
+    ∃ U, EntryAt H U height ∧ U.slot ≤ r * T.roundSlots ∧ FGBlock.Preceq U X.parent ∧
+    ∀ i ∈ A, let x := safetyHolder S rho i; ∃ K nd j rSent a,
+      postClock E rho x (T.action r) = some nd ∧
+      actionSourceFG R E rho T x r = some (some K) ∧ K ∈ (R.core nd).fg.TF ∧
+      Block.Preceq Q (R.erase K) ∧ FGBlock.Preceq U K ∧ K.slot ≤ r * T.roundSlots ∧
+      (H K).h = height ∧ (H K).T_h = U ∧ rSent ≤ r ∧ HonestRowAt S E rho T j x rSent a ∧
+      NamesEntry pair .progress a height U ∧
+      ((H X.parent).h = height →
+        ValidForParent E rho I parentFG validFor X.slot (R.erase X) a ∧
+        HeightMatch E rho I (fun a => namedEntry (pair a)) parentFG parentHeight
+          X.slot (R.erase X) a) := by
+  obtain ⟨U, hU, hslotU, hrows⟩ := batch
+  obtain ⟨hUP, hsame⟩ := p0d3_same_batch_on_holder R S E rho H T I pair
+    parentFG parentHeight validFor fold Ef laws hA hne hU hrows hParents hslot read decodeRows
+  exact ⟨U, hU, hslotU, hUP, hsame⟩
+
 end AvailableChain.FGCompose
 end
