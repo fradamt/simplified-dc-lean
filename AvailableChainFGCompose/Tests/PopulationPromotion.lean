@@ -178,5 +178,23 @@ private theorem geometry_premises_sat :
 
 #print axioms geometry_premises_sat
 
+private theorem mixed_fixed_rows :
+    EntryAt height (.genesis : FGBlock (Fin 1)) 1 ∧
+    FixedRowsFG core reads env run height timing Row.height_pair
+      (FGHonestSeats reads run) 0 1 .genesis .genesis := by
+  have hH := mixed_premises_sat.2.2.2.2.1
+  have hne : (FGHonestSeats reads run).Nonempty := by rw [hH]; exact ⟨0, by simp⟩
+  obtain ⟨U, hU, _, rows⟩ := healing_promotion_bounded_rows_holder core reads env run
+    height timing Row.height_pair (electorate 1) height_premises_sat
+    (Finset.Subset.refl _) hne mixed_premises_sat.2.2.2.2.2.2.2.2.2.1
+    mixed_premises_sat.2.2.2.2.2.2.2.2.2.2 geometry_premises_sat.1
+    geometry_premises_sat.2.1 geometry_premises_sat.2.2
+  obtain ⟨K, _, _, _, _, _, _, _, _, _, _, _, hKU, _⟩ := rows 0 (by rw [hH]; simp)
+  have hu : FGBlock.genesis = U := hKU
+  subst U
+  exact ⟨hU, rows⟩
+
+#print axioms mixed_fixed_rows
+
 end AvailableChain.FGCompose.Tests.PopulationPromotion
 end
