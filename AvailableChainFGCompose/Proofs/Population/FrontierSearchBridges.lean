@@ -46,5 +46,12 @@ theorem interruptedRepairStatementFG_frozen_iff (G ΔF ρbar : Time) :
   simp only [InterruptedRepairStatementFG_def, InterruptedRepairStatement,
     strongServedFG_frozen_iff R S E rho O T I pair Jst leaseSlots e he]
 
+/-- Iff: use the served equivalence contravariantly, preserving both independent horizons. -/
+theorem frontierTailStatementFG_frozen_iff (G ΔF : Time) :
+    FrontierTailStatementFG R S E rho O T I pair Jst leaseSlots deltaT G ΔF ↔
+      FrontierTailStatement R S E rho O T I pair Jst leaseSlots deltaT G ΔF := by
+  simp only [FrontierTailStatementFG_def, FrontierTailStatement_def,
+    strongServedFG_frozen_iff R S E rho O T I pair Jst leaseSlots e he]
+
 end AvailableChain.FGCompose
 end
