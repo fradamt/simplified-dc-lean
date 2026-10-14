@@ -270,6 +270,45 @@ private theorem seed_premises_sat :
 
 #print axioms seed_premises_sat
 
+private abbrev frozenEnv : Generic.Env (Fin 1) :=
+  ⟨1, by decide, 0, by decide, fun _ _ => true⟩
+
+private abbrev frozenRun : V2.D.Run (Fin 1) protocol where
+  honest := {0}
+  horizon := 18
+  events := [.tick 0 6, .tick 0 8, .tick 0 9, .tick 0 13, .tick 0 14, .tick 0 18]
+  seatOf := fun _ _ => 0
+  input := fun _ _ => ()
+
+private theorem frozen_premises_sat :
+    (∀ i, safetyHolder reads frozenRun i = (Equiv.refl (Fin 1)) i) ∧
+    FGHonestSeats reads frozenRun = {0} ∧
+    HonestRowAt reads frozenEnv frozenRun timing 0 0 0 row ∧
+    HonestProposal frozenEnv frozenRun interface 2 .genesis ∧
+    OpeningCovered core reads frozenEnv frozenRun height timing Row.height_pair 1 .genesis := by
+  refine ⟨fun i => Subsingleton.elim _ _, ?_, ?_, ?_, ?_⟩
+  · ext i
+    have hi : i = 0 := Subsingleton.elim _ _
+    subst i
+    simp [FGHonestSeats_def, safetyHolder, reads, frozenRun]
+  · unfold HonestRowAt
+    decide +kernel
+  · refine ⟨⟨by decide, by decide⟩, ⟨.none, row⟩,
+      ⟨1, by decide +kernel, by decide +kernel⟩, rfl⟩
+  · intro x _
+    have hx : x = 0 := Subsingleton.elim _ _
+    subst x
+    refine ⟨.genesis, V2.D.Run.stateBefore frozenEnv frozenRun 4 0, 0, 0, row,
+      ?_, ?_, ?_, ?_, by decide, ?_, rfl⟩
+    · rfl
+    · decide +kernel
+    · decide
+    · decide
+    · unfold HonestRowAt
+      decide +kernel
+
+#print axioms frozen_premises_sat
+
 -- POP-5 local fixture support ends here.
 
 end Fixture
