@@ -737,5 +737,75 @@ private theorem repair_premises_sat (top : Bool) :
 
 #print axioms repair_premises_sat
 
+private theorem branch_premises_sat (top : Bool) :
+    (∀ u v m J contested q Q Qfg, (0 : Time) ≤ u → HonestProposal env run iface q Q → (core
+      top).erase Qfg = Q → ((obs top).height Qfg).h = m → FrontierProposalService (core top)
+      env run d5cTiming q Q → FrontierSeedQualification d5cTiming 1 env.t_GST u q → u ≤
+      d5cTiming.proposal q → PhaseInterval (core top) env run (obs top) u (d5cTiming.gate q) m
+      J contested → d5cTiming.gate q ≤ v → v ≤ run.horizon → (∀ i x, timeIdx run u ≤ i → i ≤
+      timeIdx run v → x ∈ run.honest → ((core top).core (run.stateBefore env i x)).fg.h_max ≤
+      m) → FrontierLocalServiceFG (core top) reads env run (obs top) d5cTiming iface
+      wire.heightPair q Q Qfg m v) ∧
+    (∀ u m J contested q Q Qfg r, (0 : Time) ≤ u → HonestProposal env run iface q Q → (core
+      top).erase Qfg = Q → FrontierProposalService (core top) env run d5cTiming q Q →
+      FrontierSeedQualification d5cTiming 1 env.t_GST u q → u ≤ d5cTiming.proposal q → q ≤ r *
+      d5cTiming.roundSlots → (∀ r', q ≤ r' * d5cTiming.roundSlots → r ≤ r') → PhaseInterval
+      (core top) env run (obs top) u (d5cTiming.action r) m J contested → OpeningCoveredFG
+      (core top) reads env run (obs top).height d5cTiming wire.heightPair (FGHonestSeats reads
+      run) r Q ∧ (((obs top).height Qfg).h = m - 1 → OpeningEntry (core top) env run (obs
+      top).height d5cTiming r (m - 1) ∨ ∃ x K, x ∈ run.honest ∧ actionSourceFG (core top) env
+      run d5cTiming x r = some (some K) ∧ ((obs top).height K).h = m)) := by
+  constructor
+  · intro u v m J c q Q Qfg _ hp he hh _ _ _ hphase _ hhor _
+    have hcut : run.idxBefore u ≤ timeIdx run (d5cTiming.gate q) :=
+      (gidxBefore_le_timeIdx run u).trans (frontierSearch_timeIdx_mono run hphase.1)
+    have hm : m = 2 := (hphase.2.2.2 _ 7 le_rfl hcut (by decide)).1.symm
+    obtain ⟨hq, hQ⟩ := proposal_unique hp
+    have hB : Qfg = chainAt q := c5erase_inj (he.trans hQ)
+    rw [hB, hm] at hh
+    rw [hB, hQ, hm]
+    apply local_service_premises_sat top q _ v hhor
+    rcases hq with rfl | rfl | rfl
+    · change (c5H (chainAt 2)).h = 2 at hh
+      exact absurd hh (by decide +kernel)
+    · exact Or.inl rfl
+    · exact Or.inr rfl
+  · intro u m J c q Q Qfg r _ hp he _ _ _ hqr hfirst hphase
+    have hcut : run.idxBefore u ≤ timeIdx run (d5cTiming.action r) :=
+      (gidxBefore_le_timeIdx run u).trans (frontierSearch_timeIdx_mono run hphase.1)
+    have hm : m = 2 := (hphase.2.2.2 _ 7 le_rfl hcut (by decide)).1.symm
+    obtain ⟨hq, hQ⟩ := proposal_unique hp
+    have hB : Qfg = chainAt q := c5erase_inj (he.trans hQ)
+    rw [hB, hQ, hm]
+    change @LE.le Nat _ q (r * 2) at hqr
+    rcases hq with rfl | rfl | rfl
+    · have hr : @LE.le Nat _ r 1 := hfirst 1 (by decide)
+      have hr' : @Eq Nat r 1 := by omega
+      subst r
+      have ho := opening_premises_sat top 1 (by decide) (by decide)
+      refine ⟨ho.2 (chainAt 2) (by decide +kernel), ?_⟩
+      intro _
+      left
+      simpa only [show (c5H (sourceAt (d5cTiming.action 1))).h = 1 by decide +kernel]
+        using ho.1
+    · have hr : @LE.le Nat _ r 3 := hfirst 3 (by decide)
+      have hr' : @Eq Nat r 3 := by omega
+      subst r
+      have ho := opening_premises_sat top 3 (by decide) (by decide)
+      refine ⟨ho.2 (chainAt 5) (by decide +kernel), ?_⟩
+      intro hh
+      change (c5H (chainAt 5)).h = 1 at hh
+      exact absurd hh (by decide +kernel)
+    · have hr : @LE.le Nat _ r 4 := hfirst 4 (by decide)
+      have hr' : @Eq Nat r 4 := by omega
+      subst r
+      have ho := opening_premises_sat top 4 (by decide) (by decide)
+      refine ⟨ho.2 (chainAt 7) (by decide +kernel), ?_⟩
+      intro hh
+      change (c5H (chainAt 7)).h = 1 at hh
+      exact absurd hh (by decide +kernel)
+
+#print axioms branch_premises_sat
+
 end AvailableChain.FGCompose.Tests.PopulationSearchPhase
 end
