@@ -278,5 +278,20 @@ private theorem frozen_seed_premises_sat :
 
 #print axioms frozen_seed_premises_sat
 
+private theorem frozen_saved_seed_bridge :
+    StrongServedFG core reads frozenEnv frozenRun seedObs timing interface Row.height_pair
+      0 1 1 14 ∧
+    StrongServed core reads frozenEnv frozenRun seedObs timing interface Row.height_pair
+      0 1 1 14 ∧ HonestRowAt reads frozenEnv frozenRun timing 0 0 0 row := by
+  obtain ⟨ht, ho, he, hp, hqual, hphase, hservice, hlocal, hrow⟩ := frozen_seed_premises_sat
+  have hs := frontierSearch_save_seed_holder core reads frozenEnv frozenRun seedObs timing
+    interface Row.height_pair 0 1 ho ht le_rfl le_rfl hphase hqual hp rfl rfl hservice le_rfl
+    hlocal
+  have bridge := strongServedFG_frozen_iff core reads frozenEnv frozenRun seedObs timing
+    interface Row.height_pair 0 1 (Equiv.refl _) he 1 14
+  exact ⟨hs, bridge.1 hs, hrow⟩
+
+#print axioms frozen_saved_seed_bridge
+
 end AvailableChain.FGCompose.Tests.PopulationSearchSeed
 end
