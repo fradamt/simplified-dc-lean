@@ -233,5 +233,25 @@ private theorem mixed_service :
 
 #print axioms mixed_service
 
+private theorem seed_premises_sat :
+    HonestProposal env run interface 2 .genesis ∧ V2.D.proposerOf run interface 2 = 7 ∧
+    2 ≤ 1 * timing.roundSlots ∧ timing.action 1 ≤ 18 ∧
+    timing.gate 2 + 4 * timing.delta ≤ 18 ∧ (18 : Time) ≤ run.horizon ∧
+    FrontierSeedQualification timing 1 env.t_GST 0 2 ∧
+    PhaseInterval core env run obs 0 (timing.gate 2) 1 (some .genesis) false ∧
+    (∀ i x, timeIdx run 0 ≤ i → i ≤ timeIdx run 18 → x ∈ run.honest →
+      (core.core (run.stateBefore env i x)).fg.h_max ≤ 1) := by
+  refine ⟨?_, rfl, by decide, by decide, by decide, by decide, ?_, ?_, ?_⟩
+  · refine ⟨⟨by decide, by decide⟩, ⟨.seat 8 0, row⟩,
+      ⟨1, by decide +kernel, by decide +kernel⟩, rfl⟩
+  · exact Or.inr ⟨0, by decide, fun _ _ => Nat.zero_le _, by decide, by decide, by decide⟩
+  · refine ⟨by decide, by decide, by decide, ?_⟩
+    intro i x _ _ _
+    exact ⟨rfl, rfl, rfl, rfl⟩
+  · intro i x _ _ _
+    exact le_rfl
+
+#print axioms seed_premises_sat
+
 end AvailableChain.FGCompose.Tests.PopulationService
 end
