@@ -786,7 +786,14 @@ def control_dir(label, *, shadow=False):
     # A tiny offline Lake package: no dependencies or fetch step.
     (neg / 'lean-toolchain').write_text(Path('lean-toolchain').read_text())
     (neg / 'lakefile.toml').write_text('name = "fgsa-controls"\n[[lean_lib]]\nname = "FGSAControl"\nglobs = ["FGSAControl.+"]\n')
+    scripts = neg / 'scripts'
+    scripts.mkdir()
+    shutil.copy2(ROOT / 'scripts/source_layout.py', scripts / 'source_layout.py')
     if shadow:
+        with (neg / 'lakefile.toml').open('a') as config:
+            for library in LIBS:
+                config.write('[[lean_lib]]\nname="' + library + '"\nroots=[]\n'
+                             'globs=["' + library + '.+"]\n')
         # Lean resolves an entire prefix at its first path entry. Each
         # auditor gets private built roots and only its own shadow module.
         built = ROOT / '.lake/build/lib/lean'
