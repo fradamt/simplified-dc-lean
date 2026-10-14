@@ -99,7 +99,8 @@ def main():
                 if kind == 'section':
                     key, msg = f'expose-section {lf.path}', f'{lf.path}:{line}: @[expose] section'
                 else:
-                    if kind in ('def', 'abbrev', 'instance') and (C.logical_path(lf.path), dname) in allow:
+                    if (kind in ('def', 'abbrev', 'instance') and
+                            (C.logical_path(lf.path), dname) in allow):
                         continue
                     key = f'expose-decl {lf.path} {dname}'
                     msg = f'{lf.path}:{line}: @[expose] {kind} {dname} (not in scripts/expose-allow.txt)'

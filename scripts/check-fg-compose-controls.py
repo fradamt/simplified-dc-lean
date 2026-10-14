@@ -203,7 +203,8 @@ with tempfile.TemporaryDirectory(prefix='compose-controls.', dir=REPO / '.lake')
     checker = tree / 'scripts/check-fg-syntax.sh'
     original = checker.read_text()
     checker.write_text(original.replace(' AvailableChainFGCompose;', ';')
-                       .replace('AvailableChainSimplexFG AvailableChainKitFG AvailableChainFGCompose)',
+                       .replace('AvailableChainSimplexFG AvailableChainKitFG '
+                                'AvailableChainFGCompose)',
                                 'AvailableChainSimplexFG AvailableChainKitFG)'))
     result = run(syntax, tree)
     assert result.returncode == 0
@@ -272,9 +273,11 @@ with tempfile.TemporaryDirectory(prefix='compose-controls.', dir=REPO / '.lake')
 
     # The source extension guard must reject an orphan, including Tests.
     tree, env = fixture('global-extension')
-    shutil.copytree(REPO / LAYOUT.source_dir('AvailableChainFGCompose'), tree / 'AvailableChainFGCompose',
+    shutil.copytree(REPO / LAYOUT.source_dir('AvailableChainFGCompose'),
+                    tree / 'AvailableChainFGCompose',
                     dirs_exist_ok=True)
-    shutil.copy2(REPO / LAYOUT.source_path('AvailableChainFGCompose'), tree / 'AvailableChainFGCompose.lean')
+    shutil.copy2(REPO / LAYOUT.source_path('AvailableChainFGCompose'),
+                 tree / 'AvailableChainFGCompose.lean')
     for rel in ('AvailableChainFGCompose/Tests/Orphan.lean',):
         path = tree / rel
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -283,9 +286,11 @@ with tempfile.TemporaryDirectory(prefix='compose-controls.', dir=REPO / '.lake')
             1, 'FORBIDDEN GLOBAL EXTENSION:')
 
     tree, env = fixture('source-inventory')
-    shutil.copytree(REPO / LAYOUT.source_dir('AvailableChainFGCompose'), tree / 'AvailableChainFGCompose',
+    shutil.copytree(REPO / LAYOUT.source_dir('AvailableChainFGCompose'),
+                    tree / 'AvailableChainFGCompose',
                     dirs_exist_ok=True)
-    shutil.copy2(REPO / LAYOUT.source_path('AvailableChainFGCompose'), tree / 'AvailableChainFGCompose.lean')
+    shutil.copy2(REPO / LAYOUT.source_path('AvailableChainFGCompose'),
+                 tree / 'AvailableChainFGCompose.lean')
     orphan = tree / 'AvailableChainFGCompose/Statements/Unlisted.lean'
     orphan.write_text('module\npublic section\nnamespace Extra\n'
                       'opaque unlisted : Nat := 1\nend Extra\n')

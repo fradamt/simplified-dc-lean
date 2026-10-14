@@ -145,7 +145,9 @@ gate_precheck() {
   echo 'PRECHECK PASS; build not started'
 }
 SH
-cat "$repo/scripts/precheck-fixtures/claims-theorem.txt" >> "$target/$(python3 -B scripts/source_layout.py --root "$target" path AvailableChainFGSAClaims.Tests.Axioms)"
+claims_audit=$(python3 -B scripts/source_layout.py --root "$target" \
+  path AvailableChainFGSAClaims.Tests.Axioms)
+cat "$repo/scripts/precheck-fixtures/claims-theorem.txt" >> "$target/$claims_audit"
 control=$repo/scripts/precheck-fixtures/guard-lists-control.py
 python3 "$control" permissive "$target/scripts/check-fgsa-claims.sh" "$policy/scripts/check-fgsa-claims.sh"
 rc=0
@@ -192,7 +194,8 @@ gate_precheck() {
 SH
 # Target checker code must not replace main's checker.
 printf 'raise SystemExit(99)\n' > "$target/scripts/check-expose.py"
-source_path=$(python3 -B scripts/source_layout.py --root "$target" path AvailableChainGeneric.Proofs.Pure.Walk)
+source_path=$(python3 -B scripts/source_layout.py --root "$target" \
+  path AvailableChainGeneric.Proofs.Pure.Walk)
 logical_path=AvailableChainGeneric/Proofs/Pure/Walk.lean
 printf '\n@[expose] def precheckPolicyAllow : Nat := 0\n' >> "$target/$source_path"
 rc=0

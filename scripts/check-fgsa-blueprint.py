@@ -583,8 +583,9 @@ GOOD = {'Fix.alpha': {'kind': 'theorem', 'module': 'Fix.Proofs', 'fingerprint': 
                         'binders': '1', 'props': '0', 'axioms': set()}}
 
 
-def make_fixture(root, outline=OUTLINE, data=None):
+def make_fixture(root, outline=OUTLINE, data=None, src="."):
     (root / 'lakefile.toml').write_text(
+        'srcDir="' + src + '"\n'
         '[[lean_lib]]\nname="Fix"\n[[lean_lib]]\nname="AvailableChainFGSAClaims"\n')
     snap = root / SNAPSHOT
     snap.mkdir(parents=True)
@@ -592,8 +593,8 @@ def make_fixture(root, outline=OUTLINE, data=None):
     (snap / 'SOURCE.json').write_text(json.dumps({
         'source_path': 'fixture', 'source_repository_head': '0' * 40, 'outline': '00-outline.md',
         'files': {'00-outline.md': hashlib.sha256(outline.encode()).hexdigest()}}))
-    (root / 'Fix').mkdir()
-    (root / 'Fix/Proofs.lean').write_text('-- fixture\n')
+    (root / src / 'Fix').mkdir(parents=True)
+    (root / Layout(root).source_path('Fix.Proofs')).write_text('-- fixture\n')
     claims = root / Layout(root).physical_path(CLAIMS_SOURCE)
     claims.parent.mkdir(parents=True)
     claims.write_text('structure FGSASafetyClaims (p : Nat) : Prop where\n  base : True\n\n'
@@ -607,6 +608,13 @@ def make_fixture(root, outline=OUTLINE, data=None):
 
 
 def selftest():
+    with tempfile.TemporaryDirectory(prefix='blueprint-nested-') as tmp:
+        root = Path(tmp)
+        make_fixture(root, src="src")
+        with contextlib.redirect_stdout(io.StringIO()):
+            assert run(root, oracle=fixture_oracle(GOOD), oleans=False) == 0
+        assert module_source(root, "Fix.Proofs") == root / "src/Fix/Proofs.lean"
+        print("SELFTEST fgsa-blueprint nested source/oracle fixture: PASS")
     def edit_map(root, fn):
         data = json.loads((root / MAP).read_text())
         fn(data)

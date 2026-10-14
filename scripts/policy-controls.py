@@ -154,7 +154,8 @@ with tempfile.TemporaryDirectory(prefix='policy-controls-') as tmp:
     # Exercise the gate entry point before any precheck, build or allocation.
     gate = root / 'gate/scripts'
     gate.mkdir(parents=True)
-    for name in ('gate.sh', 'gate-common.sh', 'checker_scope.py', 'checker-paths.txt', 'source_layout.py'):
+    for name in ('gate.sh', 'gate-common.sh', 'checker_scope.py',
+                 'checker-paths.txt', 'source_layout.py'):
         shutil.copy2(REPO / 'scripts' / name, gate / name)
     result = subprocess.run(['bash', str(gate / 'gate.sh'), '--tier', 'full'],
                             env=dict(os.environ, SOURCE_ONLY='1'), capture_output=True, text=True)
@@ -211,7 +212,8 @@ with tempfile.TemporaryDirectory(prefix='policy-controls-') as tmp:
     call(['git', 'init', '-q', str(repo)])
     (repo / 'scripts').mkdir()
     (repo / 'lakefile.toml').write_text('name="policy-fixture"\n')
-    for name in ('precheck.sh', 'full-pass.py', 'checker_scope.py', 'checker-paths.txt', 'source_layout.py'):
+    for name in ('precheck.sh', 'full-pass.py', 'checker_scope.py',
+                 'checker-paths.txt', 'source_layout.py'):
         shutil.copy2(REPO / 'scripts' / name, repo / 'scripts' / name)
     (repo / 'allowed').mkdir()
     (repo / 'allowed/a').write_text('base\n')

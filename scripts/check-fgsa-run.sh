@@ -401,9 +401,11 @@ check_root_imports() {
         sed -E 's/\.[lL][eE][aA][nN]$//; s|/|.|g' | sort) \
     <(imports_of "$base/$(gate_source_file "$base" AvailableChainFGSARun.lean)" | sort))
   [ -z "$missing" ] || { echo "NOT IMPORTED BY THE ROOT: $missing"; return 1; }
-  tests=$(imports_of "$base/$(gate_source_file "$base" AvailableChainFGSARun.lean)" | grep '^AvailableChainFGSARun\.Tests\.' || true)
+  tests=$(imports_of "$base/$(gate_source_file "$base" AvailableChainFGSARun.lean)" |
+    grep '^AvailableChainFGSARun\.Tests\.' || true)
   [ -z "$tests" ] || { echo "ROOT IMPORTS A TEST MODULE: $tests"; return 1; }
-  if imports_of "$base/$(gate_source_file "$base" AvailableChainFGSARun.lean)" | grep -qx '!UNPARSED'; then
+  if imports_of "$base/$(gate_source_file "$base" AvailableChainFGSARun.lean)" |
+      grep -qx '!UNPARSED'; then
     echo "UNPARSED IMPORT HEADER: AvailableChainFGSARun.lean"; return 1
   fi
 }
@@ -486,7 +488,8 @@ v2_open='
 check_v2_open() {
   local base=$1 bad=0 f out
   for f in $(source_files "$base") AvailableChainFGSARun.lean; do
-    out=$(perl -CSD -e "$strip_comments" < "$base/$(gate_source_file "$base" "$f")" | perl -CSD -e "$v2_open")
+    out=$(perl -CSD -e "$strip_comments" < "$base/$(gate_source_file "$base" "$f")" |
+      perl -CSD -e "$v2_open")
     if [ -n "$out" ]; then printf '%s\n' "$out"; echo "V2 NAME CLASH in $f"; bad=1; fi
   done
   return $bad
@@ -552,7 +555,8 @@ expect_fail() {
 # A scratch copy of the source tree for the text controls.
 mk_tree() {
   mkdir -p "$neg/tree"
-  cp -R "$(gate_source_dir AvailableChainFGSARun)" "$(gate_source_path AvailableChainFGSARun)" "$neg/tree/"
+  cp -R "$(gate_source_dir AvailableChainFGSARun)" \
+    "$(gate_source_path AvailableChainFGSARun)" "$neg/tree/"
   printf '[[lean_lib]]\nname = "AvailableChainFGSARun"\nglobs = ["AvailableChainFGSARun.*"]\n' \
     > "$neg/tree/lakefile.toml"
   mkdir -p "$neg/tree/AvailableChainFGSARun/"{Model,Statements,Proofs,Tests}

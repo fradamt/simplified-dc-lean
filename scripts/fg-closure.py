@@ -133,17 +133,27 @@ def selftest(rev):
     files = set(git("ls-tree", "-r", "--name-only", rev).split())
     layout = Layout(Path.cwd(), rev)
     kit_dir = layout.source_dir("AvailableChainKitFG")
-    kit_tests = sorted(f for f in files if f.startswith(kit_dir + "/Tests/") and f.endswith(".lean"))
+    kit_tests = sorted(f for f in files
+                       if f.startswith(kit_dir + "/Tests/") and f.endswith(".lean"))
     checks = [
         ("a KitFG/Tests-only diff needs check-fg", bool(kit_tests) and decide(kit_tests[:1], cl)[0] == 1),
         ("every KitFG module is in the closure", all(f in cl for f in files
-                                                     if f.startswith(kit_dir + "/") and f.endswith(".lean"))),
-        ("a SimplexFG module needs check-fg", decide([layout.source_path("AvailableChainSimplexFG")], cl)[0] == 1),
+                                                     if f.startswith(kit_dir + "/") and
+                                                     f.endswith(".lean"))),
+        ("a SimplexFG module needs check-fg",
+         decide([layout.source_path("AvailableChainSimplexFG")], cl)[0] == 1),
         ("a check-fg script needs check-fg", decide(["scripts/check-fg-pins.sh"], cl)[0] == 1),
         ("gate-common.sh needs check-fg", decide(["scripts/gate-common.sh"], cl)[0] == 1),
         ("the toolchain needs check-fg", decide(["lean-toolchain"], cl)[0] == 1),
-        ("an FGSA-only diff skips", decide([layout.source_path("AvailableChainFGSAProofs.Proofs.Healing.Base"),
+        ("an FGSA-only diff skips",
+         decide([layout.source_path("AvailableChainFGSAProofs.Proofs.Healing.Base"),
                                             "scripts/check-fgsa-claims.sh"], cl)[0] == 0),
+    ]
+    checks += [
+        ("deep archived FG registry is in closure",
+         layout.archive_doc_path("docs/FG-COMPOSITION.md") in cl),
+        ("source layout helper is in closure when present",
+         "scripts/source_layout.py" not in files or "scripts/source_layout.py" in cl),
     ]
     bad = [name for name, ok in checks if not ok]
     for name, ok in checks:

@@ -52,7 +52,8 @@ def checkpoint_modules(path):
     return modules
 
 
-def extract(scope, inventory=False, roots=None, blueprint=Path('docs/internal/FGSA-BLUEPRINT-LEAN.json'),
+def extract(scope, inventory=False, roots=None,
+            blueprint=Path('docs/internal/FGSA-BLUEPRINT-LEAN.json'),
             checkpoint='baseline', imports=None):
     libraries = SCOPES[scope]
     extra = ('AvailableChainPCSAProofs',) if (

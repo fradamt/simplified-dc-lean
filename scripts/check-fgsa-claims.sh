@@ -149,7 +149,8 @@ def direct_ok(m, dep):
 
 # O m4: the F2 constants are the declarations of Statements/CleanInvariant.
 F2_NAMES = set(re.findall(r"(?m)^(?:def|structure|abbrev|theorem)\s+([A-Za-z_][A-Za-z0-9_']*)",
-                          Path(LAYOUT.source_path(PROOFS + '.Statements.CleanInvariant')).read_text()))
+                          Path(LAYOUT.source_path(
+                              PROOFS + '.Statements.CleanInvariant')).read_text()))
 
 def source_findings(m, raw):
     imports, body = L.read_header(raw)
@@ -515,13 +516,15 @@ def replace_exact(text, old, new, count=None):
         raise SystemExit(f'AUDITOR TEMPLATE ANCHOR: {old!r} (found {actual})')
     return text.replace(old, new) if count is None else text.replace(old, new, count)
 
-source = replace_exact(source, 'import AvailableChainFGSARun\n', ''.join('import ' + x + '\n' for x in LIBS), 1)
+source = replace_exact(source, 'import AvailableChainFGSARun\n',
+                       ''.join('import ' + x + '\n' for x in LIBS), 1)
 source = replace_exact(source, 'def lib : Name := `AvailableChainFGSARun',
     'def libs : List Name := [' + ', '.join('`' + x for x in LIBS) + ']\n' +
     'def inLibraries (m : Name) : Bool := libs.any (·.isPrefixOf m)')
 a = source.index('def allowedImport ('); b = source.index('/-- The module names', a)
 source = source[:a] + allowed_import + source[b:]
-source = replace_exact(source, 'parts.foldl (fun n s => Name.str n s) lib', 'parts.foldl (fun n s => Name.str n s) dir.fileName.get!.toName')
+source = replace_exact(source, 'parts.foldl (fun n s => Name.str n s) lib',
+                       'parts.foldl (fun n s => Name.str n s) dir.fileName.get!.toName')
 source = replace_exact(source, 'lib.isPrefixOf m', 'inLibraries m')
 # Only these exact Model declaration/owner pairs join the constant audit.
 # Imports still use the source-validated library table. FGSA audits Model imports.
@@ -531,7 +534,11 @@ source = replace_exact(source, 'def inLib (env : Environment)',
                         model_scope + 'def inLib (env : Environment)', 1)
 source = replace_exact(source, '| some m => inLibraries m',
     '| some m => inLibraries m || modelAuditScope.contains (m, n)', 1)
-source = replace_exact(source, 'let mut dir : System.FilePath :=\n    if args.contains "--files" then "" else (← layoutOutput #["dir", "AvailableChainFGSARun"])[0]!', 'let mut dir : System.FilePath := ""')
+source = replace_exact(source,
+    'let mut dir : System.FilePath :=\n'
+    '    if args.contains "--files" then "" else '
+    '(← layoutOutput #["dir", "AvailableChainFGSARun"])[0]!',
+    'let mut dir : System.FilePath := ""')
 source = replace_exact(source, '(#[lib] ++ extra)', '(libs.toArray ++ extra)')
 source = replace_exact(source, '  for m in ← sourceModules dir do',
     '  let dirs ← if dir.toString.isEmpty then do\n' +
@@ -540,7 +547,8 @@ source = replace_exact(source, '  for m in ← sourceModules dir do',
     '    else pure [dir]\n' +
     '  let mut sourceMods := #[]\n  for d in dirs do sourceMods := sourceMods ++ (← sourceModules d)\n' +
     '  for m in sourceMods do')
-source = replace_exact(source, '  if cs.isEmpty then\n    IO.eprintln "NO CONSTANTS FOUND"\n    return 2\n',
+source = replace_exact(source,
+    '  if cs.isEmpty then\n    IO.eprintln "NO CONSTANTS FOUND"\n    return 2\n',
     '  -- Empty libraries are valid only with successful source/build coverage.\n')
 # Change only the generated claims auditor. The T7 template and its users
 # keep their existing behavior. Tasks share the imported, read-only
@@ -661,7 +669,8 @@ def auditAxioms (env : Environment) (names : Array Name) :
   return rows.qsort (fun a b => a.1 < b.1)
 
 '''
-source = replace_exact(source, 'def main (args : List String)', parallel_axioms + 'def main (args : List String)', 1)
+source = replace_exact(source, 'def main (args : List String)',
+                       parallel_axioms + 'def main (args : List String)', 1)
 serial_loop = '''  for (n, _) in cs do
     let axs ← axiomsOf env n
     let bad := axs.filter (fun a => !allowed.contains a)
@@ -670,7 +679,8 @@ serial_loop = '''  for (n, _) in cs do
       badAxioms := true
 '''
 assert source.count(serial_loop) == 1, 'STOP: claims axiom loop changed'
-source = replace_exact(source, serial_loop, '''  let axiomRows ← auditAxioms env (cs.map Prod.fst).toArray
+source = replace_exact(source, serial_loop,
+    '''  let axiomRows ← auditAxioms env (cs.map Prod.fst).toArray
   for (_, n, bad) in axiomRows do
     IO.println s!"BAD AXIOMS {n}: {bad}"
     badAxioms := true

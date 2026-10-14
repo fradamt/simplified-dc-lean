@@ -88,7 +88,8 @@ check_root_imports() {
         sed -E 's/\.[lL][eE][aA][nN]$//; s|/|.|g' | sort) \
     <(imports_of "$base/$(gate_source_file "$base" AvailableChainFGSA.lean)" | sort))
   [ -z "$missing" ] || { echo "NOT IMPORTED BY THE ROOT: $missing"; return 1; }
-  if imports_of "$base/$(gate_source_file "$base" AvailableChainFGSA.lean)" | grep -qx '!UNPARSED'; then
+  if imports_of "$base/$(gate_source_file "$base" AvailableChainFGSA.lean)" |
+      grep -qx '!UNPARSED'; then
     echo "UNPARSED IMPORT HEADER: AvailableChainFGSA.lean"; return 1
   fi
 }
@@ -139,7 +140,8 @@ if [ "${SOURCE_ONLY:-0}" != 1 ]; then
 fi
 echo "== no protocol library imports the check support library"
 ! python3 -B scripts/source_layout.py --nul files |
-  xargs -0 grep -lE 'import[[:space:]]+AvailableChainCheckSupport' || { echo "PROTOCOL LIBRARY IMPORTS AvailableChainCheckSupport"; exit 1; }
+  xargs -0 grep -lE 'import[[:space:]]+AvailableChainCheckSupport' || {
+    echo "PROTOCOL LIBRARY IMPORTS AvailableChainCheckSupport"; exit 1; }
 python3 -B scripts/current-inventory.py fgsa scripts/fgsa-expected.txt
 echo "== root imports"
 check_root_imports . || exit 2
@@ -232,7 +234,10 @@ expect_fail() {
   echo "rejected, as expected: $name"
 }
 # A scratch copy of the source tree for the import controls.
-mk_tree() { mkdir -p "$neg/tree"; cp -R "$(gate_source_dir AvailableChainFGSA)" "$(gate_source_path AvailableChainFGSA)" "$neg/tree/"
+mk_tree() {
+  mkdir -p "$neg/tree"
+  cp -R "$(gate_source_dir AvailableChainFGSA)" \
+    "$(gate_source_path AvailableChainFGSA)" "$neg/tree/"
   printf '[[lean_lib]]\nname = "AvailableChainFGSA"\nglobs = ["AvailableChainFGSA.*"]\n' \
     > "$neg/tree/lakefile.toml"; }
 run() { set +e; out=$("$@" 2>&1); code=$?; set -e; }

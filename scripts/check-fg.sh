@@ -227,6 +227,7 @@ mkdir -p "$orphan"
 # Lean resolves a library prefix from one search directory. Keep its compiled
 # modules together when adding the isolated orphan under that prefix.
 for lib in AvailableChainSimplexFG AvailableChainKitFG; do
+  cp -R "$(gate_source_dir "$lib")" "$(gate_source_path "$lib")" "$orphan/"
   cp -R ".lake/build/lib/lean/$lib" "$orphan/"
   cp .lake/build/lib/lean/"$lib".olean* "$orphan/"
 done

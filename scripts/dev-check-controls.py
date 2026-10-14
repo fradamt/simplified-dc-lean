@@ -43,10 +43,10 @@ def package_fixture(required):
     return '[TARGETS]\n[GREEN]\n' + '\n'.join(sorted(required)) + '\n[EXPECTED-FAIL]\n'
 
 
-def scoped_write_control(tmp):
+def scoped_write_control(tmp, src="."):
     # An isolated library supplies the real compiled generator. No project audit
     # olean is loaded, including audits a package can mark EXPECTED-FAIL.
-    root = tmp / 'coverage-build'
+    root = tmp / ('coverage-build-' + src.replace('.', 'flat'))
     scripts = root / 'scripts'
     scripts.mkdir(parents=True)
     for name in ('check-proof-coverage.py', 'CheckProofEqns.lean', 'source_layout.py'):
@@ -62,14 +62,17 @@ def scoped_write_control(tmp):
     (root / 'lakefile.toml').write_text(
         'name = "dev-coverage"\nversion = "0.1.0"\n'
         '[[lean_lib]]\nname = "AvailableChainGeneric"\n'
+        'srcDir = "' + src + '"\n'
         'roots = ["AvailableChainGeneric.Tests.Axioms"]\n'
         '[[lean_lib]]\nname = "AvailableChainCheckSupport"\nsrcDir = "scripts"\n'
         'roots = ["AvailableChainCheckSupport.GeneratedOwner"]\n')
     key = 'AvailableChainGeneric.Tests.Axioms'
-    audit = root / (key.replace('.', '/') + '.lean')
+    audit = root / src / (key.replace('.', '/') + '.lean')
     audit.parent.mkdir(parents=True)
     audit.write_text('module\npublic section\n'
-                     'theorem devCoverage : True := True.intro\n#print axioms devCoverage\n')
+                     'theorem devCoverage_premises_sat : True := True.intro\n'
+                     'theorem devCoverage : True := devCoverage_premises_sat\n'
+                     '#print axioms devCoverage\n')
     subprocess.run(['lake', 'build', '--wfail', key, 'AvailableChainCheckSupport'],
                    cwd=root, check=True)
     inventory = scripts / 'proof-audit-coverage.txt'
@@ -112,6 +115,8 @@ def main():
         row = data['safety_package']['FG-SA'][0]
         row.update(module='AvailableChainPCSAProofs.Proofs.ReviewStub',
                    theorem='Fix.DoesNotExist')
+        with (root / 'lakefile.toml').open('a') as config:
+            config.write('[[lean_lib]]\nname="AvailableChainPCSAProofs"\n')
         stub = B.module_source(root, row['module'])
         stub.parent.mkdir(parents=True)
         stub.write_text('-- source exists; theorem does not\n')
@@ -237,6 +242,7 @@ def main():
         rejected('missing axiom result', 'AXIOM RESULTS',
                  lambda: D.strict_results('#print axioms missing\n', ''))
         scoped_write_control(tmp)
+        scoped_write_control(tmp, "generic")
         result = subprocess.run(['python3', '-B', 'scripts/check-proof-coverage.py',
                                  '--audits', 'AvailableChainUnknown.Tests.Axioms'], cwd=ROOT,
                                 text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)

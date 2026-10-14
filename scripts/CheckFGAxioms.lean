@@ -63,8 +63,8 @@ def layoutOutput (args : Array String) : IO (Array String) := do
   if rows.isEmpty then throw <| IO.userError "source layout returned no paths"
   return rows.toArray
 
-def composeSources (prefix : String) : IO (Array Name) := do
-  return (← layoutOutput #["modules", prefix]).map String.toName
+def composeSources (scope : String) : IO (Array Name) := do
+  return (← layoutOutput #["modules", scope]).map String.toName
 
 def pureMain (args : List String) (useAxiomData := false) : IO UInt32 := do
   let usage := "USAGE: lake env lean --run scripts/CheckFGAxioms.lean [--root M] [--expect N …]"
@@ -79,7 +79,8 @@ def pureMain (args : List String) (useAxiomData := false) : IO UInt32 := do
   initSearchPath (← findSysroot)
   if useAxiomData then unsafe enableInitializersExecution
   -- Match the generated inventory, including modules absent from the facades.
-  let sources := (← composeSources "AvailableChainSimplexFG") ++ (← composeSources "AvailableChainKitFG")
+  let sources := (← composeSources "AvailableChainSimplexFG") ++
+    (← composeSources "AvailableChainKitFG")
   let env ← importModules ((sources ++ extra).map ({ module := · })) {}
     (loadExts := useAxiomData) (level := .private)
   let mut badClosure := false
@@ -362,7 +363,8 @@ def composeMain (args : List String) : IO UInt32 := do
   unless ← System.FilePath.pathExists facade do
     IO.eprintln "MISSING COMPOSE ROOT"
     return 2
-  unless ← System.FilePath.isDir "AvailableChainFGCompose" do
+  let directory := (← layoutOutput #["dir", "AvailableChainFGCompose"])[0]!
+  unless ← System.FilePath.isDir directory do
     IO.eprintln "MISSING COMPOSE DIRECTORY"
     return 2
   let sources := (← composeSources "AvailableChainFGCompose")

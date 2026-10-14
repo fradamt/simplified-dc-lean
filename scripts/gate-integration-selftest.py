@@ -58,7 +58,8 @@ with tempfile.TemporaryDirectory(prefix='gate-integration-') as scratch:
     }
     for path, text in files.items():
         write(seed, path, text)
-    for path in ('docs/internal/GEN-API.md', 'docs/internal/FGSA-API.md', 'docs/internal/api/gen-deep.json'):
+    for path in ('docs/internal/GEN-API.md', 'docs/internal/FGSA-API.md',
+                 'docs/internal/api/gen-deep.json'):
         write(seed, path, (REPO / path).read_text())
     write(seed, 'scripts/check-fgsa-blueprint.py', (REPO / 'scripts/check-fgsa-blueprint.py').read_text())
     base = commit(seed)
@@ -226,10 +227,14 @@ with tempfile.TemporaryDirectory(prefix='gate-integration-') as scratch:
         ('scope-switch', {'scripts/unported-libraries.txt': ''}),
         ('inventory-removal', {'scripts/fgsa-claims-expected.txt': "('New.name',)\n"}),
         ('map-change', {'scripts/claims-model-scope.txt': 'AvailableChainFGSA.Model.Objects New.name\n'}),
-        ('snapshot-change', {'docs/internal/api/compose-api.json': json.dumps(dict(added, entries={'old': {}, 'new': {}}))}),
-        ('snapshot-removal', {'docs/internal/api/compose-api.json': json.dumps(dict(added, entries={'new': {}}))}),
-        ('snapshot-pins', {'docs/internal/api/compose-api.json': json.dumps(dict(added, pins={'toolchain': 'changed'}))}),
-        ('snapshot-duplicates', {'docs/internal/api/compose-api.json': '{"entries": {}, "entries": {}}'}),
+        ('snapshot-change', {'docs/internal/api/compose-api.json':
+                              json.dumps(dict(added, entries={'old': {}, 'new': {}}))}),
+        ('snapshot-removal', {'docs/internal/api/compose-api.json':
+                              json.dumps(dict(added, entries={'new': {}}))}),
+        ('snapshot-pins', {'docs/internal/api/compose-api.json':
+                              json.dumps(dict(added, pins={'toolchain': 'changed'}))}),
+        ('snapshot-duplicates', {'docs/internal/api/compose-api.json':
+                                 '{"entries": {}, "entries": {}}'}),
         ('unknown-data', {'scripts/new-data.txt': 'New.name\n'}),
         ('unknown-checker-markdown', {'docs/internal/V2-API.md': '# Arbitrary Markdown\n'}),
         ('baseline-growth', {'scripts/baselines/check-layers.txt': 'old finding\nnew finding\n'}),

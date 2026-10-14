@@ -134,7 +134,7 @@ class Layout:
 
     def physical_path(self, logical_path):
         text = self.logical_path(logical_path)
-        pre = text.split('/')[0].removesuffix('.lean')
+        pre = text.removesuffix('.lean').replace('/', '.')
         try:
             src = self._src(pre)
         except ValueError:
@@ -164,7 +164,7 @@ class Layout:
                     PurePosixPath(p).suffix.lower() == '.lean']
         out = []
         for dp, dirs, files in os.walk(self.root / directory, followlinks=True):
-            dirs[:] = sorted(d for d in dirs if not d.startswith('.'))
+            dirs[:] = sorted(dirs)
             # Reject cycles but retain ordinary symlink source coverage.
             for d in list(dirs):
                 target = (Path(dp) / d).resolve()
@@ -184,6 +184,8 @@ class Layout:
             else:
                 self._src(lib)  # explicit prefix scopes are allowed, undeclared ones fail
                 prefixes = {lib}
+            if not prefixes:
+                continue  # Explicit roots=[] and globs=[] declares no source scope.
             found = set()
             for prefix in prefixes:
                 facade = self.source_path(prefix)
@@ -264,6 +266,37 @@ def selftest():
         (root/'src/A/dup.lean').write_text('module\n')
         (root/'src/A/dup.LEAN').write_text('module\n')
         must_fail(lambda: Layout(root).check())
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        def git(*args):
+            return subprocess.check_output(['git', '-C', str(root), *args])
+        git('init', '-q')
+        (root / 'lakefile.toml').write_text('[[lean_lib]]\nname="A"\n')
+        (root / 'A.lean').write_text('module\n')
+        (root / 'docs').mkdir()
+        (root / 'docs/ARCHITECTURE.md').write_text('archive\n')
+        git('add', '.')
+        git('-c', 'user.name=Layout', '-c', 'user.email=layout@example.invalid',
+            'commit', '-qm', 'flat fixture')
+        old = git('rev-parse', 'HEAD').decode().strip()
+        (root / 'src').mkdir()
+        (root / 'A.lean').rename(root / 'src/A.lean')
+        (root / 'lakefile.toml').write_text('[[lean_lib]]\nname="A"\nsrcDir="src"\n')
+        (root / 'docs/internal').mkdir()
+        (root / 'docs/ARCHITECTURE.md').rename(root / 'docs/internal/ARCHITECTURE.md')
+        (root / 'docs/ARCHITECTURE.md').write_text('reader\n')
+        git('add', '.')
+        git('-c', 'user.name=Layout', '-c', 'user.email=layout@example.invalid',
+            'commit', '-qm', 'nested fixture')
+        before, after = Layout(root, old), Layout(root, 'HEAD')
+        assert before.source_path('A') == 'A.lean'
+        assert after.source_path('A') == 'src/A.lean'
+        assert before.source_files() == ['A.lean']
+        assert after.source_files() == ['src/A.lean']
+        doc = 'docs/ARCHITECTURE.md'
+        assert before.archive_doc_path(doc) == doc
+        assert after.archive_doc_path(doc) == 'docs/internal/ARCHITECTURE.md'
+        assert before.read(before.archive_doc_path(doc)) == after.read(after.archive_doc_path(doc))
     print('source_layout selftest: PASS (flat/nested, overlap, roots/globs, rejection)')
 
 

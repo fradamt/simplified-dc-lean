@@ -27,7 +27,8 @@ entries "$tmp/base.md" > "$tmp/base.entries"
 entries docs/internal/PCSA-API.md > "$tmp/doc.entries"
 [ -s "$tmp/base.entries" ] || { echo "CONTROL SETUP FAIL: no entry sections" >&2; exit 1; }
 cmp "$tmp/base.entries" "$tmp/doc.entries" ||
-  { echo "CONTROL W FAIL: --write differs from docs/internal/PCSA-API.md; write the doc again" >&2; exit 1; }
+  { echo "CONTROL W FAIL: --write differs from docs/internal/PCSA-API.md; write the doc again" >&2
+    exit 1; }
 echo "CONTROL W OK"
 
 # Three different entries: drop the first, change the hash of the second, and add

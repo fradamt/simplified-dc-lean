@@ -345,24 +345,31 @@ step proof-audit-coverage gate_with_slot python3 scripts/check-proof-coverage.py
 summary proof-audit-coverage
 stop_if_failed
 for lib in Generic FGSA FGSARun; do
-  step "$lib-axioms" audit "$(gate_source_path "AvailableChain$lib.Tests.Axioms")" "$logs/$lib.axioms"
+  step "$lib-axioms" audit "$(gate_source_path "AvailableChain$lib.Tests.Axioms")" \
+  "$logs/$lib.axioms"
   summary "$lib-axioms"
   stop_if_failed
 done
-step FGCompose-axioms audit "$(gate_source_path AvailableChainFGCompose.Tests.Axioms)" "$logs/FGCompose.axioms"
+step FGCompose-axioms audit "$(gate_source_path AvailableChainFGCompose.Tests.Axioms)" \
+  "$logs/FGCompose.axioms"
 summary FGCompose-axioms
 stop_if_failed
-step FGSACompose-axioms audit "$(gate_source_path AvailableChainFGSAProofs.Tests.FGCompose)" "$logs/FGSACompose.axioms"
+step FGSACompose-axioms audit "$(gate_source_path AvailableChainFGSAProofs.Tests.FGCompose)" \
+  "$logs/FGSACompose.axioms"
 summary FGSACompose-axioms
 stop_if_failed
-step FGSafety-axioms audit "$(gate_source_path AvailableChainFGCompose.Tests.SafetyAxioms)" "$logs/FGSafety.axioms"
+step FGSafety-axioms audit "$(gate_source_path AvailableChainFGCompose.Tests.SafetyAxioms)" \
+  "$logs/FGSafety.axioms"
 summary FGSafety-axioms
 stop_if_failed
-step FGSASafety-axioms audit "$(gate_source_path AvailableChainFGSAProofs.Tests.FGSafety)" "$logs/FGSASafety.axioms"
+step FGSASafety-axioms audit "$(gate_source_path AvailableChainFGSAProofs.Tests.FGSafety)" \
+  "$logs/FGSASafety.axioms"
 summary FGSASafety-axioms
 stop_if_failed
 # P13: the growth companion audit and blueprint → Lean map (D10, FULL only).
-step FGSAGrowth-axioms audit_strict "$(gate_source_path AvailableChainFGSAProofs.Tests.WeakContinuationGrowthAssemblyAxioms)" \
+growth_audit=$(gate_source_path \
+  AvailableChainFGSAProofs.Tests.WeakContinuationGrowthAssemblyAxioms)
+step FGSAGrowth-axioms audit_strict "$growth_audit" \
   "$logs/FGSAGrowth.axioms"
 summary FGSAGrowth-axioms
 stop_if_failed

@@ -28,4 +28,23 @@ check() {  # <name> <expected rc> <expected output pattern> <removed import>
 check kept 0 '0 NEW, 0 B1 downgrades, 1 kept' 'public import Fix.Kept'
 check unkept 1 '^NEW remove .*Fix.lean public import Fix.Unkept$' 'public import Fix.Unkept'
 check comment-only 1 '^NEW remove .*Fix.lean public import Fix.Commented$' 'public import Fix.Commented'
+# A private nested layout must keep logical baseline keys and read physical annotations.
+mkdir -p "$T/nested/scripts/baselines" "$T/nested/src/Fix"
+cp scripts/shake-report.sh scripts/shake_scope.py scripts/check_common.py \
+  scripts/source_layout.py "$T/nested/scripts/"
+printf '[[lean_lib]]\nname="Fix"\nsrcDir="src"\n' > "$T/nested/lakefile.toml"
+cp "$T/Fix.lean" "$T/nested/src/Fix/Control.lean"
+printf 'remove Fix/Control.lean public import Fix.Unkept\n' \
+  > "$T/nested/scripts/baselines/shake-report.txt"
+printf '%s:\n  remove #[public import Fix.Kept, public import Fix.Unkept]\n' \
+  "$T/nested/src/Fix/Control.lean" > "$T/raw"
+set +e
+out=$(SHAKE_RAW="$T/raw" SHAKE_REPORT="$T/report" \
+  bash "$T/nested/scripts/shake-report.sh" --fail-on-new Fix 2>&1)
+rc=$?
+set -e
+if [ "$rc" = 0 ] && grep -q '0 NEW, 0 B1 downgrades, 1 kept' <<<"$out" &&
+    grep -qx 'remove Fix/Control.lean public import Fix.Unkept' "$T/report"; then
+  echo 'PASS nested shake keys and physical keep lookup (exit 0)'
+else echo "$out"; echo 'FAIL nested shake mapping'; fail=1; fi
 [ "$fail" = 0 ] && echo "PASS shake-report self-test: 3 controls" || { echo "FAIL shake-report self-test"; exit 1; }

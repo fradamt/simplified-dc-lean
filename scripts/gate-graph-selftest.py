@@ -165,7 +165,8 @@ def graph(root, tier, slots, fail='', change='', force=False, env_neg='0', integ
         subprocess.run(['git', 'update-ref', 'HEAD', head], cwd=root, check=True)
     else:
         head = base
-    selected = bool(reviewed) if integration else (force or env_neg == '1' or not change or change.startswith(('scripts/', 'docs/internal/')))
+    selected = bool(reviewed) if integration else (force or env_neg == '1' or not change or
+                                                  change.startswith(('scripts/', 'docs/internal/')))
     stamp = root / '.lake/gate-last-full'
     if old_stamp:
         stamp.write_text('prior FULL evidence\n')

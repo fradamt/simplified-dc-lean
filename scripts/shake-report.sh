@@ -104,7 +104,8 @@ def kept(l):
     _, p, imp = l.split(' ', 2)
     if p not in kept_lines:
         try:
-            src = open(os.path.join(C.ROOT, C.Layout(C.ROOT).physical_path(p)), encoding='utf-8').read().splitlines()
+            physical = C.source_layout().physical_path(p)
+            src = open(os.path.join(C.ROOT, physical), encoding='utf-8').read().splitlines()
         except OSError:
             src = []
         kept_lines[p] = {' '.join(x.split('--', 1)[0].split()) for x in src if keep_re.search(x)}

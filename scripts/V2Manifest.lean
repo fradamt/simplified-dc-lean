@@ -646,13 +646,15 @@ def main (args : List String) : IO UInt32 := do
       return 2
     try
       return ← runDeep o.scope o.mode
-        (o.manifest?.getD (if o.scope == .pcsa then "docs/internal/PCSA-API.md" else "docs/internal/FGSA-API.md"))
+        (o.manifest?.getD (if o.scope == .pcsa then "docs/internal/PCSA-API.md"
+          else "docs/internal/FGSA-API.md"))
         (o.snapshot?.getD (if o.scope == .pcsa then "docs/internal/api/pcsa-deep.json"
           else "docs/internal/api/fgsa-deep.json")) o.roots? o.report?
     catch e => IO.eprintln s!"DEEP FAIL: {e}"; return 1
   let mode := o.mode
   let manifest := o.manifest?.getD (match o.scope with
-    | .v2 => "docs/internal/V2-API.md" | .gen => "docs/internal/GEN-API.md" | .fgsa => "docs/internal/FGSA-API.md"
+    | .v2 => "docs/internal/V2-API.md" | .gen => "docs/internal/GEN-API.md"
+    | .fgsa => "docs/internal/FGSA-API.md"
     | .pcsa => "docs/internal/PCSA-API.md")
   if mode == "--check" && !(← manifest.pathExists) then
     IO.eprintln s!"cannot read {manifest}: it does not exist"

@@ -382,7 +382,8 @@ def select(root, base, head='HEAD', reviewed=(), extractions=()):
             elif doc in SNAPSHOTS:
                 reason = f'structural snapshot additions: {snapshot_additions(before, after)}'
             elif doc in SHALLOW_MANIFESTS:
-                reason = f'structural shallow manifest additions: {shallow_additions(before, after, doc)}'
+                count = shallow_additions(before, after, doc)
+                reason = f'structural shallow manifest additions: {count}'
             elif path in CONSTANTS:
                 reason = 'AST coverage-list additions: ' + ', '.join(constant_additions(
                     before, after, CONSTANTS[path], path.endswith('.sh')))
