@@ -293,5 +293,90 @@ private theorem exact_rows (j x q : Nat) (a : protocol.Object)
 
 #print axioms exact_rows
 
+private theorem schedule_premises_sat : V2.D.ScheduleWellFormed (env Nat) run := by
+  constructor
+  · decide
+  · decide +kernel
+  · decide +kernel
+  · intro ev hm
+    simp only [List.mem_cons, List.mem_nil_iff, or_false] at hm
+    rcases hm with
+      rfl | rfl | rfl | rfl | rfl | rfl
+      | rfl | rfl | rfl | rfl | rfl | rfl
+      | rfl | rfl | rfl | rfl | rfl | rfl
+      | rfl | rfl | rfl | rfl | rfl | rfl
+      | rfl | rfl | rfl | rfl | rfl | rfl
+      | rfl | rfl | rfl | rfl
+    all_goals decide
+  · intro ev hm
+    simp only [List.mem_cons, List.mem_nil_iff, or_false] at hm
+    rcases hm with
+      rfl | rfl | rfl | rfl | rfl | rfl
+      | rfl | rfl | rfl | rfl | rfl | rfl
+      | rfl | rfl | rfl | rfl | rfl | rfl
+      | rfl | rfl | rfl | rfl | rfl | rfl
+      | rfl | rfl | rfl | rfl | rfl | rfl
+      | rfl | rfl | rfl | rfl
+    all_goals decide
+  · intro x t hm
+    simp only [List.mem_cons, List.mem_nil_iff, V2.Event.tick.injEq,
+      or_false] at hm
+    rcases hm with
+      ⟨_, rfl⟩ | ⟨_, rfl⟩ | ⟨_, rfl⟩ | ⟨_, rfl⟩
+      | ⟨_, rfl⟩ | ⟨_, rfl⟩ | ⟨_, rfl⟩ | ⟨_, rfl⟩
+      | ⟨_, rfl⟩ | ⟨_, rfl⟩ | ⟨_, rfl⟩ | ⟨_, rfl⟩
+      | ⟨_, rfl⟩ | ⟨_, rfl⟩ | ⟨_, rfl⟩ | ⟨_, rfl⟩
+      | ⟨_, rfl⟩ | ⟨_, rfl⟩ | ⟨_, rfl⟩ | ⟨_, rfl⟩
+      | ⟨_, rfl⟩ | ⟨_, rfl⟩ | ⟨_, rfl⟩ | ⟨_, rfl⟩
+      | ⟨_, rfl⟩ | ⟨_, rfl⟩ | ⟨_, rfl⟩ | ⟨_, rfl⟩
+      | ⟨_, rfl⟩ | ⟨_, rfl⟩ | ⟨_, rfl⟩ | ⟨_, rfl⟩
+      | ⟨_, rfl⟩ | ⟨_, rfl⟩
+    · exact ⟨0, rfl⟩
+    · exact ⟨0, rfl⟩
+    · exact ⟨1, rfl⟩
+    · exact ⟨1, rfl⟩
+    · exact ⟨2, rfl⟩
+    · exact ⟨2, rfl⟩
+    · exact ⟨3, rfl⟩
+    · exact ⟨3, rfl⟩
+    · exact ⟨4, rfl⟩
+    · exact ⟨4, rfl⟩
+    · exact ⟨5, rfl⟩
+    · exact ⟨5, rfl⟩
+    · exact ⟨6, rfl⟩
+    · exact ⟨6, rfl⟩
+    · exact ⟨7, rfl⟩
+    · exact ⟨7, rfl⟩
+    · exact ⟨8, rfl⟩
+    · exact ⟨8, rfl⟩
+    · exact ⟨9, rfl⟩
+    · exact ⟨9, rfl⟩
+    · exact ⟨10, rfl⟩
+    · exact ⟨10, rfl⟩
+    · exact ⟨11, rfl⟩
+    · exact ⟨11, rfl⟩
+    · exact ⟨12, rfl⟩
+    · exact ⟨12, rfl⟩
+    · exact ⟨13, rfl⟩
+    · exact ⟨13, rfl⟩
+    · exact ⟨14, rfl⟩
+    · exact ⟨14, rfl⟩
+    · exact ⟨15, rfl⟩
+    · exact ⟨15, rfl⟩
+    · exact ⟨16, rfl⟩
+    · exact ⟨16, rfl⟩
+  · intro x hx t ht _ hhor _
+    have hx' : x = 7 ∨ x = 9 := by simpa using hx
+    obtain ⟨k, hk⟩ := ht
+    change t = (k : Time) * 2 at hk
+    change t ≤ 32 at hhor
+    rw [hk] at hhor
+    have hb : k * 2 ≤ 32 := by exact_mod_cast hhor
+    have hbound : k ≤ 16 := by omega
+    subst t
+    rcases hx' with rfl | rfl <;> interval_cases k <;> simp
+
+#print axioms schedule_premises_sat
+
 end AvailableChain.FGCompose.Tests.PopulationRows
 end
