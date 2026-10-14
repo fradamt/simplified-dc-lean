@@ -1399,5 +1399,17 @@ private theorem cap_premises_sat : ∃ m : middleType run,
 
 #print axioms cap_premises_sat
 
+-- The old record fails solely because honest nonholder 7 cannot sign an FG row.
+private theorem old_middle_impossible (m : KernelMiddleWitness_W core reads obs timing
+    (env Nat) run interface history electorate decodeProposal erase (fun X => X.rows.map wire)
+    (fun _ => []) parentRead parentHeight (fun _ _ _ _ => true) makeFG (fun _ => true)
+    (ac Nat) cfg 2 2 point pt (erase aBlock)) : False := by
+  obtain ⟨_, _, _, complete, _⟩ := m.targetsB 7 (by decide)
+  obtain ⟨i, _, hi⟩ := complete.2
+  change (9 : Nat) = 7 at hi
+  omega
+
+#print axioms old_middle_impossible
+
 end AvailableChain.FGCompose.Tests.PopulationRowsControls
 end
