@@ -213,5 +213,19 @@ private theorem nonholder_no_encoded (j : Nat) (t : Time)
 
 #print axioms nonholder_no_encoded
 
+/-- Only the old all-honest row demand fails; both honest sources are present. -/
+private theorem old_coverage_rejected :
+    ¬ OpeningCovered core reads env run height timing Row.height_pair 0 .genesis ∧
+    ∀ U, ¬ FixedRows core reads env run height timing Row.height_pair 0 1 .genesis U := by
+  constructor
+  · intro hc
+    obtain ⟨_, _, j, rSent, a, _, _, _, _, _, ha, _⟩ := hc 7 (by decide)
+    exact nonholder_no_encoded j _ ha.2.1 a ha.2.2
+  · intro U hr
+    obtain ⟨_, _, j, rSent, a, _, _, _, _, _, _, _, _, _, ha, _⟩ := hr 7 (by decide)
+    exact nonholder_no_encoded j _ ha.2.1 a ha.2.2
+
+#print axioms old_coverage_rejected
+
 end AvailableChain.FGCompose.Tests.PopulationPromotion
 end
