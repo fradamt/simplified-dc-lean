@@ -97,5 +97,24 @@ private theorem old_nonholder_target_impossible :
   omega
 
 #print axioms old_nonholder_target_impossible
+private abbrev emptyRun : V2.D.Run Nat protocol := { run with honest := {7} }
+
+-- Pure-data fallback control: vacuous seat coverage cannot choose an arbitrary wire.
+private theorem empty_seats_no_fallback :
+    emptyRun.honest.Nonempty ∧ FGHonestSeats reads emptyRun = ∅ ∧
+    (∀ i ∈ FGHonestSeats reads emptyRun, ∃ _a : Empty, True) ∧
+    ¬ (FGHonestSeats reads emptyRun).Nonempty ∧ ¬ Nonempty (Fin 1 → Empty) := by
+  have he : FGHonestSeats reads emptyRun = ∅ := by
+    ext i
+    simp [FGHonestSeats_def, safetyHolder]
+  refine ⟨⟨7, by simp⟩, he, ?_, ?_, ?_⟩
+  · intro i hi
+    rw [he] at hi
+    exact (Finset.mem_empty.mp hi).elim
+  · rw [he]; exact Finset.not_nonempty_empty
+  · rintro ⟨rows⟩
+    exact Empty.elim (rows 0)
+
+#print axioms empty_seats_no_fallback
 end AvailableChain.FGCompose.Tests.PopulationHighTarget
 end
