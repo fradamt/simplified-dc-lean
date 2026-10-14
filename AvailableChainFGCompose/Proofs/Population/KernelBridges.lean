@@ -169,5 +169,26 @@ theorem kernel_middle_holder_frozen_iff
     (fun m => ⟨toHolder m, rfl, rfl, rfl, rfl, rfl, rfl⟩),
     (fun h => ⟨toNode h, rfl, rfl, rfl, rfl, rfl, rfl⟩)⟩
 
+/-- Action supplies are equivalent for the paired, field-preserving witnesses. -/
+theorem kernel_action_holder_frozen_iff
+    (m : KernelMiddleWitness_W R S O T E rho I D Ef decodeProposal bodyErase bodyRows
+      blockWireRows parentFG parentHeight validFor makeFG valid ac cfg K ΔF sp pt A)
+    (h : KernelMiddleWitnessFG_W R S O T E rho I D Ef decodeProposal bodyErase bodyRows
+      blockWireRows parentFG parentHeight validFor makeFG valid ac cfg K ΔF sp pt A)
+    (selected : m.A₀ = h.A₀ ∧ m.B = h.B ∧ m.U = h.U ∧
+      m.X_D = h.X_D ∧ m.cD = h.cD ∧ m.d = h.d) :
+    KernelActionSupply_W R S O T E rho I D Ef m ↔
+      KernelActionSupplyFG_W R S O T E rho I D Ef h := by
+  obtain ⟨_, _, _, hX, hcD, _⟩ := selected
+  constructor
+  · intro a
+    refine ⟨a.read, ?_, a.head, ?_⟩
+    · simpa only [← hX, ← hcD] using a.service
+    · simpa only [← hX] using a.walk
+  · intro a
+    refine ⟨a.read, ?_, a.head, ?_⟩
+    · simpa only [hX, hcD] using a.service
+    · simpa only [hX] using a.walk
+
 end AvailableChain.FGCompose
 end
