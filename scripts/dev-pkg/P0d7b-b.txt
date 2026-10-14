@@ -610,4 +610,14 @@ AvailableChainFGCompose.Statements.HolderClient
 AvailableChainFGCompose.Tests.X1c
 AvailableChainFGCompose.Tests.X1e
 AvailableChainFGCompose.Tests.X1eRefusal
+AvailableChainFGCompose.Proofs.Population.Safety
+AvailableChainFGCompose.Proofs.Population.Seats
+AvailableChainFGCompose.Proofs.SafetyOrigin
+AvailableChainFGCompose.Statements.Population.Seats
+AvailableChainFGCompose.Statements.SafetyOrigin
+AvailableChainFGCompose.Tests.P0Origin
+AvailableChainFGCompose.Tests.Population
+AvailableChainFGCompose.Tests.PopulationAxioms
+AvailableChainFGCompose.Tests.PopulationBridges
+AvailableChainFGCompose.Tests.PopulationCounts
 [EXPECTED-FAIL]

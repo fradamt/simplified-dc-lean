@@ -1,5 +1,7 @@
 module
 public import AvailableChainFGCompose.Proofs.ExecutionAcceptanceOrdinary -- shake: keep (audit)
+public import AvailableChainFGCompose.Statements.SafetyOrigin -- shake: keep (#print axioms)
+public import AvailableChainFGCompose.Proofs.SafetyOrigin -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Statements.FrontierSearch -- shake: keep (#print axioms)
 public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchBudget -- shake: keep (audit)
 public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchStop -- shake: keep (audit)
@@ -1558,3 +1560,29 @@ public import AvailableChainFGCompose.Proofs.Healing.ResetCut -- shake: keep (#p
 #print axioms AvailableChain.FGCompose.forward_witness_FE_of
 #print axioms AvailableChain.FGCompose.finality_liveness_FE_W_of
 #print axioms AvailableChain.FGCompose.finality_liveness_of_forward_W
+
+-- P0-origin: origin laws, the variant store record and its consumers.
+#print axioms AvailableChain.FGCompose.FGProcessOrigin
+#print axioms AvailableChain.FGCompose.FGProcessOrigin_def
+#print axioms AvailableChain.FGCompose.FGPendingOrigin
+#print axioms AvailableChain.FGCompose.FGPendingOrigin_def
+#print axioms AvailableChain.FGCompose.FGSafetyStoreOriginLaws
+#print axioms AvailableChain.FGCompose.FGSafetyStoreOriginLaws.clock_good
+#print axioms AvailableChain.FGCompose.FGSafetyStoreOriginLaws.initial_good
+#print axioms AvailableChain.FGCompose.FGSafetyStoreOriginLaws.initial_tf
+#print axioms AvailableChain.FGCompose.FGSafetyStoreOriginLaws.invariant
+#print axioms AvailableChain.FGCompose.FGSafetyStoreOriginLaws.own_good
+#print axioms AvailableChain.FGCompose.FGSafetyStoreOriginLaws.pending_origin
+#print axioms AvailableChain.FGCompose.FGSafetyStoreOriginLaws.process_good
+#print axioms AvailableChain.FGCompose.FGSafetyStoreOriginLaws.process_origin
+#print axioms AvailableChain.FGCompose.FGSafetyStoreOriginLaws.restart_good
+#print axioms AvailableChain.FGCompose.FGSafetyStoreOriginLaws.restart_tf
+#print axioms AvailableChain.FGCompose.safetyStoreOriginLaws_of_storeLaws
+#print axioms AvailableChain.FGCompose.safety_origin_stateBefore
+#print axioms AvailableChain.FGCompose.safety_stored_runBlock_origin
+#print axioms AvailableChain.FGCompose.safety_read_scope_origin
+#print axioms AvailableChain.FGCompose.safety_run_accountable_origin
+#print axioms AvailableChain.FGCompose.safety_run_agreement_origin
+#print axioms AvailableChain.FGCompose.safety_event_agreement_origin
+#print axioms AvailableChain.FGCompose.safety_read_carriage_origin
+#print axioms AvailableChain.FGCompose.safety_honest_never_slashed_origin

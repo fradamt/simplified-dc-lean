@@ -447,6 +447,17 @@
             'AvailableChain.FGCompose.rowPermission_covered',
             'AvailableChain.FGCompose.rowPermission_pair',
         ),
+        'AvailableChainFGCompose.Proofs.SafetyOrigin': (
+            'AvailableChain.FGCompose.safetyStoreOriginLaws_of_storeLaws',
+            'AvailableChain.FGCompose.safety_event_agreement_origin',
+            'AvailableChain.FGCompose.safety_honest_never_slashed_origin',
+            'AvailableChain.FGCompose.safety_origin_stateBefore',
+            'AvailableChain.FGCompose.safety_read_carriage_origin',
+            'AvailableChain.FGCompose.safety_read_scope_origin',
+            'AvailableChain.FGCompose.safety_run_accountable_origin',
+            'AvailableChain.FGCompose.safety_run_agreement_origin',
+            'AvailableChain.FGCompose.safety_stored_runBlock_origin',
+        ),
         'AvailableChainFGCompose.Proofs.ServiceTransport': (
             'AvailableChain.FGCompose.historical_chain_horizon',
             'AvailableChain.FGCompose.historical_chain_reseed',
@@ -1520,6 +1531,23 @@
             'AvailableChain.FGCompose.FGRowRecordHistory',
             'AvailableChain.FGCompose.FGRowRecordHistory.invariant',
             'AvailableChain.FGCompose.FGRowRecordHistory.sent_history',
+        ),
+        'AvailableChainFGCompose.Statements.SafetyOrigin': (
+            'AvailableChain.FGCompose.FGPendingOrigin',
+            'AvailableChain.FGCompose.FGPendingOrigin_def',
+            'AvailableChain.FGCompose.FGProcessOrigin',
+            'AvailableChain.FGCompose.FGProcessOrigin_def',
+            'AvailableChain.FGCompose.FGSafetyStoreOriginLaws',
+            'AvailableChain.FGCompose.FGSafetyStoreOriginLaws.clock_good',
+            'AvailableChain.FGCompose.FGSafetyStoreOriginLaws.initial_good',
+            'AvailableChain.FGCompose.FGSafetyStoreOriginLaws.initial_tf',
+            'AvailableChain.FGCompose.FGSafetyStoreOriginLaws.invariant',
+            'AvailableChain.FGCompose.FGSafetyStoreOriginLaws.own_good',
+            'AvailableChain.FGCompose.FGSafetyStoreOriginLaws.pending_origin',
+            'AvailableChain.FGCompose.FGSafetyStoreOriginLaws.process_good',
+            'AvailableChain.FGCompose.FGSafetyStoreOriginLaws.process_origin',
+            'AvailableChain.FGCompose.FGSafetyStoreOriginLaws.restart_good',
+            'AvailableChain.FGCompose.FGSafetyStoreOriginLaws.restart_tf',
         ),
         'AvailableChainFGCompose.Statements.Selection': (
             'AvailableChain.FGCompose.FGActionSelectionLaws',
@@ -8978,6 +9006,25 @@
         'AvailableChainModel.Objects.CommonAncestor': (
             'AvailableChain.Block.meet',
             'AvailableChain.Block.meet_def',
+        ),
+    },
+    'AvailableChainFGCompose.Tests.PopulationAxioms': {
+        'AvailableChainFGCompose.Proofs.Population.Safety': (
+            'AvailableChain.FGCompose.safety_honest_never_slashed_holder',
+            'AvailableChain.FGCompose.safety_noSlash_all_of_holder',
+            'AvailableChain.FGCompose.safety_nonholder_noSlash',
+            'AvailableChain.FGCompose.selection_tick_rows_holder',
+        ),
+        'AvailableChainFGCompose.Proofs.Population.Seats': (
+            'AvailableChain.FGCompose.fgHonestSeats_eq_compl',
+            'AvailableChain.FGCompose.fgHonestSeats_nonempty_of_quorum',
+            'AvailableChain.FGCompose.fg_fault_count_eq_nodes_of_equiv',
+            'AvailableChain.FGCompose.fg_fault_weight_of_count',
+            'AvailableChain.FGCompose.high_target_honest_quorum_holder',
+        ),
+        'AvailableChainFGCompose.Statements.Population.Seats': (
+            'AvailableChain.FGCompose.FGHonestSeats',
+            'AvailableChain.FGCompose.FGHonestSeats_def',
         ),
     },
 }

@@ -2715,6 +2715,16 @@
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Statements.HolderClient"
     },
+    "AvailableChain.FGCompose.FGHonestSeats": {
+      "digest": "5f81d2881b519fd92a5dcbfd0f639f1becb1b8f680e9536c6ab4558d4a8dac3f",
+      "kind": "def",
+      "module": "AvailableChainFGCompose.Statements.Population.Seats"
+    },
+    "AvailableChain.FGCompose.FGHonestSeats_def": {
+      "digest": "e5e57e66f177c305f66626e843b467b1c099d330ec766c887cfe569e9b32551f",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Statements.Population.Seats"
+    },
     "AvailableChain.FGCompose.FGObservationLaws": {
       "digest": "c82b3f160a4f80acc0619aa18699b1a7f32093557163ad7d9e08397354678987",
       "kind": "structure",
@@ -2894,6 +2904,26 @@
       "digest": "7a5f8fda077a0f6598dbe47f564dfc3ee8049478ac33b4f4b5895b5ab69f2a87",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.ExecutionRecords"
+    },
+    "AvailableChain.FGCompose.FGPendingOrigin": {
+      "digest": "53ef9b06afd07683c92762526e2d1eb087ec77437319dff86c0af43a8d6a10a4",
+      "kind": "def",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin"
+    },
+    "AvailableChain.FGCompose.FGPendingOrigin_def": {
+      "digest": "20ecb2cc82beafd2226cc50052a7db72afd9cb3e84dd70c10e8126a6d8a0ba3b",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin"
+    },
+    "AvailableChain.FGCompose.FGProcessOrigin": {
+      "digest": "5f98708dfdb3ff8d72a2e81db9681cb42e63c24514cb9747a2ca9308b331dc92",
+      "kind": "def",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin"
+    },
+    "AvailableChain.FGCompose.FGProcessOrigin_def": {
+      "digest": "866c2bdfa88557251b9e9880605204db3bca0c2888deb99acf1d96697fb5467b",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin"
     },
     "AvailableChain.FGCompose.FGReceiptOrigin": {
       "digest": "60cb6999ddda648041e5f7c14def4b97ade63031c75878a869a7053027121f1d",
@@ -3319,6 +3349,66 @@
       "digest": "ac4c211bdbac1b4886146139063e0a00627d8fe3e965fe187ceb72f57dac0ac4",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.SafetyStore"
+    },
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws": {
+      "digest": "3315270e7abb06cd07c43064c2680154fc5aa4fd30b5c57b296df921156ce7b5",
+      "kind": "structure",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin"
+    },
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.clock_good": {
+      "digest": "f6e62bba06d5a9dbef0285858f701d83d3f4a9d8aca70c130b8b73019fd35050",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin"
+    },
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.initial_good": {
+      "digest": "2f4587b6003ceb5bd36637e0ba6766634b53e8a5e91315679687ee2e4253a5d8",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin"
+    },
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.initial_tf": {
+      "digest": "6fb913b0abe159c13921eb28bbfb29121a736ddb4f6a504088327147fdd7696d",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin"
+    },
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.invariant": {
+      "digest": "180f211927783ffb5aac5cdc7847e14eb2c1fcf9622112d89402731cd8934282",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin"
+    },
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.mk": {
+      "digest": "3315270e7abb06cd07c43064c2680154fc5aa4fd30b5c57b296df921156ce7b5",
+      "kind": "ctor",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin"
+    },
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.own_good": {
+      "digest": "54b9004a12c763b6ada3e81312c584ec97594472395a3de1996485270822fd65",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin"
+    },
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.pending_origin": {
+      "digest": "c85355518dcc4df2354f96ed3567bcf863f37fe470fb7ce947343db9c716a3d5",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin"
+    },
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.process_good": {
+      "digest": "27d65216bea01bcc4c2b7d663a7aef4ffac0b9baacf24a44a2c0ad62645e5e91",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin"
+    },
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.process_origin": {
+      "digest": "f262e30ea14e1be16723e90e220d229fbb114e7982da16cec887f0ff93b10eeb",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin"
+    },
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.restart_good": {
+      "digest": "ac9e4bc8f28ae5bd8321642a4da51d062aa0339cf3ca432ab9581498a7067f8c",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin"
+    },
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.restart_tf": {
+      "digest": "e73f6fcfc46d758779233332ca294e415ee47f602ccae7f4be7321f2e1049528",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin"
     },
     "AvailableChain.FGCompose.FGSafetyUnitLaws": {
       "digest": "99121dd4767836d4b0c38040ec70ef22153386343197cdc52f9b2338d11a098d",
@@ -6275,6 +6365,26 @@
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Statements.ExecutionObs"
     },
+    "AvailableChain.FGCompose.fgHonestSeats_eq_compl": {
+      "digest": "6d7496e53400d543e7d6453de1b196ad0ff31c2877483ac32147ebd777a4a98a",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.Population.Seats"
+    },
+    "AvailableChain.FGCompose.fgHonestSeats_nonempty_of_quorum": {
+      "digest": "161d22a640440d9d782ce9695e9897174791dd720a84433c5f55f8990396a0d2",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.Population.Seats"
+    },
+    "AvailableChain.FGCompose.fg_fault_count_eq_nodes_of_equiv": {
+      "digest": "2800376b891c1f6a0e29a6df6c487401d77e8a742e26b1926a2284942dbc6ea9",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.Population.Seats"
+    },
+    "AvailableChain.FGCompose.fg_fault_weight_of_count": {
+      "digest": "cf0dd11b3a209e7a4025ab16cf05fe95707d3c67309d4626d0081f942fe7f941",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.Population.Seats"
+    },
     "AvailableChain.FGCompose.finalityBatchCoverage_W_of_tRowsSelect": {
       "digest": "1cef90223efbd2029a365c209d23f50af42b0e39d2613bf3ed6035fb6e5632d6",
       "kind": "theorem",
@@ -7099,6 +7209,11 @@
       "digest": "3681bbefd412b1f98f2a29954a97989b3b3e35acc6a7653e4d82bfe06702bcd8",
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Proofs.Finality.RecordInv"
+    },
+    "AvailableChain.FGCompose.high_target_honest_quorum_holder": {
+      "digest": "0469a775eaa490301649e200bca511ff6d66eb720c867f4068909fcb56941287",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.Population.Seats"
     },
     "AvailableChain.FGCompose.high_target_quorum_covered": {
       "digest": "d2dcb6739eda9f882189b6d7f2f2e2897ea254da2e608ac2dcae95b9cc163eb5",
@@ -8355,6 +8470,11 @@
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Statements.SafetyClaims"
     },
+    "AvailableChain.FGCompose.safetyStoreOriginLaws_of_storeLaws": {
+      "digest": "e778b6c998debd72aaf1c5dcadb0599df522b7767ccda27d104eab99fdcfc36c",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.SafetyOrigin"
+    },
     "AvailableChain.FGCompose.safety_F_mono": {
       "digest": "9acaac225e78afc77d575ab5c2f910c8e2259ac21b8ce7fdbfaeb1b32d6cc326",
       "kind": "theorem",
@@ -8400,6 +8520,11 @@
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Proofs.SafetyAccountable"
     },
+    "AvailableChain.FGCompose.safety_event_agreement_origin": {
+      "digest": "36e3a76792cc6fa69fc273c29cc8707fee5950e61d2cf16ccc542e622d7803f1",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.SafetyOrigin"
+    },
     "AvailableChain.FGCompose.safety_fault_count_bound": {
       "digest": "6839a38988d30e61e31ffacbcd294821bd3e7edd6dea590a3d8ed31625b98879",
       "kind": "theorem",
@@ -8440,6 +8565,16 @@
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Proofs.SafetySlashing"
     },
+    "AvailableChain.FGCompose.safety_honest_never_slashed_holder": {
+      "digest": "cfdbf49f32264dac226655f32eb8bc43c18731c9b320ebc92ba54296cbf967b8",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.Population.Safety"
+    },
+    "AvailableChain.FGCompose.safety_honest_never_slashed_origin": {
+      "digest": "49a4e26170d9a2da291fa569be91faad135e0bc4e3e41dc97f6905d041b31389",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.SafetyOrigin"
+    },
     "AvailableChain.FGCompose.safety_invariant_readAt": {
       "digest": "965fa26c94e86a9d5894fe4307961e3f094371d49c578473a3b333633251753d",
       "kind": "theorem",
@@ -8455,6 +8590,21 @@
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Proofs.SafetyClient"
     },
+    "AvailableChain.FGCompose.safety_noSlash_all_of_holder": {
+      "digest": "144040e51e435975c9ff2498b30f4edb253bb9c4aeaa4f3a41a4322d9a0adb26",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.Population.Safety"
+    },
+    "AvailableChain.FGCompose.safety_nonholder_noSlash": {
+      "digest": "005575525e8807f44014fe87ff76fca460b6c945635ac660aac6e06c885d4b95",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.Population.Safety"
+    },
+    "AvailableChain.FGCompose.safety_origin_stateBefore": {
+      "digest": "8d3bddb34c05a3c4fb83c900ffda686e15ade6e207fef72e22d2cabd922b8a4e",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.SafetyOrigin"
+    },
     "AvailableChain.FGCompose.safety_readAt_prefix": {
       "digest": "f16e3221f3fd1c434099ff7b813d812ae0bd41d771298cdb6b478b7ad465bd52",
       "kind": "theorem",
@@ -8469,6 +8619,11 @@
       "digest": "15603a7db5a77829b37b037e6556fdb346a19da7691d76d6c96a17831e9ae186",
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Proofs.SafetySlashing"
+    },
+    "AvailableChain.FGCompose.safety_read_carriage_origin": {
+      "digest": "a0b565ef4fc743988b32619b0e9592fc0ff2565b00ec97d2a071e5040ffb93af",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.SafetyOrigin"
     },
     "AvailableChain.FGCompose.safety_read_delivery": {
       "digest": "2db4e8702d812a811b3d56c2ac1943377eca5d09ad49403dea453e4dd8e5c407",
@@ -8490,6 +8645,11 @@
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Proofs.SafetyStore"
     },
+    "AvailableChain.FGCompose.safety_read_scope_origin": {
+      "digest": "b9ab9a2b241df7a68ab903392b333da7056727aaf9f649efb641e06544cba55c",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.SafetyOrigin"
+    },
     "AvailableChain.FGCompose.safety_record_fold": {
       "digest": "43d311187fbe6796f7d81dcb90b5f571abb30524f3aca00072203ad8fc1fdd55",
       "kind": "theorem",
@@ -8505,10 +8665,20 @@
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Proofs.SafetyAccountable"
     },
+    "AvailableChain.FGCompose.safety_run_accountable_origin": {
+      "digest": "a997488b7fb05ba6fe949530f4c18bcdaa1b4a9612a13dc7a584b6c51f3b7e18",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.SafetyOrigin"
+    },
     "AvailableChain.FGCompose.safety_run_agreement": {
       "digest": "f2cfad28f8beca80e4da0320233f566f115dd83e930c4cfcb224f5ef6c8d3125",
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Proofs.SafetyAccountable"
+    },
+    "AvailableChain.FGCompose.safety_run_agreement_origin": {
+      "digest": "508446801189ef502620611de5e85cb7f0e1553a88feda4dec67454015800606",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.SafetyOrigin"
     },
     "AvailableChain.FGCompose.safety_slashable_faulty_count": {
       "digest": "76281ef9d7f0e66f3f71bb414c29e97a40df28bafc0830d93f74d63e8c43ab9c",
@@ -8540,6 +8710,11 @@
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Proofs.SafetyStore"
     },
+    "AvailableChain.FGCompose.safety_stored_runBlock_origin": {
+      "digest": "156bec38416c912625a45acd7464483f98ba75f08bd0312de2ed7938101d9d09",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.SafetyOrigin"
+    },
     "AvailableChain.FGCompose.safety_stored_scope": {
       "digest": "781ed30682bfd62e6d17c93a838dd32d0f2bdbe582be8c27d9f25e657421e633",
       "kind": "theorem",
@@ -8559,6 +8734,11 @@
       "digest": "e7509994d8764451f6c7bd74bfaadcce79a993b9c0530eb4768ae1323d577214",
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Proofs.ObservationTransport"
+    },
+    "AvailableChain.FGCompose.selection_tick_rows_holder": {
+      "digest": "8267bb0586866122acabcae0e68fd3bfe58e8ff512b07f6f4a5ee05c75c985bb",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.Population.Safety"
     },
     "AvailableChain.FGCompose.service_head_coverage": {
       "digest": "e650cc85d295b128a06ef867bc7a7160a63c37fc0c07d5dcefe73bb828db4b33",
@@ -8671,9 +8851,12 @@
     "BEq",
     "BitVec",
     "Bool",
+    "BooleanAlgebra",
     "Bot",
+    "BoundedOrder",
     "ByteArray",
     "Char",
+    "Compl",
     "DFunLike",
     "Decidable",
     "DecidableEq",
@@ -8695,12 +8878,15 @@
     "Finset",
     "Fintype",
     "FunLike",
+    "GeneralizedBooleanAlgebra",
+    "GeneralizedCoheytingAlgebra",
     "GetElem",
     "GetElem?",
     "HAdd",
     "HAppend",
     "HDiv",
     "HEq",
+    "HImp",
     "HMod",
     "HMul",
     "HPow",
@@ -8743,6 +8929,7 @@
     "Or",
     "Ord",
     "OrderBot",
+    "OrderTop",
     "Ordering",
     "PProd",
     "PSigma",
@@ -8769,6 +8956,7 @@
     "Subtype",
     "SupSet",
     "ToString",
+    "Top",
     "True",
     "UInt32",
     "UInt8",
@@ -8909,8 +9097,12 @@
     "Bool.or",
     "Bool.rec",
     "Bool.true",
+    "BooleanAlgebra.mk",
+    "BooleanAlgebra.toCompl",
     "Bot.bot",
     "Bot.mk",
+    "BoundedOrder.mk",
+    "BoundedOrder.toOrderTop",
     "ByteArray.IsValidUTF8",
     "ByteArray.casesOn",
     "ByteArray.empty",
@@ -8926,6 +9118,8 @@
     "Classical.choose",
     "Classical.indefiniteDescription",
     "Classical.propDecidable",
+    "Compl.compl",
+    "Compl.mk",
     "DFunLike.coe",
     "DFunLike.mk",
     "Decidable.casesOn",
@@ -8981,23 +9175,32 @@
     "Fin.val_injective",
     "Finset.Nonempty",
     "Finset.biUnion",
+    "Finset.booleanAlgebra",
+    "Finset.boundedOrder",
     "Finset.card",
     "Finset.decidableDExistsFinset",
     "Finset.decidableExistsAndFinset",
     "Finset.decidableExistsAndFinsetCoe",
     "Finset.decidableMem",
     "Finset.empty",
+    "Finset.empty_subset",
     "Finset.filter",
     "Finset.fold",
     "Finset.image",
+    "Finset.instDistribLattice",
     "Finset.instEmptyCollection",
+    "Finset.instGeneralizedBooleanAlgebra",
     "Finset.instInsert",
+    "Finset.instInter",
+    "Finset.instLattice",
+    "Finset.instOrderBot",
     "Finset.instPartialOrder",
     "Finset.instSDiff",
     "Finset.instSetLike",
     "Finset.instSingleton",
     "Finset.instUnion",
     "Finset.mk",
+    "Finset.subset_univ",
     "Finset.sum",
     "Finset.sup",
     "Finset.univ",
@@ -9011,6 +9214,16 @@
     "Function.comp",
     "Function.update",
     "GT.gt",
+    "GeneralizedBooleanAlgebra.mk",
+    "GeneralizedBooleanAlgebra.toBooleanAlgebra",
+    "GeneralizedBooleanAlgebra.toBot",
+    "GeneralizedBooleanAlgebra.toDistribLattice",
+    "GeneralizedBooleanAlgebra.toGeneralizedCoheytingAlgebra",
+    "GeneralizedBooleanAlgebra.toOrderBot",
+    "GeneralizedBooleanAlgebra.toSDiff",
+    "GeneralizedCoheytingAlgebra.mk",
+    "GeneralizedCoheytingAlgebra.toLattice",
+    "GeneralizedCoheytingAlgebra.toSDiff",
     "GetElem.mk",
     "GetElem?.getElem?",
     "GetElem?.mk",
@@ -9021,6 +9234,8 @@
     "HDiv.hDiv",
     "HDiv.mk",
     "HEq.refl",
+    "HImp.himp",
+    "HImp.mk",
     "HMod.hMod",
     "HMod.mk",
     "HMul.hMul",
@@ -9207,6 +9422,7 @@
     "Multiset.join",
     "Multiset.map",
     "Multiset.ndinsert",
+    "Multiset.ndinter",
     "Multiset.ndunion",
     "Multiset.nodup_dedup",
     "Multiset.nodup_singleton",
@@ -9319,6 +9535,8 @@
     "Ord.mk",
     "OrderBot.mk",
     "OrderBot.toBot",
+    "OrderTop.mk",
+    "OrderTop.toTop",
     "Ordering.casesOn",
     "Ordering.ctorIdx",
     "Ordering.eq",
@@ -9349,6 +9567,9 @@
     "Pi.preorder",
     "Pow.mk",
     "Pow.pow",
+    "Preorder.le_refl",
+    "Preorder.le_trans",
+    "Preorder.lt_iff_le_not_ge",
     "Preorder.mk",
     "Preorder.toLE",
     "Preorder.toLT",
@@ -9385,8 +9606,11 @@
     "SemilatticeInf.mk",
     "SemilatticeInf.toMin",
     "SemilatticeInf.toPartialOrder",
+    "SemilatticeSup.le_sup_left",
+    "SemilatticeSup.le_sup_right",
     "SemilatticeSup.mk",
     "SemilatticeSup.sup",
+    "SemilatticeSup.sup_le",
     "SemilatticeSup.toMax",
     "SemilatticeSup.toPartialOrder",
     "Set.Mem",
@@ -9423,6 +9647,8 @@
     "SupSet.sSup",
     "ToString.mk",
     "ToString.toString",
+    "Top.mk",
+    "Top.top",
     "True.intro",
     "UInt32.isValidChar",
     "UInt32.ofBitVec",
@@ -9603,6 +9829,8 @@
     "AvailableChain.FGCompose.FGHolderClientTrace_def",
     "AvailableChain.FGCompose.FGHolderRowCoverage",
     "AvailableChain.FGCompose.FGHolderRowCoverage_def",
+    "AvailableChain.FGCompose.FGHonestSeats",
+    "AvailableChain.FGCompose.FGHonestSeats_def",
     "AvailableChain.FGCompose.FGObservationLaws",
     "AvailableChain.FGCompose.FGObservationReads",
     "AvailableChain.FGCompose.FGObservedCoreLaws",
@@ -9610,6 +9838,10 @@
     "AvailableChain.FGCompose.FGObservedOrderLaws",
     "AvailableChain.FGCompose.FGObservedPoolLaws",
     "AvailableChain.FGCompose.FGObservedSafetyLaws",
+    "AvailableChain.FGCompose.FGPendingOrigin",
+    "AvailableChain.FGCompose.FGPendingOrigin_def",
+    "AvailableChain.FGCompose.FGProcessOrigin",
+    "AvailableChain.FGCompose.FGProcessOrigin_def",
     "AvailableChain.FGCompose.FGReceiptOrigin",
     "AvailableChain.FGCompose.FGReceiptToken",
     "AvailableChain.FGCompose.FGResetHistory",
@@ -9623,6 +9855,7 @@
     "AvailableChain.FGCompose.FGSafetyRestartLaws",
     "AvailableChain.FGCompose.FGSafetyScopeLaws",
     "AvailableChain.FGCompose.FGSafetyStoreLaws",
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws",
     "AvailableChain.FGCompose.FGSafetyUnitLaws",
     "AvailableChain.FGCompose.FGSafetyWireLaws",
     "AvailableChain.FGCompose.FGSelectedAcceptance",
@@ -9879,6 +10112,10 @@
     "AvailableChain.FGCompose.ff2_stored_high_qc_identity",
     "AvailableChain.FGCompose.fgEventToken",
     "AvailableChain.FGCompose.fgEventToken_def",
+    "AvailableChain.FGCompose.fgHonestSeats_eq_compl",
+    "AvailableChain.FGCompose.fgHonestSeats_nonempty_of_quorum",
+    "AvailableChain.FGCompose.fg_fault_count_eq_nodes_of_equiv",
+    "AvailableChain.FGCompose.fg_fault_weight_of_count",
     "AvailableChain.FGCompose.finalityBatchCoverage_W_of_tRowsSelect",
     "AvailableChain.FGCompose.finalityRow_bit_or_carried_W",
     "AvailableChain.FGCompose.finality_acceptsFinalBefore_mono_ancestor",
@@ -10044,6 +10281,7 @@
     "AvailableChain.FGCompose.high_source_entry_eq",
     "AvailableChain.FGCompose.high_target_first_row",
     "AvailableChain.FGCompose.high_target_honest_quorum",
+    "AvailableChain.FGCompose.high_target_honest_quorum_holder",
     "AvailableChain.FGCompose.high_target_quorum_covered",
     "AvailableChain.FGCompose.high_target_row_covered",
     "AvailableChain.FGCompose.historicalLookup",
@@ -10295,6 +10533,7 @@
     "AvailableChain.FGCompose.safetyScopedRoots_def",
     "AvailableChain.FGCompose.safetySlashesRead",
     "AvailableChain.FGCompose.safetySlashesRead_def",
+    "AvailableChain.FGCompose.safetyStoreOriginLaws_of_storeLaws",
     "AvailableChain.FGCompose.safety_F_mono",
     "AvailableChain.FGCompose.safety_F_mono_all",
     "AvailableChain.FGCompose.safety_client_trace",
@@ -10304,6 +10543,7 @@
     "AvailableChain.FGCompose.safety_emitted_noSlash_driver",
     "AvailableChain.FGCompose.safety_emitted_noSlash_obs",
     "AvailableChain.FGCompose.safety_event_agreement",
+    "AvailableChain.FGCompose.safety_event_agreement_origin",
     "AvailableChain.FGCompose.safety_fault_count_bound",
     "AvailableChain.FGCompose.safety_fault_count_bound_fg_lt",
     "AvailableChain.FGCompose.safety_fault_count_bound_lt",
@@ -10312,30 +10552,41 @@
     "AvailableChain.FGCompose.safety_good_readAt",
     "AvailableChain.FGCompose.safety_good_stateBefore",
     "AvailableChain.FGCompose.safety_honest_never_slashed",
+    "AvailableChain.FGCompose.safety_honest_never_slashed_holder",
+    "AvailableChain.FGCompose.safety_honest_never_slashed_origin",
     "AvailableChain.FGCompose.safety_invariant_readAt",
     "AvailableChain.FGCompose.safety_invariant_stateBefore",
     "AvailableChain.FGCompose.safety_linked_seats",
+    "AvailableChain.FGCompose.safety_noSlash_all_of_holder",
+    "AvailableChain.FGCompose.safety_nonholder_noSlash",
+    "AvailableChain.FGCompose.safety_origin_stateBefore",
     "AvailableChain.FGCompose.safety_readAt_prefix",
     "AvailableChain.FGCompose.safety_readAt_replay",
     "AvailableChain.FGCompose.safety_read_carriage",
+    "AvailableChain.FGCompose.safety_read_carriage_origin",
     "AvailableChain.FGCompose.safety_read_delivery",
     "AvailableChain.FGCompose.safety_read_row_origin",
     "AvailableChain.FGCompose.safety_read_runBlock",
     "AvailableChain.FGCompose.safety_read_scope",
+    "AvailableChain.FGCompose.safety_read_scope_origin",
     "AvailableChain.FGCompose.safety_record_fold",
     "AvailableChain.FGCompose.safety_runBlock_accountable",
     "AvailableChain.FGCompose.safety_run_accountable",
+    "AvailableChain.FGCompose.safety_run_accountable_origin",
     "AvailableChain.FGCompose.safety_run_agreement",
+    "AvailableChain.FGCompose.safety_run_agreement_origin",
     "AvailableChain.FGCompose.safety_slashable_faulty_count",
     "AvailableChain.FGCompose.safety_slashable_fg_faulty_count",
     "AvailableChain.FGCompose.safety_store_accountable",
     "AvailableChain.FGCompose.safety_store_agreement",
     "AvailableChain.FGCompose.safety_stored_delivery",
     "AvailableChain.FGCompose.safety_stored_runBlock",
+    "AvailableChain.FGCompose.safety_stored_runBlock_origin",
     "AvailableChain.FGCompose.safety_stored_scope",
     "AvailableChain.FGCompose.selectedAcceptance_keep",
     "AvailableChain.FGCompose.selection_at_read",
     "AvailableChain.FGCompose.selection_tick_rows",
+    "AvailableChain.FGCompose.selection_tick_rows_holder",
     "AvailableChain.FGCompose.service_head_coverage",
     "AvailableChain.FGCompose.service_proposal_coverage",
     "AvailableChain.FGCompose.service_source_next",
@@ -10435,6 +10686,8 @@
     "AvailableChain.instDecidableEqBlockId.decEq",
     "BitVec.ofNat._proof_1",
     "Bool.decEq.match_1",
+    "BooleanAlgebra.himp_eq._autoParam",
+    "BooleanAlgebra.sdiff_eq._autoParam",
     "ByteArray.IsValidUTF8.intro",
     "ByteArray.push.match_1",
     "Char.ofNat._proof_1",
@@ -10454,12 +10707,30 @@
     "Fin.ofNat._proof_1",
     "Finset.decidableExistsAndFinset._proof_1",
     "Finset.filter._proof_1",
+    "Finset.instDistribLattice._proof_5",
+    "Finset.instGeneralizedBooleanAlgebra._proof_5",
+    "Finset.instGeneralizedBooleanAlgebra._proof_7",
     "Finset.instInsert._proof_1",
+    "Finset.instInter._proof_1",
+    "Finset.instLattice._proof_1",
+    "Finset.instLattice._proof_2",
+    "Finset.instLattice._proof_3",
+    "Finset.instLattice._proof_4",
+    "Finset.instLattice._proof_5",
+    "Finset.instLattice._proof_6",
     "Finset.instSDiff._proof_1",
     "Finset.instSetLike._proof_1",
     "Finset.instUnion._proof_1",
     "Function.Injective.partialOrder",
     "Function.Injective.preorder",
+    "GeneralizedBooleanAlgebra.toBooleanAlgebra._proof_1",
+    "GeneralizedBooleanAlgebra.toBooleanAlgebra._proof_2",
+    "GeneralizedBooleanAlgebra.toBooleanAlgebra._proof_3",
+    "GeneralizedBooleanAlgebra.toBooleanAlgebra._proof_4",
+    "GeneralizedBooleanAlgebra.toBooleanAlgebra._proof_5",
+    "GeneralizedBooleanAlgebra.toGeneralizedCoheytingAlgebra._proof_7",
+    "GeneralizedBooleanAlgebra.toGeneralizedCoheytingAlgebra._proof_8",
+    "GeneralizedBooleanAlgebra.toOrderBot._proof_1",
     "Int.NonNeg.mk",
     "Int.add.match_1",
     "Int.decEq._proof_1",
@@ -11260,6 +11531,17 @@
     "AvailableChain.FGCompose.FGSafetyStoreLaws.process_new",
     "AvailableChain.FGCompose.FGSafetyStoreLaws.restart_good",
     "AvailableChain.FGCompose.FGSafetyStoreLaws.restart_tf",
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.clock_good",
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.initial_good",
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.initial_tf",
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.invariant",
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.mk",
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.own_good",
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.pending_origin",
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.process_good",
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.process_origin",
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.restart_good",
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.restart_tf",
     "AvailableChain.FGCompose.FGSafetyUnitLaws.mk",
     "AvailableChain.FGCompose.FGSafetyUnitLaws.n_pos",
     "AvailableChain.FGCompose.FGSafetyUnitLaws.quorum",
@@ -41351,6 +41633,87 @@
         "                  (Eq (entry a) (Option.some target))))))"
       ]
     },
+    "AvailableChain.FGCompose.FGHonestSeats": {
+      "body": [
+        "fun {In V} {P} [DecidableEq V] {n} {Wire} S rho =>",
+        "  Finset.filter",
+        "    (fun i =>",
+        "      SetLike.instMembership.mem rho.honest",
+        "        (AvailableChain.FGCompose.safetyHolder S rho i))",
+        "    Finset.univ"
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.safetyHolder",
+        "AvailableChain.V2.D.Run",
+        "AvailableChain.V2.D.Run.honest",
+        "AvailableChain.V2.ProtocolSpecD",
+        "DecidableEq",
+        "Fin",
+        "Fin.fintype",
+        "Finset",
+        "Finset.decidableMem",
+        "Finset.filter",
+        "Finset.instSetLike",
+        "Finset.univ",
+        "Membership.mem",
+        "Nat",
+        "SetLike.instMembership"
+      ],
+      "digest": "a54c138464221b589b0720b21fed4c0cebd1e7c62623d5e7e11ae26143306017",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose13:FGHonestSeats",
+      "kind": "def",
+      "module": "AvailableChainFGCompose.Statements.Population.Seats",
+      "type": [
+        "{In V : Type} →",
+        "  {P : AvailableChain.V2.ProtocolSpecD In} →",
+        "    [DecidableEq V] →",
+        "      {n : Nat} →",
+        "        {Wire : Type} →",
+        "          AvailableChain.FGCompose.FGSafetyReads P n Wire →",
+        "            AvailableChain.V2.D.Run V P → Finset (Fin n)"
+      ]
+    },
+    "AvailableChain.FGCompose.FGHonestSeats_def": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGHonestSeats",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.safetyHolder",
+        "AvailableChain.V2.D.Run",
+        "AvailableChain.V2.D.Run.honest",
+        "AvailableChain.V2.ProtocolSpecD",
+        "DecidableEq",
+        "Eq",
+        "Fin",
+        "Fin.fintype",
+        "Finset",
+        "Finset.decidableMem",
+        "Finset.filter",
+        "Finset.instSetLike",
+        "Finset.univ",
+        "Membership.mem",
+        "Nat",
+        "SetLike.instMembership"
+      ],
+      "digest": "6f25ba254571f1fcd42aa17d2d5aea2d0a7f35669604a87a8884a1e00069f5df",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose17:FGHonestSeats_def",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Statements.Population.Seats",
+      "type": [
+        "∀ {In V : Type} {P : AvailableChain.V2.ProtocolSpecD In} [inst : DecidableEq V]",
+        "  {n : Nat} {Wire : Type} (S : AvailableChain.FGCompose.FGSafetyReads P n Wire)",
+        "  (rho : AvailableChain.V2.D.Run V P),",
+        "  Eq (AvailableChain.FGCompose.FGHonestSeats S rho)",
+        "    (Finset.filter",
+        "      (fun i =>",
+        "        SetLike.instMembership.mem rho.honest",
+        "          (AvailableChain.FGCompose.safetyHolder S rho i))",
+        "      Finset.univ)"
+      ]
+    },
     "AvailableChain.FGCompose.FGObservationLaws": {
       "body": [
         ""
@@ -43094,6 +43457,231 @@
         "            (Exists fun b =>",
         "              And (List.instMembership.mem (H.acceptedBodies (O.cutState x k)) b)",
         "                (Eq (H.erase b) B))"
+      ]
+    },
+    "AvailableChain.FGCompose.FGPendingOrigin": {
+      "body": [
+        "fun {In} {P} Good pending =>",
+        "  And (∀ (o : P.Object), Not (pending P.init o))",
+        "    (And",
+        "      (∀ (nd : P.State) (t : AvailableChain.Time) (o : P.Object),",
+        "        Good nd → pending (P.clock nd t) o → pending nd o)",
+        "      (And",
+        "        (∀ (nd : P.State) (o : AvailableChain.V2.Signed P.Label P.seats P.Payload)",
+        "          (q : P.Object),",
+        "          Good nd → pending (P.process nd o) q → Or (pending nd q) (Eq q o))",
+        "        (And",
+        "          (∀ (nd : P.State) (o : AvailableChain.V2.Signed P.Label P.seats P.Payload)",
+        "            (q : P.Object), Good nd → pending (P.recordOwn nd o) q → pending nd q)",
+        "          (∀ (nd : P.State) (t : AvailableChain.Time) (o : P.Object),",
+        "            Good nd → pending (P.restore (P.durable nd) t) o → pending nd o))))"
+      ],
+      "dependencies": [
+        "And",
+        "AvailableChain.Time",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Label",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "AvailableChain.V2.ProtocolSpecD.Payload",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "AvailableChain.V2.ProtocolSpecD.clock",
+        "AvailableChain.V2.ProtocolSpecD.durable",
+        "AvailableChain.V2.ProtocolSpecD.init",
+        "AvailableChain.V2.ProtocolSpecD.process",
+        "AvailableChain.V2.ProtocolSpecD.recordOwn",
+        "AvailableChain.V2.ProtocolSpecD.restore",
+        "AvailableChain.V2.ProtocolSpecD.seats",
+        "AvailableChain.V2.Signed",
+        "Eq",
+        "Not",
+        "Or"
+      ],
+      "digest": "f63c4c7e333ef178b7c345256e7a2c16311c658eb99316f685c7e0af5e708b4f",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose15:FGPendingOrigin",
+      "kind": "def",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin",
+      "type": [
+        "{In : Type} →",
+        "  {P : AvailableChain.V2.ProtocolSpecD In} →",
+        "    (P.State → Prop) → (P.State → P.Object → Prop) → Prop"
+      ]
+    },
+    "AvailableChain.FGCompose.FGPendingOrigin_def": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "And",
+        "AvailableChain.FGCompose.FGPendingOrigin",
+        "AvailableChain.Time",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Label",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "AvailableChain.V2.ProtocolSpecD.Payload",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "AvailableChain.V2.ProtocolSpecD.clock",
+        "AvailableChain.V2.ProtocolSpecD.durable",
+        "AvailableChain.V2.ProtocolSpecD.init",
+        "AvailableChain.V2.ProtocolSpecD.process",
+        "AvailableChain.V2.ProtocolSpecD.recordOwn",
+        "AvailableChain.V2.ProtocolSpecD.restore",
+        "AvailableChain.V2.ProtocolSpecD.seats",
+        "AvailableChain.V2.Signed",
+        "Eq",
+        "Not",
+        "Or"
+      ],
+      "digest": "2d88b2d7dfcaf31007542666e97939e646cf262bb657838f9c9fb6e8a187c003",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose19:FGPendingOrigin_def",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin",
+      "type": [
+        "∀ {In : Type} {P : AvailableChain.V2.ProtocolSpecD In} (Good : P.State → Prop)",
+        "  (pending : P.State → P.Object → Prop),",
+        "  Eq (AvailableChain.FGCompose.FGPendingOrigin Good pending)",
+        "    (And (∀ (o : P.Object), Not (pending P.init o))",
+        "      (And",
+        "        (∀ (nd : P.State) (t : AvailableChain.Time) (o : P.Object),",
+        "          Good nd → pending (P.clock nd t) o → pending nd o)",
+        "        (And",
+        "          (∀ (nd : P.State) (o : AvailableChain.V2.Signed P.Label P.seats P.Payload)",
+        "            (q : P.Object),",
+        "            Good nd → pending (P.process nd o) q → Or (pending nd q) (Eq q o))",
+        "          (And",
+        "            (∀ (nd : P.State) (o : AvailableChain.V2.Signed P.Label P.seats P.Payload)",
+        "              (q : P.Object), Good nd → pending (P.recordOwn nd o) q → pending nd q)",
+        "            (∀ (nd : P.State) (t : AvailableChain.Time) (o : P.Object),",
+        "              Good nd → pending (P.restore (P.durable nd) t) o → pending nd o)))))"
+      ]
+    },
+    "AvailableChain.FGCompose.FGProcessOrigin": {
+      "body": [
+        "fun {In} {P} {n} {Base Proposal Wire} R S Good pending =>",
+        "  ∀ (nd : P.State) (o : AvailableChain.V2.Signed P.Label P.seats P.Payload)",
+        "    (B : AvailableChain.SimplexFG.FGBlock (Fin n)),",
+        "    Good nd →",
+        "      SetLike.instMembership.mem (R.core (P.process nd o)).fg.TF B →",
+        "        Not (SetLike.instMembership.mem (R.core nd).fg.TF B) →",
+        "          Exists fun origin =>",
+        "            And (Or (Eq origin o) (pending nd origin))",
+        "              (And (Eq (S.proposalErase origin) (Option.some (R.erase B)))",
+        "                (Eq B.rows (List.filterMap S.decode (S.proposalRows origin))))"
+      ],
+      "dependencies": [
+        "And",
+        "AvailableChain.Block",
+        "AvailableChain.FGCompose.FGCore.fg",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGCoreReads.core",
+        "AvailableChain.FGCompose.FGCoreReads.erase",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.FGSafetyReads.decode",
+        "AvailableChain.FGCompose.FGSafetyReads.proposalErase",
+        "AvailableChain.FGCompose.FGSafetyReads.proposalRows",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.FGBlock.rows",
+        "AvailableChain.SimplexFG.Row",
+        "AvailableChain.SimplexFG.Store.TF",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Label",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "AvailableChain.V2.ProtocolSpecD.Payload",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "AvailableChain.V2.ProtocolSpecD.process",
+        "AvailableChain.V2.ProtocolSpecD.seats",
+        "AvailableChain.V2.Signed",
+        "Eq",
+        "Exists",
+        "Fin",
+        "Finset",
+        "Finset.instSetLike",
+        "List",
+        "List.filterMap",
+        "Membership.mem",
+        "Nat",
+        "Not",
+        "Option",
+        "Option.some",
+        "Or",
+        "SetLike.instMembership"
+      ],
+      "digest": "def379516188cb50535472af24bd25b89b8be5a0f89ef9f8b22857efaebf78d6",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose15:FGProcessOrigin",
+      "kind": "def",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin",
+      "type": [
+        "{In : Type} →",
+        "  {P : AvailableChain.V2.ProtocolSpecD In} →",
+        "    {n : Nat} →",
+        "      {Base Proposal Wire : Type} →",
+        "        AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire →",
+        "          AvailableChain.FGCompose.FGSafetyReads P n Wire →",
+        "            (P.State → Prop) → (P.State → P.Object → Prop) → Prop"
+      ]
+    },
+    "AvailableChain.FGCompose.FGProcessOrigin_def": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "And",
+        "AvailableChain.Block",
+        "AvailableChain.FGCompose.FGCore.fg",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGCoreReads.core",
+        "AvailableChain.FGCompose.FGCoreReads.erase",
+        "AvailableChain.FGCompose.FGProcessOrigin",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.FGSafetyReads.decode",
+        "AvailableChain.FGCompose.FGSafetyReads.proposalErase",
+        "AvailableChain.FGCompose.FGSafetyReads.proposalRows",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.FGBlock.rows",
+        "AvailableChain.SimplexFG.Row",
+        "AvailableChain.SimplexFG.Store.TF",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Label",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "AvailableChain.V2.ProtocolSpecD.Payload",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "AvailableChain.V2.ProtocolSpecD.process",
+        "AvailableChain.V2.ProtocolSpecD.seats",
+        "AvailableChain.V2.Signed",
+        "Eq",
+        "Exists",
+        "Fin",
+        "Finset",
+        "Finset.instSetLike",
+        "List",
+        "List.filterMap",
+        "Membership.mem",
+        "Nat",
+        "Not",
+        "Option",
+        "Option.some",
+        "Or",
+        "SetLike.instMembership"
+      ],
+      "digest": "20d1f428779903dcea6efa4a15b7a39855f1811c121d548001c89b1c1eb28541",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose19:FGProcessOrigin_def",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin",
+      "type": [
+        "∀ {In : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  (R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire)",
+        "  (S : AvailableChain.FGCompose.FGSafetyReads P n Wire) (Good : P.State → Prop)",
+        "  (pending : P.State → P.Object → Prop),",
+        "  Eq (AvailableChain.FGCompose.FGProcessOrigin R S Good pending)",
+        "    (∀ (nd : P.State) (o : AvailableChain.V2.Signed P.Label P.seats P.Payload)",
+        "      (B : AvailableChain.SimplexFG.FGBlock (Fin n)),",
+        "      Good nd →",
+        "        SetLike.instMembership.mem (R.core (P.process nd o)).fg.TF B →",
+        "          Not (SetLike.instMembership.mem (R.core nd).fg.TF B) →",
+        "            Exists fun origin =>",
+        "              And (Or (Eq origin o) (pending nd origin))",
+        "                (And (Eq (S.proposalErase origin) (Option.some (R.erase B)))",
+        "                  (Eq B.rows (List.filterMap S.decode (S.proposalRows origin)))))"
       ]
     },
     "AvailableChain.FGCompose.FGReceiptOrigin": {
@@ -46079,6 +46667,492 @@
         "  {H : AvailableChain.KitFG.FGHeightView (Fin n)}",
         "  {f : AvailableChain.KitFG.FGFinalityView (Fin n)} {Good : P.State → Prop},",
         "  AvailableChain.FGCompose.FGSafetyStoreLaws R S H f Good →",
+        "    ∀ (nd : P.State) (t : AvailableChain.Time)",
+        "      (B : AvailableChain.SimplexFG.FGBlock (Fin n)),",
+        "      Good nd →",
+        "        SetLike.instMembership.mem (R.core (P.restore (P.durable nd) t)).fg.TF B →",
+        "          SetLike.instMembership.mem (R.core nd).fg.TF B"
+      ]
+    },
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.FGSafetyStoreOriginLaws",
+        "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.mk",
+        "AvailableChain.KitFG.FGFinalityView",
+        "AvailableChain.KitFG.FGHeightView",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "Fin",
+        "Nat"
+      ],
+      "digest": "cf779ef8e4d3fdd70b02dd3b50f464babdf3d6714870bf3b11668111827ee2fb",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose23:FGSafetyStoreOriginLaws",
+      "kind": "structure",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin",
+      "type": [
+        "{In : Type} →",
+        "  {P : AvailableChain.V2.ProtocolSpecD In} →",
+        "    {n : Nat} →",
+        "      {Base Proposal Wire : Type} →",
+        "        AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire →",
+        "          AvailableChain.FGCompose.FGSafetyReads P n Wire →",
+        "            AvailableChain.KitFG.FGHeightView (Fin n) →",
+        "              AvailableChain.KitFG.FGFinalityView (Fin n) →",
+        "                (P.State → Prop) → (P.State → P.Object → Prop) → Prop"
+      ]
+    },
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.clock_good": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.FGSafetyStoreOriginLaws",
+        "AvailableChain.KitFG.FGFinalityView",
+        "AvailableChain.KitFG.FGHeightView",
+        "AvailableChain.Time",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "AvailableChain.V2.ProtocolSpecD.clock",
+        "Fin",
+        "Nat"
+      ],
+      "digest": "2819f06ae6e122a9e73151b2a6ea3bc331b45d7c6ad024848c7b7880e383144b",
+      "kernel_name": "str:2:93:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose23:FGSafetyStoreOriginLaws10:clock_good",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin",
+      "type": [
+        "∀ {In : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire}",
+        "  {S : AvailableChain.FGCompose.FGSafetyReads P n Wire}",
+        "  {H : AvailableChain.KitFG.FGHeightView (Fin n)}",
+        "  {f : AvailableChain.KitFG.FGFinalityView (Fin n)} {Good : P.State → Prop}",
+        "  {pending : P.State → P.Object → Prop},",
+        "  AvailableChain.FGCompose.FGSafetyStoreOriginLaws R S H f Good pending →",
+        "    ∀ (nd : P.State) (t : AvailableChain.Time), Good nd → Good (P.clock nd t)"
+      ]
+    },
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.initial_good": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.FGSafetyStoreOriginLaws",
+        "AvailableChain.KitFG.FGFinalityView",
+        "AvailableChain.KitFG.FGHeightView",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "AvailableChain.V2.ProtocolSpecD.init",
+        "Fin",
+        "Nat"
+      ],
+      "digest": "2d3f23204680b03e738755c869d9de24bfd772f08176dcb4832c2383df9a0dc2",
+      "kernel_name": "str:2:93:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose23:FGSafetyStoreOriginLaws12:initial_good",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin",
+      "type": [
+        "∀ {In : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire}",
+        "  {S : AvailableChain.FGCompose.FGSafetyReads P n Wire}",
+        "  {H : AvailableChain.KitFG.FGHeightView (Fin n)}",
+        "  {f : AvailableChain.KitFG.FGFinalityView (Fin n)} {Good : P.State → Prop}",
+        "  {pending : P.State → P.Object → Prop},",
+        "  AvailableChain.FGCompose.FGSafetyStoreOriginLaws R S H f Good pending → Good P.init"
+      ]
+    },
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.initial_tf": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGCore.fg",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGCoreReads.core",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.FGSafetyStoreOriginLaws",
+        "AvailableChain.KitFG.FGFinalityView",
+        "AvailableChain.KitFG.FGHeightView",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.FGBlock.genesis",
+        "AvailableChain.SimplexFG.Store.TF",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "AvailableChain.V2.ProtocolSpecD.init",
+        "Eq",
+        "Fin",
+        "Finset",
+        "Finset.instSetLike",
+        "Membership.mem",
+        "Nat",
+        "SetLike.instMembership"
+      ],
+      "digest": "c518ca837027f0ed13c649a1bb4da18fee7347bcc68caf0ad1a4437c6d2ccb33",
+      "kernel_name": "str:2:93:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose23:FGSafetyStoreOriginLaws10:initial_tf",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin",
+      "type": [
+        "∀ {In : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire}",
+        "  {S : AvailableChain.FGCompose.FGSafetyReads P n Wire}",
+        "  {H : AvailableChain.KitFG.FGHeightView (Fin n)}",
+        "  {f : AvailableChain.KitFG.FGFinalityView (Fin n)} {Good : P.State → Prop}",
+        "  {pending : P.State → P.Object → Prop},",
+        "  AvailableChain.FGCompose.FGSafetyStoreOriginLaws R S H f Good pending →",
+        "    ∀ (B : AvailableChain.SimplexFG.FGBlock (Fin n)),",
+        "      SetLike.instMembership.mem (R.core P.init).fg.TF B →",
+        "        Eq B AvailableChain.SimplexFG.FGBlock.genesis"
+      ]
+    },
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.invariant": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGCore.fg",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGCoreReads.core",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.FGSafetyStoreOriginLaws",
+        "AvailableChain.KitFG.FGFinalityView",
+        "AvailableChain.KitFG.FGHeightView",
+        "AvailableChain.KitFG.FGStoreInvariant",
+        "AvailableChain.SimplexFG.instRowCodecFin",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "Fin",
+        "Nat",
+        "instDecidableEqFin"
+      ],
+      "digest": "2fb7ad3df2290d3308aee1cc213d286319a2a461e0b8dbe5dac6d883f7e59c7f",
+      "kernel_name": "str:2:93:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose23:FGSafetyStoreOriginLaws9:invariant",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin",
+      "type": [
+        "∀ {In : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire}",
+        "  {S : AvailableChain.FGCompose.FGSafetyReads P n Wire}",
+        "  {H : AvailableChain.KitFG.FGHeightView (Fin n)}",
+        "  {f : AvailableChain.KitFG.FGFinalityView (Fin n)} {Good : P.State → Prop}",
+        "  {pending : P.State → P.Object → Prop},",
+        "  AvailableChain.FGCompose.FGSafetyStoreOriginLaws R S H f Good pending →",
+        "    ∀ (nd : P.State), Good nd → AvailableChain.KitFG.FGStoreInvariant H f (R.core nd).fg"
+      ]
+    },
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.mk": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGCore.fg",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGCoreReads.core",
+        "AvailableChain.FGCompose.FGPendingOrigin",
+        "AvailableChain.FGCompose.FGProcessOrigin",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.FGSafetyStoreOriginLaws",
+        "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.mk",
+        "AvailableChain.KitFG.FGFinalityView",
+        "AvailableChain.KitFG.FGHeightView",
+        "AvailableChain.KitFG.FGStoreInvariant",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.FGBlock.genesis",
+        "AvailableChain.SimplexFG.Store.TF",
+        "AvailableChain.SimplexFG.instRowCodecFin",
+        "AvailableChain.Time",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Label",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "AvailableChain.V2.ProtocolSpecD.Payload",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "AvailableChain.V2.ProtocolSpecD.clock",
+        "AvailableChain.V2.ProtocolSpecD.durable",
+        "AvailableChain.V2.ProtocolSpecD.init",
+        "AvailableChain.V2.ProtocolSpecD.process",
+        "AvailableChain.V2.ProtocolSpecD.recordOwn",
+        "AvailableChain.V2.ProtocolSpecD.restore",
+        "AvailableChain.V2.ProtocolSpecD.seats",
+        "AvailableChain.V2.Signed",
+        "Eq",
+        "Fin",
+        "Finset",
+        "Finset.instSetLike",
+        "Membership.mem",
+        "Nat",
+        "SetLike.instMembership",
+        "instDecidableEqFin"
+      ],
+      "digest": "ec4311974675bcc7ed06ebebeff0e36e690d613eba0c63b899022bec5094791d",
+      "kernel_name": "str:2:93:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose23:FGSafetyStoreOriginLaws2:mk",
+      "kind": "ctor",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin",
+      "type": [
+        "∀ {In : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire}",
+        "  {S : AvailableChain.FGCompose.FGSafetyReads P n Wire}",
+        "  {H : AvailableChain.KitFG.FGHeightView (Fin n)}",
+        "  {f : AvailableChain.KitFG.FGFinalityView (Fin n)} {Good : P.State → Prop}",
+        "  {pending : P.State → P.Object → Prop},",
+        "  Good P.init →",
+        "    (∀ (nd : P.State) (t : AvailableChain.Time), Good nd → Good (P.clock nd t)) →",
+        "      (∀ (nd : P.State) (o : AvailableChain.V2.Signed P.Label P.seats P.Payload),",
+        "          Good nd → Good (P.process nd o)) →",
+        "        (∀ (nd : P.State) (o : AvailableChain.V2.Signed P.Label P.seats P.Payload),",
+        "            Good nd → Good (P.recordOwn nd o)) →",
+        "          (∀ (nd : P.State) (t : AvailableChain.Time),",
+        "              Good nd → Good (P.restore (P.durable nd) t)) →",
+        "            (∀ (nd : P.State),",
+        "                Good nd → AvailableChain.KitFG.FGStoreInvariant H f (R.core nd).fg) →",
+        "              (∀ (B : AvailableChain.SimplexFG.FGBlock (Fin n)),",
+        "                  SetLike.instMembership.mem (R.core P.init).fg.TF B →",
+        "                    Eq B AvailableChain.SimplexFG.FGBlock.genesis) →",
+        "                (∀ (nd : P.State) (t : AvailableChain.Time)",
+        "                    (B : AvailableChain.SimplexFG.FGBlock (Fin n)),",
+        "                    Good nd →",
+        "                      SetLike.instMembership.mem",
+        "                          (R.core (P.restore (P.durable nd) t)).fg.TF B →",
+        "                        SetLike.instMembership.mem (R.core nd).fg.TF B) →",
+        "                  AvailableChain.FGCompose.FGProcessOrigin R S Good pending →",
+        "                    AvailableChain.FGCompose.FGPendingOrigin Good pending →",
+        "                      AvailableChain.FGCompose.FGSafetyStoreOriginLaws R S H f Good",
+        "                        pending"
+      ]
+    },
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.own_good": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.FGSafetyStoreOriginLaws",
+        "AvailableChain.KitFG.FGFinalityView",
+        "AvailableChain.KitFG.FGHeightView",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Label",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "AvailableChain.V2.ProtocolSpecD.Payload",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "AvailableChain.V2.ProtocolSpecD.recordOwn",
+        "AvailableChain.V2.ProtocolSpecD.seats",
+        "AvailableChain.V2.Signed",
+        "Fin",
+        "Nat"
+      ],
+      "digest": "0d6af638f4790dbb3f60b0dfc2801ae79742607fb8fb847046177da3854bd11c",
+      "kernel_name": "str:2:93:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose23:FGSafetyStoreOriginLaws8:own_good",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin",
+      "type": [
+        "∀ {In : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire}",
+        "  {S : AvailableChain.FGCompose.FGSafetyReads P n Wire}",
+        "  {H : AvailableChain.KitFG.FGHeightView (Fin n)}",
+        "  {f : AvailableChain.KitFG.FGFinalityView (Fin n)} {Good : P.State → Prop}",
+        "  {pending : P.State → P.Object → Prop},",
+        "  AvailableChain.FGCompose.FGSafetyStoreOriginLaws R S H f Good pending →",
+        "    ∀ (nd : P.State) (o : AvailableChain.V2.Signed P.Label P.seats P.Payload),",
+        "      Good nd → Good (P.recordOwn nd o)"
+      ]
+    },
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.pending_origin": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGPendingOrigin",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.FGSafetyStoreOriginLaws",
+        "AvailableChain.KitFG.FGFinalityView",
+        "AvailableChain.KitFG.FGHeightView",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "Fin",
+        "Nat"
+      ],
+      "digest": "64cb064ee8333e993152906c24b29f7d9d6427c12957b5416e604b41f3b1bafc",
+      "kernel_name": "str:2:93:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose23:FGSafetyStoreOriginLaws14:pending_origin",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin",
+      "type": [
+        "∀ {In : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire}",
+        "  {S : AvailableChain.FGCompose.FGSafetyReads P n Wire}",
+        "  {H : AvailableChain.KitFG.FGHeightView (Fin n)}",
+        "  {f : AvailableChain.KitFG.FGFinalityView (Fin n)} {Good : P.State → Prop}",
+        "  {pending : P.State → P.Object → Prop},",
+        "  AvailableChain.FGCompose.FGSafetyStoreOriginLaws R S H f Good pending →",
+        "    AvailableChain.FGCompose.FGPendingOrigin Good pending"
+      ]
+    },
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.process_good": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.FGSafetyStoreOriginLaws",
+        "AvailableChain.KitFG.FGFinalityView",
+        "AvailableChain.KitFG.FGHeightView",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Label",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "AvailableChain.V2.ProtocolSpecD.Payload",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "AvailableChain.V2.ProtocolSpecD.process",
+        "AvailableChain.V2.ProtocolSpecD.seats",
+        "AvailableChain.V2.Signed",
+        "Fin",
+        "Nat"
+      ],
+      "digest": "a37e51c4a2d5e2e260cae6c3c3653467bbc20450ae549bab5aebad061b41bb8b",
+      "kernel_name": "str:2:93:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose23:FGSafetyStoreOriginLaws12:process_good",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin",
+      "type": [
+        "∀ {In : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire}",
+        "  {S : AvailableChain.FGCompose.FGSafetyReads P n Wire}",
+        "  {H : AvailableChain.KitFG.FGHeightView (Fin n)}",
+        "  {f : AvailableChain.KitFG.FGFinalityView (Fin n)} {Good : P.State → Prop}",
+        "  {pending : P.State → P.Object → Prop},",
+        "  AvailableChain.FGCompose.FGSafetyStoreOriginLaws R S H f Good pending →",
+        "    ∀ (nd : P.State) (o : AvailableChain.V2.Signed P.Label P.seats P.Payload),",
+        "      Good nd → Good (P.process nd o)"
+      ]
+    },
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.process_origin": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGProcessOrigin",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.FGSafetyStoreOriginLaws",
+        "AvailableChain.KitFG.FGFinalityView",
+        "AvailableChain.KitFG.FGHeightView",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "Fin",
+        "Nat"
+      ],
+      "digest": "fcfa7c4520f7b0378712023346a5062c22a2fc9e4ce718a64c21a794d7511b21",
+      "kernel_name": "str:2:93:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose23:FGSafetyStoreOriginLaws14:process_origin",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin",
+      "type": [
+        "∀ {In : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire}",
+        "  {S : AvailableChain.FGCompose.FGSafetyReads P n Wire}",
+        "  {H : AvailableChain.KitFG.FGHeightView (Fin n)}",
+        "  {f : AvailableChain.KitFG.FGFinalityView (Fin n)} {Good : P.State → Prop}",
+        "  {pending : P.State → P.Object → Prop},",
+        "  AvailableChain.FGCompose.FGSafetyStoreOriginLaws R S H f Good pending →",
+        "    AvailableChain.FGCompose.FGProcessOrigin R S Good pending"
+      ]
+    },
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.restart_good": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.FGSafetyStoreOriginLaws",
+        "AvailableChain.KitFG.FGFinalityView",
+        "AvailableChain.KitFG.FGHeightView",
+        "AvailableChain.Time",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "AvailableChain.V2.ProtocolSpecD.durable",
+        "AvailableChain.V2.ProtocolSpecD.restore",
+        "Fin",
+        "Nat"
+      ],
+      "digest": "dc39f466188a7dbfa86649f84cae0924ee738b7daa37d41a163999152e4007f1",
+      "kernel_name": "str:2:93:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose23:FGSafetyStoreOriginLaws12:restart_good",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin",
+      "type": [
+        "∀ {In : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire}",
+        "  {S : AvailableChain.FGCompose.FGSafetyReads P n Wire}",
+        "  {H : AvailableChain.KitFG.FGHeightView (Fin n)}",
+        "  {f : AvailableChain.KitFG.FGFinalityView (Fin n)} {Good : P.State → Prop}",
+        "  {pending : P.State → P.Object → Prop},",
+        "  AvailableChain.FGCompose.FGSafetyStoreOriginLaws R S H f Good pending →",
+        "    ∀ (nd : P.State) (t : AvailableChain.Time),",
+        "      Good nd → Good (P.restore (P.durable nd) t)"
+      ]
+    },
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.restart_tf": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGCore.fg",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGCoreReads.core",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.FGSafetyStoreOriginLaws",
+        "AvailableChain.KitFG.FGFinalityView",
+        "AvailableChain.KitFG.FGHeightView",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.Store.TF",
+        "AvailableChain.Time",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "AvailableChain.V2.ProtocolSpecD.durable",
+        "AvailableChain.V2.ProtocolSpecD.restore",
+        "Fin",
+        "Finset",
+        "Finset.instSetLike",
+        "Membership.mem",
+        "Nat",
+        "SetLike.instMembership"
+      ],
+      "digest": "f125e3ca680606792ff07e36e89007ba88994fed0714bf1ac55c7515673b3c97",
+      "kernel_name": "str:2:93:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose23:FGSafetyStoreOriginLaws10:restart_tf",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin",
+      "type": [
+        "∀ {In : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire}",
+        "  {S : AvailableChain.FGCompose.FGSafetyReads P n Wire}",
+        "  {H : AvailableChain.KitFG.FGHeightView (Fin n)}",
+        "  {f : AvailableChain.KitFG.FGFinalityView (Fin n)} {Good : P.State → Prop}",
+        "  {pending : P.State → P.Object → Prop},",
+        "  AvailableChain.FGCompose.FGSafetyStoreOriginLaws R S H f Good pending →",
         "    ∀ (nd : P.State) (t : AvailableChain.Time)",
         "      (B : AvailableChain.SimplexFG.FGBlock (Fin n)),",
         "      Good nd →",
@@ -83796,6 +84870,158 @@
         "      receiptEpoch := AvailableChain.FGCompose.dependencyReceiverEpoch rho x j }"
       ]
     },
+    "AvailableChain.FGCompose.fgHonestSeats_eq_compl": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGHonestSeats",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.historyFaulty",
+        "AvailableChain.V2.D.Run",
+        "AvailableChain.V2.ProtocolSpecD",
+        "BooleanAlgebra.toCompl",
+        "Compl.compl",
+        "DecidableEq",
+        "Eq",
+        "Fin",
+        "Fin.fintype",
+        "Finset",
+        "Finset.booleanAlgebra",
+        "Nat",
+        "instDecidableEqFin"
+      ],
+      "digest": "e96acb644d78af48d7fc7035ec09b0dd4e81708727225aac8bed3edbcdf18c0f",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose22:fgHonestSeats_eq_compl",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.Population.Seats",
+      "type": [
+        "∀ {In V : Type} {P : AvailableChain.V2.ProtocolSpecD In} [inst : DecidableEq V]",
+        "  {n : Nat} {Wire : Type} (S : AvailableChain.FGCompose.FGSafetyReads P n Wire)",
+        "  (rho : AvailableChain.V2.D.Run V P),",
+        "  Eq (AvailableChain.FGCompose.FGHonestSeats S rho)",
+        "    (Finset.booleanAlgebra.compl (AvailableChain.FGCompose.historyFaulty S rho))"
+      ]
+    },
+    "AvailableChain.FGCompose.fgHonestSeats_nonempty_of_quorum": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGHonestSeats",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.Electorate.IsQuorum",
+        "AvailableChain.SimplexFG.Electorate.q",
+        "AvailableChain.V2.D.Run",
+        "AvailableChain.V2.ProtocolSpecD",
+        "DecidableEq",
+        "Fin",
+        "Fin.fintype",
+        "Finset.Nonempty",
+        "LT.lt",
+        "Nat",
+        "OfNat.ofNat",
+        "instLTNat",
+        "instOfNatNat"
+      ],
+      "digest": "78929fd58c85e7bb029b5056522e2b31b80daf7e6b7d19b1db6e1bb4c125a9cc",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose32:fgHonestSeats_nonempty_of_quorum",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.Population.Seats",
+      "type": [
+        "∀ {In V : Type} {P : AvailableChain.V2.ProtocolSpecD In} [inst : DecidableEq V]",
+        "  {n : Nat} {Wire : Type} (S : AvailableChain.FGCompose.FGSafetyReads P n Wire)",
+        "  (rho : AvailableChain.V2.D.Run V P)",
+        "  (Ef : AvailableChain.SimplexFG.Electorate (Fin n)),",
+        "  instLTNat.lt 0 Ef.q →",
+        "    Ef.IsQuorum (AvailableChain.FGCompose.FGHonestSeats S rho) →",
+        "      (AvailableChain.FGCompose.FGHonestSeats S rho).Nonempty"
+      ]
+    },
+    "AvailableChain.FGCompose.fg_fault_count_eq_nodes_of_equiv": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.historyFaulty",
+        "AvailableChain.FGCompose.safetyHolder",
+        "AvailableChain.Gen.V2.Duty.faulty",
+        "AvailableChain.V2.D.Run",
+        "AvailableChain.V2.ProtocolSpecD",
+        "DFunLike.coe",
+        "DecidableEq",
+        "Eq",
+        "Equiv",
+        "Equiv.instEquivLike",
+        "EquivLike.toFunLike",
+        "Fin",
+        "Finset.card",
+        "Fintype",
+        "Nat"
+      ],
+      "digest": "f2692ea7de9eae4f91d603a46c224f172bdd6d811cdef8319936776fd9fe7fd5",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose32:fg_fault_count_eq_nodes_of_equiv",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.Population.Seats",
+      "type": [
+        "∀ {In V : Type} {P : AvailableChain.V2.ProtocolSpecD In} [inst : DecidableEq V]",
+        "  {n : Nat} {Wire : Type} (S : AvailableChain.FGCompose.FGSafetyReads P n Wire)",
+        "  (rho : AvailableChain.V2.D.Run V P) [inst_1 : Fintype V] (e : Equiv (Fin n) V),",
+        "  (∀ (i : Fin n),",
+        "      Eq (AvailableChain.FGCompose.safetyHolder S rho i)",
+        "        (EquivLike.toFunLike.coe e i)) →",
+        "    Eq (AvailableChain.FGCompose.historyFaulty S rho).card",
+        "      (AvailableChain.Gen.V2.Duty.faulty rho).card"
+      ]
+    },
+    "AvailableChain.FGCompose.fg_fault_weight_of_count": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.FGSafetyUnitLaws",
+        "AvailableChain.FGCompose.historyFaulty",
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.Electorate.q",
+        "AvailableChain.SimplexFG.Electorate.weightOf",
+        "AvailableChain.V2.D.Run",
+        "AvailableChain.V2.ProtocolSpecD",
+        "DecidableEq",
+        "Fin",
+        "Fin.fintype",
+        "Finset.card",
+        "HDiv.hDiv",
+        "HSub.hSub",
+        "LE.le",
+        "LT.lt",
+        "Nat",
+        "Nat.instDiv",
+        "OfNat.ofNat",
+        "instHDiv",
+        "instHSub",
+        "instLENat",
+        "instLTNat",
+        "instOfNatNat",
+        "instSubNat"
+      ],
+      "digest": "d102cf375b62b14ee30e14b4394a4f6776622840b534dba3bfef497e5d52930e",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose24:fg_fault_weight_of_count",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.Population.Seats",
+      "type": [
+        "∀ {In V : Type} {P : AvailableChain.V2.ProtocolSpecD In} [inst : DecidableEq V]",
+        "  {n : Nat} {Wire : Type} (S : AvailableChain.FGCompose.FGSafetyReads P n Wire)",
+        "  (rho : AvailableChain.V2.D.Run V P)",
+        "  (Ef : AvailableChain.SimplexFG.Electorate (Fin n)),",
+        "  AvailableChain.FGCompose.FGSafetyUnitLaws Ef →",
+        "    instLENat.le (AvailableChain.FGCompose.historyFaulty S rho).card",
+        "        (instHDiv.hDiv (instHSub.hSub n 1) 3) →",
+        "      instLTNat.lt (Ef.weightOf (AvailableChain.FGCompose.historyFaulty S rho)) Ef.q"
+      ]
+    },
     "AvailableChain.FGCompose.finalityBatchCoverage_W_of_tRowsSelect": {
       "body": [
         ""
@@ -111258,6 +112484,50 @@
         "              Finset.univ)"
       ]
     },
+    "AvailableChain.FGCompose.high_target_honest_quorum_holder": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGHonestSeats",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.FGSafetyUnitLaws",
+        "AvailableChain.FGCompose.historyFaulty",
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.Electorate.IsQuorum",
+        "AvailableChain.V2.D.Run",
+        "AvailableChain.V2.ProtocolSpecD",
+        "DecidableEq",
+        "Fin",
+        "Fin.fintype",
+        "Finset.card",
+        "HDiv.hDiv",
+        "HSub.hSub",
+        "LE.le",
+        "Nat",
+        "Nat.instDiv",
+        "OfNat.ofNat",
+        "instHDiv",
+        "instHSub",
+        "instLENat",
+        "instOfNatNat",
+        "instSubNat"
+      ],
+      "digest": "b58d78bbabc953af47ed524f17d61ae92072e26ada2182470dd104aeb70daeb7",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose32:high_target_honest_quorum_holder",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.Population.Seats",
+      "type": [
+        "∀ {In V : Type} {P : AvailableChain.V2.ProtocolSpecD In} [inst : DecidableEq V]",
+        "  {n : Nat} {Wire : Type} (S : AvailableChain.FGCompose.FGSafetyReads P n Wire)",
+        "  (rho : AvailableChain.V2.D.Run V P)",
+        "  (Ef : AvailableChain.SimplexFG.Electorate (Fin n)),",
+        "  AvailableChain.FGCompose.FGSafetyUnitLaws Ef →",
+        "    instLENat.le (AvailableChain.FGCompose.historyFaulty S rho).card",
+        "        (instHDiv.hDiv (instHSub.hSub n 1) 3) →",
+        "      Ef.IsQuorum (AvailableChain.FGCompose.FGHonestSeats S rho)"
+      ]
+    },
     "AvailableChain.FGCompose.high_target_quorum_covered": {
       "body": [
         ""
@@ -129256,6 +130526,39 @@
         "                    (Eq (AvailableChain.FGCompose.safetyHolder S rho i) v)))"
       ]
     },
+    "AvailableChain.FGCompose.safetyStoreOriginLaws_of_storeLaws": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.FGSafetyStoreLaws",
+        "AvailableChain.FGCompose.FGSafetyStoreOriginLaws",
+        "AvailableChain.KitFG.FGFinalityView",
+        "AvailableChain.KitFG.FGHeightView",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "False",
+        "Fin",
+        "Nat"
+      ],
+      "digest": "400b692836abda1131d06d80702a86c0234e59f84fdaa1ff987ee8d14820bc48",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose34:safetyStoreOriginLaws_of_storeLaws",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.SafetyOrigin",
+      "type": [
+        "∀ {In : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire}",
+        "  {S : AvailableChain.FGCompose.FGSafetyReads P n Wire}",
+        "  {H : AvailableChain.KitFG.FGHeightView (Fin n)}",
+        "  {f : AvailableChain.KitFG.FGFinalityView (Fin n)} {Good : P.State → Prop},",
+        "  AvailableChain.FGCompose.FGSafetyStoreLaws R S H f Good →",
+        "    AvailableChain.FGCompose.FGSafetyStoreOriginLaws R S H f Good fun x x_1 => False"
+      ]
+    },
     "AvailableChain.FGCompose.safety_F_mono": {
       "body": [
         ""
@@ -129689,6 +130992,73 @@
         "  (Good : P.State → Prop) (Q : AvailableChain.Block → Prop),",
         "  AvailableChain.FGCompose.FGCoreLaws R →",
         "    AvailableChain.FGCompose.FGSafetyStoreLaws R S H f Good →",
+        "      AvailableChain.KitFG.FGCertificateLaws Ef H f →",
+        "        AvailableChain.FGCompose.FGSafetyScopeLaws R S E rho Q →",
+        "          AvailableChain.FGCompose.safetyScopedRoots R Q →",
+        "            AvailableChain.FGCompose.safetyBound R S Ef E rho →",
+        "              ∀ (i j : Nat) (x y : V),",
+        "                Eq",
+        "                  ((R.core",
+        "                            (AvailableChain.V2.D.Run.stateBefore E rho i",
+        "                              x)).fg.F.compatible",
+        "                    (R.core (AvailableChain.V2.D.Run.stateBefore E rho j y)).fg.F)",
+        "                  Bool.true"
+      ]
+    },
+    "AvailableChain.FGCompose.safety_event_agreement_origin": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.Block",
+        "AvailableChain.FGCompose.FGCore.fg",
+        "AvailableChain.FGCompose.FGCoreLaws",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGCoreReads.core",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.FGSafetyScopeLaws",
+        "AvailableChain.FGCompose.FGSafetyStoreOriginLaws",
+        "AvailableChain.FGCompose.safetyBound",
+        "AvailableChain.FGCompose.safetyScopedRoots",
+        "AvailableChain.Generic.Env",
+        "AvailableChain.KitFG.FGCertificateLaws",
+        "AvailableChain.KitFG.FGFinalityView",
+        "AvailableChain.KitFG.FGHeightView",
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.FGBlock.compatible",
+        "AvailableChain.SimplexFG.Store.F",
+        "AvailableChain.SimplexFG.instRowCodecFin",
+        "AvailableChain.V2.D.Run",
+        "AvailableChain.V2.D.Run.stateBefore",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "Bool",
+        "Bool.true",
+        "DecidableEq",
+        "Eq",
+        "Fin",
+        "Fin.fintype",
+        "Nat",
+        "instDecidableEqFin"
+      ],
+      "digest": "052a2bf418ed37429b4479ba77bc531ccc187573041016bfb87942f5c5845eaf",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose29:safety_event_agreement_origin",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.SafetyOrigin",
+      "type": [
+        "∀ {In V : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  (R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire)",
+        "  (S : AvailableChain.FGCompose.FGSafetyReads P n Wire)",
+        "  (Ef : AvailableChain.SimplexFG.Electorate (Fin n))",
+        "  (H : AvailableChain.KitFG.FGHeightView (Fin n))",
+        "  (f : AvailableChain.KitFG.FGFinalityView (Fin n)) [inst : DecidableEq V]",
+        "  (E : AvailableChain.Generic.Env V) (rho : AvailableChain.V2.D.Run V P)",
+        "  (Good : P.State → Prop) (pending : P.State → P.Object → Prop)",
+        "  (Q : AvailableChain.Block → Prop),",
+        "  AvailableChain.FGCompose.FGCoreLaws R →",
+        "    AvailableChain.FGCompose.FGSafetyStoreOriginLaws R S H f Good pending →",
         "      AvailableChain.KitFG.FGCertificateLaws Ef H f →",
         "        AvailableChain.FGCompose.FGSafetyScopeLaws R S E rho Q →",
         "          AvailableChain.FGCompose.safetyScopedRoots R Q →",
@@ -130180,6 +131550,118 @@
         "                      AvailableChain.Gen.V2.Duty.HonestNeverSlashed I rho"
       ]
     },
+    "AvailableChain.FGCompose.safety_honest_never_slashed_holder": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.safetyCarriage",
+        "AvailableChain.FGCompose.safetyHolder",
+        "AvailableChain.FGCompose.safetyNoSlash",
+        "AvailableChain.FGCompose.safetyRows",
+        "AvailableChain.FGCompose.safetySlashesRead",
+        "AvailableChain.Gen.V2.Duty.HonestNeverSlashed",
+        "AvailableChain.Gen.V2.Duty.SlashingInterface",
+        "AvailableChain.Generic.Env",
+        "AvailableChain.Time",
+        "AvailableChain.V2.D.Run",
+        "AvailableChain.V2.D.Run.honest",
+        "AvailableChain.V2.D.Run.readAt",
+        "AvailableChain.V2.ProtocolSpecD",
+        "DecidableEq",
+        "Fin",
+        "Finset",
+        "Finset.instSetLike",
+        "Membership.mem",
+        "Nat",
+        "SetLike.instMembership"
+      ],
+      "digest": "29437a32d4ba7154c1855c597c3837c7439ba42e80721a52da2ff9e0d81aa7a5",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose34:safety_honest_never_slashed_holder",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.Population.Safety",
+      "type": [
+        "∀ {In V : Type} {P : AvailableChain.V2.ProtocolSpecD In} [inst : DecidableEq V]",
+        "  {n : Nat} {Wire : Type} (S : AvailableChain.FGCompose.FGSafetyReads P n Wire)",
+        "  (E : AvailableChain.Generic.Env V) (rho : AvailableChain.V2.D.Run V P)",
+        "  {Base Proposal : Type}",
+        "  (R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire),",
+        "  (∀ (t : AvailableChain.Time) (x : V),",
+        "      AvailableChain.FGCompose.safetyCarriage S E rho",
+        "        (AvailableChain.FGCompose.safetyRows R",
+        "          (AvailableChain.V2.D.Run.readAt E rho t x))) →",
+        "    (∀ (i : Fin n),",
+        "        SetLike.instMembership.mem rho.honest",
+        "            (AvailableChain.FGCompose.safetyHolder S rho i) →",
+        "          AvailableChain.FGCompose.safetyNoSlash S E rho",
+        "            (AvailableChain.FGCompose.safetyHolder S rho i)) →",
+        "      ∀ (I : AvailableChain.Gen.V2.Duty.SlashingInterface P),",
+        "        AvailableChain.FGCompose.safetySlashesRead R S E rho I →",
+        "          AvailableChain.Gen.V2.Duty.HonestNeverSlashed I rho"
+      ]
+    },
+    "AvailableChain.FGCompose.safety_honest_never_slashed_origin": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGCoreLaws",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGSafetyClientLaws",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.FGSafetyReads.fgLabel",
+        "AvailableChain.FGCompose.FGSafetyStoreOriginLaws",
+        "AvailableChain.FGCompose.FGSafetyWireLaws",
+        "AvailableChain.FGCompose.safetySlashesRead",
+        "AvailableChain.Gen.V2.Duty.HonestNeverSlashed",
+        "AvailableChain.Gen.V2.Duty.SlashingInterface",
+        "AvailableChain.Generic.Env",
+        "AvailableChain.KitFG.FGFinalityView",
+        "AvailableChain.KitFG.FGHeightView",
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.FGConfig",
+        "AvailableChain.V2.D.Linked",
+        "AvailableChain.V2.D.Run",
+        "AvailableChain.V2.D.UnforgeableSignatures",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Label",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "DecidableEq",
+        "Fin",
+        "Fin.fintype",
+        "Nat"
+      ],
+      "digest": "8d98205d20ca7c64897da71d4c36459ceeda9fd6e1f35c4466a5df87010b6dbe",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose34:safety_honest_never_slashed_origin",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.SafetyOrigin",
+      "type": [
+        "∀ {In V : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  (R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire)",
+        "  (S : AvailableChain.FGCompose.FGSafetyReads P n Wire)",
+        "  (Ef : AvailableChain.SimplexFG.Electorate (Fin n))",
+        "  (H : AvailableChain.KitFG.FGHeightView (Fin n))",
+        "  (f : AvailableChain.KitFG.FGFinalityView (Fin n))",
+        "  (cfg : AvailableChain.SimplexFG.FGConfig) [inst : DecidableEq V]",
+        "  (E : AvailableChain.Generic.Env V) (rho : AvailableChain.V2.D.Run V P)",
+        "  (Good : P.State → Prop) (pending : P.State → P.Object → Prop),",
+        "  AvailableChain.FGCompose.FGCoreLaws R →",
+        "    AvailableChain.FGCompose.FGSafetyWireLaws S →",
+        "      AvailableChain.FGCompose.FGSafetyStoreOriginLaws R S H f Good pending →",
+        "        AvailableChain.FGCompose.FGSafetyClientLaws S Ef cfg →",
+        "          ∀ (linked : P.Label → Prop),",
+        "            linked S.fgLabel →",
+        "              ∀ (I : AvailableChain.Gen.V2.Duty.SlashingInterface P),",
+        "                AvailableChain.FGCompose.safetySlashesRead R S E rho I →",
+        "                  AvailableChain.V2.D.UnforgeableSignatures E rho →",
+        "                    AvailableChain.V2.D.Linked linked rho →",
+        "                      AvailableChain.Gen.V2.Duty.HonestNeverSlashed I rho"
+      ]
+    },
     "AvailableChain.FGCompose.safety_invariant_readAt": {
       "body": [
         ""
@@ -130306,6 +131788,183 @@
         "            (EquivLike.toFunLike.coe e i)"
       ]
     },
+    "AvailableChain.FGCompose.safety_noSlash_all_of_holder": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGHolderClientLaws",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.FGSafetyWireLaws",
+        "AvailableChain.FGCompose.ordinaryFGExecutionObs",
+        "AvailableChain.FGCompose.safetyHolder",
+        "AvailableChain.FGCompose.safetyNoSlash",
+        "AvailableChain.Generic.Env",
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.FGConfig",
+        "AvailableChain.V2.D.Run",
+        "AvailableChain.V2.D.Run.honest",
+        "AvailableChain.V2.ProtocolSpecD",
+        "DecidableEq",
+        "Fin",
+        "Fin.fintype",
+        "Finset",
+        "Finset.instSetLike",
+        "Membership.mem",
+        "Nat",
+        "SetLike.instMembership"
+      ],
+      "digest": "60660a2145a6e026736ae5bfac52d553a8346a8a724af28e71225c29b8855bdd",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose28:safety_noSlash_all_of_holder",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.Population.Safety",
+      "type": [
+        "∀ {In V : Type} {P : AvailableChain.V2.ProtocolSpecD In} [inst : DecidableEq V]",
+        "  {n : Nat} {Wire : Type} (S : AvailableChain.FGCompose.FGSafetyReads P n Wire)",
+        "  (E : AvailableChain.Generic.Env V) (rho : AvailableChain.V2.D.Run V P)",
+        "  (Ef : AvailableChain.SimplexFG.Electorate (Fin n))",
+        "  (cfg : AvailableChain.SimplexFG.FGConfig),",
+        "  AvailableChain.FGCompose.FGHolderClientLaws S Ef cfg E rho",
+        "      (AvailableChain.FGCompose.ordinaryFGExecutionObs E rho)",
+        "      (AvailableChain.FGCompose.safetyHolder S rho) →",
+        "    AvailableChain.FGCompose.FGSafetyWireLaws S →",
+        "      (∀ (i : Fin n),",
+        "          SetLike.instMembership.mem rho.honest",
+        "              (AvailableChain.FGCompose.safetyHolder S rho i) →",
+        "            AvailableChain.FGCompose.safetyNoSlash S E rho",
+        "              (AvailableChain.FGCompose.safetyHolder S rho i)) →",
+        "        ∀ (x : V),",
+        "          SetLike.instMembership.mem rho.honest x →",
+        "            AvailableChain.FGCompose.safetyNoSlash S E rho x"
+      ]
+    },
+    "AvailableChain.FGCompose.safety_nonholder_noSlash": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGHolderClientLaws",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.FGSafetyWireLaws",
+        "AvailableChain.FGCompose.ordinaryFGExecutionObs",
+        "AvailableChain.FGCompose.safetyHolder",
+        "AvailableChain.FGCompose.safetyNoSlash",
+        "AvailableChain.Generic.Env",
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.FGConfig",
+        "AvailableChain.V2.D.Run",
+        "AvailableChain.V2.ProtocolSpecD",
+        "DecidableEq",
+        "Fin",
+        "Fin.fintype",
+        "Nat",
+        "Ne"
+      ],
+      "digest": "ddf3845b53a2b2a2918e09fb3eb4b0ac41084d70bbb73694abbc9200f2ec7c2c",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose24:safety_nonholder_noSlash",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.Population.Safety",
+      "type": [
+        "∀ {In V : Type} {P : AvailableChain.V2.ProtocolSpecD In} [inst : DecidableEq V]",
+        "  {n : Nat} {Wire : Type} (S : AvailableChain.FGCompose.FGSafetyReads P n Wire)",
+        "  (E : AvailableChain.Generic.Env V) (rho : AvailableChain.V2.D.Run V P)",
+        "  (Ef : AvailableChain.SimplexFG.Electorate (Fin n))",
+        "  (cfg : AvailableChain.SimplexFG.FGConfig),",
+        "  AvailableChain.FGCompose.FGHolderClientLaws S Ef cfg E rho",
+        "      (AvailableChain.FGCompose.ordinaryFGExecutionObs E rho)",
+        "      (AvailableChain.FGCompose.safetyHolder S rho) →",
+        "    AvailableChain.FGCompose.FGSafetyWireLaws S →",
+        "      ∀ (x : V),",
+        "        (∀ (i : Fin n), Ne (AvailableChain.FGCompose.safetyHolder S rho i) x) →",
+        "          AvailableChain.FGCompose.safetyNoSlash S E rho x"
+      ]
+    },
+    "AvailableChain.FGCompose.safety_origin_stateBefore": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "And",
+        "AvailableChain.Block",
+        "AvailableChain.FGCompose.FGCore.fg",
+        "AvailableChain.FGCompose.FGCoreLaws",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGCoreReads.core",
+        "AvailableChain.FGCompose.FGCoreReads.erase",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.FGSafetyReads.decode",
+        "AvailableChain.FGCompose.FGSafetyReads.proposalErase",
+        "AvailableChain.FGCompose.FGSafetyReads.proposalRows",
+        "AvailableChain.FGCompose.FGSafetyStoreOriginLaws",
+        "AvailableChain.Generic.Env",
+        "AvailableChain.KitFG.FGFinalityView",
+        "AvailableChain.KitFG.FGHeightView",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.FGBlock.genesis",
+        "AvailableChain.SimplexFG.FGBlock.rows",
+        "AvailableChain.SimplexFG.Row",
+        "AvailableChain.SimplexFG.Store.TF",
+        "AvailableChain.Time",
+        "AvailableChain.V2.D.Run",
+        "AvailableChain.V2.D.Run.events",
+        "AvailableChain.V2.D.Run.stateBefore",
+        "AvailableChain.V2.Event",
+        "AvailableChain.V2.Event.deliver",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "DecidableEq",
+        "Eq",
+        "Exists",
+        "Fin",
+        "Finset",
+        "Finset.instSetLike",
+        "List",
+        "List.filterMap",
+        "List.instMembership",
+        "Membership.mem",
+        "Nat",
+        "Option",
+        "Option.some",
+        "Or",
+        "SetLike.instMembership"
+      ],
+      "digest": "d6054eeb08db863687d370eaeed3ebfb74c3fb1678f0b87b9d0e1d2cde6529d1",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose25:safety_origin_stateBefore",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.SafetyOrigin",
+      "type": [
+        "∀ {In V : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire}",
+        "  {S : AvailableChain.FGCompose.FGSafetyReads P n Wire}",
+        "  {H : AvailableChain.KitFG.FGHeightView (Fin n)}",
+        "  {f : AvailableChain.KitFG.FGFinalityView (Fin n)} [inst : DecidableEq V]",
+        "  {Good : P.State → Prop} {pending : P.State → P.Object → Prop},",
+        "  AvailableChain.FGCompose.FGCoreLaws R →",
+        "    AvailableChain.FGCompose.FGSafetyStoreOriginLaws R S H f Good pending →",
+        "      ∀ (E : AvailableChain.Generic.Env V) (rho : AvailableChain.V2.D.Run V P) (i : Nat)",
+        "        (x : V),",
+        "        And (Good (AvailableChain.V2.D.Run.stateBefore E rho i x))",
+        "          (And",
+        "            (∀ (B : AvailableChain.SimplexFG.FGBlock (Fin n)),",
+        "              SetLike.instMembership.mem",
+        "                  (R.core (AvailableChain.V2.D.Run.stateBefore E rho i x)).fg.TF B →",
+        "                Or (Eq B AvailableChain.SimplexFG.FGBlock.genesis)",
+        "                  (Exists fun o =>",
+        "                    Exists fun t =>",
+        "                      And",
+        "                        (List.instMembership.mem rho.events",
+        "                          (AvailableChain.V2.Event.deliver x o t))",
+        "                        (And (Eq (S.proposalErase o) (Option.some (R.erase B)))",
+        "                          (Eq B.rows (List.filterMap S.decode (S.proposalRows o))))))",
+        "            (∀ (q : P.Object),",
+        "              pending (AvailableChain.V2.D.Run.stateBefore E rho i x) q →",
+        "                Exists fun t =>",
+        "                  List.instMembership.mem rho.events",
+        "                    (AvailableChain.V2.Event.deliver x q t)))"
+      ]
+    },
     "AvailableChain.FGCompose.safety_readAt_prefix": {
       "body": [
         ""
@@ -130429,6 +132088,55 @@
         "  {Good : P.State → Prop},",
         "  AvailableChain.FGCompose.FGCoreLaws R →",
         "    AvailableChain.FGCompose.FGSafetyStoreLaws R S H f Good →",
+        "      AvailableChain.FGCompose.FGSafetyWireLaws S →",
+        "        AvailableChain.V2.D.UnforgeableSignatures E rho →",
+        "          ∀ (t : AvailableChain.Time) (x : V),",
+        "            AvailableChain.FGCompose.safetyCarriage S E rho",
+        "              (AvailableChain.FGCompose.safetyRows R",
+        "                (AvailableChain.V2.D.Run.readAt E rho t x))"
+      ]
+    },
+    "AvailableChain.FGCompose.safety_read_carriage_origin": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGCoreLaws",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.FGSafetyStoreOriginLaws",
+        "AvailableChain.FGCompose.FGSafetyWireLaws",
+        "AvailableChain.FGCompose.safetyCarriage",
+        "AvailableChain.FGCompose.safetyRows",
+        "AvailableChain.Generic.Env",
+        "AvailableChain.KitFG.FGFinalityView",
+        "AvailableChain.KitFG.FGHeightView",
+        "AvailableChain.Time",
+        "AvailableChain.V2.D.Run",
+        "AvailableChain.V2.D.Run.readAt",
+        "AvailableChain.V2.D.UnforgeableSignatures",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "DecidableEq",
+        "Fin",
+        "Nat"
+      ],
+      "digest": "a4f7aa744353f5e6637e0a7522d9a82c05d1fceb656458b26e25441515d802df",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose27:safety_read_carriage_origin",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.SafetyOrigin",
+      "type": [
+        "∀ {In V : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire}",
+        "  {S : AvailableChain.FGCompose.FGSafetyReads P n Wire}",
+        "  {H : AvailableChain.KitFG.FGHeightView (Fin n)}",
+        "  {f : AvailableChain.KitFG.FGFinalityView (Fin n)} [inst : DecidableEq V]",
+        "  {E : AvailableChain.Generic.Env V} {rho : AvailableChain.V2.D.Run V P}",
+        "  {Good : P.State → Prop} {pending : P.State → P.Object → Prop},",
+        "  AvailableChain.FGCompose.FGCoreLaws R →",
+        "    AvailableChain.FGCompose.FGSafetyStoreOriginLaws R S H f Good pending →",
         "      AvailableChain.FGCompose.FGSafetyWireLaws S →",
         "        AvailableChain.V2.D.UnforgeableSignatures E rho →",
         "          ∀ (t : AvailableChain.Time) (x : V),",
@@ -130704,6 +132412,65 @@
         "                Q (R.erase B)"
       ]
     },
+    "AvailableChain.FGCompose.safety_read_scope_origin": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.Block",
+        "AvailableChain.FGCompose.FGCore.fg",
+        "AvailableChain.FGCompose.FGCoreLaws",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGCoreReads.core",
+        "AvailableChain.FGCompose.FGCoreReads.erase",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.FGSafetyScopeLaws",
+        "AvailableChain.FGCompose.FGSafetyStoreOriginLaws",
+        "AvailableChain.Generic.Env",
+        "AvailableChain.KitFG.FGFinalityView",
+        "AvailableChain.KitFG.FGHeightView",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.Store.TF",
+        "AvailableChain.Time",
+        "AvailableChain.V2.D.Run",
+        "AvailableChain.V2.D.Run.honest",
+        "AvailableChain.V2.D.Run.readAt",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "DecidableEq",
+        "Fin",
+        "Finset",
+        "Finset.instSetLike",
+        "Membership.mem",
+        "Nat",
+        "SetLike.instMembership"
+      ],
+      "digest": "6cb22d09f5fe72ec3534e277a510d00d1f4d7f8c9f3bfac0a30fe6bb30e63765",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose24:safety_read_scope_origin",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.SafetyOrigin",
+      "type": [
+        "∀ {In V : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire}",
+        "  {S : AvailableChain.FGCompose.FGSafetyReads P n Wire}",
+        "  {H : AvailableChain.KitFG.FGHeightView (Fin n)}",
+        "  {f : AvailableChain.KitFG.FGFinalityView (Fin n)} [inst : DecidableEq V]",
+        "  {E : AvailableChain.Generic.Env V} {rho : AvailableChain.V2.D.Run V P}",
+        "  {Good : P.State → Prop} {pending : P.State → P.Object → Prop}",
+        "  {Q : AvailableChain.Block → Prop},",
+        "  AvailableChain.FGCompose.FGCoreLaws R →",
+        "    AvailableChain.FGCompose.FGSafetyStoreOriginLaws R S H f Good pending →",
+        "      AvailableChain.FGCompose.FGSafetyScopeLaws R S E rho Q →",
+        "        ∀ (t : AvailableChain.Time) (x : V),",
+        "          SetLike.instMembership.mem rho.honest x →",
+        "            ∀ (B : AvailableChain.SimplexFG.FGBlock (Fin n)),",
+        "              SetLike.instMembership.mem",
+        "                  (R.core (AvailableChain.V2.D.Run.readAt E rho t x)).fg.TF B →",
+        "                Q (R.erase B)"
+      ]
+    },
     "AvailableChain.FGCompose.safety_record_fold": {
       "body": [
         ""
@@ -130848,6 +132615,58 @@
         "            AvailableChain.FGCompose.SafetyWholeAccountable R S Ef f E rho"
       ]
     },
+    "AvailableChain.FGCompose.safety_run_accountable_origin": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.Block",
+        "AvailableChain.FGCompose.FGCoreLaws",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.FGSafetyScopeLaws",
+        "AvailableChain.FGCompose.FGSafetyStoreOriginLaws",
+        "AvailableChain.FGCompose.SafetyWholeAccountable",
+        "AvailableChain.FGCompose.safetyScopedRoots",
+        "AvailableChain.Generic.Env",
+        "AvailableChain.KitFG.FGCertificateLaws",
+        "AvailableChain.KitFG.FGFinalityView",
+        "AvailableChain.KitFG.FGHeightView",
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.instRowCodecFin",
+        "AvailableChain.V2.D.Run",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "DecidableEq",
+        "Fin",
+        "Fin.fintype",
+        "Nat",
+        "instDecidableEqFin"
+      ],
+      "digest": "8d0df27b95be03c4ce07c4d487c7eb75fccf3509b299c5240786fd65eb2c4321",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose29:safety_run_accountable_origin",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.SafetyOrigin",
+      "type": [
+        "∀ {In V : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  (R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire)",
+        "  (S : AvailableChain.FGCompose.FGSafetyReads P n Wire)",
+        "  (Ef : AvailableChain.SimplexFG.Electorate (Fin n))",
+        "  (H : AvailableChain.KitFG.FGHeightView (Fin n))",
+        "  (f : AvailableChain.KitFG.FGFinalityView (Fin n)) [inst : DecidableEq V]",
+        "  (E : AvailableChain.Generic.Env V) (rho : AvailableChain.V2.D.Run V P)",
+        "  (Good : P.State → Prop) (pending : P.State → P.Object → Prop)",
+        "  (Q : AvailableChain.Block → Prop),",
+        "  AvailableChain.FGCompose.FGCoreLaws R →",
+        "    AvailableChain.FGCompose.FGSafetyStoreOriginLaws R S H f Good pending →",
+        "      AvailableChain.KitFG.FGCertificateLaws Ef H f →",
+        "        AvailableChain.FGCompose.FGSafetyScopeLaws R S E rho Q →",
+        "          AvailableChain.FGCompose.safetyScopedRoots R Q →",
+        "            AvailableChain.FGCompose.SafetyWholeAccountable R S Ef f E rho"
+      ]
+    },
     "AvailableChain.FGCompose.safety_run_agreement": {
       "body": [
         ""
@@ -130893,6 +132712,60 @@
         "  (Good : P.State → Prop) (Q : AvailableChain.Block → Prop),",
         "  AvailableChain.FGCompose.FGCoreLaws R →",
         "    AvailableChain.FGCompose.FGSafetyStoreLaws R S H f Good →",
+        "      AvailableChain.KitFG.FGCertificateLaws Ef H f →",
+        "        AvailableChain.FGCompose.FGSafetyScopeLaws R S E rho Q →",
+        "          AvailableChain.FGCompose.safetyScopedRoots R Q →",
+        "            AvailableChain.FGCompose.safetyBound R S Ef E rho →",
+        "              AvailableChain.FGCompose.SafetyWholeAgreement R S f E rho"
+      ]
+    },
+    "AvailableChain.FGCompose.safety_run_agreement_origin": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.Block",
+        "AvailableChain.FGCompose.FGCoreLaws",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.FGSafetyScopeLaws",
+        "AvailableChain.FGCompose.FGSafetyStoreOriginLaws",
+        "AvailableChain.FGCompose.SafetyWholeAgreement",
+        "AvailableChain.FGCompose.safetyBound",
+        "AvailableChain.FGCompose.safetyScopedRoots",
+        "AvailableChain.Generic.Env",
+        "AvailableChain.KitFG.FGCertificateLaws",
+        "AvailableChain.KitFG.FGFinalityView",
+        "AvailableChain.KitFG.FGHeightView",
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.instRowCodecFin",
+        "AvailableChain.V2.D.Run",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "DecidableEq",
+        "Fin",
+        "Fin.fintype",
+        "Nat",
+        "instDecidableEqFin"
+      ],
+      "digest": "48fe2c8dfdf0f2a6c90c58396041da47011c5802e8451ad1d311b2025349f4ca",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose27:safety_run_agreement_origin",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.SafetyOrigin",
+      "type": [
+        "∀ {In V : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  (R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire)",
+        "  (S : AvailableChain.FGCompose.FGSafetyReads P n Wire)",
+        "  (Ef : AvailableChain.SimplexFG.Electorate (Fin n))",
+        "  (H : AvailableChain.KitFG.FGHeightView (Fin n))",
+        "  (f : AvailableChain.KitFG.FGFinalityView (Fin n)) [inst : DecidableEq V]",
+        "  (E : AvailableChain.Generic.Env V) (rho : AvailableChain.V2.D.Run V P)",
+        "  (Good : P.State → Prop) (pending : P.State → P.Object → Prop)",
+        "  (Q : AvailableChain.Block → Prop),",
+        "  AvailableChain.FGCompose.FGCoreLaws R →",
+        "    AvailableChain.FGCompose.FGSafetyStoreOriginLaws R S H f Good pending →",
         "      AvailableChain.KitFG.FGCertificateLaws Ef H f →",
         "        AvailableChain.FGCompose.FGSafetyScopeLaws R S E rho Q →",
         "          AvailableChain.FGCompose.safetyScopedRoots R Q →",
@@ -131310,6 +133183,60 @@
         "            AvailableChain.FGCompose.safetyRunBlock R S E rho B"
       ]
     },
+    "AvailableChain.FGCompose.safety_stored_runBlock_origin": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGCore.fg",
+        "AvailableChain.FGCompose.FGCoreLaws",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGCoreReads.core",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.FGSafetyStoreOriginLaws",
+        "AvailableChain.FGCompose.safetyRunBlock",
+        "AvailableChain.Generic.Env",
+        "AvailableChain.KitFG.FGFinalityView",
+        "AvailableChain.KitFG.FGHeightView",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.FGBlock.genesis",
+        "AvailableChain.SimplexFG.Store.TF",
+        "AvailableChain.V2.D.Run",
+        "AvailableChain.V2.D.Run.stateBefore",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "DecidableEq",
+        "Fin",
+        "Finset",
+        "Finset.instSetLike",
+        "Membership.mem",
+        "Nat",
+        "Ne",
+        "SetLike.instMembership"
+      ],
+      "digest": "b57e8428664d29c4861bb86e26983f91a439d07ee23d14db212346717c1ac3a7",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose29:safety_stored_runBlock_origin",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.SafetyOrigin",
+      "type": [
+        "∀ {In V : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire}",
+        "  {S : AvailableChain.FGCompose.FGSafetyReads P n Wire}",
+        "  {H : AvailableChain.KitFG.FGHeightView (Fin n)}",
+        "  {f : AvailableChain.KitFG.FGFinalityView (Fin n)} [inst : DecidableEq V]",
+        "  {Good : P.State → Prop} {pending : P.State → P.Object → Prop},",
+        "  AvailableChain.FGCompose.FGCoreLaws R →",
+        "    AvailableChain.FGCompose.FGSafetyStoreOriginLaws R S H f Good pending →",
+        "      ∀ (E : AvailableChain.Generic.Env V) (rho : AvailableChain.V2.D.Run V P) (i : Nat)",
+        "        (x : V) (B : AvailableChain.SimplexFG.FGBlock (Fin n)),",
+        "        SetLike.instMembership.mem",
+        "            (R.core (AvailableChain.V2.D.Run.stateBefore E rho i x)).fg.TF B →",
+        "          Ne B AvailableChain.SimplexFG.FGBlock.genesis →",
+        "            AvailableChain.FGCompose.safetyRunBlock R S E rho B"
+      ]
+    },
     "AvailableChain.FGCompose.safety_stored_scope": {
       "body": [
         ""
@@ -131587,6 +133514,117 @@
         "                      (Q.clientInputs (P.clock nd t)).fst",
         "                      (Q.clientInputs (P.clock nd t)).snd).fst.toList",
         "                List.nil)"
+      ]
+    },
+    "AvailableChain.FGCompose.selection_tick_rows_holder": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "And",
+        "AvailableChain.FGCompose.FGHolderClientLaws",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.FGSafetyReads.decodeObject",
+        "AvailableChain.FGCompose.FGSafetyReads.enabled",
+        "AvailableChain.FGCompose.FGSafetyReads.record",
+        "AvailableChain.FGCompose.FGSelectionClientLaws",
+        "AvailableChain.FGCompose.FGSelectionReads",
+        "AvailableChain.FGCompose.FGSelectionReads.clientInputs",
+        "AvailableChain.FGCompose.ordinaryFGExecutionObs",
+        "AvailableChain.FGCompose.safetyHolder",
+        "AvailableChain.Generic.Env",
+        "AvailableChain.Generic.Env.awake",
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.FGConfig",
+        "AvailableChain.SimplexFG.HeadFields",
+        "AvailableChain.SimplexFG.RecordOnce",
+        "AvailableChain.SimplexFG.Row",
+        "AvailableChain.SimplexFG.createRowOnce",
+        "AvailableChain.SimplexFG.instRowCodecFin",
+        "AvailableChain.Time",
+        "AvailableChain.V2.D.Run",
+        "AvailableChain.V2.D.Run.emitsAt",
+        "AvailableChain.V2.D.Run.events",
+        "AvailableChain.V2.D.Run.stateBefore",
+        "AvailableChain.V2.Event",
+        "AvailableChain.V2.Event.tick",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "AvailableChain.V2.ProtocolSpecD.clock",
+        "AvailableChain.V2.ProtocolSpecD.objSelfVisible",
+        "Bool",
+        "Bool.true",
+        "DecidableEq",
+        "Eq",
+        "Fin",
+        "Fin.fintype",
+        "GetElem?.getElem?",
+        "LT.lt",
+        "List",
+        "List.filter",
+        "List.filterMap",
+        "List.instGetElem?NatLtLength",
+        "List.length",
+        "List.nil",
+        "Nat",
+        "Option",
+        "Option.some",
+        "Option.toList",
+        "Prod.fst",
+        "Prod.snd",
+        "instDecidableAnd",
+        "instDecidableEqBool",
+        "instDecidableEqFin",
+        "instLTNat",
+        "ite"
+      ],
+      "digest": "157a03fb8471136775dd64a866bfd33ceadf052259af2d4e0739956be4e64f70",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose26:selection_tick_rows_holder",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.Population.Safety",
+      "type": [
+        "∀ {In V : Type} {P : AvailableChain.V2.ProtocolSpecD In} [inst : DecidableEq V]",
+        "  {n : Nat} {Wire : Type} (S : AvailableChain.FGCompose.FGSafetyReads P n Wire)",
+        "  (E : AvailableChain.Generic.Env V) (rho : AvailableChain.V2.D.Run V P)",
+        "  (Ef : AvailableChain.SimplexFG.Electorate (Fin n))",
+        "  (cfg : AvailableChain.SimplexFG.FGConfig)",
+        "  (Q : AvailableChain.FGCompose.FGSelectionReads P n),",
+        "  AvailableChain.FGCompose.FGSelectionClientLaws Q S →",
+        "    AvailableChain.FGCompose.FGHolderClientLaws S Ef cfg E rho",
+        "        (AvailableChain.FGCompose.ordinaryFGExecutionObs E rho)",
+        "        (AvailableChain.FGCompose.safetyHolder S rho) →",
+        "      ∀ (i : Fin n) (j : Nat) (t : AvailableChain.Time),",
+        "        Eq (List.instGetElem?NatLtLength.getElem? rho.events j)",
+        "            (Option.some",
+        "              (AvailableChain.V2.Event.tick",
+        "                (AvailableChain.FGCompose.safetyHolder S rho i) t)) →",
+        "          Eq",
+        "            (List.filterMap S.decodeObject",
+        "              (List.filter P.objSelfVisible (AvailableChain.V2.D.Run.emitsAt E rho j)))",
+        "            (ite",
+        "              (And",
+        "                (Eq (E.awake (AvailableChain.FGCompose.safetyHolder S rho i) t)",
+        "                  Bool.true)",
+        "                (Eq (S.enabled t) Bool.true))",
+        "              (AvailableChain.SimplexFG.createRowOnce Ef cfg",
+        "                    (S.record",
+        "                      (P.clock",
+        "                        (AvailableChain.V2.D.Run.stateBefore E rho j",
+        "                          (AvailableChain.FGCompose.safetyHolder S rho i))",
+        "                        t))",
+        "                    i",
+        "                    (Q.clientInputs",
+        "                        (P.clock",
+        "                          (AvailableChain.V2.D.Run.stateBefore E rho j",
+        "                            (AvailableChain.FGCompose.safetyHolder S rho i))",
+        "                          t)).fst",
+        "                    (Q.clientInputs",
+        "                        (P.clock",
+        "                          (AvailableChain.V2.D.Run.stateBefore E rho j",
+        "                            (AvailableChain.FGCompose.safetyHolder S rho i))",
+        "                          t)).snd).fst.toList",
+        "              List.nil)"
       ]
     },
     "AvailableChain.FGCompose.service_head_coverage": {
@@ -146258,6 +148296,128 @@
         ""
       ]
     },
+    "BooleanAlgebra": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "BooleanAlgebra",
+        "BooleanAlgebra.mk"
+      ],
+      "digest": "494329a9a04897e5709306bfb9b5a5157b4c1915aac55bba9335f5cd5888e5ce",
+      "kernel_name": "str:2:12:anonymous:0:14:BooleanAlgebra",
+      "kind": "structure",
+      "module": "Mathlib.Order.BooleanAlgebra.Defs",
+      "type": [
+        ""
+      ]
+    },
+    "BooleanAlgebra.himp_eq._autoParam": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "Array.empty",
+        "Array.push",
+        "Lean.Name.mkStr1",
+        "Lean.Name.mkStr4",
+        "Lean.SourceInfo.none",
+        "Lean.Syntax",
+        "Lean.Syntax.node",
+        "Lean.mkAtom"
+      ],
+      "digest": "77bd286ed86df54ced5c990d9860c1f50f23c8779a72b23410609fd61e3e1b3e",
+      "kernel_name": "str:2:56:str:2:38:str:2:12:anonymous:0:14:BooleanAlgebra7:himp_eq10:_autoParam",
+      "kind": "def",
+      "module": "Mathlib.Order.BooleanAlgebra.Defs",
+      "type": [
+        ""
+      ]
+    },
+    "BooleanAlgebra.mk": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "BooleanAlgebra",
+        "BooleanAlgebra.himp_eq._autoParam",
+        "BooleanAlgebra.mk",
+        "BooleanAlgebra.sdiff_eq._autoParam",
+        "Bot",
+        "Bot.bot",
+        "Compl",
+        "Compl.compl",
+        "DistribLattice",
+        "DistribLattice.toLattice",
+        "Eq",
+        "HImp",
+        "HImp.himp",
+        "LE.le",
+        "Lattice.inf",
+        "Lattice.inf_le_left",
+        "Lattice.inf_le_right",
+        "Lattice.le_inf",
+        "Lattice.toSemilatticeSup",
+        "Max.max",
+        "Min.min",
+        "PartialOrder.toPreorder",
+        "Preorder.toLE",
+        "SDiff",
+        "SDiff.sdiff",
+        "SemilatticeInf.mk",
+        "SemilatticeInf.toMin",
+        "SemilatticeSup.toMax",
+        "SemilatticeSup.toPartialOrder",
+        "Top",
+        "Top.top",
+        "autoParam"
+      ],
+      "digest": "3889e0caee3b9f1f55bcb899e7e2ccb9f3871c19e338647328b93767f7f2a941",
+      "kernel_name": "str:2:38:str:2:12:anonymous:0:14:BooleanAlgebra2:mk",
+      "kind": "ctor",
+      "module": "Mathlib.Order.BooleanAlgebra.Defs",
+      "type": [
+        ""
+      ]
+    },
+    "BooleanAlgebra.sdiff_eq._autoParam": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "Array.empty",
+        "Array.push",
+        "Lean.Name.mkStr1",
+        "Lean.Name.mkStr4",
+        "Lean.SourceInfo.none",
+        "Lean.Syntax",
+        "Lean.Syntax.node",
+        "Lean.mkAtom"
+      ],
+      "digest": "7778fa1586482b6c7adac3d131226adab223371c8eeab75e738a03eb92d9ddb8",
+      "kernel_name": "str:2:57:str:2:38:str:2:12:anonymous:0:14:BooleanAlgebra8:sdiff_eq10:_autoParam",
+      "kind": "def",
+      "module": "Mathlib.Order.BooleanAlgebra.Defs",
+      "type": [
+        ""
+      ]
+    },
+    "BooleanAlgebra.toCompl": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "BooleanAlgebra",
+        "Compl"
+      ],
+      "digest": "1155256c5fc4667c251ec875f2c6d876f0ff4b242c854e22bc36329c6755d8ee",
+      "kernel_name": "str:2:38:str:2:12:anonymous:0:14:BooleanAlgebra7:toCompl",
+      "kind": "field",
+      "module": "Mathlib.Order.BooleanAlgebra.Defs",
+      "type": [
+        ""
+      ]
+    },
     "Bot": {
       "body": [
         ""
@@ -146301,6 +148461,59 @@
       "kernel_name": "str:2:26:str:2:12:anonymous:0:3:Bot2:mk",
       "kind": "ctor",
       "module": "Mathlib.Order.Notation",
+      "type": [
+        ""
+      ]
+    },
+    "BoundedOrder": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "BoundedOrder",
+        "BoundedOrder.mk",
+        "LE"
+      ],
+      "digest": "1e6a445b3f5c10f33bdc4c1bb5e1d40dde020e7a182ab89d50f3979bdd0e78cc",
+      "kernel_name": "str:2:12:anonymous:0:12:BoundedOrder",
+      "kind": "structure",
+      "module": "Mathlib.Order.BoundedOrder.Basic",
+      "type": [
+        ""
+      ]
+    },
+    "BoundedOrder.mk": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "BoundedOrder",
+        "BoundedOrder.mk",
+        "LE",
+        "OrderBot",
+        "OrderTop"
+      ],
+      "digest": "5d0fc59fa54bd3b27250ce7ade65b1e52b8544696f60cb9d86006830b5beead1",
+      "kernel_name": "str:2:36:str:2:12:anonymous:0:12:BoundedOrder2:mk",
+      "kind": "ctor",
+      "module": "Mathlib.Order.BoundedOrder.Basic",
+      "type": [
+        ""
+      ]
+    },
+    "BoundedOrder.toOrderTop": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "BoundedOrder",
+        "LE",
+        "OrderTop"
+      ],
+      "digest": "b200cd98551abff60ff8f01eebe05624d1e3d0b836fb2c0f902eff857fe0037a",
+      "kernel_name": "str:2:36:str:2:12:anonymous:0:12:BoundedOrder10:toOrderTop",
+      "kind": "field",
+      "module": "Mathlib.Order.BoundedOrder.Basic",
       "type": [
         ""
       ]
@@ -146761,6 +148974,53 @@
       "kernel_name": "str:2:57:str:2:32:str:2:12:anonymous:0:9:Classical13:propDecidable8:_proof_1",
       "kind": "theorem",
       "module": "Init.Classical",
+      "type": [
+        ""
+      ]
+    },
+    "Compl": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "Compl",
+        "Compl.mk"
+      ],
+      "digest": "4d552f01e2a91a0613e822b0d1bbffa14dc51d5ebd959cfb7717a724a4c6d581",
+      "kernel_name": "str:2:12:anonymous:0:5:Compl",
+      "kind": "structure",
+      "module": "Mathlib.Order.Notation",
+      "type": [
+        ""
+      ]
+    },
+    "Compl.compl": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "Compl"
+      ],
+      "digest": "233298b609d453fc5c73e49582fd6fdeb92f07fccf3835b17e3f53138efa858c",
+      "kernel_name": "str:2:28:str:2:12:anonymous:0:5:Compl5:compl",
+      "kind": "field",
+      "module": "Mathlib.Order.Notation",
+      "type": [
+        ""
+      ]
+    },
+    "Compl.mk": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "Compl",
+        "Compl.mk"
+      ],
+      "digest": "0b29707467e4994f5e02e7108426fb9a11044402cf97c407d2cbc2e590d81b1b",
+      "kernel_name": "str:2:28:str:2:12:anonymous:0:5:Compl2:mk",
+      "kind": "ctor",
+      "module": "Mathlib.Order.Notation",
       "type": [
         ""
       ]
@@ -148320,6 +150580,62 @@
         ""
       ]
     },
+    "Finset.booleanAlgebra": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "BooleanAlgebra",
+        "BoundedOrder.toOrderTop",
+        "DecidableEq",
+        "Finset",
+        "Finset.boundedOrder",
+        "Finset.instGeneralizedBooleanAlgebra",
+        "Fintype",
+        "GeneralizedBooleanAlgebra.toBooleanAlgebra",
+        "GeneralizedBooleanAlgebra.toGeneralizedCoheytingAlgebra",
+        "GeneralizedCoheytingAlgebra.toLattice",
+        "Lattice.toSemilatticeInf",
+        "PartialOrder.toPreorder",
+        "Preorder.toLE",
+        "SemilatticeInf.toPartialOrder"
+      ],
+      "digest": "e450dcf77180fee4c4963b0f0e736226dc16dfe26ddfdb505e0cb977724d737c",
+      "kernel_name": "str:2:29:str:2:12:anonymous:0:6:Finset14:booleanAlgebra",
+      "kind": "def",
+      "module": "Mathlib.Data.Finset.BooleanAlgebra",
+      "type": [
+        ""
+      ]
+    },
+    "Finset.boundedOrder": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "BoundedOrder",
+        "BoundedOrder.mk",
+        "Finset",
+        "Finset.instOrderBot",
+        "Finset.instPartialOrder",
+        "Finset.subset_univ",
+        "Finset.univ",
+        "Fintype",
+        "OrderBot",
+        "OrderTop.mk",
+        "PartialOrder.toPreorder",
+        "Preorder.toLE",
+        "Top.mk",
+        "inferInstance"
+      ],
+      "digest": "f15f2fd7d1ec4c8160b8559a63f02b02990290b84dd649f3c76853b2ea7498be",
+      "kernel_name": "str:2:29:str:2:12:anonymous:0:6:Finset12:boundedOrder",
+      "kind": "def",
+      "module": "Mathlib.Data.Finset.BooleanAlgebra",
+      "type": [
+        ""
+      ]
+    },
     "Finset.card": {
       "body": [
         ""
@@ -148473,6 +150789,27 @@
         ""
       ]
     },
+    "Finset.empty_subset": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "EmptyCollection.emptyCollection",
+        "Finset",
+        "Finset.instEmptyCollection",
+        "Finset.instPartialOrder",
+        "LE.le",
+        "PartialOrder.toPreorder",
+        "Preorder.toLE"
+      ],
+      "digest": "e574392a6c8b21e5ae9fd71198aefdebf801ef8c90040d584af5efdacd6af232",
+      "kernel_name": "str:2:29:str:2:12:anonymous:0:6:Finset12:empty_subset",
+      "kind": "theorem",
+      "module": "Mathlib.Data.Finset.Empty",
+      "type": [
+        ""
+      ]
+    },
     "Finset.filter": {
       "body": [
         ""
@@ -148551,6 +150888,57 @@
         ""
       ]
     },
+    "Finset.instDistribLattice": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "DecidableEq",
+        "DistribLattice",
+        "DistribLattice.mk",
+        "Finset",
+        "Finset.instDistribLattice._proof_5",
+        "Finset.instLattice"
+      ],
+      "digest": "630b4ec33cb24163c1a22126310114bf88490c2cf729e56ff95be41a286e331d",
+      "kernel_name": "str:2:29:str:2:12:anonymous:0:6:Finset18:instDistribLattice",
+      "kind": "def",
+      "module": "Mathlib.Data.Finset.Lattice.Basic",
+      "type": [
+        ""
+      ]
+    },
+    "Finset.instDistribLattice._proof_5": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "DecidableEq",
+        "Finset",
+        "Finset.instLattice",
+        "LE.le",
+        "Lattice.inf",
+        "Lattice.inf_le_left",
+        "Lattice.inf_le_right",
+        "Lattice.le_inf",
+        "Lattice.toSemilatticeSup",
+        "Max.max",
+        "Min.min",
+        "PartialOrder.toPreorder",
+        "Preorder.toLE",
+        "SemilatticeInf.mk",
+        "SemilatticeInf.toMin",
+        "SemilatticeSup.toMax",
+        "SemilatticeSup.toPartialOrder"
+      ],
+      "digest": "6e26071f5670895b5cc64a80c33d057c26abf8834a8977c6bc12368933674302",
+      "kernel_name": "str:2:59:str:2:29:str:2:12:anonymous:0:6:Finset18:instDistribLattice8:_proof_5",
+      "kind": "theorem",
+      "module": "Mathlib.Data.Finset.Lattice.Basic",
+      "type": [
+        ""
+      ]
+    },
     "Finset.instEmptyCollection": {
       "body": [
         ""
@@ -148565,6 +150953,101 @@
       "kernel_name": "str:2:29:str:2:12:anonymous:0:6:Finset19:instEmptyCollection",
       "kind": "def",
       "module": "Mathlib.Data.Finset.Empty",
+      "type": [
+        ""
+      ]
+    },
+    "Finset.instGeneralizedBooleanAlgebra": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "DecidableEq",
+        "Finset",
+        "Finset.instDistribLattice",
+        "Finset.instGeneralizedBooleanAlgebra._proof_5",
+        "Finset.instGeneralizedBooleanAlgebra._proof_7",
+        "Finset.instOrderBot",
+        "Finset.instPartialOrder",
+        "Finset.instSDiff",
+        "GeneralizedBooleanAlgebra",
+        "GeneralizedBooleanAlgebra.mk",
+        "OrderBot.toBot",
+        "PartialOrder.toPreorder",
+        "Preorder.toLE"
+      ],
+      "digest": "070281bfe382bfb1e0b8d0814766a340695ea13c84635062e0f41554e83721cf",
+      "kernel_name": "str:2:29:str:2:12:anonymous:0:6:Finset29:instGeneralizedBooleanAlgebra",
+      "kind": "def",
+      "module": "Mathlib.Data.Finset.SDiff",
+      "type": [
+        ""
+      ]
+    },
+    "Finset.instGeneralizedBooleanAlgebra._proof_5": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "DecidableEq",
+        "DistribLattice.toLattice",
+        "Eq",
+        "Finset",
+        "Finset.instDistribLattice",
+        "Finset.instSDiff",
+        "Lattice.inf",
+        "Lattice.inf_le_left",
+        "Lattice.inf_le_right",
+        "Lattice.le_inf",
+        "Lattice.toSemilatticeSup",
+        "Max.max",
+        "Min.min",
+        "SDiff.sdiff",
+        "SemilatticeInf.mk",
+        "SemilatticeInf.toMin",
+        "SemilatticeSup.toMax",
+        "SemilatticeSup.toPartialOrder"
+      ],
+      "digest": "f1bcbd6b90b7fcc045e3a3d51ea2ddd2f1dd8efd9904a612ff2825e4d77f7d39",
+      "kernel_name": "str:2:70:str:2:29:str:2:12:anonymous:0:6:Finset29:instGeneralizedBooleanAlgebra8:_proof_5",
+      "kind": "theorem",
+      "module": "Mathlib.Data.Finset.SDiff",
+      "type": [
+        ""
+      ]
+    },
+    "Finset.instGeneralizedBooleanAlgebra._proof_7": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "Bot.bot",
+        "DecidableEq",
+        "DistribLattice.toLattice",
+        "Eq",
+        "Finset",
+        "Finset.instDistribLattice",
+        "Finset.instOrderBot",
+        "Finset.instPartialOrder",
+        "Finset.instSDiff",
+        "Lattice.inf",
+        "Lattice.inf_le_left",
+        "Lattice.inf_le_right",
+        "Lattice.le_inf",
+        "Lattice.toSemilatticeSup",
+        "Min.min",
+        "OrderBot.toBot",
+        "PartialOrder.toPreorder",
+        "Preorder.toLE",
+        "SDiff.sdiff",
+        "SemilatticeInf.mk",
+        "SemilatticeInf.toMin",
+        "SemilatticeSup.toPartialOrder"
+      ],
+      "digest": "a95b1370071c8c60d9383ab4a6313b1d58a0994c6a17b8674213b223be3a113d",
+      "kernel_name": "str:2:70:str:2:29:str:2:12:anonymous:0:6:Finset29:instGeneralizedBooleanAlgebra8:_proof_7",
+      "kind": "theorem",
+      "module": "Mathlib.Data.Finset.SDiff",
       "type": [
         ""
       ]
@@ -148606,6 +151089,247 @@
       "kernel_name": "str:2:51:str:2:29:str:2:12:anonymous:0:6:Finset10:instInsert8:_proof_1",
       "kind": "theorem",
       "module": "Mathlib.Data.Finset.Insert",
+      "type": [
+        ""
+      ]
+    },
+    "Finset.instInter": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "DecidableEq",
+        "Finset",
+        "Finset.instInter._proof_1",
+        "Finset.mk",
+        "Finset.val",
+        "Inter",
+        "Inter.mk",
+        "Multiset.ndinter"
+      ],
+      "digest": "26fa6179abd7baebd3f299dc5183ec4b29ffd8d2830406fae56bb676c4a4d7f9",
+      "kernel_name": "str:2:29:str:2:12:anonymous:0:6:Finset9:instInter",
+      "kind": "def",
+      "module": "Mathlib.Data.Finset.Lattice.Basic",
+      "type": [
+        ""
+      ]
+    },
+    "Finset.instInter._proof_1": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "DecidableEq",
+        "Finset",
+        "Finset.val",
+        "Multiset.Nodup",
+        "Multiset.ndinter"
+      ],
+      "digest": "8235e1cad515a4b5ca732f7cd08b0e24e8d56ddeabb9e79c5b741e411b410180",
+      "kernel_name": "str:2:49:str:2:29:str:2:12:anonymous:0:6:Finset9:instInter8:_proof_1",
+      "kind": "theorem",
+      "module": "Mathlib.Data.Finset.Lattice.Basic",
+      "type": [
+        ""
+      ]
+    },
+    "Finset.instLattice": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "DecidableEq",
+        "Finset",
+        "Finset.instInter",
+        "Finset.instLattice._proof_1",
+        "Finset.instLattice._proof_2",
+        "Finset.instLattice._proof_3",
+        "Finset.instLattice._proof_4",
+        "Finset.instLattice._proof_5",
+        "Finset.instLattice._proof_6",
+        "Finset.instPartialOrder",
+        "Finset.instUnion",
+        "Inter.inter",
+        "Lattice",
+        "Lattice.mk",
+        "SemilatticeSup.mk",
+        "Union.union"
+      ],
+      "digest": "c5dcdae6c4a27f8d200d04f011ed8eac406c20054726b0865df6b509358c6893",
+      "kernel_name": "str:2:29:str:2:12:anonymous:0:6:Finset11:instLattice",
+      "kind": "def",
+      "module": "Mathlib.Data.Finset.Lattice.Basic",
+      "type": [
+        ""
+      ]
+    },
+    "Finset.instLattice._proof_1": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "DecidableEq",
+        "Finset",
+        "Finset.instSetLike",
+        "Finset.val",
+        "Membership.mem",
+        "Multiset",
+        "Multiset.instMembership",
+        "Multiset.ndunion",
+        "SetLike.instMembership"
+      ],
+      "digest": "47924c59edfb1975510e61884a02f3be8a2cc6f6535efba9f4c08461d5925c46",
+      "kernel_name": "str:2:52:str:2:29:str:2:12:anonymous:0:6:Finset11:instLattice8:_proof_1",
+      "kind": "theorem",
+      "module": "Mathlib.Data.Finset.Lattice.Basic",
+      "type": [
+        ""
+      ]
+    },
+    "Finset.instLattice._proof_2": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "DecidableEq",
+        "Finset",
+        "Finset.instSetLike",
+        "Finset.val",
+        "Membership.mem",
+        "Multiset",
+        "Multiset.instMembership",
+        "Multiset.ndunion",
+        "SetLike.instMembership"
+      ],
+      "digest": "838b3d9e5ba77dc2fcea8f00dd4a6fc39bdc9ec44ecb1ef592b3a1621a5d2b19",
+      "kernel_name": "str:2:52:str:2:29:str:2:12:anonymous:0:6:Finset11:instLattice8:_proof_2",
+      "kind": "theorem",
+      "module": "Mathlib.Data.Finset.Lattice.Basic",
+      "type": [
+        ""
+      ]
+    },
+    "Finset.instLattice._proof_3": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "DecidableEq",
+        "Finset",
+        "Finset.instPartialOrder",
+        "Finset.instSetLike",
+        "Finset.instUnion",
+        "LE.le",
+        "Membership.mem",
+        "PartialOrder.toPreorder",
+        "Preorder.toLE",
+        "SetLike.instMembership",
+        "Union.union"
+      ],
+      "digest": "81da2964347538edb5fdcfe80d983e0726b41c807ba88af675ff29fc11f75b0c",
+      "kernel_name": "str:2:52:str:2:29:str:2:12:anonymous:0:6:Finset11:instLattice8:_proof_3",
+      "kind": "theorem",
+      "module": "Mathlib.Data.Finset.Lattice.Basic",
+      "type": [
+        ""
+      ]
+    },
+    "Finset.instLattice._proof_4": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "DecidableEq",
+        "Finset",
+        "Finset.instInter",
+        "Finset.instSetLike",
+        "Finset.val",
+        "Inter.inter",
+        "Membership.mem",
+        "Multiset",
+        "Multiset.instMembership",
+        "SetLike.instMembership"
+      ],
+      "digest": "db19af37295d92f1539ff8092dfda7d9b0e56dc6a5227f69e2d499d401cfaca9",
+      "kernel_name": "str:2:52:str:2:29:str:2:12:anonymous:0:6:Finset11:instLattice8:_proof_4",
+      "kind": "theorem",
+      "module": "Mathlib.Data.Finset.Lattice.Basic",
+      "type": [
+        ""
+      ]
+    },
+    "Finset.instLattice._proof_5": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "DecidableEq",
+        "Finset",
+        "Finset.instInter",
+        "Finset.instSetLike",
+        "Finset.val",
+        "Inter.inter",
+        "Membership.mem",
+        "Multiset",
+        "Multiset.instMembership",
+        "SetLike.instMembership"
+      ],
+      "digest": "4425f446c554b20f397a4a3d060e854f53f65045e94831ba45032dd069953d6e",
+      "kernel_name": "str:2:52:str:2:29:str:2:12:anonymous:0:6:Finset11:instLattice8:_proof_5",
+      "kind": "theorem",
+      "module": "Mathlib.Data.Finset.Lattice.Basic",
+      "type": [
+        ""
+      ]
+    },
+    "Finset.instLattice._proof_6": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "DecidableEq",
+        "Finset",
+        "Finset.instPartialOrder",
+        "Finset.instSetLike",
+        "Finset.val",
+        "LE.le",
+        "Membership.mem",
+        "Multiset",
+        "Multiset.instMembership",
+        "Multiset.ndinter",
+        "PartialOrder.toPreorder",
+        "Preorder.toLE",
+        "SetLike.instMembership"
+      ],
+      "digest": "2b20c2ab45c8c8c2091debffe5341a68e25bdcc31fdfaa34866b5112821eb00d",
+      "kernel_name": "str:2:52:str:2:29:str:2:12:anonymous:0:6:Finset11:instLattice8:_proof_6",
+      "kind": "theorem",
+      "module": "Mathlib.Data.Finset.Lattice.Basic",
+      "type": [
+        ""
+      ]
+    },
+    "Finset.instOrderBot": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "Bot.mk",
+        "EmptyCollection.emptyCollection",
+        "Finset",
+        "Finset.empty_subset",
+        "Finset.instEmptyCollection",
+        "Finset.instPartialOrder",
+        "OrderBot",
+        "OrderBot.mk",
+        "PartialOrder.toPreorder",
+        "Preorder.toLE"
+      ],
+      "digest": "bc934b555e03318bd5fe63d1565ac76f52ab74f2c08e6f96345f9773723b0e8b",
+      "kernel_name": "str:2:29:str:2:12:anonymous:0:6:Finset12:instOrderBot",
+      "kind": "def",
+      "module": "Mathlib.Data.Finset.Empty",
       "type": [
         ""
       ]
@@ -148797,6 +151521,27 @@
       "kernel_name": "str:2:29:str:2:12:anonymous:0:6:Finset2:mk",
       "kind": "ctor",
       "module": "Mathlib.Data.Finset.Defs",
+      "type": [
+        ""
+      ]
+    },
+    "Finset.subset_univ": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "Finset",
+        "Finset.instPartialOrder",
+        "Finset.univ",
+        "Fintype",
+        "LE.le",
+        "PartialOrder.toPreorder",
+        "Preorder.toLE"
+      ],
+      "digest": "cbf5d93ee50802e5444fd9f798ce27fe5539f4bf83f0c63e56484452d751bdac",
+      "kernel_name": "str:2:29:str:2:12:anonymous:0:6:Finset11:subset_univ",
+      "kind": "theorem",
+      "module": "Mathlib.Data.Fintype.Defs",
       "type": [
         ""
       ]
@@ -149201,6 +151946,537 @@
         ""
       ]
     },
+    "GeneralizedBooleanAlgebra": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "GeneralizedBooleanAlgebra",
+        "GeneralizedBooleanAlgebra.mk"
+      ],
+      "digest": "4457d44207d91bde80ed8e17191d4173fce19ebfb6e7c1729ccd8c181d389552",
+      "kernel_name": "str:2:12:anonymous:0:25:GeneralizedBooleanAlgebra",
+      "kind": "structure",
+      "module": "Mathlib.Order.BooleanAlgebra.Defs",
+      "type": [
+        ""
+      ]
+    },
+    "GeneralizedBooleanAlgebra.mk": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "Bot",
+        "Bot.bot",
+        "DistribLattice",
+        "DistribLattice.toLattice",
+        "Eq",
+        "GeneralizedBooleanAlgebra",
+        "GeneralizedBooleanAlgebra.mk",
+        "Lattice.inf",
+        "Lattice.inf_le_left",
+        "Lattice.inf_le_right",
+        "Lattice.le_inf",
+        "Lattice.toSemilatticeSup",
+        "Max.max",
+        "Min.min",
+        "SDiff",
+        "SDiff.sdiff",
+        "SemilatticeInf.mk",
+        "SemilatticeInf.toMin",
+        "SemilatticeSup.toMax",
+        "SemilatticeSup.toPartialOrder"
+      ],
+      "digest": "cf1e9a65b69ede6426945695e79096dea56eb7001effe2b025a60e76fa53cb32",
+      "kernel_name": "str:2:49:str:2:12:anonymous:0:25:GeneralizedBooleanAlgebra2:mk",
+      "kind": "ctor",
+      "module": "Mathlib.Order.BooleanAlgebra.Defs",
+      "type": [
+        ""
+      ]
+    },
+    "GeneralizedBooleanAlgebra.toBooleanAlgebra": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "BooleanAlgebra",
+        "BooleanAlgebra.mk",
+        "Compl.mk",
+        "DistribLattice.toLattice",
+        "GeneralizedBooleanAlgebra",
+        "GeneralizedBooleanAlgebra.toBooleanAlgebra._proof_1",
+        "GeneralizedBooleanAlgebra.toBooleanAlgebra._proof_2",
+        "GeneralizedBooleanAlgebra.toBooleanAlgebra._proof_3",
+        "GeneralizedBooleanAlgebra.toBooleanAlgebra._proof_4",
+        "GeneralizedBooleanAlgebra.toBooleanAlgebra._proof_5",
+        "GeneralizedBooleanAlgebra.toBot",
+        "GeneralizedBooleanAlgebra.toDistribLattice",
+        "GeneralizedBooleanAlgebra.toGeneralizedCoheytingAlgebra",
+        "GeneralizedBooleanAlgebra.toGeneralizedCoheytingAlgebra._proof_7",
+        "GeneralizedBooleanAlgebra.toOrderBot",
+        "GeneralizedBooleanAlgebra.toSDiff",
+        "GeneralizedCoheytingAlgebra.toLattice",
+        "HImp.mk",
+        "Lattice.toSemilatticeInf",
+        "Lattice.toSemilatticeSup",
+        "Max.max",
+        "OrderBot",
+        "OrderTop",
+        "OrderTop.toTop",
+        "PartialOrder.toPreorder",
+        "Preorder.toLE",
+        "SDiff.sdiff",
+        "SemilatticeInf.toPartialOrder",
+        "SemilatticeSup.toMax",
+        "Top.top"
+      ],
+      "digest": "fc10895759f4e32b8c56d8ab9275041684799df6f41fa40fa5aee4ea42f362fd",
+      "kernel_name": "str:2:49:str:2:12:anonymous:0:25:GeneralizedBooleanAlgebra16:toBooleanAlgebra",
+      "kind": "def",
+      "module": "Mathlib.Order.BooleanAlgebra.Basic",
+      "type": [
+        ""
+      ]
+    },
+    "GeneralizedBooleanAlgebra.toBooleanAlgebra._proof_1": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "DistribLattice.toLattice",
+        "Eq",
+        "GeneralizedBooleanAlgebra",
+        "GeneralizedBooleanAlgebra.toDistribLattice",
+        "GeneralizedBooleanAlgebra.toGeneralizedCoheytingAlgebra",
+        "GeneralizedBooleanAlgebra.toSDiff",
+        "GeneralizedCoheytingAlgebra.toLattice",
+        "Lattice.inf",
+        "Lattice.inf_le_left",
+        "Lattice.inf_le_right",
+        "Lattice.le_inf",
+        "Lattice.toSemilatticeInf",
+        "Lattice.toSemilatticeSup",
+        "Min.min",
+        "OrderTop",
+        "OrderTop.toTop",
+        "PartialOrder.toPreorder",
+        "Preorder.toLE",
+        "SDiff.sdiff",
+        "SemilatticeInf.mk",
+        "SemilatticeInf.toMin",
+        "SemilatticeInf.toPartialOrder",
+        "SemilatticeSup.toPartialOrder",
+        "Top.top"
+      ],
+      "digest": "23fe4fef7cd92c9205b40252341ee5b65ab0a646010a444fd158a87d51fcdc2d",
+      "kernel_name": "str:2:77:str:2:49:str:2:12:anonymous:0:25:GeneralizedBooleanAlgebra16:toBooleanAlgebra8:_proof_1",
+      "kind": "theorem",
+      "module": "Mathlib.Order.BooleanAlgebra.Basic",
+      "type": [
+        ""
+      ]
+    },
+    "GeneralizedBooleanAlgebra.toBooleanAlgebra._proof_2": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "Bot.bot",
+        "DistribLattice.toLattice",
+        "GeneralizedBooleanAlgebra",
+        "GeneralizedBooleanAlgebra.toDistribLattice",
+        "GeneralizedBooleanAlgebra.toGeneralizedCoheytingAlgebra",
+        "GeneralizedBooleanAlgebra.toOrderBot",
+        "GeneralizedBooleanAlgebra.toSDiff",
+        "GeneralizedCoheytingAlgebra.toLattice",
+        "LE.le",
+        "Lattice.toSemilatticeInf",
+        "Min.min",
+        "OrderBot.toBot",
+        "OrderTop",
+        "OrderTop.toTop",
+        "PartialOrder.toPreorder",
+        "Preorder.toLE",
+        "SDiff.sdiff",
+        "SemilatticeInf.toMin",
+        "SemilatticeInf.toPartialOrder",
+        "Top.top"
+      ],
+      "digest": "45dd90b7f038029fe1f228bfa1e3e64d4aca4e67eadf69ee5cf681ce7e9a82cc",
+      "kernel_name": "str:2:77:str:2:49:str:2:12:anonymous:0:25:GeneralizedBooleanAlgebra16:toBooleanAlgebra8:_proof_2",
+      "kind": "theorem",
+      "module": "Mathlib.Order.BooleanAlgebra.Basic",
+      "type": [
+        ""
+      ]
+    },
+    "GeneralizedBooleanAlgebra.toBooleanAlgebra._proof_3": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "DistribLattice.toLattice",
+        "Eq",
+        "GeneralizedBooleanAlgebra",
+        "GeneralizedBooleanAlgebra.toDistribLattice",
+        "GeneralizedBooleanAlgebra.toGeneralizedCoheytingAlgebra",
+        "GeneralizedBooleanAlgebra.toSDiff",
+        "GeneralizedCoheytingAlgebra.toLattice",
+        "LE.le",
+        "LE.mk",
+        "LT.lt",
+        "LT.mk",
+        "Lattice.toSemilatticeInf",
+        "Lattice.toSemilatticeSup",
+        "Max.max",
+        "OrderTop",
+        "OrderTop.toTop",
+        "PartialOrder.le_antisymm",
+        "PartialOrder.mk",
+        "PartialOrder.toPreorder",
+        "Preorder.le_refl",
+        "Preorder.le_trans",
+        "Preorder.lt_iff_le_not_ge",
+        "Preorder.mk",
+        "Preorder.toLE",
+        "Preorder.toLT",
+        "SDiff.sdiff",
+        "SemilatticeInf.toPartialOrder",
+        "SemilatticeSup.le_sup_left",
+        "SemilatticeSup.le_sup_right",
+        "SemilatticeSup.mk",
+        "SemilatticeSup.sup",
+        "SemilatticeSup.sup_le",
+        "SemilatticeSup.toMax",
+        "SemilatticeSup.toPartialOrder",
+        "Top.top"
+      ],
+      "digest": "e77d0146e61b86dfa6b9746927b79bbe8ec902db1c3f66d70231b081074e204b",
+      "kernel_name": "str:2:77:str:2:49:str:2:12:anonymous:0:25:GeneralizedBooleanAlgebra16:toBooleanAlgebra8:_proof_3",
+      "kind": "theorem",
+      "module": "Mathlib.Order.BooleanAlgebra.Basic",
+      "type": [
+        ""
+      ]
+    },
+    "GeneralizedBooleanAlgebra.toBooleanAlgebra._proof_4": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "GeneralizedBooleanAlgebra",
+        "GeneralizedBooleanAlgebra.toGeneralizedCoheytingAlgebra",
+        "GeneralizedCoheytingAlgebra.toLattice",
+        "GeneralizedCoheytingAlgebra.toSDiff",
+        "LE.le",
+        "Lattice.toSemilatticeInf",
+        "Lattice.toSemilatticeSup",
+        "Max.max",
+        "OrderTop",
+        "OrderTop.toTop",
+        "PartialOrder.toPreorder",
+        "Preorder.toLE",
+        "SDiff.sdiff",
+        "SemilatticeInf.toPartialOrder",
+        "SemilatticeSup.toMax",
+        "SemilatticeSup.toPartialOrder",
+        "Top.top"
+      ],
+      "digest": "b6250cf727a9a5de080668fdcc21c154931f420ca80e76decd4e279f135cea45",
+      "kernel_name": "str:2:77:str:2:49:str:2:12:anonymous:0:25:GeneralizedBooleanAlgebra16:toBooleanAlgebra8:_proof_4",
+      "kind": "theorem",
+      "module": "Mathlib.Order.BooleanAlgebra.Basic",
+      "type": [
+        ""
+      ]
+    },
+    "GeneralizedBooleanAlgebra.toBooleanAlgebra._proof_5": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "GeneralizedBooleanAlgebra",
+        "GeneralizedBooleanAlgebra.toGeneralizedCoheytingAlgebra",
+        "GeneralizedCoheytingAlgebra.toLattice",
+        "LE.le",
+        "Lattice.toSemilatticeInf",
+        "OrderTop",
+        "OrderTop.toTop",
+        "PartialOrder.toPreorder",
+        "Preorder.toLE",
+        "SemilatticeInf.toPartialOrder",
+        "Top.top"
+      ],
+      "digest": "bddd07d4ac56ac49ce7d85c2e2f755390e560a01297e1edf9ca620ac90e76eb4",
+      "kernel_name": "str:2:77:str:2:49:str:2:12:anonymous:0:25:GeneralizedBooleanAlgebra16:toBooleanAlgebra8:_proof_5",
+      "kind": "theorem",
+      "module": "Mathlib.Order.BooleanAlgebra.Basic",
+      "type": [
+        ""
+      ]
+    },
+    "GeneralizedBooleanAlgebra.toBot": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "Bot",
+        "GeneralizedBooleanAlgebra"
+      ],
+      "digest": "151d86402758fcb9458d3f2e968288c3b31f8926550049db617f7146af5624ff",
+      "kernel_name": "str:2:49:str:2:12:anonymous:0:25:GeneralizedBooleanAlgebra5:toBot",
+      "kind": "field",
+      "module": "Mathlib.Order.BooleanAlgebra.Defs",
+      "type": [
+        ""
+      ]
+    },
+    "GeneralizedBooleanAlgebra.toDistribLattice": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "DistribLattice",
+        "GeneralizedBooleanAlgebra"
+      ],
+      "digest": "68633610dcecabbc1d63f1de797945e70abde1e1d6932ebf5f09df0c598d6da2",
+      "kernel_name": "str:2:49:str:2:12:anonymous:0:25:GeneralizedBooleanAlgebra16:toDistribLattice",
+      "kind": "field",
+      "module": "Mathlib.Order.BooleanAlgebra.Defs",
+      "type": [
+        ""
+      ]
+    },
+    "GeneralizedBooleanAlgebra.toGeneralizedCoheytingAlgebra": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "DistribLattice.toLattice",
+        "GeneralizedBooleanAlgebra",
+        "GeneralizedBooleanAlgebra.toBot",
+        "GeneralizedBooleanAlgebra.toDistribLattice",
+        "GeneralizedBooleanAlgebra.toGeneralizedCoheytingAlgebra._proof_7",
+        "GeneralizedBooleanAlgebra.toGeneralizedCoheytingAlgebra._proof_8",
+        "GeneralizedBooleanAlgebra.toOrderBot",
+        "GeneralizedBooleanAlgebra.toSDiff",
+        "GeneralizedCoheytingAlgebra",
+        "GeneralizedCoheytingAlgebra.mk",
+        "Lattice.toSemilatticeInf",
+        "Lattice.toSemilatticeSup",
+        "OrderBot",
+        "OrderBot.mk",
+        "PartialOrder.toPreorder",
+        "Preorder.toLE",
+        "SDiff.mk",
+        "SDiff.sdiff",
+        "SemilatticeInf.toPartialOrder",
+        "SemilatticeSup.toPartialOrder"
+      ],
+      "digest": "677f3ec011cb29ff8d590d0de98c22333594404d86f93431b07d595bff0a8a05",
+      "kernel_name": "str:2:49:str:2:12:anonymous:0:25:GeneralizedBooleanAlgebra29:toGeneralizedCoheytingAlgebra",
+      "kind": "def",
+      "module": "Mathlib.Order.BooleanAlgebra.Basic",
+      "type": [
+        ""
+      ]
+    },
+    "GeneralizedBooleanAlgebra.toGeneralizedCoheytingAlgebra._proof_7": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "Bot.bot",
+        "DistribLattice.toLattice",
+        "GeneralizedBooleanAlgebra",
+        "GeneralizedBooleanAlgebra.toDistribLattice",
+        "GeneralizedBooleanAlgebra.toOrderBot",
+        "LE.le",
+        "Lattice.toSemilatticeInf",
+        "OrderBot.toBot",
+        "PartialOrder.toPreorder",
+        "Preorder.toLE",
+        "SemilatticeInf.toPartialOrder"
+      ],
+      "digest": "3b1500320a049daba129df84d2128b42d6f750bd7c8c6825bd3569dfb8b74614",
+      "kernel_name": "str:2:90:str:2:49:str:2:12:anonymous:0:25:GeneralizedBooleanAlgebra29:toGeneralizedCoheytingAlgebra8:_proof_7",
+      "kind": "theorem",
+      "module": "Mathlib.Order.BooleanAlgebra.Basic",
+      "type": [
+        ""
+      ]
+    },
+    "GeneralizedBooleanAlgebra.toGeneralizedCoheytingAlgebra._proof_8": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "DistribLattice.toLattice",
+        "GeneralizedBooleanAlgebra",
+        "GeneralizedBooleanAlgebra.toDistribLattice",
+        "GeneralizedBooleanAlgebra.toSDiff",
+        "Iff",
+        "LE.le",
+        "Lattice.toSemilatticeSup",
+        "Max.max",
+        "PartialOrder.toPreorder",
+        "Preorder.toLE",
+        "SDiff.sdiff",
+        "SemilatticeSup.toMax",
+        "SemilatticeSup.toPartialOrder"
+      ],
+      "digest": "044f917e3d85c5aa16bed0ac5c5f663a71a1162115a9a0fdc17cc5a70e4357dd",
+      "kernel_name": "str:2:90:str:2:49:str:2:12:anonymous:0:25:GeneralizedBooleanAlgebra29:toGeneralizedCoheytingAlgebra8:_proof_8",
+      "kind": "theorem",
+      "module": "Mathlib.Order.BooleanAlgebra.Basic",
+      "type": [
+        ""
+      ]
+    },
+    "GeneralizedBooleanAlgebra.toOrderBot": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "Bot",
+        "DistribLattice.toLattice",
+        "GeneralizedBooleanAlgebra",
+        "GeneralizedBooleanAlgebra.toBot",
+        "GeneralizedBooleanAlgebra.toDistribLattice",
+        "GeneralizedBooleanAlgebra.toOrderBot._proof_1",
+        "Lattice.toSemilatticeInf",
+        "OrderBot",
+        "OrderBot.mk",
+        "PartialOrder.toPreorder",
+        "Preorder.toLE",
+        "SemilatticeInf.toPartialOrder"
+      ],
+      "digest": "bed8588baf9c6d1eab729ed429dd9719d8ca6935a178c60b335f9f79272ca504",
+      "kernel_name": "str:2:49:str:2:12:anonymous:0:25:GeneralizedBooleanAlgebra10:toOrderBot",
+      "kind": "def",
+      "module": "Mathlib.Order.BooleanAlgebra.Basic",
+      "type": [
+        ""
+      ]
+    },
+    "GeneralizedBooleanAlgebra.toOrderBot._proof_1": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "Bot.bot",
+        "DistribLattice.toLattice",
+        "GeneralizedBooleanAlgebra",
+        "GeneralizedBooleanAlgebra.toBot",
+        "GeneralizedBooleanAlgebra.toDistribLattice",
+        "LE.le",
+        "Lattice.toSemilatticeInf",
+        "PartialOrder.toPreorder",
+        "Preorder.toLE",
+        "SemilatticeInf.toPartialOrder"
+      ],
+      "digest": "d754f2b31616efb498223f56d07ba4ad7de09bcabcda39ea297a25f7c3c9df59",
+      "kernel_name": "str:2:71:str:2:49:str:2:12:anonymous:0:25:GeneralizedBooleanAlgebra10:toOrderBot8:_proof_1",
+      "kind": "theorem",
+      "module": "Mathlib.Order.BooleanAlgebra.Basic",
+      "type": [
+        ""
+      ]
+    },
+    "GeneralizedBooleanAlgebra.toSDiff": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "GeneralizedBooleanAlgebra",
+        "SDiff"
+      ],
+      "digest": "c9d241d141b5b57ebdc56941cafcc8c6c33f5deb1d53c40ec6cd55044f9e8c99",
+      "kernel_name": "str:2:49:str:2:12:anonymous:0:25:GeneralizedBooleanAlgebra7:toSDiff",
+      "kind": "field",
+      "module": "Mathlib.Order.BooleanAlgebra.Defs",
+      "type": [
+        ""
+      ]
+    },
+    "GeneralizedCoheytingAlgebra": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "GeneralizedCoheytingAlgebra",
+        "GeneralizedCoheytingAlgebra.mk"
+      ],
+      "digest": "c000ff44dffe6a6080bf52528fc98680a255441ca867a1d4d3ce356c23e5ede2",
+      "kernel_name": "str:2:12:anonymous:0:27:GeneralizedCoheytingAlgebra",
+      "kind": "structure",
+      "module": "Mathlib.Order.Heyting.Basic",
+      "type": [
+        ""
+      ]
+    },
+    "GeneralizedCoheytingAlgebra.mk": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "GeneralizedCoheytingAlgebra",
+        "GeneralizedCoheytingAlgebra.mk",
+        "Iff",
+        "LE.le",
+        "Lattice",
+        "Lattice.toSemilatticeSup",
+        "Max.max",
+        "OrderBot",
+        "PartialOrder.toPreorder",
+        "Preorder.toLE",
+        "SDiff",
+        "SDiff.sdiff",
+        "SemilatticeSup.toMax",
+        "SemilatticeSup.toPartialOrder"
+      ],
+      "digest": "2202c7e41e9ff6b40b0e099c5b5a24a31fb95ea8ba9d69605fe386f2360da396",
+      "kernel_name": "str:2:51:str:2:12:anonymous:0:27:GeneralizedCoheytingAlgebra2:mk",
+      "kind": "ctor",
+      "module": "Mathlib.Order.Heyting.Basic",
+      "type": [
+        ""
+      ]
+    },
+    "GeneralizedCoheytingAlgebra.toLattice": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "GeneralizedCoheytingAlgebra",
+        "Lattice"
+      ],
+      "digest": "ab9e0264fc97675a91916b59e474dbb4773a136e68ce484a56ac1061a293193a",
+      "kernel_name": "str:2:51:str:2:12:anonymous:0:27:GeneralizedCoheytingAlgebra9:toLattice",
+      "kind": "field",
+      "module": "Mathlib.Order.Heyting.Basic",
+      "type": [
+        ""
+      ]
+    },
+    "GeneralizedCoheytingAlgebra.toSDiff": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "GeneralizedCoheytingAlgebra",
+        "SDiff"
+      ],
+      "digest": "99c42136aeb36ba65921447e8f69577adc923601d008a6adf3260ceff2377ad5",
+      "kernel_name": "str:2:51:str:2:12:anonymous:0:27:GeneralizedCoheytingAlgebra7:toSDiff",
+      "kind": "field",
+      "module": "Mathlib.Order.Heyting.Basic",
+      "type": [
+        ""
+      ]
+    },
     "GetElem": {
       "body": [
         ""
@@ -149467,6 +152743,53 @@
       "kernel_name": "str:2:26:str:2:12:anonymous:0:3:HEq4:refl",
       "kind": "ctor",
       "module": "Init.Prelude",
+      "type": [
+        ""
+      ]
+    },
+    "HImp": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "HImp",
+        "HImp.mk"
+      ],
+      "digest": "c3efe652d8a9b98824029fc2fa46ff3a2b5bcbabe1664380a59babb54d825b22",
+      "kernel_name": "str:2:12:anonymous:0:4:HImp",
+      "kind": "structure",
+      "module": "Mathlib.Order.Notation",
+      "type": [
+        ""
+      ]
+    },
+    "HImp.himp": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "HImp"
+      ],
+      "digest": "375b2d141758f9d6d1142dfe973a7ef55cc26f3638905592d29138183b810ebe",
+      "kernel_name": "str:2:27:str:2:12:anonymous:0:4:HImp4:himp",
+      "kind": "field",
+      "module": "Mathlib.Order.Notation",
+      "type": [
+        ""
+      ]
+    },
+    "HImp.mk": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "HImp",
+        "HImp.mk"
+      ],
+      "digest": "52545b86cf62a95345b9985c9b7cdbe2202b73dfde1830ed50681ba9eac74e86",
+      "kernel_name": "str:2:27:str:2:12:anonymous:0:4:HImp2:mk",
+      "kind": "ctor",
+      "module": "Mathlib.Order.Notation",
       "type": [
         ""
       ]
@@ -156518,6 +159841,26 @@
         ""
       ]
     },
+    "Multiset.ndinter": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "DecidableEq",
+        "Membership.mem",
+        "Multiset",
+        "Multiset.decidableMem",
+        "Multiset.filter",
+        "Multiset.instMembership"
+      ],
+      "digest": "8664762d1bf8ffeb3deb08c09a6c8cffd41d6b3bc355995d250fe67e1e4d5fbb",
+      "kernel_name": "str:2:31:str:2:12:anonymous:0:8:Multiset7:ndinter",
+      "kind": "def",
+      "module": "Mathlib.Data.Multiset.FinsetOps",
+      "type": [
+        ""
+      ]
+    },
     "Multiset.ndunion": {
       "body": [
         ""
@@ -160053,6 +163396,60 @@
         ""
       ]
     },
+    "OrderTop": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "LE",
+        "OrderTop",
+        "OrderTop.mk"
+      ],
+      "digest": "8ecdde6b8aacd7d1691070099b5371b7a4e27b9c5b23941884fa8ec9da27df68",
+      "kernel_name": "str:2:12:anonymous:0:8:OrderTop",
+      "kind": "structure",
+      "module": "Mathlib.Order.BoundedOrder.Basic",
+      "type": [
+        ""
+      ]
+    },
+    "OrderTop.mk": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "LE",
+        "LE.le",
+        "OrderTop",
+        "OrderTop.mk",
+        "Top",
+        "Top.top"
+      ],
+      "digest": "1a280633a059e08fa1b3a83d5dbac1ff095131a4ba1671d51dc40ec86c69835d",
+      "kernel_name": "str:2:31:str:2:12:anonymous:0:8:OrderTop2:mk",
+      "kind": "ctor",
+      "module": "Mathlib.Order.BoundedOrder.Basic",
+      "type": [
+        ""
+      ]
+    },
+    "OrderTop.toTop": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "LE",
+        "OrderTop",
+        "Top"
+      ],
+      "digest": "ca2c818b3b076cfb3e07b0616f8e40f0f14a701d434e92e4415d5a4b372b103b",
+      "kernel_name": "str:2:31:str:2:12:anonymous:0:8:OrderTop5:toTop",
+      "kind": "field",
+      "module": "Mathlib.Order.BoundedOrder.Basic",
+      "type": [
+        ""
+      ]
+    },
     "Ordering": {
       "body": [
         ""
@@ -161199,6 +164596,62 @@
       "digest": "805aba4d83e2c645fb83eb7b167ebc0ae6154f00130c5ad75181cd43d8949dfa",
       "kernel_name": "str:2:12:anonymous:0:8:Preorder",
       "kind": "structure",
+      "module": "Mathlib.Order.Defs.PartialOrder",
+      "type": [
+        ""
+      ]
+    },
+    "Preorder.le_refl": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "LE.le",
+        "Preorder",
+        "Preorder.toLE"
+      ],
+      "digest": "a085e7ee8deabc2adf7f4df0754bed50ffe523181e1740e0f5f05eb0812ada1f",
+      "kernel_name": "str:2:31:str:2:12:anonymous:0:8:Preorder7:le_refl",
+      "kind": "field",
+      "module": "Mathlib.Order.Defs.PartialOrder",
+      "type": [
+        ""
+      ]
+    },
+    "Preorder.le_trans": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "LE.le",
+        "Preorder",
+        "Preorder.toLE"
+      ],
+      "digest": "4b7f00b568029ef825f8573ae988b20337a69801fdf77365d016278cc2f76f92",
+      "kernel_name": "str:2:31:str:2:12:anonymous:0:8:Preorder8:le_trans",
+      "kind": "field",
+      "module": "Mathlib.Order.Defs.PartialOrder",
+      "type": [
+        ""
+      ]
+    },
+    "Preorder.lt_iff_le_not_ge": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "And",
+        "Iff",
+        "LE.le",
+        "LT.lt",
+        "Not",
+        "Preorder",
+        "Preorder.toLE",
+        "Preorder.toLT"
+      ],
+      "digest": "63909bc03bda1be8ce2b2555e1ad2d83e686c2863cf1a555604c696ffd403849",
+      "kernel_name": "str:2:31:str:2:12:anonymous:0:8:Preorder16:lt_iff_le_not_ge",
+      "kind": "field",
       "module": "Mathlib.Order.Defs.PartialOrder",
       "type": [
         ""
@@ -162627,6 +166080,46 @@
         ""
       ]
     },
+    "SemilatticeSup.le_sup_left": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "LE.le",
+        "PartialOrder.toPreorder",
+        "Preorder.toLE",
+        "SemilatticeSup",
+        "SemilatticeSup.sup",
+        "SemilatticeSup.toPartialOrder"
+      ],
+      "digest": "b655bc825333e92cc4d403a4d5422d5efad6e31f04604a7e4270cbef68364eaa",
+      "kernel_name": "str:2:38:str:2:12:anonymous:0:14:SemilatticeSup11:le_sup_left",
+      "kind": "field",
+      "module": "Mathlib.Order.Lattice",
+      "type": [
+        ""
+      ]
+    },
+    "SemilatticeSup.le_sup_right": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "LE.le",
+        "PartialOrder.toPreorder",
+        "Preorder.toLE",
+        "SemilatticeSup",
+        "SemilatticeSup.sup",
+        "SemilatticeSup.toPartialOrder"
+      ],
+      "digest": "6c444dc3662297e596fba1efece6c717dec2345441fc1f3d8067f3dff18c35d5",
+      "kernel_name": "str:2:38:str:2:12:anonymous:0:14:SemilatticeSup12:le_sup_right",
+      "kind": "field",
+      "module": "Mathlib.Order.Lattice",
+      "type": [
+        ""
+      ]
+    },
     "SemilatticeSup.mk": {
       "body": [
         ""
@@ -162656,6 +166149,26 @@
       ],
       "digest": "6ab06a6ecc91080099b84ba31e27e21c99f048f4515b4d134740909a0a2bb84d",
       "kernel_name": "str:2:38:str:2:12:anonymous:0:14:SemilatticeSup3:sup",
+      "kind": "field",
+      "module": "Mathlib.Order.Lattice",
+      "type": [
+        ""
+      ]
+    },
+    "SemilatticeSup.sup_le": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "LE.le",
+        "PartialOrder.toPreorder",
+        "Preorder.toLE",
+        "SemilatticeSup",
+        "SemilatticeSup.sup",
+        "SemilatticeSup.toPartialOrder"
+      ],
+      "digest": "1ddf549c11569e72d96c98da005c54da83c28fe0eafe809368423468fd5ca068",
+      "kernel_name": "str:2:38:str:2:12:anonymous:0:14:SemilatticeSup6:sup_le",
       "kind": "field",
       "module": "Mathlib.Order.Lattice",
       "type": [
@@ -163903,6 +167416,53 @@
       "kernel_name": "str:2:31:str:2:12:anonymous:0:8:ToString8:toString",
       "kind": "field",
       "module": "Init.Data.ToString.Basic",
+      "type": [
+        ""
+      ]
+    },
+    "Top": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "Top",
+        "Top.mk"
+      ],
+      "digest": "f892daf5171a599d9172d106e7b17ac943600b6aa1b757323ac6301cf51c0ffa",
+      "kernel_name": "str:2:12:anonymous:0:3:Top",
+      "kind": "structure",
+      "module": "Mathlib.Order.Notation",
+      "type": [
+        ""
+      ]
+    },
+    "Top.mk": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "Top",
+        "Top.mk"
+      ],
+      "digest": "b4c66923a62828f964ba71d391e1f56cf551d75880c8ae1405208d20f299e9bb",
+      "kernel_name": "str:2:26:str:2:12:anonymous:0:3:Top2:mk",
+      "kind": "ctor",
+      "module": "Mathlib.Order.Notation",
+      "type": [
+        ""
+      ]
+    },
+    "Top.top": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "Top"
+      ],
+      "digest": "d97719f603368a6ea771b60d411a2dac6740b6f2376157dd0a877e0a698ac18f",
+      "kernel_name": "str:2:26:str:2:12:anonymous:0:3:Top3:top",
+      "kind": "field",
+      "module": "Mathlib.Order.Notation",
       "type": [
         ""
       ]
