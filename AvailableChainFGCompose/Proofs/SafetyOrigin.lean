@@ -22,7 +22,8 @@ variable [DecidableEq V] {E : Generic.Env V} {rho : V2.D.Run V P}
 variable {Good : P.State → Prop} {pending : P.State → P.Object → Prop} {Q : Block → Prop}
 
 /-- The frozen record implies the origin record, with no pending object: the one new block
-of a delivery has the delivered object as its origin. The converse does not hold. -/
+of a delivery has the delivered object as its origin. With this empty pending reader the
+converse also holds. With a nonempty pending reader the origin record is strictly weaker. -/
 theorem safetyStoreOriginLaws_of_storeLaws (L : FGSafetyStoreLaws R S H f Good) :
     FGSafetyStoreOriginLaws R S H f Good (fun _ _ => False) where
   initial_good := L.initial_good
