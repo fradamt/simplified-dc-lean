@@ -39,5 +39,28 @@ private theorem frozen_premises_sat :
 
 #print axioms frozen_premises_sat
 
+private theorem frozen_tail_bridge :
+    FirstHeightRowBy r6S c5env r6rho d5cTiming Row.height_pair 2 18 ∧
+    (∃ r j a, HeightRow r6S c5env r6rho d5cTiming
+      (fun a => namedEntry (Row.height_pair a)) r 2 ∧
+      HonestRowAt r6S c5env r6rho d5cTiming j () r a ∧
+      j = 15 ∧ r = 1 ∧ a = r6row2 ∧ d5cTiming.action r = 14) := by
+  obtain ⟨cert, inv, ht, schedule, mono, cap, phase, proposal, hne, _, service, hhor⟩ :=
+    frozen_premises_sat
+  have result := healing_frontierTail_row_holder r6R r6S c5env r6rho r6O d5cTiming r6I
+    Row.height_pair r6chain c5E cert inv ht schedule hne mono cap phase proposal
+    (le_rfl : d5cTiming.gate 2 ≤ (14 : Time)) service hhor
+  refine ⟨result, ?_⟩
+  obtain ⟨r, hr, _, _⟩ := result
+  obtain ⟨j, y, a, e, hrow, hn⟩ := hr
+  cases y
+  rcases r6rows hrow with ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩
+  · change some (1, genesisRoot) = some (2, e) at hn
+    cases hn
+  · exact ⟨1, 15, r6row2, ⟨15, (), r6row2, e, hrow, hn⟩,
+      hrow, rfl, rfl, rfl, rfl⟩
+
+#print axioms frozen_tail_bridge
+
 end AvailableChain.FGCompose.Tests.POP6aFrozen
 end
