@@ -538,5 +538,33 @@ private theorem mixed_search_age :
   exact ⟨s, X, hs, hchild, hnew, hX, ha, hg, hheight⟩
 
 #print axioms mixed_search_age
+
+private abbrev frozenEnv : Generic.Env (Fin 1) :=
+  ⟨1, by decide, 0, by decide, fun _ t => decide (t = 6 ∨ t = 20)⟩
+private abbrev frozenRun : V2.D.Run (Fin 1) protocol where
+  honest := {0}
+  horizon := 38
+  events := [.tick 0 6, .tick 0 20]
+  seatOf := fun _ _ => 0
+  input := fun _ _ => ()
+
+private theorem frozen_source_premises_sat :
+    (∀ i, safetyHolder reads frozenRun i = (Equiv.refl (Fin 1)) i) ∧
+    PromotionSourceAt core reads frozenEnv frozenRun obs timing iface wire 1 0 1
+      .genesis 5 child := by
+  refine ⟨fun i => Subsingleton.elim _ _, ?_⟩
+  have hp : HonestProposal frozenEnv frozenRun iface 5 (erase child) := by
+    refine ⟨⟨by decide, by decide⟩, ⟨.seat 20 0, .inr child⟩,
+      ⟨1, by decide +kernel, by decide +kernel⟩, rfl⟩
+  refine ⟨⟨rfl, rfl⟩, preceq_refl _, hp, rfl, by decide,
+    by decide, by decide, by decide, ?_⟩
+  intro x _
+  have hx : x = 0 := Subsingleton.elim _ _
+  subst x
+  refine ⟨0, 0, row, le_rfl, ?_, false, rfl⟩
+  unfold HonestRowAt
+  decide +kernel
+
+#print axioms frozen_source_premises_sat
 end AvailableChain.FGCompose.Tests.PopulationAge
 end
