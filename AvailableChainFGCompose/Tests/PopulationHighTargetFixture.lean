@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGCompose.Proofs.Population.HighTarget
+public import AvailableChainFGCompose.Proofs.Population.HighTarget -- shake: keep (private fixture)
 
 set_option linter.privateModule false
 noncomputable section
