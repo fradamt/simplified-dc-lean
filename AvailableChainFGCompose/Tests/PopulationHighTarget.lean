@@ -171,6 +171,30 @@ private theorem mixed_client_premises_sat :
     · exact False.elim (hn 0 rfl)
     · decide +kernel
 
+private theorem record_at_cut (k x : Nat) :
+    reads.record (V2.D.Run.stateBefore (env Nat) run k x) =
+      if x = 9 ∧ 0 < k then old else RecordOnce.initial := by
+  by_cases h9 : x = 9
+  · subst x
+    by_cases hk : k < 6
+    · interval_cases k <;> rfl
+    · have ht : run.events.take k = run.events :=
+        List.take_of_length_le (by simpa using hk)
+      rw [ite_eq_left ⟨rfl, by omega⟩, V2.D.Run.stateBefore, ht]
+      rfl
+  · rw [ite_eq_right (fun h => h9 h.1)]
+    by_cases hk : k < 6
+    · interval_cases k <;> by_cases h7 : x = 7 <;>
+        simp_all [V2.D.Run.stateBefore, V2.D.World.init, V2.D.World.step, V2.D.tick,
+          V2.D.Run.ownSeats, List.finRange_succ, protocol, run, env]
+    · have ht : run.events.take k = run.events :=
+        List.take_of_length_le (by simpa using hk)
+      rw [V2.D.Run.stateBefore, ht]
+      by_cases h7 : x = 7 <;>
+        simp_all [V2.D.World.init, V2.D.World.step, V2.D.tick,
+          V2.D.Run.ownSeats, List.finRange_succ, protocol, run, env]
+
+#print axioms record_at_cut
 #print axioms global_client_premises_sat
 #print axioms mixed_client_premises_sat
 end AvailableChain.FGCompose.Tests.PopulationHighTarget
