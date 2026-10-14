@@ -100,5 +100,49 @@ theorem p0d3_same_batch_holder {A : Finset (Fin n)} {r height : Nat} {s : Slot} 
     parentFG parentHeight validFor fold Ef laws hA hne hU hrows hParents hslot read decodeRows
   exact ⟨U, hU, hslotU, hUP, hsame⟩
 
+include laws in
+/-- SAME: select the opening batch before using the new proposal's parent read. -/
+theorem healing_promotion_same_rows_on_holder {A : Finset (Fin n)}
+    {r height : Nat} {s : Slot} {Q : Block}
+    {X : FGBlock (Fin n)} (hA : A ⊆ FGHonestSeats S rho) (hne : A.Nonempty)
+    (hentry : OpeningEntry R E rho H T r height)
+    (hcovered : OpeningCoveredFG R S E rho H T pair A r Q)
+    (entryAgreement : ∀ x y K L, x ∈ rho.honest → y ∈ rho.honest →
+      actionSourceFG R E rho T x r = some (some K) →
+      actionSourceFG R E rho T y r = some (some L) →
+      (H K).T_h.root = (H L).T_h.root → (H K).T_h = (H L).T_h)
+    (sourceSlot : ∀ x K, x ∈ rho.honest →
+      actionSourceFG R E rho T x r = some (some K) → K.slot ≤ r * T.roundSlots)
+    (ancestorSlot : ∀ x K A, x ∈ rho.honest →
+      actionSourceFG R E rho T x r = some (some K) → FGBlock.Preceq A K →
+      A.slot ≤ K.slot)
+    (hParents : ∀ x K, x ∈ rho.honest →
+      actionSourceFG R E rho T x r = some (some K) → FGBlock.Preceq K X.parent)
+    (hslot : X.slot = s)
+    (read : ∃ nd, proposalStateAt E rho I s = some nd ∧
+      parentFG nd (R.erase X).parent = some X.parent ∧
+      (fold nd s X.parent).h = (H X.parent).h ∧
+      (fold nd s X.parent).T_h = (H X.parent).T_h ∧
+      parentHeight nd s X.parent = ((fold nd s X.parent).h, (fold nd s X.parent).T_h.root) ∧
+      ∀ a, validFor nd s X.parent a =
+        match S.decode a with | none => false | some b => Window.r6w (fold nd s X.parent) b)
+    (decodeRows : ∀ j x rSent a, HonestRowAt S E rho T j x rSent a →
+      ∃ b, S.decode a = some b ∧ b.height_pair = pair a) :
+    ∃ U, EntryAt H U height ∧ U.slot ≤ r * T.roundSlots ∧ FGBlock.Preceq U X.parent ∧
+    ∀ i ∈ A, let x := safetyHolder S rho i; ∃ K nd j rSent a,
+      postClock E rho x (T.action r) = some nd ∧
+      actionSourceFG R E rho T x r = some (some K) ∧ K ∈ (R.core nd).fg.TF ∧
+      Block.Preceq Q (R.erase K) ∧ FGBlock.Preceq U K ∧ K.slot ≤ r * T.roundSlots ∧
+      (H K).h = height ∧ (H K).T_h = U ∧ rSent ≤ r ∧ HonestRowAt S E rho T j x rSent a ∧
+      NamesEntry pair .progress a height U ∧
+      ((H X.parent).h = height →
+        ValidForParent E rho I parentFG validFor X.slot (R.erase X) a ∧
+        HeightMatch E rho I (fun a => namedEntry (pair a)) parentFG parentHeight
+          X.slot (R.erase X) a) := by
+  have batch := healing_promotion_bounded_rows_holder R S E rho H T pair Ef laws
+    hA hne hentry hcovered entryAgreement sourceSlot ancestorSlot
+  exact p0d3_same_batch_holder R S E rho H T I pair parentFG parentHeight validFor fold Ef laws
+    hA hne batch hParents hslot read decodeRows
+
 end AvailableChain.FGCompose
 end
