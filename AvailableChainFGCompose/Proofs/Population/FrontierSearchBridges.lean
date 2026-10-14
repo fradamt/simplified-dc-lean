@@ -44,7 +44,8 @@ theorem frontierHG3ResultFG_frozen_iff (i m : Nat) (start deadline : Time) :
 theorem interruptedRepairStatementFG_frozen_iff (G ΔF ρbar : Time) :
     InterruptedRepairStatementFG R S E rho O T I pair Jst leaseSlots deltaT G ΔF ρbar ↔
       InterruptedRepairStatement R S E rho O T I pair Jst leaseSlots deltaT G ΔF ρbar := by
-  simp only [InterruptedRepairStatementFG_def, InterruptedRepairStatement,
+  dsimp only [InterruptedRepairStatement]
+  simp only [InterruptedRepairStatementFG_def,
     strongServedFG_frozen_iff R S E rho O T I pair Jst leaseSlots e he]
 
 /-- Iff: use the served equivalence contravariantly, preserving both independent horizons. -/
