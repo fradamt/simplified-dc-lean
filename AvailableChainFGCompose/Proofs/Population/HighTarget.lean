@@ -147,5 +147,31 @@ theorem high_target_row_covered_holder (seat : Fin n)
       rfl
   exact ⟨j, q, a, hqr, ha, hc, (D.decode_height a u hd).trans hp⟩
 
+include hentry records finality prior hsrc hheight J client trace emission complete
+  wireLaws hT hs enabled in
+/-- At the first high action, the strict old-row cap rules out a prior target. -/
+theorem high_target_first_row_holder (seat : Fin n)
+    (hx : safetyHolder S rho seat ∈ rho.honest) (r : Nat) (C : FGBlock (Fin n))
+    (hsource : actionSourceFG R E rho T (safetyHolder S rho seat) r = some (some C))
+    (hhigh : high R O pt.reset C)
+    (hawake : E.awake (safetyHolder S rho seat) (T.action r) = true)
+    (hbefore : ∀ j q a h, q < r → HonestRowAt S E rho T j (safetyHolder S rho seat) q a →
+      historyRowHeight S D a = some h → h < (O.height C).h) :
+    ∃ j a, HonestRowAt S E rho T j (safetyHolder S rho seat) r a ∧
+      RowComplete S rho D.signer valid (safetyHolder S rho seat) a ∧
+      D.heightPair a = .vote (O.height C).h (O.height C).T_h.root false := by
+  obtain ⟨j, q, a, hqr, ha, hc, hp⟩ := high_target_row_covered_holder entry hentry records
+    finality prior hsrc hheight J client trace emission complete wireLaws hT hs enabled
+    seat hx r C hsource hhigh hawake
+  have hq : q = r := by
+    by_contra hne
+    have hheight : historyRowHeight S D a = some (O.height C).h :=
+      congrArg (fun pair : NamedHeightPair =>
+        match pair with | .empty => none | .vote h _ _ => some h) hp
+    have hlt := hbefore j q a _ (lt_of_le_of_ne hqr hne) ha hheight
+    exact (Nat.lt_irrefl _ hlt).elim
+  subst q
+  exact ⟨j, a, ha, hc, hp⟩
+
 end AvailableChain.FGCompose
 end
