@@ -291,5 +291,14 @@ private theorem old_service_rejected (Qfg : FGBlock (Fin 1)) :
 
 #print axioms old_service_rejected
 
+/-- The eligible proposal is unique, so the old existential cannot choose an earlier seed. -/
+private theorem old_saved_seed_rejected :
+    ¬ StrongServed core reads env run obs timing interface Row.height_pair 0 1 1 18 := by
+  rintro ⟨u, J, contested, q, Q, Qfg, _, hp, _, _, _, _, _, _, _, _, _, hs⟩
+  obtain ⟨rfl, rfl⟩ := proposal_unique hp
+  exact old_service_rejected Qfg hs
+
+#print axioms old_saved_seed_rejected
+
 end AvailableChain.FGCompose.Tests.PopulationService
 end
