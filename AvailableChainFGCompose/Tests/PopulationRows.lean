@@ -1462,5 +1462,58 @@ private theorem frozen_bridge_premises_sat :
 
 #print axioms frozen_bridge_premises_sat
 
+private abbrev missingEnv : Generic.Env Nat :=
+  { env Nat with awake := fun x t => decide (x ≠ 9 ∨ t ≠ 30) }
+
+-- Keep source/HEAD, signer, pair, quorum and prior history; mute only this release.
+private theorem missing_row_premises_sat :
+    (∀ x ∈ run.honest, postClock missingEnv run x 30 = some 30) ∧
+    core.source 30 = some dBlock ∧ core.finalityHead 30 = some dBlock ∧
+    RowComplete reads run history.signer (fun _ => true) 9 (wire row3) ∧
+    history.signer (wire row3) = some 0 ∧
+    history.heightPair (wire row3) = .vote 4 dBlock.root false ∧
+    FinalityNames reads history (wire row3) 3 bBlock ∧
+    electorate.IsQuorum ({0} : Finset (Fin 1)) ∧
+    (∀ i ∈ ({0} : Finset (Fin 1)), safetyHolder reads run i ∈ run.honest) ∧
+    (∀ j q a h, q < 3 → HonestRowAt reads missingEnv run timing j 9 q a →
+      historyRowHeight reads history a = some h → h < 4) := by
+  refine ⟨?_, rfl, rfl, ⟨rfl, 0, rfl, rfl⟩, rfl, rfl, rfl,
+    by change (1 : Nat) ≤ 1; decide, by intro i _; change (9 : Nat) ∈ run.honest; decide, ?_⟩
+  · intro x hx
+    have hx' : x = 7 ∨ x = 9 := by simpa using hx
+    rcases hx' with rfl | rfl <;> decide +kernel
+  · intro j q a h hq ha hh
+    have he := ha.2.1
+    have hw := ha.2.2
+    have hq' : q ≤ 2 := by omega
+    interval_cases q
+    · have eqj : j = 6 := (List.Nodup.getElem?_inj
+        (List.getElem?_eq_some_iff.mp he).1 schedule_premises_sat.nodup).mp he
+      subst j
+      change a ∈ [wire row0] at hw
+      obtain rfl := List.mem_singleton.mp hw
+      change some 1 = some h at hh
+      have eh := Option.some.inj hh
+      omega
+    · have eqj : j = 14 := (List.Nodup.getElem?_inj
+        (List.getElem?_eq_some_iff.mp he).1 schedule_premises_sat.nodup).mp he
+      subst j
+      change a ∈ [wire row1] at hw
+      obtain rfl := List.mem_singleton.mp hw
+      change some 2 = some h at hh
+      have eh := Option.some.inj hh
+      omega
+    · have eqj : j = 22 := (List.Nodup.getElem?_inj
+        (List.getElem?_eq_some_iff.mp he).1 schedule_premises_sat.nodup).mp he
+      subst j
+      change a ∈ [wire row2] at hw
+      obtain rfl := List.mem_singleton.mp hw
+      change some 3 = some h at hh
+      have eh := Option.some.inj hh
+      omega
+
+
+#print axioms missing_row_premises_sat
+
 end AvailableChain.FGCompose.Tests.PopulationRowsControls
 end
