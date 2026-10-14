@@ -83,6 +83,20 @@ private theorem c5erase_mono {A B : FGBlock (Fin 1)} (h : FGBlock.Preceq A B) :
 
 #print axioms c5erase_mono
 
+private def c5E : Electorate (Fin 1) := ⟨fun _ => 1, fun _ => by decide⟩
+
+private def c5cfg : FGConfig := ⟨4⟩
+
+private abbrev c5H := KitFG.Window.certificateHeight c5E c5cfg 2
+
+private abbrev c5F := KitFG.Window.certificateFinality c5E c5cfg 2
+
+private theorem c5cert : FGCertificateLaws c5E c5H c5F :=
+  KitFG.Window.windowCertificateLaws c5E c5cfg 2
+    (by unfold Electorate.IsQuorum; decide +kernel) (by decide)
+
+#print axioms c5cert
+
 -- POP-5 local fixture support ends here.
 
 end Fixture
