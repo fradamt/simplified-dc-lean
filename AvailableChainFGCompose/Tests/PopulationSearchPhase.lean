@@ -1,0 +1,151 @@
+module
+public import AvailableChainFGCompose.Proofs.Population.FrontierSearchTop
+import all AvailableChainFGCompose.Proofs.Population.FrontierSearchTop
+import all AvailableChainFGCompose.Tests.P0d5c
+
+set_option linter.privateModule false
+
+noncomputable section
+namespace AvailableChain.FGCompose.Tests.PopulationSearchPhase
+open AvailableChain.SimplexFG AvailableChain.KitFG
+open AvailableChain.FGCompose.Tests.P0d5c
+
+/-! Generic ordinary-event-fold fixture. Both honest runtime nodes tick at every time
+0..42. The FG seat belongs to 9; proposals at slots 1, 5 and 7 belong to 7. The low
+seed has height 1; its first opening uses 9's original action-0 row. The actual
+slot-5 carrier raises the proposal to height 2 at the original gate time 26. -/
+
+private abbrev low : FGBlock (Fin 1) := .node .genesis 1 ⟨101⟩ 0 []
+private abbrev firstRow : Row (Fin 1) := ⟨0, .vote 1 genesisRoot true, none⟩
+private abbrev middle : FGBlock (Fin 1) := .node low 5 ⟨105⟩ 0 [firstRow]
+private abbrev late : FGBlock (Fin 1) := .node middle 7 ⟨107⟩ 0 []
+private abbrev nextRow : Row (Fin 1) := ⟨0, .vote 2 middle.root true, none⟩
+private abbrev chainAt (s : Nat) : FGBlock (Fin 1) :=
+  if s ≤ 1 then low else if s ≤ 5 then middle else late
+private abbrev sourceAt (t : Time) : FGBlock (Fin 1) :=
+  if t < 14 then .genesis else if t < 30 then low else middle
+private abbrev protocol : V2.ProtocolSpecD Unit where
+  State := Time
+  Label := Time
+  Duty := Time
+  signLabel t := if t = 6 ∨ t = 30 then 6 else t
+  seats _ := 1
+  Payload := Row (Fin 1) ⊕ FGBlock (Fin 1)
+  Durable := Time
+  init := 0
+  clock _ t := t
+  actTime := id
+  duties t := [t]
+  duties_spec := by intro d t; simp
+  duties_nodup := by intro t; simp
+  act _ t _ := if t = 6 then some (.inl firstRow)
+    else if t = 30 then some (.inl nextRow)
+    else if t = 4 then some (.inr low)
+    else if t = 20 then some (.inr middle)
+    else if t = 28 then some (.inr late) else none
+  gossip _ _ := []
+  process st _ := st
+  selfVisible _ := true
+  recordOwn st _ := st
+  durable := id
+  restore st _ := st
+  wellFormed _ := true
+  depsPresent _ _ := true
+  processed _ _ := false
+  excludes _ _ := false
+  handles _ _ _ := False
+  carries _ _ := False
+private abbrev env : Generic.Env Nat := ⟨1, by decide, 0, by decide, fun _ _ => true⟩
+private abbrev run : V2.D.Run Nat protocol where
+  honest := {7, 9}
+  horizon := 42
+  events := (List.range 43).flatMap fun t => [.tick 7 (t : Time), .tick 9 (t : Time)]
+  seatOf l _ := if l = 6 then 9 else if l = 4 ∨ l = 20 ∨ l = 28 then 7 else 0
+  input _ _ := ()
+private abbrev reads : FGSafetyReads protocol 1 (Row (Fin 1)) where
+  proposalErase _ := none
+  proposalRows _ := []
+  encode a := ⟨.seat 6 0, .inl a⟩
+  decode := some
+  decodeObject o := match o.auth with
+    | .seat l _ => if l = 6 then o.payload.getLeft? else none
+    | .none => none
+  fgLabel := 6
+  fgSeats := Equiv.refl _
+  record _ := RecordOnce.initial
+  inputs t := (some (sourceAt t), ⟨0, genesisRoot, 0⟩)
+  enabled _ := true
+  finalizedOut _ := .genesis
+private abbrev stored (top : Bool) : Finset (FGBlock (Fin 1)) :=
+  if top then {.genesis, low, middle, late, c5x1} else {.genesis, low, middle, late}
+private abbrev core (top : Bool) : FGCoreReads protocol 1 Unit Unit (Row (Fin 1)) where
+  core _ := ⟨(), ⟨stored top, .genesis, .genesis, if top then 1 else 0, 2⟩, [],
+    [firstRow, nextRow]⟩
+  erase := c5erase
+  source t := some (sourceAt t)
+  headVote _ s := c5erase (chainAt s)
+  finalityHead _ := some .genesis
+  proposalFG _ _ := none
+private abbrev obs (top : Bool) : FGObservationReads (core top) where
+  height := c5H
+  finality := c5F
+  controls st := treeStoreControlsView c5H ((core top).core st).fg
+  viable st X := treeStoreFrameView c5H ((core top).core st).fg X
+private abbrev iface : V2.D.Interface protocol where
+  confirmed _ := .genesis
+  stable _ := c5erase late
+  block p := match p with | .inr X => some (c5erase X) | .inl _ => none
+  opening _ := True
+  propLabel s := 4 * (s : Time)
+  propDuty s := 4 * (s : Time)
+  propDuty_label s := by
+    change (if 4 * (s : Int) = 6 ∨ 4 * (s : Int) = 30 then 6 else 4 * (s : Int)) = _
+    rw [ite_eq_right (by omega)]
+  propLabel_single _ := rfl
+  propLabel_injective := by
+    intro a b h
+    change 4 * (a : Int) = 4 * (b : Int) at h
+    exact Int.ofNat_inj.mp (by omega)
+private abbrev wire : FGHistoryWireReads reads where
+  heightPair := Row.height_pair
+  finalityPair := Row.finality_pair
+  signer a := some a.signer
+  decode_height _ _ h := by cases h; rfl
+  decode_finality _ _ h := by cases h; rfl
+  decode_signer _ _ h := by cases h; rfl
+private abbrev decodeProposal (o : protocol.Object) : Option (Slot × FGBlock (Fin 1)) :=
+  match o.payload with | .inr X => some (X.slot, X) | .inl _ => none
+private abbrev parentFG (t : Time) (_ : Block) : Option (FGBlock (Fin 1)) :=
+  if t = 4 then some .genesis else if t = 20 then some low else some middle
+private abbrev fold (_ : Time) (_ : Slot) (P : FGBlock (Fin 1)) := Window.derive c5E c5cfg 2 P
+private abbrev parentHeight (t : Time) (s : Slot) (P : FGBlock (Fin 1)) : Height × BlockId :=
+  ((fold t s P).h, (fold t s P).T_h.root)
+private abbrev validFor (t : Time) (s : Slot) (P : FGBlock (Fin 1)) (a : Row (Fin 1)) :=
+  Window.r6w (fold t s P) a
+
+private theorem geometry_premises_sat (top : Bool) :
+    FGCertificateLaws c5E (obs top).height (obs top).finality ∧
+    FGObservationLaws (core top) (obs top) ∧
+    (∀ i x, FGStoreInvariant (obs top).height (obs top).finality
+      ((core top).core (run.stateBefore env i x)).fg) ∧
+    (c5H low).h = 1 ∧ (c5H middle).h = 2 ∧ (c5H late).h = 2 ∧
+    (c5H low).T_h = .genesis ∧ (c5H middle).T_h = middle ∧ (c5H late).T_h = middle ∧
+    PhaseInterval (core top) env run (obs top) 0 42 2
+      (if top then some .genesis else none) false := by
+  refine ⟨c5cert, ⟨fun _ => rfl, fun _ _ => rfl⟩, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+  · intro i x
+    cases top <;> constructor <;> dsimp [obs, core] <;> decide +kernel
+  · decide +kernel
+  · decide +kernel
+  · decide +kernel
+  · decide +kernel
+  · decide +kernel
+  · decide +kernel
+  · refine ⟨by decide, le_rfl, by decide, ?_⟩
+    intro i x _ _ _
+    cases top <;> dsimp [obs, core] <;> decide +kernel
+
+#print axioms geometry_premises_sat
+
+end AvailableChain.FGCompose.Tests.PopulationSearchPhase
+end
