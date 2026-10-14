@@ -1480,6 +1480,72 @@ private theorem row_identity {j r x : Nat} {a : Row (Fin 1)}
 
 #print axioms row_identity
 
+private theorem source_premises_sat (top : Bool) :
+    (∀ r x K, actionSourceFG (core top) env run d5cTiming x r = some (some K) →
+      (K = raised ∧ 1 ≤ r ∧ r ≤ 2) ∨ K = sourceAt (d5cTiming.action r)) ∧
+    (∀ r x K, x ∈ run.honest →
+      actionSourceFG (core top) env run d5cTiming x r = some (some K) → K.slot ≤ r * 2) ∧
+    (∀ r x K A, x ∈ run.honest →
+      actionSourceFG (core top) env run d5cTiming x r = some (some K) → FGBlock.Preceq A K →
+      A.slot ≤ K.slot) ∧
+    (∀ r x y K L, x ∈ run.honest → y ∈ run.honest →
+      actionSourceFG (core top) env run d5cTiming x r = some (some K) →
+      actionSourceFG (core top) env run d5cTiming y r = some (some L) →
+      (c5H K).T_h.root = (c5H L).T_h.root → (c5H K).T_h = (c5H L).T_h) ∧
+    actionSourceFG (core top) env run d5cTiming 7 1 = some (some raised) ∧
+    (∀ x ∈ run.honest,
+      actionSourceFG (core top) env run d5cTiming x 3 = some (some middle)) := by
+  have src (r x K) (h : actionSourceFG (core top) env run d5cTiming x r = some (some K)) :
+      (K = raised ∧ 1 ≤ r ∧ r ≤ 2) ∨ K = sourceAt (d5cTiming.action r) := by
+    delta actionSourceFG postClock at h
+    rw [Option.map_map] at h
+    obtain ⟨nd, _, he⟩ := Option.map_eq_some_iff.mp h
+    change some (if nd.2 ∧ 14 ≤ d5cTiming.action r ∧ d5cTiming.action r < 30
+      then raised else sourceAt (d5cTiming.action r)) = some K at he
+    split_ifs at he with hr
+    · refine Or.inl ⟨(Option.some.inj he).symm, ?_, ?_⟩
+      all_goals
+        have hr0 := hr.2.1
+        have hr1 := hr.2.2
+        change 14 ≤ 8 * (r : Int) + 6 at hr0
+        change 8 * (r : Int) + 6 < 30 at hr1
+        omega
+    · exact Or.inr (Option.some.inj he).symm
+  refine ⟨src, ?_, ?_, ?_, by cases top <;> decide +kernel, ?_⟩
+  · intro r x K _ hk
+    rcases src r x K hk with ⟨rfl, hr, _⟩ | rfl
+    · change 2 ≤ r * 2
+      omega
+    · by_cases hr : r < 4
+      · interval_cases r <;> decide
+      · have h14 : ¬ d5cTiming.action r < 14 := by change ¬ 8 * (r : Int) + 6 < 14; omega
+        have h30 : ¬ d5cTiming.action r < 30 := by change ¬ 8 * (r : Int) + 6 < 30; omega
+        have h38 : ¬ d5cTiming.action r < 38 := by change ¬ 8 * (r : Int) + 6 < 38; omega
+        simp only [sourceAt, h14, h30, h38, ite_false]
+        change 7 ≤ r * 2
+        omega
+  · intro r x K A _ hk ha
+    have hs : m9slotsOK K = true := by
+      rcases src r x K hk with ⟨rfl, _, _⟩ | rfl
+      · decide +kernel
+      · unfold sourceAt
+        split_ifs <;> decide +kernel
+    exact m9anc_slot hs ha
+  · intro r x y K L _ _ hk hl he
+    rcases src r x K hk with ⟨rfl, _, _⟩ | rfl <;>
+      rcases src r y L hl with ⟨rfl, _, _⟩ | rfl
+    · rfl
+    · unfold sourceAt at he ⊢
+      split_ifs at he ⊢ <;> first | rfl | exact absurd he (by decide +kernel)
+    · unfold sourceAt at he ⊢
+      split_ifs at he ⊢ <;> first | rfl | exact absurd he (by decide +kernel)
+    · rfl
+  · intro x hx
+    have hx' : x = 7 ∨ x = 9 := by simpa using hx
+    rcases hx' with rfl | rfl <;> cases top <;> decide +kernel
+
+#print axioms source_premises_sat
+
 end High
 
 end AvailableChain.FGCompose.Tests.PopulationSearchPhase
