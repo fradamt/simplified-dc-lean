@@ -223,5 +223,96 @@ private theorem old_proposer_call_rejected :
 
 #print axioms old_proposer_call_rejected
 
+private abbrev emptyRun : V2.D.Run Nat missingProtocol where
+  honest := {7}
+  horizon := 18
+  events := (List.range 19).map fun (t : Nat) => .tick 7 (t : Time)
+  seatOf := missingRun.seatOf
+  input := missingRun.input
+
+private theorem empty_seats_premises_sat :
+    V2.D.ScheduleWellFormed env emptyRun ∧ FGTimingLaws timing ∧
+    FGHonestSeats missingReads emptyRun = ∅ ∧ emptyRun.honest.Nonempty ∧
+    HonestProposal env emptyRun missingIface 2 .genesis ∧
+    PhaseInterval tailCore env emptyRun tailObs 0 (timing.gate 2) 1
+      (some .genesis) false ∧
+    (∀ v, timing.gate 2 ≤ v → v ≤ emptyRun.horizon →
+      FrontierLocalServiceFG tailCore missingReads env emptyRun tailObs timing missingIface
+        Row.height_pair 2 .genesis .genesis 1 v) ∧
+    14 + (FGCompose.P timing - 4 * timing.delta) ≤ emptyRun.horizon := by
+  have he : FGHonestSeats missingReads emptyRun = ∅ := by
+    ext i
+    simp [FGHonestSeats_def, safetyHolder, missingReads, reads, emptyRun]
+  have hsource : ∀ x ∈ emptyRun.honest,
+      actionSourceFG tailCore env emptyRun timing x 1 = some (some .genesis) := by
+    intro x hx
+    have hx' : x = 7 := Finset.mem_singleton.mp hx
+    subst x
+    decide +kernel
+  refine ⟨?_, mixed_premises_sat.2.1, he, ⟨7, by decide⟩, ?_, ?_, ?_, by decide⟩
+  · refine ⟨by decide, by decide, by decide, by decide, by decide, ?_, ?_⟩
+    · intro x t ht
+      obtain ⟨k, _, hk⟩ := List.mem_map.mp ht
+      obtain ⟨hx, htt⟩ := V2.Event.tick.inj hk
+      subst x
+      subst t
+      exact ⟨k, by simp⟩
+    · intro x hx t ht _ hh _
+      have hx' : x = 7 := Finset.mem_singleton.mp hx
+      subst x
+      obtain ⟨k, rfl⟩ := ht
+      have hk : k < 19 := by change (k : Int) * 1 ≤ 18 at hh; omega
+      exact List.mem_map.mpr ⟨k, List.mem_range.mpr hk, by simp⟩
+  · exact ⟨⟨by decide, by decide⟩, ⟨.seat 8 0, row⟩,
+      ⟨8, by decide +kernel, by decide +kernel⟩, rfl⟩
+  · refine ⟨by decide, by decide, by decide, ?_⟩
+    intro i x _ _ _
+    exact ⟨rfl, rfl, rfl, rfl⟩
+  · intro v _ hv
+    refine ⟨?_, ?_, ?_, ?_, ?_⟩
+    · intro x s H _ _ _ hH
+      obtain ⟨nd, _, hH'⟩ := Option.map_eq_some_iff.mp hH
+      change Block.genesis = H at hH'
+      subst H
+      rfl
+    · intro s B _ _ hp
+      obtain ⟨_, o, _, hb⟩ := hp
+      have hB : B = .genesis := (Option.some.inj hb).symm
+      subst B
+      rfl
+    · intro i x _ _ _ _
+      rfl
+    · intro s B _ _ hp ht x hx _
+      obtain ⟨_, o, _, hb⟩ := hp
+      have hB : B = .genesis := (Option.some.inj hb).symm
+      subst B
+      have hs : (s : Nat) ≤ 4 := by
+        change 4 * (s : Int) + 1 ≤ 18 at ht
+        simp only [Slot, Time] at *
+        omega
+      have hx' : x = 7 := Finset.mem_singleton.mp hx
+      subst x
+      interval_cases s <;> decide +kernel
+    · intro r hqr ht
+      have hrt := ht.trans hv
+      change @LE.le Nat _ 2 (r * 2) at hqr
+      change 8 * (r : Int) + 6 ≤ 18 at hrt
+      have hr : @Eq Nat r 1 := by omega
+      subst r
+      refine ⟨?_, ⟨genesisRoot, ?_⟩, ?_, fun _ => by decide⟩
+      · intro i hi
+        rw [he] at hi
+        simp at hi
+      · intro x K hx hK
+        rw [hsource x hx] at hK
+        cases hK
+        exact ⟨rfl, rfl⟩
+      · intro x K hx hK
+        rw [hsource x hx] at hK
+        cases hK
+        rfl
+
+#print axioms empty_seats_premises_sat
+
 end AvailableChain.FGCompose.Tests.POP6aTail
 end
