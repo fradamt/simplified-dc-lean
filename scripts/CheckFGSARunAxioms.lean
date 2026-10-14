@@ -141,8 +141,9 @@ def main (args : List String) : IO UInt32 := do
     [--root M …] [--files D] [--expect N …]"
   let mut rest := args
   let mut extra : Array Name := #[]
-  let mut dir : System.FilePath :=
-    if args.contains "--files" then "" else (← layoutOutput #["dir", "AvailableChainFGSARun"])[0]!
+  let mut dir : System.FilePath := ""
+  unless args.contains "--files" do
+    dir := (← layoutOutput #["dir", "AvailableChainFGSARun"])[0]!
   while rest.head? == some "--root" do
     match rest with
     | _ :: m :: r => extra := extra.push m.toName; rest := r
