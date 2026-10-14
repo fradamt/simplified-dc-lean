@@ -19,16 +19,48 @@ Class c: a retained concrete supplier, definition equation or claim/assembly exp
 explicitly open intermediate or fixture gap with an owner. Merely mentioning a generic predicate
 or equation is not a full re-point.
 
+Round-2 audit against 7a014e4e: all 332 former class-a source bodies were scanned, with nested
+comments masked and qualified calls resolved to shared proof declarations. KitFG Ancestry,
+Certificates and FrameGeometry helpers do not establish a full consumer re-point. Generic
+KitFG.Window, TreeFrameBridge and RowBits consumers remain eligible. Nine helper-only bodies move
+to c; their source references are in the register. Every remaining a row has an eligible generic
+proof call. No Lean file changes; no build is required for this documentation revision.
+
 ```text
 ┌────────────┬──────────────────────┐
 │ Class      │ Declarations         │
 ├────────────┼──────────────────────┤
-│ a          │ 332                  │
+│ a          │ 323                  │
 │ b          │ 19                   │
-│ c          │ 373                  │
+│ c          │ 382                  │
 │ d          │ 1                    │
 └────────────┴──────────────────────┘
 ```
+
+Reclassified a → c (all findings verified against source):
+
+```text
+┌─────────────────────────────┬────────────┬───────────────────────────────────────────────────────┐
+│ Declaration                 │ Source     │ Helper-only evidence                                  │
+├─────────────────────────────┼────────────┼───────────────────────────────────────────────────────┤
+│ F_preceq_liveRoot           │ S105:74    │ mem_filteredFromView, preceq_refl                     │
+│ geometry_lift_prefix        │ S107:204   │ preceq_parent_node, preceq_refl, preceq_trans         │
+│ fgsa_filtered_anchorClosed  │ S107:239   │ mem_filteredFrom_of_bridge, preceq_refl, preceq_trans │
+│ F_mem_tree                  │ S114:18    │ preceq_refl                                           │
+│ viableTree_eq_filter        │ S119:27    │ filteredFromView, preceq_trans                        │
+│ receipt_delivery            │ S150:1002  │ preceq_refl, preceq_trans                             │
+│ finality_F_mono_idx         │ S151:335   │ preceq_refl                                           │
+│ common_source_height_le     │ S164:89    │ mem_filteredFromView                                  │
+│ fgsaCoreLaws                │ S191:53    │ mem_filteredFromView                                  │
+└─────────────────────────────┴────────────┴───────────────────────────────────────────────────────┘
+```
+
+Generator/check command (existing local release tooling): python3
+/home/fradamt/.claude/jobs/22f59f85/tmp/tmp/p0-zf/make-ledger.py --check. The check regenerates in
+memory, compares the complete ledger, checks class counts against rendered classified rows,
+resolves all 864 explicit Compose rows to compose-api.json and checks all 393 consumer input
+lists. Generated API fields and constructors remain covered by the snapshot, outside the
+source-declaration row count.
 
 ## What the library proves and does not prove
 
@@ -63,6 +95,10 @@ Statements/ExecutionAcceptance.lean in the declaration index). PC remains UNPORT
 ┌─────────────────────────────┬──────────────────────────────┬───────────────────────────────────┐
 │ Item                        │ Owner / status               │ Source evidence                   │
 ├─────────────────────────────┼──────────────────────────────┼───────────────────────────────────┤
+│ FGObservedSafetyLaws.new_bl │ OPEN: X1a / PC E1F; ordinary │ Compose Statements/ExecutionRecor │
+│ ock                         │ macro observations of        │ ds.lean:31;                       │
+│                             │ multi-body protocols         │ Proofs/ExecutionObs.lean:463;     │
+│                             │                              │ origin branch 3948e907            │
 │ TerminalPromotionFact       │ zF records route (c); future │ AvailableChainFGCompose/Proofs/He │
 │                             │ consumer must choose a       │ aling/FrontierSearchCompose.lean: │
 │                             │ proved route                 │ 6; Statements/FrontierSearch.lean │
@@ -99,6 +135,17 @@ Statements/ExecutionAcceptance.lean in the declaration index). PC remains UNPORT
 │                             │                              │ Tests/DependencyOrigins.lean      │
 └─────────────────────────────┴──────────────────────────────┴───────────────────────────────────┘
 ```
+
+FGObservedSafetyLaws.new_block requires the origin wire at the same accepting cut. A macro
+delivery can admit its own body and a child pending from an earlier delivery; the child wire is
+not accepted at that cut. The ordinary observation does not satisfy this field for such multi-body
+protocols. FG-SA supplies the stronger one-delivery provenance through fgsaSafetyStoreLaws
+(Shared/FGSafetyStore.lean:11) and ordinaryFGExecutionObs_safety (:427). PC safety consumers use
+the origin variants on branch p0-origin, commit 3948e907: FGSafetyStoreOriginLaws,
+safety_origin_stateBefore and the six *_origin consumers (Statements/SafetyOrigin.lean and
+Proofs/SafetyOrigin.lean at that commit; not imported into this ledger source pin). Its
+Tests/P0Origin.lean:155, :230, :249 and :265 prove a two-body control and reject the frozen law.
+Leave the frozen observed field unchanged; driver-native observations remain available.
 
 The c3 exception is retained: shared dependency/restart/read/receipt contracts and conditional
 proofs are released; the frozen FG-SA one-body process is not asserted to implement same-event
@@ -350,8 +397,7 @@ AvailableChainFGSA/Proofs/Head.lean
 │ headVote_zero                               │ c     │ 49    │ concrete body                    │
 │ headVote_stored                             │ c     │ 54    │ concrete body                    │
 │ liveRoot_preceq_headInTree                  │ c     │ 66    │ concrete body                    │
-│ F_preceq_liveRoot                           │ a     │ 74    │ mem_filteredFromView,            │
-│                                             │       │       │ preceq_refl                      │
+│ F_preceq_liveRoot                           │ c     │ 74    │ concrete body                    │
 │ F_preceq_headInTree                         │ c     │ 98    │ concrete body                    │
 │ preceq_getHead_of_preceq_F                  │ c     │ 105   │ concrete body                    │
 │ preceq_fgHead_of_preceq_F                   │ c     │ 114   │ concrete body                    │
@@ -392,11 +438,9 @@ AvailableChainFGSA/Proofs/Head/Walk.lean
 │ fgsa_confirmationFrom_exact_of_dominated_su │ c     │ 114   │ concrete body                    │
 │ ffix                                        │       │       │                                  │
 │ fgsa_headInTree_covers_of_transfer          │ c     │ 158   │ concrete body                    │
-│ geometry_lift_prefix                        │ a     │ 204   │ preceq_parent_node, preceq_refl, │
-│                                             │       │       │ preceq_trans                     │
+│ geometry_lift_prefix                        │ c     │ 204   │ concrete body                    │
 │ fgsa_headInTree_mem_or_anchor               │ c     │ 225   │ concrete body                    │
-│ fgsa_filtered_anchorClosed                  │ a     │ 239   │ mem_filteredFrom_of_bridge,      │
-│                                             │       │       │ preceq_refl, preceq_trans        │
+│ fgsa_filtered_anchorClosed                  │ c     │ 239   │ concrete body                    │
 │ fgsa_headInTree_noEligibleChild             │ c     │ 273   │ concrete body                    │
 └─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
 ```
@@ -541,7 +585,7 @@ AvailableChainFGSA/Proofs/Port/Tree.lean
 │ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
 ├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
 │ mem_tree                                    │ c     │ 13    │ concrete body                    │
-│ F_mem_tree                                  │ a     │ 18    │ preceq_refl                      │
+│ F_mem_tree                                  │ c     │ 18    │ concrete body                    │
 │ tree_subset_TF                              │ c     │ 23    │ concrete body                    │
 │ fullTree_subset_tree                        │ c     │ 30    │ concrete body                    │
 │ mem_erasedList                              │ c     │ 39    │ concrete body                    │
@@ -699,7 +743,7 @@ AvailableChainFGSA/Proofs/Spec/Frame.lean
 ├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
 │ frame_tree                                  │ c     │ 14    │ concrete body                    │
 │ mem_viableTree                              │ c     │ 18    │ concrete body                    │
-│ viableTree_eq_filter                        │ a     │ 27    │ preceq_trans                     │
+│ viableTree_eq_filter                        │ c     │ 27    │ concrete body                    │
 │ viableTree_next_controls                    │ c     │ 47    │ concrete body                    │
 └─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
 ```
@@ -1267,9 +1311,9 @@ AvailableChainFGSAProofs/Proofs/Finality/Receipt.lean
 │ receipt_receiver_finalityLag                │ a     │ 864   │ receipt_receiver_finalityLag     │
 │ receipt_jPath_of_cached_anchor              │ a     │ 903   │ receipt_jPath_of_cached_anchor   │
 │ receipt_ready_of_delivery                   │ c     │ 924   │ concrete body                    │
-│ receipt_delivery                            │ a     │ 1002  │ preceq_refl, preceq_trans        │
+│ receipt_delivery                            │ c     │ 1002  │ concrete body                    │
 │ receipt_jPath                               │ a     │ 1199  │ receipt_jPath                    │
-│ receipt_acceptPrem_W                        │ b     │ 1272  │ preceq_trans / A75               │
+│ receipt_acceptPrem_W                        │ b     │ 1272  │ concrete body / A75              │
 └─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
 ```
 
@@ -1286,7 +1330,7 @@ AvailableChainFGSAProofs/Proofs/Finality/ReceiptSuppliers.lean
 │ finality_fresh_head_service                 │ c     │ 141   │ concrete body                    │
 │ finality_target_service_of_held             │ c     │ 304   │ concrete body                    │
 │ finality_postClock_tick                     │ c     │ 322   │ concrete body                    │
-│ finality_F_mono_idx                         │ a     │ 335   │ preceq_refl                      │
+│ finality_F_mono_idx                         │ c     │ 335   │ concrete body                    │
 │ finality_F_before_postClock                 │ c     │ 346   │ concrete body                    │
 │ finality_action_receipts                    │ c     │ 443   │ concrete body                    │
 │ finality_tail_head_receipts                 │ c     │ 454   │ concrete body                    │
@@ -1523,7 +1567,7 @@ AvailableChainFGSAProofs/Proofs/Healing/CommonEntryFacts.lean
 │ common_first_opening_labels                 │ c     │ 44    │ concrete body                    │
 │ common_first_time_bound                     │ c     │ 59    │ concrete body                    │
 │ common_source_tick                          │ c     │ 77    │ concrete body                    │
-│ common_source_height_le                     │ a     │ 89    │ mem_filteredFromView             │
+│ common_source_height_le                     │ c     │ 89    │ concrete body                    │
 │ common_source_below_raw                     │ c     │ 111   │ concrete body                    │
 │ common_sources_compatible                   │ c     │ 130   │ concrete body                    │
 │ common_entry_of_plateau                     │ a     │ 176   │ common_entry_of_plateau          │
@@ -1645,8 +1689,7 @@ AvailableChainFGSAProofs/Proofs/Healing/FrontierSearchGap.lean
 │ Declaration                                 │ Class │ Line  │ Shared calls / G0                │
 ├─────────────────────────────────────────────┼───────┼───────┼──────────────────────────────────┤
 │ frontierSearch_period_bound                 │ a     │ 56    │ frontierSearch_period_bound      │
-│ frontierSearch_gap_phase                    │ b     │ 61    │ preceq_parent_node, preceq_refl  │
-│                                             │       │       │ / C5                             │
+│ frontierSearch_gap_phase                    │ b     │ 61    │ concrete body / C5               │
 │ frontier_hg3_gap                            │ b     │ 262   │ concrete body / C5               │
 └─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
 ```
@@ -2007,7 +2050,7 @@ AvailableChainFGSAProofs/Proofs/Shared/FGCompose.lean
 │ fgsaCoreReads_def                           │ c     │ 25    │ concrete body                    │
 │ fgsa_eventReads_eq_compose                  │ c     │ 37    │ concrete body                    │
 │ fgsa_chainRows_eq_compose                   │ c     │ 46    │ concrete body                    │
-│ fgsaCoreLaws                                │ a     │ 53    │ mem_filteredFromView             │
+│ fgsaCoreLaws                                │ c     │ 53    │ concrete body                    │
 │ fgsaHeadLaws                                │ c     │ 80    │ concrete body                    │
 └─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
 ```
@@ -2025,6 +2068,18 @@ AvailableChainFGSAProofs/Proofs/Shared/FGSafetyStore.lean
 │ fgsa_restore_finality_fields                │ c     │ 55    │ concrete body                    │
 │ fgsaSafetyOrderLaws                         │ c     │ 69    │ concrete body                    │
 └─────────────────────────────────────────────┴───────┴───────┴──────────────────────────────────┘
+```
+
+### Explicit class-d intermediate
+
+```text
+┌──────────────────────────────────┬───────┬───────────────────────────────────────────────────────┐
+│ Declaration                      │ Class │ Source / owner                                        │
+├──────────────────────────────────┼───────┼───────────────────────────────────────────────────────┤
+│ TerminalPromotionFact            │ d     │ AvailableChainFGCompose/Statements/FrontierSearch.lea │
+│                                  │       │ n:193; route (c), owner zF / future terminal          │
+│                                  │       │ consumer; OPEN, no completion credit                  │
+└──────────────────────────────────┴───────┴───────────────────────────────────────────────────────┘
 ```
 
 ## Generic consumer premises and FG-SA producers
@@ -2051,6 +2106,16 @@ Translated telescope: State Body Origin Latest V, H, D, L, Step, restore, signs,
 [FGDependencyStepLaws H D L Step restore signs], kind, x, st st', b, o, [Step kind x st st'],
 [Effect H D st b o].
 
+Contract expansion keys: C033 Effect, C048 FGDependencyLeaf, C049 FGDependencyReads, C051
+FGDependencyStepLaws, C062 FGHistoricalReads, C200 dependencyRefused, C201 dependencyResolved.
+
+Input records (including components of supplied contracts):
+
+- FGDependencyLeaf: OPEN (C048).
+- FGDependencyReads: OPEN (C049).
+- FGDependencyStepLaws: OPEN (C051).
+- FGHistoricalReads: OPEN (C062).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -2067,6 +2132,16 @@ Source: `S001:26`.
 Translated telescope: State Body Origin Latest V, H, D, L, Step, restore, signs,
 [FGDependencyStepLaws H D L Step restore signs], x, st st', b, o, [FGDependencySteps Step x st
 st'], [Effect H D st b o].
+
+Contract expansion keys: C033 Effect, C048 FGDependencyLeaf, C049 FGDependencyReads, C051
+FGDependencyStepLaws, C062 FGHistoricalReads, C200 dependencyRefused, C201 dependencyResolved.
+
+Input records (including components of supplied contracts):
+
+- FGDependencyLeaf: OPEN (C048).
+- FGDependencyReads: OPEN (C049).
+- FGDependencyStepLaws: OPEN (C051).
+- FGHistoricalReads: OPEN (C062).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -2087,6 +2162,17 @@ target, path, [FGDependencyPath H base target path], [dependencyRefused H D st b
 : Body), List.instMembership.mem (List.cons base path) b → D.validBody b)], [(∀ (b : Body),
 List.instMembership.mem path b → Exists fun o => Effect H D st b o)].
 
+Contract expansion keys: C033 Effect, C048 FGDependencyLeaf, C049 FGDependencyReads, C050
+FGDependencyStateLaws, C062 FGHistoricalReads, C197 dependencyClosed, C200 dependencyRefused, C201
+dependencyResolved.
+
+Input records (including components of supplied contracts):
+
+- FGDependencyLeaf: OPEN (C048).
+- FGDependencyReads: OPEN (C049).
+- FGDependencyStateLaws: OPEN (C050).
+- FGHistoricalReads: OPEN (C062).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -2103,6 +2189,16 @@ Source: `S001:87`.
 Translated telescope: State Body Origin Latest, H, D, L, Arrival, Notify,
 [FGDependencyArrivalLeafLaws H D L Arrival Notify], a z, b, o, [Arrival a b o z], [D.validBody b],
 [dependencyRefused H D a (H.parent b)].
+
+Contract expansion keys: C033 Effect, C045 FGDependencyArrivalLeafLaws, C048 FGDependencyLeaf,
+C049 FGDependencyReads, C062 FGHistoricalReads, C200 dependencyRefused, C201 dependencyResolved.
+
+Input records (including components of supplied contracts):
+
+- FGDependencyArrivalLeafLaws: OPEN (C045).
+- FGDependencyLeaf: OPEN (C048).
+- FGDependencyReads: OPEN (C049).
+- FGHistoricalReads: OPEN (C062).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -2123,6 +2219,30 @@ Op Arrival Notify leafState leafWire Read], restore, signs, [FGDependencyStepLaw
 restore signs], k, t, [instLTNat.lt k T.length], [Eq (Op k) (FGDependencyOperation.reconstruct
 t)].
 
+Contract expansion keys: C033 Effect, C045 FGDependencyArrivalLeafLaws, C047 FGDependencyDriver,
+C048 FGDependencyLeaf, C049 FGDependencyReads, C051 FGDependencyStepLaws, C052 FGDependencyTrace,
+C053 FGDependencyTraceLaws, C054 FGDependencyWireReads, C062 FGHistoricalReads, C071
+FGReceiptOrigin, C072 FGReceiptToken, C196 dependencyActualRead, C197 dependencyClosed, C199
+dependencyReadRequired, C200 dependencyRefused, C201 dependencyResolved, C202
+dependencyStrictPrefix, C227 Gen.Env, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGDependencyArrivalLeafLaws: OPEN (C045).
+- FGDependencyDriver: OPEN (C047).
+- FGDependencyLeaf: OPEN (C048).
+- FGDependencyReads: OPEN (C049).
+- FGDependencyStepLaws: OPEN (C051).
+- FGDependencyTrace: OPEN (C052).
+- FGDependencyTraceLaws: OPEN (C053).
+- FGDependencyWireReads: OPEN (C054).
+- FGHistoricalReads: OPEN (C062).
+- FGReceiptOrigin: dependency_origin_at_read (recipe; C071).
+- FGReceiptToken: fgEventToken (recipe; C072).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -2138,6 +2258,19 @@ Source: `S001:129`.
 
 Translated telescope: In V Body Row, inst, P, E, rho, x, H, W, b, o, [FGReceiptOrigin E rho H W x
 b o].
+
+Contract expansion keys: C054 FGDependencyWireReads, C062 FGHistoricalReads, C071 FGReceiptOrigin,
+C072 FGReceiptToken, C227 Gen.Env, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGDependencyWireReads: OPEN (C054).
+- FGHistoricalReads: OPEN (C062).
+- FGReceiptOrigin: dependency_origin_at_read (recipe; C071).
+- FGReceiptToken: fgEventToken (recipe; C072).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -2157,6 +2290,29 @@ F, Op, Arrival, Notify, leafState, leafWire, Read, [FGDependencyTraceLaws E rho 
 Op Arrival Notify leafState leafWire Read], i, st, b, o, [Read x i st], [D.originAvailable st b
 o].
 
+Contract expansion keys: C033 Effect, C045 FGDependencyArrivalLeafLaws, C047 FGDependencyDriver,
+C048 FGDependencyLeaf, C049 FGDependencyReads, C052 FGDependencyTrace, C053 FGDependencyTraceLaws,
+C054 FGDependencyWireReads, C062 FGHistoricalReads, C071 FGReceiptOrigin, C072 FGReceiptToken,
+C196 dependencyActualRead, C197 dependencyClosed, C199 dependencyReadRequired, C200
+dependencyRefused, C201 dependencyResolved, C202 dependencyStrictPrefix, C227 Gen.Env, C258
+V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGDependencyArrivalLeafLaws: OPEN (C045).
+- FGDependencyDriver: OPEN (C047).
+- FGDependencyLeaf: OPEN (C048).
+- FGDependencyReads: OPEN (C049).
+- FGDependencyTrace: OPEN (C052).
+- FGDependencyTraceLaws: OPEN (C053).
+- FGDependencyWireReads: OPEN (C054).
+- FGHistoricalReads: OPEN (C062).
+- FGReceiptOrigin: dependency_origin_at_read (recipe; C071).
+- FGReceiptToken: fgEventToken (recipe; C072).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -2173,6 +2329,29 @@ Source: `S001:156`.
 Translated telescope: In LeafIn V Body Row Latest, inst, P, Leaf, E, rho, x, H, W, D, L, Step, T,
 F, Op, Arrival, Notify, leafState, leafWire, Read, [FGDependencyTraceLaws E rho x H W D L Step T F
 Op Arrival Notify leafState leafWire Read], i, st, [Read x i st].
+
+Contract expansion keys: C033 Effect, C045 FGDependencyArrivalLeafLaws, C047 FGDependencyDriver,
+C048 FGDependencyLeaf, C049 FGDependencyReads, C052 FGDependencyTrace, C053 FGDependencyTraceLaws,
+C054 FGDependencyWireReads, C062 FGHistoricalReads, C071 FGReceiptOrigin, C072 FGReceiptToken,
+C196 dependencyActualRead, C197 dependencyClosed, C199 dependencyReadRequired, C200
+dependencyRefused, C201 dependencyResolved, C202 dependencyStrictPrefix, C227 Gen.Env, C258
+V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGDependencyArrivalLeafLaws: OPEN (C045).
+- FGDependencyDriver: OPEN (C047).
+- FGDependencyLeaf: OPEN (C048).
+- FGDependencyReads: OPEN (C049).
+- FGDependencyTrace: OPEN (C052).
+- FGDependencyTraceLaws: OPEN (C053).
+- FGDependencyWireReads: OPEN (C054).
+- FGHistoricalReads: OPEN (C062).
+- FGReceiptOrigin: dependency_origin_at_read (recipe; C071).
+- FGReceiptToken: fgEventToken (recipe; C072).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -2193,6 +2372,29 @@ Op Arrival Notify leafState leafWire Read], j, e, index, kind, cut, st, [Eq
 (List.instGetElem?NatLtLength.getElem? rho.events j) (Option.some e)], [T.hookRead j index kind
 cut st].
 
+Contract expansion keys: C033 Effect, C045 FGDependencyArrivalLeafLaws, C047 FGDependencyDriver,
+C048 FGDependencyLeaf, C049 FGDependencyReads, C052 FGDependencyTrace, C053 FGDependencyTraceLaws,
+C054 FGDependencyWireReads, C062 FGHistoricalReads, C071 FGReceiptOrigin, C072 FGReceiptToken,
+C196 dependencyActualRead, C197 dependencyClosed, C199 dependencyReadRequired, C200
+dependencyRefused, C201 dependencyResolved, C202 dependencyStrictPrefix, C227 Gen.Env, C258
+V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGDependencyArrivalLeafLaws: OPEN (C045).
+- FGDependencyDriver: OPEN (C047).
+- FGDependencyLeaf: OPEN (C048).
+- FGDependencyReads: OPEN (C049).
+- FGDependencyTrace: OPEN (C052).
+- FGDependencyTraceLaws: OPEN (C053).
+- FGDependencyWireReads: OPEN (C054).
+- FGHistoricalReads: OPEN (C062).
+- FGReceiptOrigin: dependency_origin_at_read (recipe; C071).
+- FGReceiptToken: fgEventToken (recipe; C072).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -2210,6 +2412,29 @@ Translated telescope: In LeafIn V Body Row Latest, inst, P, Leaf, E, rho, x, H, 
 F, Op, Arrival, Notify, leafState, leafWire, Read, [FGDependencyTraceLaws E rho x H W D L Step T F
 Op Arrival Notify leafState leafWire Read], i, st, b, [Read x i st], [D.accepted st b], [Ne b
 L.genesis].
+
+Contract expansion keys: C033 Effect, C045 FGDependencyArrivalLeafLaws, C047 FGDependencyDriver,
+C048 FGDependencyLeaf, C049 FGDependencyReads, C052 FGDependencyTrace, C053 FGDependencyTraceLaws,
+C054 FGDependencyWireReads, C062 FGHistoricalReads, C071 FGReceiptOrigin, C072 FGReceiptToken,
+C196 dependencyActualRead, C197 dependencyClosed, C199 dependencyReadRequired, C200
+dependencyRefused, C201 dependencyResolved, C202 dependencyStrictPrefix, C227 Gen.Env, C258
+V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGDependencyArrivalLeafLaws: OPEN (C045).
+- FGDependencyDriver: OPEN (C047).
+- FGDependencyLeaf: OPEN (C048).
+- FGDependencyReads: OPEN (C049).
+- FGDependencyTrace: OPEN (C052).
+- FGDependencyTraceLaws: OPEN (C053).
+- FGDependencyWireReads: OPEN (C054).
+- FGHistoricalReads: OPEN (C062).
+- FGReceiptOrigin: dependency_origin_at_read (recipe; C071).
+- FGReceiptToken: fgEventToken (recipe; C072).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -2230,6 +2455,29 @@ Op Arrival Notify leafState leafWire Read], j, e, index, kind, cut, st, b, o, [E
 (List.instGetElem?NatLtLength.getElem? rho.events j) (Option.some e)], [T.hookRead j index kind
 cut st], [D.originAvailable st b o].
 
+Contract expansion keys: C033 Effect, C045 FGDependencyArrivalLeafLaws, C047 FGDependencyDriver,
+C048 FGDependencyLeaf, C049 FGDependencyReads, C052 FGDependencyTrace, C053 FGDependencyTraceLaws,
+C054 FGDependencyWireReads, C062 FGHistoricalReads, C071 FGReceiptOrigin, C072 FGReceiptToken,
+C196 dependencyActualRead, C197 dependencyClosed, C199 dependencyReadRequired, C200
+dependencyRefused, C201 dependencyResolved, C202 dependencyStrictPrefix, C227 Gen.Env, C258
+V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGDependencyArrivalLeafLaws: OPEN (C045).
+- FGDependencyDriver: OPEN (C047).
+- FGDependencyLeaf: OPEN (C048).
+- FGDependencyReads: OPEN (C049).
+- FGDependencyTrace: OPEN (C052).
+- FGDependencyTraceLaws: OPEN (C053).
+- FGDependencyWireReads: OPEN (C054).
+- FGHistoricalReads: OPEN (C062).
+- FGReceiptOrigin: dependency_origin_at_read (recipe; C071).
+- FGReceiptToken: fgEventToken (recipe; C072).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -2249,6 +2497,29 @@ Op Arrival Notify leafState leafWire Read], j, e, index, kind, cut, st, b, [Eq
 (List.instGetElem?NatLtLength.getElem? rho.events j) (Option.some e)], [T.hookRead j index kind
 cut st], [D.accepted st b], [Ne b L.genesis].
 
+Contract expansion keys: C033 Effect, C045 FGDependencyArrivalLeafLaws, C047 FGDependencyDriver,
+C048 FGDependencyLeaf, C049 FGDependencyReads, C052 FGDependencyTrace, C053 FGDependencyTraceLaws,
+C054 FGDependencyWireReads, C062 FGHistoricalReads, C071 FGReceiptOrigin, C072 FGReceiptToken,
+C196 dependencyActualRead, C197 dependencyClosed, C199 dependencyReadRequired, C200
+dependencyRefused, C201 dependencyResolved, C202 dependencyStrictPrefix, C227 Gen.Env, C258
+V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGDependencyArrivalLeafLaws: OPEN (C045).
+- FGDependencyDriver: OPEN (C047).
+- FGDependencyLeaf: OPEN (C048).
+- FGDependencyReads: OPEN (C049).
+- FGDependencyTrace: OPEN (C052).
+- FGDependencyTraceLaws: OPEN (C053).
+- FGDependencyWireReads: OPEN (C054).
+- FGHistoricalReads: OPEN (C062).
+- FGReceiptOrigin: dependency_origin_at_read (recipe; C071).
+- FGReceiptToken: fgEventToken (recipe; C072).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -2267,6 +2538,29 @@ F, Op, Arrival, Notify, leafState, leafWire, Read, [FGDependencyTraceLaws E rho 
 Op Arrival Notify leafState leafWire Read], j, wire, t deadline, [Eq
 (List.instGetElem?NatLtLength.getElem? rho.events j) (Option.some (V2.Event.deliver x wire t))],
 [Int.instLTInt.lt t deadline].
+
+Contract expansion keys: C033 Effect, C045 FGDependencyArrivalLeafLaws, C047 FGDependencyDriver,
+C048 FGDependencyLeaf, C049 FGDependencyReads, C052 FGDependencyTrace, C053 FGDependencyTraceLaws,
+C054 FGDependencyWireReads, C062 FGHistoricalReads, C071 FGReceiptOrigin, C072 FGReceiptToken,
+C196 dependencyActualRead, C197 dependencyClosed, C199 dependencyReadRequired, C200
+dependencyRefused, C201 dependencyResolved, C202 dependencyStrictPrefix, C227 Gen.Env, C258
+V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGDependencyArrivalLeafLaws: OPEN (C045).
+- FGDependencyDriver: OPEN (C047).
+- FGDependencyLeaf: OPEN (C048).
+- FGDependencyReads: OPEN (C049).
+- FGDependencyTrace: OPEN (C052).
+- FGDependencyTraceLaws: OPEN (C053).
+- FGDependencyWireReads: OPEN (C054).
+- FGHistoricalReads: OPEN (C062).
+- FGReceiptOrigin: dependency_origin_at_read (recipe; C071).
+- FGReceiptToken: fgEventToken (recipe; C072).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -2300,6 +2594,32 @@ List.instMembership.mem path b → Or (Exists fun o => Effect H D (T.state (T.st
 rho.honest sender) (And (dependencyEmits E rho F sender wire sent) (And (Eq (W.decodeBody wire)
 (Option.some b)) (And (Int.instLTInt.lt sent tau) (Outstanding wire sent wake))))))].
 
+Contract expansion keys: C033 Effect, C045 FGDependencyArrivalLeafLaws, C046
+FGDependencyDeliveryLaws, C047 FGDependencyDriver, C048 FGDependencyLeaf, C049 FGDependencyReads,
+C051 FGDependencyStepLaws, C052 FGDependencyTrace, C053 FGDependencyTraceLaws, C054
+FGDependencyWireReads, C062 FGHistoricalReads, C071 FGReceiptOrigin, C072 FGReceiptToken, C196
+dependencyActualRead, C197 dependencyClosed, C198 dependencyEmits, C199 dependencyReadRequired,
+C200 dependencyRefused, C201 dependencyResolved, C202 dependencyStrictPrefix, C227 Gen.Env, C258
+V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGDependencyArrivalLeafLaws: OPEN (C045).
+- FGDependencyDeliveryLaws: OPEN (C046).
+- FGDependencyDriver: OPEN (C047).
+- FGDependencyLeaf: OPEN (C048).
+- FGDependencyReads: OPEN (C049).
+- FGDependencyStepLaws: OPEN (C051).
+- FGDependencyTrace: OPEN (C052).
+- FGDependencyTraceLaws: OPEN (C053).
+- FGDependencyWireReads: OPEN (C054).
+- FGHistoricalReads: OPEN (C062).
+- FGReceiptOrigin: dependency_origin_at_read (recipe; C071).
+- FGReceiptToken: fgEventToken (recipe; C072).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -2316,6 +2636,17 @@ Source: `S002:136`.
 Translated telescope: In V, P, n, Base Proposal Wire, R, rho, O, [FGObservedFinalityLaws R rho O],
 x, i k, [instLENat.le i k], [instLENat.le k (O.cutLength x)].
 
+Contract expansion keys: C044 FGCoreReads, C055 FGExecutionObs, C070 FGObservedFinalityLaws, C258
+V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGExecutionObs: ordinaryFGExecutionObs (recipe; C055).
+- FGObservedFinalityLaws: ordinaryFGExecutionObs_finality (recipe; C070).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -2330,6 +2661,26 @@ P10 for finality).
 Source: `S002:145`.
 
 Translated telescope: In V, P, inst, n, Base Proposal Wire Body, R, S, E, rho, H, Wr, O, update.
+
+Contract expansion keys: C044 FGCoreReads, C054 FGDependencyWireReads, C055 FGExecutionObs, C062
+FGHistoricalReads, C070 FGObservedFinalityLaws, C071 FGReceiptOrigin, C080 FGSafetyReads, C086
+FGSelectedAcceptance, C183 SelectedAcceptanceKeepStatement, C227 Gen.Env, C251 FG.Store, C258
+V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGDependencyWireReads: OPEN (C054).
+- FGExecutionObs: ordinaryFGExecutionObs (recipe; C055).
+- FGHistoricalReads: OPEN (C062).
+- FGObservedFinalityLaws: ordinaryFGExecutionObs_finality (recipe; C070).
+- FGReceiptOrigin: dependency_origin_at_read (recipe; C071).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGSelectedAcceptance: ordinary_selectedAcceptance (recipe; C086).
+- Gen.Env: env1 (recipe; C227).
+- FG.Store: update_finality (recipe; C251).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -2349,6 +2700,21 @@ rho O], [FGObservedFinalityLaws R rho O], [V2.D.ScheduleWellFormed E rho], x, j 
 (List.instGetElem?NatLtLength.getElem? rho.events j) (Option.some e)], [instLENat.le k (O.done x
 j)], [Int.instLTInt.lt e.time d], [U.Preceq (R.core (O.cutState x k)).fg.F].
 
+Contract expansion keys: C008 AcceptsFinalBefore_obs, C044 FGCoreReads, C055 FGExecutionObs, C056
+FGExecutionObsLaws, C070 FGObservedFinalityLaws, C227 Gen.Env, C258 V2.D.Run, C260
+V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGExecutionObs: ordinaryFGExecutionObs (recipe; C055).
+- FGExecutionObsLaws: ordinaryFGExecutionObs_laws (recipe; C056).
+- FGObservedFinalityLaws: ordinaryFGExecutionObs_finality (recipe; C070).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -2364,6 +2730,34 @@ Source: `S002:181`.
 
 Translated telescope: In V, P, inst, n, Base Proposal Wire Body, R, S, E, rho, H, Wr, O, Ef, cfg,
 K.
+
+Contract expansion keys: C002 AcceptBeforeDriverStatement, C039 FGAcceptanceEffectLaws, C040
+FGAcceptanceGuards, C044 FGCoreReads, C054 FGDependencyWireReads, C055 FGExecutionObs, C056
+FGExecutionObsLaws, C062 FGHistoricalReads, C070 FGObservedFinalityLaws, C071 FGReceiptOrigin,
+C080 FGSafetyReads, C086 FGSelectedAcceptance, C227 Gen.Env, C231 KitFG.FGStoreInvariant, C239
+FG.Electorate, C240 FG.FGConfig, C258 V2.D.Run, C260 V2.D.ScheduleWellFormed, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGAcceptanceEffectLaws: ordinary_acceptanceEffect_iff (recipe; C039).
+- FGAcceptanceGuards: OPEN (C040).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGDependencyWireReads: OPEN (C054).
+- FGExecutionObs: ordinaryFGExecutionObs (recipe; C055).
+- FGExecutionObsLaws: ordinaryFGExecutionObs_laws (recipe; C056).
+- FGHistoricalReads: OPEN (C062).
+- FGObservedFinalityLaws: ordinaryFGExecutionObs_finality (recipe; C070).
+- FGReceiptOrigin: dependency_origin_at_read (recipe; C071).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGSelectedAcceptance: ordinary_selectedAcceptance (recipe; C086).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -2381,6 +2775,35 @@ Source: `S002:205`.
 Translated telescope: In V, P, inst, n, Base Proposal Wire Body, R, S, E, rho, H, Wr, O, Ef, cfg,
 K.
 
+Contract expansion keys: C039 FGAcceptanceEffectLaws, C040 FGAcceptanceGuards, C044 FGCoreReads,
+C054 FGDependencyWireReads, C055 FGExecutionObs, C056 FGExecutionObsLaws, C062 FGHistoricalReads,
+C070 FGObservedFinalityLaws, C071 FGReceiptOrigin, C080 FGSafetyReads, C086 FGSelectedAcceptance,
+C101 FinalizePendingDriverStatement, C157 PendingFold_W, C227 Gen.Env, C231
+KitFG.FGStoreInvariant, C239 FG.Electorate, C240 FG.FGConfig, C258 V2.D.Run, C260
+V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGAcceptanceEffectLaws: ordinary_acceptanceEffect_iff (recipe; C039).
+- FGAcceptanceGuards: OPEN (C040).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGDependencyWireReads: OPEN (C054).
+- FGExecutionObs: ordinaryFGExecutionObs (recipe; C055).
+- FGExecutionObsLaws: ordinaryFGExecutionObs_laws (recipe; C056).
+- FGHistoricalReads: OPEN (C062).
+- FGObservedFinalityLaws: ordinaryFGExecutionObs_finality (recipe; C070).
+- FGReceiptOrigin: dependency_origin_at_read (recipe; C071).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGSelectedAcceptance: ordinary_selectedAcceptance (recipe; C086).
+- PendingFold_W: d7a5a_fold (recipe; file-private; C157).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -2396,6 +2819,17 @@ Source: `S002:227`.
 
 Translated telescope: In V, P, inst, n, Base Proposal Wire, R, E, rho, [V2.D.ScheduleWellFormed E
 rho], x, U, d.
+
+Contract expansion keys: C007 AcceptsFinalBefore, C008 AcceptsFinalBefore_obs, C044 FGCoreReads,
+C227 Gen.Env, C258 V2.D.Run, C260 V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -2413,6 +2847,14 @@ Source: `S003:18`.
 Translated telescope: In V, P, inst, E, rho, j, x, o, t, [Eq
 (List.instGetElem?NatLtLength.getElem? rho.events j) (Option.some (V2.Event.deliver x o t))].
 
+Contract expansion keys: C227 Gen.Env, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -2429,6 +2871,23 @@ Source: `S003:66`.
 Translated telescope: In V, P, inst, n, Base Proposal Wire Body, R, S, E, rho, H, Wr, Ef, cfg, K,
 j, x, o, t d, b, W, hx, he, origin, herase, hrows, ht, effect.
 
+Contract expansion keys: C044 FGCoreReads, C054 FGDependencyWireReads, C062 FGHistoricalReads,
+C071 FGReceiptOrigin, C080 FGSafetyReads, C227 Gen.Env, C239 FG.Electorate, C240 FG.FGConfig, C258
+V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGDependencyWireReads: OPEN (C054).
+- FGHistoricalReads: OPEN (C062).
+- FGReceiptOrigin: dependency_origin_at_read (recipe; C071).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- Gen.Env: env1 (recipe; C227).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -2444,6 +2903,24 @@ Source: `S003:84`.
 
 Translated telescope: In V, P, inst, n, Base Proposal Wire Body, R, S, E, rho, H, Wr, Ef, cfg, K,
 x, W, d, A.
+
+Contract expansion keys: C044 FGCoreReads, C054 FGDependencyWireReads, C062 FGHistoricalReads,
+C071 FGReceiptOrigin, C080 FGSafetyReads, C086 FGSelectedAcceptance, C227 Gen.Env, C239
+FG.Electorate, C240 FG.FGConfig, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGDependencyWireReads: OPEN (C054).
+- FGHistoricalReads: OPEN (C062).
+- FGReceiptOrigin: dependency_origin_at_read (recipe; C071).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGSelectedAcceptance: ordinary_selectedAcceptance (recipe; C086).
+- Gen.Env: env1 (recipe; C227).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -2465,6 +2942,31 @@ Translated telescope: In V, P, inst, n, Base Proposal Wire Body, R, S, E, rho, H
 (FG.Window.derive Ef cfg K W).F], [FGAcceptanceGuards R (ordinaryFGExecutionObs E rho) Ef cfg K x
 A.step W U].
 
+Contract expansion keys: C007 AcceptsFinalBefore, C039 FGAcceptanceEffectLaws, C040
+FGAcceptanceGuards, C044 FGCoreReads, C054 FGDependencyWireReads, C062 FGHistoricalReads, C070
+FGObservedFinalityLaws, C071 FGReceiptOrigin, C080 FGSafetyReads, C086 FGSelectedAcceptance, C227
+Gen.Env, C231 KitFG.FGStoreInvariant, C239 FG.Electorate, C240 FG.FGConfig, C258 V2.D.Run, C260
+V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGAcceptanceEffectLaws: ordinary_acceptanceEffect_iff (recipe; C039).
+- FGAcceptanceGuards: OPEN (C040).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGDependencyWireReads: OPEN (C054).
+- FGHistoricalReads: OPEN (C062).
+- FGObservedFinalityLaws: ordinaryFGExecutionObs_finality (recipe; C070).
+- FGReceiptOrigin: dependency_origin_at_read (recipe; C071).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGSelectedAcceptance: ordinary_selectedAcceptance (recipe; C086).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -2483,6 +2985,32 @@ Translated telescope: In V, P, inst, n, Base Proposal Wire Body, R, S, E, rho, H
 [V2.D.ScheduleWellFormed E rho], x, y, U X, d, A, [FGAcceptanceEffectLaws R S E rho H Wr
 (ordinaryFGExecutionObs E rho) Ef cfg K x X d A], [Int.instLEInt.le d rho.horizon], [PendingFold_W
 Ef cfg K y U X], [FGAcceptanceGuards R (ordinaryFGExecutionObs E rho) Ef cfg K x A.step X U].
+
+Contract expansion keys: C007 AcceptsFinalBefore, C039 FGAcceptanceEffectLaws, C040
+FGAcceptanceGuards, C044 FGCoreReads, C054 FGDependencyWireReads, C062 FGHistoricalReads, C070
+FGObservedFinalityLaws, C071 FGReceiptOrigin, C080 FGSafetyReads, C086 FGSelectedAcceptance, C157
+PendingFold_W, C227 Gen.Env, C231 KitFG.FGStoreInvariant, C239 FG.Electorate, C240 FG.FGConfig,
+C258 V2.D.Run, C260 V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGAcceptanceEffectLaws: ordinary_acceptanceEffect_iff (recipe; C039).
+- FGAcceptanceGuards: OPEN (C040).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGDependencyWireReads: OPEN (C054).
+- FGHistoricalReads: OPEN (C062).
+- FGObservedFinalityLaws: ordinaryFGExecutionObs_finality (recipe; C070).
+- FGReceiptOrigin: dependency_origin_at_read (recipe; C071).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGSelectedAcceptance: ordinary_selectedAcceptance (recipe; C086).
+- PendingFold_W: d7a5a_fold (recipe; file-private; C157).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -2503,6 +3031,29 @@ Step (T x) F (Op x) Arrival Notify leafState leafWire ActualRead], [(∀ (k : Na
 instLENat.le k (T x).length → Iff (List.instMembership.mem (H.acceptedBodies ((T x).state k)) b)
 (D.accepted ((T x).state k) b))].
 
+Contract expansion keys: C033 Effect, C045 FGDependencyArrivalLeafLaws, C047 FGDependencyDriver,
+C048 FGDependencyLeaf, C049 FGDependencyReads, C052 FGDependencyTrace, C053 FGDependencyTraceLaws,
+C054 FGDependencyWireReads, C062 FGHistoricalReads, C071 FGReceiptOrigin, C072 FGReceiptToken,
+C196 dependencyActualRead, C197 dependencyClosed, C199 dependencyReadRequired, C200
+dependencyRefused, C201 dependencyResolved, C202 dependencyStrictPrefix, C227 Gen.Env, C258
+V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGDependencyArrivalLeafLaws: OPEN (C045).
+- FGDependencyDriver: OPEN (C047).
+- FGDependencyLeaf: OPEN (C048).
+- FGDependencyReads: OPEN (C049).
+- FGDependencyTrace: OPEN (C052).
+- FGDependencyTraceLaws: OPEN (C053).
+- FGDependencyWireReads: OPEN (C054).
+- FGHistoricalReads: OPEN (C062).
+- FGReceiptOrigin: dependency_origin_at_read (recipe; C071).
+- FGReceiptToken: fgEventToken (recipe; C072).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -2518,6 +3069,29 @@ Source: `S004:46`.
 
 Translated telescope: In V, P, inst, Body Row Latest LeafIn, Leaf, E, rho, H, W, D, L, Step, F, T,
 Op, Arrival, Notify, leafState, leafWire, ActualRead.
+
+Contract expansion keys: C006 AcceptedBodyOriginDriverStatement, C032 DriverTraceLaws, C033
+Effect, C045 FGDependencyArrivalLeafLaws, C047 FGDependencyDriver, C048 FGDependencyLeaf, C049
+FGDependencyReads, C052 FGDependencyTrace, C053 FGDependencyTraceLaws, C054 FGDependencyWireReads,
+C062 FGHistoricalReads, C071 FGReceiptOrigin, C072 FGReceiptToken, C196 dependencyActualRead, C197
+dependencyClosed, C199 dependencyReadRequired, C200 dependencyRefused, C201 dependencyResolved,
+C202 dependencyStrictPrefix, C227 Gen.Env, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGDependencyArrivalLeafLaws: OPEN (C045).
+- FGDependencyDriver: OPEN (C047).
+- FGDependencyLeaf: OPEN (C048).
+- FGDependencyReads: OPEN (C049).
+- FGDependencyTrace: OPEN (C052).
+- FGDependencyTraceLaws: OPEN (C053).
+- FGDependencyWireReads: OPEN (C054).
+- FGHistoricalReads: OPEN (C062).
+- FGReceiptOrigin: dependency_origin_at_read (recipe; C071).
+- FGReceiptToken: fgEventToken (recipe; C072).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -2541,6 +3115,17 @@ SetLike.instMembership.mem (R.core (O.cutState x k)).fg.TF B → SetLike.instMem
 (O.cutState x k)).fg.TF B.parent)], [SetLike.instMembership.mem (R.core (O.cutState x k)).fg.TF
 X].
 
+Contract expansion keys: C042 FGChainRowsAtCut, C044 FGCoreReads, C055 FGExecutionObs, C247
+FG.Row, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGExecutionObs: ordinaryFGExecutionObs (recipe; C055).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -2563,6 +3148,34 @@ j) (Option.some (V2.Event.tick x t))], [Eq (R.headVote ((T x).state ((T x).dutyC
 X)], [(∀ (i : Nat) (ei : V2.Event V P.Object), Eq (List.instGetElem?NatLtLength.getElem?
 rho.events i) (Option.some ei) → instLENat.le i j → Int.instLTInt.lt ei.time deadline)].
 
+Contract expansion keys: C031 DriverCoreStepLaws, C033 Effect, C042 FGChainRowsAtCut, C043
+FGCoreLaws, C044 FGCoreReads, C045 FGDependencyArrivalLeafLaws, C047 FGDependencyDriver, C048
+FGDependencyLeaf, C049 FGDependencyReads, C052 FGDependencyTrace, C053 FGDependencyTraceLaws, C054
+FGDependencyWireReads, C062 FGHistoricalReads, C071 FGReceiptOrigin, C072 FGReceiptToken, C196
+dependencyActualRead, C197 dependencyClosed, C199 dependencyReadRequired, C200 dependencyRefused,
+C201 dependencyResolved, C202 dependencyStrictPrefix, C227 Gen.Env, C247 FG.Row, C258 V2.D.Run,
+C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- DriverCoreStepLaws: OPEN (C031).
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGDependencyArrivalLeafLaws: OPEN (C045).
+- FGDependencyDriver: OPEN (C047).
+- FGDependencyLeaf: OPEN (C048).
+- FGDependencyReads: OPEN (C049).
+- FGDependencyTrace: OPEN (C052).
+- FGDependencyTraceLaws: OPEN (C053).
+- FGDependencyWireReads: OPEN (C054).
+- FGHistoricalReads: OPEN (C062).
+- FGReceiptOrigin: dependency_origin_at_read (recipe; C071).
+- FGReceiptToken: fgEventToken (recipe; C072).
+- Gen.Env: env1 (recipe; C227).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -2579,6 +3192,19 @@ Source: `S004:136`.
 Translated telescope: In V, P, inst, n, Base Proposal Wire, R, E, rho, [V2.D.ScheduleWellFormed E
 rho], X, cut, [ChainRowsBefore R E rho X cut].
 
+Contract expansion keys: C028 ChainRowsBefore, C042 FGChainRowsAtCut, C044 FGCoreReads, C222
+Gen.V2.Duty.HoldsBefore, C227 Gen.Env, C247 FG.Row, C258 V2.D.Run, C260 V2.D.ScheduleWellFormed,
+C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- Gen.Env: env1 (recipe; C227).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -2593,6 +3219,14 @@ P10 for finality).
 Source: `S005:136`.
 
 Translated telescope: V In, P, inst, E, rho.
+
+Contract expansion keys: C227 Gen.Env, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -2609,6 +3243,15 @@ Source: `S005:240`.
 
 Translated telescope: V In, P, inst, E, rho, x, o, t.
 
+Contract expansion keys: C206 obsEmits, C227 Gen.Env, C258 V2.D.Run, C259 V2.D.Run.emits, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -2623,6 +3266,21 @@ P10 for finality).
 Source: `S005:260`.
 
 Translated telescope: V In, P, inst, E, rho, n, Base Proposal Wire, R, O.
+
+Contract expansion keys: C029 ChainRowsOfHeadObsStatement, C043 FGCoreLaws, C044 FGCoreReads, C055
+FGExecutionObs, C056 FGExecutionObsLaws, C069 FGObservedCoreLaws, C227 Gen.Env, C258 V2.D.Run,
+C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGExecutionObs: ordinaryFGExecutionObs (recipe; C055).
+- FGExecutionObsLaws: ordinaryFGExecutionObs_laws (recipe; C056).
+- FGObservedCoreLaws: ordinaryFGExecutionObs_core (recipe; C069).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -2639,6 +3297,19 @@ Source: `S005:320`.
 
 Translated telescope: V In, P, inst, E, rho, n, Base Proposal Wire, R, [FGCoreLaws R], [FGHeadLaws
 R E rho], [FGTreeRestoreLaws R].
+
+Contract expansion keys: C043 FGCoreLaws, C044 FGCoreReads, C058 FGHeadLaws, C095
+FGTreeRestoreLaws, C227 Gen.Env, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHeadLaws: fgsaHeadLaws (recipe; C058).
+- FGTreeRestoreLaws: d7n_tree_restore (recipe; file-private; C095).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -2657,6 +3328,19 @@ Translated telescope: V In, P, inst, E, rho, n, Base Proposal Wire, R, [FGCoreLa
 P.State) (o : V2.Signed P.Label P.seats P.Payload), (R.core nd).fg.F.Preceq (R.core (P.process nd
 o)).fg.F)], [FGSafetyRestartLaws R].
 
+Contract expansion keys: C043 FGCoreLaws, C044 FGCoreReads, C081 FGSafetyRestartLaws, C227
+Gen.Env, C258 V2.D.Run, C263 V2.ProtocolSpecD, C264 V2.Signed.
+
+Input records (including components of supplied contracts):
+
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGSafetyRestartLaws: fgsaSafetyRestartLaws (recipe; C081).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+- V2.Signed: OPEN (C264).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -2671,6 +3355,17 @@ P10 for finality).
 Source: `S005:374`.
 
 Translated telescope: V In, P, inst, E, rho, n, Base Proposal Wire, R, [FGRunOrderLaws E rho R].
+
+Contract expansion keys: C044 FGCoreReads, C077 FGRunOrderLaws, C227 Gen.Env, C258 V2.D.Run, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGRunOrderLaws: p0c1_order_laws (recipe; file-private; C077).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -2691,6 +3386,16 @@ rowHeld R blockRows (V2.D.Run.stateBefore E rho j x) a)], [(∀ (i j : Nat) (x :
 j → (R.core (V2.D.Run.stateBefore E rho i x)).proposals.IsPrefix (R.core (V2.D.Run.stateBefore E
 rho j x)).proposals)].
 
+Contract expansion keys: C044 FGCoreReads, C210 rowHeld, C227 Gen.Env, C258 V2.D.Run, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -2709,6 +3414,24 @@ Translated telescope: V In, P, inst, E, rho, n, Base Proposal Wire, R, Body, S, 
 P.State), Good st → ∀ (b : Body), List.instMembership.mem (H.acceptedBodies st) b → ∀ (B :
 FG.FGBlock (Fin n)), SetLike.instMembership.mem (R.core st).fg.TF B → Eq (R.erase B) (H.erase b) →
 Eq B.rows (List.filterMap S.decode (W.bodyRows b)))].
+
+Contract expansion keys: C043 FGCoreLaws, C044 FGCoreReads, C054 FGDependencyWireReads, C061
+FGHistoricalLaws, C062 FGHistoricalReads, C080 FGSafetyReads, C083 FGSafetyStoreLaws, C227
+Gen.Env, C231 KitFG.FGStoreInvariant, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGDependencyWireReads: OPEN (C054).
+- FGHistoricalLaws: OPEN (C061).
+- FGHistoricalReads: OPEN (C062).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGSafetyStoreLaws: fgsaSafetyStoreLaws (recipe; C083).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -2730,6 +3453,25 @@ SetLike.instMembership.mem rho.honest x → KitFG.FGStoreInvariant (KitFG.Window
 Ef cfg K) (KitFG.Window.certificateFinality Ef cfg K) (R.core (V2.D.Run.stateBefore E rho i
 x)).fg)], W U, a₀ d, h, x, [SetLike.instMembership.mem rho.honest x].
 
+Contract expansion keys: C003 AcceptGuards_W, C004 AcceptPrem_W, C005 AcceptStep_W, C007
+AcceptsFinalBefore, C044 FGCoreReads, C057 FGFinalityDurableLaws, C225 Gen.V2.Duty.MonoAlong, C227
+Gen.Env, C231 KitFG.FGStoreInvariant, C239 FG.Electorate, C240 FG.FGConfig, C258 V2.D.Run, C260
+V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- AcceptGuards_W: d7a5a_guards (recipe; file-private; C003).
+- AcceptPrem_W: d7a5a_prem (recipe; file-private; C004).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGFinalityDurableLaws: d7a5a_durable (recipe; file-private; C057).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -2746,6 +3488,26 @@ Translated telescope: In V, P, inst, n, Base Proposal Wire, R, E, rho, Ef, cfg, 
 SetLike.instMembership.mem rho.honest x → KitFG.FGStoreInvariant (KitFG.Window.certificateHeight
 Ef cfg K) (KitFG.Window.certificateFinality Ef cfg K) (R.core (V2.D.Run.stateBefore E rho i
 x)).fg)], y, U X, a₀ d, h, x, [SetLike.instMembership.mem rho.honest x].
+
+Contract expansion keys: C003 AcceptGuards_W, C005 AcceptStep_W, C007 AcceptsFinalBefore, C044
+FGCoreReads, C057 FGFinalityDurableLaws, C102 FinalizePrem_W, C157 PendingFold_W, C225
+Gen.V2.Duty.MonoAlong, C227 Gen.Env, C231 KitFG.FGStoreInvariant, C239 FG.Electorate, C240
+FG.FGConfig, C258 V2.D.Run, C260 V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- AcceptGuards_W: d7a5a_guards (recipe; file-private; C003).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGFinalityDurableLaws: d7a5a_durable (recipe; file-private; C057).
+- FinalizePrem_W: OPEN (C102).
+- PendingFold_W: d7a5a_fold (recipe; file-private; C157).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -2779,6 +3541,29 @@ Bool.true))], e, [List.instMembership.mem (FG.Window.derive Ef cfg K X.parent).W
 (Option.some i)], [FinalityNames S D a y U], [ValidForParent E rho I parentFG validFor X.slot
 (R.erase X) a], [heldAtProposal R E rho I blockWireRows X.slot a].
 
+Contract expansion keys: C001 BlockId, C044 FGCoreReads, C063 FGHistoryWireReads, C080
+FGSafetyReads, C092 FGTiming, C096 FinRowNames, C100 FinalityNames, C136 HonestCarrier, C137
+HonestProposal, C138 HonestRowAt, C189 TRowsSelect, C194 ValidForParent, C203 heldAtProposal, C209
+onParentChain, C210 rowHeld, C224 Gen.V2.Duty.HonestSlot, C227 Gen.Env, C239 FG.Electorate, C240
+FG.FGConfig, C247 FG.Row, C253 FG.Window.Entry, C255 V2.D.Interface, C258 V2.D.Run, C259
+V2.D.Run.emits, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- FG.Window.Entry: window_addBit (recipe; C253).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: holder assignment/injectivity or honest-holder FG weight (exact guards in type).
 
@@ -2804,6 +3589,34 @@ List.instMembership.mem rs a → And (Eq (finalityRow_bit_or_carried_W.match_1 (
 a.height_pair (fun _ => Bool.false) fun h entry timeout => (Decidable.decide (instLENat.le 1
 h)).and ((Option.map (fun fp => Decidable.decide (instLTNat.lt fp.height h)) a.finality_pair).getD
 Bool.true)) Bool.true) (Eq (FG.Window.r6w (FG.Window.derive Ef cfg K B) a) Bool.true))].
+
+Contract expansion keys: C001 BlockId, C044 FGCoreReads, C063 FGHistoryWireReads, C080
+FGSafetyReads, C092 FGTiming, C097 FinalityBatchPrem_W, C098 FinalityCoveredByChild_W, C100
+FinalityNames, C126 HeldBefore, C136 HonestCarrier, C137 HonestProposal, C138 HonestRowAt, C175
+RowComplete, C178 RowSigner, C188 TRowsReceipt, C189 TRowsSelect, C194 ValidForParent, C203
+heldAtProposal, C209 onParentChain, C210 rowHeld, C222 Gen.V2.Duty.HoldsBefore, C224
+Gen.V2.Duty.HonestSlot, C227 Gen.Env, C233 KitFG.JustificationBirth, C236 KitFG.TargetQCAt, C237
+KitFG.Window.CoveredW, C238 KitFG.Window.RetainedW, C239 FG.Electorate, C240 FG.FGConfig, C247
+FG.Row, C254 FG.Window.State, C255 V2.D.Interface, C258 V2.D.Run, C259 V2.D.Run.emits, C260
+V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FinalityBatchPrem_W: d7a4b_batch_to (recipe; file-private; C097).
+- Gen.Env: env1 (recipe; C227).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- FG.Window.State: gateStep (recipe; C254).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -2847,6 +3660,31 @@ i → Eq (namedEntry (D.heightPair (rows i))) (Option.some { fst := sourceH, snd
 }))], [(∀ (i : Fin n), SetLike.instMembership.mem seats i → heldAtProposal R E rho I blockWireRows
 X.slot (rows i))].
 
+Contract expansion keys: C001 BlockId, C044 FGCoreReads, C063 FGHistoryWireReads, C080
+FGSafetyReads, C092 FGTiming, C098 FinalityCoveredByChild_W, C100 FinalityNames, C123 HeightMatch,
+C136 HonestCarrier, C137 HonestProposal, C138 HonestRowAt, C189 TRowsSelect, C194 ValidForParent,
+C203 heldAtProposal, C209 onParentChain, C210 rowHeld, C224 Gen.V2.Duty.HonestSlot, C227 Gen.Env,
+C229 KitFG.FGHeightLaws, C237 KitFG.Window.CoveredW, C238 KitFG.Window.RetainedW, C239
+FG.Electorate, C240 FG.FGConfig, C247 FG.Row, C248 FG.RowCodec, C255 V2.D.Interface, C258
+V2.D.Run, C259 V2.D.Run.emits, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGHeightLaws: windowHeightLaws (recipe; C229).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- FG.RowCodec: OPEN (C248).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: holder assignment/injectivity or honest-holder FG weight (exact guards in type).
 
@@ -2877,6 +3715,35 @@ a.height_pair (fun _ => Bool.false) fun h entry timeout => (Decidable.decide (in
 h)).and ((Option.map (fun fp => Decidable.decide (instLTNat.lt fp.height h)) a.finality_pair).getD
 Bool.true)) Bool.true) (Eq (FG.Window.r6w (FG.Window.derive Ef cfg K B) a) Bool.true))].
 
+Contract expansion keys: C001 BlockId, C044 FGCoreReads, C063 FGHistoryWireReads, C068
+FGObservationReads, C080 FGSafetyReads, C092 FGTiming, C098 FinalityCoveredByChild_W, C100
+FinalityNames, C109 FreshFinalityRows_W, C123 HeightMatch, C126 HeldBefore, C136 HonestCarrier,
+C137 HonestProposal, C138 HonestRowAt, C175 RowComplete, C178 RowSigner, C189 TRowsSelect, C192
+TerminalCarriagePrem_W, C194 ValidForParent, C203 heldAtProposal, C209 onParentChain, C210
+rowHeld, C222 Gen.V2.Duty.HoldsBefore, C224 Gen.V2.Duty.HonestSlot, C227 Gen.Env, C229
+KitFG.FGHeightLaws, C237 KitFG.Window.CoveredW, C238 KitFG.Window.RetainedW, C239 FG.Electorate,
+C240 FG.FGConfig, C247 FG.Row, C255 V2.D.Interface, C258 V2.D.Run, C259 V2.D.Run.emits, C260
+V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- TerminalCarriagePrem_W: d7a4c_terminal_to (recipe; file-private; C192).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGHeightLaws: windowHeightLaws (recipe; C229).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -2888,6 +3755,13 @@ FG-SA producer/application: terminalCarriage_W_of_tRowsSelect (`S140:871`).
 Source: `S009:12`.
 
 Translated telescope: T, [FGTimingLaws T], deltaF, g.
+
+Contract expansion keys: C092 FGTiming, C093 FGTimingLaws.
+
+Input records (including components of supplied contracts):
+
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -2905,6 +3779,14 @@ Source: `S009:21`.
 Translated telescope: T, [FGTimingLaws T], deltaF start horizon t, g, honestSlot, [FE_W T deltaF
 honestSlot start horizon g], [Int.instLTInt.lt 0 t], [Int.instLEInt.le start t], [Int.instLEInt.le
 (instHAdd.hAdd t (W_W T deltaF g)) horizon].
+
+Contract expansion keys: C036 FE_W, C092 FGTiming, C093 FGTimingLaws, C218 Gen.Pure.FGoodE_W, C220
+Gen.Pure.InWindow, C221 Gen.Pure.RecFE_W.
+
+Input records (including components of supplied contracts):
+
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -2935,6 +3817,34 @@ rho.horizon], [KitFG.FGHeightLaws Ef O.height], [(∀ (A B : FG.FGBlock (Fin n))
 (R.erase B) → A.Preceq B)], [(∀ (B : FG.FGBlock (Fin n)), Eq (R.erase B.parent) (R.erase
 B).parent)].
 
+Contract expansion keys: C007 AcceptsFinalBefore, C036 FE_W, C044 FGCoreReads, C060
+FGHistoricalHighTransfer, C063 FGHistoryWireReads, C068 FGObservationReads, C080 FGSafetyReads,
+C090 FGServicePoint, C092 FGTiming, C093 FGTimingLaws, C108 ForwardWitness_W, C122 H0Reset, C124
+HeightRow, C137 HonestProposal, C138 HonestRowAt, C143 KernelConclusion_W, C147 KernelPrem_W, C150
+LivenessBoundW, C154 OpeningCarrier_W, C218 Gen.Pure.FGoodE_W, C220 Gen.Pure.InWindow, C221
+Gen.Pure.RecFE_W, C222 Gen.V2.Duty.HoldsBefore, C224 Gen.V2.Duty.HonestSlot, C227 Gen.Env, C229
+KitFG.FGHeightLaws, C239 FG.Electorate, C255 V2.D.Interface, C258 V2.D.Run, C259 V2.D.Run.emits,
+C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGServicePoint: d7n_point (recipe; file-private; C090).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- H0Reset: d7n_reset (recipe; file-private; C122).
+- KernelPrem_W: d7n_kernel (recipe; file-private; C147).
+- LivenessBoundW: OPEN (C150).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGHeightLaws: windowHeightLaws (recipe; C229).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: KernelPrem_W: supplied honest FG weight ≥ q.
 
@@ -2948,6 +3858,29 @@ Source: `S010:76`.
 
 Translated telescope: In V, P, inst, n, Base Proposal Wire, R, S, E, rho, T, D, Ef, cfg, H,
 [KitFG.HeightBridge Ef cfg H], [RawHistoryOrigin R S E rho T D], q y, U X, h.
+
+Contract expansion keys: C028 ChainRowsBefore, C035 EntryAt, C044 FGCoreReads, C063
+FGHistoryWireReads, C080 FGSafetyReads, C092 FGTiming, C125 HeldAt, C138 HonestRowAt, C139
+HonestRowBefore, C153 NoMixedOnPath, C160 PreBatchPrem, C174 RawHistoryOrigin, C178 RowSigner,
+C222 Gen.V2.Duty.HoldsBefore, C227 Gen.Env, C232 KitFG.HeightBridge, C239 FG.Electorate, C240
+FG.FGConfig, C247 FG.Row, C248 FG.RowCodec, C258 V2.D.Run, C260 V2.D.ScheduleWellFormed, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- PreBatchPrem: d7a_pre (recipe; file-private; C160).
+- Gen.Env: env1 (recipe; C227).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- FG.RowCodec: OPEN (C248).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -2966,6 +3899,31 @@ K, [Not (Ef.IsQuorum Finset.instEmptyCollection.emptyCollection)], [instLENat.le
 [TargetJustification Ef H], q y, U X, [Ne X FG.FGBlock.genesis], [EntryAt H U y], [U.Preceq
 X.parent], [(Eq (H X.parent).h y → TargetCoveredByChild Ef H X U y)], [NoMixedOnPath H X y], h.
 
+Contract expansion keys: C028 ChainRowsBefore, C035 EntryAt, C044 FGCoreReads, C063
+FGHistoryWireReads, C080 FGSafetyReads, C092 FGTiming, C110 FreshPrem, C125 HeldAt, C138
+HonestRowAt, C139 HonestRowBefore, C141 JustifiedCross, C151 MixedCross, C153 NoMixedOnPath, C174
+RawHistoryOrigin, C178 RowSigner, C190 TargetCoveredByChild, C191 TargetJustification, C222
+Gen.V2.Duty.HoldsBefore, C227 Gen.Env, C228 KitFG.FGCertificateLaws, C232 KitFG.HeightBridge, C238
+KitFG.Window.RetainedW, C239 FG.Electorate, C240 FG.FGConfig, C247 FG.Row, C248 FG.RowCodec, C258
+V2.D.Run, C260 V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FreshPrem: d7a_fresh (recipe; file-private; C110).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- FG.RowCodec: OPEN (C248).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -2983,6 +3941,25 @@ Nat) (a : Wire) (h : Nat) (t : Time), HonestRowAt S E rho T j z r a → Eq (hist
 (Option.some h) → Eq (eventTime rho j) (Option.some t) → Int.instLTInt.lt t cut → instLENat.le h
 m)], i, x, B, [instLENat.le i (rho.idxBefore cut)], [HeldAt R E rho i x B].
 
+Contract expansion keys: C044 FGCoreReads, C063 FGHistoryWireReads, C080 FGSafetyReads, C092
+FGTiming, C125 HeldAt, C138 HonestRowAt, C139 HonestRowBefore, C174 RawHistoryOrigin, C178
+RowSigner, C227 Gen.Env, C228 KitFG.FGCertificateLaws, C239 FG.Electorate, C247 FG.Row, C258
+V2.D.Run, C260 V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- FG.Electorate: E (recipe; C239).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: faulty FG-seat weight/count.
 
@@ -2999,6 +3976,25 @@ Nat) (a : Wire) (h : Nat) (t : Time), HonestRowAt S E rho T j z r a → Eq (hist
 (Option.some h) → Eq (eventTime rho j) (Option.some t) → Int.instLTInt.lt t cut → instLENat.le h
 m)], i, x, B, v, [Eq (List.instGetElem?NatLtLength.getElem? rho.events i) (Option.some
 (V2.Event.tick v cut))], [HeldAt R E rho i x B].
+
+Contract expansion keys: C044 FGCoreReads, C063 FGHistoryWireReads, C080 FGSafetyReads, C092
+FGTiming, C125 HeldAt, C138 HonestRowAt, C139 HonestRowBefore, C174 RawHistoryOrigin, C178
+RowSigner, C227 Gen.Env, C228 KitFG.FGCertificateLaws, C239 FG.Electorate, C247 FG.Row, C258
+V2.D.Run, C260 V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- FG.Electorate: E (recipe; C239).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: faulty FG-seat weight/count.
@@ -3018,6 +4014,25 @@ t (T.action q) → instLENat.le h m)], [(∀ (j : Nat) (z : V) (a : Wire) (h : N
 rho T j z q a → Eq (historyRowHeight S D a) (Option.some h) → instLENat.le h m)], i, x, B,
 [instLENat.le i (rho.idxBefore (T.action (instHAdd.hAdd q 1)))], [HeldAt R E rho i x B].
 
+Contract expansion keys: C044 FGCoreReads, C063 FGHistoryWireReads, C080 FGSafetyReads, C092
+FGTiming, C125 HeldAt, C138 HonestRowAt, C139 HonestRowBefore, C174 RawHistoryOrigin, C178
+RowSigner, C227 Gen.Env, C228 KitFG.FGCertificateLaws, C239 FG.Electorate, C247 FG.Row, C258
+V2.D.Run, C260 V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- FG.Electorate: E (recipe; C239).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: faulty FG-seat weight/count.
 
@@ -3030,6 +4045,16 @@ Source: `S011:12`.
 Translated telescope: T, deltaF horizon, r, honestSlot, fgQuorum fgHonestWeight timeoutSlots
 capacity, Service, [KernelJoinedPrem T deltaF horizon r honestSlot fgQuorum fgHonestWeight
 timeoutSlots capacity Service].
+
+Contract expansion keys: C090 FGServicePoint, C092 FGTiming, C145 KernelJoinedPrem, C150
+LivenessBoundW, C218 Gen.Pure.FGoodE_W.
+
+Input records (including components of supplied contracts):
+
+- FGServicePoint: d7n_point (recipe; file-private; C090).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- KernelJoinedPrem: OPEN (C145).
+- LivenessBoundW: OPEN (C150).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: KernelPrem_W: supplied honest FG weight ≥ q.
@@ -3051,6 +4076,26 @@ capacity → KernelConclusion_W R E rho O T I decodeProposal bodyErase bodyRows 
 deltaF r)], [KernelJoinedPrem T deltaF rho.horizon r honestSlot fgQuorum fgHonestWeight
 timeoutSlots capacity Service].
 
+Contract expansion keys: C007 AcceptsFinalBefore, C044 FGCoreReads, C068 FGObservationReads, C090
+FGServicePoint, C092 FGTiming, C137 HonestProposal, C143 KernelConclusion_W, C145
+KernelJoinedPrem, C147 KernelPrem_W, C150 LivenessBoundW, C154 OpeningCarrier_W, C218
+Gen.Pure.FGoodE_W, C222 Gen.V2.Duty.HoldsBefore, C224 Gen.V2.Duty.HonestSlot, C227 Gen.Env, C255
+V2.D.Interface, C258 V2.D.Run, C259 V2.D.Run.emits, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGServicePoint: d7n_point (recipe; file-private; C090).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- KernelJoinedPrem: OPEN (C145).
+- KernelPrem_W: d7n_kernel (recipe; file-private; C147).
+- LivenessBoundW: OPEN (C150).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: KernelPrem_W: supplied honest FG weight ≥ q.
 
@@ -3064,6 +4109,14 @@ Source: `S012:14`.
 
 Translated telescope: T, [FGTimingLaws T], ΔF gst, q, [LivenessBoundW T ΔF], [Int.instLEInt.le 0
 ΔF], [Int.instLEInt.le gst (T.action q)].
+
+Contract expansion keys: C092 FGTiming, C093 FGTimingLaws, C150 LivenessBoundW.
+
+Input records (including components of supplied contracts):
+
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- LivenessBoundW: OPEN (C150).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -3208,6 +4261,65 @@ Int.instLEInt.le E.t_GST (T.proposal X.slot) → Int.instLEInt.le (instHAdd.hAdd
 T.delta) rho.horizon → U.Preceq (FG.Window.derive Ef cfg K X).F → Nonempty (BlockDelivery_W R E
 rho ready X U (T.proposal X.slot) (instHAdd.hAdd (T.proposal X.slot) T.delta)))].
 
+Contract expansion keys: C001 BlockId, C005 AcceptStep_W, C026 BatchPrem, C027 BlockDelivery_W,
+C028 ChainRowsBefore, C035 EntryAt, C038 FGACServiceReads, C043 FGCoreLaws, C044 FGCoreReads, C057
+FGFinalityDurableLaws, C058 FGHeadLaws, C059 FGHistoricalHighChain, C060 FGHistoricalHighTransfer,
+C063 FGHistoryWireReads, C068 FGObservationReads, C078 FGSafetyClientLaws, C080 FGSafetyReads,
+C090 FGServicePoint, C091 FGSourceService, C092 FGTiming, C093 FGTimingLaws, C094 FGTreeKeepLaws,
+C095 FGTreeRestoreLaws, C122 H0Reset, C123 HeightMatch, C124 HeightRow, C125 HeldAt, C126
+HeldBefore, C127 HighRecordEmission, C130 HighRecordHead, C133 HighRecordOwnOrigin, C136
+HonestCarrier, C137 HonestProposal, C138 HonestRowAt, C139 HonestRowBefore, C141 JustifiedCross,
+C142 KernelActionSupply_W, C143 KernelConclusion_W, C144 KernelExactService, C146
+KernelMiddleWitness_W, C147 KernelPrem_W, C148 KernelPt, C149 KernelRunFacts, C150 LivenessBoundW,
+C151 MixedCross, C152 NamesEntry, C153 NoMixedOnPath, C154 OpeningCarrier_W, C172 RQCOrigin, C174
+RawHistoryOrigin, C175 RowComplete, C176 RowNames, C178 RowSigner, C186 SlotChain, C188
+TRowsReceipt, C189 TRowsSelect, C190 TargetCoveredByChild, C191 TargetJustification, C194
+ValidForParent, C203 heldAtProposal, C205 kernelCarrier, C209 onParentChain, C210 rowHeld, C218
+Gen.Pure.FGoodE_W, C222 Gen.V2.Duty.HoldsBefore, C224 Gen.V2.Duty.HonestSlot, C225
+Gen.V2.Duty.MonoAlong, C227 Gen.Env, C228 KitFG.FGCertificateLaws, C231 KitFG.FGStoreInvariant,
+C232 KitFG.HeightBridge, C238 KitFG.Window.RetainedW, C239 FG.Electorate, C240 FG.FGConfig, C247
+FG.Row, C248 FG.RowCodec, C252 FG.ViewRootInj, C255 V2.D.Interface, C258 V2.D.Run, C259
+V2.D.Run.emits, C260 V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- BatchPrem: kmid_batchPrem (recipe; C026).
+- BlockDelivery_W: d7a5a_delivery (recipe; file-private; C027).
+- FGACServiceReads: d7n_ac (recipe; file-private; C038).
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGFinalityDurableLaws: d7a5a_durable (recipe; file-private; C057).
+- FGHeadLaws: fgsaHeadLaws (recipe; C058).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyClientLaws: fgsaSafetyClientLaws (recipe; C078).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGServicePoint: d7n_point (recipe; file-private; C090).
+- FGSourceService: d7a4r_source_service (recipe; file-private; C091).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- FGTreeKeepLaws: d7n_tree_keep (recipe; file-private; C094).
+- FGTreeRestoreLaws: d7n_tree_restore (recipe; file-private; C095).
+- H0Reset: d7n_reset (recipe; file-private; C122).
+- KernelActionSupply_W: OPEN (C142).
+- KernelMiddleWitness_W: d7n_middle_from (recipe; file-private; C146).
+- KernelPrem_W: d7n_kernel (recipe; file-private; C147).
+- KernelPt: OPEN (C148).
+- KernelRunFacts: OPEN (C149).
+- LivenessBoundW: OPEN (C150).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- FG.RowCodec: OPEN (C248).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: ViewRootInj at the quantified store(s); producer viewRootInj_TF from FG-SA reachable store.
 Population: holder assignment/injectivity or honest-holder FG weight (exact guards in type);
 faulty FG-seat weight/count; KernelRunFacts: linked injective holders and faulty FG weight < q;
@@ -3233,6 +4345,30 @@ T deltaF (instHAdd.hAdd r 2)) rho.horizon → ∀ (x : V), SetLike.instMembershi
 rho.honest x → (R.erase (R.core (V2.D.Run.readAt E rho t x)).fg.F).Preceq (output (V2.D.Run.readAt
 E rho t x)))], [ForwardWitness_W R E rho O T I decodeProposal bodyErase bodyRows parentFG makeFG
 honestSlot deltaF g sp t].
+
+Contract expansion keys: C007 AcceptsFinalBefore, C043 FGCoreLaws, C044 FGCoreReads, C057
+FGFinalityDurableLaws, C068 FGObservationReads, C090 FGServicePoint, C092 FGTiming, C099
+FinalityLivenessConcl_W, C108 ForwardWitness_W, C137 HonestProposal, C154 OpeningCarrier_W, C218
+Gen.Pure.FGoodE_W, C220 Gen.Pure.InWindow, C222 Gen.V2.Duty.HoldsBefore, C224
+Gen.V2.Duty.HonestSlot, C225 Gen.V2.Duty.MonoAlong, C227 Gen.Env, C228 KitFG.FGCertificateLaws,
+C239 FG.Electorate, C255 V2.D.Interface, C258 V2.D.Run, C259 V2.D.Run.emits, C260
+V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGFinalityDurableLaws: d7a5a_durable (recipe; file-private; C057).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGServicePoint: d7n_point (recipe; file-private; C090).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -3271,6 +4407,38 @@ rho.horizon → ∀ (x : V), SetLike.instMembership.mem rho.honest x → (output
 t x)).Preceq A)], [(∀ (x : V), SetLike.instMembership.mem rho.honest x → (R.erase (R.core
 (V2.D.Run.readAt E rho t x)).fg.F).Preceq (output (V2.D.Run.readAt E rho t x)))].
 
+Contract expansion keys: C007 AcceptsFinalBefore, C036 FE_W, C043 FGCoreLaws, C044 FGCoreReads,
+C057 FGFinalityDurableLaws, C060 FGHistoricalHighTransfer, C063 FGHistoryWireReads, C068
+FGObservationReads, C080 FGSafetyReads, C090 FGServicePoint, C092 FGTiming, C093 FGTimingLaws,
+C099 FinalityLivenessConcl_W, C122 H0Reset, C124 HeightRow, C137 HonestProposal, C138 HonestRowAt,
+C143 KernelConclusion_W, C147 KernelPrem_W, C150 LivenessBoundW, C154 OpeningCarrier_W, C218
+Gen.Pure.FGoodE_W, C220 Gen.Pure.InWindow, C221 Gen.Pure.RecFE_W, C222 Gen.V2.Duty.HoldsBefore,
+C224 Gen.V2.Duty.HonestSlot, C225 Gen.V2.Duty.MonoAlong, C227 Gen.Env, C228
+KitFG.FGCertificateLaws, C239 FG.Electorate, C255 V2.D.Interface, C258 V2.D.Run, C259
+V2.D.Run.emits, C260 V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGFinalityDurableLaws: d7a5a_durable (recipe; file-private; C057).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGServicePoint: d7n_point (recipe; file-private; C090).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- H0Reset: d7n_reset (recipe; file-private; C122).
+- KernelPrem_W: d7n_kernel (recipe; file-private; C147).
+- LivenessBoundW: OPEN (C150).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: KernelPrem_W: supplied honest FG weight ≥ q.
 
@@ -3290,6 +4458,29 @@ sp.reset], [FGHistoricalHighTransfer R O T E rho I sp horizon], [KitFG.FGHeightL
 (instHMul.hMul q T.roundSlots) (R.erase A₀)], [Int.instLEInt.le (T.proposal (instHMul.hMul q
 T.roundSlots)) horizon], [instLENat.le (instHAdd.hAdd sp.reset.sStar 2) (instHMul.hMul q
 T.roundSlots)].
+
+Contract expansion keys: C044 FGCoreReads, C060 FGHistoricalHighTransfer, C063 FGHistoryWireReads,
+C068 FGObservationReads, C080 FGSafetyReads, C090 FGServicePoint, C092 FGTiming, C093
+FGTimingLaws, C122 H0Reset, C124 HeightRow, C137 HonestProposal, C138 HonestRowAt, C224
+Gen.V2.Duty.HonestSlot, C227 Gen.Env, C229 KitFG.FGHeightLaws, C239 FG.Electorate, C255
+V2.D.Interface, C258 V2.D.Run, C259 V2.D.Run.emits, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGServicePoint: d7n_point (recipe; file-private; C090).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- H0Reset: d7n_reset (recipe; file-private; C122).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGHeightLaws: windowHeightLaws (recipe; C229).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -3372,6 +4563,53 @@ And (instLENat.le rSent r) (And (HonestRowAt S E rho T j x rSent a) (And (RowCom
 D.signer valid x a) (Eq (D.heightPair a) (FG.NamedHeightPair.vote (O.height C).h (O.height
 C).T_h.root Bool.false)))))], [HonestProposal E rho I (instHMul.hMul pt.r T.roundSlots) A].
 
+Contract expansion keys: C001 BlockId, C026 BatchPrem, C035 EntryAt, C038 FGACServiceReads, C043
+FGCoreLaws, C044 FGCoreReads, C058 FGHeadLaws, C060 FGHistoricalHighTransfer, C063
+FGHistoryWireReads, C068 FGObservationReads, C080 FGSafetyReads, C090 FGServicePoint, C092
+FGTiming, C093 FGTimingLaws, C094 FGTreeKeepLaws, C095 FGTreeRestoreLaws, C122 H0Reset, C123
+HeightMatch, C124 HeightRow, C125 HeldAt, C126 HeldBefore, C127 HighRecordEmission, C132
+HighRecordNames, C136 HonestCarrier, C137 HonestProposal, C138 HonestRowAt, C139 HonestRowBefore,
+C141 JustifiedCross, C144 KernelExactService, C147 KernelPrem_W, C148 KernelPt, C150
+LivenessBoundW, C151 MixedCross, C152 NamesEntry, C153 NoMixedOnPath, C154 OpeningCarrier_W, C174
+RawHistoryOrigin, C175 RowComplete, C176 RowNames, C178 RowSigner, C186 SlotChain, C188
+TRowsReceipt, C190 TargetCoveredByChild, C191 TargetJustification, C194 ValidForParent, C205
+kernelCarrier, C210 rowHeld, C218 Gen.Pure.FGoodE_W, C222 Gen.V2.Duty.HoldsBefore, C224
+Gen.V2.Duty.HonestSlot, C227 Gen.Env, C228 KitFG.FGCertificateLaws, C232 KitFG.HeightBridge, C239
+FG.Electorate, C240 FG.FGConfig, C247 FG.Row, C248 FG.RowCodec, C252 FG.ViewRootInj, C255
+V2.D.Interface, C258 V2.D.Run, C259 V2.D.Run.emits, C260 V2.D.ScheduleWellFormed, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- BatchPrem: kmid_batchPrem (recipe; C026).
+- FGACServiceReads: d7n_ac (recipe; file-private; C038).
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHeadLaws: fgsaHeadLaws (recipe; C058).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGServicePoint: d7n_point (recipe; file-private; C090).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- FGTreeKeepLaws: d7n_tree_keep (recipe; file-private; C094).
+- FGTreeRestoreLaws: d7n_tree_restore (recipe; file-private; C095).
+- H0Reset: d7n_reset (recipe; file-private; C122).
+- KernelPrem_W: d7n_kernel (recipe; file-private; C147).
+- KernelPt: OPEN (C148).
+- LivenessBoundW: OPEN (C150).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- FG.RowCodec: OPEN (C248).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: ViewRootInj at the quantified store(s); producer viewRootInj_TF from FG-SA reachable store.
 Population: holder assignment/injectivity or honest-holder FG weight (exact guards in type);
 faulty FG-seat weight/count; KernelPrem_W: supplied honest FG weight ≥ q.
@@ -3386,6 +4624,38 @@ Translated telescope: In V, P, inst, n, Base Proposal Wire Body, R, S, O, T, E, 
 decodeProposal, bodyErase, bodyRows, blockWireRows, parentFG, parentHeight, validFor, makeFG,
 valid, ac, cfg, K, ΔF, sp, pt, A, m.
 
+Contract expansion keys: C001 BlockId, C026 BatchPrem, C028 ChainRowsBefore, C035 EntryAt, C038
+FGACServiceReads, C044 FGCoreReads, C063 FGHistoryWireReads, C068 FGObservationReads, C080
+FGSafetyReads, C090 FGServicePoint, C092 FGTiming, C123 HeightMatch, C125 HeldAt, C126 HeldBefore,
+C136 HonestCarrier, C137 HonestProposal, C138 HonestRowAt, C144 KernelExactService, C146
+KernelMiddleWitness_W, C148 KernelPt, C151 MixedCross, C152 NamesEntry, C153 NoMixedOnPath, C154
+OpeningCarrier_W, C175 RowComplete, C176 RowNames, C178 RowSigner, C188 TRowsReceipt, C194
+ValidForParent, C205 kernelCarrier, C210 rowHeld, C222 Gen.V2.Duty.HoldsBefore, C224
+Gen.V2.Duty.HonestSlot, C227 Gen.Env, C238 KitFG.Window.RetainedW, C239 FG.Electorate, C240
+FG.FGConfig, C255 V2.D.Interface, C258 V2.D.Run, C259 V2.D.Run.emits, C260
+V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- BatchPrem: kmid_batchPrem (recipe; C026).
+- FGACServiceReads: d7n_ac (recipe; file-private; C038).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGServicePoint: d7n_point (recipe; file-private; C090).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- KernelMiddleWitness_W: d7n_middle_from (recipe; file-private; C146).
+- KernelPt: OPEN (C148).
+- Gen.Env: env1 (recipe; C227).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -3399,6 +4669,38 @@ Source: `S014:453`.
 Translated telescope: In V, P, inst, n, Base Proposal Wire Body, R, S, O, T, E, rho, I, D, Ef,
 decodeProposal, bodyErase, bodyRows, blockWireRows, parentFG, parentHeight, validFor, makeFG,
 valid, ac, cfg, K, ΔF, sp, pt, A, m.
+
+Contract expansion keys: C001 BlockId, C026 BatchPrem, C028 ChainRowsBefore, C035 EntryAt, C038
+FGACServiceReads, C044 FGCoreReads, C063 FGHistoryWireReads, C068 FGObservationReads, C080
+FGSafetyReads, C090 FGServicePoint, C092 FGTiming, C123 HeightMatch, C125 HeldAt, C126 HeldBefore,
+C136 HonestCarrier, C137 HonestProposal, C138 HonestRowAt, C144 KernelExactService, C146
+KernelMiddleWitness_W, C148 KernelPt, C151 MixedCross, C152 NamesEntry, C153 NoMixedOnPath, C154
+OpeningCarrier_W, C175 RowComplete, C176 RowNames, C178 RowSigner, C188 TRowsReceipt, C194
+ValidForParent, C205 kernelCarrier, C210 rowHeld, C222 Gen.V2.Duty.HoldsBefore, C224
+Gen.V2.Duty.HonestSlot, C227 Gen.Env, C238 KitFG.Window.RetainedW, C239 FG.Electorate, C240
+FG.FGConfig, C255 V2.D.Interface, C258 V2.D.Run, C259 V2.D.Run.emits, C260
+V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- BatchPrem: kmid_batchPrem (recipe; C026).
+- FGACServiceReads: d7n_ac (recipe; file-private; C038).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGServicePoint: d7n_point (recipe; file-private; C090).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- KernelMiddleWitness_W: d7n_middle_from (recipe; file-private; C146).
+- KernelPt: OPEN (C148).
+- Gen.Env: env1 (recipe; C227).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -3416,6 +4718,39 @@ valid, ac, cfg, K, ΔF, sp, pt, A, m, [FGCoreLaws R], [V2.D.ScheduleWellFormed E
 [SetLike.instMembership.mem rho.honest x], [Eq (actionSourceFG R E rho T x (instHAdd.hAdd pt.r 2))
 (Option.some (Option.some C))].
 
+Contract expansion keys: C001 BlockId, C026 BatchPrem, C028 ChainRowsBefore, C035 EntryAt, C038
+FGACServiceReads, C043 FGCoreLaws, C044 FGCoreReads, C063 FGHistoryWireReads, C068
+FGObservationReads, C080 FGSafetyReads, C090 FGServicePoint, C092 FGTiming, C123 HeightMatch, C125
+HeldAt, C126 HeldBefore, C136 HonestCarrier, C137 HonestProposal, C138 HonestRowAt, C144
+KernelExactService, C146 KernelMiddleWitness_W, C148 KernelPt, C151 MixedCross, C152 NamesEntry,
+C153 NoMixedOnPath, C154 OpeningCarrier_W, C175 RowComplete, C176 RowNames, C178 RowSigner, C188
+TRowsReceipt, C194 ValidForParent, C205 kernelCarrier, C210 rowHeld, C222 Gen.V2.Duty.HoldsBefore,
+C224 Gen.V2.Duty.HonestSlot, C227 Gen.Env, C238 KitFG.Window.RetainedW, C239 FG.Electorate, C240
+FG.FGConfig, C255 V2.D.Interface, C258 V2.D.Run, C259 V2.D.Run.emits, C260
+V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- BatchPrem: kmid_batchPrem (recipe; C026).
+- FGACServiceReads: d7n_ac (recipe; file-private; C038).
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGServicePoint: d7n_point (recipe; file-private; C090).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- KernelMiddleWitness_W: d7n_middle_from (recipe; file-private; C146).
+- KernelPt: OPEN (C148).
+- Gen.Env: env1 (recipe; C227).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -3427,6 +4762,13 @@ FG-SA producer/application: kernel_middle_source_cap (`S148:1427`).
 Source: `S015:14`.
 
 Translated telescope: T, [FGTimingLaws T], r.
+
+Contract expansion keys: C092 FGTiming, C093 FGTimingLaws.
+
+Input records (including components of supplied contracts):
+
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -3440,6 +4782,13 @@ Source: `S015:20`.
 
 Translated telescope: T, [FGTimingLaws T].
 
+Contract expansion keys: C092 FGTiming, C093 FGTimingLaws.
+
+Input records (including components of supplied contracts):
+
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -3451,6 +4800,13 @@ FG-SA producer/application: kmid_action_strictMono (`S149:242`).
 Source: `S015:30`.
 
 Translated telescope: T, [FGTimingLaws T], a b, [instLENat.le a b].
+
+Contract expansion keys: C092 FGTiming, C093 FGTimingLaws.
+
+Input records (including components of supplied contracts):
+
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -3464,6 +4820,13 @@ Source: `S015:37`.
 
 Translated telescope: T, [FGTimingLaws T], a b, [instLTNat.lt a b].
 
+Contract expansion keys: C092 FGTiming, C093 FGTimingLaws.
+
+Input records (including components of supplied contracts):
+
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -3476,6 +4839,13 @@ Source: `S015:44`.
 
 Translated telescope: T, [FGTimingLaws T], ΔF, [Int.instLEInt.le 0 ΔF].
 
+Contract expansion keys: C092 FGTiming, C093 FGTimingLaws.
+
+Input records (including components of supplied contracts):
+
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -3487,6 +4857,12 @@ FG-SA producer/application: kmid_kappa_cover (`S149:262`).
 Source: `S015:57`.
 
 Translated telescope: T, r.
+
+Contract expansion keys: C092 FGTiming.
+
+Input records (including components of supplied contracts):
+
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -3501,6 +4877,13 @@ Source: `S015:64`.
 Translated telescope: n, erase, [(∀ (A B : FG.FGBlock (Fin n)), (erase A).Preceq (erase B) →
 A.Preceq B)], A B, [(erase A).Preceq (erase B)].
 
+Contract expansion keys: none.
+
+Input records (including components of supplied contracts):
+
+None after the mechanical contract expansion.
+
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -3512,6 +4895,13 @@ FG-SA producer/application: kmid_lift_preceq (`S149:501`).
 Source: `S015:70`.
 
 Translated telescope: n, B.
+
+Contract expansion keys: none.
+
+Input records (including components of supplied contracts):
+
+None after the mechanical contract expansion.
+
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -3525,6 +4915,13 @@ Source: `S015:76`.
 
 Translated telescope: n, W X, [SlotChain X], [W.Preceq X].
 
+Contract expansion keys: C186 SlotChain.
+
+Input records (including components of supplied contracts):
+
+None after the mechanical contract expansion.
+
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -3536,6 +4933,13 @@ FG-SA producer/application: kmid_slot_le_of_preceq (`S149:1222`).
 Source: `S015:90`.
 
 Translated telescope: n, W X, [SlotChain X], [W.Preceq X], [Ne W X].
+
+Contract expansion keys: C186 SlotChain.
+
+Input records (including components of supplied contracts):
+
+None after the mechanical contract expansion.
+
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -3553,6 +4957,17 @@ Translated telescope: T, [FGTimingLaws T], ΔF horizon gst, sp, pt, [LivenessBou
 (T.proposal (instHAdd.hAdd sp.reset.sStar 2)) sp.serviceStart], [Int.instLEInt.le gst
 sp.serviceStart].
 
+Contract expansion keys: C090 FGServicePoint, C092 FGTiming, C093 FGTimingLaws, C148 KernelPt,
+C150 LivenessBoundW.
+
+Input records (including components of supplied contracts):
+
+- FGServicePoint: d7n_point (recipe; file-private; C090).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- KernelPt: OPEN (C148).
+- LivenessBoundW: OPEN (C150).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -3565,6 +4980,13 @@ Source: `S015:136`.
 
 Translated telescope: T, [FGTimingLaws T], q s, horizon, [Int.instLEInt.le (T.action
 (instHAdd.hAdd q 2)) horizon], [instLENat.le s (instHMul.hMul (instHAdd.hAdd q 2) T.roundSlots)].
+
+Contract expansion keys: C092 FGTiming, C093 FGTimingLaws.
+
+Input records (including components of supplied contracts):
+
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -3579,6 +5001,13 @@ Source: `S015:148`.
 Translated telescope: T, [FGTimingLaws T], q s, gst, [Int.instLEInt.le gst (T.proposal
 (instHMul.hMul q T.roundSlots))], [instLENat.le (instHMul.hMul q T.roundSlots) s].
 
+Contract expansion keys: C092 FGTiming, C093 FGTimingLaws.
+
+Input records (including components of supplied contracts):
+
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -3591,6 +5020,13 @@ Source: `S015:156`.
 
 Translated telescope: T, [FGTimingLaws T], s, r, [instLENat.le s (instHMul.hMul r T.roundSlots)].
 
+Contract expansion keys: C092 FGTiming, C093 FGTimingLaws.
+
+Input records (including components of supplied contracts):
+
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -3602,6 +5038,13 @@ FG-SA producer/application: kmid_vote_lt_action (`S149:1733`).
 Source: `S015:164`.
 
 Translated telescope: T, [FGTimingLaws T], s, r, [instLENat.le s (instHMul.hMul r T.roundSlots)].
+
+Contract expansion keys: C092 FGTiming, C093 FGTimingLaws.
+
+Input records (including components of supplied contracts):
+
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -3618,6 +5061,13 @@ Translated telescope: T, [FGTimingLaws T], ΔF gst horizon, [Int.instLEInt.le 0 
 [instLENat.le (instHAdd.hAdd (instHMul.hMul r T.roundSlots) (kappaF T ΔF)) s], [instLENat.le s
 (instHMul.hMul (instHAdd.hAdd q 2) T.roundSlots)].
 
+Contract expansion keys: C092 FGTiming, C093 FGTimingLaws.
+
+Input records (including components of supplied contracts):
+
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -3630,6 +5080,17 @@ Source: `S015:192`.
 
 Translated telescope: In V, P, inst, n, Wire, S, T, E, rho, j r, z, a, [HonestRowAt S E rho T j z
 r a].
+
+Contract expansion keys: C080 FGSafetyReads, C092 FGTiming, C138 HonestRowAt, C227 Gen.Env, C258
+V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -3645,6 +5106,22 @@ Translated telescope: In V, P, inst, n, Base Proposal Wire, R, S, O, T, E, rho, 
 [HighRecordNames R S O T E rho D], j, x, r, a, h, [HonestRowAt S E rho T j x r a], [Eq
 (historyRowHeight S D a) (Option.some h)].
 
+Contract expansion keys: C001 BlockId, C044 FGCoreReads, C063 FGHistoryWireReads, C068
+FGObservationReads, C080 FGSafetyReads, C092 FGTiming, C132 HighRecordNames, C138 HonestRowAt,
+C227 Gen.Env, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -3659,6 +5136,22 @@ Translated telescope: In V, P, inst, n, Base Proposal Wire, R, S, O, T, E, rho, 
 [HighRecordNames R S O T E rho D], r, X, [(∀ (x : V), SetLike.instMembership.mem rho.honest x → Eq
 (actionSourceFG R E rho T x r) (Option.some (Option.some X)))], j, x, a, h, [HonestRowAt S E rho T
 j x r a], [Eq (historyRowHeight S D a) (Option.some h)].
+
+Contract expansion keys: C001 BlockId, C044 FGCoreReads, C063 FGHistoryWireReads, C068
+FGObservationReads, C080 FGSafetyReads, C092 FGTiming, C132 HighRecordNames, C138 HonestRowAt,
+C227 Gen.Env, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -3680,6 +5173,29 @@ T.roundSlots)) horizon], [instLENat.le (instHAdd.hAdd sp.reset.M 1) (O.height A�
 h, [instLTNat.lt r q], [HonestRowAt S E rho T j x r a], [Eq (historyRowHeight S D a) (Option.some
 h)].
 
+Contract expansion keys: C001 BlockId, C044 FGCoreReads, C060 FGHistoricalHighTransfer, C063
+FGHistoryWireReads, C068 FGObservationReads, C080 FGSafetyReads, C090 FGServicePoint, C092
+FGTiming, C093 FGTimingLaws, C132 HighRecordNames, C137 HonestProposal, C138 HonestRowAt, C224
+Gen.V2.Duty.HonestSlot, C227 Gen.Env, C229 KitFG.FGHeightLaws, C239 FG.Electorate, C255
+V2.D.Interface, C258 V2.D.Run, C259 V2.D.Run.emits, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGServicePoint: d7n_point (recipe; file-private; C090).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGHeightLaws: windowHeightLaws (recipe; C229).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -3694,6 +5210,25 @@ Translated telescope: In V, P, inst, n, Base Proposal Wire, R, S, O, T, E, rho, 
 b, cutoff, [HighRecordSeedLeaves R S O T E rho D sp X b cutoff], [KitFG.FGHeightLaws Ef O.height],
 [(∀ (A B : FG.FGBlock (Fin n)), (R.erase A).Preceq (R.erase B) → A.Preceq B)], [(∀ (B : FG.FGBlock
 (Fin n)), Eq (R.erase B.parent) (R.erase B).parent)], [(R.erase X).Preceq (R.erase A₀).parent].
+
+Contract expansion keys: C044 FGCoreReads, C063 FGHistoryWireReads, C068 FGObservationReads, C080
+FGSafetyReads, C090 FGServicePoint, C092 FGTiming, C134 HighRecordSeedLeaves, C135
+HighRecordShieldRows, C138 HonestRowAt, C227 Gen.Env, C229 KitFG.FGHeightLaws, C239 FG.Electorate,
+C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGServicePoint: d7n_point (recipe; file-private; C090).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGHeightLaws: windowHeightLaws (recipe; C229).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -3717,6 +5252,30 @@ B.parent) (R.erase B).parent)], q, [HonestProposal E rho I (instHMul.hMul q T.ro
 A₀)], [Int.instLEInt.le (T.action q) horizon], [Int.instLEInt.le (T.proposal (instHMul.hMul q
 T.roundSlots)) horizon].
 
+Contract expansion keys: C001 BlockId, C044 FGCoreReads, C060 FGHistoricalHighTransfer, C063
+FGHistoryWireReads, C068 FGObservationReads, C080 FGSafetyReads, C090 FGServicePoint, C092
+FGTiming, C093 FGTimingLaws, C132 HighRecordNames, C134 HighRecordSeedLeaves, C135
+HighRecordShieldRows, C137 HonestProposal, C138 HonestRowAt, C224 Gen.V2.Duty.HonestSlot, C227
+Gen.Env, C229 KitFG.FGHeightLaws, C239 FG.Electorate, C255 V2.D.Interface, C258 V2.D.Run, C259
+V2.D.Run.emits, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGServicePoint: d7n_point (recipe; file-private; C090).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGHeightLaws: windowHeightLaws (recipe; C229).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -3733,6 +5292,17 @@ Source: `S015:299`.
 Translated telescope: In, P, n, Wire, S, D, u, a, y, root, [Eq (S.decode a) (Option.some u)], [Eq
 (FG.NamedHeightPair.matchesEntry y root u.height_pair) Bool.true].
 
+Contract expansion keys: C001 BlockId, C063 FGHistoryWireReads, C080 FGSafetyReads, C247 FG.Row,
+C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -3745,6 +5315,15 @@ Source: `S015:313`.
 
 Translated telescope: In V, P, inst, n, Wire, S, rho, u, [Not (SetLike.instMembership.mem
 (historyFaulty S rho) u.signer)].
+
+Contract expansion keys: C080 FGSafetyReads, C247 FG.Row, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: holder assignment/injectivity or honest-holder FG weight (exact guards in type);
@@ -3760,6 +5339,16 @@ Translated telescope: In V, P, E, rho, [V2.D.ScheduleWellFormed E rho], i, v, t'
 (List.instGetElem?NatLtLength.getElem? rho.events i) (Option.some (V2.Event.tick v t'))],
 [Int.instLEInt.le t' t].
 
+Contract expansion keys: C227 Gen.Env, C258 V2.D.Run, C260 V2.D.ScheduleWellFormed, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -3773,6 +5362,19 @@ Source: `S015:327`.
 Translated telescope: In V, P, inst, n, Base Proposal Wire, R, T, E, rho, [FGCoreLaws R],
 [V2.D.ScheduleWellFormed E rho], x, r, C, [SetLike.instMembership.mem rho.honest x], [Eq
 (actionSourceFG R E rho T x r) (Option.some (Option.some C))].
+
+Contract expansion keys: C043 FGCoreLaws, C044 FGCoreReads, C092 FGTiming, C125 HeldAt, C227
+Gen.Env, C258 V2.D.Run, C260 V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -3789,6 +5391,23 @@ Translated telescope: In V, P, inst, n, Base Proposal Wire, R, T, E, rho, [FGCor
 [SetLike.instMembership.mem rho.honest x], [Eq (headAtLabel R E rho T x v) (Option.some (R.erase
 X))], cut, [Int.instLTInt.lt (T.vote v) cut].
 
+Contract expansion keys: C028 ChainRowsBefore, C043 FGCoreLaws, C044 FGCoreReads, C058 FGHeadLaws,
+C092 FGTiming, C095 FGTreeRestoreLaws, C227 Gen.Env, C247 FG.Row, C258 V2.D.Run, C260
+V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHeadLaws: fgsaHeadLaws (recipe; C058).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTreeRestoreLaws: d7n_tree_restore (recipe; file-private; C095).
+- Gen.Env: env1 (recipe; C227).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -3804,6 +5423,21 @@ Translated telescope: In V, P, inst, n, Base Proposal Wire, R, T, E, rho, [FGCor
 (headAtLabel R E rho T x v) (Option.some (R.erase X))], k, t, [Int.instLEInt.le (T.vote v) t],
 [instLENat.le (afterTicksIdx rho t) k].
 
+Contract expansion keys: C043 FGCoreLaws, C044 FGCoreReads, C058 FGHeadLaws, C092 FGTiming, C094
+FGTreeKeepLaws, C227 Gen.Env, C258 V2.D.Run, C260 V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHeadLaws: fgsaHeadLaws (recipe; C058).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTreeKeepLaws: d7n_tree_keep (recipe; file-private; C094).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -3818,6 +5452,18 @@ Translated telescope: In V, P, inst, n, Base Proposal Wire, R, T, E, rho, [FGCor
 [Eq (Option.map (Option.map R.erase) (actionSourceFG R E rho T x r)) (Option.some (Option.some
 (R.erase X)))].
 
+Contract expansion keys: C043 FGCoreLaws, C044 FGCoreReads, C092 FGTiming, C227 Gen.Env, C258
+V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -3831,6 +5477,16 @@ Source: `S015:378`.
 Translated telescope: In V, P, E, rho, [V2.D.ScheduleWellFormed E rho], k, t t', x, o,
 [instLTNat.lt k (afterTicksIdx rho t)], [Eq (List.instGetElem?NatLtLength.getElem? rho.events k)
 (Option.some (V2.Event.deliver x o t'))].
+
+Contract expansion keys: C227 Gen.Env, C258 V2.D.Run, C260 V2.D.ScheduleWellFormed, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -3851,6 +5507,25 @@ R E rho i x B], [(∀ (k : Nat) (o : P.Object) (t : Time), instLTNat.lt k i → 
 (List.instGetElem?NatLtLength.getElem? rho.events k) (Option.some (V2.Event.deliver x o t)) →
 Int.instLTInt.lt t cut)].
 
+Contract expansion keys: C044 FGCoreReads, C063 FGHistoryWireReads, C068 FGObservationReads, C080
+FGSafetyReads, C092 FGTiming, C125 HeldAt, C138 HonestRowAt, C139 HonestRowBefore, C174
+RawHistoryOrigin, C178 RowSigner, C227 Gen.Env, C228 KitFG.FGCertificateLaws, C239 FG.Electorate,
+C247 FG.Row, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- FG.Electorate: E (recipe; C239).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: faulty FG-seat weight/count.
 
@@ -3867,6 +5542,26 @@ Translated telescope: In V, P, inst, n, Base Proposal Wire, R, S, O, T, E, rho, 
 Eq (historyRowHeight S D a) (Option.some h) → Eq (eventTime rho j) (Option.some t) →
 Int.instLTInt.lt t cut → instLENat.le h m)], i, x, B, [instLENat.le i (afterTicksIdx rho cut)],
 [HeldAt R E rho i x B].
+
+Contract expansion keys: C044 FGCoreReads, C063 FGHistoryWireReads, C068 FGObservationReads, C080
+FGSafetyReads, C092 FGTiming, C125 HeldAt, C138 HonestRowAt, C139 HonestRowBefore, C174
+RawHistoryOrigin, C178 RowSigner, C227 Gen.Env, C228 KitFG.FGCertificateLaws, C239 FG.Electorate,
+C247 FG.Row, C258 V2.D.Run, C260 V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- FG.Electorate: E (recipe; C239).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: faulty FG-seat weight/count.
@@ -3885,6 +5580,26 @@ E rho T j z r a → Eq (historyFinHeight S D a) (Option.some f) → Eq (eventTim
 t) → Int.instLTInt.lt t cut → instLTNat.lt f y)], i, x, W, [instLENat.le i (afterTicksIdx rho
 cut)], [HeldAt R E rho i x W].
 
+Contract expansion keys: C044 FGCoreReads, C063 FGHistoryWireReads, C068 FGObservationReads, C080
+FGSafetyReads, C092 FGTiming, C125 HeldAt, C138 HonestRowAt, C139 HonestRowBefore, C174
+RawHistoryOrigin, C178 RowSigner, C227 Gen.Env, C228 KitFG.FGCertificateLaws, C239 FG.Electorate,
+C247 FG.Row, C258 V2.D.Run, C260 V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- FG.Electorate: E (recipe; C239).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: faulty FG-seat weight/count.
 
@@ -3896,6 +5611,21 @@ Source: `S015:467`.
 
 Translated telescope: In V, P, inst, n, Wire, S, T, E, rho, Ef, cfg, [HighRecordEmission S T E rho
 Ef cfg], j, x, r, a, u, [HonestRowAt S E rho T j x r a], [Eq (S.decode a) (Option.some u)].
+
+Contract expansion keys: C080 FGSafetyReads, C092 FGTiming, C127 HighRecordEmission, C138
+HonestRowAt, C227 Gen.Env, C239 FG.Electorate, C240 FG.FGConfig, C247 FG.Row, C258 V2.D.Run, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -3911,6 +5641,22 @@ Translated telescope: In V, P, inst, n, Wire, S, T, E, rho, D, Ef, cfg, [HighRec
 rho Ef cfg], [(∀ (j : Nat) (x : V) (r : Nat) (a : Wire), HonestRowAt S E rho T j x r a → Exists
 fun u => Eq (S.decode a) (Option.some u))], j, x, r, a, [HonestRowAt S E rho T j x r a].
 
+Contract expansion keys: C063 FGHistoryWireReads, C080 FGSafetyReads, C092 FGTiming, C127
+HighRecordEmission, C138 HonestRowAt, C227 Gen.Env, C239 FG.Electorate, C240 FG.FGConfig, C247
+FG.Row, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -3924,6 +5670,19 @@ Source: `S015:501`.
 Translated telescope: In V, P, inst, n, Wire, S, T, [FGTimingLaws T], E, rho, D, m Q, [(∀ (j :
 Nat) (x : V) (r : Nat) (a : Wire) (h : Nat), instLENat.le r Q → HonestRowAt S E rho T j x r a → Eq
 (historyRowHeight S D a) (Option.some h) → instLENat.le h m)].
+
+Contract expansion keys: C063 FGHistoryWireReads, C080 FGSafetyReads, C092 FGTiming, C093
+FGTimingLaws, C138 HonestRowAt, C227 Gen.Env, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -3941,6 +5700,23 @@ rho T j x r a → Exists fun u => Eq (S.decode a) (Option.some u))], m Q, [(∀ 
 Nat) (a : Wire) (h : Nat), instLENat.le r Q → HonestRowAt S E rho T j x r a → Eq (historyRowHeight
 S D a) (Option.some h) → instLENat.le h m)].
 
+Contract expansion keys: C063 FGHistoryWireReads, C080 FGSafetyReads, C092 FGTiming, C093
+FGTimingLaws, C127 HighRecordEmission, C138 HonestRowAt, C227 Gen.Env, C239 FG.Electorate, C240
+FG.FGConfig, C247 FG.Row, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- Gen.Env: env1 (recipe; C227).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -3955,6 +5731,16 @@ Translated telescope: In V, P, inst, n, Wire, S, rho, Ef, inst_1, [Function.Inje
 (safetyHolder S rho)], [(∀ (i : Fin n), Eq (Ef.weight i) 1)], [instLTNat.lt (Gen.V2.Duty.faulty
 rho).card Ef.q].
 
+Contract expansion keys: C080 FGSafetyReads, C239 FG.Electorate, C258 V2.D.Run, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: whole-run faulty-node count/bound; holder assignment/injectivity or honest-holder FG
 weight (exact guards in type); faulty FG-seat weight/count.
@@ -3966,6 +5752,13 @@ FG-SA producer/application: kmid_faulty_weight (`S149:912`).
 Source: `S015:571`.
 
 Translated telescope: n, Ef, cfg, K, s, H.
+
+Contract expansion keys: C239 FG.Electorate, C240 FG.FGConfig.
+
+Input records (including components of supplied contracts):
+
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -3986,6 +5779,21 @@ W.rows row → Eq (FG.Window.r6w (FG.Window.derive Ef cfg K W.parent) row) Bool.
 [SetLike.instMembership.mem (R.core nd).fg.TF B], [Eq (O.height B).h y], [U.Preceq B], i, W,
 [W.Preceq B], [(Exists fun row => And (List.instMembership.mem W.rows row) (RowNames k row i y
 U))].
+
+Contract expansion keys: C044 FGCoreReads, C068 FGObservationReads, C176 RowNames, C229
+KitFG.FGHeightLaws, C239 FG.Electorate, C240 FG.FGConfig, C247 FG.Row, C248 FG.RowCodec, C252
+FG.ViewRootInj, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- KitFG.FGHeightLaws: windowHeightLaws (recipe; C229).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- FG.RowCodec: OPEN (C248).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: ViewRootInj at the quantified store(s); producer viewRootInj_TF from FG-SA reachable store.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -4022,6 +5830,33 @@ rho.honest x → Exists fun j => Exists fun r => Exists fun a => And (instLENat.
 (HonestRowAt S E rho T j x r a) (And (RowComplete S rho D.signer valid x a) (NamesEntry
 D.heightPair RowKind.target a y U))))].
 
+Contract expansion keys: C001 BlockId, C035 EntryAt, C044 FGCoreReads, C063 FGHistoryWireReads,
+C068 FGObservationReads, C080 FGSafetyReads, C092 FGTiming, C126 HeldBefore, C136 HonestCarrier,
+C137 HonestProposal, C138 HonestRowAt, C152 NamesEntry, C175 RowComplete, C178 RowSigner, C188
+TRowsReceipt, C205 kernelCarrier, C210 rowHeld, C222 Gen.V2.Duty.HoldsBefore, C224
+Gen.V2.Duty.HonestSlot, C227 Gen.Env, C229 KitFG.FGHeightLaws, C239 FG.Electorate, C240
+FG.FGConfig, C247 FG.Row, C248 FG.RowCodec, C252 FG.ViewRootInj, C255 V2.D.Interface, C258
+V2.D.Run, C259 V2.D.Run.emits, C260 V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGHeightLaws: windowHeightLaws (recipe; C229).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- FG.RowCodec: OPEN (C248).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: ViewRootInj at the quantified store(s); producer viewRootInj_TF from FG-SA reachable store.
 Population: holder assignment/injectivity or honest-holder FG weight (exact guards in type);
 faulty FG-seat weight/count.
@@ -4035,6 +5870,17 @@ Source: `S016:27`.
 Translated telescope: T, deltaF horizon, sp, pt, honestSlot, fgQuorum fgHonestWeight timeoutSlots
 capacity, [KernelPrem_W T deltaF horizon sp pt honestSlot fgQuorum fgHonestWeight timeoutSlots
 capacity].
+
+Contract expansion keys: C090 FGServicePoint, C092 FGTiming, C147 KernelPrem_W, C148 KernelPt,
+C150 LivenessBoundW, C218 Gen.Pure.FGoodE_W.
+
+Input records (including components of supplied contracts):
+
+- FGServicePoint: d7n_point (recipe; file-private; C090).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- KernelPrem_W: d7n_kernel (recipe; file-private; C147).
+- KernelPt: OPEN (C148).
+- LivenessBoundW: OPEN (C150).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: KernelPrem_W: supplied honest FG weight ≥ q.
@@ -4069,6 +5915,35 @@ a.height_pair (fun _ => Bool.false) fun h entry timeout => (Decidable.decide (in
 h)).and ((Option.map (fun fp => Decidable.decide (instLTNat.lt fp.height h)) a.finality_pair).getD
 Bool.true)) Bool.true) (Eq (FG.Window.r6w (FG.Window.derive Ef cfg K B) a) Bool.true))].
 
+Contract expansion keys: C001 BlockId, C044 FGCoreReads, C063 FGHistoryWireReads, C068
+FGObservationReads, C080 FGSafetyReads, C092 FGTiming, C100 FinalityNames, C109
+FreshFinalityRows_W, C126 HeldBefore, C136 HonestCarrier, C137 HonestProposal, C138 HonestRowAt,
+C175 RowComplete, C178 RowSigner, C189 TRowsSelect, C192 TerminalCarriagePrem_W, C194
+ValidForParent, C203 heldAtProposal, C209 onParentChain, C210 rowHeld, C222
+Gen.V2.Duty.HoldsBefore, C224 Gen.V2.Duty.HonestSlot, C227 Gen.Env, C229 KitFG.FGHeightLaws, C237
+KitFG.Window.CoveredW, C238 KitFG.Window.RetainedW, C239 FG.Electorate, C240 FG.FGConfig, C247
+FG.Row, C255 V2.D.Interface, C258 V2.D.Run, C259 V2.D.Run.emits, C260 V2.D.ScheduleWellFormed,
+C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- TerminalCarriagePrem_W: d7a4c_terminal_to (recipe; file-private; C192).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGHeightLaws: windowHeightLaws (recipe; C229).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -4088,6 +5963,21 @@ Translated telescope: In V, P, inst, n, Base Proposal Wire, R, E, rho, Ef, cfg, 
 C → Ne C FG.FGBlock.genesis → finBlock C)], X U, [U.Preceq (FG.Window.derive Ef cfg K X).F],
 [finBlock X].
 
+Contract expansion keys: C044 FGCoreReads, C068 FGObservationReads, C227 Gen.Env, C231
+KitFG.FGStoreInvariant, C239 FG.Electorate, C240 FG.FGConfig, C258 V2.D.Run, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -4106,6 +5996,21 @@ finBlock C → finBlock W → Eq ((O.finality C).F.compatible (O.finality W).F) 
 : FG.FGBlock (Fin n)), SetLike.instMembership.mem (R.core (V2.D.Run.stateBefore E rho i x)).fg.TF
 C → Ne C FG.FGBlock.genesis → finBlock C)], X U, t, [(ready i x X t → finBlock X)], [U.Preceq
 (FG.Window.derive Ef cfg K X).F], [ready i x X t].
+
+Contract expansion keys: C044 FGCoreReads, C068 FGObservationReads, C227 Gen.Env, C231
+KitFG.FGStoreInvariant, C239 FG.Electorate, C240 FG.FGConfig, C258 V2.D.Run, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -4133,6 +6038,29 @@ HonestRowAt S E rho T j z r a → Eq (S.decode a) (Option.some row) → Eq row.h
 (FG.NamedHeightPair.vote h B timeout) → Int.instLTInt.lt (T.action r) (T.action (instHAdd.hAdd q
 1)) → instLENat.le h (instHAdd.hAdd y 1))].
 
+Contract expansion keys: C001 BlockId, C044 FGCoreReads, C068 FGObservationReads, C080
+FGSafetyReads, C092 FGTiming, C093 FGTimingLaws, C125 HeldAt, C138 HonestRowAt, C150
+LivenessBoundW, C227 Gen.Env, C231 KitFG.FGStoreInvariant, C239 FG.Electorate, C240 FG.FGConfig,
+C247 FG.Row, C258 V2.D.Run, C260 V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- LivenessBoundW: OPEN (C150).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -4157,6 +6085,27 @@ n)) (h : FG.Height) (B : BlockId) (timeout : Bool), HonestRowAt S E rho T j z r 
 a) (Option.some row) → Eq row.height_pair (FG.NamedHeightPair.vote h B timeout) → Int.instLTInt.lt
 (T.action r) (T.action q) → instLTNat.lt h (instHAdd.hAdd y 1))].
 
+Contract expansion keys: C001 BlockId, C044 FGCoreReads, C068 FGObservationReads, C080
+FGSafetyReads, C092 FGTiming, C093 FGTimingLaws, C125 HeldAt, C138 HonestRowAt, C150
+LivenessBoundW, C227 Gen.Env, C231 KitFG.FGStoreInvariant, C247 FG.Row, C258 V2.D.Run, C260
+V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- LivenessBoundW: OPEN (C150).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -4169,6 +6118,18 @@ Source: `S016:252`.
 
 Translated telescope: In V, P, inst, n, Base Proposal Wire, R, E, rho, Ef, cfg, K i, x, X U, [Eq
 (R.core (V2.D.Run.stateBefore E rho i x)).fg.J U], [U.Preceq X.parent].
+
+Contract expansion keys: C044 FGCoreReads, C227 Gen.Env, C239 FG.Electorate, C240 FG.FGConfig,
+C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- Gen.Env: env1 (recipe; C227).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -4204,6 +6165,32 @@ C).T_h.Preceq C)))], [(∀ (C : FG.FGBlock (Fin n)) (k : Nat) (u : V) (r : Nat) 
 FG.FGBlock (Fin n)), SetLike.instMembership.mem (R.core (V2.D.Run.stateBefore E rho i x)).fg.TF C
 → HonestRowAt S E rho T k u r a → Eq (actionSourceFG R E rho T u r) (Option.some (Option.some B))
 → Eq (O.height C).J.root (O.height B).T_h.root → Eq (O.height C).J (O.height B).T_h)].
+
+Contract expansion keys: C001 BlockId, C044 FGCoreReads, C060 FGHistoricalHighTransfer, C068
+FGObservationReads, C080 FGSafetyReads, C090 FGServicePoint, C092 FGTiming, C093 FGTimingLaws,
+C137 HonestProposal, C138 HonestRowAt, C139 HonestRowBefore, C150 LivenessBoundW, C224
+Gen.V2.Duty.HonestSlot, C227 Gen.Env, C231 KitFG.FGStoreInvariant, C239 FG.Electorate, C240
+FG.FGConfig, C255 V2.D.Interface, C258 V2.D.Run, C259 V2.D.Run.emits, C260
+V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGServicePoint: d7n_point (recipe; file-private; C090).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- LivenessBoundW: OPEN (C150).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -4256,6 +6243,34 @@ Int.instLTInt.lt (T.action r) (T.action (instHAdd.hAdd q 1)) → instLENat.le h 
 1))], [U.Preceq (FG.Window.derive Ef cfg K X).F], a₀, delivery, [Int.instLEInt.le (kernelDeadlineW
 T ΔF q) rho.horizon].
 
+Contract expansion keys: C001 BlockId, C027 BlockDelivery_W, C044 FGCoreReads, C060
+FGHistoricalHighTransfer, C068 FGObservationReads, C080 FGSafetyReads, C090 FGServicePoint, C092
+FGTiming, C093 FGTimingLaws, C125 HeldAt, C137 HonestProposal, C138 HonestRowAt, C139
+HonestRowBefore, C150 LivenessBoundW, C224 Gen.V2.Duty.HonestSlot, C227 Gen.Env, C231
+KitFG.FGStoreInvariant, C239 FG.Electorate, C240 FG.FGConfig, C247 FG.Row, C255 V2.D.Interface,
+C258 V2.D.Run, C259 V2.D.Run.emits, C260 V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- BlockDelivery_W: d7a5a_delivery (recipe; file-private; C027).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGServicePoint: d7n_point (recipe; file-private; C090).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- LivenessBoundW: OPEN (C150).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -4270,6 +6285,18 @@ P10 for finality).
 Source: `S017:37`.
 
 Translated telescope: In V, P, inst, n, Wire, S, T, E, rho.
+
+Contract expansion keys: C080 FGSafetyReads, C092 FGTiming, C133 HighRecordOwnOrigin, C138
+HonestRowAt, C227 Gen.Env, C247 FG.Row, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -4292,6 +6319,22 @@ s, C B, [SetLike.instMembership.mem rho.honest x], [SetLike.instMembership.mem r
 (Option.some (Option.some B))], [high R O pt.reset C], [high R O pt.reset B], [Eq (O.height C).h
 (O.height B).h].
 
+Contract expansion keys: C044 FGCoreReads, C059 FGHistoricalHighChain, C068 FGObservationReads,
+C090 FGServicePoint, C092 FGTiming, C204 high, C227 Gen.Env, C228 KitFG.FGCertificateLaws, C239
+FG.Electorate, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGServicePoint: d7n_point (recipe; file-private; C090).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -4305,6 +6348,14 @@ Source: `S017:87`.
 Translated telescope: Λ, y, T, fp, [Or (Eq (Λ.target y) Option.none) (Eq (Λ.target y) (Option.some
 T))], [Eq (Λ.timeout y) Bool.false], [Or (Eq (Λ.lock y) Option.none) (Eq (Λ.lock y) (Option.some
 T))], [(∀ (f : FG.FinalityPair), Eq fp (Option.some f) → Eq f.height y → Eq f.target T)].
+
+Contract expansion keys: C001 BlockId, C241 FG.FinalityPair, C245 FG.Record.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FG.FinalityPair: OPEN (C241).
+- FG.Record: initial (recipe; C245).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -4323,6 +6374,31 @@ B)], storedCarrier, SourceService, [RQCOrigin R S E rho O T storedCarrier Source
 [HighRecordHead R S O E rho], [FGSafetyClientLaws S Ef cfg], [HighRecordEmission S T E rho Ef
 cfg], [HighRecordOwnOrigin S T E rho], [HighRecordNames R S O T E rho D].
 
+Contract expansion keys: C001 BlockId, C044 FGCoreReads, C059 FGHistoricalHighChain, C063
+FGHistoryWireReads, C068 FGObservationReads, C078 FGSafetyClientLaws, C080 FGSafetyReads, C090
+FGServicePoint, C092 FGTiming, C127 HighRecordEmission, C130 HighRecordHead, C131
+HighRecordInvariant, C132 HighRecordNames, C133 HighRecordOwnOrigin, C138 HonestRowAt, C139
+HonestRowBefore, C172 RQCOrigin, C204 high, C227 Gen.Env, C228 KitFG.FGCertificateLaws, C239
+FG.Electorate, C240 FG.FGConfig, C247 FG.Row, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyClientLaws: fgsaSafetyClientLaws (recipe; C078).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGServicePoint: d7n_point (recipe; file-private; C090).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -4338,6 +6414,28 @@ Translated telescope: In V, P, inst, n, Base Proposal Wire, R, S, O, T, E, rho, 
 rho], X, b, cutoff, [instLENat.le 1 b], [HighRecordShieldRows R S O T E rho D X b cutoff], i, x,
 [SetLike.instMembership.mem rho.honest x], [(∀ (j r : Nat) (a : Wire), instLTNat.lt j i →
 HonestRowAt S E rho T j x r a → Int.instLTInt.lt (T.action r) cutoff)].
+
+Contract expansion keys: C001 BlockId, C044 FGCoreReads, C063 FGHistoryWireReads, C068
+FGObservationReads, C078 FGSafetyClientLaws, C080 FGSafetyReads, C092 FGTiming, C127
+HighRecordEmission, C131 HighRecordInvariant, C133 HighRecordOwnOrigin, C135 HighRecordShieldRows,
+C138 HonestRowAt, C227 Gen.Env, C239 FG.Electorate, C240 FG.FGConfig, C247 FG.Row, C258 V2.D.Run,
+C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyClientLaws: fgsaSafetyClientLaws (recipe; C078).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -4358,6 +6456,24 @@ cfg], [HighRecordEmission S T E rho Ef cfg], [HighRecordOwnOrigin S T E rho], i,
 → HonestRowAt S E rho T j x r a → Eq (historyRowHeight S D a) (Option.some h) → instLTNat.lt h
 y)].
 
+Contract expansion keys: C063 FGHistoryWireReads, C078 FGSafetyClientLaws, C080 FGSafetyReads,
+C092 FGTiming, C127 HighRecordEmission, C128 HighRecordFresh, C133 HighRecordOwnOrigin, C138
+HonestRowAt, C227 Gen.Env, C239 FG.Electorate, C240 FG.FGConfig, C247 FG.Row, C258 V2.D.Run, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGSafetyClientLaws: fgsaSafetyClientLaws (recipe; C078).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -4375,6 +6491,32 @@ B)], storedCarrier, SourceService, [RQCOrigin R S E rho O T storedCarrier Source
 [HighRecordHead R S O E rho], [FGSafetyClientLaws S Ef cfg], [HighRecordEmission S T E rho Ef
 cfg], [HighRecordOwnOrigin S T E rho], [HighRecordNames R S O T E rho D], X, b, cutoff,
 [HighRecordSeedLeaves R S O T E rho D pt X b cutoff].
+
+Contract expansion keys: C001 BlockId, C044 FGCoreReads, C059 FGHistoricalHighChain, C063
+FGHistoryWireReads, C068 FGObservationReads, C078 FGSafetyClientLaws, C080 FGSafetyReads, C090
+FGServicePoint, C092 FGTiming, C127 HighRecordEmission, C128 HighRecordFresh, C130 HighRecordHead,
+C131 HighRecordInvariant, C132 HighRecordNames, C133 HighRecordOwnOrigin, C134
+HighRecordSeedLeaves, C135 HighRecordShieldRows, C138 HonestRowAt, C139 HonestRowBefore, C172
+RQCOrigin, C204 high, C227 Gen.Env, C228 KitFG.FGCertificateLaws, C239 FG.Electorate, C240
+FG.FGConfig, C247 FG.Row, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyClientLaws: fgsaSafetyClientLaws (recipe; C078).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGServicePoint: d7n_point (recipe; file-private; C090).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -4394,6 +6536,30 @@ Translated telescope: In V, P, inst, n, Base Proposal Wire, R, S, O, T, E, rho, 
 rho], w, start, [H0Reset R S E rho O T (fun a => namedEntry (D.heightPair a)) start w],
 [V2.D.ScheduleWellFormed E rho], x, [SetLike.instMembership.mem rho.honest x], y, [instLENat.le
 (instHAdd.hAdd w.M 1) y].
+
+Contract expansion keys: C044 FGCoreReads, C063 FGHistoryWireReads, C068 FGObservationReads, C073
+FGResetHistory, C078 FGSafetyClientLaws, C080 FGSafetyReads, C092 FGTiming, C122 H0Reset, C124
+HeightRow, C127 HighRecordEmission, C128 HighRecordFresh, C133 HighRecordOwnOrigin, C138
+HonestRowAt, C227 Gen.Env, C239 FG.Electorate, C240 FG.FGConfig, C247 FG.Row, C258 V2.D.Run, C260
+V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGResetHistory: healing_reset_fields (recipe; C073).
+- FGSafetyClientLaws: fgsaSafetyClientLaws (recipe; C078).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- H0Reset: d7n_reset (recipe; file-private; C122).
+- Gen.Env: env1 (recipe; C227).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -4417,6 +6583,31 @@ cfg], [HighRecordOwnOrigin S T E rho], [HighRecordNames R S O T E rho D], z, r, 
 → HonestRowAt S E rho T j x r a → Eq (historyRowHeight S D a) (Option.some h) → instLTNat.lt h
 (instHAdd.hAdd y 1))].
 
+Contract expansion keys: C001 BlockId, C044 FGCoreReads, C059 FGHistoricalHighChain, C063
+FGHistoryWireReads, C068 FGObservationReads, C078 FGSafetyClientLaws, C080 FGSafetyReads, C090
+FGServicePoint, C092 FGTiming, C127 HighRecordEmission, C128 HighRecordFresh, C129
+HighRecordGuard_W, C130 HighRecordHead, C132 HighRecordNames, C133 HighRecordOwnOrigin, C138
+HonestRowAt, C139 HonestRowBefore, C172 RQCOrigin, C227 Gen.Env, C228 KitFG.FGCertificateLaws,
+C239 FG.Electorate, C240 FG.FGConfig, C247 FG.Row, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyClientLaws: fgsaSafetyClientLaws (recipe; C078).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGServicePoint: d7n_point (recipe; file-private; C090).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -4435,6 +6626,31 @@ B)], storedCarrier, SourceService, [RQCOrigin R S E rho O T storedCarrier Source
 cfg], [HighRecordOwnOrigin S T E rho], [HighRecordNames R S O T E rho D], z, r, C,
 [SetLike.instMembership.mem rho.honest z], [Eq (actionSourceFG R E rho T z r) (Option.some
 (Option.some C))], [high R O pt.reset C], i, x, t, [SetLike.instMembership.mem rho.honest x].
+
+Contract expansion keys: C001 BlockId, C044 FGCoreReads, C059 FGHistoricalHighChain, C063
+FGHistoryWireReads, C068 FGObservationReads, C078 FGSafetyClientLaws, C080 FGSafetyReads, C090
+FGServicePoint, C092 FGTiming, C127 HighRecordEmission, C130 HighRecordHead, C132 HighRecordNames,
+C133 HighRecordOwnOrigin, C138 HonestRowAt, C139 HonestRowBefore, C172 RQCOrigin, C204 high, C227
+Gen.Env, C228 KitFG.FGCertificateLaws, C239 FG.Electorate, C240 FG.FGConfig, C247 FG.Row, C258
+V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyClientLaws: fgsaSafetyClientLaws (recipe; C078).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGServicePoint: d7n_point (recipe; file-private; C090).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -4459,6 +6675,34 @@ cfg], [HighRecordOwnOrigin S T E rho], [HighRecordNames R S O T E rho D], [FGTim
 (historyRowHeight S D a) (Option.some h) → instLTNat.lt h (instHAdd.hAdd y 1))], nd, [Eq
 (postClock E rho x (T.action q)) (Option.some nd)].
 
+Contract expansion keys: C001 BlockId, C044 FGCoreReads, C059 FGHistoricalHighChain, C063
+FGHistoryWireReads, C068 FGObservationReads, C078 FGSafetyClientLaws, C080 FGSafetyReads, C090
+FGServicePoint, C092 FGTiming, C093 FGTimingLaws, C127 HighRecordEmission, C128 HighRecordFresh,
+C129 HighRecordGuard_W, C130 HighRecordHead, C132 HighRecordNames, C133 HighRecordOwnOrigin, C138
+HonestRowAt, C139 HonestRowBefore, C172 RQCOrigin, C227 Gen.Env, C228 KitFG.FGCertificateLaws,
+C239 FG.Electorate, C240 FG.FGConfig, C247 FG.Row, C258 V2.D.Run, C260 V2.D.ScheduleWellFormed,
+C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyClientLaws: fgsaSafetyClientLaws (recipe; C078).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGServicePoint: d7n_point (recipe; file-private; C090).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -4481,6 +6725,31 @@ wire => Exists fun r => And (Eq (S.decode wire) (Option.some a)) (And (Eq (D.sig
 (Option.some a.signer)) (∀ (z : V), RowSigner S rho D.signer wire z → SetLike.instMembership.mem
 rho.honest z → HonestRowBefore S E rho T i z r wire)))].
 
+Contract expansion keys: C001 BlockId, C044 FGCoreReads, C059 FGHistoricalHighChain, C063
+FGHistoryWireReads, C068 FGObservationReads, C078 FGSafetyClientLaws, C080 FGSafetyReads, C090
+FGServicePoint, C092 FGTiming, C125 HeldAt, C127 HighRecordEmission, C130 HighRecordHead, C132
+HighRecordNames, C133 HighRecordOwnOrigin, C138 HonestRowAt, C139 HonestRowBefore, C172 RQCOrigin,
+C178 RowSigner, C204 high, C227 Gen.Env, C228 KitFG.FGCertificateLaws, C239 FG.Electorate, C240
+FG.FGConfig, C247 FG.Row, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyClientLaws: fgsaSafetyClientLaws (recipe; C078).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGServicePoint: d7n_point (recipe; file-private; C090).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: faulty FG-seat weight/count.
 
@@ -4498,6 +6767,32 @@ B)], storedCarrier, SourceService, [RQCOrigin R S E rho O T storedCarrier Source
 cfg], [HighRecordOwnOrigin S T E rho], [HighRecordNames R S O T E rho D], [(∀ (i : Nat) (x : V),
 SetLike.instMembership.mem rho.honest x → KitFG.FGStoreInvariant O.height O.finality (R.core
 (V2.D.Run.stateBefore E rho i x)).fg)].
+
+Contract expansion keys: C001 BlockId, C044 FGCoreReads, C059 FGHistoricalHighChain, C063
+FGHistoryWireReads, C068 FGObservationReads, C078 FGSafetyClientLaws, C080 FGSafetyReads, C090
+FGServicePoint, C092 FGTiming, C127 HighRecordEmission, C130 HighRecordHead, C132 HighRecordNames,
+C133 HighRecordOwnOrigin, C138 HonestRowAt, C139 HonestRowBefore, C172 RQCOrigin, C204 high, C227
+Gen.Env, C228 KitFG.FGCertificateLaws, C231 KitFG.FGStoreInvariant, C239 FG.Electorate, C240
+FG.FGConfig, C247 FG.Row, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyClientLaws: fgsaSafetyClientLaws (recipe; C078).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGServicePoint: d7n_point (recipe; file-private; C090).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -4521,6 +6816,35 @@ SetLike.instMembership.mem rho.honest x → FG.ViewRootInj (R.core (V2.D.Run.sta
 x)).fg.TF)], i, x, [instLENat.le i rho.events.length], [SetLike.instMembership.mem rho.honest x],
 [have controls := O.controls (V2.D.Run.stateBefore E rho i x); Eq controls.contest Bool.true].
 
+Contract expansion keys: C001 BlockId, C044 FGCoreReads, C059 FGHistoricalHighChain, C063
+FGHistoryWireReads, C067 FGObservationLaws, C068 FGObservationReads, C078 FGSafetyClientLaws, C080
+FGSafetyReads, C090 FGServicePoint, C092 FGTiming, C127 HighRecordEmission, C130 HighRecordHead,
+C132 HighRecordNames, C133 HighRecordOwnOrigin, C138 HonestRowAt, C139 HonestRowBefore, C172
+RQCOrigin, C227 Gen.Env, C228 KitFG.FGCertificateLaws, C231 KitFG.FGStoreInvariant, C239
+FG.Electorate, C240 FG.FGConfig, C247 FG.Row, C248 FG.RowCodec, C252 FG.ViewRootInj, C258
+V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationLaws: d7f_observation_laws (recipe; file-private; C067).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyClientLaws: fgsaSafetyClientLaws (recipe; C078).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGServicePoint: d7n_point (recipe; file-private; C090).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- FG.RowCodec: OPEN (C248).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: ViewRootInj at the quantified store(s); producer viewRootInj_TF from FG-SA reachable store.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -4532,6 +6856,12 @@ FG-SA producer/application: ff2_no_high_contest (`S152:1519`).
 Source: `S017:935`.
 
 Translated telescope: n, Λ, y, U.
+
+Contract expansion keys: C129 HighRecordGuard_W, C246 FG.RecordOnce.
+
+Input records (including components of supplied contracts):
+
+- FG.RecordOnce: recordRow (recipe; C246).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -4555,6 +6885,31 @@ cfg], [HighRecordOwnOrigin S T E rho], [HighRecordNames R S O T E rho D], a, r, 
 [SetLike.instMembership.mem rho.honest a], [Eq (actionSourceFG R E rho T a r) (Option.some
 (Option.some C))], [high R O pt.reset C], i, x, [instLENat.le i rho.events.length],
 [SetLike.instMembership.mem rho.honest x].
+
+Contract expansion keys: C001 BlockId, C044 FGCoreReads, C059 FGHistoricalHighChain, C063
+FGHistoryWireReads, C068 FGObservationReads, C078 FGSafetyClientLaws, C080 FGSafetyReads, C090
+FGServicePoint, C092 FGTiming, C127 HighRecordEmission, C129 HighRecordGuard_W, C130
+HighRecordHead, C132 HighRecordNames, C133 HighRecordOwnOrigin, C138 HonestRowAt, C139
+HonestRowBefore, C172 RQCOrigin, C204 high, C227 Gen.Env, C228 KitFG.FGCertificateLaws, C239
+FG.Electorate, C240 FG.FGConfig, C247 FG.Row, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyClientLaws: fgsaSafetyClientLaws (recipe; C078).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGServicePoint: d7n_point (recipe; file-private; C090).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -4581,6 +6936,35 @@ fun u => And (Eq (S.decode a) (Option.some u)) (RowComplete S rho D.signer valid
 [FGTimingLaws T], [V2.D.ScheduleWellFormed E rho], [(∀ (r : Nat), Eq (S.enabled (T.action r))
 Bool.true)], x, [SetLike.instMembership.mem rho.honest x], r, C, [Eq (actionSourceFG R E rho T x
 r) (Option.some (Option.some C))], [high R O pt.reset C], [Eq (E.awake x (T.action r)) Bool.true].
+
+Contract expansion keys: C001 BlockId, C044 FGCoreReads, C059 FGHistoricalHighChain, C063
+FGHistoryWireReads, C068 FGObservationReads, C075 FGRowPermissionWireLaws, C078
+FGSafetyClientLaws, C080 FGSafetyReads, C090 FGServicePoint, C092 FGTiming, C093 FGTimingLaws,
+C127 HighRecordEmission, C130 HighRecordHead, C132 HighRecordNames, C133 HighRecordOwnOrigin, C138
+HonestRowAt, C139 HonestRowBefore, C172 RQCOrigin, C175 RowComplete, C178 RowSigner, C204 high,
+C227 Gen.Env, C228 KitFG.FGCertificateLaws, C239 FG.Electorate, C240 FG.FGConfig, C247 FG.Row,
+C258 V2.D.Run, C260 V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGRowPermissionWireLaws: d7f_wire_laws (recipe; file-private; C075).
+- FGSafetyClientLaws: fgsaSafetyClientLaws (recipe; C078).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGServicePoint: d7n_point (recipe; file-private; C090).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: Fin n ≃ V (validator-only runtime path).
@@ -4609,6 +6993,35 @@ r) (Option.some (Option.some C))], [high R O pt.reset C], [Eq (E.awake x (T.acti
 [(∀ (j q : Nat) (a : Wire) (h : Nat), instLTNat.lt q r → HonestRowAt S E rho T j x q a → Eq
 (historyRowHeight S D a) (Option.some h) → instLTNat.lt h (O.height C).h)].
 
+Contract expansion keys: C001 BlockId, C044 FGCoreReads, C059 FGHistoricalHighChain, C063
+FGHistoryWireReads, C068 FGObservationReads, C075 FGRowPermissionWireLaws, C078
+FGSafetyClientLaws, C080 FGSafetyReads, C090 FGServicePoint, C092 FGTiming, C093 FGTimingLaws,
+C127 HighRecordEmission, C130 HighRecordHead, C132 HighRecordNames, C133 HighRecordOwnOrigin, C138
+HonestRowAt, C139 HonestRowBefore, C172 RQCOrigin, C175 RowComplete, C178 RowSigner, C204 high,
+C227 Gen.Env, C228 KitFG.FGCertificateLaws, C239 FG.Electorate, C240 FG.FGConfig, C247 FG.Row,
+C258 V2.D.Run, C260 V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGRowPermissionWireLaws: d7f_wire_laws (recipe; file-private; C075).
+- FGSafetyClientLaws: fgsaSafetyClientLaws (recipe; C078).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGServicePoint: d7n_point (recipe; file-private; C090).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: Fin n ≃ V (validator-only runtime path).
 
@@ -4622,6 +7035,17 @@ Translated telescope: In V, P, inst, n, Wire, S, rho, Ef, e, [(∀ (k : Fin n), 
 S.fgLabel (EquivLike.toFunLike.coe S.fgSeats k)) (EquivLike.toFunLike.coe e k))], inst_1,
 [FGSafetyUnitLaws Ef], [instLENat.le (Gen.V2.Duty.faulty rho).card (instHDiv.hDiv (instHSub.hSub n
 1) 3)].
+
+Contract expansion keys: C080 FGSafetyReads, C084 FGSafetyUnitLaws, C239 FG.Electorate, C258
+V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGSafetyUnitLaws: fgsaSafetyUnitLaws (recipe; C084).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: Fin n ≃ V (validator-only runtime path); whole-run faulty-node count/bound; holder
@@ -4655,6 +7079,37 @@ rho.honest x → Eq (actionSourceFG R E rho T x r) (Option.some (Option.some C))
 [Int.instLEInt.le E.t_GST (T.action r)], [Int.instLEInt.le (instHAdd.hAdd (T.action r) deltaF)
 rho.horizon].
 
+Contract expansion keys: C001 BlockId, C044 FGCoreReads, C059 FGHistoricalHighChain, C063
+FGHistoryWireReads, C068 FGObservationReads, C075 FGRowPermissionWireLaws, C078
+FGSafetyClientLaws, C080 FGSafetyReads, C084 FGSafetyUnitLaws, C090 FGServicePoint, C092 FGTiming,
+C093 FGTimingLaws, C126 HeldBefore, C127 HighRecordEmission, C130 HighRecordHead, C132
+HighRecordNames, C133 HighRecordOwnOrigin, C138 HonestRowAt, C139 HonestRowBefore, C172 RQCOrigin,
+C175 RowComplete, C178 RowSigner, C188 TRowsReceipt, C204 high, C210 rowHeld, C222
+Gen.V2.Duty.HoldsBefore, C227 Gen.Env, C228 KitFG.FGCertificateLaws, C239 FG.Electorate, C240
+FG.FGConfig, C247 FG.Row, C258 V2.D.Run, C260 V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGRowPermissionWireLaws: d7f_wire_laws (recipe; file-private; C075).
+- FGSafetyClientLaws: fgsaSafetyClientLaws (recipe; C078).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGSafetyUnitLaws: fgsaSafetyUnitLaws (recipe; C084).
+- FGServicePoint: d7n_point (recipe; file-private; C090).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: Fin n ≃ V (validator-only runtime path); whole-run faulty-node count/bound; holder
 assignment/injectivity or honest-holder FG weight (exact guards in type).
@@ -4667,6 +7122,15 @@ Source: `S018:19`.
 
 Translated telescope: In, P, n, Base Proposal Wire, R, [FGFinalityDurableLaws R], X, nd, t,
 [X.Preceq (R.core nd).fg.F].
+
+Contract expansion keys: C044 FGCoreReads, C057 FGFinalityDurableLaws, C225 Gen.V2.Duty.MonoAlong,
+C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGFinalityDurableLaws: d7a5a_durable (recipe; file-private; C057).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -4684,6 +7148,19 @@ Translated telescope: In V, P, inst, n, Base Proposal Wire, R, E, rho, [FGFinali
 (List.instGetElem?NatLtLength.getElem? rho.events k) (Option.some e)) (Int.instLTInt.lt e.time d))
 (X.Preceq (R.core (V2.D.Run.stateBefore E rho i x)).fg.F)))].
 
+Contract expansion keys: C007 AcceptsFinalBefore, C044 FGCoreReads, C057 FGFinalityDurableLaws,
+C225 Gen.V2.Duty.MonoAlong, C227 Gen.Env, C258 V2.D.Run, C260 V2.D.ScheduleWellFormed, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGFinalityDurableLaws: d7a5a_durable (recipe; file-private; C057).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -4698,6 +7175,19 @@ Translated telescope: In V, P, inst, n, Base Proposal Wire, R, E, rho, [FGFinali
 [V2.D.ScheduleWellFormed E rho], x, X, d d', [Int.instLEInt.le d d'], [AcceptsFinalBefore R E rho
 x X d].
 
+Contract expansion keys: C007 AcceptsFinalBefore, C044 FGCoreReads, C057 FGFinalityDurableLaws,
+C222 Gen.V2.Duty.HoldsBefore, C225 Gen.V2.Duty.MonoAlong, C227 Gen.Env, C258 V2.D.Run, C260
+V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGFinalityDurableLaws: d7a5a_durable (recipe; file-private; C057).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -4711,6 +7201,19 @@ Source: `S018:54`.
 Translated telescope: In V, P, inst, n, Base Proposal Wire, R, E, rho, [FGFinalityDurableLaws R],
 [V2.D.ScheduleWellFormed E rho], x, X U, d d', [X.Preceq U], [Int.instLEInt.le d d'],
 [AcceptsFinalBefore R E rho x U d].
+
+Contract expansion keys: C007 AcceptsFinalBefore, C044 FGCoreReads, C057 FGFinalityDurableLaws,
+C222 Gen.V2.Duty.HoldsBefore, C225 Gen.V2.Duty.MonoAlong, C227 Gen.Env, C258 V2.D.Run, C260
+V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGFinalityDurableLaws: d7a5a_durable (recipe; file-private; C057).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -4729,6 +7232,19 @@ rho j x) a)], [(∀ (nd : P.State) (t : Time) (a : Wire), rowHeld R blockWireRow
 blockWireRows (P.clock nd t) a)], s, a, d, st, [Eq (proposalStateAt E rho I s) (Option.some st)],
 [HeldBefore R E rho blockWireRows (V2.D.proposerOf rho I s) a d], [Int.instLEInt.le d
 (V2.D.proposalTime I s)].
+
+Contract expansion keys: C044 FGCoreReads, C126 HeldBefore, C203 heldAtProposal, C210 rowHeld,
+C222 Gen.V2.Duty.HoldsBefore, C227 Gen.Env, C255 V2.D.Interface, C258 V2.D.Run, C260
+V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -4751,6 +7267,19 @@ SetLike.instMembership.mem (R.core nd).fg.TF B → (R.erase A).Preceq (R.erase B
 SetLike.instMembership.mem (R.core nd).fg.TF B → instLENat.le (O.height B).h (instHAdd.hAdd y
 1))], [(∀ (B : FG.FGBlock (Fin n)), SetLike.instMembership.mem (R.core nd).fg.TF B → instLTNat.lt
 (O.finality B).h_F y)].
+
+Contract expansion keys: C044 FGCoreReads, C068 FGObservationReads, C229 KitFG.FGHeightLaws, C232
+KitFG.HeightBridge, C239 FG.Electorate, C240 FG.FGConfig, C248 FG.RowCodec, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- KitFG.FGHeightLaws: windowHeightLaws (recipe; C229).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- FG.RowCodec: OPEN (C248).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -4778,6 +7307,22 @@ FG.Height) (B : BlockId) (timeout : Bool), HonestRowAt S E rho T j z r a → Eq 
 (Option.some u) → Eq u.height_pair (FG.NamedHeightPair.vote h B timeout) → Int.instLTInt.lt
 (T.action r) (T.action q) → instLTNat.lt h (instHAdd.hAdd y 1))], B, [SetLike.instMembership.mem
 (R.core nd).fg.TF B].
+
+Contract expansion keys: C001 BlockId, C044 FGCoreReads, C068 FGObservationReads, C080
+FGSafetyReads, C092 FGTiming, C125 HeldAt, C138 HonestRowAt, C227 Gen.Env, C247 FG.Row, C258
+V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -4817,6 +7362,27 @@ n)) (B : BlockId) (timeout : Bool), HonestRowAt S E rho T j z r a → Eq (S.deco
 u) → Eq u.height_pair (FG.NamedHeightPair.vote y B timeout) → Not (Int.instLTInt.lt (T.action r)
 (T.action (instHSub.hSub q 1))))].
 
+Contract expansion keys: C001 BlockId, C044 FGCoreReads, C068 FGObservationReads, C080
+FGSafetyReads, C092 FGTiming, C125 HeldAt, C138 HonestRowAt, C227 Gen.Env, C229
+KitFG.FGHeightLaws, C232 KitFG.HeightBridge, C239 FG.Electorate, C240 FG.FGConfig, C247 FG.Row,
+C248 FG.RowCodec, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGHeightLaws: windowHeightLaws (recipe; C229).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- FG.RowCodec: OPEN (C248).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -4833,6 +7399,23 @@ opening (instHMul.hMul q T.roundSlots) D], [instLENat.le opening (instHMul.hMul 
 [Eq (O.height D).h (instHAdd.hAdd y 1)], [(∀ (nd : P.State), Eq (postClock E rho x (T.action q))
 (Option.some nd) → ∀ (B : FG.FGBlock (Fin n)), SetLike.instMembership.mem (R.core nd).fg.TF B →
 instLENat.le (O.height B).h (instHAdd.hAdd y 1))].
+
+Contract expansion keys: C043 FGCoreLaws, C044 FGCoreReads, C068 FGObservationReads, C091
+FGSourceService, C092 FGTiming, C227 Gen.Env, C229 KitFG.FGHeightLaws, C239 FG.Electorate, C258
+V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSourceService: d7a4r_source_service (recipe; file-private; C091).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGHeightLaws: windowHeightLaws (recipe; C229).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -4856,6 +7439,22 @@ Bool), HonestRowAt S E rho T j x r a → Eq (S.decode a) (Option.some u) → Eq 
 1)) → instLENat.le h (instHAdd.hAdd y 1))], i, x, W, [instLENat.le i (rho.idxBefore (T.action
 (instHAdd.hAdd q 1)))], [HeldAt R E rho i x W].
 
+Contract expansion keys: C001 BlockId, C044 FGCoreReads, C068 FGObservationReads, C080
+FGSafetyReads, C092 FGTiming, C125 HeldAt, C138 HonestRowAt, C227 Gen.Env, C247 FG.Row, C258
+V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -4870,6 +7469,15 @@ Translated telescope: n, Ef, cfg, K, [Not (Ef.IsQuorum
 Finset.instEmptyCollection.emptyCollection)], [instLENat.le 2 K], y, D U A, [D.Preceq A],
 [KitFG.Window.RetainedW Ef cfg K D y U], [instLENat.le (KitFG.Window.heightView Ef cfg K A).h
 (instHAdd.hAdd y 2)].
+
+Contract expansion keys: C237 KitFG.Window.CoveredW, C238 KitFG.Window.RetainedW, C239
+FG.Electorate, C240 FG.FGConfig, C248 FG.RowCodec.
+
+Input records (including components of supplied contracts):
+
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- FG.RowCodec: OPEN (C248).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -4907,6 +7515,30 @@ SetLike.instMembership.mem seats i → ∀ (nd : P.State), Eq (postClock E rho (
 : Nat) (a : Wire) (h : Nat), instLTNat.lt r q → HonestRowAt S E rho T j (safetyHolder S rho i) r a
 → Eq (historyRowHeight S D a) (Option.some h) → instLTNat.lt h (instHAdd.hAdd y 1))].
 
+Contract expansion keys: C001 BlockId, C044 FGCoreReads, C063 FGHistoryWireReads, C068
+FGObservationReads, C080 FGSafetyReads, C092 FGTiming, C109 FreshFinalityRows_W, C128
+HighRecordFresh, C129 HighRecordGuard_W, C138 HonestRowAt, C227 Gen.Env, C229 KitFG.FGHeightLaws,
+C232 KitFG.HeightBridge, C239 FG.Electorate, C240 FG.FGConfig, C241 FG.FinalityPair, C247 FG.Row,
+C248 FG.RowCodec, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGHeightLaws: windowHeightLaws (recipe; C229).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- FG.FinalityPair: OPEN (C241).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- FG.RowCodec: OPEN (C248).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: holder assignment/injectivity or honest-holder FG weight (exact guards in type).
 
@@ -4932,6 +7564,41 @@ SetLike.instMembership.mem (R.core nd).fg.TF A → SetLike.instMembership.mem (R
 (R.erase A).Preceq (R.erase B) → A.Preceq B)], x, nd, [SetLike.instMembership.mem rho.honest x],
 [Eq (postClock E rho x (T.action (instHAdd.hAdd pt.r 2))) (Option.some nd)].
 
+Contract expansion keys: C001 BlockId, C026 BatchPrem, C028 ChainRowsBefore, C035 EntryAt, C038
+FGACServiceReads, C044 FGCoreReads, C063 FGHistoryWireReads, C068 FGObservationReads, C080
+FGSafetyReads, C090 FGServicePoint, C092 FGTiming, C123 HeightMatch, C125 HeldAt, C126 HeldBefore,
+C136 HonestCarrier, C137 HonestProposal, C138 HonestRowAt, C144 KernelExactService, C146
+KernelMiddleWitness_W, C148 KernelPt, C151 MixedCross, C152 NamesEntry, C153 NoMixedOnPath, C154
+OpeningCarrier_W, C175 RowComplete, C176 RowNames, C178 RowSigner, C188 TRowsReceipt, C194
+ValidForParent, C205 kernelCarrier, C210 rowHeld, C222 Gen.V2.Duty.HoldsBefore, C224
+Gen.V2.Duty.HonestSlot, C227 Gen.Env, C229 KitFG.FGHeightLaws, C232 KitFG.HeightBridge, C238
+KitFG.Window.RetainedW, C239 FG.Electorate, C240 FG.FGConfig, C248 FG.RowCodec, C255
+V2.D.Interface, C258 V2.D.Run, C259 V2.D.Run.emits, C260 V2.D.ScheduleWellFormed, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- BatchPrem: kmid_batchPrem (recipe; C026).
+- FGACServiceReads: d7n_ac (recipe; file-private; C038).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGServicePoint: d7n_point (recipe; file-private; C090).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- KernelMiddleWitness_W: d7n_middle_from (recipe; file-private; C146).
+- KernelPt: OPEN (C148).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGHeightLaws: windowHeightLaws (recipe; C229).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- FG.RowCodec: OPEN (C248).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -4950,6 +7617,41 @@ valid, ac, cfg, K, ΔF, sp, pt, A, m, [FGCoreLaws R], [KitFG.FGHeightLaws Ef O.h
 (R.core nd).fg)], [(∀ (x : V), SetLike.instMembership.mem rho.honest x → FGSourceService R E rho x
 (T.action (instHAdd.hAdd pt.r 2)) m.cD (instHMul.hMul (instHAdd.hAdd pt.r 2) T.roundSlots)
 m.X_D)], x, [SetLike.instMembership.mem rho.honest x].
+
+Contract expansion keys: C001 BlockId, C026 BatchPrem, C028 ChainRowsBefore, C035 EntryAt, C038
+FGACServiceReads, C043 FGCoreLaws, C044 FGCoreReads, C063 FGHistoryWireReads, C068
+FGObservationReads, C080 FGSafetyReads, C090 FGServicePoint, C091 FGSourceService, C092 FGTiming,
+C123 HeightMatch, C125 HeldAt, C126 HeldBefore, C136 HonestCarrier, C137 HonestProposal, C138
+HonestRowAt, C144 KernelExactService, C146 KernelMiddleWitness_W, C148 KernelPt, C151 MixedCross,
+C152 NamesEntry, C153 NoMixedOnPath, C154 OpeningCarrier_W, C175 RowComplete, C176 RowNames, C178
+RowSigner, C188 TRowsReceipt, C194 ValidForParent, C205 kernelCarrier, C210 rowHeld, C222
+Gen.V2.Duty.HoldsBefore, C224 Gen.V2.Duty.HonestSlot, C227 Gen.Env, C229 KitFG.FGHeightLaws, C238
+KitFG.Window.RetainedW, C239 FG.Electorate, C240 FG.FGConfig, C255 V2.D.Interface, C258 V2.D.Run,
+C259 V2.D.Run.emits, C260 V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- BatchPrem: kmid_batchPrem (recipe; C026).
+- FGACServiceReads: d7n_ac (recipe; file-private; C038).
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGServicePoint: d7n_point (recipe; file-private; C090).
+- FGSourceService: d7a4r_source_service (recipe; file-private; C091).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- KernelMiddleWitness_W: d7n_middle_from (recipe; file-private; C146).
+- KernelPt: OPEN (C148).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGHeightLaws: windowHeightLaws (recipe; C229).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -4972,6 +7674,42 @@ j z r a → Eq (S.decode a) (Option.some u) → Eq u.height_pair (FG.NamedHeight
 W).h (instHAdd.hAdd b 2))], i, x, W, [instLENat.le i (rho.idxBefore (T.action (instHAdd.hAdd pt.r
 3)))], [HeldAt R E rho i x W].
 
+Contract expansion keys: C001 BlockId, C026 BatchPrem, C028 ChainRowsBefore, C035 EntryAt, C038
+FGACServiceReads, C043 FGCoreLaws, C044 FGCoreReads, C063 FGHistoryWireReads, C068
+FGObservationReads, C080 FGSafetyReads, C090 FGServicePoint, C092 FGTiming, C093 FGTimingLaws,
+C123 HeightMatch, C125 HeldAt, C126 HeldBefore, C132 HighRecordNames, C136 HonestCarrier, C137
+HonestProposal, C138 HonestRowAt, C144 KernelExactService, C146 KernelMiddleWitness_W, C148
+KernelPt, C151 MixedCross, C152 NamesEntry, C153 NoMixedOnPath, C154 OpeningCarrier_W, C175
+RowComplete, C176 RowNames, C178 RowSigner, C188 TRowsReceipt, C194 ValidForParent, C205
+kernelCarrier, C210 rowHeld, C222 Gen.V2.Duty.HoldsBefore, C224 Gen.V2.Duty.HonestSlot, C227
+Gen.Env, C238 KitFG.Window.RetainedW, C239 FG.Electorate, C240 FG.FGConfig, C247 FG.Row, C255
+V2.D.Interface, C258 V2.D.Run, C259 V2.D.Run.emits, C260 V2.D.ScheduleWellFormed, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- BatchPrem: kmid_batchPrem (recipe; C026).
+- FGACServiceReads: d7n_ac (recipe; file-private; C038).
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGServicePoint: d7n_point (recipe; file-private; C090).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- KernelMiddleWitness_W: d7n_middle_from (recipe; file-private; C146).
+- KernelPt: OPEN (C148).
+- Gen.Env: env1 (recipe; C227).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -4987,6 +7725,38 @@ decodeProposal, bodyErase, bodyRows, blockWireRows, parentFG, parentHeight, vali
 valid, ac, cfg, K, ΔF, sp, pt, A, m, [Eq O.height (KitFG.Window.heightView Ef cfg K)], [Not
 (Ef.IsQuorum Finset.instEmptyCollection.emptyCollection)], [instLENat.le 2 K], B, [m.X_D.Preceq
 B], [instLENat.le (O.height B).h (instHAdd.hAdd m.d 3)].
+
+Contract expansion keys: C001 BlockId, C026 BatchPrem, C028 ChainRowsBefore, C035 EntryAt, C038
+FGACServiceReads, C044 FGCoreReads, C063 FGHistoryWireReads, C068 FGObservationReads, C080
+FGSafetyReads, C090 FGServicePoint, C092 FGTiming, C123 HeightMatch, C125 HeldAt, C126 HeldBefore,
+C136 HonestCarrier, C137 HonestProposal, C138 HonestRowAt, C144 KernelExactService, C146
+KernelMiddleWitness_W, C148 KernelPt, C151 MixedCross, C152 NamesEntry, C153 NoMixedOnPath, C154
+OpeningCarrier_W, C175 RowComplete, C176 RowNames, C178 RowSigner, C188 TRowsReceipt, C194
+ValidForParent, C205 kernelCarrier, C210 rowHeld, C222 Gen.V2.Duty.HoldsBefore, C224
+Gen.V2.Duty.HonestSlot, C227 Gen.Env, C237 KitFG.Window.CoveredW, C238 KitFG.Window.RetainedW,
+C239 FG.Electorate, C240 FG.FGConfig, C255 V2.D.Interface, C258 V2.D.Run, C259 V2.D.Run.emits,
+C260 V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- BatchPrem: kmid_batchPrem (recipe; C026).
+- FGACServiceReads: d7n_ac (recipe; file-private; C038).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGServicePoint: d7n_point (recipe; file-private; C090).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- KernelMiddleWitness_W: d7n_middle_from (recipe; file-private; C146).
+- KernelPt: OPEN (C148).
+- Gen.Env: env1 (recipe; C227).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -5028,6 +7798,45 @@ SetLike.instMembership.mem rho.honest (safetyHolder S rho i))], [Ef.IsQuorum sea
 SetLike.instMembership.mem rho.honest x → Eq (E.awake x (T.action (instHAdd.hAdd pt.r 2)))
 Bool.true)].
 
+Contract expansion keys: C001 BlockId, C026 BatchPrem, C028 ChainRowsBefore, C035 EntryAt, C038
+FGACServiceReads, C044 FGCoreReads, C063 FGHistoryWireReads, C068 FGObservationReads, C080
+FGSafetyReads, C090 FGServicePoint, C092 FGTiming, C093 FGTimingLaws, C109 FreshFinalityRows_W,
+C123 HeightMatch, C125 HeldAt, C126 HeldBefore, C128 HighRecordFresh, C129 HighRecordGuard_W, C136
+HonestCarrier, C137 HonestProposal, C138 HonestRowAt, C144 KernelExactService, C146
+KernelMiddleWitness_W, C148 KernelPt, C151 MixedCross, C152 NamesEntry, C153 NoMixedOnPath, C154
+OpeningCarrier_W, C175 RowComplete, C176 RowNames, C178 RowSigner, C188 TRowsReceipt, C194
+ValidForParent, C205 kernelCarrier, C210 rowHeld, C222 Gen.V2.Duty.HoldsBefore, C224
+Gen.V2.Duty.HonestSlot, C227 Gen.Env, C229 KitFG.FGHeightLaws, C232 KitFG.HeightBridge, C238
+KitFG.Window.RetainedW, C239 FG.Electorate, C240 FG.FGConfig, C241 FG.FinalityPair, C247 FG.Row,
+C248 FG.RowCodec, C255 V2.D.Interface, C258 V2.D.Run, C259 V2.D.Run.emits, C260
+V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- BatchPrem: kmid_batchPrem (recipe; C026).
+- FGACServiceReads: d7n_ac (recipe; file-private; C038).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGServicePoint: d7n_point (recipe; file-private; C090).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- KernelMiddleWitness_W: d7n_middle_from (recipe; file-private; C146).
+- KernelPt: OPEN (C148).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGHeightLaws: windowHeightLaws (recipe; C229).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- FG.FinalityPair: OPEN (C241).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- FG.RowCodec: OPEN (C248).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: holder assignment/injectivity or honest-holder FG weight (exact guards in type).
 
@@ -5042,6 +7851,19 @@ Nat) (x : V) (r : Nat) (a : Wire) (h : Nat) (t : Time), HonestRowAt S E rho T j 
 (historyRowHeight S D a) (Option.some h) → instLENat.le y h → Eq (eventTime rho j) (Option.some t)
 → Int.instLEInt.le (T.action q) t)], j, x, r, a, h, [instLTNat.lt r q], [HonestRowAt S E rho T j x
 r a], [Eq (historyRowHeight S D a) (Option.some h)].
+
+Contract expansion keys: C063 FGHistoryWireReads, C080 FGSafetyReads, C092 FGTiming, C093
+FGTimingLaws, C138 HonestRowAt, C227 Gen.Env, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -5062,6 +7884,45 @@ O T storedCarrier SourceService Ef], [HighRecordHead R S O E rho], [FGSafetyClie
 [HighRecordEmission S T E rho Ef cfg], [HighRecordOwnOrigin S T E rho], [HighRecordNames R S O T E
 rho D], [FGTimingLaws T], [V2.D.ScheduleWellFormed E rho], x, nd, [SetLike.instMembership.mem
 rho.honest x], [Eq (postClock E rho x (T.action (instHAdd.hAdd pt.r 2))) (Option.some nd)].
+
+Contract expansion keys: C001 BlockId, C026 BatchPrem, C028 ChainRowsBefore, C035 EntryAt, C038
+FGACServiceReads, C044 FGCoreReads, C059 FGHistoricalHighChain, C063 FGHistoryWireReads, C068
+FGObservationReads, C078 FGSafetyClientLaws, C080 FGSafetyReads, C090 FGServicePoint, C092
+FGTiming, C093 FGTimingLaws, C123 HeightMatch, C125 HeldAt, C126 HeldBefore, C127
+HighRecordEmission, C128 HighRecordFresh, C129 HighRecordGuard_W, C130 HighRecordHead, C132
+HighRecordNames, C133 HighRecordOwnOrigin, C136 HonestCarrier, C137 HonestProposal, C138
+HonestRowAt, C139 HonestRowBefore, C144 KernelExactService, C146 KernelMiddleWitness_W, C148
+KernelPt, C151 MixedCross, C152 NamesEntry, C153 NoMixedOnPath, C154 OpeningCarrier_W, C172
+RQCOrigin, C175 RowComplete, C176 RowNames, C178 RowSigner, C188 TRowsReceipt, C194
+ValidForParent, C205 kernelCarrier, C210 rowHeld, C222 Gen.V2.Duty.HoldsBefore, C224
+Gen.V2.Duty.HonestSlot, C227 Gen.Env, C228 KitFG.FGCertificateLaws, C238 KitFG.Window.RetainedW,
+C239 FG.Electorate, C240 FG.FGConfig, C247 FG.Row, C255 V2.D.Interface, C258 V2.D.Run, C259
+V2.D.Run.emits, C260 V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- BatchPrem: kmid_batchPrem (recipe; C026).
+- FGACServiceReads: d7n_ac (recipe; file-private; C038).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyClientLaws: fgsaSafetyClientLaws (recipe; C078).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGServicePoint: d7n_point (recipe; file-private; C090).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- KernelMiddleWitness_W: d7n_middle_from (recipe; file-private; C146).
+- KernelPt: OPEN (C148).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -5095,6 +7956,28 @@ AttemptEndsBy R S E rho O T pair k (attemptBudget T G repairAllowance k))], k, e
 S E rho O T I A pair Jst k], [Eq (List.instGetElem?NatLtLength.getElem? rho.events k.start)
 (Option.some ev)], [Int.instLEInt.le (instHAdd.hAdd ev.time (attemptBudget T G repairAllowance k))
 rho.horizon].
+
+Contract expansion keys: C001 BlockId, C009 AttemptCaughtUp, C010 AttemptEnabledGate, C011
+AttemptEndsBy, C012 AttemptExactService, C014 AttemptGatePassed, C015 AttemptJoinedAt, C016
+AttemptKey, C019 AttemptPhaseAt, C025 AttemptValid, C030 ContestEvidence, C034 EffectiveEvent,
+C041 FGAttemptGateReads, C044 FGCoreReads, C068 FGObservationReads, C080 FGSafetyReads, C092
+FGTiming, C137 HonestProposal, C138 HonestRowAt, C184 ServedFrontier, C193 TopEvidence, C224
+Gen.V2.Duty.HonestSlot, C227 Gen.Env, C255 V2.D.Interface, C258 V2.D.Run, C259 V2.D.Run.emits,
+C262 V2.D.Wakes, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- AttemptKey: healing_attemptValid_of_event (recipe; C016).
+- FGAttemptGateReads: p0d4DispatchGate (recipe; file-private; C041).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -5138,6 +8021,44 @@ Q)], [rho.honest.Nonempty], k, ev, [AttemptValid R S E rho O T I A pair Jst k], 
 (List.instGetElem?NatLtLength.getElem? rho.events k.start) (Option.some ev)], [Int.instLEInt.le
 (instHAdd.hAdd ev.time (attemptBudget T G repairAllowance k)) rho.horizon], [Eq k.task
 AttemptTask.firstRow], [Eq k.phase PhaseKind.contest].
+
+Contract expansion keys: C001 BlockId, C009 AttemptCaughtUp, C010 AttemptEnabledGate, C011
+AttemptEndsBy, C012 AttemptExactService, C013 AttemptGateCopy, C014 AttemptGatePassed, C015
+AttemptJoinedAt, C016 AttemptKey, C018 AttemptOpeningService, C019 AttemptPhaseAt, C020
+AttemptProposalFloor, C022 AttemptRepairAfter, C023 AttemptRepairService, C025 AttemptValid, C030
+ContestEvidence, C034 EffectiveEvent, C041 FGAttemptGateReads, C043 FGCoreLaws, C044 FGCoreReads,
+C067 FGObservationLaws, C068 FGObservationReads, C077 FGRunOrderLaws, C080 FGSafetyReads, C092
+FGTiming, C093 FGTimingLaws, C125 HeldAt, C137 HonestProposal, C138 HonestRowAt, C155
+OpeningCovered, C158 PhaseInterval, C159 PhaseWitnessReceiptScope, C173 RXing, C184
+ServedFrontier, C193 TopEvidence, C195 WitnessReceiptScope, C224 Gen.V2.Duty.HonestSlot, C227
+Gen.Env, C228 KitFG.FGCertificateLaws, C230 KitFG.FGJustificationLaws, C231
+KitFG.FGStoreInvariant, C239 FG.Electorate, C255 V2.D.Interface, C258 V2.D.Run, C259
+V2.D.Run.emits, C260 V2.D.ScheduleWellFormed, C262 V2.D.Wakes, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- AttemptKey: healing_attemptValid_of_event (recipe; C016).
+- FGAttemptGateReads: p0d4DispatchGate (recipe; file-private; C041).
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationLaws: d7f_observation_laws (recipe; file-private; C067).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGRunOrderLaws: p0c1_order_laws (recipe; file-private; C077).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- PhaseWitnessReceiptScope: healing_phase_witness_receipts_recovery (recipe; C159).
+- WitnessReceiptScope: healing_witness_receipt_at_event (recipe; C195).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGJustificationLaws: fgJustificationLaws (recipe; C230).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -5186,6 +8107,47 @@ pair Jst k], [Eq (List.instGetElem?NatLtLength.getElem? rho.events k.start) (Opt
 [Int.instLEInt.le (instHAdd.hAdd ev.time (attemptBudget T G repairAllowance k)) rho.horizon], [Eq
 k.task AttemptTask.firstRow], [Ne k.phase PhaseKind.contest].
 
+Contract expansion keys: C001 BlockId, C009 AttemptCaughtUp, C010 AttemptEnabledGate, C011
+AttemptEndsBy, C012 AttemptExactService, C013 AttemptGateCopy, C014 AttemptGatePassed, C015
+AttemptJoinedAt, C016 AttemptKey, C017 AttemptNextOpeningService, C018 AttemptOpeningService, C019
+AttemptPhaseAt, C020 AttemptProposalFloor, C021 AttemptRenewedPromotion, C022 AttemptRepairAfter,
+C023 AttemptRepairService, C025 AttemptValid, C030 ContestEvidence, C034 EffectiveEvent, C041
+FGAttemptGateReads, C043 FGCoreLaws, C044 FGCoreReads, C067 FGObservationLaws, C068
+FGObservationReads, C077 FGRunOrderLaws, C080 FGSafetyReads, C092 FGTiming, C093 FGTimingLaws,
+C125 HeldAt, C137 HonestProposal, C138 HonestRowAt, C155 OpeningCovered, C156 OpeningEntry, C158
+PhaseInterval, C159 PhaseWitnessReceiptScope, C173 RXing, C184 ServedFrontier, C193 TopEvidence,
+C195 WitnessReceiptScope, C219 Gen.Pure.FaultQ, C222 Gen.V2.Duty.HoldsBefore, C224
+Gen.V2.Duty.HonestSlot, C227 Gen.Env, C228 KitFG.FGCertificateLaws, C230
+KitFG.FGJustificationLaws, C231 KitFG.FGStoreInvariant, C239 FG.Electorate, C255 V2.D.Interface,
+C258 V2.D.Run, C259 V2.D.Run.emits, C260 V2.D.ScheduleWellFormed, C262 V2.D.Wakes, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- AttemptKey: healing_attemptValid_of_event (recipe; C016).
+- FGAttemptGateReads: p0d4DispatchGate (recipe; file-private; C041).
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationLaws: d7f_observation_laws (recipe; file-private; C067).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGRunOrderLaws: p0c1_order_laws (recipe; file-private; C077).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- PhaseWitnessReceiptScope: healing_phase_witness_receipts_recovery (recipe; C159).
+- WitnessReceiptScope: healing_witness_receipt_at_event (recipe; C195).
+- Gen.Pure.FaultQ: fgsa_faultQ_of_count (recipe; C219).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGJustificationLaws: fgJustificationLaws (recipe; C230).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: whole-run faulty-node count/bound; holder assignment/injectivity or honest-holder FG
 weight (exact guards in type).
@@ -5231,6 +8193,47 @@ Finset.univ)) → AttemptTerminalPromotion R S E rho O T I pair Jst G)], k, ev, 
 rho O T I A pair Jst k], [Eq (List.instGetElem?NatLtLength.getElem? rho.events k.start)
 (Option.some ev)], [Int.instLEInt.le (instHAdd.hAdd ev.time (attemptBudget T G repairAllowance k))
 rho.horizon], [Eq k.task AttemptTask.raise], [Eq k.phase PhaseKind.contest].
+
+Contract expansion keys: C001 BlockId, C009 AttemptCaughtUp, C010 AttemptEnabledGate, C011
+AttemptEndsBy, C012 AttemptExactService, C013 AttemptGateCopy, C014 AttemptGatePassed, C015
+AttemptJoinedAt, C016 AttemptKey, C018 AttemptOpeningService, C019 AttemptPhaseAt, C020
+AttemptProposalFloor, C022 AttemptRepairAfter, C023 AttemptRepairService, C024
+AttemptTerminalPromotion, C025 AttemptValid, C030 ContestEvidence, C034 EffectiveEvent, C041
+FGAttemptGateReads, C043 FGCoreLaws, C044 FGCoreReads, C067 FGObservationLaws, C068
+FGObservationReads, C077 FGRunOrderLaws, C080 FGSafetyReads, C092 FGTiming, C093 FGTimingLaws,
+C125 HeldAt, C137 HonestProposal, C138 HonestRowAt, C155 OpeningCovered, C156 OpeningEntry, C158
+PhaseInterval, C159 PhaseWitnessReceiptScope, C173 RXing, C184 ServedFrontier, C193 TopEvidence,
+C195 WitnessReceiptScope, C219 Gen.Pure.FaultQ, C222 Gen.V2.Duty.HoldsBefore, C224
+Gen.V2.Duty.HonestSlot, C227 Gen.Env, C228 KitFG.FGCertificateLaws, C230
+KitFG.FGJustificationLaws, C231 KitFG.FGStoreInvariant, C239 FG.Electorate, C255 V2.D.Interface,
+C258 V2.D.Run, C259 V2.D.Run.emits, C260 V2.D.ScheduleWellFormed, C262 V2.D.Wakes, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- AttemptKey: healing_attemptValid_of_event (recipe; C016).
+- FGAttemptGateReads: p0d4DispatchGate (recipe; file-private; C041).
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationLaws: d7f_observation_laws (recipe; file-private; C067).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGRunOrderLaws: p0c1_order_laws (recipe; file-private; C077).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- PhaseWitnessReceiptScope: healing_phase_witness_receipts_recovery (recipe; C159).
+- WitnessReceiptScope: healing_witness_receipt_at_event (recipe; C195).
+- Gen.Pure.FaultQ: fgsa_faultQ_of_count (recipe; C219).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGJustificationLaws: fgJustificationLaws (recipe; C230).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: whole-run faulty-node count/bound; holder assignment/injectivity or honest-holder FG
@@ -5282,6 +8285,47 @@ Jst G)], k, ev, [AttemptValid R S E rho O T I A pair Jst k], [Eq
 (instHAdd.hAdd ev.time (attemptBudget T G repairAllowance k)) rho.horizon], [Eq k.task
 AttemptTask.raise], [Ne k.phase PhaseKind.contest].
 
+Contract expansion keys: C001 BlockId, C009 AttemptCaughtUp, C010 AttemptEnabledGate, C011
+AttemptEndsBy, C012 AttemptExactService, C013 AttemptGateCopy, C014 AttemptGatePassed, C015
+AttemptJoinedAt, C016 AttemptKey, C017 AttemptNextOpeningService, C018 AttemptOpeningService, C019
+AttemptPhaseAt, C020 AttemptProposalFloor, C021 AttemptRenewedPromotion, C022 AttemptRepairAfter,
+C023 AttemptRepairService, C024 AttemptTerminalPromotion, C025 AttemptValid, C030 ContestEvidence,
+C034 EffectiveEvent, C041 FGAttemptGateReads, C043 FGCoreLaws, C044 FGCoreReads, C067
+FGObservationLaws, C068 FGObservationReads, C077 FGRunOrderLaws, C080 FGSafetyReads, C092
+FGTiming, C093 FGTimingLaws, C125 HeldAt, C137 HonestProposal, C138 HonestRowAt, C155
+OpeningCovered, C156 OpeningEntry, C158 PhaseInterval, C159 PhaseWitnessReceiptScope, C173 RXing,
+C184 ServedFrontier, C193 TopEvidence, C195 WitnessReceiptScope, C219 Gen.Pure.FaultQ, C222
+Gen.V2.Duty.HoldsBefore, C224 Gen.V2.Duty.HonestSlot, C227 Gen.Env, C228 KitFG.FGCertificateLaws,
+C230 KitFG.FGJustificationLaws, C231 KitFG.FGStoreInvariant, C239 FG.Electorate, C255
+V2.D.Interface, C258 V2.D.Run, C259 V2.D.Run.emits, C260 V2.D.ScheduleWellFormed, C262 V2.D.Wakes,
+C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- AttemptKey: healing_attemptValid_of_event (recipe; C016).
+- FGAttemptGateReads: p0d4DispatchGate (recipe; file-private; C041).
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationLaws: d7f_observation_laws (recipe; file-private; C067).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGRunOrderLaws: p0c1_order_laws (recipe; file-private; C077).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- PhaseWitnessReceiptScope: healing_phase_witness_receipts_recovery (recipe; C159).
+- WitnessReceiptScope: healing_witness_receipt_at_event (recipe; C195).
+- Gen.Pure.FaultQ: fgsa_faultQ_of_count (recipe; C219).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGJustificationLaws: fgJustificationLaws (recipe; C230).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: whole-run faulty-node count/bound; holder assignment/injectivity or honest-holder FG
 weight (exact guards in type).
@@ -5318,6 +8362,43 @@ O], k, ev, v, [AttemptValid R S E rho O T I A pair Jst k], [Eq
 (instHAdd.hAdd ev.time (instHMul.hMul 3 T.delta)) v], [Int.instLEInt.le v rho.horizon], [(∀ (j :
 Nat), instLTNat.lt k.start j → instLTNat.lt j (timeIdx rho v) → Not (EffectiveEvent R E rho O
 j))].
+
+Contract expansion keys: C001 BlockId, C009 AttemptCaughtUp, C010 AttemptEnabledGate, C012
+AttemptExactService, C014 AttemptGatePassed, C015 AttemptJoinedAt, C016 AttemptKey, C019
+AttemptPhaseAt, C025 AttemptValid, C030 ContestEvidence, C034 EffectiveEvent, C041
+FGAttemptGateReads, C043 FGCoreLaws, C044 FGCoreReads, C067 FGObservationLaws, C068
+FGObservationReads, C077 FGRunOrderLaws, C080 FGSafetyReads, C092 FGTiming, C093 FGTimingLaws,
+C125 HeldAt, C137 HonestProposal, C138 HonestRowAt, C158 PhaseInterval, C159
+PhaseWitnessReceiptScope, C173 RXing, C184 ServedFrontier, C185 SettledPhaseFrame, C193
+TopEvidence, C195 WitnessReceiptScope, C224 Gen.V2.Duty.HonestSlot, C227 Gen.Env, C228
+KitFG.FGCertificateLaws, C230 KitFG.FGJustificationLaws, C231 KitFG.FGStoreInvariant, C239
+FG.Electorate, C255 V2.D.Interface, C258 V2.D.Run, C259 V2.D.Run.emits, C260
+V2.D.ScheduleWellFormed, C262 V2.D.Wakes, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- AttemptKey: healing_attemptValid_of_event (recipe; C016).
+- FGAttemptGateReads: p0d4DispatchGate (recipe; file-private; C041).
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationLaws: d7f_observation_laws (recipe; file-private; C067).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGRunOrderLaws: p0c1_order_laws (recipe; file-private; C077).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- PhaseWitnessReceiptScope: healing_phase_witness_receipts_recovery (recipe; C159).
+- WitnessReceiptScope: healing_witness_receipt_at_event (recipe; C195).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGJustificationLaws: fgJustificationLaws (recipe; C230).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -5356,6 +8437,43 @@ O], k, ev, v, [AttemptValid R S E rho O T I A pair Jst k], [Eq
 Nat), instLTNat.lt k.start j → instLTNat.lt j (timeIdx rho v) → Not (EffectiveEvent R E rho O
 j))], [Eq k.task AttemptTask.raise], [Eq k.phase PhaseKind.contest].
 
+Contract expansion keys: C001 BlockId, C009 AttemptCaughtUp, C010 AttemptEnabledGate, C012
+AttemptExactService, C014 AttemptGatePassed, C015 AttemptJoinedAt, C016 AttemptKey, C019
+AttemptPhaseAt, C025 AttemptValid, C030 ContestEvidence, C034 EffectiveEvent, C041
+FGAttemptGateReads, C043 FGCoreLaws, C044 FGCoreReads, C067 FGObservationLaws, C068
+FGObservationReads, C077 FGRunOrderLaws, C080 FGSafetyReads, C092 FGTiming, C093 FGTimingLaws,
+C125 HeldAt, C137 HonestProposal, C138 HonestRowAt, C158 PhaseInterval, C159
+PhaseWitnessReceiptScope, C173 RXing, C184 ServedFrontier, C185 SettledPhaseFrame, C193
+TopEvidence, C195 WitnessReceiptScope, C224 Gen.V2.Duty.HonestSlot, C227 Gen.Env, C228
+KitFG.FGCertificateLaws, C230 KitFG.FGJustificationLaws, C231 KitFG.FGStoreInvariant, C239
+FG.Electorate, C255 V2.D.Interface, C258 V2.D.Run, C259 V2.D.Run.emits, C260
+V2.D.ScheduleWellFormed, C262 V2.D.Wakes, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- AttemptKey: healing_attemptValid_of_event (recipe; C016).
+- FGAttemptGateReads: p0d4DispatchGate (recipe; file-private; C041).
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationLaws: d7f_observation_laws (recipe; file-private; C067).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGRunOrderLaws: p0c1_order_laws (recipe; file-private; C077).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- PhaseWitnessReceiptScope: healing_phase_witness_receipts_recovery (recipe; C159).
+- WitnessReceiptScope: healing_witness_receipt_at_event (recipe; C195).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGJustificationLaws: fgJustificationLaws (recipe; C230).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -5392,6 +8510,43 @@ O], k, ev, v, [AttemptValid R S E rho O T I A pair Jst k], [Eq
 (instHAdd.hAdd ev.time (instHMul.hMul 3 T.delta)) v], [Int.instLEInt.le v rho.horizon], [(∀ (j :
 Nat), instLTNat.lt k.start j → instLTNat.lt j (timeIdx rho v) → Not (EffectiveEvent R E rho O
 j))], [Eq k.task AttemptTask.raise], [Ne k.phase PhaseKind.contest].
+
+Contract expansion keys: C001 BlockId, C009 AttemptCaughtUp, C010 AttemptEnabledGate, C012
+AttemptExactService, C014 AttemptGatePassed, C015 AttemptJoinedAt, C016 AttemptKey, C019
+AttemptPhaseAt, C025 AttemptValid, C030 ContestEvidence, C034 EffectiveEvent, C041
+FGAttemptGateReads, C043 FGCoreLaws, C044 FGCoreReads, C067 FGObservationLaws, C068
+FGObservationReads, C077 FGRunOrderLaws, C080 FGSafetyReads, C092 FGTiming, C093 FGTimingLaws,
+C125 HeldAt, C137 HonestProposal, C138 HonestRowAt, C158 PhaseInterval, C159
+PhaseWitnessReceiptScope, C173 RXing, C184 ServedFrontier, C185 SettledPhaseFrame, C193
+TopEvidence, C195 WitnessReceiptScope, C224 Gen.V2.Duty.HonestSlot, C227 Gen.Env, C228
+KitFG.FGCertificateLaws, C230 KitFG.FGJustificationLaws, C231 KitFG.FGStoreInvariant, C239
+FG.Electorate, C255 V2.D.Interface, C258 V2.D.Run, C259 V2.D.Run.emits, C260
+V2.D.ScheduleWellFormed, C262 V2.D.Wakes, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- AttemptKey: healing_attemptValid_of_event (recipe; C016).
+- FGAttemptGateReads: p0d4DispatchGate (recipe; file-private; C041).
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationLaws: d7f_observation_laws (recipe; file-private; C067).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGRunOrderLaws: p0c1_order_laws (recipe; file-private; C077).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- PhaseWitnessReceiptScope: healing_phase_witness_receipts_recovery (recipe; C159).
+- WitnessReceiptScope: healing_witness_receipt_at_event (recipe; C195).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGJustificationLaws: fgJustificationLaws (recipe; C230).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -5430,6 +8585,43 @@ O], k, ev, v, [AttemptValid R S E rho O T I A pair Jst k], [Eq
 Nat), instLTNat.lt k.start j → instLTNat.lt j (timeIdx rho v) → Not (EffectiveEvent R E rho O
 j))], [Eq k.task AttemptTask.firstRow], [Eq k.phase PhaseKind.contest].
 
+Contract expansion keys: C001 BlockId, C009 AttemptCaughtUp, C010 AttemptEnabledGate, C012
+AttemptExactService, C014 AttemptGatePassed, C015 AttemptJoinedAt, C016 AttemptKey, C019
+AttemptPhaseAt, C025 AttemptValid, C030 ContestEvidence, C034 EffectiveEvent, C041
+FGAttemptGateReads, C043 FGCoreLaws, C044 FGCoreReads, C067 FGObservationLaws, C068
+FGObservationReads, C077 FGRunOrderLaws, C080 FGSafetyReads, C092 FGTiming, C093 FGTimingLaws,
+C125 HeldAt, C137 HonestProposal, C138 HonestRowAt, C158 PhaseInterval, C159
+PhaseWitnessReceiptScope, C173 RXing, C184 ServedFrontier, C185 SettledPhaseFrame, C193
+TopEvidence, C195 WitnessReceiptScope, C224 Gen.V2.Duty.HonestSlot, C227 Gen.Env, C228
+KitFG.FGCertificateLaws, C230 KitFG.FGJustificationLaws, C231 KitFG.FGStoreInvariant, C239
+FG.Electorate, C255 V2.D.Interface, C258 V2.D.Run, C259 V2.D.Run.emits, C260
+V2.D.ScheduleWellFormed, C262 V2.D.Wakes, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- AttemptKey: healing_attemptValid_of_event (recipe; C016).
+- FGAttemptGateReads: p0d4DispatchGate (recipe; file-private; C041).
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationLaws: d7f_observation_laws (recipe; file-private; C067).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGRunOrderLaws: p0c1_order_laws (recipe; file-private; C077).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- PhaseWitnessReceiptScope: healing_phase_witness_receipts_recovery (recipe; C159).
+- WitnessReceiptScope: healing_witness_receipt_at_event (recipe; C195).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGJustificationLaws: fgJustificationLaws (recipe; C230).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -5467,6 +8659,43 @@ O], k, ev, v, [AttemptValid R S E rho O T I A pair Jst k], [Eq
 Nat), instLTNat.lt k.start j → instLTNat.lt j (timeIdx rho v) → Not (EffectiveEvent R E rho O
 j))], [Eq k.task AttemptTask.firstRow], [Ne k.phase PhaseKind.contest].
 
+Contract expansion keys: C001 BlockId, C009 AttemptCaughtUp, C010 AttemptEnabledGate, C012
+AttemptExactService, C014 AttemptGatePassed, C015 AttemptJoinedAt, C016 AttemptKey, C019
+AttemptPhaseAt, C025 AttemptValid, C030 ContestEvidence, C034 EffectiveEvent, C041
+FGAttemptGateReads, C043 FGCoreLaws, C044 FGCoreReads, C067 FGObservationLaws, C068
+FGObservationReads, C077 FGRunOrderLaws, C080 FGSafetyReads, C092 FGTiming, C093 FGTimingLaws,
+C125 HeldAt, C137 HonestProposal, C138 HonestRowAt, C158 PhaseInterval, C159
+PhaseWitnessReceiptScope, C173 RXing, C184 ServedFrontier, C185 SettledPhaseFrame, C193
+TopEvidence, C195 WitnessReceiptScope, C224 Gen.V2.Duty.HonestSlot, C227 Gen.Env, C228
+KitFG.FGCertificateLaws, C230 KitFG.FGJustificationLaws, C231 KitFG.FGStoreInvariant, C239
+FG.Electorate, C255 V2.D.Interface, C258 V2.D.Run, C259 V2.D.Run.emits, C260
+V2.D.ScheduleWellFormed, C262 V2.D.Wakes, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- AttemptKey: healing_attemptValid_of_event (recipe; C016).
+- FGAttemptGateReads: p0d4DispatchGate (recipe; file-private; C041).
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationLaws: d7f_observation_laws (recipe; file-private; C067).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGRunOrderLaws: p0c1_order_laws (recipe; file-private; C077).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- PhaseWitnessReceiptScope: healing_phase_witness_receipts_recovery (recipe; C159).
+- WitnessReceiptScope: healing_witness_receipt_at_event (recipe; C195).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGJustificationLaws: fgJustificationLaws (recipe; C230).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -5482,6 +8711,21 @@ budget, ev ev', j, [Eq (List.instGetElem?NatLtLength.getElem? rho.events k.start
 ev)], [instLTNat.lt k.start j], [Eq (List.instGetElem?NatLtLength.getElem? rho.events j)
 (Option.some ev')], [Int.instLEInt.le ev'.time (instHAdd.hAdd ev.time budget)], [EffectiveEvent R
 E rho O j].
+
+Contract expansion keys: C011 AttemptEndsBy, C016 AttemptKey, C030 ContestEvidence, C034
+EffectiveEvent, C044 FGCoreReads, C068 FGObservationReads, C080 FGSafetyReads, C092 FGTiming, C193
+TopEvidence, C227 Gen.Env, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- AttemptKey: healing_attemptValid_of_event (recipe; C016).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -5500,6 +8744,22 @@ j) (Option.some ev')], [Int.instLEInt.le ev'.time (instHAdd.hAdd ev.time budget)
 AttemptTask.firstRow], [HonestRowAt S E rho T j y r a], [Eq (namedEntry (pair a)) (Option.some {
 fst := k.frontier, snd := e })].
 
+Contract expansion keys: C001 BlockId, C011 AttemptEndsBy, C016 AttemptKey, C044 FGCoreReads, C068
+FGObservationReads, C080 FGSafetyReads, C092 FGTiming, C138 HonestRowAt, C227 Gen.Env, C258
+V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- AttemptKey: healing_attemptValid_of_event (recipe; C016).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -5512,6 +8772,21 @@ Source: `S025:36`.
 
 Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, S, E, rho, O, T, pair, k, budget
 budget', [AttemptEndsBy R S E rho O T pair k budget], [Int.instLEInt.le budget budget'].
+
+Contract expansion keys: C011 AttemptEndsBy, C016 AttemptKey, C030 ContestEvidence, C034
+EffectiveEvent, C044 FGCoreReads, C068 FGObservationReads, C080 FGSafetyReads, C092 FGTiming, C138
+HonestRowAt, C193 TopEvidence, C227 Gen.Env, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- AttemptKey: healing_attemptValid_of_event (recipe; C016).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -5529,6 +8804,21 @@ ev)], [Not (AttemptEndsBy R S E rho O T pair k budget)], [instLTNat.lt k.start j
 (List.instGetElem?NatLtLength.getElem? rho.events j) (Option.some ev')], [Int.instLEInt.le
 ev'.time (instHAdd.hAdd ev.time budget)].
 
+Contract expansion keys: C011 AttemptEndsBy, C016 AttemptKey, C030 ContestEvidence, C034
+EffectiveEvent, C044 FGCoreReads, C068 FGObservationReads, C080 FGSafetyReads, C092 FGTiming, C138
+HonestRowAt, C193 TopEvidence, C227 Gen.Env, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- AttemptKey: healing_attemptValid_of_event (recipe; C016).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -5541,6 +8831,28 @@ Source: `S025:54`.
 
 Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, S, E, rho, O, T, I, A, pair,
 Jst, k, [AttemptValid R S E rho O T I A pair Jst k], [Not (EffectiveEvent R E rho O k.start)].
+
+Contract expansion keys: C001 BlockId, C009 AttemptCaughtUp, C010 AttemptEnabledGate, C012
+AttemptExactService, C014 AttemptGatePassed, C015 AttemptJoinedAt, C016 AttemptKey, C019
+AttemptPhaseAt, C025 AttemptValid, C030 ContestEvidence, C034 EffectiveEvent, C041
+FGAttemptGateReads, C044 FGCoreReads, C068 FGObservationReads, C080 FGSafetyReads, C092 FGTiming,
+C137 HonestProposal, C138 HonestRowAt, C184 ServedFrontier, C193 TopEvidence, C224
+Gen.V2.Duty.HonestSlot, C227 Gen.Env, C255 V2.D.Interface, C258 V2.D.Run, C259 V2.D.Run.emits,
+C262 V2.D.Wakes, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- AttemptKey: healing_attemptValid_of_event (recipe; C016).
+- FGAttemptGateReads: p0d4DispatchGate (recipe; file-private; C041).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -5557,6 +8869,19 @@ Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, E, rho, H, T, 
 SetLike.instMembership.mem rho.honest x → Eq (actionSourceFG R E rho T x r) (Option.some
 (Option.some K)) → And (Qfg.Preceq K) (instLENat.le (H K).h m))].
 
+Contract expansion keys: C044 FGCoreReads, C092 FGTiming, C156 OpeningEntry, C227 Gen.Env, C229
+KitFG.FGHeightLaws, C239 FG.Electorate, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGHeightLaws: windowHeightLaws (recipe; C229).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -5571,6 +8896,19 @@ Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, E, rho, H, T, 
 [KitFG.FGHeightLaws Ef H], r m, Qfg, [Eq (H Qfg).h (instHSub.hSub m 1)], [(∀ (x : V) (K :
 FG.FGBlock (Fin n)), SetLike.instMembership.mem rho.honest x → Eq (actionSourceFG R E rho T x r)
 (Option.some (Option.some K)) → And (Qfg.Preceq K) (instLENat.le (H K).h m))].
+
+Contract expansion keys: C044 FGCoreReads, C092 FGTiming, C156 OpeningEntry, C227 Gen.Env, C229
+KitFG.FGHeightLaws, C239 FG.Electorate, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGHeightLaws: windowHeightLaws (recipe; C229).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -5590,6 +8928,17 @@ R E rho T x r) (Option.some (Option.some K)) → instLENat.le (H K).h m)], x, K,
 [SetLike.instMembership.mem rho.honest x], [Eq (actionSourceFG R E rho T x r) (Option.some
 (Option.some K))].
 
+Contract expansion keys: C044 FGCoreReads, C092 FGTiming, C227 Gen.Env, C258 V2.D.Run, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -5604,6 +8953,19 @@ Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, E, rho, H, T, 
 [KitFG.FGHeightLaws Ef H], r m, Qfg, [(∀ (x : V) (K : FG.FGBlock (Fin n)),
 SetLike.instMembership.mem rho.honest x → Eq (actionSourceFG R E rho T x r) (Option.some
 (Option.some K)) → And (Qfg.Preceq K) (instLENat.le (H K).h m))], [Eq (H Qfg).h m].
+
+Contract expansion keys: C044 FGCoreReads, C092 FGTiming, C156 OpeningEntry, C227 Gen.Env, C229
+KitFG.FGHeightLaws, C239 FG.Electorate, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGHeightLaws: windowHeightLaws (recipe; C229).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -5624,6 +8986,17 @@ SetLike.instMembership.mem rho.honest x → Eq (actionSourceFG R E rho T x (inst
 rho.honest x], [Eq (actionSourceFG R E rho T x (instHAdd.hAdd r 1)) (Option.some (Option.some
 L))].
 
+Contract expansion keys: C044 FGCoreReads, C092 FGTiming, C227 Gen.Env, C258 V2.D.Run, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -5638,6 +9011,19 @@ Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, E, rho, H, T, 
 [KitFG.FGHeightLaws Ef H], r m, K, [Eq (H K).h m], [(∀ (x : V) (L : FG.FGBlock (Fin n)),
 SetLike.instMembership.mem rho.honest x → Eq (actionSourceFG R E rho T x (instHAdd.hAdd r 1))
 (Option.some (Option.some L)) → And (K.Preceq L) (instLENat.le (H L).h m))].
+
+Contract expansion keys: C044 FGCoreReads, C092 FGTiming, C156 OpeningEntry, C227 Gen.Env, C229
+KitFG.FGHeightLaws, C239 FG.Electorate, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGHeightLaws: windowHeightLaws (recipe; C229).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -5658,6 +9044,21 @@ T y r) (Option.some (Option.some K)) → PhaseInterval R E rho O u (T.action (in
 J contested → ∀ (x : V) (L : FG.FGBlock (Fin n)), SetLike.instMembership.mem rho.honest x → Eq
 (actionSourceFG R E rho T x (instHAdd.hAdd r 1)) (Option.some (Option.some L)) → And (K.Preceq L)
 (instLENat.le (H L).h m))].
+
+Contract expansion keys: C044 FGCoreReads, C068 FGObservationReads, C092 FGTiming, C156
+OpeningEntry, C158 PhaseInterval, C227 Gen.Env, C229 KitFG.FGHeightLaws, C239 FG.Electorate, C258
+V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGHeightLaws: windowHeightLaws (recipe; C229).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -5706,6 +9107,37 @@ T ΔF)) (instHMul.hMul 4 T.delta)) (instHSub.hSub (instHAdd.hAdd (T.proposal U.s
 (epsF T ΔF)) (instHAdd.hAdd (instHAdd.hAdd (instHAdd.hAdd (T.proposal U.slot) (instHMul.hMul 2 (P
 T))) (Γ T G)) (instHMul.hMul 2 T.delta))) D'].
 
+Contract expansion keys: C001 BlockId, C026 BatchPrem, C035 EntryAt, C044 FGCoreReads, C063
+FGHistoryWireReads, C068 FGObservationReads, C080 FGSafetyReads, C092 FGTiming, C093 FGTimingLaws,
+C123 HeightMatch, C126 HeldBefore, C136 HonestCarrier, C137 HonestProposal, C138 HonestRowAt, C150
+LivenessBoundW, C152 NamesEntry, C155 OpeningCovered, C156 OpeningEntry, C158 PhaseInterval, C161
+ProgressCoveredByChild, C162 ProgressFoldAdvance, C165 PromotionProposalRead, C166
+PromotionRowOrder, C167 PromotionRowSigner, C168 PromotionSlotProposal, C170
+PromotionSourceParent, C176 RowNames, C188 TRowsReceipt, C194 ValidForParent, C205 kernelCarrier,
+C210 rowHeld, C222 Gen.V2.Duty.HoldsBefore, C224 Gen.V2.Duty.HonestSlot, C227 Gen.Env, C229
+KitFG.FGHeightLaws, C239 FG.Electorate, C254 FG.Window.State, C255 V2.D.Interface, C258 V2.D.Run,
+C259 V2.D.Run.emits, C260 V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- BatchPrem: kmid_batchPrem (recipe; C026).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- LivenessBoundW: OPEN (C150).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGHeightLaws: windowHeightLaws (recipe; C229).
+- FG.Electorate: E (recipe; C239).
+- FG.Window.State: gateStep (recipe; C254).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: holder assignment/injectivity or honest-holder FG weight (exact guards in type);
 faulty FG-seat weight/count.
@@ -5718,6 +9150,14 @@ Source: `S028:11`.
 
 Translated telescope: T, [FGTimingLaws T], G ΔF ρbar, [LivenessBoundW T ΔF].
 
+Contract expansion keys: C092 FGTiming, C093 FGTimingLaws, C150 LivenessBoundW.
+
+Input records (including components of supplied contracts):
+
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- LivenessBoundW: OPEN (C150).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -5729,6 +9169,12 @@ FG-SA producer/application: frontierSearch_contest_rise_cost (`S167:41`).
 Source: `S028:25`.
 
 Translated telescope: T, ρbar.
+
+Contract expansion keys: C092 FGTiming.
+
+Input records (including components of supplied contracts):
+
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -5744,6 +9190,12 @@ Translated telescope: T, G d a t, [Int.instLEInt.le a (instHAdd.hAdd d (instHSub
 (instHMul.hMul 4 T.delta)))], [Int.instLEInt.le t (instHSub.hSub (instHAdd.hAdd (instHAdd.hAdd a
 (instHMul.hMul 2 (P T))) (Γ T G)) (instHMul.hMul 9 T.delta))].
 
+Contract expansion keys: C092 FGTiming.
+
+Input records (including components of supplied contracts):
+
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -5756,6 +9208,13 @@ Source: `S028:41`.
 
 Translated telescope: .
 
+Contract expansion keys: none.
+
+Input records (including components of supplied contracts):
+
+None after the mechanical contract expansion.
+
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -5767,6 +9226,13 @@ FG-SA producer/application: frontierSearch_terminal_horizon_gap8 (`S167:67`).
 Source: `S028:49`.
 
 Translated telescope: .
+
+Contract expansion keys: none.
+
+Input records (including components of supplied contracts):
+
+None after the mechanical contract expansion.
+
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -5782,6 +9248,17 @@ Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, E, rho, [FGRun
 R], i j m, D, [instLENat.le i j], [instLENat.le (frontierAtIdx R E rho (instHAdd.hAdd j 1)) m],
 [FrontierRiseBy R E rho j m D].
 
+Contract expansion keys: C044 FGCoreReads, C077 FGRunOrderLaws, C116 FrontierRiseBy, C227 Gen.Env,
+C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGRunOrderLaws: p0c1_order_laws (recipe; file-private; C077).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -5795,6 +9272,19 @@ Source: `S029:77`.
 Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, O, E, rho,
 [V2.D.ScheduleWellFormed E rho], i m, D, [instLENat.le (frontierAtIdx R E rho (instHAdd.hAdd i 1))
 m], [FirstRiseStopBy R E rho O i m D].
+
+Contract expansion keys: C030 ContestEvidence, C034 EffectiveEvent, C044 FGCoreReads, C068
+FGObservationReads, C106 FirstRiseStopBy, C116 FrontierRiseBy, C193 TopEvidence, C227 Gen.Env,
+C258 V2.D.Run, C260 V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -5823,6 +9313,30 @@ kind))) (Or (FirstRiseStopBy R E rho O i m (instHAdd.hAdd ev.time (interruptedRe
 kind, [FrontierSearchStart R E rho O T Jst i ev m kind], [Int.instLEInt.le t0 ev.time],
 [Int.instLEInt.le (instHAdd.hAdd ev.time (frontierSearch_remaining T G ΔF ρbar tail kind))
 rho.horizon].
+
+Contract expansion keys: C019 AttemptPhaseAt, C030 ContestEvidence, C034 EffectiveEvent, C044
+FGCoreReads, C067 FGObservationLaws, C068 FGObservationReads, C077 FGRunOrderLaws, C092 FGTiming,
+C093 FGTimingLaws, C105 FirstPhaseStopBy, C106 FirstRiseStopBy, C116 FrontierRiseBy, C118
+FrontierSearchStart, C125 HeldAt, C173 RXing, C193 TopEvidence, C227 Gen.Env, C228
+KitFG.FGCertificateLaws, C230 KitFG.FGJustificationLaws, C231 KitFG.FGStoreInvariant, C239
+FG.Electorate, C258 V2.D.Run, C260 V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationLaws: d7f_observation_laws (recipe; file-private; C067).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGRunOrderLaws: p0c1_order_laws (recipe; file-private; C077).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGJustificationLaws: fgJustificationLaws (recipe; C230).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -5922,6 +9436,51 @@ Jst i ev m kind], [Int.instLEInt.le (instHAdd.hAdd Jst (instHMul.hMul 2 (P T))) 
 [Int.instLEInt.le (instHAdd.hAdd ev.time (frontierSearch_remaining T G ΔF ρbar tail kind))
 rho.horizon].
 
+Contract expansion keys: C001 BlockId, C015 AttemptJoinedAt, C019 AttemptPhaseAt, C020
+AttemptProposalFloor, C026 BatchPrem, C030 ContestEvidence, C034 EffectiveEvent, C035 EntryAt,
+C043 FGCoreLaws, C044 FGCoreReads, C063 FGHistoryWireReads, C067 FGObservationLaws, C068
+FGObservationReads, C077 FGRunOrderLaws, C080 FGSafetyReads, C092 FGTiming, C093 FGTimingLaws,
+C113 FrontierLocalService, C114 FrontierProposalService, C115 FrontierRepairAllowance, C116
+FrontierRiseBy, C118 FrontierSearchStart, C120 FrontierSeedQualification, C123 HeightMatch, C125
+HeldAt, C126 HeldBefore, C136 HonestCarrier, C137 HonestProposal, C138 HonestRowAt, C150
+LivenessBoundW, C152 NamesEntry, C155 OpeningCovered, C156 OpeningEntry, C158 PhaseInterval, C159
+PhaseWitnessReceiptScope, C161 ProgressCoveredByChild, C162 ProgressFoldAdvance, C165
+PromotionProposalRead, C166 PromotionRowOrder, C167 PromotionRowSigner, C168
+PromotionSlotProposal, C170 PromotionSourceParent, C173 RXing, C176 RowNames, C187 StrongServed,
+C188 TRowsReceipt, C193 TopEvidence, C194 ValidForParent, C195 WitnessReceiptScope, C205
+kernelCarrier, C210 rowHeld, C222 Gen.V2.Duty.HoldsBefore, C224 Gen.V2.Duty.HonestSlot, C227
+Gen.Env, C228 KitFG.FGCertificateLaws, C230 KitFG.FGJustificationLaws, C231
+KitFG.FGStoreInvariant, C239 FG.Electorate, C254 FG.Window.State, C255 V2.D.Interface, C258
+V2.D.Run, C259 V2.D.Run.emits, C260 V2.D.ScheduleWellFormed, C262 V2.D.Wakes, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- BatchPrem: kmid_batchPrem (recipe; C026).
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationLaws: d7f_observation_laws (recipe; file-private; C067).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGRunOrderLaws: p0c1_order_laws (recipe; file-private; C077).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- LivenessBoundW: OPEN (C150).
+- PhaseWitnessReceiptScope: healing_phase_witness_receipts_recovery (recipe; C159).
+- WitnessReceiptScope: healing_witness_receipt_at_event (recipe; C195).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGJustificationLaws: fgJustificationLaws (recipe; C230).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- FG.Window.State: gateStep (recipe; C254).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: holder assignment/injectivity or honest-holder FG weight (exact guards in type);
 faulty FG-seat weight/count.
@@ -6017,6 +9576,51 @@ Q → Exists fun j => And (Eq (List.instGetElem?NatLtLength.getElem? rho.events 
 Qfg.parent))], [(∀ (X : FG.FGBlock (Fin n)), Eq (R.erase X).parent (R.erase X.parent))],
 [PromotionCapReceipt R E rho O T I], [RCap R S E rho O T (fun a => namedEntry (D.heightPair a))
 chainRows], [rho.honest.Nonempty], ρbar.
+
+Contract expansion keys: C001 BlockId, C015 AttemptJoinedAt, C019 AttemptPhaseAt, C020
+AttemptProposalFloor, C026 BatchPrem, C030 ContestEvidence, C034 EffectiveEvent, C035 EntryAt,
+C043 FGCoreLaws, C044 FGCoreReads, C063 FGHistoryWireReads, C067 FGObservationLaws, C068
+FGObservationReads, C077 FGRunOrderLaws, C080 FGSafetyReads, C092 FGTiming, C093 FGTimingLaws,
+C113 FrontierLocalService, C114 FrontierProposalService, C115 FrontierRepairAllowance, C117
+FrontierSearchFamilyStatement, C118 FrontierSearchStart, C120 FrontierSeedQualification, C123
+HeightMatch, C125 HeldAt, C126 HeldBefore, C136 HonestCarrier, C137 HonestProposal, C138
+HonestRowAt, C150 LivenessBoundW, C152 NamesEntry, C155 OpeningCovered, C156 OpeningEntry, C158
+PhaseInterval, C159 PhaseWitnessReceiptScope, C161 ProgressCoveredByChild, C162
+ProgressFoldAdvance, C163 PromotionCapReceipt, C165 PromotionProposalRead, C166 PromotionRowOrder,
+C167 PromotionRowSigner, C168 PromotionSlotProposal, C170 PromotionSourceParent, C171 RCap, C173
+RXing, C176 RowNames, C188 TRowsReceipt, C193 TopEvidence, C194 ValidForParent, C195
+WitnessReceiptScope, C205 kernelCarrier, C210 rowHeld, C222 Gen.V2.Duty.HoldsBefore, C224
+Gen.V2.Duty.HonestSlot, C227 Gen.Env, C228 KitFG.FGCertificateLaws, C230
+KitFG.FGJustificationLaws, C231 KitFG.FGStoreInvariant, C239 FG.Electorate, C254 FG.Window.State,
+C255 V2.D.Interface, C258 V2.D.Run, C259 V2.D.Run.emits, C260 V2.D.ScheduleWellFormed, C262
+V2.D.Wakes, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- BatchPrem: kmid_batchPrem (recipe; C026).
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationLaws: d7f_observation_laws (recipe; file-private; C067).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGRunOrderLaws: p0c1_order_laws (recipe; file-private; C077).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- LivenessBoundW: OPEN (C150).
+- PhaseWitnessReceiptScope: healing_phase_witness_receipts_recovery (recipe; C159).
+- WitnessReceiptScope: healing_witness_receipt_at_event (recipe; C195).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGJustificationLaws: fgJustificationLaws (recipe; C230).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- FG.Window.State: gateStep (recipe; C254).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: holder assignment/injectivity or honest-holder FG weight (exact guards in type);
@@ -6120,6 +9724,51 @@ Jst i ev m kind → Int.instLEInt.le (instHAdd.hAdd Jst (instHMul.hMul 2 (P T)))
 FrontierRepairAllowance R E rho O T I Jst leaseSlots G ρbar (instHAdd.hAdd ev.time (instHMul.hMul
 3 T.delta)))].
 
+Contract expansion keys: C001 BlockId, C015 AttemptJoinedAt, C019 AttemptPhaseAt, C020
+AttemptProposalFloor, C026 BatchPrem, C030 ContestEvidence, C034 EffectiveEvent, C035 EntryAt,
+C043 FGCoreLaws, C044 FGCoreReads, C063 FGHistoryWireReads, C067 FGObservationLaws, C068
+FGObservationReads, C077 FGRunOrderLaws, C080 FGSafetyReads, C092 FGTiming, C093 FGTimingLaws,
+C113 FrontierLocalService, C114 FrontierProposalService, C115 FrontierRepairAllowance, C118
+FrontierSearchStart, C119 FrontierSearchStatement, C120 FrontierSeedQualification, C123
+HeightMatch, C125 HeldAt, C126 HeldBefore, C136 HonestCarrier, C137 HonestProposal, C138
+HonestRowAt, C150 LivenessBoundW, C152 NamesEntry, C155 OpeningCovered, C156 OpeningEntry, C158
+PhaseInterval, C159 PhaseWitnessReceiptScope, C161 ProgressCoveredByChild, C162
+ProgressFoldAdvance, C163 PromotionCapReceipt, C165 PromotionProposalRead, C166 PromotionRowOrder,
+C167 PromotionRowSigner, C168 PromotionSlotProposal, C170 PromotionSourceParent, C171 RCap, C173
+RXing, C176 RowNames, C188 TRowsReceipt, C193 TopEvidence, C194 ValidForParent, C195
+WitnessReceiptScope, C205 kernelCarrier, C210 rowHeld, C222 Gen.V2.Duty.HoldsBefore, C224
+Gen.V2.Duty.HonestSlot, C227 Gen.Env, C228 KitFG.FGCertificateLaws, C230
+KitFG.FGJustificationLaws, C231 KitFG.FGStoreInvariant, C239 FG.Electorate, C254 FG.Window.State,
+C255 V2.D.Interface, C258 V2.D.Run, C259 V2.D.Run.emits, C260 V2.D.ScheduleWellFormed, C262
+V2.D.Wakes, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- BatchPrem: kmid_batchPrem (recipe; C026).
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationLaws: d7f_observation_laws (recipe; file-private; C067).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGRunOrderLaws: p0c1_order_laws (recipe; file-private; C077).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- LivenessBoundW: OPEN (C150).
+- PhaseWitnessReceiptScope: healing_phase_witness_receipts_recovery (recipe; C159).
+- WitnessReceiptScope: healing_witness_receipt_at_event (recipe; C195).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGJustificationLaws: fgJustificationLaws (recipe; C230).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- FG.Window.State: gateStep (recipe; C254).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: holder assignment/injectivity or honest-holder FG weight (exact guards in type);
 faulty FG-seat weight/count.
@@ -6134,6 +9783,13 @@ P10 for finality).
 Source: `S031:39`.
 
 Translated telescope: T, [FGTimingLaws T].
+
+Contract expansion keys: C092 FGTiming, C093 FGTimingLaws.
+
+Input records (including components of supplied contracts):
+
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -6205,6 +9861,43 @@ FG.FGBlock (Fin n)), HonestProposal E rho I q Q → Eq (R.erase K) Q → Eq K.sl
 [FrontierRepairAllowance R E rho O T I Jst leaseSlots G ρbar u], [Int.instLEInt.le (instHAdd.hAdd
 (instHAdd.hAdd u ρbar) (instHSub.hSub (instHAdd.hAdd (instHMul.hMul 2 (P T)) (Γ T G))
 (instHMul.hMul 4 T.delta))) Dl].
+
+Contract expansion keys: C001 BlockId, C015 AttemptJoinedAt, C020 AttemptProposalFloor, C026
+BatchPrem, C035 EntryAt, C044 FGCoreReads, C063 FGHistoryWireReads, C067 FGObservationLaws, C068
+FGObservationReads, C080 FGSafetyReads, C092 FGTiming, C093 FGTimingLaws, C113
+FrontierLocalService, C114 FrontierProposalService, C115 FrontierRepairAllowance, C120
+FrontierSeedQualification, C123 HeightMatch, C126 HeldBefore, C136 HonestCarrier, C137
+HonestProposal, C138 HonestRowAt, C150 LivenessBoundW, C152 NamesEntry, C155 OpeningCovered, C156
+OpeningEntry, C158 PhaseInterval, C161 ProgressCoveredByChild, C162 ProgressFoldAdvance, C165
+PromotionProposalRead, C166 PromotionRowOrder, C167 PromotionRowSigner, C168
+PromotionSlotProposal, C170 PromotionSourceParent, C176 RowNames, C187 StrongServed, C188
+TRowsReceipt, C194 ValidForParent, C205 kernelCarrier, C210 rowHeld, C222 Gen.V2.Duty.HoldsBefore,
+C224 Gen.V2.Duty.HonestSlot, C227 Gen.Env, C228 KitFG.FGCertificateLaws, C231
+KitFG.FGStoreInvariant, C239 FG.Electorate, C254 FG.Window.State, C255 V2.D.Interface, C258
+V2.D.Run, C259 V2.D.Run.emits, C260 V2.D.ScheduleWellFormed, C262 V2.D.Wakes, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- BatchPrem: kmid_batchPrem (recipe; C026).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationLaws: d7f_observation_laws (recipe; file-private; C067).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- LivenessBoundW: OPEN (C150).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- FG.Window.State: gateStep (recipe; C254).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: holder assignment/injectivity or honest-holder FG weight (exact guards in type);
@@ -6295,6 +9988,50 @@ FG.FGBlock (Fin n)), HonestProposal E rho I q Q → Eq (R.erase K) Q → Eq K.sl
 Jst leaseSlots G ρbar (instHAdd.hAdd ev.time (instHMul.hMul 3 T.delta))], [Int.instLEInt.le
 (instHAdd.hAdd ev.time (E_gF T ΔF G ρbar)) rho.horizon].
 
+Contract expansion keys: C001 BlockId, C015 AttemptJoinedAt, C019 AttemptPhaseAt, C020
+AttemptProposalFloor, C026 BatchPrem, C030 ContestEvidence, C034 EffectiveEvent, C035 EntryAt,
+C043 FGCoreLaws, C044 FGCoreReads, C063 FGHistoryWireReads, C067 FGObservationLaws, C068
+FGObservationReads, C077 FGRunOrderLaws, C080 FGSafetyReads, C092 FGTiming, C093 FGTimingLaws,
+C112 FrontierHG3Result, C113 FrontierLocalService, C114 FrontierProposalService, C115
+FrontierRepairAllowance, C118 FrontierSearchStart, C120 FrontierSeedQualification, C123
+HeightMatch, C125 HeldAt, C126 HeldBefore, C136 HonestCarrier, C137 HonestProposal, C138
+HonestRowAt, C150 LivenessBoundW, C152 NamesEntry, C155 OpeningCovered, C156 OpeningEntry, C158
+PhaseInterval, C159 PhaseWitnessReceiptScope, C161 ProgressCoveredByChild, C162
+ProgressFoldAdvance, C165 PromotionProposalRead, C166 PromotionRowOrder, C167 PromotionRowSigner,
+C168 PromotionSlotProposal, C170 PromotionSourceParent, C173 RXing, C176 RowNames, C188
+TRowsReceipt, C193 TopEvidence, C194 ValidForParent, C195 WitnessReceiptScope, C205 kernelCarrier,
+C210 rowHeld, C222 Gen.V2.Duty.HoldsBefore, C224 Gen.V2.Duty.HonestSlot, C227 Gen.Env, C228
+KitFG.FGCertificateLaws, C230 KitFG.FGJustificationLaws, C231 KitFG.FGStoreInvariant, C239
+FG.Electorate, C254 FG.Window.State, C255 V2.D.Interface, C258 V2.D.Run, C259 V2.D.Run.emits, C260
+V2.D.ScheduleWellFormed, C262 V2.D.Wakes, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- BatchPrem: kmid_batchPrem (recipe; C026).
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationLaws: d7f_observation_laws (recipe; file-private; C067).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGRunOrderLaws: p0c1_order_laws (recipe; file-private; C077).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- LivenessBoundW: OPEN (C150).
+- PhaseWitnessReceiptScope: healing_phase_witness_receipts_recovery (recipe; C159).
+- WitnessReceiptScope: healing_witness_receipt_at_event (recipe; C195).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGJustificationLaws: fgJustificationLaws (recipe; C230).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- FG.Window.State: gateStep (recipe; C254).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: holder assignment/injectivity or honest-holder FG weight (exact guards in type);
 faulty FG-seat weight/count.
@@ -6312,6 +10049,14 @@ Translated telescope: T, [FGTimingLaws T], G ΔF d a tU, [LivenessBoundW T ΔF],
 (instHSub.hSub (instHAdd.hAdd d (P T)) (instHMul.hMul 4 T.delta))], [Int.instLEInt.le tU
 (instHSub.hSub d (instHMul.hMul 6 T.delta))].
 
+Contract expansion keys: C092 FGTiming, C093 FGTimingLaws, C150 LivenessBoundW.
+
+Input records (including components of supplied contracts):
+
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- LivenessBoundW: OPEN (C150).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -6323,6 +10068,12 @@ FG-SA producer/application: frontierSearch_hg2a_bound (`S172:471`).
 Source: `S032:77`.
 
 Translated telescope: T, G ΔF a tU.
+
+Contract expansion keys: C092 FGTiming.
+
+Input records (including components of supplied contracts):
+
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -6342,6 +10093,18 @@ Translated telescope: In V, Prot, n, T, E, rho, I, [FGTimingLaws T], G ΔF, [Int
 (instHAdd.hAdd (instHSub.hSub (instHAdd.hAdd (T.action r) (Γ T G)) T.delta) (epsF T ΔF))
 (instHSub.hSub (instHAdd.hAdd (instHAdd.hAdd (T.proposal U.slot) (instHMul.hMul 2 (P T))) (Γ T G))
 (instHMul.hMul 3 T.delta))) rho.horizon].
+
+Contract expansion keys: C092 FGTiming, C093 FGTimingLaws, C224 Gen.V2.Duty.HonestSlot, C227
+Gen.Env, C255 V2.D.Interface, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -6392,6 +10155,40 @@ SetLike.instMembership.mem rho.honest x → Eq (actionSourceFG R E rho T x r) (O
 (instHAdd.hAdd (T.proposal U.slot) (instHMul.hMul 2 (P T))) (Γ T G)) (instHMul.hMul 3 T.delta)))
 rho.horizon].
 
+Contract expansion keys: C001 BlockId, C015 AttemptJoinedAt, C026 BatchPrem, C035 EntryAt, C044
+FGCoreReads, C063 FGHistoryWireReads, C068 FGObservationReads, C077 FGRunOrderLaws, C080
+FGSafetyReads, C092 FGTiming, C093 FGTimingLaws, C111 FrontierHG2aResult, C113
+FrontierLocalService, C114 FrontierProposalService, C123 HeightMatch, C126 HeldBefore, C136
+HonestCarrier, C137 HonestProposal, C138 HonestRowAt, C150 LivenessBoundW, C152 NamesEntry, C155
+OpeningCovered, C156 OpeningEntry, C161 ProgressCoveredByChild, C162 ProgressFoldAdvance, C163
+PromotionCapReceipt, C165 PromotionProposalRead, C166 PromotionRowOrder, C167 PromotionRowSigner,
+C168 PromotionSlotProposal, C176 RowNames, C188 TRowsReceipt, C194 ValidForParent, C205
+kernelCarrier, C210 rowHeld, C222 Gen.V2.Duty.HoldsBefore, C224 Gen.V2.Duty.HonestSlot, C227
+Gen.Env, C229 KitFG.FGHeightLaws, C239 FG.Electorate, C254 FG.Window.State, C255 V2.D.Interface,
+C258 V2.D.Run, C259 V2.D.Run.emits, C260 V2.D.ScheduleWellFormed, C262 V2.D.Wakes, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- BatchPrem: kmid_batchPrem (recipe; C026).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGRunOrderLaws: p0c1_order_laws (recipe; file-private; C077).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- LivenessBoundW: OPEN (C150).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGHeightLaws: windowHeightLaws (recipe; C229).
+- FG.Electorate: E (recipe; C239).
+- FG.Window.State: gateStep (recipe; C254).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: holder assignment/injectivity or honest-holder FG weight (exact guards in type);
 faulty FG-seat weight/count.
@@ -6403,6 +10200,13 @@ FG-SA producer/application: frontier_hg2a_receipt (`S172:522`).
 Source: `S033:33`.
 
 Translated telescope: In V, Prot, rho, u v, [Int.instLEInt.le u v].
+
+Contract expansion keys: C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -6418,6 +10222,17 @@ Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, E, rho, O, u v
 contested, [PhaseInterval R E rho O u v m J contested], [Int.instLEInt.le u w], [Int.instLEInt.le
 w v].
 
+Contract expansion keys: C044 FGCoreReads, C068 FGObservationReads, C158 PhaseInterval, C227
+Gen.Env, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -6432,6 +10247,13 @@ Source: `S033:49`.
 Translated telescope: T, leaseSlots, [FGTimingLaws T], [instLENat.le 1 leaseSlots], GST u, q,
 [FrontierSeedQualification T leaseSlots GST u q].
 
+Contract expansion keys: C092 FGTiming, C093 FGTimingLaws, C120 FrontierSeedQualification.
+
+Input records (including components of supplied contracts):
+
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -6445,6 +10267,13 @@ Source: `S033:77`.
 
 Translated telescope: V, E, T, leaseSlots, u, l q, [FrontierRepairStart E T leaseSlots u l],
 [Int.instLTInt.lt (T.proposal l) (T.proposal q)].
+
+Contract expansion keys: C092 FGTiming, C120 FrontierSeedQualification, C227 Gen.Env.
+
+Input records (including components of supplied contracts):
+
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -6461,6 +10290,12 @@ Source: `S033:86`.
 
 Translated telescope: T, leaseSlots, GST u, q s, [FrontierSeedQualification T leaseSlots GST u q],
 [Int.instLTInt.lt (T.proposal q) (T.proposal s)].
+
+Contract expansion keys: C092 FGTiming, C120 FrontierSeedQualification.
+
+Input records (including components of supplied contracts):
+
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -6479,6 +10314,18 @@ Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, E, rho, O, [FG
 O], u v, m, J, contested, [PhaseInterval R E rho O u v m J contested], i, x, [instLENat.le
 (rho.idxBefore u) i], [instLENat.le i (timeIdx rho v)], [SetLike.instMembership.mem rho.honest x].
 
+Contract expansion keys: C044 FGCoreReads, C067 FGObservationLaws, C068 FGObservationReads, C158
+PhaseInterval, C227 Gen.Env, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationLaws: d7f_observation_laws (recipe; file-private; C067).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -6496,6 +10343,18 @@ Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, E, rho, O, [FG
 O], u v t, m, J, contested, [PhaseInterval R E rho O u v m J contested], [Int.instLEInt.le t v],
 i, x, [instLENat.le (timeIdx rho u) i], [instLENat.le i (timeIdx rho t)],
 [SetLike.instMembership.mem rho.honest x].
+
+Contract expansion keys: C044 FGCoreReads, C067 FGObservationLaws, C068 FGObservationReads, C158
+PhaseInterval, C227 Gen.Env, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationLaws: d7f_observation_laws (recipe; file-private; C067).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -6517,6 +10376,26 @@ i => Exists fun x => And (instLENat.le (rho.idxBefore u) i) (And (instLENat.le i
 (And (SetLike.instMembership.mem rho.honest x) (SetLike.instMembership.mem (R.core
 (V2.D.Run.stateBefore E rho i x)).fg.TF Qfg))))].
 
+Contract expansion keys: C020 AttemptProposalFloor, C044 FGCoreReads, C067 FGObservationLaws, C068
+FGObservationReads, C092 FGTiming, C137 HonestProposal, C158 PhaseInterval, C224
+Gen.V2.Duty.HonestSlot, C227 Gen.Env, C228 KitFG.FGCertificateLaws, C231 KitFG.FGStoreInvariant,
+C239 FG.Electorate, C255 V2.D.Interface, C258 V2.D.Run, C259 V2.D.Run.emits, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationLaws: d7f_observation_laws (recipe; file-private; C067).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -6533,6 +10412,26 @@ contested, Q, Qfg, [Int.instLEInt.le Jst u], [PhaseInterval R E rho O u D m J co
 [FrontierSeedQualification T leaseSlots E.t_GST u q], [HonestProposal E rho I q Q], [Eq (R.erase
 Qfg) Q], [Eq (O.height Qfg).h m], [FrontierProposalService R E rho T q Q], [Int.instLEInt.le
 (T.gate q) D], [FrontierLocalService R S E rho O T I pair q Q Qfg m (T.gate q)].
+
+Contract expansion keys: C015 AttemptJoinedAt, C044 FGCoreReads, C067 FGObservationLaws, C068
+FGObservationReads, C080 FGSafetyReads, C092 FGTiming, C093 FGTimingLaws, C113
+FrontierLocalService, C114 FrontierProposalService, C120 FrontierSeedQualification, C137
+HonestProposal, C138 HonestRowAt, C155 OpeningCovered, C156 OpeningEntry, C158 PhaseInterval, C187
+StrongServed, C224 Gen.V2.Duty.HonestSlot, C227 Gen.Env, C255 V2.D.Interface, C258 V2.D.Run, C259
+V2.D.Run.emits, C262 V2.D.Wakes, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationLaws: d7f_observation_laws (recipe; file-private; C067).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -6588,6 +10487,40 @@ Jst i ev m PhaseKind.contest], [FrontierRepairAllowance R E rho O T I Jst leaseS
 (instHAdd.hAdd ev.time (instHMul.hMul 3 T.delta))], [Int.instLEInt.le (instHAdd.hAdd ev.time
 (instHAdd.hAdd ρbar (instHMul.hMul 3 T.delta))) rho.horizon].
 
+Contract expansion keys: C015 AttemptJoinedAt, C019 AttemptPhaseAt, C020 AttemptProposalFloor,
+C030 ContestEvidence, C034 EffectiveEvent, C043 FGCoreLaws, C044 FGCoreReads, C067
+FGObservationLaws, C068 FGObservationReads, C077 FGRunOrderLaws, C080 FGSafetyReads, C092
+FGTiming, C093 FGTimingLaws, C112 FrontierHG3Result, C113 FrontierLocalService, C114
+FrontierProposalService, C115 FrontierRepairAllowance, C118 FrontierSearchStart, C120
+FrontierSeedQualification, C125 HeldAt, C137 HonestProposal, C138 HonestRowAt, C155
+OpeningCovered, C156 OpeningEntry, C158 PhaseInterval, C159 PhaseWitnessReceiptScope, C173 RXing,
+C193 TopEvidence, C195 WitnessReceiptScope, C224 Gen.V2.Duty.HonestSlot, C227 Gen.Env, C228
+KitFG.FGCertificateLaws, C230 KitFG.FGJustificationLaws, C231 KitFG.FGStoreInvariant, C239
+FG.Electorate, C255 V2.D.Interface, C258 V2.D.Run, C259 V2.D.Run.emits, C260
+V2.D.ScheduleWellFormed, C262 V2.D.Wakes, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationLaws: d7f_observation_laws (recipe; file-private; C067).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGRunOrderLaws: p0c1_order_laws (recipe; file-private; C077).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- PhaseWitnessReceiptScope: healing_phase_witness_receipts_recovery (recipe; C159).
+- WitnessReceiptScope: healing_witness_receipt_at_event (recipe; C195).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGJustificationLaws: fgJustificationLaws (recipe; C230).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -6642,6 +10575,41 @@ rho.honest x → instLENat.le (R.core (V2.D.Run.stateBefore E rho k x)).fg.h_max
 FrontierLocalService R S E rho O T I D.heightPair q Q Qfg m v)], [instLENat.le (frontierAtIdx R E
 rho (instHAdd.hAdd i 1)) m], [Int.instLEInt.le (instHAdd.hAdd t (instHSub.hSub (instHAdd.hAdd
 (instHMul.hMul 2 (P T)) (Γ T G)) (instHMul.hMul 9 T.delta))) rho.horizon].
+
+Contract expansion keys: C001 BlockId, C015 AttemptJoinedAt, C026 BatchPrem, C035 EntryAt, C044
+FGCoreReads, C063 FGHistoryWireReads, C068 FGObservationReads, C077 FGRunOrderLaws, C080
+FGSafetyReads, C092 FGTiming, C093 FGTimingLaws, C113 FrontierLocalService, C114
+FrontierProposalService, C116 FrontierRiseBy, C123 HeightMatch, C126 HeldBefore, C136
+HonestCarrier, C137 HonestProposal, C138 HonestRowAt, C150 LivenessBoundW, C152 NamesEntry, C155
+OpeningCovered, C156 OpeningEntry, C161 ProgressCoveredByChild, C162 ProgressFoldAdvance, C163
+PromotionCapReceipt, C165 PromotionProposalRead, C166 PromotionRowOrder, C167 PromotionRowSigner,
+C168 PromotionSlotProposal, C176 RowNames, C188 TRowsReceipt, C194 ValidForParent, C205
+kernelCarrier, C210 rowHeld, C222 Gen.V2.Duty.HoldsBefore, C224 Gen.V2.Duty.HonestSlot, C227
+Gen.Env, C228 KitFG.FGCertificateLaws, C231 KitFG.FGStoreInvariant, C239 FG.Electorate, C254
+FG.Window.State, C255 V2.D.Interface, C258 V2.D.Run, C259 V2.D.Run.emits, C260
+V2.D.ScheduleWellFormed, C262 V2.D.Wakes, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- BatchPrem: kmid_batchPrem (recipe; C026).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGRunOrderLaws: p0c1_order_laws (recipe; file-private; C077).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- LivenessBoundW: OPEN (C150).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- FG.Window.State: gateStep (recipe; C254).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: holder assignment/injectivity or honest-holder FG weight (exact guards in type);
@@ -6703,6 +10671,43 @@ FrontierLocalService R S E rho O T I D.heightPair q Q Qfg m v)], i m, ev, kind,
 [FrontierSearchStart R E rho O T Jst i ev m kind], [StrongServed R S E rho O T I D.heightPair Jst
 leaseSlots m ev.time], [Int.instLEInt.le (instHAdd.hAdd ev.time (instHSub.hSub (instHAdd.hAdd
 (instHMul.hMul 2 (P T)) (Γ T G)) (instHMul.hMul 9 T.delta))) rho.horizon].
+
+Contract expansion keys: C001 BlockId, C015 AttemptJoinedAt, C019 AttemptPhaseAt, C026 BatchPrem,
+C030 ContestEvidence, C034 EffectiveEvent, C035 EntryAt, C044 FGCoreReads, C063
+FGHistoryWireReads, C068 FGObservationReads, C077 FGRunOrderLaws, C080 FGSafetyReads, C092
+FGTiming, C093 FGTimingLaws, C113 FrontierLocalService, C114 FrontierProposalService, C116
+FrontierRiseBy, C118 FrontierSearchStart, C120 FrontierSeedQualification, C123 HeightMatch, C126
+HeldBefore, C136 HonestCarrier, C137 HonestProposal, C138 HonestRowAt, C150 LivenessBoundW, C152
+NamesEntry, C155 OpeningCovered, C156 OpeningEntry, C158 PhaseInterval, C161
+ProgressCoveredByChild, C162 ProgressFoldAdvance, C163 PromotionCapReceipt, C165
+PromotionProposalRead, C166 PromotionRowOrder, C167 PromotionRowSigner, C168
+PromotionSlotProposal, C176 RowNames, C187 StrongServed, C188 TRowsReceipt, C193 TopEvidence, C194
+ValidForParent, C205 kernelCarrier, C210 rowHeld, C222 Gen.V2.Duty.HoldsBefore, C224
+Gen.V2.Duty.HonestSlot, C227 Gen.Env, C228 KitFG.FGCertificateLaws, C231 KitFG.FGStoreInvariant,
+C239 FG.Electorate, C254 FG.Window.State, C255 V2.D.Interface, C258 V2.D.Run, C259 V2.D.Run.emits,
+C260 V2.D.ScheduleWellFormed, C262 V2.D.Wakes, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- BatchPrem: kmid_batchPrem (recipe; C026).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGRunOrderLaws: p0c1_order_laws (recipe; file-private; C077).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- LivenessBoundW: OPEN (C150).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- FG.Window.State: gateStep (recipe; C254).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: holder assignment/injectivity or honest-holder FG weight (exact guards in type);
@@ -6766,6 +10771,44 @@ instLENat.le i (timeIdx rho v) → SetLike.instMembership.mem rho.honest x → i
 (V2.D.Run.stateBefore E rho i x)).fg.h_max m) → FrontierLocalService R S E rho O T I D.heightPair
 q Q Qfg m v)].
 
+Contract expansion keys: C001 BlockId, C015 AttemptJoinedAt, C019 AttemptPhaseAt, C026 BatchPrem,
+C030 ContestEvidence, C034 EffectiveEvent, C035 EntryAt, C044 FGCoreReads, C063
+FGHistoryWireReads, C068 FGObservationReads, C077 FGRunOrderLaws, C080 FGSafetyReads, C092
+FGTiming, C093 FGTimingLaws, C113 FrontierLocalService, C114 FrontierProposalService, C118
+FrontierSearchStart, C120 FrontierSeedQualification, C121 FrontierTailStatement, C123 HeightMatch,
+C125 HeldAt, C126 HeldBefore, C136 HonestCarrier, C137 HonestProposal, C138 HonestRowAt, C150
+LivenessBoundW, C152 NamesEntry, C155 OpeningCovered, C156 OpeningEntry, C158 PhaseInterval, C161
+ProgressCoveredByChild, C162 ProgressFoldAdvance, C163 PromotionCapReceipt, C165
+PromotionProposalRead, C166 PromotionRowOrder, C167 PromotionRowSigner, C168
+PromotionSlotProposal, C171 RCap, C176 RowNames, C187 StrongServed, C188 TRowsReceipt, C193
+TopEvidence, C194 ValidForParent, C205 kernelCarrier, C210 rowHeld, C222 Gen.V2.Duty.HoldsBefore,
+C224 Gen.V2.Duty.HonestSlot, C227 Gen.Env, C228 KitFG.FGCertificateLaws, C231
+KitFG.FGStoreInvariant, C239 FG.Electorate, C254 FG.Window.State, C255 V2.D.Interface, C258
+V2.D.Run, C259 V2.D.Run.emits, C260 V2.D.ScheduleWellFormed, C262 V2.D.Wakes, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- BatchPrem: kmid_batchPrem (recipe; C026).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGRunOrderLaws: p0c1_order_laws (recipe; file-private; C077).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- LivenessBoundW: OPEN (C150).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- FG.Window.State: gateStep (recipe; C254).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: holder assignment/injectivity or honest-holder FG weight (exact guards in type);
 faulty FG-seat weight/count.
@@ -6783,6 +10826,16 @@ Translated telescope: In V, Prot, E, rho, [V2.D.ScheduleWellFormed E rho], j, ev
 (List.instGetElem?NatLtLength.getElem? rho.events j) (Option.some ev)], [instLTNat.lt j (timeIdx
 rho deadline)].
 
+Contract expansion keys: C227 Gen.Env, C258 V2.D.Run, C260 V2.D.ScheduleWellFormed, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -6795,6 +10848,19 @@ Source: `S035:48`.
 
 Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, E, rho, O,
 [V2.D.ScheduleWellFormed E rho], i, deadline.
+
+Contract expansion keys: C034 EffectiveEvent, C044 FGCoreReads, C068 FGObservationReads, C103
+FirstEffectiveBy, C227 Gen.Env, C258 V2.D.Run, C260 V2.D.ScheduleWellFormed, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -6809,6 +10875,19 @@ Source: `S035:71`.
 Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, E, rho, O, [FGRunOrderLaws E rho
 R], i m, deadline, [Eq (frontierAtIdx R E rho (instHAdd.hAdd i 1)) m], [FirstEffectiveBy R E rho O
 i deadline].
+
+Contract expansion keys: C030 ContestEvidence, C034 EffectiveEvent, C044 FGCoreReads, C068
+FGObservationReads, C077 FGRunOrderLaws, C103 FirstEffectiveBy, C105 FirstPhaseStopBy, C106
+FirstRiseStopBy, C193 TopEvidence, C227 Gen.Env, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGRunOrderLaws: p0c1_order_laws (recipe; file-private; C077).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -6825,6 +10904,17 @@ E rho], i m, deadline, [(Exists fun j => And (instLTNat.lt i j) (And (instLTNat.
 deadline)) (instLTNat.lt m (frontierAtIdx R E rho (instHAdd.hAdd j 1)))))], [instLENat.le
 (frontierAtIdx R E rho (instHAdd.hAdd i 1)) m].
 
+Contract expansion keys: C044 FGCoreReads, C116 FrontierRiseBy, C227 Gen.Env, C258 V2.D.Run, C260
+V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -6838,6 +10928,19 @@ Source: `S035:116`.
 Translated telescope: In V, Prot, inst, n, Wire, S, E, rho, T, pair, [FGTimingLaws T], m r,
 deadline, [HeightRow S E rho T (fun a => namedEntry (pair a)) r m], [Int.instLEInt.le (T.action r)
 deadline].
+
+Contract expansion keys: C080 FGSafetyReads, C092 FGTiming, C093 FGTimingLaws, C104
+FirstHeightRowBy, C124 HeightRow, C138 HonestRowAt, C227 Gen.Env, C258 V2.D.Run, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -6854,6 +10957,17 @@ Translated telescope: In V, Prot, inst, n, Wire, S, E, rho, T, pair, m r r', [He
 a)) s m → instLENat.le r s)], [HeightRow S E rho T (fun a => namedEntry (pair a)) r' m], [(∀ (s :
 Nat), HeightRow S E rho T (fun a => namedEntry (pair a)) s m → instLENat.le r' s)].
 
+Contract expansion keys: C080 FGSafetyReads, C092 FGTiming, C124 HeightRow, C138 HonestRowAt, C227
+Gen.Env, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -6867,6 +10981,20 @@ Source: `S035:151`.
 Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, S, E, rho, O, T, pair,
 chainRows, [RCap R S E rho O T (fun a => namedEntry (pair a)) chainRows], M i, x, W, [HeldAt R E
 rho i x W], [instLENat.le (instHAdd.hAdd M 2) (O.height W).h].
+
+Contract expansion keys: C044 FGCoreReads, C068 FGObservationReads, C080 FGSafetyReads, C092
+FGTiming, C125 HeldAt, C138 HonestRowAt, C171 RCap, C227 Gen.Env, C258 V2.D.Run, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -6886,6 +11014,29 @@ Finset.instPartialOrder.le (TFAt R E rho i x) (TFAt R E rho j x))], [RXing R E r
 [FGRunOrderLaws E rho R], [V2.D.ScheduleWellFormed E rho], i m, kind, ev, deadline,
 [FrontierSearchStart R E rho O T Jst i ev m kind], [FirstPhaseStopBy R E rho O i m deadline].
 
+Contract expansion keys: C019 AttemptPhaseAt, C030 ContestEvidence, C034 EffectiveEvent, C044
+FGCoreReads, C067 FGObservationLaws, C068 FGObservationReads, C077 FGRunOrderLaws, C092 FGTiming,
+C105 FirstPhaseStopBy, C118 FrontierSearchStart, C125 HeldAt, C173 RXing, C193 TopEvidence, C227
+Gen.Env, C228 KitFG.FGCertificateLaws, C230 KitFG.FGJustificationLaws, C231
+KitFG.FGStoreInvariant, C239 FG.Electorate, C258 V2.D.Run, C260 V2.D.ScheduleWellFormed, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationLaws: d7f_observation_laws (recipe; file-private; C067).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGRunOrderLaws: p0c1_order_laws (recipe; file-private; C077).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGJustificationLaws: fgJustificationLaws (recipe; C230).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -6900,6 +11051,18 @@ Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, E, rho, [V2.D.
 E rho], [FGRunOrderLaws E rho R], i m, D, [instLENat.le (frontierAtIdx R E rho (instHAdd.hAdd i
 1)) m].
 
+Contract expansion keys: C044 FGCoreReads, C077 FGRunOrderLaws, C116 FrontierRiseBy, C227 Gen.Env,
+C258 V2.D.Run, C260 V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGRunOrderLaws: p0c1_order_laws (recipe; file-private; C077).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -6911,6 +11074,13 @@ FG-SA producer/application: frontierSearch_strict_cap_or_rise (`S175:222`).
 Source: `S035:273`.
 
 Translated telescope: In V, Prot, rho, t D, [Int.instLTInt.lt t D].
+
+Contract expansion keys: C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -6924,6 +11094,16 @@ Source: `S035:283`.
 
 Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, E, rho, i m, d D,
 [Int.instLEInt.le d D], [FrontierRiseBy R E rho i m d].
+
+Contract expansion keys: C044 FGCoreReads, C116 FrontierRiseBy, C227 Gen.Env, C258 V2.D.Run, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -6943,6 +11123,21 @@ rho j x))], [V2.D.ScheduleWellFormed E rho], [FGRunOrderLaws E rho R], i m, d D,
 rho.honest x], [instLENat.le (instHAdd.hAdd m 1) (O.height X).h], [Gen.V2.Duty.HoldsBefore E rho
 (fun nd => SetLike.instMembership.mem (R.core nd).fg.TF X) d x], [Int.instLEInt.le d D].
 
+Contract expansion keys: C044 FGCoreReads, C068 FGObservationReads, C077 FGRunOrderLaws, C116
+FrontierRiseBy, C222 Gen.V2.Duty.HoldsBefore, C227 Gen.Env, C231 KitFG.FGStoreInvariant, C258
+V2.D.Run, C260 V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGRunOrderLaws: p0c1_order_laws (recipe; file-private; C077).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -6956,6 +11151,13 @@ Source: `S035:314`.
 Translated telescope: T, [FGTimingLaws T], leaseSlots, [instLENat.le 2 leaseSlots], GST Jst, u, q,
 [Int.instLEInt.le GST Jst], [Int.instLEInt.le Jst u], [FrontierSeedQualification T leaseSlots GST
 u q].
+
+Contract expansion keys: C092 FGTiming, C093 FGTimingLaws, C120 FrontierSeedQualification.
+
+Input records (including components of supplied contracts):
+
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -6979,6 +11181,31 @@ rho.honest x → instLENat.le (R.core (V2.D.Run.stateBefore E rho i x)).fg.h_max
 FrontierLocalService R S E rho O T I pair q Q Qfg m v)], [Int.instLEInt.le (instHAdd.hAdd t
 (instHSub.hSub (P T) (instHMul.hMul 4 T.delta))) rho.horizon].
 
+Contract expansion keys: C015 AttemptJoinedAt, C044 FGCoreReads, C068 FGObservationReads, C077
+FGRunOrderLaws, C080 FGSafetyReads, C092 FGTiming, C093 FGTimingLaws, C104 FirstHeightRowBy, C113
+FrontierLocalService, C114 FrontierProposalService, C125 HeldAt, C137 HonestProposal, C138
+HonestRowAt, C155 OpeningCovered, C156 OpeningEntry, C158 PhaseInterval, C171 RCap, C224
+Gen.V2.Duty.HonestSlot, C227 Gen.Env, C228 KitFG.FGCertificateLaws, C231 KitFG.FGStoreInvariant,
+C239 FG.Electorate, C255 V2.D.Interface, C258 V2.D.Run, C259 V2.D.Run.emits, C260
+V2.D.ScheduleWellFormed, C262 V2.D.Wakes, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGRunOrderLaws: p0c1_order_laws (recipe; file-private; C077).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -6991,6 +11218,14 @@ Source: `S037:45`.
 
 Translated telescope: T, [FGTimingLaws T], G ΔF ρbar, [Int.instLEInt.le (instHMul.hMul 4 T.delta)
 G], [LivenessBoundW T ΔF], [Int.instLEInt.le 0 ρbar], kind.
+
+Contract expansion keys: C092 FGTiming, C093 FGTimingLaws, C150 LivenessBoundW.
+
+Input records (including components of supplied contracts):
+
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- LivenessBoundW: OPEN (C150).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -7090,6 +11325,50 @@ FrontierRepairAllowance R E rho O T I Jst leaseSlots G ρbar (instHAdd.hAdd ev.t
 kind], [Int.instLEInt.le (instHAdd.hAdd Jst (instHMul.hMul 2 (P T))) ev.time], [Int.instLEInt.le
 (instHAdd.hAdd ev.time (frontierSearchRiseBudget T G ΔF ρbar)) rho.horizon].
 
+Contract expansion keys: C001 BlockId, C015 AttemptJoinedAt, C019 AttemptPhaseAt, C020
+AttemptProposalFloor, C026 BatchPrem, C030 ContestEvidence, C034 EffectiveEvent, C035 EntryAt,
+C043 FGCoreLaws, C044 FGCoreReads, C063 FGHistoryWireReads, C067 FGObservationLaws, C068
+FGObservationReads, C077 FGRunOrderLaws, C080 FGSafetyReads, C092 FGTiming, C093 FGTimingLaws,
+C113 FrontierLocalService, C114 FrontierProposalService, C115 FrontierRepairAllowance, C116
+FrontierRiseBy, C118 FrontierSearchStart, C120 FrontierSeedQualification, C123 HeightMatch, C125
+HeldAt, C126 HeldBefore, C136 HonestCarrier, C137 HonestProposal, C138 HonestRowAt, C150
+LivenessBoundW, C152 NamesEntry, C155 OpeningCovered, C156 OpeningEntry, C158 PhaseInterval, C159
+PhaseWitnessReceiptScope, C161 ProgressCoveredByChild, C162 ProgressFoldAdvance, C163
+PromotionCapReceipt, C165 PromotionProposalRead, C166 PromotionRowOrder, C167 PromotionRowSigner,
+C168 PromotionSlotProposal, C170 PromotionSourceParent, C173 RXing, C176 RowNames, C188
+TRowsReceipt, C193 TopEvidence, C194 ValidForParent, C195 WitnessReceiptScope, C205 kernelCarrier,
+C210 rowHeld, C222 Gen.V2.Duty.HoldsBefore, C224 Gen.V2.Duty.HonestSlot, C227 Gen.Env, C228
+KitFG.FGCertificateLaws, C230 KitFG.FGJustificationLaws, C231 KitFG.FGStoreInvariant, C239
+FG.Electorate, C254 FG.Window.State, C255 V2.D.Interface, C258 V2.D.Run, C259 V2.D.Run.emits, C260
+V2.D.ScheduleWellFormed, C262 V2.D.Wakes, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- BatchPrem: kmid_batchPrem (recipe; C026).
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationLaws: d7f_observation_laws (recipe; file-private; C067).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGRunOrderLaws: p0c1_order_laws (recipe; file-private; C077).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- LivenessBoundW: OPEN (C150).
+- PhaseWitnessReceiptScope: healing_phase_witness_receipts_recovery (recipe; C159).
+- WitnessReceiptScope: healing_witness_receipt_at_event (recipe; C195).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGJustificationLaws: fgJustificationLaws (recipe; C230).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- FG.Window.State: gateStep (recipe; C254).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: holder assignment/injectivity or honest-holder FG weight (exact guards in type);
 faulty FG-seat weight/count.
@@ -7108,6 +11387,28 @@ Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, S, O, T, E, rh
 O.height O.finality (R.core (V2.D.Run.stateBefore E rho i x)).fg)], chainRows, [FGTimingLaws T],
 [V2.D.ScheduleWellFormed E rho], [RCap R S E rho O T (fun a => namedEntry (D.heightPair a))
 chainRows], i m, Dl, [instLENat.le 1 m], [FrontierRiseBy R E rho i m Dl].
+
+Contract expansion keys: C044 FGCoreReads, C063 FGHistoryWireReads, C068 FGObservationReads, C080
+FGSafetyReads, C092 FGTiming, C093 FGTimingLaws, C104 FirstHeightRowBy, C116 FrontierRiseBy, C125
+HeldAt, C138 HonestRowAt, C171 RCap, C227 Gen.Env, C228 KitFG.FGCertificateLaws, C231
+KitFG.FGStoreInvariant, C239 FG.Electorate, C258 V2.D.Run, C260 V2.D.ScheduleWellFormed, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -7207,6 +11508,50 @@ kind, [FrontierSearchStart R E rho O T Jst i ev m kind], [Int.instLEInt.le (inst
 (instHMul.hMul 2 (P T))) ev.time], [Int.instLEInt.le (instHAdd.hAdd ev.time
 (frontierSearchRowBudget T G ΔF ρbar)) rho.horizon].
 
+Contract expansion keys: C001 BlockId, C015 AttemptJoinedAt, C019 AttemptPhaseAt, C020
+AttemptProposalFloor, C026 BatchPrem, C030 ContestEvidence, C034 EffectiveEvent, C035 EntryAt,
+C043 FGCoreLaws, C044 FGCoreReads, C063 FGHistoryWireReads, C067 FGObservationLaws, C068
+FGObservationReads, C077 FGRunOrderLaws, C080 FGSafetyReads, C092 FGTiming, C093 FGTimingLaws,
+C104 FirstHeightRowBy, C113 FrontierLocalService, C114 FrontierProposalService, C115
+FrontierRepairAllowance, C118 FrontierSearchStart, C120 FrontierSeedQualification, C123
+HeightMatch, C125 HeldAt, C126 HeldBefore, C136 HonestCarrier, C137 HonestProposal, C138
+HonestRowAt, C150 LivenessBoundW, C152 NamesEntry, C155 OpeningCovered, C156 OpeningEntry, C158
+PhaseInterval, C159 PhaseWitnessReceiptScope, C161 ProgressCoveredByChild, C162
+ProgressFoldAdvance, C165 PromotionProposalRead, C166 PromotionRowOrder, C167 PromotionRowSigner,
+C168 PromotionSlotProposal, C170 PromotionSourceParent, C171 RCap, C173 RXing, C176 RowNames, C188
+TRowsReceipt, C193 TopEvidence, C194 ValidForParent, C195 WitnessReceiptScope, C205 kernelCarrier,
+C210 rowHeld, C222 Gen.V2.Duty.HoldsBefore, C224 Gen.V2.Duty.HonestSlot, C227 Gen.Env, C228
+KitFG.FGCertificateLaws, C230 KitFG.FGJustificationLaws, C231 KitFG.FGStoreInvariant, C239
+FG.Electorate, C254 FG.Window.State, C255 V2.D.Interface, C258 V2.D.Run, C259 V2.D.Run.emits, C260
+V2.D.ScheduleWellFormed, C262 V2.D.Wakes, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- BatchPrem: kmid_batchPrem (recipe; C026).
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationLaws: d7f_observation_laws (recipe; file-private; C067).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGRunOrderLaws: p0c1_order_laws (recipe; file-private; C077).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- LivenessBoundW: OPEN (C150).
+- PhaseWitnessReceiptScope: healing_phase_witness_receipts_recovery (recipe; C159).
+- WitnessReceiptScope: healing_witness_receipt_at_event (recipe; C195).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGJustificationLaws: fgJustificationLaws (recipe; C230).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- FG.Window.State: gateStep (recipe; C254).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: holder assignment/injectivity or honest-holder FG weight (exact guards in type);
 faulty FG-seat weight/count.
@@ -7221,6 +11566,17 @@ P10 for finality).
 Source: `S037:372`.
 
 Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, O, E, rho, i m.
+
+Contract expansion keys: C019 AttemptPhaseAt, C044 FGCoreReads, C068 FGObservationReads, C227
+Gen.Env, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -7243,6 +11599,25 @@ instLENat.le rG r)], [Eq u₀ (T.action (instHAdd.hAdd rG 2))], [Int.instLEInt.l
 (instHMul.hMul 2 (P T))) u₀], [Eq M (honestFrontier R E rho u₀)], [Int.instLEInt.le u₀
 rho.horizon].
 
+Contract expansion keys: C044 FGCoreReads, C068 FGObservationReads, C092 FGTiming, C093
+FGTimingLaws, C118 FrontierSearchStart, C227 Gen.Env, C228 KitFG.FGCertificateLaws, C231
+KitFG.FGStoreInvariant, C239 FG.Electorate, C258 V2.D.Run, C260 V2.D.ScheduleWellFormed, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -7256,6 +11631,16 @@ Source: `S037:430`.
 Translated telescope: In V, Prot, E, rho, [V2.D.ScheduleWellFormed E rho], i j, ev ev', [Eq
 (List.instGetElem?NatLtLength.getElem? rho.events i) (Option.some ev)], [Eq
 (List.instGetElem?NatLtLength.getElem? rho.events j) (Option.some ev')], [instLENat.le i j].
+
+Contract expansion keys: C227 Gen.Env, C258 V2.D.Run, C260 V2.D.ScheduleWellFormed, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -7281,6 +11666,24 @@ r) (Option.some (Option.some K)) → A.Preceq K → instLENat.le A.slot K.slot)]
 (List.instGetElem?NatLtLength.getElem? rho.events i) (Option.some ev)],
 [SetLike.instMembership.mem rho.honest x], [Ne (R.core (V2.D.Run.stateBefore E rho (instHAdd.hAdd
 i 1) x)).fg.h_j 0].
+
+Contract expansion keys: C044 FGCoreReads, C068 FGObservationReads, C080 FGSafetyReads, C092
+FGTiming, C093 FGTimingLaws, C138 HonestRowAt, C227 Gen.Env, C228 KitFG.FGCertificateLaws, C239
+FG.Electorate, C258 V2.D.Run, C260 V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -7373,6 +11776,50 @@ rho I q) (T.proposal q)))) (∀ (Qfg : FG.FGBlock (Fin n)), Eq (R.erase Qfg) Q �
 I Jst leaseSlots G ρbar (instHAdd.hAdd ev.time (instHMul.hMul 3 T.delta))], [Int.instLEInt.le
 (instHAdd.hAdd ev.time (E_jF T ΔF G ρbar)) rho.horizon].
 
+Contract expansion keys: C001 BlockId, C015 AttemptJoinedAt, C019 AttemptPhaseAt, C020
+AttemptProposalFloor, C026 BatchPrem, C030 ContestEvidence, C034 EffectiveEvent, C035 EntryAt,
+C043 FGCoreLaws, C044 FGCoreReads, C063 FGHistoryWireReads, C067 FGObservationLaws, C068
+FGObservationReads, C077 FGRunOrderLaws, C080 FGSafetyReads, C092 FGTiming, C093 FGTimingLaws,
+C112 FrontierHG3Result, C113 FrontierLocalService, C114 FrontierProposalService, C115
+FrontierRepairAllowance, C118 FrontierSearchStart, C120 FrontierSeedQualification, C123
+HeightMatch, C125 HeldAt, C126 HeldBefore, C136 HonestCarrier, C137 HonestProposal, C138
+HonestRowAt, C150 LivenessBoundW, C152 NamesEntry, C155 OpeningCovered, C156 OpeningEntry, C158
+PhaseInterval, C159 PhaseWitnessReceiptScope, C161 ProgressCoveredByChild, C162
+ProgressFoldAdvance, C165 PromotionProposalRead, C166 PromotionRowOrder, C167 PromotionRowSigner,
+C168 PromotionSlotProposal, C170 PromotionSourceParent, C173 RXing, C176 RowNames, C188
+TRowsReceipt, C193 TopEvidence, C194 ValidForParent, C195 WitnessReceiptScope, C205 kernelCarrier,
+C210 rowHeld, C222 Gen.V2.Duty.HoldsBefore, C224 Gen.V2.Duty.HonestSlot, C227 Gen.Env, C228
+KitFG.FGCertificateLaws, C230 KitFG.FGJustificationLaws, C231 KitFG.FGStoreInvariant, C239
+FG.Electorate, C254 FG.Window.State, C255 V2.D.Interface, C258 V2.D.Run, C259 V2.D.Run.emits, C260
+V2.D.ScheduleWellFormed, C262 V2.D.Wakes, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- BatchPrem: kmid_batchPrem (recipe; C026).
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationLaws: d7f_observation_laws (recipe; file-private; C067).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGRunOrderLaws: p0c1_order_laws (recipe; file-private; C077).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- LivenessBoundW: OPEN (C150).
+- PhaseWitnessReceiptScope: healing_phase_witness_receipts_recovery (recipe; C159).
+- WitnessReceiptScope: healing_witness_receipt_at_event (recipe; C195).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGJustificationLaws: fgJustificationLaws (recipe; C230).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- FG.Window.State: gateStep (recipe; C254).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: holder assignment/injectivity or honest-holder FG weight (exact guards in type);
 faulty FG-seat weight/count.
@@ -7390,6 +11837,18 @@ Translated telescope: In V, P, inst, n, Base Proposal Wire, R, E, rho, O, [(∀ 
 KitFG.FGStoreInvariant O.height O.finality (R.core (V2.D.Run.stateBefore E rho i x)).fg)], i, x,
 W, [SetLike.instMembership.mem (R.core (V2.D.Run.stateBefore E rho i x)).fg.TF W].
 
+Contract expansion keys: C044 FGCoreReads, C068 FGObservationReads, C227 Gen.Env, C231
+KitFG.FGStoreInvariant, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -7403,6 +11862,21 @@ Source: `S039:44`.
 Translated telescope: In V, P, inst, n, Base Proposal Wire, R, E, rho, O, Ef,
 [KitFG.FGCertificateLaws Ef O.height O.finality], [(∀ (i : Nat) (x : V), KitFG.FGStoreInvariant
 O.height O.finality (R.core (V2.D.Run.stateBefore E rho i x)).fg)], i, x.
+
+Contract expansion keys: C044 FGCoreReads, C068 FGObservationReads, C227 Gen.Env, C228
+KitFG.FGCertificateLaws, C231 KitFG.FGStoreInvariant, C239 FG.Electorate, C258 V2.D.Run, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -7420,6 +11894,21 @@ O.height O.finality (R.core (V2.D.Run.stateBefore E rho i x)).fg)], i, x, K,
 [SetLike.instMembership.mem (R.core (V2.D.Run.stateBefore E rho i x)).fg.TF K], [Eq (O.finality
 K).F (R.core (V2.D.Run.stateBefore E rho i x)).fg.F].
 
+Contract expansion keys: C044 FGCoreReads, C068 FGObservationReads, C227 Gen.Env, C228
+KitFG.FGCertificateLaws, C231 KitFG.FGStoreInvariant, C239 FG.Electorate, C258 V2.D.Run, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -7433,6 +11922,21 @@ Source: `S039:65`.
 Translated telescope: In V, P, inst, n, Base Proposal Wire, R, E, rho, O, Ef,
 [KitFG.FGCertificateLaws Ef O.height O.finality], [(∀ (i : Nat) (x : V), KitFG.FGStoreInvariant
 O.height O.finality (R.core (V2.D.Run.stateBefore E rho i x)).fg)], i, x.
+
+Contract expansion keys: C044 FGCoreReads, C068 FGObservationReads, C227 Gen.Env, C228
+KitFG.FGCertificateLaws, C231 KitFG.FGStoreInvariant, C239 FG.Electorate, C258 V2.D.Run, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -7450,6 +11954,22 @@ KitFG.FGStoreInvariant O.height O.finality (R.core (V2.D.Run.stateBefore E rho i
 R E rho O], i, x, B, [SetLike.instMembership.mem rho.honest x], [SetLike.instMembership.mem
 (R.core (V2.D.Run.stateBefore E rho i x)).fg.TF B], [Eq (O.height B).h (O.controls
 (V2.D.Run.stateBefore E rho i x)).H].
+
+Contract expansion keys: C044 FGCoreReads, C067 FGObservationLaws, C068 FGObservationReads, C125
+HeldAt, C173 RXing, C227 Gen.Env, C228 KitFG.FGCertificateLaws, C231 KitFG.FGStoreInvariant, C239
+FG.Electorate, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationLaws: d7f_observation_laws (recipe; file-private; C067).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -7469,6 +11989,22 @@ rho.events.length], [instLENat.le 1 m], [Eq (O.controls (V2.D.Run.stateBefore E 
 [Finset.instPartialOrder.le X (R.core (V2.D.Run.stateBefore E rho i x)).fg.TF],
 [SetLike.instMembership.mem X B], [(∀ (A : FG.FGBlock (Fin n)), A.Preceq B →
 SetLike.instMembership.mem X A)], [Eq (O.height B).h m].
+
+Contract expansion keys: C044 FGCoreReads, C067 FGObservationLaws, C068 FGObservationReads, C125
+HeldAt, C173 RXing, C227 Gen.Env, C228 KitFG.FGCertificateLaws, C231 KitFG.FGStoreInvariant, C239
+FG.Electorate, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationLaws: d7f_observation_laws (recipe; file-private; C067).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -7491,6 +12027,22 @@ rho i x)).contest contested], [(healing_phase_frame.match_1 (fun J => Prop) J (f
 (V2.D.Run.stateBefore E rho i x)).J B)) fun _ => Eq (O.controls (V2.D.Run.stateBefore E rho i
 x)).rootIsJ Bool.false)].
 
+Contract expansion keys: C044 FGCoreReads, C067 FGObservationLaws, C068 FGObservationReads, C125
+HeldAt, C173 RXing, C185 SettledPhaseFrame, C227 Gen.Env, C228 KitFG.FGCertificateLaws, C231
+KitFG.FGStoreInvariant, C239 FG.Electorate, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationLaws: d7f_observation_laws (recipe; file-private; C067).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -7507,6 +12059,23 @@ KitFG.FGStoreInvariant O.height O.finality (R.core (V2.D.Run.stateBefore E rho i
 R E rho O], u v, m, J, contested, [Int.instLEInt.le E.t_GST u], [PhaseInterval R E rho O u v m J
 contested], i, x, [instLENat.le (timeIdx rho u) i], [instLENat.le i (timeIdx rho v)],
 [SetLike.instMembership.mem rho.honest x].
+
+Contract expansion keys: C044 FGCoreReads, C067 FGObservationLaws, C068 FGObservationReads, C125
+HeldAt, C158 PhaseInterval, C173 RXing, C185 SettledPhaseFrame, C227 Gen.Env, C228
+KitFG.FGCertificateLaws, C231 KitFG.FGStoreInvariant, C239 FG.Electorate, C258 V2.D.Run, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationLaws: d7f_observation_laws (recipe; file-private; C067).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -7525,6 +12094,23 @@ KitFG.FGStoreInvariant O.height O.finality (R.core (V2.D.Run.stateBefore E rho i
 J contested], i, x, [instLENat.le (timeIdx rho u) i], [instLENat.le i (timeIdx rho v)],
 [SetLike.instMembership.mem rho.honest x].
 
+Contract expansion keys: C044 FGCoreReads, C067 FGObservationLaws, C068 FGObservationReads, C125
+HeldAt, C158 PhaseInterval, C173 RXing, C185 SettledPhaseFrame, C227 Gen.Env, C228
+KitFG.FGCertificateLaws, C231 KitFG.FGStoreInvariant, C239 FG.Electorate, C258 V2.D.Run, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationLaws: d7f_observation_laws (recipe; file-private; C067).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -7538,6 +12124,15 @@ Source: `S040:23`.
 
 Translated telescope: In V, P, inst, n, Base Proposal Wire, R, E, rho, i, x,
 [SetLike.instMembership.mem rho.honest x].
+
+Contract expansion keys: C044 FGCoreReads, C227 Gen.Env, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -7554,6 +12149,22 @@ Translated telescope: In V, P, inst, n, Base Proposal Wire, R, E, rho, O, Ef,
 O.height O.finality (R.core (V2.D.Run.stateBefore E rho i x)).fg)], [FGRunOrderLaws E rho R], i j
 m, x, [SetLike.instMembership.mem rho.honest x], [instLENat.le i j], [Eq (frontierAtIdx R E rho j)
 m], [Eq (instHAdd.hAdd (R.core (V2.D.Run.stateBefore E rho i x)).fg.h_j 1) m].
+
+Contract expansion keys: C044 FGCoreReads, C068 FGObservationReads, C077 FGRunOrderLaws, C227
+Gen.Env, C228 KitFG.FGCertificateLaws, C231 KitFG.FGStoreInvariant, C239 FG.Electorate, C258
+V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGRunOrderLaws: p0c1_order_laws (recipe; file-private; C077).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -7572,6 +12183,22 @@ FGRunOrderLaws E rho R)], [V2.D.NoRestart rho], i j m, x, [SetLike.instMembershi
 x], [instLENat.le i j], [Eq (frontierAtIdx R E rho j) m], [Eq (instHAdd.hAdd (R.core
 (V2.D.Run.stateBefore E rho i x)).fg.h_j 1) m].
 
+Contract expansion keys: C044 FGCoreReads, C068 FGObservationReads, C077 FGRunOrderLaws, C227
+Gen.Env, C228 KitFG.FGCertificateLaws, C231 KitFG.FGStoreInvariant, C239 FG.Electorate, C257
+V2.D.NoRestart, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGRunOrderLaws: p0c1_order_laws (recipe; file-private; C077).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -7584,6 +12211,15 @@ Source: `S040:59`.
 
 Translated telescope: n, Ef, H, f, [KitFG.FGCertificateLaws Ef H f], [KitFG.FGJustificationLaws
 H], C D W, [Eq (H C).h_j (H D).h_j], [(H C).J.Preceq W], [(H D).J.Preceq W].
+
+Contract expansion keys: C228 KitFG.FGCertificateLaws, C230 KitFG.FGJustificationLaws, C239
+FG.Electorate.
+
+Input records (including components of supplied contracts):
+
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGJustificationLaws: fgJustificationLaws (recipe; C230).
+- FG.Electorate: E (recipe; C239).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -7603,6 +12239,25 @@ Finset.instPartialOrder.le (TFAt R E rho i x) (TFAt R E rho j x))], [RXing R E r
 [FGRunOrderLaws E rho R], i j m, x, [SetLike.instMembership.mem rho.honest x], [instLENat.le i j],
 [Eq (frontierAtIdx R E rho j) m], [Eq (O.controls (V2.D.Run.stateBefore E rho i x)).H m], [Eq
 (O.controls (V2.D.Run.stateBefore E rho i x)).contest Bool.true].
+
+Contract expansion keys: C044 FGCoreReads, C067 FGObservationLaws, C068 FGObservationReads, C077
+FGRunOrderLaws, C125 HeldAt, C173 RXing, C227 Gen.Env, C228 KitFG.FGCertificateLaws, C230
+KitFG.FGJustificationLaws, C231 KitFG.FGStoreInvariant, C239 FG.Electorate, C258 V2.D.Run, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationLaws: d7f_observation_laws (recipe; file-private; C067).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGRunOrderLaws: p0c1_order_laws (recipe; file-private; C077).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGJustificationLaws: fgJustificationLaws (recipe; C230).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -7624,6 +12279,25 @@ Finset.instPartialOrder.le (TFAt R E rho i x) (TFAt R E rho j x))], [RXing R E r
 [Eq (O.controls (V2.D.Run.stateBefore E rho i x)).H m], [Eq (O.controls (V2.D.Run.stateBefore E
 rho i x)).contest Bool.true].
 
+Contract expansion keys: C044 FGCoreReads, C067 FGObservationLaws, C068 FGObservationReads, C077
+FGRunOrderLaws, C125 HeldAt, C173 RXing, C227 Gen.Env, C228 KitFG.FGCertificateLaws, C230
+KitFG.FGJustificationLaws, C231 KitFG.FGStoreInvariant, C239 FG.Electorate, C257 V2.D.NoRestart,
+C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationLaws: d7f_observation_laws (recipe; file-private; C067).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGRunOrderLaws: p0c1_order_laws (recipe; file-private; C077).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGJustificationLaws: fgJustificationLaws (recipe; C230).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -7642,6 +12316,25 @@ Finset.instPartialOrder.le (TFAt R E rho i x) (TFAt R E rho j x))], [RXing R E r
 [FGRunOrderLaws E rho R], a b m, [instLENat.le a b], [instLENat.le b rho.events.length],
 [instLENat.le 1 m], [(∀ (i : Nat), instLENat.le a i → instLENat.le i b → Eq (frontierAtIdx R E rho
 i) m)].
+
+Contract expansion keys: C030 ContestEvidence, C044 FGCoreReads, C067 FGObservationLaws, C068
+FGObservationReads, C077 FGRunOrderLaws, C125 HeldAt, C173 RXing, C193 TopEvidence, C227 Gen.Env,
+C228 KitFG.FGCertificateLaws, C230 KitFG.FGJustificationLaws, C231 KitFG.FGStoreInvariant, C239
+FG.Electorate, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationLaws: d7f_observation_laws (recipe; file-private; C067).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGRunOrderLaws: p0c1_order_laws (recipe; file-private; C077).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGJustificationLaws: fgJustificationLaws (recipe; C230).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -7662,6 +12355,25 @@ Finset.instPartialOrder.le (TFAt R E rho i x) (TFAt R E rho j x))], [RXing R E r
 [(V2.D.NoRestart rho → FGRunOrderLaws E rho R)], [V2.D.NoRestart rho], a b m, [instLENat.le a b],
 [instLENat.le b rho.events.length], [instLENat.le 1 m], [(∀ (i : Nat), instLENat.le a i →
 instLENat.le i b → Eq (frontierAtIdx R E rho i) m)].
+
+Contract expansion keys: C030 ContestEvidence, C044 FGCoreReads, C067 FGObservationLaws, C068
+FGObservationReads, C077 FGRunOrderLaws, C125 HeldAt, C173 RXing, C193 TopEvidence, C227 Gen.Env,
+C228 KitFG.FGCertificateLaws, C230 KitFG.FGJustificationLaws, C231 KitFG.FGStoreInvariant, C239
+FG.Electorate, C257 V2.D.NoRestart, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationLaws: d7f_observation_laws (recipe; file-private; C067).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGRunOrderLaws: p0c1_order_laws (recipe; file-private; C077).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGJustificationLaws: fgJustificationLaws (recipe; C230).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -7686,6 +12398,18 @@ E rho (timeIdx rho (T.vote s))) (O.height W).h], [Int.instLEInt.le d (T.vote s)]
 (V2.D.Run.stateBefore E rho (rho.idxBefore d) y)).fg.TF W], [Eq (postClock E rho y (T.vote s))
 (Option.some nd)].
 
+Contract expansion keys: C044 FGCoreReads, C068 FGObservationReads, C092 FGTiming, C227 Gen.Env,
+C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -7703,6 +12427,22 @@ O.height], [RXing R E rho O], k m, y, C, [SetLike.instMembership.mem rho.honest 
 [SetLike.instMembership.mem (R.core (V2.D.Run.stateBefore E rho k y)).fg.TF C], [Eq (O.height C).h
 m], [Eq (instHAdd.hAdd (O.height C).h_j 1) m], [instLENat.le (frontierAtIdx R E rho k) m].
 
+Contract expansion keys: C044 FGCoreReads, C068 FGObservationReads, C125 HeldAt, C173 RXing, C227
+Gen.Env, C228 KitFG.FGCertificateLaws, C230 KitFG.FGJustificationLaws, C231
+KitFG.FGStoreInvariant, C239 FG.Electorate, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGJustificationLaws: fgJustificationLaws (recipe; C230).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -7717,6 +12457,19 @@ Translated telescope: In V, P, inst, n, Base Proposal Wire, R, E, rho, O, [FGRun
 R], i m, v, [Eq (frontierAtIdx R E rho (instHAdd.hAdd i 1)) m], [(∀ (j : Nat), instLTNat.lt i j →
 instLTNat.lt j (timeIdx rho v) → Not (EffectiveEvent R E rho O j))], k, [instLENat.le
 (instHAdd.hAdd i 1) k], [instLENat.le k (timeIdx rho v)].
+
+Contract expansion keys: C030 ContestEvidence, C034 EffectiveEvent, C044 FGCoreReads, C068
+FGObservationReads, C077 FGRunOrderLaws, C193 TopEvidence, C227 Gen.Env, C258 V2.D.Run, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGRunOrderLaws: p0c1_order_laws (recipe; file-private; C077).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -7757,6 +12510,28 @@ E rho (rho.idxBefore (instHAdd.hAdd ev.time T.delta)) y)).fg.TF C) (∀ (y : V),
 SetLike.instMembership.mem rho.honest y → SetLike.instMembership.mem (R.core (V2.D.Run.stateBefore
 E rho (rho.idxBefore (instHAdd.hAdd ev.time T.delta)) y)).fg.TF W))))))))].
 
+Contract expansion keys: C019 AttemptPhaseAt, C030 ContestEvidence, C043 FGCoreLaws, C044
+FGCoreReads, C067 FGObservationLaws, C068 FGObservationReads, C092 FGTiming, C125 HeldAt, C158
+PhaseInterval, C173 RXing, C185 SettledPhaseFrame, C193 TopEvidence, C227 Gen.Env, C228
+KitFG.FGCertificateLaws, C230 KitFG.FGJustificationLaws, C231 KitFG.FGStoreInvariant, C239
+FG.Electorate, C258 V2.D.Run, C260 V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationLaws: d7f_observation_laws (recipe; file-private; C067).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGJustificationLaws: fgJustificationLaws (recipe; C230).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -7794,6 +12569,32 @@ T.delta)) v], [Int.instLEInt.le v rho.horizon], [instLENat.le 1 m], [Eq (frontie
 (instHAdd.hAdd i 1)) m], [AttemptPhaseAt R E rho O (instHAdd.hAdd i 1) m kind], [(∀ (j : Nat),
 instLTNat.lt i j → instLTNat.lt j (timeIdx rho v) → Not (EffectiveEvent R E rho O j))].
 
+Contract expansion keys: C019 AttemptPhaseAt, C030 ContestEvidence, C034 EffectiveEvent, C043
+FGCoreLaws, C044 FGCoreReads, C067 FGObservationLaws, C068 FGObservationReads, C077
+FGRunOrderLaws, C092 FGTiming, C125 HeldAt, C158 PhaseInterval, C159 PhaseWitnessReceiptScope,
+C173 RXing, C185 SettledPhaseFrame, C193 TopEvidence, C195 WitnessReceiptScope, C227 Gen.Env, C228
+KitFG.FGCertificateLaws, C230 KitFG.FGJustificationLaws, C231 KitFG.FGStoreInvariant, C239
+FG.Electorate, C258 V2.D.Run, C260 V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationLaws: d7f_observation_laws (recipe; file-private; C067).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGRunOrderLaws: p0c1_order_laws (recipe; file-private; C077).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- PhaseWitnessReceiptScope: healing_phase_witness_receipts_recovery (recipe; C159).
+- WitnessReceiptScope: healing_witness_receipt_at_event (recipe; C195).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGJustificationLaws: fgJustificationLaws (recipe; C230).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -7813,6 +12614,21 @@ SetLike.instMembership.mem rho.honest x → SetLike.instMembership.mem rho.hones
 (x : V) (K : FG.FGBlock (Fin n)), SetLike.instMembership.mem rho.honest x → Eq (actionSourceFG R E
 rho T x r) (Option.some (Option.some K)) → instLENat.le K.slot (instHMul.hMul r T.roundSlots))].
 
+Contract expansion keys: C035 EntryAt, C044 FGCoreReads, C080 FGSafetyReads, C092 FGTiming, C107
+FixedRows, C138 HonestRowAt, C155 OpeningCovered, C156 OpeningEntry, C227 Gen.Env, C229
+KitFG.FGHeightLaws, C239 FG.Electorate, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGHeightLaws: windowHeightLaws (recipe; C229).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -7831,6 +12647,19 @@ FG.FGBlock (Fin n)), SetLike.instMembership.mem rho.honest y → Eq (actionSourc
 (L A : FG.FGBlock (Fin n)), SetLike.instMembership.mem rho.honest y → Eq (actionSourceFG R E rho T
 y r) (Option.some (Option.some L)) → A.Preceq L → instLENat.le A.slot L.slot)].
 
+Contract expansion keys: C044 FGCoreReads, C092 FGTiming, C227 Gen.Env, C229 KitFG.FGHeightLaws,
+C239 FG.Electorate, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGHeightLaws: windowHeightLaws (recipe; C229).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -7846,6 +12675,18 @@ Q, [rho.honest.Nonempty], [(Exists fun U => And (EntryAt H U height) (FixedRows 
 r height Q U))], [(∀ (x : V) (K U : FG.FGBlock (Fin n)), SetLike.instMembership.mem rho.honest x →
 Eq (actionSourceFG R E rho T x r) (Option.some (Option.some K)) → Eq (H K).T_h U → instLENat.le
 U.slot (instHMul.hMul r T.roundSlots))].
+
+Contract expansion keys: C035 EntryAt, C044 FGCoreReads, C080 FGSafetyReads, C092 FGTiming, C107
+FixedRows, C138 HonestRowAt, C152 NamesEntry, C227 Gen.Env, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -7872,6 +12713,21 @@ rho T x r) (Option.some (Option.some K)) → instLENat.le K.slot (instHMul.hMul 
 (actionSourceFG R E rho T x r) (Option.some (Option.some K)) → A.Preceq K → instLENat.le A.slot
 K.slot)].
 
+Contract expansion keys: C035 EntryAt, C044 FGCoreReads, C080 FGSafetyReads, C092 FGTiming, C107
+FixedRows, C138 HonestRowAt, C155 OpeningCovered, C156 OpeningEntry, C227 Gen.Env, C229
+KitFG.FGHeightLaws, C239 FG.Electorate, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGHeightLaws: windowHeightLaws (recipe; C229).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -7886,6 +12742,13 @@ Translated telescope: n, T, [FGTimingLaws T], r s, U, ΔF, [Int.instLTInt.lt (In
 (instHSub.hSub (instHAdd.hAdd (instHMul.hMul r.cast (P T)) (betaF T ΔF)) (instHMul.hMul 4
 T.delta)) (instHSub.hSub (instHAdd.hAdd (T.proposal U.slot) (instHMul.hMul 2 (P T)))
 (instHMul.hMul 4 T.delta))) (T.proposal s)].
+
+Contract expansion keys: C092 FGTiming, C093 FGTimingLaws.
+
+Input records (including components of supplied contracts):
+
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -7927,6 +12790,38 @@ SetLike.instMembership.mem rho.honest x → Eq (actionSourceFG R E rho T x r) (O
 [Int.instLEInt.le E.t_GST (instHMul.hMul r.cast (P T))], [Int.instLEInt.le u (T.vote
 (instHMul.hMul r T.roundSlots))].
 
+Contract expansion keys: C001 BlockId, C026 BatchPrem, C035 EntryAt, C044 FGCoreReads, C063
+FGHistoryWireReads, C068 FGObservationReads, C080 FGSafetyReads, C092 FGTiming, C093 FGTimingLaws,
+C123 HeightMatch, C126 HeldBefore, C136 HonestCarrier, C137 HonestProposal, C138 HonestRowAt, C150
+LivenessBoundW, C152 NamesEntry, C155 OpeningCovered, C156 OpeningEntry, C158 PhaseInterval, C161
+ProgressCoveredByChild, C162 ProgressFoldAdvance, C164 PromotionPhaseReceipt, C165
+PromotionProposalRead, C166 PromotionRowOrder, C167 PromotionRowSigner, C168
+PromotionSlotProposal, C170 PromotionSourceParent, C176 RowNames, C188 TRowsReceipt, C194
+ValidForParent, C205 kernelCarrier, C210 rowHeld, C222 Gen.V2.Duty.HoldsBefore, C224
+Gen.V2.Duty.HonestSlot, C227 Gen.Env, C229 KitFG.FGHeightLaws, C239 FG.Electorate, C254
+FG.Window.State, C255 V2.D.Interface, C258 V2.D.Run, C259 V2.D.Run.emits, C260
+V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- BatchPrem: kmid_batchPrem (recipe; C026).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- LivenessBoundW: OPEN (C150).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGHeightLaws: windowHeightLaws (recipe; C229).
+- FG.Electorate: E (recipe; C239).
+- FG.Window.State: gateStep (recipe; C254).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: holder assignment/injectivity or honest-holder FG weight (exact guards in type);
 faulty FG-seat weight/count.
@@ -7949,6 +12844,22 @@ T.delta))) (T.proposal s)], [Int.instLEInt.le (T.proposal s) (instHAdd.hAdd (Int
 (instHSub.hSub (instHAdd.hAdd (instHMul.hMul r.cast (P T)) (betaF T ΔF)) (instHMul.hMul 4
 T.delta)) (instHSub.hSub (instHAdd.hAdd (T.proposal U.slot) (instHMul.hMul 2 (P T)))
 (instHMul.hMul 4 T.delta))) (Γ T G))], [PhaseInterval R E rho O u (T.gate s) m J contested].
+
+Contract expansion keys: C015 AttemptJoinedAt, C044 FGCoreReads, C068 FGObservationReads, C092
+FGTiming, C093 FGTimingLaws, C114 FrontierProposalService, C137 HonestProposal, C158
+PhaseInterval, C224 Gen.V2.Duty.HonestSlot, C227 Gen.Env, C255 V2.D.Interface, C258 V2.D.Run, C259
+V2.D.Run.emits, C262 V2.D.Wakes, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -7993,6 +12904,38 @@ SetLike.instMembership.mem rho.honest x → Eq (actionSourceFG R E rho T x r) (O
 Int.instLTInt.lt (T.proposal l) (T.proposal s) → Int.instLEInt.le (T.gate s) v → HonestProposal E
 rho I s Q → FrontierProposalService R E rho T s Q)].
 
+Contract expansion keys: C001 BlockId, C015 AttemptJoinedAt, C026 BatchPrem, C035 EntryAt, C044
+FGCoreReads, C063 FGHistoryWireReads, C068 FGObservationReads, C080 FGSafetyReads, C092 FGTiming,
+C093 FGTimingLaws, C114 FrontierProposalService, C123 HeightMatch, C126 HeldBefore, C136
+HonestCarrier, C137 HonestProposal, C138 HonestRowAt, C150 LivenessBoundW, C152 NamesEntry, C155
+OpeningCovered, C156 OpeningEntry, C158 PhaseInterval, C161 ProgressCoveredByChild, C162
+ProgressFoldAdvance, C164 PromotionPhaseReceipt, C165 PromotionProposalRead, C166
+PromotionRowOrder, C167 PromotionRowSigner, C168 PromotionSlotProposal, C170
+PromotionSourceParent, C176 RowNames, C188 TRowsReceipt, C194 ValidForParent, C205 kernelCarrier,
+C210 rowHeld, C222 Gen.V2.Duty.HoldsBefore, C224 Gen.V2.Duty.HonestSlot, C227 Gen.Env, C229
+KitFG.FGHeightLaws, C239 FG.Electorate, C254 FG.Window.State, C255 V2.D.Interface, C258 V2.D.Run,
+C259 V2.D.Run.emits, C260 V2.D.ScheduleWellFormed, C262 V2.D.Wakes, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- BatchPrem: kmid_batchPrem (recipe; C026).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- LivenessBoundW: OPEN (C150).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGHeightLaws: windowHeightLaws (recipe; C229).
+- FG.Electorate: E (recipe; C239).
+- FG.Window.State: gateStep (recipe; C254).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: holder assignment/injectivity or honest-holder FG weight (exact guards in type);
 faulty FG-seat weight/count.
@@ -8004,6 +12947,13 @@ FG-SA producer/application: healing_promotion_age_service (`S185:598`).
 Source: `S044:73`.
 
 Translated telescope: T, [FGTimingLaws T], G.
+
+Contract expansion keys: C092 FGTiming, C093 FGTimingLaws.
+
+Input records (including components of supplied contracts):
+
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -8019,6 +12969,18 @@ Translated telescope: In V, Prot, inst, n, Base Proposal Wire, R, E, rho, blockR
 [V2.D.ScheduleWellFormed E rho], [(∀ (i j : Nat) (x : V) (a : Wire), instLENat.le i j → rowHeld R
 blockRows (V2.D.Run.stateBefore E rho i x) a → rowHeld R blockRows (V2.D.Run.stateBefore E rho j
 x) a)], d d', [Int.instLEInt.le d d'], x, a, [HeldBefore R E rho blockRows x a d].
+
+Contract expansion keys: C044 FGCoreReads, C126 HeldBefore, C210 rowHeld, C222
+Gen.V2.Duty.HoldsBefore, C227 Gen.Env, C258 V2.D.Run, C260 V2.D.ScheduleWellFormed, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -8037,6 +12999,18 @@ And (Int.instLTInt.lt t (T.proposal s)) (And (Int.instLEInt.le (T.proposal s) (i
 (instHSub.hSub (instHAdd.hAdd (instHAdd.hAdd (T.action r) (instHMul.hMul 2 (P T))) (Γ T G))
 (instHMul.hMul 4 T.delta)) rho.horizon].
 
+Contract expansion keys: C092 FGTiming, C093 FGTimingLaws, C224 Gen.V2.Duty.HonestSlot, C227
+Gen.Env, C255 V2.D.Interface, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -8050,6 +13024,15 @@ Source: `S044:164`.
 Translated telescope: V, T, [FGTimingLaws T], E, ΔF, [Int.instLEInt.le 0 ΔF], [LivenessBoundW T
 ΔF], r rSent, [instLENat.le rSent r], [Int.instLEInt.le E.t_GST (T.action r)], s,
 [Int.instLEInt.le (carrierTimeW T ΔF r) (T.proposal s)].
+
+Contract expansion keys: C092 FGTiming, C093 FGTimingLaws, C150 LivenessBoundW, C227 Gen.Env.
+
+Input records (including components of supplied contracts):
+
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- LivenessBoundW: OPEN (C150).
+- Gen.Env: env1 (recipe; C227).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -8065,6 +13048,15 @@ Translated telescope: V, T, [FGTimingLaws T], E, ΔF, [Int.instLEInt.le 0 ΔF], 
 ΔF], r rSent, [instLENat.le rSent r], [Int.instLEInt.le E.t_GST (T.action r)], s,
 [Int.instLEInt.le (instHAdd.hAdd (instHMul.hMul r.cast (P T)) (instHMul.hMul 2 (P T))) (T.proposal
 s)].
+
+Contract expansion keys: C092 FGTiming, C093 FGTimingLaws, C150 LivenessBoundW, C227 Gen.Env.
+
+Input records (including components of supplied contracts):
+
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- LivenessBoundW: OPEN (C150).
+- Gen.Env: env1 (recipe; C227).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -8087,6 +13079,23 @@ rSent, y, a, [instLENat.le rSent r], [HonestRowAt S E rho T j y rSent a], [Int.i
 E.t_GST (T.action r)], s, [Int.instLEInt.le (carrierTimeW T ΔF r) (T.proposal s)],
 [Int.instLEInt.le (T.proposal s) rho.horizon].
 
+Contract expansion keys: C044 FGCoreReads, C080 FGSafetyReads, C092 FGTiming, C093 FGTimingLaws,
+C126 HeldBefore, C138 HonestRowAt, C150 LivenessBoundW, C210 rowHeld, C222
+Gen.V2.Duty.HoldsBefore, C227 Gen.Env, C258 V2.D.Run, C260 V2.D.ScheduleWellFormed, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- LivenessBoundW: OPEN (C150).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -8108,6 +13117,23 @@ rSent, y, a, [instLENat.le rSent r], [HonestRowAt S E rho T j y rSent a], [Int.i
 E.t_GST (T.action r)], s, [Int.instLEInt.le (instHAdd.hAdd (instHMul.hMul r.cast (P T))
 (instHMul.hMul 2 (P T))) (T.proposal s)], [Int.instLEInt.le (T.proposal s) rho.horizon].
 
+Contract expansion keys: C044 FGCoreReads, C080 FGSafetyReads, C092 FGTiming, C093 FGTimingLaws,
+C126 HeldBefore, C138 HonestRowAt, C150 LivenessBoundW, C210 rowHeld, C222
+Gen.V2.Duty.HoldsBefore, C227 Gen.Env, C258 V2.D.Run, C260 V2.D.ScheduleWellFormed, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- LivenessBoundW: OPEN (C150).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -8120,6 +13146,13 @@ Source: `S044:283`.
 
 Translated telescope: n, T, [FGTimingLaws T], δt, [Eq δt (instHMul.hMul 2 T.roundSlots)], s, U,
 [Int.instLEInt.le (instHAdd.hAdd (T.proposal U.slot) (instHMul.hMul 2 (P T))) (T.proposal s)].
+
+Contract expansion keys: C092 FGTiming, C093 FGTimingLaws.
+
+Input records (including components of supplied contracts):
+
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -8134,6 +13167,13 @@ Source: `S044:299`.
 Translated telescope: n, T, [FGTimingLaws T], δt, [Eq δt (instHMul.hMul 2 T.roundSlots)], r s, U,
 [instLENat.le U.slot (instHMul.hMul r T.roundSlots)], [Int.instLEInt.le (instHAdd.hAdd
 (instHMul.hMul r.cast (P T)) (instHMul.hMul 2 (P T))) (T.proposal s)].
+
+Contract expansion keys: C092 FGTiming, C093 FGTimingLaws.
+
+Input records (including components of supplied contracts):
+
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -8153,6 +13193,18 @@ And (Int.instLTInt.lt t (T.proposal s)) (And (Int.instLEInt.le (T.proposal s) (i
 (instHAdd.hAdd (instHMul.hMul r.cast (P T)) (betaF T ΔF)) (instHMul.hMul 4 T.delta))
 (instHSub.hSub (instHAdd.hAdd (T.proposal q) (instHMul.hMul 2 (P T))) (instHMul.hMul 4 T.delta)))
 G) rho.horizon].
+
+Contract expansion keys: C092 FGTiming, C093 FGTimingLaws, C224 Gen.V2.Duty.HonestSlot, C227
+Gen.Env, C255 V2.D.Interface, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -8174,6 +13226,23 @@ I s) (Option.some nd)], [Eq (parentFG nd (R.erase X).parent) (Option.some X.pare
 [NamesEntry pair RowKind.progress a height U], [Eq (validFor nd s X.parent a)
 (p0d3_same_row.match_1 (fun x => Bool) (S.decode a) (fun _ => Bool.false) fun b => FG.Window.r6w
 (fold nd s X.parent) b)].
+
+Contract expansion keys: C001 BlockId, C035 EntryAt, C044 FGCoreReads, C080 FGSafetyReads, C123
+HeightMatch, C152 NamesEntry, C194 ValidForParent, C227 Gen.Env, C229 KitFG.FGHeightLaws, C239
+FG.Electorate, C254 FG.Window.State, C255 V2.D.Interface, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGHeightLaws: windowHeightLaws (recipe; C229).
+- FG.Electorate: E (recipe; C239).
+- FG.Window.State: gateStep (recipe; C254).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -8202,6 +13271,25 @@ X.parent).h, snd := (fold nd s X.parent).T_h.root }) (∀ (a : Wire), Eq (validF
 rho T j x rSent a → Exists fun b => And (Eq (S.decode a) (Option.some b)) (Eq b.height_pair (pair
 a)))].
 
+Contract expansion keys: C001 BlockId, C035 EntryAt, C044 FGCoreReads, C080 FGSafetyReads, C092
+FGTiming, C107 FixedRows, C123 HeightMatch, C138 HonestRowAt, C152 NamesEntry, C194
+ValidForParent, C227 Gen.Env, C229 KitFG.FGHeightLaws, C239 FG.Electorate, C254 FG.Window.State,
+C255 V2.D.Interface, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGHeightLaws: windowHeightLaws (recipe; C229).
+- FG.Electorate: E (recipe; C239).
+- FG.Window.State: gateStep (recipe; C254).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -8229,6 +13317,25 @@ X.parent).h, snd := (fold nd s X.parent).T_h.root }) (∀ (a : Wire), Eq (validF
 (fold nd s X.parent) b)))))))], [(∀ (j : Nat) (x : V) (rSent : Nat) (a : Wire), HonestRowAt S E
 rho T j x rSent a → Exists fun b => And (Eq (S.decode a) (Option.some b)) (Eq b.height_pair (pair
 a)))].
+
+Contract expansion keys: C001 BlockId, C035 EntryAt, C044 FGCoreReads, C080 FGSafetyReads, C092
+FGTiming, C107 FixedRows, C123 HeightMatch, C138 HonestRowAt, C152 NamesEntry, C194
+ValidForParent, C227 Gen.Env, C229 KitFG.FGHeightLaws, C239 FG.Electorate, C254 FG.Window.State,
+C255 V2.D.Interface, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGHeightLaws: windowHeightLaws (recipe; C229).
+- FG.Electorate: E (recipe; C239).
+- FG.Window.State: gateStep (recipe; C254).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -8265,6 +13372,25 @@ X.parent).h, snd := (fold nd s X.parent).T_h.root }) (∀ (a : Wire), Eq (validF
 rho T j x rSent a → Exists fun b => And (Eq (S.decode a) (Option.some b)) (Eq b.height_pair (pair
 a)))].
 
+Contract expansion keys: C001 BlockId, C035 EntryAt, C044 FGCoreReads, C080 FGSafetyReads, C092
+FGTiming, C123 HeightMatch, C138 HonestRowAt, C152 NamesEntry, C155 OpeningCovered, C156
+OpeningEntry, C194 ValidForParent, C227 Gen.Env, C229 KitFG.FGHeightLaws, C239 FG.Electorate, C254
+FG.Window.State, C255 V2.D.Interface, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGHeightLaws: windowHeightLaws (recipe; C229).
+- FG.Electorate: E (recipe; C239).
+- FG.Window.State: gateStep (recipe; C254).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -8297,6 +13423,25 @@ X.parent).h, snd := (fold nd s X.parent).T_h.root }) (∀ (a : Wire), Eq (validF
 rho T j x rSent a → Exists fun b => And (Eq (S.decode a) (Option.some b)) (Eq b.height_pair (pair
 a)))].
 
+Contract expansion keys: C001 BlockId, C035 EntryAt, C044 FGCoreReads, C080 FGSafetyReads, C092
+FGTiming, C123 HeightMatch, C138 HonestRowAt, C152 NamesEntry, C155 OpeningCovered, C156
+OpeningEntry, C194 ValidForParent, C227 Gen.Env, C229 KitFG.FGHeightLaws, C239 FG.Electorate, C254
+FG.Window.State, C255 V2.D.Interface, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGHeightLaws: windowHeightLaws (recipe; C229).
+- FG.Electorate: E (recipe; C239).
+- FG.Window.State: gateStep (recipe; C254).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -8322,6 +13467,37 @@ SetLike.instMembership.mem Q i → SetLike.instMembership.mem rho.honest (safety
 bodyErase bodyRows parentFG parentHeight validFor fold], [PromotionRowOrder R E rho O I],
 [PromotionRowSigner S E rho T D].
 
+Contract expansion keys: C001 BlockId, C026 BatchPrem, C035 EntryAt, C044 FGCoreReads, C063
+FGHistoryWireReads, C068 FGObservationReads, C080 FGSafetyReads, C092 FGTiming, C093 FGTimingLaws,
+C123 HeightMatch, C126 HeldBefore, C136 HonestCarrier, C137 HonestProposal, C138 HonestRowAt, C150
+LivenessBoundW, C152 NamesEntry, C161 ProgressCoveredByChild, C162 ProgressFoldAdvance, C165
+PromotionProposalRead, C166 PromotionRowOrder, C167 PromotionRowSigner, C169 PromotionSourceAt,
+C176 RowNames, C188 TRowsReceipt, C194 ValidForParent, C205 kernelCarrier, C210 rowHeld, C222
+Gen.V2.Duty.HoldsBefore, C224 Gen.V2.Duty.HonestSlot, C227 Gen.Env, C229 KitFG.FGHeightLaws, C239
+FG.Electorate, C254 FG.Window.State, C255 V2.D.Interface, C258 V2.D.Run, C259 V2.D.Run.emits, C260
+V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- BatchPrem: kmid_batchPrem (recipe; C026).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoryWireReads: d7a4b_wire (recipe; file-private; C063).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- LivenessBoundW: OPEN (C150).
+- PromotionSourceAt: OPEN (C169).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGHeightLaws: windowHeightLaws (recipe; C229).
+- FG.Electorate: E (recipe; C239).
+- FG.Window.State: gateStep (recipe; C254).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: holder assignment/injectivity or honest-holder FG weight (exact guards in type);
 faulty FG-seat weight/count.
@@ -8333,6 +13509,12 @@ FG-SA producer/application: promotion_age_advance_of_source (`S188:350`).
 Source: `S047:19`.
 
 Translated telescope: T, G ΔF ρbar.
+
+Contract expansion keys: C092 FGTiming.
+
+Input records (including components of supplied contracts):
+
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -8348,6 +13530,12 @@ Translated telescope: T, G ΔF Jst u₀ ρbar budget, [Eq budget (instHAdd.hAdd 
 (instHMul.hMul 3 (P T)) (instHAdd.hAdd (instHAdd.hAdd (E_gF T ΔF G ρbar) (E_jF T ΔF G ρbar)) (B_cF
 T ΔF G ρbar))) (instHAdd.hAdd (instHAdd.hAdd (E_gF T ΔF G ρbar) (E_jF T ΔF G ρbar)) (D_cF T
 ρbar)))], [Int.instLTInt.lt u₀ (instHAdd.hAdd Jst (instHMul.hMul 3 (P T)))].
+
+Contract expansion keys: C092 FGTiming.
+
+Input records (including components of supplied contracts):
+
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -8370,6 +13558,27 @@ rho], j, y, r, a, h, e, t, [HonestRowAt S E rho T j y r a], [Eq
 [Int.instLEInt.le t (resetCutTime T L Jst)], [Eq (namedEntry (pair a)) (Option.some { fst := h,
 snd := e })].
 
+Contract expansion keys: C001 BlockId, C043 FGCoreLaws, C044 FGCoreReads, C068 FGObservationReads,
+C080 FGSafetyReads, C092 FGTiming, C093 FGTimingLaws, C094 FGTreeKeepLaws, C138 HonestRowAt, C227
+Gen.Env, C231 KitFG.FGStoreInvariant, C258 V2.D.Run, C260 V2.D.ScheduleWellFormed, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- FGTreeKeepLaws: d7n_tree_keep (recipe; file-private; C094).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -8388,6 +13597,29 @@ Eq (namedEntry (pair a)) (Option.some e) → Exists fun C => And (Eq (actionSour
 (Option.some (Option.some C))) (Eq e { fst := (O.height C).h, snd := (O.height C).T_h.root }))],
 [V2.D.ScheduleWellFormed E rho], r h, [HeightRow S E rho T (fun a => namedEntry (pair a)) r h].
 
+Contract expansion keys: C001 BlockId, C043 FGCoreLaws, C044 FGCoreReads, C068 FGObservationReads,
+C080 FGSafetyReads, C092 FGTiming, C093 FGTimingLaws, C094 FGTreeKeepLaws, C124 HeightRow, C138
+HonestRowAt, C227 Gen.Env, C229 KitFG.FGHeightLaws, C231 KitFG.FGStoreInvariant, C239
+FG.Electorate, C258 V2.D.Run, C260 V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- FGTreeKeepLaws: d7n_tree_keep (recipe; file-private; C094).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGHeightLaws: windowHeightLaws (recipe; C229).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -8403,6 +13635,21 @@ Nat} {x : V} {r : Nat} {a : Wire} {e : Prod FG.Height BlockId}, HonestRowAt S E 
 (namedEntry (pair a)) (Option.some e) → Exists fun C => And (Eq (actionSourceFG R E rho T x r)
 (Option.some (Option.some C))) (Eq e { fst := (O.height C).h, snd := (O.height C).T_h.root }))], r
 M, [HeightRow S E rho T (fun a => namedEntry (pair a)) r (instHAdd.hAdd M 1)].
+
+Contract expansion keys: C001 BlockId, C044 FGCoreReads, C068 FGObservationReads, C080
+FGSafetyReads, C092 FGTiming, C124 HeightRow, C138 HonestRowAt, C227 Gen.Env, C258 V2.D.Run, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -8422,6 +13669,21 @@ rho.events j) (Option.some (V2.Event.tick y t)) → Int.instLEInt.le t (resetCut
 rho T L Jst))], [HeightRow S E rho T (fun a => namedEntry (pair a)) r (instHAdd.hAdd
 (resetCutFrontier R E rho T L Jst) 1)].
 
+Contract expansion keys: C001 BlockId, C044 FGCoreReads, C080 FGSafetyReads, C092 FGTiming, C093
+FGTimingLaws, C124 HeightRow, C138 HonestRowAt, C227 Gen.Env, C258 V2.D.Run, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -8434,6 +13696,17 @@ Source: `S047:129`.
 
 Translated telescope: T, In V, Prot, inst, n, Wire, S, E, rho, pair, M, deadline,
 [FirstHeightRowBy S E rho T pair (instHAdd.hAdd M 1) deadline].
+
+Contract expansion keys: C080 FGSafetyReads, C092 FGTiming, C104 FirstHeightRowBy, C124 HeightRow,
+C138 HonestRowAt, C227 Gen.Env, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -8457,6 +13730,30 @@ Eq (namedEntry (pair a)) (Option.some e) → Exists fun C => And (Eq (actionSour
 [V2.D.ScheduleWellFormed E rho], [Int.instLEInt.le 0 Jst], [Int.instLEInt.le E.t_GST Jst],
 deadline, [FirstHeightRowBy S E rho T pair (instHAdd.hAdd (resetCutFrontier R E rho T L Jst) 1)
 deadline].
+
+Contract expansion keys: C001 BlockId, C043 FGCoreLaws, C044 FGCoreReads, C068 FGObservationReads,
+C080 FGSafetyReads, C092 FGTiming, C093 FGTimingLaws, C094 FGTreeKeepLaws, C104 FirstHeightRowBy,
+C124 HeightRow, C138 HonestRowAt, C227 Gen.Env, C229 KitFG.FGHeightLaws, C231
+KitFG.FGStoreInvariant, C239 FG.Electorate, C258 V2.D.Run, C260 V2.D.ScheduleWellFormed, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- FGTreeKeepLaws: d7n_tree_keep (recipe; file-private; C094).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGHeightLaws: windowHeightLaws (recipe; C229).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -8485,6 +13782,36 @@ leaseSlots G ρbar (instHAdd.hAdd ev.time (instHMul.hMul 3 T.delta)))],
 ρbar) (E_jF T ΔF G ρbar)) (B_cF T ΔF G ρbar))) (instHAdd.hAdd (instHAdd.hAdd (E_gF T ΔF G ρbar)
 (E_jF T ΔF G ρbar)) (D_cF T ρbar)))], [Int.instLEInt.le (instHAdd.hAdd Jst budget) rho.horizon].
 
+Contract expansion keys: C001 BlockId, C015 AttemptJoinedAt, C019 AttemptPhaseAt, C030
+ContestEvidence, C034 EffectiveEvent, C043 FGCoreLaws, C044 FGCoreReads, C068 FGObservationReads,
+C080 FGSafetyReads, C092 FGTiming, C093 FGTimingLaws, C094 FGTreeKeepLaws, C114
+FrontierProposalService, C115 FrontierRepairAllowance, C117 FrontierSearchFamilyStatement, C118
+FrontierSearchStart, C124 HeightRow, C137 HonestProposal, C138 HonestRowAt, C150 LivenessBoundW,
+C158 PhaseInterval, C193 TopEvidence, C224 Gen.V2.Duty.HonestSlot, C227 Gen.Env, C229
+KitFG.FGHeightLaws, C231 KitFG.FGStoreInvariant, C239 FG.Electorate, C255 V2.D.Interface, C258
+V2.D.Run, C259 V2.D.Run.emits, C260 V2.D.ScheduleWellFormed, C262 V2.D.Wakes, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- FGTreeKeepLaws: d7n_tree_keep (recipe; file-private; C094).
+- LivenessBoundW: OPEN (C150).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGHeightLaws: windowHeightLaws (recipe; C229).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -8500,6 +13827,13 @@ Source: `S048:23`.
 
 Translated telescope: T, [FGTimingLaws T].
 
+Contract expansion keys: C092 FGTiming, C093 FGTimingLaws.
+
+Input records (including components of supplied contracts):
+
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -8511,6 +13845,13 @@ FG-SA producer/application: reset_period_lower (`S190:58`).
 Source: `S048:30`.
 
 Translated telescope: T, [FGTimingLaws T], Jst.
+
+Contract expansion keys: C092 FGTiming, C093 FGTimingLaws.
+
+Input records (including components of supplied contracts):
+
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -8524,6 +13865,13 @@ Source: `S048:42`.
 
 Translated telescope: T, L, Jst.
 
+Contract expansion keys: C092 FGTiming, C093 FGTimingLaws.
+
+Input records (including components of supplied contracts):
+
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -8535,6 +13883,13 @@ FG-SA producer/application: reset_rG_after (`S190:81`).
 Source: `S048:46`.
 
 Translated telescope: T, L, Jst, r, [Int.instLEInt.le Jst (T.action r)].
+
+Contract expansion keys: C092 FGTiming, C093 FGTimingLaws.
+
+Input records (including components of supplied contracts):
+
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -8548,6 +13903,13 @@ Source: `S048:49`.
 
 Translated telescope: T, L, Jst.
 
+Contract expansion keys: C092 FGTiming, C093 FGTimingLaws.
+
+Input records (including components of supplied contracts):
+
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -8559,6 +13921,13 @@ FG-SA producer/application: reset_cut (`S190:90`).
 Source: `S048:52`.
 
 Translated telescope: T, L, Jst, [Int.instLEInt.le 0 Jst].
+
+Contract expansion keys: C092 FGTiming, C093 FGTimingLaws.
+
+Input records (including components of supplied contracts):
+
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -8572,6 +13941,13 @@ Source: `S048:68`.
 
 Translated telescope: T, L, Jst.
 
+Contract expansion keys: C092 FGTiming, C093 FGTimingLaws.
+
+Input records (including components of supplied contracts):
+
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -8584,6 +13960,13 @@ Source: `S048:75`.
 
 Translated telescope: T, L, Jst, [Int.instLEInt.le 0 Jst].
 
+Contract expansion keys: C092 FGTiming, C093 FGTimingLaws.
+
+Input records (including components of supplied contracts):
+
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -8595,6 +13978,18 @@ FG-SA producer/application: reset_cut_upper (`S190:105`).
 Source: `S048:89`.
 
 Translated telescope: T, L, Jst, In V, P, inst, n, Base Proposal Wire, R, E, rho.
+
+Contract expansion keys: C044 FGCoreReads, C092 FGTiming, C093 FGTimingLaws, C227 Gen.Env, C258
+V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -8609,6 +14004,17 @@ Source: `S048:93`.
 Translated telescope: In V, P, inst, n, Base Proposal Wire, R, E, rho, [V2.D.ScheduleWellFormed E
 rho], t.
 
+Contract expansion keys: C044 FGCoreReads, C227 Gen.Env, C258 V2.D.Run, C260
+V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -8620,6 +14026,16 @@ FG-SA producer/application: reset_inclusive_frontier (`S190:186`).
 Source: `S048:100`.
 
 Translated telescope: In V, P, E, rho, [V2.D.ScheduleWellFormed E rho], t.
+
+Contract expansion keys: C227 Gen.Env, C258 V2.D.Run, C260 V2.D.ScheduleWellFormed, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -8640,6 +14056,25 @@ R], [FGTreeKeepLaws R], [(∀ (i : Nat) (x : V), KitFG.FGStoreInvariant O.height
 T j y r a], [Eq (List.instGetElem?NatLtLength.getElem? rho.events j) (Option.some (V2.Event.tick y
 t))], [Int.instLEInt.le t u], [Eq (entry a) (Option.some { fst := h, snd := e })].
 
+Contract expansion keys: C001 BlockId, C043 FGCoreLaws, C044 FGCoreReads, C068 FGObservationReads,
+C080 FGSafetyReads, C092 FGTiming, C094 FGTreeKeepLaws, C138 HonestRowAt, C227 Gen.Env, C231
+KitFG.FGStoreInvariant, C258 V2.D.Run, C260 V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTreeKeepLaws: d7n_tree_keep (recipe; file-private; C094).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -8652,6 +14087,13 @@ Source: `S048:161`.
 
 Translated telescope: T, L, Jst, r, [Int.instLTInt.lt (T.vote (instHMul.hMul r T.roundSlots))
 Jst].
+
+Contract expansion keys: C092 FGTiming, C093 FGTimingLaws.
+
+Input records (including components of supplied contracts):
+
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -8669,6 +14111,27 @@ O.finality (R.core (V2.D.Run.stateBefore E rho i x)).fg)], [V2.D.ScheduleWellFor
 : Nat} {x : V} {r : Nat} {a : Wire} {h : FG.Height} {e : BlockId}, HonestRowAt S E rho T j x r a →
 Eq (entry a) (Option.some { fst := h, snd := e }) → Exists fun C => And (Eq (actionSourceFG R E
 rho T x r) (Option.some (Option.some C))) (Eq h (O.height C).h))].
+
+Contract expansion keys: C001 BlockId, C043 FGCoreLaws, C044 FGCoreReads, C068 FGObservationReads,
+C080 FGSafetyReads, C092 FGTiming, C093 FGTimingLaws, C094 FGTreeKeepLaws, C138 HonestRowAt, C227
+Gen.Env, C231 KitFG.FGStoreInvariant, C258 V2.D.Run, C260 V2.D.ScheduleWellFormed, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- FGTreeKeepLaws: d7n_tree_keep (recipe; file-private; C094).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -8688,6 +14151,29 @@ BlockId}, HonestRowAt S E rho T j x r a → Eq (entry a) (Option.some { fst := h
 Exists fun C => And (Eq (actionSourceFG R E rho T x r) (Option.some (Option.some C))) (Eq h
 (O.height C).h))].
 
+Contract expansion keys: C001 BlockId, C043 FGCoreLaws, C044 FGCoreReads, C068 FGObservationReads,
+C080 FGSafetyReads, C092 FGTiming, C093 FGTimingLaws, C094 FGTreeKeepLaws, C138 HonestRowAt, C227
+Gen.Env, C229 KitFG.FGHeightLaws, C231 KitFG.FGStoreInvariant, C239 FG.Electorate, C258 V2.D.Run,
+C260 V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- FGTreeKeepLaws: d7n_tree_keep (recipe; file-private; C094).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGHeightLaws: windowHeightLaws (recipe; C229).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -8699,6 +14185,12 @@ FG-SA producer/application: reset_mu_le_iff (`S190:278`).
 Source: `S049:23`.
 
 Translated telescope: Body, inst, root, tree, r, B.
+
+Contract expansion keys: C001 BlockId.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -8716,6 +14208,17 @@ Source: `S049:81`.
 Translated telescope: In Body, P, n, Base Proposal Wire, R, H, Good, [FGHistoricalLaws R H Good],
 st, r, b, [Eq (H.readBlock st r) (Option.some b)].
 
+Contract expansion keys: C001 BlockId, C044 FGCoreReads, C061 FGHistoricalLaws, C062
+FGHistoricalReads, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoricalLaws: OPEN (C061).
+- FGHistoricalReads: OPEN (C062).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -8731,6 +14234,16 @@ Source: `S049:86`.
 
 Translated telescope: In Body, P, n, Base Proposal Wire, R, H, Good, [FGHistoricalLaws R H Good],
 st, [Good st], b, [List.instMembership.mem (H.acceptedBodies st) b].
+
+Contract expansion keys: C044 FGCoreReads, C061 FGHistoricalLaws, C062 FGHistoricalReads, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoricalLaws: OPEN (C061).
+- FGHistoricalReads: OPEN (C062).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -8749,6 +14262,16 @@ Translated telescope: In Body, P, n, Base Proposal Wire, R, H, Good, [FGHistoric
 st, b c, [List.instMembership.mem (H.acceptedBodies st) b], [List.instMembership.mem
 (H.acceptedBodies st) c], [Eq (H.root b) (H.root c)], [Ne b c].
 
+Contract expansion keys: C044 FGCoreReads, C061 FGHistoricalLaws, C062 FGHistoricalReads, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoricalLaws: OPEN (C061).
+- FGHistoricalReads: OPEN (C062).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -8764,6 +14287,16 @@ Source: `S049:99`.
 
 Translated telescope: In Body, P, n, Base Proposal Wire, R, H, Good, [FGHistoricalLaws R H Good],
 st, [Good st], b, [List.instMembership.mem (H.acceptedBodies st) b].
+
+Contract expansion keys: C044 FGCoreReads, C061 FGHistoricalLaws, C062 FGHistoricalReads, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoricalLaws: OPEN (C061).
+- FGHistoricalReads: OPEN (C062).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -8782,6 +14315,16 @@ Translated telescope: In Body, P, n, Base Proposal Wire, R, H, Good, [FGHistoric
 st, [Good st], b c, [List.instMembership.mem (H.acceptedBodies st) b], [List.instMembership.mem
 (H.acceptedBodies st) c].
 
+Contract expansion keys: C044 FGCoreReads, C061 FGHistoricalLaws, C062 FGHistoricalReads, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoricalLaws: OPEN (C061).
+- FGHistoricalReads: OPEN (C062).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -8797,6 +14340,17 @@ Source: `S049:136`.
 
 Translated telescope: In Body, P, n, Base Proposal Wire, R, H, Good, [FGHistoricalLaws R H Good],
 st st', [FGHistoryStep P st st'], [Good st'], r, b, [Eq (H.readBlock st r) (Option.some b)].
+
+Contract expansion keys: C001 BlockId, C044 FGCoreReads, C061 FGHistoricalLaws, C062
+FGHistoricalReads, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoricalLaws: OPEN (C061).
+- FGHistoricalReads: OPEN (C062).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -8814,6 +14368,17 @@ Source: `S049:143`.
 Translated telescope: In Body, P, n, Base Proposal Wire, R, H, Good, [FGHistoricalLaws R H Good],
 st st', [Eq (H.acceptedBodies st) (H.acceptedBodies st')], r.
 
+Contract expansion keys: C001 BlockId, C044 FGCoreReads, C061 FGHistoricalLaws, C062
+FGHistoricalReads, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoricalLaws: OPEN (C061).
+- FGHistoricalReads: OPEN (C062).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -8830,6 +14395,17 @@ Source: `S049:147`.
 Translated telescope: In Body, P, n, Base Proposal Wire, R, H, Good, [FGHistoricalLaws R H Good],
 st, t, r.
 
+Contract expansion keys: C001 BlockId, C044 FGCoreReads, C061 FGHistoricalLaws, C062
+FGHistoricalReads, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoricalLaws: OPEN (C061).
+- FGHistoricalReads: OPEN (C062).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -8845,6 +14421,16 @@ Source: `S049:151`.
 
 Translated telescope: In Body, P, n, Base Proposal Wire, R, H, Good, [FGHistoricalLaws R H Good],
 st, t.
+
+Contract expansion keys: C044 FGCoreReads, C061 FGHistoricalLaws, C062 FGHistoricalReads, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHistoricalLaws: OPEN (C061).
+- FGHistoricalReads: OPEN (C062).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -8863,6 +14449,22 @@ Translated telescope: In V, P, inst, n, Wire, S, Ef, cfg, E, rho, O, holder, [FG
 rho O], [FGHolderClientLaws S Ef cfg E rho O holder], x, j, t, [Eq
 (List.instGetElem?NatLtLength.getElem? rho.events j) (Option.some (V2.Event.tick x t))].
 
+Contract expansion keys: C055 FGExecutionObs, C056 FGExecutionObsLaws, C064 FGHolderClientLaws,
+C080 FGSafetyReads, C227 Gen.Env, C239 FG.Electorate, C240 FG.FGConfig, C258 V2.D.Run, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGExecutionObs: ordinaryFGExecutionObs (recipe; C055).
+- FGExecutionObsLaws: ordinaryFGExecutionObs_laws (recipe; C056).
+- FGHolderClientLaws: ordinary_FGHolderClientLaws (recipe; C064).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- Gen.Env: env1 (recipe; C227).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: holder-aware FGHolderClientLaws; no global bijection.
 
@@ -8878,6 +14480,22 @@ Source: `S050:154`.
 Translated telescope: In V, P, inst, n, Wire, S, Ef, cfg, E, rho, O, holder, [FGExecutionObsLaws E
 rho O], [FGHolderClientLaws S Ef cfg E rho O holder].
 
+Contract expansion keys: C055 FGExecutionObs, C056 FGExecutionObsLaws, C064 FGHolderClientLaws,
+C065 FGHolderClientTrace, C080 FGSafetyReads, C227 Gen.Env, C239 FG.Electorate, C240 FG.FGConfig,
+C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGExecutionObs: ordinaryFGExecutionObs (recipe; C055).
+- FGExecutionObsLaws: ordinaryFGExecutionObs_laws (recipe; C056).
+- FGHolderClientLaws: ordinary_FGHolderClientLaws (recipe; C064).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- Gen.Env: env1 (recipe; C227).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: holder-aware FGHolderClientLaws; no global bijection.
 
@@ -8891,6 +14509,25 @@ P10 for finality).
 Source: `S050:178`.
 
 Translated telescope: In V, P, inst, n, Wire Body, S, Ef, cfg, E, rho, holder, F, T, Op.
+
+Contract expansion keys: C047 FGDependencyDriver, C052 FGDependencyTrace, C056 FGExecutionObsLaws,
+C064 FGHolderClientLaws, C072 FGReceiptToken, C080 FGSafetyReads, C179
+SafetyClientTraceDriverStatement, C227 Gen.Env, C239 FG.Electorate, C240 FG.FGConfig, C258
+V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGDependencyDriver: OPEN (C047).
+- FGDependencyTrace: OPEN (C052).
+- FGExecutionObsLaws: OPEN (C056; ordinary recipe does not instantiate this driver observation).
+- FGHolderClientLaws: OPEN (C064; ordinary recipe does not instantiate this driver observation).
+- FGReceiptToken: fgEventToken (recipe; C072).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- Gen.Env: env1 (recipe; C227).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -8909,6 +14546,24 @@ Translated telescope: In V, P, inst, n, Wire, S, Ef, cfg, E, rho, O, holder, [FG
 rho O], [FGHolderClientLaws S Ef cfg E rho O holder], [FGSafetyWireLaws S], i,
 [SetLike.instMembership.mem rho.honest (holder i)].
 
+Contract expansion keys: C055 FGExecutionObs, C056 FGExecutionObsLaws, C064 FGHolderClientLaws,
+C080 FGSafetyReads, C085 FGSafetyWireLaws, C206 obsEmits, C208 obsSafetyNoSlash, C227 Gen.Env,
+C239 FG.Electorate, C240 FG.FGConfig, C247 FG.Row, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGExecutionObs: ordinaryFGExecutionObs (recipe; C055).
+- FGExecutionObsLaws: ordinaryFGExecutionObs_laws (recipe; C056).
+- FGHolderClientLaws: ordinary_FGHolderClientLaws (recipe; C064).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGSafetyWireLaws: fgsaSafetyWireLaws (recipe; C085).
+- Gen.Env: env1 (recipe; C227).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: holder-aware FGHolderClientLaws; no global bijection.
 
@@ -8922,6 +14577,26 @@ P10 for finality).
 Source: `S050:212`.
 
 Translated telescope: In V, P, inst, n, Wire Body, S, Ef, cfg, E, rho, holder, F, T, Op.
+
+Contract expansion keys: C047 FGDependencyDriver, C052 FGDependencyTrace, C056 FGExecutionObsLaws,
+C064 FGHolderClientLaws, C072 FGReceiptToken, C080 FGSafetyReads, C085 FGSafetyWireLaws, C180
+SafetyEmittedNoSlashDriverStatement, C227 Gen.Env, C239 FG.Electorate, C240 FG.FGConfig, C258
+V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGDependencyDriver: OPEN (C047).
+- FGDependencyTrace: OPEN (C052).
+- FGExecutionObsLaws: OPEN (C056; ordinary recipe does not instantiate this driver observation).
+- FGHolderClientLaws: OPEN (C064; ordinary recipe does not instantiate this driver observation).
+- FGReceiptToken: fgEventToken (recipe; C072).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGSafetyWireLaws: fgsaSafetyWireLaws (recipe; C085).
+- Gen.Env: env1 (recipe; C227).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -8949,6 +14624,32 @@ Eq { fst := (FG.derive Ef cfg C).h, snd := (FG.derive Ef cfg C).T_h.root } { fst
 S rho O timing k (holder i) rSent a) (Eq (entry a) (namedEntry b.fst))))], [Eq (E.awake (holder i)
 (timing.action r)) Bool.true], [Eq (S.enabled (timing.action r)) Bool.true].
 
+Contract expansion keys: C001 BlockId, C055 FGExecutionObs, C056 FGExecutionObsLaws, C064
+FGHolderClientLaws, C066 FGHolderRowCoverage, C074 FGRowPermissionInputs, C075
+FGRowPermissionWireLaws, C076 FGRowRecordHistory, C080 FGSafetyReads, C092 FGTiming, C093
+FGTimingLaws, C207 obsHonestRowAt, C227 Gen.Env, C239 FG.Electorate, C240 FG.FGConfig, C241
+FG.FinalityPair, C258 V2.D.Run, C260 V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FGExecutionObs: ordinaryFGExecutionObs (recipe; C055).
+- FGExecutionObsLaws: ordinaryFGExecutionObs_laws (recipe; C056).
+- FGHolderClientLaws: ordinary_FGHolderClientLaws (recipe; C064).
+- FGRowPermissionInputs: OPEN (C074).
+- FGRowPermissionWireLaws: d7f_wire_laws (recipe; file-private; C075).
+- FGRowRecordHistory: d7r_history (recipe; file-private; C076).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- Gen.Env: env1 (recipe; C227).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- FG.FinalityPair: OPEN (C241).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: holder-aware FGHolderClientLaws; no global bijection.
 
@@ -8963,6 +14664,35 @@ Source: `S050:280`.
 
 Translated telescope: In V, P, inst, n, Wire Body, S, Ef, cfg, E, rho, holder, F, T, Op, H,
 timing, entry.
+
+Contract expansion keys: C001 BlockId, C047 FGDependencyDriver, C052 FGDependencyTrace, C056
+FGExecutionObsLaws, C064 FGHolderClientLaws, C072 FGReceiptToken, C074 FGRowPermissionInputs, C075
+FGRowPermissionWireLaws, C076 FGRowRecordHistory, C080 FGSafetyReads, C092 FGTiming, C093
+FGTimingLaws, C177 RowPermissionCoveredDriverStatement, C207 obsHonestRowAt, C227 Gen.Env, C239
+FG.Electorate, C240 FG.FGConfig, C241 FG.FinalityPair, C258 V2.D.Run, C260
+V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FGDependencyDriver: OPEN (C047).
+- FGDependencyTrace: OPEN (C052).
+- FGExecutionObsLaws: OPEN (C056; ordinary recipe does not instantiate this driver observation).
+- FGHolderClientLaws: OPEN (C064; ordinary recipe does not instantiate this driver observation).
+- FGReceiptToken: fgEventToken (recipe; C072).
+- FGRowPermissionInputs: OPEN (C074).
+- FGRowPermissionWireLaws: d7f_wire_laws (recipe; file-private; C075).
+- FGRowRecordHistory: d7r_history (recipe; file-private; C076).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- Gen.Env: env1 (recipe; C227).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- FG.FinalityPair: OPEN (C241).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -8981,6 +14711,23 @@ Translated telescope: In V, P, inst, n, Base Proposal Wire, R, S, O, Q, Good, fi
 [FGSelectionLaws R O Q Good fields], [FGSelectionClientLaws Q S], x, t, nd, C, [Eq (postClock E
 rho x t) (Option.some nd)], [Good nd], [Eq (R.source nd) (Option.some C)].
 
+Contract expansion keys: C044 FGCoreReads, C068 FGObservationReads, C080 FGSafetyReads, C087
+FGSelectionClientLaws, C088 FGSelectionLaws, C089 FGSelectionReads, C227 Gen.Env, C244
+FG.HeadFields, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGSelectionClientLaws: p0c1_client_laws (recipe; file-private; C087).
+- FGSelectionLaws: windowSelectionLaws (recipe; C088).
+- FGSelectionReads: p0c1_selection (recipe; file-private; C089).
+- Gen.Env: env1 (recipe; C227).
+- FG.HeadFields: headFields (recipe; C244).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -8998,6 +14745,22 @@ Translated telescope: In V, P, inst, n, Wire, S, Q, E, rho, Ef, cfg, [FGSelectio
 [FGSafetyClientLaws S Ef cfg], e, [(∀ (i : Fin n), Eq (rho.seatOf S.fgLabel
 (EquivLike.toFunLike.coe S.fgSeats i)) (EquivLike.toFunLike.coe e i))], nd, x, t.
 
+Contract expansion keys: C078 FGSafetyClientLaws, C080 FGSafetyReads, C087 FGSelectionClientLaws,
+C089 FGSelectionReads, C227 Gen.Env, C239 FG.Electorate, C240 FG.FGConfig, C258 V2.D.Run, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGSafetyClientLaws: fgsaSafetyClientLaws (recipe; C078).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGSelectionClientLaws: p0c1_client_laws (recipe; file-private; C087).
+- FGSelectionReads: p0c1_selection (recipe; file-private; C089).
+- Gen.Env: env1 (recipe; C227).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: Fin n ≃ V (validator-only runtime path).
 
@@ -9012,6 +14775,17 @@ Source: `S051:47`.
 
 Translated telescope: In V, P, inst, n, Base Proposal Wire, R, E, rho, T, x, r, nd, [Eq (postClock
 E rho x (T.action r)) (Option.some nd)].
+
+Contract expansion keys: C044 FGCoreReads, C092 FGTiming, C227 Gen.Env, C258 V2.D.Run, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -9029,6 +14803,14 @@ Source: `S052:19`.
 Translated telescope: In V, P, inst, E, rho, x, j, t, [Eq (List.instGetElem?NatLtLength.getElem?
 rho.events j) (Option.some (V2.Event.tick x t))].
 
+Contract expansion keys: C227 Gen.Env, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -9043,6 +14825,15 @@ P10 for finality).
 Source: `S052:28`.
 
 Translated telescope: In V, P, inst, n, Wire, S, E, rho, x, j.
+
+Contract expansion keys: C080 FGSafetyReads, C227 Gen.Env, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -9059,6 +14850,14 @@ Source: `S052:47`.
 
 Translated telescope: In V, P, inst, E, rho, x, j.
 
+Contract expansion keys: C227 Gen.Env, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -9073,6 +14872,14 @@ P10 for finality).
 Source: `S052:80`.
 
 Translated telescope: In V, P, inst, E, rho, x, k.
+
+Contract expansion keys: C227 Gen.Env, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -9089,6 +14896,17 @@ Source: `S052:90`.
 
 Translated telescope: In V, P, inst, n, Wire, S, E, rho, x.
 
+Contract expansion keys: C080 FGSafetyReads, C206 obsEmits, C208 obsSafetyNoSlash, C213
+safetyEmits, C214 safetyNoSlash, C227 Gen.Env, C247 FG.Row, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- Gen.Env: env1 (recipe; C227).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -9103,6 +14921,17 @@ P10 for finality).
 Source: `S052:99`.
 
 Translated telescope: In V, P, inst, n, Wire, S, E, rho, T, j, x, r, a.
+
+Contract expansion keys: C080 FGSafetyReads, C092 FGTiming, C138 HonestRowAt, C207 obsHonestRowAt,
+C227 Gen.Env, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -9119,6 +14948,18 @@ Source: `S052:117`.
 
 Translated telescope: In V, P, inst, n, Wire, S, Ef, cfg, E, rho, holder.
 
+Contract expansion keys: C065 FGHolderClientTrace, C080 FGSafetyReads, C227 Gen.Env, C239
+FG.Electorate, C240 FG.FGConfig, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- Gen.Env: env1 (recipe; C227).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -9134,6 +14975,19 @@ Source: `S052:131`.
 
 Translated telescope: In V, P, inst, n, Wire, S, E, rho, T, entry, x, j r, target,
 [FGHolderRowCoverage S rho (ordinaryFGExecutionObs E rho) T entry x j r target].
+
+Contract expansion keys: C001 BlockId, C066 FGHolderRowCoverage, C080 FGSafetyReads, C092
+FGTiming, C138 HonestRowAt, C207 obsHonestRowAt, C227 Gen.Env, C258 V2.D.Run, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -9152,6 +15006,19 @@ Translated telescope: In V, P, inst, n, Wire, S, Ef, cfg, E, rho, [FGSafetyClien
 e, [(∀ (i : Fin n), Eq (rho.seatOf S.fgLabel (EquivLike.toFunLike.coe S.fgSeats i))
 (EquivLike.toFunLike.coe e i))].
 
+Contract expansion keys: C078 FGSafetyClientLaws, C080 FGSafetyReads, C227 Gen.Env, C239
+FG.Electorate, C240 FG.FGConfig, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGSafetyClientLaws: fgsaSafetyClientLaws (recipe; C078).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- Gen.Env: env1 (recipe; C227).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: Fin n ≃ V (validator-only runtime path); holder-aware FGHolderClientLaws; no global
 bijection.
@@ -9167,6 +15034,18 @@ Source: `S053:15`.
 
 Translated telescope: V In, P, inst, n, Base Proposal Wire, R, E, rho, [FGCoreLaws R],
 [FGTreeKeepLaws R], i j, [instLENat.le i j], x.
+
+Contract expansion keys: C043 FGCoreLaws, C044 FGCoreReads, C094 FGTreeKeepLaws, C227 Gen.Env,
+C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGTreeKeepLaws: d7n_tree_keep (recipe; file-private; C094).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -9186,6 +15065,20 @@ R E rho], [V2.D.ScheduleWellFormed E rho], [FGTreeKeepLaws R], s, t, X, x, [Eq (
 => R.headVote nd s) (postClock E rho x t)) (Option.some (R.erase X))], k, cut, [Int.instLEInt.le t
 cut], [instLENat.le (afterTicksIdx rho cut) k].
 
+Contract expansion keys: C043 FGCoreLaws, C044 FGCoreReads, C058 FGHeadLaws, C094 FGTreeKeepLaws,
+C227 Gen.Env, C258 V2.D.Run, C260 V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHeadLaws: fgsaHeadLaws (recipe; C058).
+- FGTreeKeepLaws: d7n_tree_keep (recipe; file-private; C094).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -9202,6 +15095,18 @@ Source: `S053:37`.
 Translated telescope: V In, P, inst, n, Base Proposal Wire, R, E, rho, [V2.D.ScheduleWellFormed E
 rho], [FGTreeRestoreLaws R], i, x, t, [Eq (List.instGetElem?NatLtLength.getElem? rho.events i)
 (Option.some (V2.Event.tick x t))].
+
+Contract expansion keys: C044 FGCoreReads, C095 FGTreeRestoreLaws, C227 Gen.Env, C258 V2.D.Run,
+C260 V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGTreeRestoreLaws: d7n_tree_restore (recipe; file-private; C095).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -9221,6 +15126,22 @@ R E rho], [V2.D.ScheduleWellFormed E rho], [FGTreeRestoreLaws R], s, t, X, x,
 [SetLike.instMembership.mem rho.honest x], [Eq (Option.map (fun nd => R.headVote nd s) (postClock
 E rho x t)) (Option.some (R.erase X))], cut, [Int.instLTInt.lt t cut].
 
+Contract expansion keys: C028 ChainRowsBefore, C043 FGCoreLaws, C044 FGCoreReads, C058 FGHeadLaws,
+C095 FGTreeRestoreLaws, C227 Gen.Env, C247 FG.Row, C258 V2.D.Run, C260 V2.D.ScheduleWellFormed,
+C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHeadLaws: fgsaHeadLaws (recipe; C058).
+- FGTreeRestoreLaws: d7n_tree_restore (recipe; file-private; C095).
+- Gen.Env: env1 (recipe; C227).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -9237,6 +15158,14 @@ Source: `S054:13`.
 Translated telescope: Λ, h, T, fp, [Or (Eq (FG.own_lock Λ h fp) Option.none) (Eq (FG.own_lock Λ h
 fp) (Option.some T))].
 
+Contract expansion keys: C001 BlockId, C241 FG.FinalityPair, C245 FG.Record.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FG.FinalityPair: OPEN (C241).
+- FG.Record: initial (recipe; C245).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -9251,6 +15180,14 @@ P10 for finality).
 Source: `S054:38`.
 
 Translated telescope: In, P, n, Wire, S, H, nd, C, [FGRowPermissionInputs S H nd C].
+
+Contract expansion keys: C074 FGRowPermissionInputs, C080 FGSafetyReads, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGRowPermissionInputs: OPEN (C074).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -9269,6 +15206,18 @@ Translated telescope: n, Ef, cfg, Λ, seat, source, hd, h, T, [KitFG.RecordInv �
 (namedEntry (FG.height_pair Λ.toRecord (Option.map (fun C => { fst := (FG.derive Ef cfg C).h, snd
 := (FG.derive Ef cfg C).T_h.root }) source) (FG.finality_pair Λ.toRecord hd))) (Option.some { fst
 := h, snd := T })].
+
+Contract expansion keys: C001 BlockId, C234 KitFG.RecordInv, C239 FG.Electorate, C240 FG.FGConfig,
+C241 FG.FinalityPair, C244 FG.HeadFields, C246 FG.RecordOnce.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- FG.FinalityPair: OPEN (C241).
+- FG.HeadFields: headFields (recipe; C244).
+- FG.RecordOnce: recordRow (recipe; C246).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -9296,6 +15245,29 @@ nd)], [(∀ (b : Prod FG.NamedHeightPair (Option FG.FinalityPair)), List.instMem
 fun a => And (instLTNat.lt j i) (And (HonestRowAt S E rho T j x rSent a) (Eq (entry a) (namedEntry
 b.fst))))], [Eq (E.awake x (T.action r)) Bool.true], [Eq (S.enabled (T.action r)) Bool.true].
 
+Contract expansion keys: C001 BlockId, C074 FGRowPermissionInputs, C075 FGRowPermissionWireLaws,
+C076 FGRowRecordHistory, C078 FGSafetyClientLaws, C080 FGSafetyReads, C092 FGTiming, C093
+FGTimingLaws, C138 HonestRowAt, C227 Gen.Env, C239 FG.Electorate, C240 FG.FGConfig, C241
+FG.FinalityPair, C258 V2.D.Run, C260 V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- BlockId: digestSpec (recipe; C001).
+- FGRowPermissionInputs: OPEN (C074).
+- FGRowPermissionWireLaws: d7f_wire_laws (recipe; file-private; C075).
+- FGRowRecordHistory: d7r_history (recipe; file-private; C076).
+- FGSafetyClientLaws: fgsaSafetyClientLaws (recipe; C078).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+- Gen.Env: env1 (recipe; C227).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- FG.FinalityPair: OPEN (C241).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: Fin n ≃ V (validator-only runtime path).
 
@@ -9308,6 +15280,22 @@ Source: `S055:29`.
 Translated telescope: In V, P, n, Base Proposal Wire, R, S, Ef, H, f, inst, E, rho, Q,
 [KitFG.FGCertificateLaws Ef H f], [FGSafetyScopeLaws R S E rho Q], [safetyScopedRoots R Q], A B,
 [safetyRunBlock R S E rho A], [safetyRunBlock R S E rho B].
+
+Contract expansion keys: C044 FGCoreReads, C080 FGSafetyReads, C082 FGSafetyScopeLaws, C215
+safetyRunBlock, C216 safetyScopedRoots, C227 Gen.Env, C228 KitFG.FGCertificateLaws, C235
+KitFG.RootInjectiveOn, C239 FG.Electorate, C243 FG.HasSlashableWeightBetween, C258 V2.D.Run, C259
+V2.D.Run.emits, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGSafetyScopeLaws: fgsaSafetyScopeLaws (recipe; C082).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -9326,6 +15314,19 @@ Translated telescope: In, P, n, Base Proposal Wire, R, Ef, H, f, Q, [KitFG.FGCer
 f], [safetyScopedRoots R Q], st st', [KitFG.FGStoreInvariant H f st], [KitFG.FGStoreInvariant H f
 st'], [(∀ (B : FG.FGBlock (Fin n)), SetLike.instMembership.mem st.TF B → Q (R.erase B))], [(∀ (B :
 FG.FGBlock (Fin n)), SetLike.instMembership.mem st'.TF B → Q (R.erase B))].
+
+Contract expansion keys: C044 FGCoreReads, C216 safetyScopedRoots, C228 KitFG.FGCertificateLaws,
+C231 KitFG.FGStoreInvariant, C235 KitFG.RootInjectiveOn, C239 FG.Electorate, C243
+FG.HasSlashableWeightBetween, C251 FG.Store, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- FG.Store: update_finality (recipe; C251).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -9347,6 +15348,26 @@ st'], [(∀ (B : FG.FGBlock (Fin n)), SetLike.instMembership.mem st.TF B → Ne 
 safetyRunBlock R S E rho B)], [(∀ (B : FG.FGBlock (Fin n)), SetLike.instMembership.mem st'.TF B →
 Ne B FG.FGBlock.genesis → safetyRunBlock R S E rho B)].
 
+Contract expansion keys: C044 FGCoreReads, C080 FGSafetyReads, C082 FGSafetyScopeLaws, C211
+safetyBound, C215 safetyRunBlock, C216 safetyScopedRoots, C227 Gen.Env, C228
+KitFG.FGCertificateLaws, C231 KitFG.FGStoreInvariant, C235 KitFG.RootInjectiveOn, C239
+FG.Electorate, C242 FG.HasIntersectionWeight, C243 FG.HasSlashableWeightBetween, C249
+FG.Slashable, C250 FG.SlashableBetween, C251 FG.Store, C258 V2.D.Run, C259 V2.D.Run.emits, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGSafetyScopeLaws: fgsaSafetyScopeLaws (recipe; C082).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- FG.Store: update_finality (recipe; C251).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -9363,6 +15384,26 @@ Source: `S055:91`.
 Translated telescope: In V, P, n, Base Proposal Wire, R, S, Ef, H, f, inst, E, rho, Good, Q,
 [FGCoreLaws R], [FGSafetyStoreLaws R S H f Good], [KitFG.FGCertificateLaws Ef H f],
 [FGSafetyScopeLaws R S E rho Q], [safetyScopedRoots R Q].
+
+Contract expansion keys: C043 FGCoreLaws, C044 FGCoreReads, C080 FGSafetyReads, C082
+FGSafetyScopeLaws, C083 FGSafetyStoreLaws, C181 SafetyWholeAccountable, C215 safetyRunBlock, C216
+safetyScopedRoots, C227 Gen.Env, C228 KitFG.FGCertificateLaws, C231 KitFG.FGStoreInvariant, C235
+KitFG.RootInjectiveOn, C239 FG.Electorate, C258 V2.D.Run, C259 V2.D.Run.emits, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGSafetyScopeLaws: fgsaSafetyScopeLaws (recipe; C082).
+- FGSafetyStoreLaws: fgsaSafetyStoreLaws (recipe; C083).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -9381,6 +15422,27 @@ Translated telescope: In V, P, n, Base Proposal Wire, R, S, Ef, H, f, inst, E, r
 [FGCoreLaws R], [FGSafetyStoreLaws R S H f Good], [KitFG.FGCertificateLaws Ef H f],
 [FGSafetyScopeLaws R S E rho Q], [safetyScopedRoots R Q], [safetyBound R S Ef E rho].
 
+Contract expansion keys: C043 FGCoreLaws, C044 FGCoreReads, C080 FGSafetyReads, C082
+FGSafetyScopeLaws, C083 FGSafetyStoreLaws, C182 SafetyWholeAgreement, C211 safetyBound, C215
+safetyRunBlock, C216 safetyScopedRoots, C227 Gen.Env, C228 KitFG.FGCertificateLaws, C231
+KitFG.FGStoreInvariant, C235 KitFG.RootInjectiveOn, C239 FG.Electorate, C242
+FG.HasIntersectionWeight, C243 FG.HasSlashableWeightBetween, C249 FG.Slashable, C250
+FG.SlashableBetween, C258 V2.D.Run, C259 V2.D.Run.emits, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGSafetyScopeLaws: fgsaSafetyScopeLaws (recipe; C082).
+- FGSafetyStoreLaws: fgsaSafetyStoreLaws (recipe; C083).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -9398,6 +15460,27 @@ Translated telescope: In V, P, n, Base Proposal Wire, R, S, Ef, H, f, inst, E, r
 [FGCoreLaws R], [FGSafetyStoreLaws R S H f Good], [KitFG.FGCertificateLaws Ef H f],
 [FGSafetyScopeLaws R S E rho Q], [safetyScopedRoots R Q], [safetyBound R S Ef E rho], i j, x y.
 
+Contract expansion keys: C043 FGCoreLaws, C044 FGCoreReads, C080 FGSafetyReads, C082
+FGSafetyScopeLaws, C083 FGSafetyStoreLaws, C211 safetyBound, C215 safetyRunBlock, C216
+safetyScopedRoots, C227 Gen.Env, C228 KitFG.FGCertificateLaws, C231 KitFG.FGStoreInvariant, C235
+KitFG.RootInjectiveOn, C239 FG.Electorate, C242 FG.HasIntersectionWeight, C243
+FG.HasSlashableWeightBetween, C249 FG.Slashable, C250 FG.SlashableBetween, C258 V2.D.Run, C259
+V2.D.Run.emits, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGSafetyScopeLaws: fgsaSafetyScopeLaws (recipe; C082).
+- FGSafetyStoreLaws: fgsaSafetyStoreLaws (recipe; C083).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -9413,6 +15496,16 @@ Source: `S056:23`.
 
 Translated telescope: In, P, n, Wire, S, rec, o, u, [Eq (S.decodeObject o) (Option.some u)].
 
+Contract expansion keys: C080 FGSafetyReads, C246 FG.RecordOnce, C247 FG.Row, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FG.RecordOnce: recordRow (recipe; C246).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -9427,6 +15520,14 @@ P10 for finality).
 Source: `S056:28`.
 
 Translated telescope: In, P, n, Wire, S, rec, o, [Eq (S.decodeObject o) Option.none].
+
+Contract expansion keys: C080 FGSafetyReads, C246 FG.RecordOnce, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FG.RecordOnce: recordRow (recipe; C246).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -9444,6 +15545,15 @@ Source: `S056:33`.
 Translated telescope: In V, P, n, Wire, S, inst, E, rho, x, k, t, [Eq
 (List.instGetElem?NatLtLength.getElem? rho.events k) (Option.some (V2.Event.tick x t))].
 
+Contract expansion keys: C080 FGSafetyReads, C227 Gen.Env, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -9459,6 +15569,15 @@ Source: `S056:46`.
 
 Translated telescope: In V, P, n, Wire, S, inst, E, rho, x, k, [(∀ (t : Time), Ne
 (List.instGetElem?NatLtLength.getElem? rho.events k) (Option.some (V2.Event.tick x t)))].
+
+Contract expansion keys: C080 FGSafetyReads, C227 Gen.Env, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -9476,6 +15595,15 @@ Source: `S056:64`.
 Translated telescope: In V, P, n, Wire, S, rho, linked, [linked S.fgLabel], [V2.D.Linked linked
 rho].
 
+Contract expansion keys: C080 FGSafetyReads, C256 V2.D.Linked, C258 V2.D.Run, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -9490,6 +15618,14 @@ P10 for finality).
 Source: `S056:74`.
 
 Translated telescope: In, P, n, Wire, S, rec, l.
+
+Contract expansion keys: C080 FGSafetyReads, C246 FG.RecordOnce, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FG.RecordOnce: recordRow (recipe; C246).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -9508,6 +15644,19 @@ Translated telescope: In V, P, n, Wire, S, Ef, cfg, inst, E, rho, [FGSafetyClien
 e, [(∀ (i : Fin n), Eq (rho.seatOf S.fgLabel (EquivLike.toFunLike.coe S.fgSeats i))
 (EquivLike.toFunLike.coe e i))], x, k.
 
+Contract expansion keys: C078 FGSafetyClientLaws, C080 FGSafetyReads, C227 Gen.Env, C239
+FG.Electorate, C240 FG.FGConfig, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGSafetyClientLaws: fgsaSafetyClientLaws (recipe; C078).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- Gen.Env: env1 (recipe; C227).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: Fin n ≃ V (validator-only runtime path).
 
@@ -9522,6 +15671,22 @@ Source: `S056:227`.
 
 Translated telescope: In V, P, n, Wire, S, Ef, cfg, inst, E, rho, [FGSafetyWireLaws S],
 [FGSafetyClientLaws S Ef cfg], linked, [linked S.fgLabel], [V2.D.Linked linked rho], x.
+
+Contract expansion keys: C078 FGSafetyClientLaws, C080 FGSafetyReads, C085 FGSafetyWireLaws, C213
+safetyEmits, C214 safetyNoSlash, C227 Gen.Env, C239 FG.Electorate, C240 FG.FGConfig, C247 FG.Row,
+C256 V2.D.Linked, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGSafetyClientLaws: fgsaSafetyClientLaws (recipe; C078).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGSafetyWireLaws: fgsaSafetyWireLaws (recipe; C085).
+- Gen.Env: env1 (recipe; C227).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -9541,6 +15706,21 @@ linked, [linked S.fgLabel], [V2.D.Linked linked rho], [(∀ (x : V), SetLike.ins
 rho.honest x → safetyNoSlash S E rho x)], A B, [safetyCarriage S E rho A], [safetyCarriage S E rho
 B], [FG.HasSlashableWeightBetween Ef A B].
 
+Contract expansion keys: C080 FGSafetyReads, C084 FGSafetyUnitLaws, C212 safetyCarriage, C213
+safetyEmits, C214 safetyNoSlash, C227 Gen.Env, C239 FG.Electorate, C242 FG.HasIntersectionWeight,
+C243 FG.HasSlashableWeightBetween, C247 FG.Row, C249 FG.Slashable, C250 FG.SlashableBetween, C256
+V2.D.Linked, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGSafetyUnitLaws: fgsaSafetyUnitLaws (recipe; C084).
+- Gen.Env: env1 (recipe; C227).
+- FG.Electorate: E (recipe; C239).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: whole-run faulty-node count/bound.
 
@@ -9558,6 +15738,22 @@ Translated telescope: In V, P, n, Base Proposal Wire, R, S, Ef, inst, E, rho, in
 (Fin n)), safetyRunBlock R S E rho B → safetyCarriage S E rho (FG.chainRows B))], [(∀ (x : V),
 SetLike.instMembership.mem rho.honest x → safetyNoSlash S E rho x)], [instLENat.le
 (Gen.V2.Duty.faulty rho).card (instHDiv.hDiv (instHSub.hSub n 1) 3)].
+
+Contract expansion keys: C044 FGCoreReads, C080 FGSafetyReads, C084 FGSafetyUnitLaws, C211
+safetyBound, C212 safetyCarriage, C213 safetyEmits, C214 safetyNoSlash, C215 safetyRunBlock, C227
+Gen.Env, C239 FG.Electorate, C247 FG.Row, C249 FG.Slashable, C256 V2.D.Linked, C258 V2.D.Run, C259
+V2.D.Run.emits, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGSafetyUnitLaws: fgsaSafetyUnitLaws (recipe; C084).
+- Gen.Env: env1 (recipe; C227).
+- FG.Electorate: E (recipe; C239).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: whole-run faulty-node count/bound.
@@ -9577,6 +15773,22 @@ Translated telescope: In V, P, n, Base Proposal Wire, R, S, Ef, inst, E, rho, in
 SetLike.instMembership.mem rho.honest x → safetyNoSlash S E rho x)], [instLTNat.lt
 (Gen.V2.Duty.faulty rho).card (instHSub.hSub (instHMul.hMul 2 (Gen.Pure.qF n)) n)].
 
+Contract expansion keys: C044 FGCoreReads, C080 FGSafetyReads, C084 FGSafetyUnitLaws, C211
+safetyBound, C212 safetyCarriage, C213 safetyEmits, C214 safetyNoSlash, C215 safetyRunBlock, C227
+Gen.Env, C239 FG.Electorate, C247 FG.Row, C249 FG.Slashable, C256 V2.D.Linked, C258 V2.D.Run, C259
+V2.D.Run.emits, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGSafetyUnitLaws: fgsaSafetyUnitLaws (recipe; C084).
+- Gen.Env: env1 (recipe; C227).
+- FG.Electorate: E (recipe; C239).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: whole-run faulty-node count/bound.
 
@@ -9592,6 +15804,21 @@ Source: `S057:86`.
 Translated telescope: In V, P, n, Wire, S, Ef, inst, E, rho, [FGSafetyUnitLaws Ef], [(∀ (x : V),
 SetLike.instMembership.mem rho.honest x → safetyNoSlash S E rho x)], A B, [safetyCarriage S E rho
 A], [safetyCarriage S E rho B], [FG.HasSlashableWeightBetween Ef A B].
+
+Contract expansion keys: C080 FGSafetyReads, C084 FGSafetyUnitLaws, C212 safetyCarriage, C213
+safetyEmits, C214 safetyNoSlash, C227 Gen.Env, C239 FG.Electorate, C242 FG.HasIntersectionWeight,
+C243 FG.HasSlashableWeightBetween, C247 FG.Row, C249 FG.Slashable, C250 FG.SlashableBetween, C258
+V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGSafetyUnitLaws: fgsaSafetyUnitLaws (recipe; C084).
+- Gen.Env: env1 (recipe; C227).
+- FG.Electorate: E (recipe; C239).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: holder assignment/injectivity or honest-holder FG weight (exact guards in type).
@@ -9611,6 +15838,22 @@ Ef], [(∀ (B : FG.FGBlock (Fin n)), safetyRunBlock R S E rho B → safetyCarria
 x)], [instLTNat.lt (Finset.filter (fun i => Not (SetLike.instMembership.mem rho.honest
 (safetyHolder S rho i))) Finset.univ).card (instHSub.hSub (instHMul.hMul 2 (Gen.Pure.qF n)) n)].
 
+Contract expansion keys: C044 FGCoreReads, C080 FGSafetyReads, C084 FGSafetyUnitLaws, C211
+safetyBound, C212 safetyCarriage, C213 safetyEmits, C214 safetyNoSlash, C215 safetyRunBlock, C227
+Gen.Env, C239 FG.Electorate, C247 FG.Row, C249 FG.Slashable, C258 V2.D.Run, C259 V2.D.Run.emits,
+C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGSafetyUnitLaws: fgsaSafetyUnitLaws (recipe; C084).
+- Gen.Env: env1 (recipe; C227).
+- FG.Electorate: E (recipe; C239).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: holder assignment/injectivity or honest-holder FG weight (exact guards in type).
 
@@ -9625,6 +15868,19 @@ Source: `S058:21`.
 
 Translated telescope: In V, P, n, Base Proposal Wire, R, S, inst, E, rho, [FGCoreLaws R],
 [FGSafetyOrderLaws R S], [V2.D.NoRestart rho], i j, [instLENat.le i j], x.
+
+Contract expansion keys: C043 FGCoreLaws, C044 FGCoreReads, C079 FGSafetyOrderLaws, C080
+FGSafetyReads, C227 Gen.Env, C257 V2.D.NoRestart, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGSafetyOrderLaws: fgsaSafetyOrderLaws (recipe; C079).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -9642,6 +15898,20 @@ Source: `S058:38`.
 Translated telescope: In V, P, n, Base Proposal Wire, R, S, inst, E, rho, [FGCoreLaws R],
 [FGSafetyOrderLaws R S], [FGSafetyRestartLaws R], i j, [instLENat.le i j], x.
 
+Contract expansion keys: C043 FGCoreLaws, C044 FGCoreReads, C079 FGSafetyOrderLaws, C080
+FGSafetyReads, C081 FGSafetyRestartLaws, C227 Gen.Env, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGSafetyOrderLaws: fgsaSafetyOrderLaws (recipe; C079).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGSafetyRestartLaws: fgsaSafetyRestartLaws (recipe; C081).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -9657,6 +15927,14 @@ Source: `S058:70`.
 
 Translated telescope: In V, P, inst, E, rho, [List.Pairwise (fun a b => (Prod.Lex.instLE Time
 Nat).le a.key b.key) rho.events], t.
+
+Contract expansion keys: C227 Gen.Env, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -9676,6 +15954,19 @@ Translated telescope: In V, P, n, Base Proposal Wire, R, S, inst, E, rho, [FGCor
 rho.events], [V2.D.NoRestart rho], x, [SetLike.instMembership.mem rho.honest x], t t',
 [Int.instLEInt.le t t'].
 
+Contract expansion keys: C043 FGCoreLaws, C044 FGCoreReads, C079 FGSafetyOrderLaws, C080
+FGSafetyReads, C227 Gen.Env, C257 V2.D.NoRestart, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGSafetyOrderLaws: fgsaSafetyOrderLaws (recipe; C079).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -9694,6 +15985,20 @@ Translated telescope: In V, P, n, Base Proposal Wire, R, S, inst, E, rho, [FGCor
 Nat).le a.key b.key) rho.events], x, [SetLike.instMembership.mem rho.honest x], t t',
 [Int.instLEInt.le t t'].
 
+Contract expansion keys: C043 FGCoreLaws, C044 FGCoreReads, C079 FGSafetyOrderLaws, C080
+FGSafetyReads, C081 FGSafetyRestartLaws, C227 Gen.Env, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGSafetyOrderLaws: fgsaSafetyOrderLaws (recipe; C079).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGSafetyRestartLaws: fgsaSafetyRestartLaws (recipe; C081).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -9711,6 +16016,22 @@ Translated telescope: In V, P, n, Base Proposal Wire, R, S, H, f, inst, E, rho, 
 R], [FGSafetyStoreLaws R S H f Good], t, x, B, [SetLike.instMembership.mem (R.core
 (V2.D.Run.readAt E rho t x)).fg.TF B], u, [SetLike.instMembership.mem (FG.chainRows B) u].
 
+Contract expansion keys: C043 FGCoreLaws, C044 FGCoreReads, C080 FGSafetyReads, C083
+FGSafetyStoreLaws, C227 Gen.Env, C231 KitFG.FGStoreInvariant, C247 FG.Row, C258 V2.D.Run, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGSafetyStoreLaws: fgsaSafetyStoreLaws (recipe; C083).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -9727,6 +16048,25 @@ Source: `S059:49`.
 Translated telescope: In V, P, n, Base Proposal Wire, R, S, H, f, inst, E, rho, Good, [FGCoreLaws
 R], [FGSafetyStoreLaws R S H f Good], [FGSafetyWireLaws S], [V2.D.UnforgeableSignatures E rho], t,
 x.
+
+Contract expansion keys: C043 FGCoreLaws, C044 FGCoreReads, C080 FGSafetyReads, C083
+FGSafetyStoreLaws, C085 FGSafetyWireLaws, C212 safetyCarriage, C227 Gen.Env, C231
+KitFG.FGStoreInvariant, C247 FG.Row, C258 V2.D.Run, C261 V2.D.UnforgeableSignatures, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGSafetyStoreLaws: fgsaSafetyStoreLaws (recipe; C083).
+- FGSafetyWireLaws: fgsaSafetyWireLaws (recipe; C085).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.UnforgeableSignatures: fgsa_unforgeable_of_base (recipe; C261).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -9746,6 +16086,30 @@ Translated telescope: In V, P, n, Base Proposal Wire, R, S, Ef, H, f, cfg, inst,
 cfg], linked, [linked S.fgLabel], I, [safetySlashesRead R S E rho I], [V2.D.UnforgeableSignatures
 E rho], [V2.D.Linked linked rho].
 
+Contract expansion keys: C043 FGCoreLaws, C044 FGCoreReads, C078 FGSafetyClientLaws, C080
+FGSafetyReads, C083 FGSafetyStoreLaws, C085 FGSafetyWireLaws, C217 safetySlashesRead, C223
+Gen.V2.Duty.HonestNeverSlashed, C226 Gen.V2.Duty.SlashingInterface, C227 Gen.Env, C231
+KitFG.FGStoreInvariant, C239 FG.Electorate, C240 FG.FGConfig, C249 FG.Slashable, C250
+FG.SlashableBetween, C256 V2.D.Linked, C258 V2.D.Run, C261 V2.D.UnforgeableSignatures, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGSafetyClientLaws: fgsaSafetyClientLaws (recipe; C078).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGSafetyStoreLaws: fgsaSafetyStoreLaws (recipe; C083).
+- FGSafetyWireLaws: fgsaSafetyWireLaws (recipe; C085).
+- Gen.V2.Duty.SlashingInterface: fgsaSlashing (recipe; C226).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.UnforgeableSignatures: fgsa_unforgeable_of_base (recipe; C261).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -9762,6 +16126,19 @@ Source: `S060:23`.
 Translated telescope: In V, P, n, Base Proposal Wire, R, S, H, f, inst, Good, [FGSafetyStoreLaws R
 S H f Good], E, rho, i, x.
 
+Contract expansion keys: C044 FGCoreReads, C080 FGSafetyReads, C083 FGSafetyStoreLaws, C227
+Gen.Env, C231 KitFG.FGStoreInvariant, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGSafetyStoreLaws: fgsaSafetyStoreLaws (recipe; C083).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -9776,6 +16153,14 @@ P10 for finality).
 Source: `S060:92`.
 
 Translated telescope: In V, P, inst, E, rho, t.
+
+Contract expansion keys: C227 Gen.Env, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -9792,6 +16177,19 @@ Source: `S060:106`.
 
 Translated telescope: In V, P, n, Base Proposal Wire, R, S, H, f, inst, Good, [FGSafetyStoreLaws R
 S H f Good], E, rho, t, x.
+
+Contract expansion keys: C044 FGCoreReads, C080 FGSafetyReads, C083 FGSafetyStoreLaws, C227
+Gen.Env, C231 KitFG.FGStoreInvariant, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGSafetyStoreLaws: fgsaSafetyStoreLaws (recipe; C083).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -9810,6 +16208,21 @@ Translated telescope: In V, P, n, Base Proposal Wire, R, S, H, f, inst, Good, [F
 [FGSafetyStoreLaws R S H f Good], E, rho, i, x, B, [SetLike.instMembership.mem (R.core
 (V2.D.Run.stateBefore E rho i x)).fg.TF B], [Ne B FG.FGBlock.genesis].
 
+Contract expansion keys: C043 FGCoreLaws, C044 FGCoreReads, C080 FGSafetyReads, C083
+FGSafetyStoreLaws, C227 Gen.Env, C231 KitFG.FGStoreInvariant, C258 V2.D.Run, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGSafetyStoreLaws: fgsaSafetyStoreLaws (recipe; C083).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -9826,6 +16239,21 @@ Source: `S060:121`.
 Translated telescope: In V, P, n, Base Proposal Wire, R, S, H, f, inst, Good, [FGCoreLaws R],
 [FGSafetyStoreLaws R S H f Good], E, rho, t, x, B, [SetLike.instMembership.mem (R.core
 (V2.D.Run.readAt E rho t x)).fg.TF B], [Ne B FG.FGBlock.genesis].
+
+Contract expansion keys: C043 FGCoreLaws, C044 FGCoreReads, C080 FGSafetyReads, C083
+FGSafetyStoreLaws, C227 Gen.Env, C231 KitFG.FGStoreInvariant, C258 V2.D.Run, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGSafetyStoreLaws: fgsaSafetyStoreLaws (recipe; C083).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -9844,6 +16272,21 @@ Translated telescope: In V, P, n, Base Proposal Wire, R, S, H, f, inst, Good, [F
 [FGSafetyStoreLaws R S H f Good], E, rho, i, x, B, [SetLike.instMembership.mem (R.core
 (V2.D.Run.stateBefore E rho i x)).fg.TF B], [Ne B FG.FGBlock.genesis].
 
+Contract expansion keys: C043 FGCoreLaws, C044 FGCoreReads, C080 FGSafetyReads, C083
+FGSafetyStoreLaws, C215 safetyRunBlock, C227 Gen.Env, C231 KitFG.FGStoreInvariant, C258 V2.D.Run,
+C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGSafetyStoreLaws: fgsaSafetyStoreLaws (recipe; C083).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -9860,6 +16303,21 @@ Source: `S060:139`.
 Translated telescope: In V, P, n, Base Proposal Wire, R, S, H, f, inst, Good, [FGCoreLaws R],
 [FGSafetyStoreLaws R S H f Good], E, rho, t, x, B, [SetLike.instMembership.mem (R.core
 (V2.D.Run.readAt E rho t x)).fg.TF B], [Ne B FG.FGBlock.genesis].
+
+Contract expansion keys: C043 FGCoreLaws, C044 FGCoreReads, C080 FGSafetyReads, C083
+FGSafetyStoreLaws, C215 safetyRunBlock, C227 Gen.Env, C231 KitFG.FGStoreInvariant, C258 V2.D.Run,
+C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGSafetyStoreLaws: fgsaSafetyStoreLaws (recipe; C083).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -9879,6 +16337,22 @@ Translated telescope: In V, P, n, Base Proposal Wire, R, S, H, f, inst, Good, Q,
 [SetLike.instMembership.mem rho.honest x], B, [SetLike.instMembership.mem (R.core
 (V2.D.Run.stateBefore E rho i x)).fg.TF B].
 
+Contract expansion keys: C043 FGCoreLaws, C044 FGCoreReads, C080 FGSafetyReads, C082
+FGSafetyScopeLaws, C083 FGSafetyStoreLaws, C215 safetyRunBlock, C227 Gen.Env, C231
+KitFG.FGStoreInvariant, C258 V2.D.Run, C259 V2.D.Run.emits, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGSafetyScopeLaws: fgsaSafetyScopeLaws (recipe; C082).
+- FGSafetyStoreLaws: fgsaSafetyStoreLaws (recipe; C083).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -9897,6 +16371,22 @@ Translated telescope: In V, P, n, Base Proposal Wire, R, S, H, f, inst, Good, Q,
 [SetLike.instMembership.mem rho.honest x], B, [SetLike.instMembership.mem (R.core (V2.D.Run.readAt
 E rho t x)).fg.TF B].
 
+Contract expansion keys: C043 FGCoreLaws, C044 FGCoreReads, C080 FGSafetyReads, C082
+FGSafetyScopeLaws, C083 FGSafetyStoreLaws, C215 safetyRunBlock, C227 Gen.Env, C231
+KitFG.FGStoreInvariant, C258 V2.D.Run, C259 V2.D.Run.emits, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGSafetyScopeLaws: fgsaSafetyScopeLaws (recipe; C082).
+- FGSafetyStoreLaws: fgsaSafetyStoreLaws (recipe; C083).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -9912,6 +16402,19 @@ Source: `S060:168`.
 
 Translated telescope: In V, P, n, Base Proposal Wire, R, S, H, f, inst, Good, [FGSafetyStoreLaws R
 S H f Good], E, rho, i, x.
+
+Contract expansion keys: C044 FGCoreReads, C080 FGSafetyReads, C083 FGSafetyStoreLaws, C227
+Gen.Env, C231 KitFG.FGStoreInvariant, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGSafetyStoreLaws: fgsaSafetyStoreLaws (recipe; C083).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -9929,6 +16432,19 @@ Source: `S060:173`.
 Translated telescope: In V, P, n, Base Proposal Wire, R, S, H, f, inst, Good, [FGSafetyStoreLaws R
 S H f Good], E, rho, t, x.
 
+Contract expansion keys: C044 FGCoreReads, C080 FGSafetyReads, C083 FGSafetyStoreLaws, C227
+Gen.Env, C231 KitFG.FGStoreInvariant, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGSafetyStoreLaws: fgsaSafetyStoreLaws (recipe; C083).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -9944,6 +16460,21 @@ Source: `S061:17`.
 
 Translated telescope: In V, P, inst, n, Base Proposal Wire, R, O, T, E, rho, I, sp sp', [Eq
 sp.reset sp'.reset], horizon.
+
+Contract expansion keys: C044 FGCoreReads, C060 FGHistoricalHighTransfer, C068 FGObservationReads,
+C090 FGServicePoint, C092 FGTiming, C137 HonestProposal, C224 Gen.V2.Duty.HonestSlot, C227
+Gen.Env, C255 V2.D.Interface, C258 V2.D.Run, C259 V2.D.Run.emits, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGServicePoint: d7n_point (recipe; file-private; C090).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -9961,6 +16492,19 @@ Source: `S061:25`.
 Translated telescope: In V, P, inst, n, Base Proposal Wire, R, O, T, E, rho, sp sp', [Eq sp.reset
 sp'.reset], horizon.
 
+Contract expansion keys: C044 FGCoreReads, C059 FGHistoricalHighChain, C068 FGObservationReads,
+C090 FGServicePoint, C092 FGTiming, C227 Gen.Env, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGServicePoint: d7n_point (recipe; file-private; C090).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -9976,6 +16520,21 @@ Source: `S061:33`.
 
 Translated telescope: In V, P, inst, n, Base Proposal Wire, R, O, T, E, rho, I, sp, a b,
 [Int.instLEInt.le a b], [FGHistoricalHighTransfer R O T E rho I sp b].
+
+Contract expansion keys: C044 FGCoreReads, C060 FGHistoricalHighTransfer, C068 FGObservationReads,
+C090 FGServicePoint, C092 FGTiming, C137 HonestProposal, C224 Gen.V2.Duty.HonestSlot, C227
+Gen.Env, C255 V2.D.Interface, C258 V2.D.Run, C259 V2.D.Run.emits, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGServicePoint: d7n_point (recipe; file-private; C090).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Interface: fgsaInterface (recipe; C255).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -9993,6 +16552,19 @@ Source: `S061:39`.
 Translated telescope: In V, P, inst, n, Base Proposal Wire, R, O, T, E, rho, sp, a b,
 [Int.instLEInt.le a b], [FGHistoricalHighChain R O T E rho sp b].
 
+Contract expansion keys: C044 FGCoreReads, C059 FGHistoricalHighChain, C068 FGObservationReads,
+C090 FGServicePoint, C092 FGTiming, C227 Gen.Env, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGObservationReads: d7a4b_observations (recipe; file-private; C068).
+- FGServicePoint: d7n_point (recipe; file-private; C090).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -10009,6 +16581,12 @@ Source: `S061:47`.
 Translated telescope: V, A, Q, i, [(∀ (x : V), A.honest x → Exists fun H => Eq (A.headAtLabel x i)
 (Option.some H))], [(∀ (x : V), A.honest x → A.headScope x i)], [(∀ (x : V) (H : Block), A.honest
 x → A.headScope x i → Eq (A.headAtLabel x i) (Option.some H) → A.below Q H)], x, [A.honest x].
+
+Contract expansion keys: C038 FGACServiceReads.
+
+Input records (including components of supplied contracts):
+
+- FGACServiceReads: d7n_ac (recipe; file-private; C038).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -10029,6 +16607,15 @@ Translated telescope: V, A, sp, start horizon, [FGACServiceLaws A sp start horiz
 A.honest x → Exists fun H => Eq (A.headAtLabel x i) (Option.some H))], [(∀ (x : V), A.honest x →
 A.headScope x i)], x, [A.honest x].
 
+Contract expansion keys: C037 FGACServiceLaws, C038 FGACServiceReads, C090 FGServicePoint, C140
+InSuffix.
+
+Input records (including components of supplied contracts):
+
+- FGACServiceLaws: c2_service_laws (recipe; file-private; C037).
+- FGACServiceReads: d7n_ac (recipe; file-private; C038).
+- FGServicePoint: d7n_point (recipe; file-private; C090).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -10048,6 +16635,15 @@ H, [A.honest y], [A.sourceScope y r C], [Eq (A.source y r) (Option.some (Option.
 (instHAdd.hAdd (A.gateLabel r) 1) i], [Int.instLEInt.le (A.voteTime i) horizon], [Eq
 (A.headAtLabel x i) (Option.some H)].
 
+Contract expansion keys: C037 FGACServiceLaws, C038 FGACServiceReads, C090 FGServicePoint, C140
+InSuffix.
+
+Input records (including components of supplied contracts):
+
+- FGACServiceLaws: c2_service_laws (recipe; file-private; C037).
+- FGACServiceReads: d7n_ac (recipe; file-private; C038).
+- FGServicePoint: d7n_point (recipe; file-private; C090).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -10064,6 +16660,17 @@ Source: `S061:84`.
 Translated telescope: T, deltaF horizon, sp, pt, honestSlot, quorum weight timeout capacity,
 [KernelPrem_W T deltaF horizon sp pt honestSlot quorum weight timeout capacity].
 
+Contract expansion keys: C090 FGServicePoint, C092 FGTiming, C147 KernelPrem_W, C148 KernelPt,
+C150 LivenessBoundW, C218 Gen.Pure.FGoodE_W.
+
+Input records (including components of supplied contracts):
+
+- FGServicePoint: d7n_point (recipe; file-private; C090).
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- KernelPrem_W: d7n_kernel (recipe; file-private; C147).
+- KernelPt: OPEN (C148).
+- LivenessBoundW: OPEN (C150).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: KernelPrem_W: supplied honest FG weight ≥ q.
 
@@ -10078,6 +16685,14 @@ Source: `S062:13`.
 
 Translated telescope: V In, P, inst, E, rho, x, t, nd, [Eq (postClock E rho x t) (Option.some
 nd)].
+
+Contract expansion keys: C227 Gen.Env, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -10096,6 +16711,16 @@ Translated telescope: V In, P, E, rho, [V2.D.ScheduleWellFormed E rho], i, x, t'
 (List.instGetElem?NatLtLength.getElem? rho.events i) (Option.some (V2.Event.tick x t'))],
 [Int.instLEInt.le t' t].
 
+Contract expansion keys: C227 Gen.Env, C258 V2.D.Run, C260 V2.D.ScheduleWellFormed, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -10111,6 +16736,17 @@ Source: `S062:32`.
 
 Translated telescope: V In, P, inst, n, Base Proposal RowWire, R, E, rho, [FGCoreLaws R],
 [V2.D.NoRestart rho], i j, [instLENat.le i j], x.
+
+Contract expansion keys: C043 FGCoreLaws, C044 FGCoreReads, C227 Gen.Env, C257 V2.D.NoRestart,
+C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -10128,6 +16764,14 @@ Source: `S062:40`.
 Translated telescope: In, P, n, Base Proposal RowWire, R, [FGCoreLaws R], nd, C, [Eq (R.source nd)
 (Option.some C)].
 
+Contract expansion keys: C043 FGCoreLaws, C044 FGCoreReads, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -10141,6 +16785,18 @@ Source: `S062:43`.
 Translated telescope: V In, P, inst, n, Base Proposal RowWire, R, E, rho, [FGCoreLaws R],
 [FGHeadLaws R E rho], s, t, X, x, [Eq (Option.map (fun nd => R.headVote nd s) (postClock E rho x
 t)) (Option.some (R.erase X))].
+
+Contract expansion keys: C043 FGCoreLaws, C044 FGCoreReads, C058 FGHeadLaws, C227 Gen.Env, C258
+V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHeadLaws: fgsaHeadLaws (recipe; C058).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -10156,6 +16812,19 @@ Translated telescope: V In, P, inst, n, Base Proposal RowWire, R, E, rho, [FGCor
 [FGHeadLaws R E rho], [V2.D.ScheduleWellFormed E rho], [V2.D.NoRestart rho], s, t, X, x, [Eq
 (Option.map (fun nd => R.headVote nd s) (postClock E rho x t)) (Option.some (R.erase X))], k, cut,
 [Int.instLEInt.le t cut], [instLENat.le (afterTicksIdx rho cut) k].
+
+Contract expansion keys: C043 FGCoreLaws, C044 FGCoreReads, C058 FGHeadLaws, C227 Gen.Env, C257
+V2.D.NoRestart, C258 V2.D.Run, C260 V2.D.ScheduleWellFormed, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHeadLaws: fgsaHeadLaws (recipe; C058).
+- Gen.Env: env1 (recipe; C227).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -10175,6 +16844,21 @@ Translated telescope: V In, P, inst, n, Base Proposal RowWire, R, E, rho, [FGCor
 [SetLike.instMembership.mem rho.honest x], [Eq (Option.map (fun nd => R.headVote nd s) (postClock
 E rho x t)) (Option.some (R.erase X))], cut, [Int.instLTInt.lt t cut].
 
+Contract expansion keys: C028 ChainRowsBefore, C043 FGCoreLaws, C044 FGCoreReads, C058 FGHeadLaws,
+C227 Gen.Env, C247 FG.Row, C257 V2.D.NoRestart, C258 V2.D.Run, C260 V2.D.ScheduleWellFormed, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGHeadLaws: fgsaHeadLaws (recipe; C058).
+- Gen.Env: env1 (recipe; C227).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.ScheduleWellFormed: spec_prune_schedule (recipe; C260).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -10190,6 +16874,13 @@ Source: `S062:78`.
 
 Translated telescope: n, Ef, H, [KitFG.FGHeightLaws Ef H], D C, y, [D.Preceq C], [Eq (H D).h
 (instHAdd.hAdd y 1)], [instLENat.le (H C).h (instHAdd.hAdd y 1)].
+
+Contract expansion keys: C229 KitFG.FGHeightLaws, C239 FG.Electorate.
+
+Input records (including components of supplied contracts):
+
+- KitFG.FGHeightLaws: windowHeightLaws (recipe; C229).
+- FG.Electorate: E (recipe; C239).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -10210,6 +16901,20 @@ roundSlot D], [instLENat.le opening roundSlot], [Eq (H D).h (instHAdd.hAdd y 1)]
 P.State), Eq (postClock E rho x t) (Option.some nd) → ∀ (B : FG.FGBlock (Fin n)),
 SetLike.instMembership.mem (R.core nd).fg.TF B → instLENat.le (H B).h (instHAdd.hAdd y 1))].
 
+Contract expansion keys: C043 FGCoreLaws, C044 FGCoreReads, C091 FGSourceService, C227 Gen.Env,
+C229 KitFG.FGHeightLaws, C239 FG.Electorate, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGSourceService: d7a4r_source_service (recipe; file-private; C091).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGHeightLaws: windowHeightLaws (recipe; C229).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
@@ -10224,6 +16929,13 @@ P10 for finality).
 Source: `S063:11`.
 
 Translated telescope: T, [FGTimingLaws T], q.
+
+Contract expansion keys: C092 FGTiming, C093 FGTimingLaws.
+
+Input records (including components of supplied contracts):
+
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -10242,11 +16954,4231 @@ Translated telescope: T, [FGTimingLaws T], r q, [instLENat.le r q], G Δ horizon
 G (T.proposal (instHMul.hMul r T.roundSlots))], [Eq Δ T.delta], [Int.instLEInt.le (T.action q)
 horizon].
 
+Contract expansion keys: C092 FGTiming, C093 FGTimingLaws.
+
+Input records (including components of supplied contracts):
+
+- FGTiming: p0c1_finality_timing (recipe; file-private; C092).
+- FGTimingLaws: p0c1_finality_timing_laws (recipe; file-private; C093).
+
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
 telescope.
 
 FG-SA producer/application: finality_action_time_bounds (`S138:36`).
+
+## One-level contract expansions and input producers
+
+Round-2 mechanical audit covers all 393 production proof entries. It parses every compiled outer
+telescope, unfolds each referenced Prop-valued definition by its API body and each record by its
+source-declared field types, and repeats one-level inspection for nested input contracts until no
+unseen input law contract remains. Conclusion-only record results and data returned by reader
+fields are not counted as independent input records. Nested Prop record fields are components of
+the supplied law record. Definition antecedents inside driver statements count even when absent
+from the outer telescope. The per-entry keys identify every inspected expansion; each input record
+has an explicit producer name or OPEN status. These lists supplement, rather than replace, the
+translated telescopes above.
+
+A named producer is a conditional construction recipe on its exact cited parameters, not an
+unconditional instance for arbitrary PC data. File-private recipes are module-local. OPEN means no
+production recipe with that record as its result head was found in FG-SA, Run, FG-SA Proofs,
+Compose, KitFG or SimplexFG (tests excluded), or the only recipe is for an ordinary observation
+while the selected statement uses driverFGExecutionObs; the actual instance is an obligation of
+the selecting PC consumer (E1/E1F/E2/E3/E4, P7/P8/P10 according to the path). General
+runtime/protocol/configuration records are caller data. Bounded test records do not close an
+actual producer gap.
+
+F-3 and population premises hidden in expansions retain their exact quantified guards below.
+ViewRootInj is supplied by FG-SA viewRootInj_TF on reachable stores; PC P5a must prove its own
+instance. No global population identity follows from a holder record.
+
+### C001 BlockId
+
+Source: `AvailableChainModel/Objects/Identifiers.lean:13`.
+
+Producer recipe: digestSpec (AvailableChainFGSA/Model/Spec/Codec.lean:10); all parameters/premises
+must be supplied for the selected instance.
+
+```text
+value : Nat
+deriving DecidableEq, Repr
+```
+
+### C002 AcceptBeforeDriverStatement
+
+Source: `AvailableChainFGCompose/Statements/ExecutionAcceptance.lean:62`.
+
+```text
+¬ Ef.IsQuorum ∅ → 2 ≤ K → FGExecutionObsLaws E rho O →
+V2.D.ScheduleWellFormed E rho →
+∀ x W U d (A : FGSelectedAcceptance R S E rho H Wr O
+(SimplexFG.Window.update_finality Ef cfg K) x W d),
+FGAcceptanceEffectLaws R S E rho H Wr O Ef cfg K x W d A →
+d ≤ rho.horizon → FGBlock.Preceq U (SimplexFG.Window.derive Ef cfg K W).F →
+FGAcceptanceGuards R O Ef cfg K x A.step W U →
+A.token.receiptTime < d ∧
+FGBlock.Preceq U (R.core (O.cutState x (A.step + 1))).fg.F ∧
+AcceptsFinalBefore_obs R rho O x U d ∧
+∀ k, A.step < k → k ≤ O.cutLength x →
+FGBlock.Preceq U (R.core (O.cutState x k)).fg.F
+```
+
+### C003 AcceptGuards_W
+
+Source: `AvailableChainFGCompose/Statements/FinalityReceipts.lean:128`.
+
+Producer recipe: d7a5a_guards (AvailableChainFGSAProofs/Proofs/Finality/Accept.lean:316);
+file-private; all parameters/premises must be supplied for the selected instance.
+
+```text
+finCmp : ∀ x (hx : x ∈ rho.honest),
+let w := delivery.selected x hx
+ready w.index x W w.time →
+FGBlock.Preceq (R.core (V2.D.Run.stateBefore E rho w.index x)).fg.F U ∨
+FGBlock.Preceq U (R.core (V2.D.Run.stateBefore E rho w.index x)).fg.F
+jPath : ∀ x (hx : x ∈ rho.honest),
+let w := delivery.selected x hx
+ready w.index x W w.time →
+¬ FGBlock.Preceq U (R.core (V2.D.Run.stateBefore E rho w.index x)).fg.F →
+FGBlock.Preceq (R.core (V2.D.Run.stateBefore E rho w.index x)).fg.J W ∨
+(R.core (V2.D.Run.stateBefore E rho w.index x)).fg.h_j <
+(SimplexFG.Window.derive Ef cfg K W).h_j
+cap : ∀ x (hx : x ∈ rho.honest),
+let w := delivery.selected x hx
+ready w.index x W w.time →
+¬ FGBlock.Preceq U (R.core (V2.D.Run.stateBefore E rho w.index x)).fg.F →
+(receiptInsert_W R E rho Ef cfg K w.index x W).h_max ≤
+(SimplexFG.Window.derive Ef cfg K W).h + 1
+```
+
+### C004 AcceptPrem_W
+
+Source: `AvailableChainFGCompose/Statements/FinalityReceipts.lean:151`.
+
+Producer recipe: d7a5a_prem (AvailableChainFGSAProofs/Proofs/Finality/Accept.lean:340);
+file-private; all parameters/premises must be supplied for the selected instance.
+
+```text
+schedule : V2.D.ScheduleWellFormed E rho
+finalized : FGBlock.Preceq U (SimplexFG.Window.derive Ef cfg K W).F
+deliver : BlockDelivery_W R E rho ready W U a₀ d
+guards : AcceptGuards_W R E rho Ef cfg K ready W U a₀ d deliver
+horizon : d ≤ rho.horizon
+```
+
+### C005 AcceptStep_W
+
+Source: `AvailableChainFGCompose/Statements/FinalityReceipts.lean:176`.
+
+```text
+∀ i x W t, x ∈ rho.honest → ready i x W t →
+(R.core (V2.D.Run.stateBefore E rho (i + 1) x)).fg =
+SimplexFG.Window.update_finality Ef cfg K
+{ (R.core (V2.D.Run.stateBefore E rho i x)).fg with
+TF := insert W (R.core (V2.D.Run.stateBefore E rho i x)).fg.TF } W ∧
+(SimplexFG.Window.derive Ef cfg K W).F ∈
+insert W (R.core (V2.D.Run.stateBefore E rho i x)).fg.TF
+```
+
+### C006 AcceptedBodyOriginDriverStatement
+
+Source: `AvailableChainFGCompose/Statements/ExecutionBridges.lean:35`.
+
+```text
+DriverTraceLaws E rho H W D L Step F T Op Arrival Notify leafState leafWire ActualRead →
+(∀ x k b, k ≤ (T x).length →
+(b ∈ H.acceptedBodies ((T x).state k) ↔ D.accepted ((T x).state k) b)) →
+∀ x, FGAcceptedBodyOrigin E rho H W (driverFGExecutionObs E rho F T Op) x
+```
+
+### C007 AcceptsFinalBefore
+
+Source: `AvailableChainFGCompose/Statements/Finality.lean:58`.
+
+```text
+Gen.V2.Duty.HoldsBefore E rho (fun nd => FGBlock.Preceq X (R.core nd).fg.F) d x
+```
+
+### C008 AcceptsFinalBefore_obs
+
+Source: `AvailableChainFGCompose/Statements/ExecutionAcceptance.lean:52`.
+
+```text
+FGBlock.Preceq U (R.core (obsStrictState O rho x d)).fg.F
+```
+
+### C009 AttemptCaughtUp
+
+Source: `AvailableChainFGCompose/Statements/Attempt.lean:83`.
+
+```text
+E.awake x t = true ∧
+match A.restartTime (rho.stateBefore E i x) with
+| none => True
+| some w => ∃ (s : Slot) (j : Nat), w ≤ slotStartZ T s ∧ T.gate s ≤ t ∧ j < i ∧
+AttemptEnabledGate E rho T A j x s ∧
+(∀ u, 0 ≤ u → slotStartZ T s ≤ u → u ≤ t → E.awake x u = true) ∧
+(∀ u, slotStartZ T s < u → u ≤ t → V2.Event.restart x u ∉ rho.events)
+```
+
+### C010 AttemptEnabledGate
+
+Source: `AvailableChainFGCompose/Statements/Attempt.lean:54`.
+
+```text
+rho.events[j]? = some (.tick x (T.gate s)) ∧
+match A.restartTime (rho.stateBefore E j x) with
+| none => True
+| some w => w ≤ slotStartZ T s
+```
+
+### C011 AttemptEndsBy
+
+Source: `AvailableChainFGCompose/Statements/Attempt.lean:205`.
+
+```text
+∃ ev,
+rho.events[k.start]? = some ev ∧ ∃ j ev', k.start < j ∧
+rho.events[j]? = some ev' ∧ ev'.time ≤ ev.time + budget ∧
+(EffectiveEvent R E rho O j ∨
+(k.task = .raise ∧ k.frontier < frontierAtIdx R E rho (j + 1)) ∨
+(k.task = .firstRow ∧ ∃ y r a e, HonestRowAt S E rho T j y r a ∧
+namedEntry (pair a) = some (k.frontier, e)))
+```
+
+### C012 AttemptExactService
+
+Source: `AvailableChainFGCompose/Statements/Attempt.lean:121`.
+
+```text
+(T.vote s ≤ rho.horizon → ∀ x ∈ rho.honest,
+AttemptJoinedAt E rho T x s (T.vote s) → headAtLabel R E rho T x s = some Q) ∧
+(T.gate s ≤ rho.horizon → ∀ x ∈ rho.honest,
+(x ∈ rho.honest ∧ AttemptCaughtUp E rho T A x
+(afterTicksIdx rho (T.gate s)) (T.gate s)) →
+AttemptGateResult E rho T A x s = some (some Q) ∧
+(∃ j, AttemptEnabledGate E rho T A j x s ∧ AttemptGatePassed E rho T A j) ∧
+(∃ nd, postClock E rho x (T.gate s) = some nd ∧ Q ∈ (A.writes nd s).getD []) ∧
+I.stable (afterTicks E rho (T.gate s) x) = Q ∧
+(∀ r, s = r * T.roundSlots →
+(actionSourceFG R E rho T x r).map (Option.map R.erase) = some (some Q)))
+```
+
+### C013 AttemptGateCopy
+
+Source: `AvailableChainFGCompose/Statements/Attempt.lean:313`.
+
+```text
+∀ u v m J contested q Q Qfg, Jst ≤ u → PhaseInterval R E rho O u v m J contested →
+u ≤ T.proposal q → T.gate q ≤ v → HonestProposal E rho I q Q → R.erase Qfg = Q →
+AttemptExactService R E rho T I A q Q → ∃ i x,
+rho.idxBefore u ≤ i ∧ i ≤ timeIdx rho v ∧ x ∈ rho.honest ∧
+Qfg ∈ (R.core (rho.stateBefore E i x)).fg.TF
+```
+
+### C014 AttemptGatePassed
+
+Source: `AvailableChainFGCompose/Statements/Attempt.lean:69`.
+
+```text
+∃ x s,
+AttemptEnabledGate E rho T A j x s ∧
+let nd := A.preClock (rho.stateBefore E j x) (T.gate s)
+A.saved nd s = none ∧ ∃ B, A.confirmation nd s = some B ∧ A.blocked nd B = false
+```
+
+### C015 AttemptJoinedAt
+
+Source: `AvailableChainFGCompose/Statements/Attempt.lean:38`.
+
+```text
+E.awake x t = true ∧
+(∀ u, 0 < u → u ≤ t → V2.D.Wakes E x u → u ≤ slotStartZ T ((s : Int) - 1)) ∧
+(∀ u, 0 ≤ u → u ≤ t → V2.Event.restart x u ∈ rho.events →
+u ≤ slotStartZ T ((s : Int) - 1))
+```
+
+### C016 AttemptKey
+
+Source: `AvailableChainFGCompose/Statements/Attempt.lean:14`.
+
+Producer recipe: healing_attemptValid_of_event
+(AvailableChainFGSAProofs/Proofs/Healing/PhaseBoot.lean:130); all parameters/premises must be
+supplied for the selected instance.
+
+```text
+start : Nat
+frontier : Nat
+phase : PhaseKind
+task : AttemptTask
+served : Bool
+```
+
+### C017 AttemptNextOpeningService
+
+Source: `AvailableChainFGCompose/Statements/Attempt.lean:279`.
+
+```text
+∀ u m J contested q Q Qfg r, Jst ≤ u → HonestProposal E rho I q Q →
+R.erase Qfg = Q → AttemptExactService R E rho T I A q Q →
+u ≤ T.proposal q → q ≤ r * T.roundSlots →
+PhaseInterval R E rho O u (T.action (r + 1)) m J contested →
+∀ y K, y ∈ rho.honest → actionSourceFG R E rho T y r = some (some K) →
+∀ x L, x ∈ rho.honest → actionSourceFG R E rho T x (r + 1) = some (some L) →
+FGBlock.Preceq K L ∧ (O.height L).h ≤ m
+```
+
+### C018 AttemptOpeningService
+
+Source: `AvailableChainFGCompose/Statements/Attempt.lean:258`.
+
+```text
+∀ u m J contested q Q Qfg r, Jst ≤ u → HonestProposal E rho I q Q →
+R.erase Qfg = Q → AttemptExactService R E rho T I A q Q →
+u ≤ T.proposal q → q ≤ r * T.roundSlots →
+PhaseInterval R E rho O u (T.action r) m J contested →
+OpeningCovered R S E rho O.height T pair r Q ∧
+(∀ x K, x ∈ rho.honest → actionSourceFG R E rho T x r = some (some K) →
+FGBlock.Preceq Qfg K ∧ (O.height K).h ≤ m)
+```
+
+### C019 AttemptPhaseAt
+
+Source: `AvailableChainFGCompose/Statements/Phase.lean:38`.
+
+```text
+match kind with
+| .gap => ¬ TopEvidence R E rho i m ∧ ¬ ContestEvidence R E rho O i m
+| .topJ => TopEvidence R E rho i m ∧ ¬ ContestEvidence R E rho O i m
+| .contest => ContestEvidence R E rho O i m
+```
+
+### C020 AttemptProposalFloor
+
+Source: `AvailableChainFGCompose/Statements/Attempt.lean:300`.
+
+```text
+∀ u v m J contested q Q Qfg, Jst ≤ u → PhaseInterval R E rho O u v m J contested →
+u ≤ T.proposal q → T.gate q ≤ v → HonestProposal E rho I q Q → R.erase Qfg = Q →
+(if contested then m else m - 1) ≤ (O.height Qfg.parent).h
+```
+
+### C021 AttemptRenewedPromotion
+
+Source: `AvailableChainFGCompose/Statements/Attempt.lean:330`.
+
+```text
+∀ r, T.action r + 2 * FGCompose.P T + Γ T G - 4 * T.delta ≤ rho.horizon →
+∀ u m J contested l q Q height, Jst ≤ u →
+PhaseInterval R E rho O u (T.action r) m J contested →
+u ≤ T.proposal q → q ≤ r * T.roundSlots → T.proposal l < T.proposal q →
+HonestProposal E rho I q Q → AttemptExactService R E rho T I A q Q →
+OpeningEntry R E rho O.height T r height → OpeningCovered R S E rho O.height T pair r Q →
+(∀ v, PhaseInterval R E rho O u v m J contested →
+AttemptRepairAfter R E rho T I A l v) →
+(∃ i ev, afterTicksIdx rho (T.action r) ≤ i ∧ rho.events[i]? = some ev ∧
+EffectiveEvent R E rho O i ∧
+ev.time ≤ T.action r + 2 * FGCompose.P T + Γ T G - 9 * T.delta) ∨
+(∃ s X, HonestProposal E rho I s (R.erase X) ∧ X.slot = s ∧
+(r : Time) * FGCompose.P T + 2 * FGCompose.P T ≤ T.proposal s ∧
+T.proposal s ≤ T.action r + 2 * FGCompose.P T + Γ T G - 10 * T.delta ∧
+height + 1 ≤ (O.height X).h ∧
+(∃ y, y ∈ rho.honest ∧ Gen.V2.Duty.HoldsBefore E rho
+(fun nd => X ∈ (R.core nd).fg.TF) (T.proposal s + T.delta) y) ∧
+(PhaseInterval R E rho O u (T.gate s) m J contested →
+AttemptExactService R E rho T I A s (R.erase X) ∧
+T.gate s ≤ T.action r + 2 * FGCompose.P T + Γ T G - 4 * T.delta))
+```
+
+### C022 AttemptRepairAfter
+
+Source: `AvailableChainFGCompose/Statements/Attempt.lean:225`.
+
+```text
+∀ s Q,
+T.proposal l < T.proposal s → T.gate s ≤ v → HonestProposal E rho I s Q →
+AttemptExactService R E rho T I A s Q
+```
+
+### C023 AttemptRepairService
+
+Source: `AvailableChainFGCompose/Statements/Attempt.lean:237`.
+
+```text
+4 * T.delta ≤ G → ∀ u v m J contested, Jst ≤ u → PhaseInterval R E rho O u v m J contested →
+∀ β, u < T.proposal β → (∀ b, u < T.proposal b → β ≤ b) →
+AttemptRepairAfter R E rho T I A (β + 2 * leaseSlots - 1) v ∧
+(u + repairAllowance ≤ v → ∃ s Q,
+T.proposal (β + 2 * leaseSlots - 1) < T.proposal s ∧
+T.gate s ≤ u + repairAllowance ∧ HonestProposal E rho I s Q ∧
+AttemptExactService R E rho T I A s Q)
+```
+
+### C024 AttemptTerminalPromotion
+
+Source: `AvailableChainFGCompose/Statements/Attempt.lean:377`.
+
+```text
+∀ r, T.action r + 2 * FGCompose.P T + Γ T G - 9 * T.delta ≤ rho.horizon →
+∀ u m J contested q Q height, Jst ≤ u →
+PhaseInterval R E rho O u (T.action r) m J contested →
+u ≤ T.proposal q → q ≤ r * T.roundSlots →
+OpeningEntry R E rho O.height T r height → OpeningCovered R S E rho O.height T pair r Q →
+(∃ i ev, afterTicksIdx rho (T.action r) ≤ i ∧ rho.events[i]? = some ev ∧
+EffectiveEvent R E rho O i ∧
+ev.time ≤ T.action r + 2 * FGCompose.P T + Γ T G - 9 * T.delta) ∨
+(∃ s X, HonestProposal E rho I s (R.erase X) ∧ X.slot = s ∧
+(r : Time) * FGCompose.P T + 2 * FGCompose.P T ≤ T.proposal s ∧
+T.proposal s ≤ T.action r + 2 * FGCompose.P T + Γ T G - 10 * T.delta ∧
+height + 1 ≤ (O.height X).h ∧
+(∃ y, y ∈ rho.honest ∧ Gen.V2.Duty.HoldsBefore E rho
+(fun nd => X ∈ (R.core nd).fg.TF) (T.proposal s + T.delta) y))
+```
+
+### C025 AttemptValid
+
+Source: `AvailableChainFGCompose/Statements/Attempt.lean:162`.
+
+```text
+∃ ev,
+rho.events[k.start]? = some ev ∧ Jst ≤ ev.time ∧
+(EffectiveEvent R E rho O k.start ∨ ∃ rG, Jst ≤ T.action rG ∧
+(∀ r, Jst ≤ T.action r → rG ≤ r) ∧ ev.time = T.action (rG + 2) ∧
+timeIdx rho (T.action (rG + 2)) = k.start + 1) ∧
+k.frontier = frontierAtIdx R E rho (k.start + 1) ∧ 1 ≤ k.frontier ∧
+AttemptPhaseAt R E rho O (k.start + 1) k.frontier k.phase ∧
+(k.served = true ↔ ServedFrontier R E rho O T I A k.frontier ev.time) ∧
+(k.task = .firstRow → ∀ j y r a h e, j ≤ k.start → HonestRowAt S E rho T j y r a →
+namedEntry (pair a) = some (h, e) → h ≠ k.frontier)
+```
+
+### C026 BatchPrem
+
+Source: `AvailableChainFGCompose/Statements/FinalityKernel.lean:51`.
+
+Producer recipe: kmid_batchPrem
+(AvailableChainFGSAProofs/Proofs/Finality/MiddleSupport.lean:1448); all parameters/premises must
+be supplied for the selected instance.
+
+```text
+schedule : V2.D.ScheduleWellFormed E rho
+fault_weight : Ef.weightOf (historyFaulty S rho) < Ef.q
+deltaF : E.Δ ≤ ΔF
+rowsReceipt : TRowsReceipt R S E rho T blockWireRows ΔF
+horizon : max (T.action q) E.t_GST + ΔF ≤ T.proposal X.slot ∧
+T.proposal X.slot ≤ rho.horizon
+carrier : ∃ rows, HonestCarrier E rho I (kernelCarrier decodeProposal bodyErase bodyRows)
+X.slot (R.erase X) rows ∧
+X.rows = rows.filterMap S.decode
+after : q * T.roundSlots + 2 ≤ X.slot
+valid : ∃ Q : Finset (Fin n),
+(∀ i ∈ Q, safetyHolder S rho i ∈ rho.honest) ∧
+Ef.q ≤ Ef.weightOf Q ∧ ∀ i ∈ Q, ∃ j r a t,
+r ≤ q ∧ HonestRowAt S E rho T j (safetyHolder S rho i) r a ∧
+D.signer a = some i ∧ NamesEntry (pair := D.heightPair) k a y U ∧
+eventTime rho j = some t ∧ t = T.action r ∧
+ValidForParent E rho I parentFG validFor X.slot (R.erase X) a ∧
+HeightMatch E rho I (fun a => namedEntry (D.heightPair a))
+parentFG parentHeight X.slot (R.erase X) a
+entry : EntryAt O.height U y
+path : FGBlock.Preceq U X.parent
+above : ∀ i, safetyHolder S rho i ∈ rho.honest →
+∀ W, FGBlock.Preceq W X.parent →
+(∃ row ∈ W.rows, RowNames k row i y U) → FGBlock.Preceq U W.parent
+```
+
+### C027 BlockDelivery_W
+
+Source: `AvailableChainFGCompose/Statements/FinalityReceipts.lean:119`.
+
+Producer recipe: d7a5a_delivery (AvailableChainFGSAProofs/Proofs/Finality/Accept.lean:300);
+file-private; all parameters/premises must be supplied for the selected instance.
+
+```text
+selected : ∀ x, x ∈ rho.honest → ReceiptWitness_W
+witness : ∀ x (hx : x ∈ rho.honest),
+let w := selected x hx
+rho.events[w.index]?.map V2.Event.time = some w.time ∧ w.time < d ∧
+(FGBlock.Preceq U (R.core (V2.D.Run.stateBefore E rho (w.index + 1) x)).fg.F ∨
+(a₀ ≤ w.time ∧ ready w.index x W w.time))
+```
+
+### C028 ChainRowsBefore
+
+Source: `AvailableChainFGCompose/Statements/CoreReads.lean:45`.
+
+```text
+∀ W, FGBlock.Preceq W X → ∀ row ∈ W.rows, ∃ x t, x ∈ rho.honest ∧ t < cut ∧
+Gen.V2.Duty.HoldsBefore E rho (fun nd => W ∈ (R.core nd).fg.TF) t x
+```
+
+### C029 ChainRowsOfHeadObsStatement
+
+Source: `AvailableChainFGCompose/Statements/ExecutionBridges.lean:119`.
+
+```text
+FGCoreLaws R → FGExecutionObsLaws E rho O → FGObservedCoreLaws R rho O →
+∀ j x t s X deadline, x ∈ rho.honest → rho.events[j]? = some (.tick x t) →
+R.headVote (O.cutState x (O.duty x j)) s = R.erase X →
+(∀ i ei, rho.events[i]? = some ei → i ≤ j → ei.time < deadline) →
+FGChainRowsAtCut R rho O X deadline
+```
+
+### C030 ContestEvidence
+
+Source: `AvailableChainFGCompose/Statements/Phase.lean:26`.
+
+```text
+∃ x, x ∈ rho.honest ∧
+(O.controls (V2.D.Run.stateBefore E rho i x)).H = m ∧
+(O.controls (V2.D.Run.stateBefore E rho i x)).contest = true
+```
+
+### C031 DriverCoreStepLaws
+
+Source: `AvailableChainFGCompose/Statements/ExecutionObs.lean:412`.
+
+Producer: OPEN; selecting PC consumer owns the actual input.
+
+```text
+good_init : Good P.init
+good_step : ∀ kind x st st', Step kind x st st' → Good st → Good st'
+tf_step : ∀ kind x st st', Step kind x st st' →
+(R.core st).fg.TF ⊆ (R.core st').fg.TF
+f_step : ∀ kind x st st', Step kind x st st' →
+FGBlock.Preceq (R.core st).fg.F (R.core st').fg.F
+parent_closed : ∀ st, Good st → ∀ B ∈ (R.core st).fg.TF, B.parent ∈ (R.core st).fg.TF
+head_mem : ∀ st s, Good st → dependencyClosed H D st →
+∃ B ∈ (R.core st).fg.TF, R.erase B = R.headVote st s
+restore_tf : ∀ st t, (R.core (P.restore (P.durable st) t)).fg.TF = (R.core st).fg.TF
+restore_f : ∀ st t, (R.core (P.restore (P.durable st) t)).fg.F = (R.core st).fg.F
+```
+
+### C032 DriverTraceLaws
+
+Source: `AvailableChainFGCompose/Statements/ExecutionObs.lean:328`.
+
+```text
+∀ x, FGDependencyTraceLaws E rho x H W D L Step (T x) F (Op x) Arrival Notify
+leafState leafWire ActualRead
+```
+
+### C033 Effect
+
+Source: `AvailableChainFGCompose/Statements/Dependency.lean:44`.
+
+```text
+D.originAvailable st b o ∧ (D.pending st b o ∨ dependencyResolved H D st b)
+```
+
+### C034 EffectiveEvent
+
+Source: `AvailableChainFGCompose/Statements/Phase.lean:31`.
+
+```text
+frontierAtIdx R E rho i < frontierAtIdx R E rho (i + 1) ∨
+(let m := frontierAtIdx R E rho (i + 1)
+(¬ TopEvidence R E rho i m ∧ TopEvidence R E rho (i + 1) m) ∨
+(¬ ContestEvidence R E rho O i m ∧ ContestEvidence R E rho O (i + 1) m))
+```
+
+### C035 EntryAt
+
+Source: `AvailableChainFGCompose/Statements/FinalityHistory.lean:48`.
+
+```text
+(H U).h = y ∧ (H U).T_h = U
+```
+
+### C036 FE_W
+
+Source: `AvailableChainFGCompose/Statements/Finality.lean:85`.
+
+```text
+Gen.Pure.RecFE_W honestSlot T.roundSlots (kappaF T deltaF) (FGCompose.P T) T.delta
+(betaF T deltaF) start horizon g
+```
+
+### C037 FGACServiceLaws
+
+Source: `AvailableChainFGCompose/Statements/Service.lean:91`.
+
+Producer recipe: c2_service_laws (AvailableChainFGSAProofs/Proofs/Finality/Rows.lean:502);
+file-private; all parameters/premises must be supplied for the selected instance.
+
+```text
+source_chain : ∀ x y r q C D,
+A.honest x → A.honest y → A.sourceScope x r C → A.sourceScope y q D →
+InSuffix pt horizon (A.actionTime r) → InSuffix pt horizon (A.actionTime q) →
+A.source x r = some (some C) → A.source y q = some (some D) →
+Block.Compatible C D
+exact_head : ∀ s Q x, A.proposal s Q → A.proposalScope s Q →
+pt.serviceStart ≤ A.proposalTime s → A.voteTime s ≤ horizon →
+A.honest x → A.headScope x s → A.headAtLabel x s = some Q
+exact_gate : ∀ s Q x, A.proposal s Q → A.proposalScope s Q →
+pt.serviceStart ≤ A.proposalTime s → A.gateTime s ≤ horizon →
+A.honest x → A.gateScope x s → A.gate x s = some (some Q)
+opening_source : ∀ q Q x, A.proposal (A.gateLabel q) Q →
+A.proposalScope (A.gateLabel q) Q →
+pt.serviceStart ≤ A.proposalTime (A.gateLabel q) →
+A.actionTime q ≤ horizon → A.honest x → A.actionScope x q →
+A.gateScope x (A.gateLabel q) → A.source x q = some (some Q)
+proposal_later_head : ∀ s Q x i H,
+A.proposal s Q → A.proposalScope s Q → pt.serviceStart ≤ A.proposalTime s →
+A.honest x → A.headScope x i → s + 1 ≤ i → A.voteTime i ≤ horizon →
+A.headAtLabel x i = some H → A.below Q H
+source_next_head : ∀ y r C x i H,
+A.honest y → A.sourceScope y r C → A.source y r = some (some C) →
+InSuffix pt horizon (A.actionTime r) → A.honest x → A.headScope x i →
+A.gateLabel r + 1 ≤ i → A.voteTime i ≤ horizon →
+A.headAtLabel x i = some H → A.below C H
+covered_source : ∀ s Q q x,
+A.proposal s Q → A.proposalScope s Q → pt.serviceStart ≤ A.proposalTime s →
+Q ≠ .genesis → s < A.gateLabel q →
+A.gateTime s ≤ A.actionTime q → InSuffix pt horizon (A.actionTime q) →
+pt.reset.sStar ≤ A.gateLabel q → recoveryStart ≤ A.voteTime (A.gateLabel q) →
+(∀ y, A.honest y → ∃ H, A.headScope y (A.gateLabel q) ∧
+A.headAtLabel y (A.gateLabel q) = some H ∧ A.below Q H) →
+(∀ y F, A.honest y → A.gateFloor y (A.gateLabel q) = some F → A.below F Q) →
+A.honest x → A.actionScope x q → A.frame x q Q →
+∃ C, A.source x q = some (some C) ∧ A.below Q C
+parent_transfer : ∀ x r C s Q,
+A.honest x → A.sourceScope x r C → A.source x r = some (some C) →
+InSuffix pt horizon (A.actionTime r) → A.proposal s Q → A.proposalScope s Q →
+A.gateLabel r + 2 ≤ s → A.proposalTime s ≤ horizon → A.below C Q.parent
+```
+
+### C038 FGACServiceReads
+
+Source: `AvailableChainFGCompose/Statements/Service.lean:23`.
+
+Producer recipe: d7n_ac (AvailableChainFGSAProofs/Proofs/Finality/Middle.lean:840); file-private;
+all parameters/premises must be supplied for the selected instance.
+
+```text
+honest : V → Prop
+proposal : Slot → Block → Prop
+proposalTime : Slot → Time
+voteTime : Slot → Time
+gateTime : Slot → Time
+gateLabel : Nat → Slot
+actionHeadLabel : Nat → Slot
+actionTime : Nat → Time
+proposalScope : Slot → Block → Prop
+sourceScope : V → Nat → Block → Prop
+headScope : V → Slot → Prop
+gateScope : V → Slot → Prop
+actionScope : V → Nat → Prop
+headAtLabel : V → Slot → Option Block
+actionHead : V → Nat → Option (Option Block)
+gate : V → Slot → Option (Option Block)
+source : V → Nat → Option (Option Block)
+parent : Slot → Option Block
+gateFloor : V → Slot → Option Block
+frame : V → Nat → Block → Prop
+below : Block → Block → Prop
+```
+
+### C039 FGAcceptanceEffectLaws
+
+Source: `AvailableChainFGCompose/Statements/ExecutionAcceptance.lean:25`.
+
+Producer recipe: ordinary_acceptanceEffect_iff
+(AvailableChainFGCompose/Proofs/ExecutionAcceptanceOrdinary.lean:84); all parameters/premises must
+be supplied for the selected instance.
+
+```text
+leaf : (R.core (O.cutState x (A.step + 1))).fg =
+SimplexFG.Window.update_finality Ef cfg K
+{ (R.core (O.cutState x A.step)).fg with
+TF := insert W (R.core (O.cutState x A.step)).fg.TF } W ∧
+(SimplexFG.Window.derive Ef cfg K W).F ∈
+insert W (R.core (O.cutState x A.step)).fg.TF
+finality : FGObservedFinalityLaws R rho O
+```
+
+### C040 FGAcceptanceGuards
+
+Source: `AvailableChainFGCompose/Statements/ExecutionAcceptance.lean:38`.
+
+Producer: OPEN; selecting PC consumer owns the actual input.
+
+```text
+invariant : FGStoreInvariant (KitFG.Window.certificateHeight Ef cfg K)
+(KitFG.Window.certificateFinality Ef cfg K) (R.core (O.cutState x k)).fg
+finCmp : FGBlock.Preceq (R.core (O.cutState x k)).fg.F U ∨
+FGBlock.Preceq U (R.core (O.cutState x k)).fg.F
+jPath : ¬ FGBlock.Preceq U (R.core (O.cutState x k)).fg.F →
+FGBlock.Preceq (R.core (O.cutState x k)).fg.J W ∨
+(R.core (O.cutState x k)).fg.h_j < (SimplexFG.Window.derive Ef cfg K W).h_j
+cap : ¬ FGBlock.Preceq U (R.core (O.cutState x k)).fg.F →
+max (R.core (O.cutState x k)).fg.h_max (SimplexFG.Window.derive Ef cfg K W).h ≤
+(SimplexFG.Window.derive Ef cfg K W).h + 1
+```
+
+### C041 FGAttemptGateReads
+
+Source: `AvailableChainFGCompose/Statements/Attempt.lean:22`.
+
+Producer recipe: p0d4DispatchGate (AvailableChainFGSAProofs/Proofs/Healing/Attempt.lean:57);
+file-private; all parameters/premises must be supplied for the selected instance.
+
+```text
+restartTime : P.State → Option Time
+preClock : P.State → Time → P.State
+saved : P.State → Slot → Option Block
+confirmation : P.State → Slot → Option Block
+blocked : P.State → Block → Bool
+writes : P.State → Slot → Option (List Block)
+```
+
+### C042 FGChainRowsAtCut
+
+Source: `AvailableChainFGCompose/Statements/ExecutionBridges.lean:99`.
+
+```text
+∀ W, FGBlock.Preceq W X → ∀ row ∈ W.rows, ∃ x, x ∈ rho.honest ∧
+(W ∈ (R.core (O.stateBefore 0 x)).fg.TF ∨
+∃ j e k, rho.events[j]? = some e ∧ O.start x j ≤ k ∧ k ≤ O.done x j ∧
+(∀ i ei, rho.events[i]? = some ei → i ≤ j → ei.time < deadline) ∧
+W ∈ (R.core (O.cutState x k)).fg.TF)
+```
+
+### C043 FGCoreLaws
+
+Source: `AvailableChainFGCompose/Statements/CoreReads.lean:25`.
+
+Producer recipe: fgsaCoreLaws (AvailableChainFGSAProofs/Proofs/Shared/FGCompose.lean:53); all
+parameters/premises must be supplied for the selected instance.
+
+```text
+clock_fg : ∀ nd t, (R.core (P.clock nd t)).fg = (R.core nd).fg
+clock_proposals : ∀ nd t, (R.core (P.clock nd t)).proposals = (R.core nd).proposals
+clock_rowPool : ∀ nd t, (R.core (P.clock nd t)).rowPool = (R.core nd).rowPool
+process_tf : ∀ nd o, (R.core nd).fg.TF ⊆ (R.core (P.process nd o)).fg.TF
+process_proposals : ∀ nd o, (R.core nd).proposals <+: (R.core (P.process nd o)).proposals
+process_rowPool : ∀ nd o, (R.core nd).rowPool <+: (R.core (P.process nd o)).rowPool
+own_core : ∀ nd o, R.core (P.recordOwn nd o) = R.core nd
+source_mem : ∀ nd C, R.source nd = some C → C ∈ (R.core nd).fg.TF
+erase_inj : Function.Injective R.erase
+```
+
+### C044 FGCoreReads
+
+Source: `AvailableChainFGCompose/Statements/CoreReads.lean:17`.
+
+Producer recipe: fgsaCoreReads (AvailableChainFGSAProofs/Proofs/Shared/FGCompose.lean:13); all
+parameters/premises must be supplied for the selected instance.
+
+```text
+core : P.State → FGCore n Base Proposal RowWire
+erase : FGBlock (Fin n) → Block
+source : P.State → Option (FGBlock (Fin n))
+headVote : P.State → Slot → Block
+finalityHead : P.State → Option (FGBlock (Fin n))
+proposalFG : P.State → P.Object → Option (FGBlock (Fin n))
+```
+
+### C045 FGDependencyArrivalLeafLaws
+
+Source: `AvailableChainFGCompose/Statements/Dependency.lean:115`.
+
+Producer: OPEN; selecting PC consumer owns the actual input.
+
+```text
+direct_refusal_iff : ∀ st b o st', (∃ result, L.step st b o result st') →
+(L.step st b o .definitiveRefused st' ↔
+D.validBody b ∧ D.priorChecks st b ∧ D.timely st b ∧ ¬ D.accepted st b ∧
+D.accepted st (H.parent b) ∧ D.conflictsFinal st b ∧
+dependencyRefused H D st' b ∧ D.originAvailable st' b o ∧ L.report st b o st')
+arrival_effect : ∀ st st' b o, Arrival st b o st' → D.validBody b →
+D.timely st b → Effect H D st' b o
+arrival_inherits : ∀ st st' b o, Arrival st b o st' → D.validBody b →
+dependencyRefused H D st (H.parent b) →
+dependencyRefused H D st' b ∧ D.originAvailable st' b o ∧ L.report st b o st'
+arrival_pending : ∀ st st' b o, Arrival st b o st' → D.validBody b → D.timely st b →
+¬ D.accepted st b → ¬ D.accepted st (H.parent b) →
+¬ dependencyRefused H D st (H.parent b) → ¬ dependencyRefused H D st b →
+D.pending st' b o
+held_parent_accepts : ∀ st st' b o, (∃ result, L.step st b o result st') →
+(L.step st b o .accepted st' ↔
+D.validBody b ∧ D.priorChecks st b ∧ D.timely st b ∧ ¬ D.accepted st b ∧
+D.accepted st (H.parent b) ∧ ¬ D.conflictsFinal st b ∧ D.accepted st' b ∧
+D.originAvailable st' b o ∧ H.erase b ∈ H.acceptedBlocks st')
+accepted_callback : ∀ st st' b o, L.step st b o .accepted st' → L.callback st b o st'
+callback_only : ∀ st st' b o, L.callback st b o st' →
+L.step st b o .accepted st' ∧ ¬ D.accepted st b ∧ ¬ dependencyRefused H D st' b
+refusal_report : ∀ st st' b o, L.report st b o st' →
+dependencyRefused H D st' b ∧ ¬ D.accepted st' b
+rejected_no_refusal : ∀ st st' b o result, L.step st b o result st' →
+(result = .invalid ∨ result = .future ∨ result = .duplicate ∨ result = .pending) →
+dependencyRefused H D st' b → dependencyRefused H D st b
+notification_resolved : ∀ st st' b, Notify st b st' → dependencyResolved H D st b
+notification_keys : ∀ st st' b, Notify st b st' →
+D.latestKey (D.latest st') = D.latestKey (D.latest st)
+notification_fields : ∀ st st' b i, Notify st b st' →
+(¬ D.accepted st b ∨
+¬ ∃ slot, D.latestKey (D.latest st) i = some (slot, H.root b)) →
+D.latestCompanion (D.latest st') i = D.latestCompanion (D.latest st) i
+notification_matching : ∀ st st' b i slot, Notify st b st' → D.accepted st b →
+D.latestKey (D.latest st) i = some (slot, H.root b) →
+D.latestCompanion (D.latest st') i = some b
+refused_notification : ∀ st st' b, Notify st b st' → dependencyRefused H D st b →
+D.notified st' b ∧ D.latest st' = D.latest st
+callback_latest : ∀ st st' b, Notify st b st' → D.accepted st b →
+D.notified st' b ∧
+(∀ c, D.matching (D.latest st) c → c = b → D.companionHeld (D.latest st') c) ∧
+(∀ c, c ≠ b → (D.companionHeld (D.latest st') c ↔ D.companionHeld (D.latest st) c))
+```
+
+### C046 FGDependencyDeliveryLaws
+
+Source: `AvailableChainFGCompose/Statements/DependencyTrace.lean:559`.
+
+Producer: OPEN; selecting PC consumer owns the actual input.
+
+```text
+old_send : ∀ sender wire sent wake deadline b,
+sender ∈ rho.honest → dependencyEmits E rho F sender wire sent →
+W.decodeBody wire = some b → D.validBody b → Outstanding wire sent wake →
+sent < deadline → wake ≤ deadline →
+(∀ t, wake ≤ t → t ≤ deadline → E.awake x t = true) →
+(∀ (j : Nat) (t : Time), rho.events[j]? = some (.restart x t) →
+wake < t → deadline < t) →
+deadline ≤ rho.horizon →
+max (max sent E.t_GST) wake + E.Δ ≤ deadline →
+∃ j o, FGReceiptOrigin E rho H W x b o ∧ o.eventIndex = j ∧
+o.receiptTime < max (max sent E.t_GST) wake + E.Δ ∧
+Effect H D (T.state (T.done j)) b o
+```
+
+### C047 FGDependencyDriver
+
+Source: `AvailableChainFGCompose/Statements/DependencyTrace.lean:109`.
+
+Producer: OPEN; selecting PC consumer owns the actual input.
+
+```text
+enter : P.State → P.Object → FGReceiptToken V P.Object → P.State
+enterProgram : P.State → P.Object → FGReceiptToken V P.Object → FGDependencyProgram P.State
+hookProgram : P.State → FGDependencyOperation Body (FGReceiptToken V P.Object) P.Object →
+FGDependencyProgram P.State
+drain : P.State → P.State
+reconstruct : P.State → Time → P.State
+rebuild : P.State → Time → P.State
+retry : P.State → Body → FGReceiptToken V P.Object → FGDependencyOutcome → P.State
+work : P.State → V2.Event V P.Object →
+List (FGDependencyCommand Body (FGReceiptToken V P.Object) P.Object)
+inheritRefusal : P.State → Body → FGReceiptToken V P.Object → P.State
+notify : P.State → Body → FGReceiptToken V P.Object → P.State
+replay : P.State → Body → FGReceiptToken V P.Object → P.State
+```
+
+### C048 FGDependencyLeaf
+
+Source: `AvailableChainFGCompose/Statements/Dependency.lean:50`.
+
+Producer: OPEN; selecting PC consumer owns the actual input.
+
+```text
+step : State → Body → Origin → FGDependencyOutcome → State → Prop
+callback : State → Body → Origin → State → Prop
+report : State → Body → Origin → State → Prop
+initial : State
+genesis : Body
+```
+
+### C049 FGDependencyReads
+
+Source: `AvailableChainFGCompose/Statements/Dependency.lean:18`.
+
+Producer: OPEN; selecting PC consumer owns the actual input.
+
+```text
+accepted : State → Body → Prop
+refused : State → Body → BlockId → BlockId → Prop
+pending : State → Body → Origin → Prop
+originAvailable : State → Body → Origin → Prop
+validBody : Body → Prop
+priorChecks : State → Body → Prop
+timely : State → Body → Prop
+conflictsFinal : State → Body → Prop
+latest : State → Latest
+notified : State → Body → Prop
+matching : Latest → Body → Prop
+companionHeld : Latest → Body → Prop
+latestKey : Latest → Fin 5 → Option (Slot × BlockId)
+latestCompanion : Latest → Fin 5 → Option Body
+```
+
+### C050 FGDependencyStateLaws
+
+Source: `AvailableChainFGCompose/Statements/Dependency.lean:73`.
+
+Producer: OPEN; selecting PC consumer owns the actual input.
+
+```text
+accepted_domain : ∀ st b, D.accepted st b ↔ b ∈ H.acceptedBodies st
+accepted_refused_disjoint : ∀ st b, D.validBody b →
+D.accepted st b → ¬ dependencyRefused H D st b
+pending_valid : ∀ st b o, D.pending st b o → D.validBody b ∧ D.originAvailable st b o
+refused_valid : ∀ st b r pr, D.refused st b r pr → ∃ o,
+D.validBody b ∧ H.root b = r ∧ H.root (H.parent b) = pr ∧
+D.originAvailable st b o
+genesis_accepted : D.accepted L.initial L.genesis
+initial_pending : ∀ b o, ¬ D.pending L.initial b o
+initial_refused : ∀ b r pr, ¬ D.refused L.initial b r pr
+accepted_leaf : ∀ st b, D.accepted st b → b ≠ L.genesis → ∃ a z o,
+L.step a b o .accepted z ∧ ¬ D.accepted a b ∧ D.accepted z b ∧
+D.originAvailable st b o
+```
+
+### C051 FGDependencyStepLaws
+
+Source: `AvailableChainFGCompose/Statements/Dependency.lean:90`.
+
+Producer: OPEN; selecting PC consumer owns the actual input.
+
+```text
+accepted_keep : ∀ k x st st' b, Step k x st st' → D.accepted st b → D.accepted st' b
+refused_keep : ∀ k x st st' b r pr, Step k x st st' →
+D.refused st b r pr → D.refused st' b r pr
+pending_effect : ∀ k x st st' b o, Step k x st st' → D.pending st b o → Effect H D st' b o
+origin_keep : ∀ k x st st' b o, Step k x st st' →
+D.originAvailable st b o → D.originAvailable st' b o
+metadata_fg_eq : ∀ k x st st', Step k x st st' →
+k ≠ .arrival → k ≠ .leafRetry → H.acceptedBlocks st' = H.acceptedBlocks st
+insertion_leaf : ∀ k x st st' b, Step k x st st' →
+D.accepted st' b → ¬ D.accepted st b → ∃ o, L.step st b o .accepted st'
+one_body : ∀ st st' b o result, L.step st b o result st' →
+∀ c, D.accepted st' c → D.accepted st c ∨ (c = b ∧ result = .accepted)
+restore_exact : ∀ st t,
+H.acceptedBlocks (restore st t) = H.acceptedBlocks st ∧
+H.acceptedBodies (restore st t) = H.acceptedBodies st ∧
+(∀ b r pr, D.refused (restore st t) b r pr ↔ D.refused st b r pr) ∧
+(∀ b o, D.pending (restore st t) b o ↔ D.pending st b o) ∧
+(∀ b o, D.originAvailable (restore st t) b o ↔ D.originAvailable st b o)
+no_signing : ∀ k x st st', Step k x st st' → ¬ emitsSigning st st'
+```
+
+### C052 FGDependencyTrace
+
+Source: `AvailableChainFGCompose/Statements/DependencyTrace.lean:232`.
+
+Producer: OPEN; selecting PC consumer owns the actual input.
+
+```text
+length : Nat
+state : Nat → State
+time : Nat → Time
+start : Nat → Nat
+done : Nat → Nat
+readCut : Nat → Nat
+entryCut : Nat → Nat
+dutyCut : Nat → Nat
+hookRead : Nat → Nat → FGDependencyReadKind → Nat → State → Prop
+```
+
+### C053 FGDependencyTraceLaws
+
+Source: `AvailableChainFGCompose/Statements/DependencyTrace.lean:251`.
+
+Producer: OPEN; selecting PC consumer owns the actual input.
+
+```text
+arrival_laws : FGDependencyArrivalLeafLaws H D L Arrival Notify
+initial : T.state 0 = P.init
+initial_accepted : ∀ b, D.accepted P.init b → b = L.genesis
+micro_step : ∀ k, k < T.length → ∃ kind, Step kind x (T.state k) (T.state (k + 1))
+external_step : ∀ j e, rho.events[j]? = some e →
+T.state (T.start j) = dependencyStateBefore E rho F x j ∧
+T.state (T.done j) = dependencyStateBefore E rho F x (j + 1)
+step_kind : ∀ k, k < T.length →
+Step (dependencyOperationKind (Op k)) x (T.state k) (T.state (k + 1))
+operation_bound : ∀ k, k < T.length →
+match Op k with
+| .arrival b o => Arrival (T.state k) b o (T.state (k + 1)) ∧
+T.state (k + 1) = F.enter (T.state k) o.wire o ∧
+FGReceiptOrigin E rho H W x b o ∧ k = T.start o.eventIndex
+| .leaf b o result => T.state (k + 1) = F.retry (T.state k) b o result ∧
+L.step (T.state k) b o result (T.state (k + 1)) ∧
+D.originAvailable (T.state k) b o ∧
+leafState (T.state (k + 1)) = Leaf.process (leafState (T.state k)) (leafWire o.wire)
+| .inheritRefusal b o => D.validBody b ∧ D.originAvailable (T.state k) b o ∧
+dependencyRefused H D (T.state k) (H.parent b) ∧
+dependencyRefused H D (T.state (k + 1)) b ∧
+T.state (k + 1) = F.inheritRefusal (T.state k) b o ∧
+L.report (T.state k) b o (T.state (k + 1))
+| .notification b o => Notify (T.state k) b (T.state (k + 1)) ∧
+D.originAvailable (T.state k) b o ∧ dependencyResolved H D (T.state k) b ∧
+T.state (k + 1) = F.notify (T.state k) b o ∧ D.notified (T.state (k + 1)) b
+| .replay b o => D.accepted (T.state k) b ∧ b ∈ H.acceptedBodies (T.state k) ∧
+D.originAvailable (T.state k) b o ∧ W.decodeBody o.wire = some b ∧
+T.state (k + 1) = F.replay (T.state k) b o ∧
+H.acceptedBlocks (T.state (k + 1)) = H.acceptedBlocks (T.state k) ∧
+H.acceptedBodies (T.state (k + 1)) = H.acceptedBodies (T.state k) ∧
+(∀ c, D.accepted (T.state (k + 1)) c ↔ D.accepted (T.state k) c) ∧
+(∀ c r pr, D.refused (T.state (k + 1)) c r pr ↔ D.refused (T.state k) c r pr) ∧
+(∀ c token, D.pending (T.state (k + 1)) c token ↔ D.pending (T.state k) c token) ∧
+(∀ c token, D.originAvailable (T.state (k + 1)) c token ↔
+D.originAvailable (T.state k) c token) ∧
+(∀ c token, ¬ L.callback (T.state k) c token (T.state (k + 1))) ∧
+(∀ c token, ¬ L.report (T.state k) c token (T.state (k + 1)))
+| .rejected wire => P.wellFormed wire = false ∧
+T.state (k + 1) = P.process (T.state k) wire
+| .ordinary wire => P.wellFormed wire = true ∧ W.decodeBody wire = none ∧
+T.state (k + 1) = P.process (T.state k) wire
+| .ownRecord wire => T.state (k + 1) = P.recordOwn (T.state k) wire
+| .clock t => T.state (k + 1) = P.clock (T.state k) t
+| .restore t => T.state (k + 1) = P.restore (P.durable (T.state k)) t
+| .reconstruct t =>
+T.state (k + 1) = F.reconstruct (T.state k) t ∧
+∃ j, rho.events[j]? = some (.restart x t) ∧ k = T.entryCut j
+| .rebuild t =>
+T.state (k + 1) = F.rebuild (T.state k) t ∧
+∃ j, rho.events[j]? = some (.restart x t) ∧ T.dutyCut j ≤ k ∧ k < T.done j ∧
+∀ q, T.dutyCut j ≤ q → q < k → ∃ b o, Op q = .replay b o
+| .idle => T.state (k + 1) = T.state k
+delivery_entry : ∀ j wire t, rho.events[j]? = some (.deliver x wire t) →
+let o : FGReceiptToken V P.Object := ⟨x, j, wire, t, dependencyReceiverEpoch rho x j⟩
+Op (T.start j) =
+(if E.awake x t then
+if P.wellFormed wire then
+match W.decodeBody wire with
+| some b => .arrival b o
+| none => .ordinary wire
+else .rejected wire
+else .idle)
+work_execution : ∀ j e, rho.events[j]? = some e →
+let work := dependencyExecuteWork F (T.state (T.entryCut j))
+(F.work (T.state (T.entryCut j)) e)
+work.state = T.state (T.done j) ∧
+work.operations = (List.range (T.done j - T.entryCut j)).map
+(fun offset => Op (T.entryCut j + offset))
+work_step : ∀ j e k, rho.events[j]? = some e →
+T.entryCut j ≤ k → k < T.done j →
+T.state (k + 1) = dependencyExecuteOperation F (T.state k) (Op k)
+hook_correspondence : ∀ j e index kind cut st, rho.events[j]? = some e →
+(T.hookRead j index kind cut st ↔ ∃ r,
+(dependencyEventReads rho F x j (T.state (T.start j)) e)[index]? = some r ∧
+r.kind = kind ∧ cut = T.entryCut j + r.offset ∧ st = r.consumed)
+hook_reads : ∀ j e r, rho.events[j]? = some e →
+r ∈ dependencyEventReads rho F x j (T.state (T.start j)) e →
+T.entryCut j + r.offset ≤ T.done j ∧
+T.state (T.entryCut j + r.offset) = r.consumed ∧
+FGDependencySteps Step x (T.state (T.entryCut j)) r.consumed ∧
+dependencyClosed H D r.consumed
+receipt_entry : ∀ j wire t b, rho.events[j]? = some (.deliver x wire t) →
+E.awake x t = true → P.wellFormed wire = true → W.decodeBody wire = some b →
+let o : FGReceiptToken V P.Object := ⟨x, j, wire, t, dependencyReceiverEpoch rho x j⟩
+Op (T.start j) = .arrival b o ∧
+Arrival (T.state (T.start j)) b o (T.state (T.entryCut j)) ∧
+(D.timely (T.state (T.start j)) b → Effect H D (T.state (T.entryCut j)) b o)
+entry_boundary : ∀ j e, rho.events[j]? = some e →
+T.entryCut j = T.start j + 1 ∧ T.entryCut j ≤ T.dutyCut j ∧
+T.dutyCut j ≤ T.done j ∧
+T.state (T.entryCut j) =
+dependencyEventEntry rho F x j (T.state (T.start j)) e ∧
+T.state (T.dutyCut j) =
+F.drain (dependencyDrainInput F x (T.state (T.entryCut j)) e)
+drain_operations : ∀ j e k, rho.events[j]? = some e →
+T.entryCut j ≤ k → k < T.done j →
+(∃ b o result, Op k = .leaf b o result) ∨
+(∃ b o, Op k = .inheritRefusal b o) ∨
+(∃ b o, Op k = .notification b o) ∨
+(∃ b o, Op k = .replay b o) ∨
+(∃ wire t, e = .tick x t ∧ T.dutyCut j ≤ k ∧ Op k = .ownRecord wire ∧
+wire ∈ dependencyReleased E rho (T.state (T.dutyCut j)) x t ∧
+P.objSelfVisible wire = true) ∨ Op k = .idle ∨
+(∃ t, e = .restart x t ∧ k = T.entryCut j ∧ Op k = .reconstruct t) ∨
+(∃ t, e = .restart x t ∧ T.dutyCut j ≤ k ∧ Op k = .rebuild t ∧
+∀ q, T.dutyCut j ≤ q → q < k → ∃ b o, Op q = .replay b o)
+boundary_idle : ∀ k, k < T.length →
+(¬ ∃ j e, rho.events[j]? = some e ∧ T.start j ≤ k ∧ k < T.done j) →
+Op k = .idle
+raw_restore : ∀ j t, rho.events[j]? = some (.restart x t) →
+Op (T.start j) = .restore t
+raw_clock : ∀ j t, rho.events[j]? = some (.tick x t) → Op (T.start j) = .clock t
+restore_data : ∀ st t,
+H.acceptedBlocks (P.restore (P.durable st) t) = H.acceptedBlocks st ∧
+H.acceptedBodies (P.restore (P.durable st) t) = H.acceptedBodies st ∧
+(∀ b r pr, D.refused (P.restore (P.durable st) t) b r pr ↔ D.refused st b r pr) ∧
+(∀ b o, D.pending (P.restore (P.durable st) t) b o ↔ D.pending st b o) ∧
+(∀ b o, D.originAvailable (P.restore (P.durable st) t) b o ↔ D.originAvailable st b o)
+reconstruct_program : ∀ st t,
+F.hookProgram st (.reconstruct t) = .finish (F.reconstruct st t)
+reconstruct_data : ∀ st t,
+let z := F.reconstruct st t
+H.acceptedBlocks z = H.acceptedBlocks st ∧
+H.acceptedBodies z = H.acceptedBodies st ∧
+(∀ b, D.accepted z b ↔ D.accepted st b) ∧
+(∀ b r pr, D.refused z b r pr ↔ D.refused st b r pr) ∧
+(∀ b o, D.pending z b o ↔ D.pending st b o) ∧
+(∀ b o, D.originAvailable z b o ↔ D.originAvailable st b o) ∧
+(∀ b, D.notified z b ↔ D.notified st b) ∧
+(∀ b o, ¬ L.callback st b o z) ∧
+(∀ b o, ¬ L.report st b o z)
+restart_reconstruct : ∀ j t,
+rho.events[j]? = some (.restart x t) →
+T.entryCut j < T.dutyCut j ∧ Op (T.entryCut j) = .reconstruct t
+restart_drain_closed : ∀ j t,
+rho.events[j]? = some (.restart x t) →
+dependencyClosed H D (T.state (T.dutyCut j))
+restart_replay_order : ∀ j t k b o,
+rho.events[j]? = some (.restart x t) →
+T.entryCut j ≤ k → k < T.done j → Op k = .replay b o →
+T.dutyCut j ≤ k
+rebuild_program : ∀ st t,
+F.hookProgram st (.rebuild t) = .finish (F.rebuild st t)
+rebuild_data : ∀ st t,
+let z := F.rebuild st t
+H.acceptedBlocks z = H.acceptedBlocks st ∧
+H.acceptedBodies z = H.acceptedBodies st ∧
+(∀ b, D.accepted z b ↔ D.accepted st b) ∧
+(∀ b r pr, D.refused z b r pr ↔ D.refused st b r pr) ∧
+(∀ b o, D.pending z b o ↔ D.pending st b o) ∧
+(∀ b o, D.originAvailable z b o ↔ D.originAvailable st b o) ∧
+(∀ b, D.notified z b ↔ D.notified st b) ∧
+(∀ b o, ¬ L.callback st b o z) ∧
+(∀ b o, ¬ L.report st b o z)
+restart_rebuild : ∀ j t,
+rho.events[j]? = some (.restart x t) →
+∃ r, T.dutyCut j ≤ r ∧ r < T.done j ∧ Op r = .rebuild t ∧
+(∀ q t', T.entryCut j ≤ q → q < T.done j → Op q = .rebuild t' → q = r) ∧
+(∀ q, T.dutyCut j ≤ q → q < r → ∃ b o, Op q = .replay b o) ∧
+(∀ q, r < q → q < T.done j →
+(∃ b o result, Op q = .leaf b o result) ∨ (∃ b o, Op q = .inheritRefusal b o) ∨
+(∃ b o, Op q = .notification b o) ∨ Op q = .idle) ∧
+T.state (T.done j) = F.drain (T.state (r + 1))
+clock_no_insert : ∀ st t,
+H.acceptedBlocks (P.clock st t) = H.acceptedBlocks st ∧
+H.acceptedBodies (P.clock st t) = H.acceptedBodies st
+wire_validation : ∀ wire b, P.wellFormed wire = true →
+W.decodeBody wire = some b → D.validBody b
+origin_valid : ∀ k b o, k ≤ T.length → D.originAvailable (T.state k) b o →
+FGReceiptOrigin E rho H W x b o ∧ T.start o.eventIndex < k
+leaf_step : ∀ k b o st', k < T.length →
+L.step (T.state k) b o .accepted st' → st' = T.state (k + 1) →
+FGReceiptOrigin E rho H W x b o ∧ T.start o.eventIndex < k ∧
+leafState st' = Leaf.process (leafState (T.state k)) (leafWire o.wire)
+refusal_creation : ∀ k b, k < T.length →
+dependencyRefused H D (T.state (k + 1)) b → ¬ dependencyRefused H D (T.state k) b →
+(∃ o, Op k = .leaf b o .definitiveRefused ∧
+L.step (T.state k) b o .definitiveRefused (T.state (k + 1)) ∧
+L.report (T.state k) b o (T.state (k + 1)) ∧
+D.validBody b ∧ D.priorChecks (T.state k) b ∧ D.timely (T.state k) b ∧
+¬ D.accepted (T.state k) b ∧ D.accepted (T.state k) (H.parent b) ∧
+D.conflictsFinal (T.state k) b) ∨
+(∃ o, (Op k = .inheritRefusal b o ∨ Op k = .arrival b o) ∧
+D.validBody b ∧ D.originAvailable (T.state (k + 1)) b o ∧
+dependencyRefused H D (T.state k) (H.parent b) ∧
+L.report (T.state k) b o (T.state (k + 1)))
+refusal_history : ∀ k b, k ≤ T.length → dependencyRefused H D (T.state k) b →
+∃ first o, first ≤ k ∧ D.originAvailable (T.state k) b o ∧
+FGDependencyRefusalEvidence H D L T.state
+(fun q c token => q < T.length ∧ Op q = .leaf c token .definitiveRefused ∧
+FGReceiptOrigin E rho H W x c token ∧ T.start token.eventIndex < q ∧
+leafState (T.state (q + 1)) =
+Leaf.process (leafState (T.state q)) (leafWire token.wire))
+(fun q c token => q < T.length ∧
+(Op q = .inheritRefusal c token ∨ Op q = .arrival c token) ∧
+FGReceiptOrigin E rho H W x c token ∧ T.start token.eventIndex ≤ q ∧
+L.report (T.state q) c token (T.state (q + 1))) first b o
+notification_creation : ∀ k b, k < T.length →
+D.notified (T.state (k + 1)) b → ¬ D.notified (T.state k) b →
+∃ o, Op k = .notification b o ∧ Notify (T.state k) b (T.state (k + 1)) ∧
+∃ q, q < k ∧
+((D.accepted (T.state k) b ∧ L.callback (T.state q) b o (T.state (q + 1)) ∧
+Op q = .leaf b o .accepted) ∨
+(dependencyRefused H D (T.state k) b ∧
+L.report (T.state q) b o (T.state (q + 1)) ∧
+(Op q = .leaf b o .definitiveRefused ∨ Op q = .inheritRefusal b o ∨
+Op q = .arrival b o)))
+origin_attribution : ∀ k b, k < T.length →
+D.accepted (T.state (k + 1)) b → ¬ D.accepted (T.state k) b → ∃ o,
+L.step (T.state k) b o .accepted (T.state (k + 1)) ∧
+D.originAvailable (T.state (k + 1)) b o ∧
+Op k = .leaf b o .accepted ∧
+W.proposalErase o.wire = some (H.erase b) ∧ W.decodedRows o.wire = W.bodyRows b
+actual_read : ∀ i st, ActualRead x i st ↔ dependencyActualRead E rho F x i st
+read_order : ∀ j e kind, rho.events[j]? = some e →
+dependencyReadRequired E F x (dependencyStateBefore E rho F x j) e kind →
+let i := 4 * j + dependencyReadCode kind
+T.entryCut j ≤ T.readCut i ∧ T.readCut i ≤ T.done j ∧
+(match e with | .tick _ _ => T.readCut i = T.dutyCut j | _ => T.readCut i = T.done j) ∧
+FGDependencySteps Step x (T.state (T.entryCut j)) (T.state (T.readCut i))
+read_correspondence : ∀ i st, ActualRead x i st →
+T.readCut i ≤ T.length ∧ T.state (T.readCut i) = st ∧ dependencyClosed H D st
+order_and_time : ∀ (i j : Nat) (ei ej : V2.Event V P.Object),
+rho.events[i]? = some ei → rho.events[j]? = some ej →
+i ≤ j → ei.time ≤ ej.time
+finite_segment : ∀ j e, rho.events[j]? = some e →
+T.start j ≤ T.done j ∧ T.done j ≤ T.length
+event_drain : ∀ j y wire t, rho.events[j]? = some (.deliver y wire t) →
+dependencyClosed H D (T.state (T.done j))
+entry_drain : ∀ j e, rho.events[j]? = some e →
+dependencyClosed H D (T.state (T.done j))
+segment_time : ∀ j e k, rho.events[j]? = some e →
+T.start j ≤ k → k ≤ T.done j → T.time k = e.time
+event_order : ∀ (i j : Nat) (ei ej : V2.Event V P.Object),
+rho.events[i]? = some ei → rho.events[j]? = some ej →
+i < j → T.done i < T.start j
+completion_cut : ∀ j e deadline, rho.events[j]? = some e → e.time < deadline →
+dependencyStrictPrefix rho T deadline (T.done j)
+tick_records : ∀ j t, rho.events[j]? = some (.tick x t) →
+T.state (T.done j) = F.drain
+(((dependencyReleased E rho (T.state (T.dutyCut j)) x t).filter
+P.objSelfVisible).foldl P.recordOwn (T.state (T.dutyCut j)))
+atomic_tick : ∀ (j : Nat) (t : Time), rho.events[j]? = some (.tick x t) →
+T.entryCut j ≤ T.dutyCut j ∧ T.dutyCut j ≤ T.done j ∧
+T.state (T.dutyCut j) = dependencyDutyState E rho F x j (.tick x t) ∧
+dependencyClosed H D (T.state (T.dutyCut j)) ∧
+FGDependencySteps Step x (T.state (T.dutyCut j)) (T.state (T.done j))
+```
+
+### C054 FGDependencyWireReads
+
+Source: `AvailableChainFGCompose/Statements/DependencyTrace.lean:27`.
+
+Producer: OPEN; selecting PC consumer owns the actual input.
+
+```text
+decodeBody : P.Object → Option Body
+namedRoots : P.Object → Option (BlockId × BlockId)
+proposalErase : P.Object → Option Block
+decodedRows : P.Object → List Row
+bodyRows : Body → List Row
+```
+
+### C055 FGExecutionObs
+
+Source: `AvailableChainFGCompose/Statements/ExecutionObs.lean:32`.
+
+Producer recipe: ordinaryFGExecutionObs
+(AvailableChainFGCompose/Statements/ExecutionObs.lean:216); all parameters/premises must be
+supplied for the selected instance.
+
+```text
+stateBefore : Nat → V → P.State
+cutLength : V → Nat
+cutState : V → Nat → P.State
+cutTime : V → Nat → Time
+start : V → Nat → Nat
+entry : V → Nat → Nat
+duty : V → Nat → Nat
+done : V → Nat → Nat
+released : V → Nat → List P.Object
+finish : V → P.State → P.State
+accepts : V → Nat → FGReceiptToken V P.Object → Prop
+ownWrites : V → Nat → List P.Object
+```
+
+### C056 FGExecutionObsLaws
+
+Source: `AvailableChainFGCompose/Statements/ExecutionObs.lean:98`.
+
+Producer recipe: ordinaryFGExecutionObs_laws
+(AvailableChainFGCompose/Proofs/ExecutionObs.lean:136); all parameters/premises must be supplied
+for the selected instance.
+
+```text
+init_state : ∀ x, O.stateBefore 0 x = P.init
+start_state : ∀ j e x, rho.events[j]? = some e →
+O.cutState x (O.start x j) = O.stateBefore j x
+done_state : ∀ j e x, rho.events[j]? = some e →
+O.cutState x (O.done x j) = O.stateBefore (j + 1) x
+cut_order : ∀ j e x, rho.events[j]? = some e →
+O.start x j < O.entry x j ∧ O.entry x j ≤ O.duty x j ∧ O.duty x j ≤ O.done x j ∧
+O.done x j ≤ O.cutLength x
+event_order : ∀ (i j : Nat) (ei ej : V2.Event V P.Object) x,
+rho.events[i]? = some ei → rho.events[j]? = some ej → i < j → O.done x i < O.start x j
+segment_time : ∀ j e x k, rho.events[j]? = some e →
+O.start x j ≤ k → k ≤ O.done x j → O.cutTime x k = e.time
+tick_entry : ∀ j x t, rho.events[j]? = some (.tick x t) →
+O.cutState x (O.entry x j) = P.clock (O.cutState x (O.start x j)) t
+restart_entry : ∀ j x t, rho.events[j]? = some (.restart x t) →
+O.cutState x (O.entry x j) = P.restore (P.durable (O.cutState x (O.start x j))) t
+released_tick : ∀ j x t, rho.events[j]? = some (.tick x t) →
+O.released x j = dependencyReleased E rho (O.cutState x (O.duty x j)) x t
+released_other : ∀ j x, (∀ t, rho.events[j]? ≠ some (.tick x t)) → O.released x j = []
+tick_done : ∀ j x t, rho.events[j]? = some (.tick x t) →
+O.cutState x (O.done x j) =
+O.finish x ((obsOwnReleased O x j).foldl P.recordOwn (O.cutState x (O.duty x j)))
+accept_origin : ∀ x k o, O.accepts x k o →
+k < O.cutLength x ∧ o.receiver = x ∧
+rho.events[o.eventIndex]? = some (.deliver x o.wire o.receiptTime) ∧
+o.receiptEpoch = dependencyReceiverEpoch rho x o.eventIndex ∧
+O.start x o.eventIndex ≤ k
+accept_time : ∀ x k o, O.accepts x k o → o.receiptTime ≤ O.cutTime x k
+tail_state : ∀ j x, rho.events.length ≤ j →
+O.stateBefore j x = O.stateBefore rho.events.length x
+own_source : ∀ x k, O.ownWrites x k ≠ [] → k < O.cutLength x ∧
+∃ j t, rho.events[j]? = some (.tick x t) ∧ O.duty x j ≤ k ∧ k < O.done x j
+own_state : ∀ x k, O.ownWrites x k ≠ [] →
+O.cutState x (k + 1) = (O.ownWrites x k).foldl P.recordOwn (O.cutState x k)
+own_complete : ∀ j x t, rho.events[j]? = some (.tick x t) →
+(List.range (O.done x j - O.duty x j)).flatMap (fun i => O.ownWrites x (O.duty x j + i)) =
+obsOwnReleased O x j
+```
+
+### C057 FGFinalityDurableLaws
+
+Source: `AvailableChainFGCompose/Statements/FinalityReceipts.lean:186`.
+
+Producer recipe: d7a5a_durable (AvailableChainFGSAProofs/Proofs/Finality/Accept.lean:267);
+file-private; all parameters/premises must be supplied for the selected instance.
+
+```text
+mono : ∀ X : FGBlock (Fin n),
+Gen.V2.Duty.MonoAlong (P := P) (fun nd => FGBlock.Preceq X (R.core nd).fg.F)
+restore : ∀ nd t, (R.core (P.restore (P.durable nd) t)).fg.F = (R.core nd).fg.F
+```
+
+### C058 FGHeadLaws
+
+Source: `AvailableChainFGCompose/Statements/CoreReads.lean:35`.
+
+Producer recipe: fgsaHeadLaws (AvailableChainFGSAProofs/Proofs/Shared/FGCompose.lean:80); all
+parameters/premises must be supplied for the selected instance.
+
+```text
+head_mem : ∀ i x t s, ∃ B ∈ (R.core (P.clock (V2.D.Run.stateBefore E rho i x) t)).fg.TF,
+R.erase B = R.headVote (P.clock (V2.D.Run.stateBefore E rho i x) t) s
+parent_closed : ∀ i x B, B ∈ (R.core (V2.D.Run.stateBefore E rho i x)).fg.TF →
+B.parent ∈ (R.core (V2.D.Run.stateBefore E rho i x)).fg.TF
+```
+
+### C059 FGHistoricalHighChain
+
+Source: `AvailableChainFGCompose/Statements/Service.lean:143`.
+
+```text
+∀ x y r r' C D, x ∈ rho.honest → y ∈ rho.honest →
+(postClock E rho x (T.action r)).map R.source = some (some C) →
+(postClock E rho y (T.action r')).map R.source = some (some D) →
+pt.reset.M + 1 ≤ (O.height C).h → pt.reset.M + 1 ≤ (O.height D).h →
+T.action r ≤ horizon → T.action r' ≤ horizon →
+Block.Compatible (R.erase C) (R.erase D) ∧
+Block.Compatible (R.erase C) pt.reset.source ∧ pt.reset.sStar ≤ r * T.roundSlots
+```
+
+### C060 FGHistoricalHighTransfer
+
+Source: `AvailableChainFGCompose/Statements/Service.lean:133`.
+
+```text
+∀ x r C, x ∈ rho.honest →
+(postClock E rho x (T.action r)).map R.source = some (some C) →
+pt.reset.M + 1 ≤ (O.height C).h → T.action r ≤ horizon →
+∀ v Q, HonestProposal E rho I v Q → T.proposal v ≤ horizon →
+r * T.roundSlots + 2 ≤ v → Block.Preceq (R.erase C) Q.parent
+```
+
+### C061 FGHistoricalLaws
+
+Source: `AvailableChainFGCompose/Statements/HistoricalReads.lean:47`.
+
+Producer: OPEN; selecting PC consumer owns the actual input.
+
+```text
+blocks_eq : ∀ st, Good st →
+H.acceptedBlocks st = (R.core st).fg.TF.image R.erase
+bodies_eq : ∀ st, Good st → ∀ B,
+B ∈ H.acceptedBlocks st ↔ ∃ b ∈ H.acceptedBodies st, H.erase b = B
+root_eq : ∀ b, H.root b = (H.erase b).root
+parent_eq : ∀ b, H.erase (H.parent b) = (H.erase b).parent
+slot_eq : ∀ b, H.slot b = (H.erase b).slot
+parent_closed : ∀ st, Good st → ∀ b ∈ H.acceptedBodies st,
+H.parent b ∈ H.acceptedBodies st
+read_iff : ∀ st r b, H.readBlock st r = some b ↔
+b ∈ H.acceptedBodies st ∧ H.root b = r ∧
+∀ c ∈ H.acceptedBodies st, H.root c = r → c = b
+reachable_unique : ∀ st, Good st → ∀ b ∈ H.acceptedBodies st,
+∀ c ∈ H.acceptedBodies st, H.root b = H.root c → b = c
+geometry_eq : (∀ b c, H.preceq b c ↔ Block.Preceq (H.erase b) (H.erase c)) ∧
+(∀ b, H.depth b = (H.erase b).depth) ∧
+(∀ b c, H.lca b c = Block.meet (H.erase b) (H.erase c))
+step_keep : ∀ st st', FGHistoryStep P st st' → ∀ b ∈ H.acceptedBodies st,
+b ∈ H.acceptedBodies st'
+restore_eq : ∀ st t,
+H.acceptedBodies (P.restore (P.durable st) t) = H.acceptedBodies st ∧
+H.acceptedBlocks (P.restore (P.durable st) t) = H.acceptedBlocks st
+frame_independent : ∀ st st', H.acceptedBodies st = H.acceptedBodies st' →
+∀ r, H.readBlock st r = H.readBlock st' r
+```
+
+### C062 FGHistoricalReads
+
+Source: `AvailableChainFGCompose/Statements/HistoricalReads.lean:24`.
+
+Producer: OPEN; selecting PC consumer owns the actual input.
+
+```text
+acceptedBlocks : State → Finset Block
+acceptedBodies : State → List Body
+erase : Body → Block
+root : Body → BlockId
+parent : Body → Body
+slot : Body → Slot
+readBlock : State → BlockId → Option Body
+preceq : Body → Body → Prop
+depth : Body → Nat
+lca : Body → Body → Block
+```
+
+### C063 FGHistoryWireReads
+
+Source: `AvailableChainFGCompose/Statements/FinalityHistory.lean:13`.
+
+Producer recipe: d7a4b_wire (AvailableChainFGSAProofs/Proofs/Finality/Batch.lean:299);
+file-private; all parameters/premises must be supplied for the selected instance.
+
+```text
+heightPair : Wire → NamedHeightPair
+finalityPair : Wire → Option FinalityPair
+signer : Wire → Option (Fin n)
+decode_height : ∀ a u, S.decode a = some u → heightPair a = u.height_pair
+decode_finality : ∀ a u, S.decode a = some u → finalityPair a = u.finality_pair
+decode_signer : ∀ a u, S.decode a = some u → signer a = some u.signer
+```
+
+### C064 FGHolderClientLaws
+
+Source: `AvailableChainFGCompose/Statements/ExecutionBridges.lean:75`.
+
+Producer recipe: ordinary_FGHolderClientLaws
+(AvailableChainFGCompose/Proofs/OrdinaryHolderClient.lean:185); all parameters/premises must be
+supplied for the selected instance.
+
+```text
+holder_eq : ∀ i, rho.seatOf S.fgLabel (S.fgSeats i) = holder i
+holder_inj : Function.Injective holder
+initial_record : S.record P.init = RecordOnce.initial
+record_step : ∀ x k, k < O.cutLength x →
+S.record (O.cutState x (k + 1)) =
+(O.ownWrites x k).foldl (safetyRecordStep S) (S.record (O.cutState x k))
+holder_rows : ∀ j x t i, rho.events[j]? = some (.tick x t) → holder i = x →
+(obsOwnReleased O x j).filterMap S.decodeObject =
+if E.awake x t = true ∧ S.enabled t = true then
+(createRowOnce Ef cfg (S.record (O.cutState x (O.duty x j))) i
+(S.inputs (O.cutState x (O.duty x j))).1
+(S.inputs (O.cutState x (O.duty x j))).2).1.toList
+else []
+nonholder_rows : ∀ j x t, rho.events[j]? = some (.tick x t) → (∀ i, holder i ≠ x) →
+(obsOwnReleased O x j).filterMap S.decodeObject = []
+```
+
+### C065 FGHolderClientTrace
+
+Source: `AvailableChainFGCompose/Statements/HolderClient.lean:68`.
+
+```text
+∀ i, holder i ∈ rho.honest → ∀ k,
+S.record (O.stateBefore k (holder i)) =
+clientRecordOnce Ef cfg i RecordOnce.initial
+((List.range k).filterMap (obsSafetyInputAt S E rho O (holder i))) ∧
+(obsOwnReleasedBefore O (holder i) k).filterMap S.decodeObject =
+clientRunOnce Ef cfg i RecordOnce.initial
+((List.range k).filterMap (obsSafetyInputAt S E rho O (holder i)))
+```
+
+### C066 FGHolderRowCoverage
+
+Source: `AvailableChainFGCompose/Statements/HolderClient.lean:88`.
+
+```text
+(∃ a, obsHonestRowAt S rho O T j x r a ∧ entry a = some target) ∨
+∃ k rSent a, k < j ∧ rSent ≤ r ∧ obsHonestRowAt S rho O T k x rSent a ∧
+entry a = some target
+```
+
+### C067 FGObservationLaws
+
+Source: `AvailableChainFGCompose/Statements/Observations.lean:24`.
+
+Producer recipe: d7f_observation_laws
+(AvailableChainFGSAProofs/Proofs/Finality/RecordInv.lean:274); file-private; all
+parameters/premises must be supplied for the selected instance.
+
+```text
+controls_eq : ∀ nd,
+O.controls nd = treeStoreControlsView O.height (R.core nd).fg
+viable_eq : ∀ nd X,
+O.viable nd X = treeStoreFrameView O.height (R.core nd).fg X
+```
+
+### C068 FGObservationReads
+
+Source: `AvailableChainFGCompose/Statements/Observations.lean:17`.
+
+Producer recipe: d7a4b_observations (AvailableChainFGSAProofs/Proofs/Finality/Batch.lean:268);
+file-private; all parameters/premises must be supplied for the selected instance.
+
+```text
+height : FGHeightView (Fin n)
+finality : FGFinalityView (Fin n)
+controls : P.State → Controls (Fin n)
+viable : P.State → Finset (FGBlock (Fin n)) → Finset (FGBlock (Fin n))
+```
+
+### C069 FGObservedCoreLaws
+
+Source: `AvailableChainFGCompose/Statements/ExecutionObs.lean:141`.
+
+Producer recipe: ordinaryFGExecutionObs_core
+(AvailableChainFGCompose/Proofs/ExecutionObs.lean:320); all parameters/premises must be supplied
+for the selected instance.
+
+```text
+tf_step : ∀ x k, k < O.cutLength x →
+(R.core (O.cutState x k)).fg.TF ⊆ (R.core (O.cutState x (k + 1))).fg.TF
+restore_tf : ∀ j x t, rho.events[j]? = some (.restart x t) →
+(R.core (O.cutState x (O.entry x j))).fg.TF = (R.core (O.cutState x (O.start x j))).fg.TF
+head_mem : ∀ j x t s, rho.events[j]? = some (.tick x t) →
+∃ B ∈ (R.core (O.cutState x (O.duty x j))).fg.TF,
+R.erase B = R.headVote (O.cutState x (O.duty x j)) s
+parent_closed : ∀ x k, k ≤ O.cutLength x → ∀ B ∈ (R.core (O.cutState x k)).fg.TF,
+B.parent ∈ (R.core (O.cutState x k)).fg.TF
+```
+
+### C070 FGObservedFinalityLaws
+
+Source: `AvailableChainFGCompose/Statements/ExecutionObs.lean:154`.
+
+Producer recipe: ordinaryFGExecutionObs_finality
+(AvailableChainFGCompose/Proofs/ExecutionObs.lean:357); all parameters/premises must be supplied
+for the selected instance.
+
+```text
+f_step : ∀ x k, k < O.cutLength x →
+FGBlock.Preceq (R.core (O.cutState x k)).fg.F (R.core (O.cutState x (k + 1))).fg.F
+restore_f : ∀ j x t, rho.events[j]? = some (.restart x t) →
+(R.core (O.cutState x (O.entry x j))).fg.F = (R.core (O.cutState x (O.start x j))).fg.F
+```
+
+### C071 FGReceiptOrigin
+
+Source: `AvailableChainFGCompose/Statements/DependencyTrace.lean:35`.
+
+Producer recipe: dependency_origin_at_read (AvailableChainFGCompose/Proofs/Dependency.lean:148);
+all parameters/premises must be supplied for the selected instance.
+
+```text
+receiver_eq : o.receiver = x
+delivered : rho.events[o.eventIndex]? = some (.deliver x o.wire o.receiptTime)
+decoded : W.decodeBody o.wire = some b
+authentic : P.wellFormed o.wire = true
+awake_receipt : E.awake x o.receiptTime = true
+named : W.namedRoots o.wire = some (H.root b, H.root (H.parent b))
+geometry : W.proposalErase o.wire = some (H.erase b)
+rows : W.decodedRows o.wire = W.bodyRows b
+epoch_eq : o.receiptEpoch = dependencyReceiverEpoch rho x o.eventIndex
+```
+
+### C072 FGReceiptToken
+
+Source: `AvailableChainFGCompose/Statements/DependencyTrace.lean:19`.
+
+Producer recipe: fgEventToken (AvailableChainFGCompose/Statements/ExecutionObs.lean:18); all
+parameters/premises must be supplied for the selected instance.
+
+```text
+receiver : V
+eventIndex : Nat
+wire : Wire
+receiptTime : Time
+receiptEpoch : Nat
+```
+
+### C073 FGResetHistory
+
+Source: `AvailableChainFGCompose/Statements/ResetHistory.lean:24`.
+
+Producer recipe: healing_reset_fields (AvailableChainFGCompose/Proofs/Healing/Reset.lean:147); all
+parameters/premises must be supplied for the selected instance.
+
+```text
+rG : Nat
+u0 : Time
+M : Nat
+rStar : Nat
+sStar : Slot
+source : Block
+```
+
+### C074 FGRowPermissionInputs
+
+Source: `AvailableChainFGCompose/Statements/RowPermission.lean:26`.
+
+Producer: OPEN; selecting PC consumer owns the actual input.
+
+```text
+source_eq : (S.inputs nd).1 = some C
+permitted_lock :
+own_lock (S.record nd).toRecord (H C).h
+(finality_pair (S.record nd).toRecord (S.inputs nd).2) = none ∨
+own_lock (S.record nd).toRecord (H C).h
+(finality_pair (S.record nd).toRecord (S.inputs nd).2) = some (H C).T_h.root
+```
+
+### C075 FGRowPermissionWireLaws
+
+Source: `AvailableChainFGCompose/Statements/RowPermission.lean:20`.
+
+Producer recipe: d7f_wire_laws (AvailableChainFGSAProofs/Proofs/Finality/RecordInv.lean:909);
+file-private; all parameters/premises must be supplied for the selected instance.
+
+```text
+decoded_wire : ∀ o u, S.decodeObject o = some u →
+∃ a, S.encode a = o ∧ S.decode a = some u ∧ entry a = namedEntry u.height_pair
+```
+
+### C076 FGRowRecordHistory
+
+Source: `AvailableChainFGCompose/Statements/RowPermission.lean:13`.
+
+Producer recipe: d7r_history (AvailableChainFGCompose/Proofs/Finality/RecordInv.lean:954);
+file-private; all parameters/premises must be supplied for the selected instance.
+
+```text
+invariant : ∀ h T, Λ.lock h = some T →
+Λ.timeout h = false ∧ (Λ.target h = none ∨ Λ.target h = some T)
+sent_history : ∀ h T timeout fp, (.vote h T timeout, fp) ∈ Λ.sent →
+(timeout = false → Λ.target h = some T) ∧ (timeout = true → Λ.timeout h = true)
+```
+
+### C077 FGRunOrderLaws
+
+Source: `AvailableChainFGCompose/Statements/Observations.lean:30`.
+
+Producer recipe: p0c1_order_laws (AvailableChainFGSAProofs/Proofs/Shared/FGCompose.lean:298);
+file-private; all parameters/premises must be supplied for the selected instance.
+
+```text
+mono : ∀ i j x, x ∈ rho.honest → i ≤ j →
+let a := (R.core (V2.D.Run.stateBefore E rho i x)).fg
+let b := (R.core (V2.D.Run.stateBefore E rho j x)).fg
+FGBlock.Preceq a.F b.F ∧
+lexKey (a.h_j, a.J) ≤ lexKey (b.h_j, b.J) ∧ a.h_max ≤ b.h_max
+```
+
+### C078 FGSafetyClientLaws
+
+Source: `AvailableChainFGCompose/Statements/SafetyClient.lean:19`.
+
+Producer recipe: fgsaSafetyClientLaws
+(AvailableChainFGSAProofs/Proofs/Shared/FGSafetyClient.lean:102); all parameters/premises must be
+supplied for the selected instance.
+
+```text
+initial_record : S.record P.init = RecordOnce.initial
+clock_record : ∀ nd t, S.record (P.clock nd t) = S.record nd
+process_record : ∀ nd o, S.record (P.process nd o) = S.record nd
+restart_record : ∀ nd t,
+S.record (P.restore (P.durable nd) t) = S.record nd
+own_record : ∀ nd o, S.record (P.recordOwn nd o) =
+safetyRecordStep S (S.record nd) o
+tick_rows : ∀ {V : Type} [DecidableEq V] (E : Generic.Env V)
+(rho : V2.D.Run V P) (e : Fin n ≃ V),
+(∀ i, rho.seatOf S.fgLabel (S.fgSeats i) = e i) →
+∀ nd x t,
+((V2.D.tick E rho nd x t).2.filter P.objSelfVisible).filterMap
+S.decodeObject =
+if E.awake x t = true ∧ S.enabled t = true then
+(createRowOnce Ef cfg (S.record nd) (e.symm x)
+(S.inputs (P.clock nd t)).1 (S.inputs (P.clock nd t)).2).1.toList
+else []
+```
+
+### C079 FGSafetyOrderLaws
+
+Source: `AvailableChainFGCompose/Statements/SafetyStore.lean:50`.
+
+Producer recipe: fgsaSafetyOrderLaws
+(AvailableChainFGSAProofs/Proofs/Shared/FGSafetyStore.lean:69); all parameters/premises must be
+supplied for the selected instance.
+
+```text
+process_F : ∀ nd o,
+FGBlock.Preceq (R.core nd).fg.F (R.core (P.process nd o)).fg.F
+erase_prefix : ∀ A B, FGBlock.Preceq A B →
+Block.Preceq (R.erase A) (R.erase B)
+output_eq : ∀ nd, S.finalizedOut nd = R.erase (R.core nd).fg.F
+```
+
+### C080 FGSafetyReads
+
+Source: `AvailableChainFGCompose/Statements/SafetyReads.lean:17`.
+
+Producer recipe: fgsaSafetyReads (AvailableChainFGSAProofs/Proofs/Shared/FGSafetyClient.lean:14);
+all parameters/premises must be supplied for the selected instance.
+
+```text
+proposalErase : P.Object → Option Block
+proposalRows : P.Object → List Wire
+encode : Wire → P.Object
+decode : Wire → Option (Row (Fin n))
+decodeObject : P.Object → Option (Row (Fin n))
+fgLabel : P.Label
+fgSeats : Fin n ≃ Fin (P.seats fgLabel)
+record : P.State → RecordOnce
+inputs : P.State → Option (FGBlock (Fin n)) × HeadFields
+enabled : Time → Bool
+finalizedOut : P.State → Block
+```
+
+### C081 FGSafetyRestartLaws
+
+Source: `AvailableChainFGCompose/Statements/SafetyStore.lean:45`.
+
+Producer recipe: fgsaSafetyRestartLaws
+(AvailableChainFGSAProofs/Proofs/Shared/FGSafetyStore.lean:47); all parameters/premises must be
+supplied for the selected instance.
+
+```text
+restart_F : ∀ nd t, (R.core (P.restore (P.durable nd) t)).fg.F = (R.core nd).fg.F
+```
+
+### C082 FGSafetyScopeLaws
+
+Source: `AvailableChainFGCompose/Statements/SafetyStore.lean:57`.
+
+Producer recipe: fgsaSafetyScopeLaws
+(AvailableChainFGSAProofs/Proofs/Shared/FGSafetyScope.lean:21); all parameters/premises must be
+supplied for the selected instance.
+
+```text
+genesis_scope : ∀ x, x ∈ rho.honest → Q (R.erase .genesis)
+delivered_scope : ∀ x o t b, V2.Event.deliver x o t ∈ rho.events →
+S.proposalErase o = some b → Q b
+parent_scope : ∀ K, safetyRunBlock R S E rho K →
+K.parent ≠ .genesis → Q (R.erase K.parent)
+```
+
+### C083 FGSafetyStoreLaws
+
+Source: `AvailableChainFGCompose/Statements/SafetyStore.lean:28`.
+
+Producer recipe: fgsaSafetyStoreLaws
+(AvailableChainFGSAProofs/Proofs/Shared/FGSafetyStore.lean:10); all parameters/premises must be
+supplied for the selected instance.
+
+```text
+initial_good : Good P.init
+clock_good : ∀ nd t, Good nd → Good (P.clock nd t)
+process_good : ∀ nd o, Good nd → Good (P.process nd o)
+own_good : ∀ nd o, Good nd → Good (P.recordOwn nd o)
+restart_good : ∀ nd t, Good nd → Good (P.restore (P.durable nd) t)
+invariant : ∀ nd, Good nd → FGStoreInvariant H f (R.core nd).fg
+initial_tf : ∀ B ∈ (R.core P.init).fg.TF, B = .genesis
+restart_tf : ∀ nd t B, Good nd →
+B ∈ (R.core (P.restore (P.durable nd) t)).fg.TF → B ∈ (R.core nd).fg.TF
+process_new : ∀ nd o B, Good nd →
+B ∈ (R.core (P.process nd o)).fg.TF → B ∉ (R.core nd).fg.TF →
+S.proposalErase o = some (R.erase B) ∧
+B.rows = (S.proposalRows o).filterMap S.decode
+```
+
+### C084 FGSafetyUnitLaws
+
+Source: `AvailableChainFGCompose/Statements/SafetyClient.lean:38`.
+
+Producer recipe: fgsaSafetyUnitLaws
+(AvailableChainFGSAProofs/Proofs/Shared/FGSafetyClient.lean:150); all parameters/premises must be
+supplied for the selected instance.
+
+```text
+n_pos : 0 < n
+total : Ef.totalWeight = n
+weight : ∀ A : Finset (Fin n), Ef.weightOf A = A.card
+quorum : Ef.q = Gen.Pure.qF n
+```
+
+### C085 FGSafetyWireLaws
+
+Source: `AvailableChainFGCompose/Statements/SafetyStore.lean:19`.
+
+Producer recipe: fgsaSafetyWireLaws
+(AvailableChainFGSAProofs/Proofs/Shared/FGSafetyClient.lean:53); all parameters/premises must be
+supplied for the selected instance.
+
+```text
+encode_injective : Function.Injective S.encode
+decode_encode : ∀ a, S.decodeObject (S.encode a) = S.decode a
+decode_auth : ∀ a u, S.decode a = some u →
+(S.encode a).auth = .seat S.fgLabel (S.fgSeats u.signer)
+decoded_visible : ∀ o u, S.decodeObject o = some u →
+P.objSelfVisible o = true
+carried : ∀ o a, a ∈ S.proposalRows o → P.carries o (S.encode a)
+```
+
+### C086 FGSelectedAcceptance
+
+Source: `AvailableChainFGCompose/Statements/ExecutionBridges.lean:141`.
+
+Producer recipe: ordinary_selectedAcceptance
+(AvailableChainFGCompose/Proofs/ExecutionAcceptanceOrdinary.lean:31); all parameters/premises must
+be supplied for the selected instance.
+
+```text
+step : Nat
+eventIndex : Nat
+token : FGReceiptToken V P.Object
+body : Body
+honest : x ∈ rho.honest
+accepts : O.accepts x step token
+origin : FGReceiptOrigin E rho H Wr x body token
+erase_eq : R.erase W = H.erase body
+rows_eq : W.rows = (Wr.bodyRows body).filterMap S.decode
+segment : O.start x eventIndex ≤ step ∧ step < O.done x eventIndex
+event_some : ∃ e, rho.events[eventIndex]? = some e
+before_deadline : O.cutTime x step < d
+effect : (R.core (O.cutState x (step + 1))).fg =
+update { (R.core (O.cutState x step)).fg with
+TF := insert W (R.core (O.cutState x step)).fg.TF } W
+```
+
+### C087 FGSelectionClientLaws
+
+Source: `AvailableChainFGCompose/Statements/Selection.lean:35`.
+
+Producer recipe: p0c1_client_laws (AvailableChainFGSAProofs/Proofs/Shared/FGCompose.lean:334);
+file-private; all parameters/premises must be supplied for the selected instance.
+
+```text
+inputs_eq : ∀ nd, Q.clientInputs nd = S.inputs nd
+```
+
+### C088 FGSelectionLaws
+
+Source: `AvailableChainFGCompose/Statements/Selection.lean:21`.
+
+Producer recipe: windowSelectionLaws (AvailableChainFGSA/Proofs/WindowSelection.lean:245); all
+parameters/premises must be supplied for the selected instance.
+
+```text
+source_eq : ∀ nd, Good nd → (Q.select nd).1 = R.source nd
+head_eq : ∀ nd, Good nd → (Q.select nd).2 = R.finalityHead nd
+head_held : ∀ nd, Good nd →
+∃ H, (Q.select nd).2 = some H ∧ H ∈ (R.core nd).fg.TF
+source_viable : ∀ nd C, Good nd → (Q.select nd).1 = some C →
+C ∈ O.viable nd (R.core nd).fg.TF
+source_head : ∀ nd C H, Good nd →
+Q.select nd = (some C, some H) → FGBlock.Preceq C H
+client_eq : ∀ nd H, Good nd → (Q.select nd).2 = some H →
+Q.clientInputs nd = ((Q.select nd).1, headFields H)
+```
+
+### C089 FGSelectionReads
+
+Source: `AvailableChainFGCompose/Statements/Selection.lean:17`.
+
+Producer recipe: p0c1_selection (AvailableChainFGSAProofs/Proofs/Shared/FGCompose.lean:99);
+file-private; all parameters/premises must be supplied for the selected instance.
+
+```text
+select : P.State → Option (FGBlock (Fin n)) × Option (FGBlock (Fin n))
+clientInputs : P.State → Option (FGBlock (Fin n)) × HeadFields
+```
+
+### C090 FGServicePoint
+
+Source: `AvailableChainFGCompose/Statements/ResetHistory.lean:32`.
+
+Producer recipe: d7n_point (AvailableChainFGSAProofs/Proofs/Finality/Middle.lean:425);
+file-private; all parameters/premises must be supplied for the selected instance.
+
+```text
+reset : FGResetHistory
+seedSlot : Slot
+seed : Block
+serviceStart : Time
+```
+
+### C091 FGSourceService
+
+Source: `AvailableChainFGCompose/Statements/CoreReads.lean:55`.
+
+Producer recipe: d7a4r_source_service (AvailableChainFGSAProofs/Proofs/Finality/Rows.lean:799);
+file-private; all parameters/premises must be supplied for the selected instance.
+
+```text
+openingSource : opening = roundSlot → ∃ nd, postClock E rho x t = some nd ∧ R.source nd = some D
+coveredSource : opening < roundSlot → ∃ nd C, postClock E rho x t = some nd ∧
+R.source nd = some C ∧ FGBlock.Preceq D C
+```
+
+### C092 FGTiming
+
+Source: `AvailableChainFGCompose/Statements/Timing.lean:8`.
+
+Producer recipe: p0c1_finality_timing
+(AvailableChainFGSAProofs/Proofs/Finality/ActionTime.lean:9); file-private; all
+parameters/premises must be supplied for the selected instance.
+
+```text
+delta : Time
+roundSlots : Nat
+proposal : Slot → Time
+vote : Slot → Time
+early : Slot → Time
+freeze : Slot → Time
+release : Slot → Time
+gate : Slot → Time
+action : Nat → Time
+```
+
+### C093 FGTimingLaws
+
+Source: `AvailableChainFGCompose/Statements/Timing.lean:19`.
+
+Producer recipe: p0c1_finality_timing_laws
+(AvailableChainFGSAProofs/Proofs/Finality/ActionTime.lean:20); file-private; all
+parameters/premises must be supplied for the selected instance.
+
+```text
+delta_pos : 0 < T.delta
+rounds : 2 ≤ T.roundSlots
+proposal_eq : ∀ s, T.proposal s = 4 * (s : Time) * T.delta
+vote_eq : ∀ s, T.vote s = T.proposal s + T.delta
+early_eq : ∀ s, T.early s = T.proposal s + 2 * T.delta
+freeze_eq : ∀ s, T.freeze s = T.proposal s + 3 * T.delta
+release_eq : ∀ s, T.release s = T.proposal s + 5 * T.delta
+gate_eq : ∀ s, T.gate s = T.proposal s + 6 * T.delta
+action_eq : ∀ r, T.action r = T.gate (r * T.roundSlots)
+```
+
+### C094 FGTreeKeepLaws
+
+Source: `AvailableChainFGCompose/Statements/Restart.lean:11`.
+
+Producer recipe: d7n_tree_keep (AvailableChainFGSAProofs/Proofs/Finality/Middle.lean:553);
+file-private; all parameters/premises must be supplied for the selected instance.
+
+```text
+restart_keep : ∀ nd t,
+(R.core nd).fg.TF ⊆ (R.core (P.restore (P.durable nd) t)).fg.TF
+```
+
+### C095 FGTreeRestoreLaws
+
+Source: `AvailableChainFGCompose/Statements/Restart.lean:16`.
+
+Producer recipe: d7n_tree_restore (AvailableChainFGSAProofs/Proofs/Finality/Middle.lean:547);
+file-private; all parameters/premises must be supplied for the selected instance.
+
+```text
+restart_eq : ∀ nd t,
+(R.core (P.restore (P.durable nd) t)).fg.TF = (R.core nd).fg.TF
+```
+
+### C096 FinRowNames
+
+Source: `AvailableChainFGCompose/Statements/FinalityRows.lean:20`.
+
+```text
+row.signer = i ∧ row.finality_pair = some ⟨y, U.root⟩
+```
+
+### C097 FinalityBatchPrem_W
+
+Source: `AvailableChainFGCompose/Statements/FinalityRows.lean:56`.
+
+Producer recipe: d7a4b_batch_to (AvailableChainFGSAProofs/Proofs/Finality/Batch.lean:664);
+file-private; all parameters/premises must be supplied for the selected instance.
+
+```text
+schedule : V2.D.ScheduleWellFormed E rho
+fault_weight : Ef.weightOf (historyFaulty S rho) < Ef.q
+deltaF : E.Δ ≤ ΔF
+rowsReceipt : TRowsReceipt R S E rho T blockWireRows ΔF
+carrier : ∃ rows, HonestCarrier E rho I carrier X.slot (R.erase X) rows ∧
+X.rows = rows.filterMap S.decode
+after : q * T.roundSlots + kappaF T ΔF ≤ X.slot
+horizon : max (T.action q) E.t_GST + ΔF ≤ T.proposal X.slot ∧
+T.proposal X.slot ≤ rho.horizon
+parent : ∃ nd, proposalStateAt E rho I X.slot = some nd ∧
+parentFG nd (R.erase X).parent = some X.parent
+birth : ∃ B, FGBlock.Preceq B X.parent ∧
+JustificationBirth Ef (KitFG.Window.certificateHeight Ef cfg K) B y U
+retainedOrCovered : KitFG.Window.RetainedW Ef cfg K X.parent y U ∨
+KitFG.Window.CoveredW Ef cfg K X.parent y U
+batch : ∃ seats : Finset (Fin n),
+(∀ i ∈ seats, safetyHolder S rho i ∈ rho.honest) ∧ Ef.IsQuorum seats ∧
+∀ i ∈ seats, ∃ j a,
+HonestRowAt S E rho T j (safetyHolder S rho i) q a ∧
+RowComplete S rho D.signer valid (safetyHolder S rho i) a ∧
+D.signer a = some i ∧ FinalityNames S D a y U ∧
+HeldBefore R E rho blockWireRows (V2.D.proposerOf rho I X.slot) a
+(max (T.action q) E.t_GST + ΔF) ∧
+heldAtProposal R E rho I blockWireRows X.slot a ∧
+(KitFG.Window.RetainedW Ef cfg K X.parent y U →
+rowValid (KitFG.Window.parentState Ef cfg K X.parent X.slot) a = true ∧
+ValidForParent E rho I parentFG validFor X.slot (R.erase X) a)
+```
+
+### C098 FinalityCoveredByChild_W
+
+Source: `AvailableChainFGCompose/Statements/FinalityRows.lean:29`.
+
+```text
+∃ e ∈ (SimplexFG.Window.derive Ef cfg K X.parent).W, e.j = y ∧ e.X = U ∧
+∃ Q : Finset (Fin n), Ef.IsQuorum Q ∧ ∀ i ∈ Q,
+i ∈ e.Q ∨ ∃ row ∈ X.rows, FinRowNames row i y U
+```
+
+### C099 FinalityLivenessConcl_W
+
+Source: `AvailableChainFGCompose/Statements/Finality.lean:127`.
+
+```text
+∃ U : FGBlock (Fin n),
+(∀ x ∈ rho.honest, Block.Prec (output (V2.D.Run.readAt E rho t x)) (R.erase U)) ∧
+(∀ x ∈ rho.honest, ∀ K ∈ (R.core (V2.D.Run.readAt E rho t x)).fg.TF,
+(O.finality K).F = (R.core (V2.D.Run.readAt E rho t x)).fg.F →
+(O.finality K).h_F < (O.height U).h) ∧
+∀ x ∈ rho.honest, AcceptsFinalBefore R E rho x U d
+```
+
+### C100 FinalityNames
+
+Source: `AvailableChainFGCompose/Statements/FinalityRows.lean:25`.
+
+```text
+D.finalityPair a = some ⟨y, U.root⟩
+```
+
+### C101 FinalizePendingDriverStatement
+
+Source: `AvailableChainFGCompose/Statements/ExecutionAcceptance.lean:93`.
+
+```text
+¬ Ef.IsQuorum ∅ → 2 ≤ K → FGExecutionObsLaws E rho O →
+V2.D.ScheduleWellFormed E rho →
+∀ x y U X d (A : FGSelectedAcceptance R S E rho H Wr O
+(SimplexFG.Window.update_finality Ef cfg K) x X d),
+FGAcceptanceEffectLaws R S E rho H Wr O Ef cfg K x X d A →
+d ≤ rho.horizon → PendingFold_W Ef cfg K y U X →
+FGAcceptanceGuards R O Ef cfg K x A.step X U →
+A.token.receiptTime < d ∧
+FGBlock.Preceq U (R.core (O.cutState x (A.step + 1))).fg.F ∧
+AcceptsFinalBefore_obs R rho O x U d ∧
+∀ k, A.step < k → k ≤ O.cutLength x →
+FGBlock.Preceq U (R.core (O.cutState x k)).fg.F
+```
+
+### C102 FinalizePrem_W
+
+Source: `AvailableChainFGCompose/Statements/FinalityReceipts.lean:167`.
+
+Producer: OPEN; selecting PC consumer owns the actual input.
+
+```text
+fold : PendingFold_W Ef cfg K y U X
+schedule : V2.D.ScheduleWellFormed E rho
+deliver : BlockDelivery_W R E rho ready X U a₀ d
+guards : AcceptGuards_W R E rho Ef cfg K ready X U a₀ d deliver
+horizon : d ≤ rho.horizon
+```
+
+### C103 FirstEffectiveBy
+
+Source: `AvailableChainFGCompose/Statements/FrontierSearch.lean:318`.
+
+```text
+∃ j ev, i < j ∧ rho.events[j]? = some ev ∧ ev.time ≤ deadline ∧
+EffectiveEvent R E rho O j ∧
+(∀ k, i < k → k < j → ¬ EffectiveEvent R E rho O k)
+```
+
+### C104 FirstHeightRowBy
+
+Source: `AvailableChainFGCompose/Statements/FrontierSearch.lean:346`.
+
+```text
+∃ r, HeightRow S E rho T (fun a => namedEntry (pair a)) r m ∧
+(∀ r', HeightRow S E rho T (fun a => namedEntry (pair a)) r' m → r ≤ r') ∧ T.action r ≤ deadline
+```
+
+### C105 FirstPhaseStopBy
+
+Source: `AvailableChainFGCompose/Statements/FrontierSearch.lean:259`.
+
+```text
+∃ j ev, i < j ∧ rho.events[j]? = some ev ∧ ev.time ≤ deadline ∧
+EffectiveEvent R E rho O j ∧ frontierAtIdx R E rho (j + 1) = m ∧
+(∀ k, i < k → k < j → ¬ EffectiveEvent R E rho O k)
+```
+
+### C106 FirstRiseStopBy
+
+Source: `AvailableChainFGCompose/Statements/FrontierSearch.lean:273`.
+
+```text
+∃ j ev, i < j ∧ rho.events[j]? = some ev ∧ ev.time ≤ deadline ∧
+EffectiveEvent R E rho O j ∧ m < frontierAtIdx R E rho (j + 1) ∧
+(∀ k, i < k → k < j → ¬ EffectiveEvent R E rho O k)
+```
+
+### C107 FixedRows
+
+Source: `AvailableChainFGCompose/Statements/Promotion.lean:39`.
+
+```text
+∀ x ∈ rho.honest, ∃ K nd j rSent a,
+postClock E rho x (T.action r) = some nd ∧
+actionSourceFG R E rho T x r = some (some K) ∧ K ∈ (R.core nd).fg.TF ∧
+Block.Preceq Q (R.erase K) ∧ FGBlock.Preceq U K ∧ K.slot ≤ r * T.roundSlots ∧
+(H K).h = height ∧ (H K).T_h = U ∧ rSent ≤ r ∧ HonestRowAt S E rho T j x rSent a ∧
+NamesEntry pair .progress a height U
+```
+
+### C108 ForwardWitness_W
+
+Source: `AvailableChainFGCompose/Statements/Finality.lean:105`.
+
+```text
+∃ (q r : Nat) (A : Block) (Afg U : FGBlock (Fin n)) (d : Nat) (D : Time),
+t ≤ (q : Time) * FGCompose.P T ∧ (q : Time) * FGCompose.P T < t + FGCompose.P T ∧
+Gen.Pure.InWindow q g r ∧
+Gen.Pure.FGoodE_W honestSlot T.roundSlots (kappaF T deltaF) r ∧
+t ≤ (r : Time) * FGCompose.P T ∧ HonestProposal E rho I (r * T.roundSlots) A ∧
+R.erase Afg = A ∧
+OpeningCarrier_W decodeProposal bodyErase bodyRows parentFG makeFG E rho I
+(r * T.roundSlots) A Afg ∧
+(O.height Afg).h = d ∧ sp.reset.M + 1 ≤ d ∧
+FGBlock.Preceq Afg U ∧ Afg ≠ U ∧ (O.height U).h = d + 1 ∧
+D = kernelDeadlineW T deltaF (r + 2) ∧ D < t + W_W T deltaF g ∧ D ≤ rho.horizon ∧
+∀ x ∈ rho.honest, AcceptsFinalBefore R E rho x U D
+```
+
+### C109 FreshFinalityRows_W
+
+Source: `AvailableChainFGCompose/Statements/FinalityRows.lean:35`.
+
+```text
+(∀ i ∈ seats, safetyHolder S rho i ∈ rho.honest) ∧ Ef.IsQuorum seats ∧
+∀ i ∈ seats, ∃ j C,
+HonestRowAt S E rho T j (safetyHolder S rho i) q (rows i) ∧
+RowComplete S rho D.signer valid (safetyHolder S rho i) (rows i) ∧
+D.signer (rows i) = some i ∧ historyRowHeight S D (rows i) = some (y + 1) ∧
+FinalityNames S D (rows i) y U ∧
+actionSourceFG R E rho T (safetyHolder S rho i) q = some (some C) ∧
+(O.height C).h = y + 1 ∧
+∀ j' r a h, r < q →
+HonestRowAt S E rho T j' (safetyHolder S rho i) r a →
+historyRowHeight S D a = some h → h < y + 1
+```
+
+### C110 FreshPrem
+
+Source: `AvailableChainFGCompose/Statements/FinalityHistory.lean:86`.
+
+Producer recipe: d7a_fresh (AvailableChainFGSAProofs/Proofs/Finality/History.lean:414);
+file-private; all parameters/premises must be supplied for the selected instance.
+
+```text
+schedule : V2.D.ScheduleWellFormed E rho
+fault_weight : Ef.weightOf (historyFaulty S rho) < Ef.q
+cut : Time
+early : cut ≤ T.action (q + 1)
+rows : ChainRowsBefore R E rho X cut
+noNextRow : ∀ j x r a h t, HonestRowAt S E rho T j x r a →
+historyRowHeight S D a = some h → y + 1 ≤ h →
+eventTime rho j = some t → T.action (q + 1) ≤ t
+noFinRow : ∀ j x r a h t, HonestRowAt S E rho T j x r a →
+historyFinHeight S D a = some h → y ≤ h →
+eventTime rho j = some t → T.action (q + 1) ≤ t
+```
+
+### C111 FrontierHG2aResult
+
+Source: `AvailableChainFGCompose/Statements/FrontierMaturity.lean:39`.
+
+```text
+let D := max (T.action r + Γ T G - T.delta + epsF T ΔF)
+(T.proposal U.slot + 2 * FGCompose.P T + Γ T G - 3 * T.delta)
+FrontierRiseBy R E rho i m D ∨
+∃ s X, HonestProposal E rho I s (R.erase X) ∧ X.slot = s ∧
+m + 1 ≤ (O.height X).h ∧
+∃ y, y ∈ rho.honest ∧ Gen.V2.Duty.HoldsBefore E rho
+(fun nd => X ∈ (R.core nd).fg.TF) D y
+```
+
+### C112 FrontierHG3Result
+
+Source: `AvailableChainFGCompose/Statements/FrontierSearch.lean:286`.
+
+```text
+FirstPhaseStopBy R E rho O i m deadline ∨
+FirstRiseStopBy R E rho O i m deadline ∨
+∃ t, start ≤ t ∧ t ≤ deadline ∧ StrongServed R S E rho O T I pair Jst leaseSlots m t
+```
+
+### C113 FrontierLocalService
+
+Source: `AvailableChainFGCompose/Statements/FrontierSearch.lean:53`.
+
+```text
+(∀ x s H, x ∈ rho.honest → q + 1 ≤ s → T.vote s ≤ v →
+headAtLabel R E rho T x s = some H → Block.Preceq Q H) ∧
+(∀ s B, q + 2 ≤ s → T.proposal s ≤ v → HonestProposal E rho I s B →
+Block.Preceq Q B.parent) ∧
+(∀ i x, x ∈ rho.honest → T.gate q + 4 * T.delta ≤ v →
+afterTicksIdx rho (T.gate q + 4 * T.delta) ≤ i → i ≤ timeIdx rho v →
+Block.Preceq Q (I.stable (rho.stateBefore E i x))) ∧
+(∀ s B, T.proposal q < T.proposal s → T.gate s ≤ v →
+HonestProposal E rho I s B → FrontierProposalService R E rho T s B) ∧
+(∀ r, q ≤ r * T.roundSlots → T.action r ≤ v →
+OpeningCovered R S E rho O.height T pair r Q ∧
+OpeningEntry R E rho O.height T r m ∧
+(∀ x K, x ∈ rho.honest → actionSourceFG R E rho T x r = some (some K) →
+(O.height K).T_h = (O.height Qfg).T_h) ∧
+((∀ r', q ≤ r' * T.roundSlots → r ≤ r') →
+T.action r - T.gate q ≤ FGCompose.P T - 4 * T.delta))
+```
+
+### C114 FrontierProposalService
+
+Source: `AvailableChainFGCompose/Statements/FrontierSearch.lean:48`.
+
+```text
+T.vote q ≤ rho.horizon → ∀ x ∈ rho.honest,
+AttemptJoinedAt E rho T x q (T.vote q) → headAtLabel R E rho T x q = some Q
+```
+
+### C115 FrontierRepairAllowance
+
+Source: `AvailableChainFGCompose/Statements/FrontierSearch.lean:107`.
+
+```text
+0 ≤ allowance ∧ ∃ l, FrontierRepairStart E T leaseSlots u l ∧
+(4 * T.delta ≤ G → ∀ v m J contested,
+Jst ≤ u → PhaseInterval R E rho O u v m J contested →
+(∀ s Q, T.proposal l < T.proposal s → T.gate s ≤ v →
+HonestProposal E rho I s Q → FrontierProposalService R E rho T s Q) ∧
+(u + allowance ≤ v → ∃ s Q,
+T.proposal l < T.proposal s ∧ T.gate s ≤ u + allowance ∧
+HonestProposal E rho I s Q ∧ FrontierProposalService R E rho T s Q))
+```
+
+### C116 FrontierRiseBy
+
+Source: `AvailableChainFGCompose/Statements/FrontierSearch.lean:332`.
+
+```text
+∃ j ev, i < j ∧ rho.events[j]? = some ev ∧ ev.time ≤ deadline ∧
+m < frontierAtIdx R E rho (j + 1) ∧
+(∀ k, i + 1 ≤ k → k ≤ j → frontierAtIdx R E rho k ≤ m)
+```
+
+### C117 FrontierSearchFamilyStatement
+
+Source: `AvailableChainFGCompose/Statements/FrontierSearch.lean:516`.
+
+```text
+deltaT = 2 * T.roundSlots → LivenessBoundW T ΔF → 0 ≤ ρbar →
+(∀ i ev m kind, FrontierSearchStart R E rho O T Jst i ev m kind →
+Jst + 2 * FGCompose.P T ≤ ev.time →
+FrontierRepairAllowance R E rho O T I Jst leaseSlots G ρbar (ev.time + 3 * T.delta)) →
+∀ rG u₀ M, Jst ≤ T.action rG →
+(∀ r, Jst ≤ T.action r → rG ≤ r) → u₀ = T.action (rG + 2) →
+Jst + 2 * FGCompose.P T ≤ u₀ → M = honestFrontier R E rho u₀ →
+(∀ j y r a h e t, HonestRowAt S E rho T j y r a →
+rho.events[j]? = some (.tick y t) → t ≤ u₀ →
+namedEntry (pair a) = some (h, e) → h ≤ M) →
+(u₀ + frontierSearchRiseBudget T G ΔF ρbar ≤ rho.horizon →
+∃ j ev, timeIdx rho u₀ ≤ j ∧ rho.events[j]? = some ev ∧
+ev.time ≤ u₀ + frontierSearchRiseBudget T G ΔF ρbar ∧
+M < frontierAtIdx R E rho (j + 1) ∧
+(∀ k, timeIdx rho u₀ ≤ k → k ≤ j → frontierAtIdx R E rho k ≤ M)) ∧
+(u₀ + frontierSearchRiseBudget T G ΔF ρbar +
+frontierSearchRowBudget T G ΔF ρbar ≤ rho.horizon →
+∃ rStar, HeightRow S E rho T (fun a => namedEntry (pair a)) rStar (M + 1) ∧
+(∀ r, HeightRow S E rho T (fun a => namedEntry (pair a)) r (M + 1) → rStar ≤ r) ∧
+∃ j ev, timeIdx rho u₀ ≤ j ∧ rho.events[j]? = some ev ∧
+ev.time ≤ u₀ + frontierSearchRiseBudget T G ΔF ρbar ∧
+M < frontierAtIdx R E rho (j + 1) ∧
+(∀ k, timeIdx rho u₀ ≤ k → k ≤ j → frontierAtIdx R E rho k ≤ M) ∧
+T.action rStar ≤ ev.time + frontierSearchRowBudget T G ΔF ρbar)
+```
+
+### C118 FrontierSearchStart
+
+Source: `AvailableChainFGCompose/Statements/FrontierSearch.lean:238`.
+
+```text
+rho.events[i]? = some ev ∧ Jst ≤ ev.time ∧
+(EffectiveEvent R E rho O i ∨
+∃ rG, Jst ≤ T.action rG ∧
+(∀ r, Jst ≤ T.action r → rG ≤ r) ∧
+ev.time = T.action (rG + 2) ∧ timeIdx rho ev.time = i + 1) ∧
+frontierAtIdx R E rho (i + 1) = m ∧ 1 ≤ m ∧
+AttemptPhaseAt R E rho O (i + 1) m kind
+```
+
+### C119 FrontierSearchStatement
+
+Source: `AvailableChainFGCompose/Statements/FrontierSearch.lean:398`.
+
+```text
+deltaT = 2 * T.roundSlots → LivenessBoundW T ΔF →
+∀ rG u₀ M, Jst ≤ T.action rG →
+(∀ r, Jst ≤ T.action r → rG ≤ r) → u₀ = T.action (rG + 2) →
+Jst + 2 * FGCompose.P T ≤ u₀ → M = honestFrontier R E rho u₀ →
+(∀ j y r a h e t, HonestRowAt S E rho T j y r a →
+rho.events[j]? = some (.tick y t) → t ≤ u₀ →
+namedEntry (pair a) = some (h, e) → h ≤ M) →
+(∀ ρbar, (FrontierRepairAllowance R E rho O T I Jst leaseSlots G ρbar u₀) →
+u₀ + frontierSearchRiseBudget T G ΔF ρbar ≤ rho.horizon →
+∃ j ev, timeIdx rho u₀ ≤ j ∧ rho.events[j]? = some ev ∧
+ev.time ≤ u₀ + frontierSearchRiseBudget T G ΔF ρbar ∧
+M < frontierAtIdx R E rho (j + 1) ∧
+(∀ k, timeIdx rho u₀ ≤ k → k ≤ j → frontierAtIdx R E rho k ≤ M)) ∧
+((∃ ρbar, (FrontierRepairAllowance R E rho O T I Jst leaseSlots G ρbar u₀) ∧
+u₀ + frontierSearchRiseBudget T G ΔF ρbar +
+frontierSearchRowBudget T G ΔF ρbar ≤ rho.horizon) →
+∃ rStar, HeightRow S E rho T (fun a => namedEntry (pair a)) rStar (M + 1) ∧
+(∀ r, HeightRow S E rho T (fun a => namedEntry (pair a)) r (M + 1) → rStar ≤ r) ∧
+∀ ρbar, (FrontierRepairAllowance R E rho O T I Jst leaseSlots G ρbar u₀) →
+u₀ + frontierSearchRiseBudget T G ΔF ρbar +
+frontierSearchRowBudget T G ΔF ρbar ≤ rho.horizon →
+∃ j ev, timeIdx rho u₀ ≤ j ∧ rho.events[j]? = some ev ∧
+ev.time ≤ u₀ + frontierSearchRiseBudget T G ΔF ρbar ∧
+M < frontierAtIdx R E rho (j + 1) ∧
+(∀ k, timeIdx rho u₀ ≤ k → k ≤ j → frontierAtIdx R E rho k ≤ M) ∧
+T.action rStar ≤ ev.time + frontierSearchRowBudget T G ΔF ρbar)
+```
+
+### C120 FrontierSeedQualification
+
+Source: `AvailableChainFGCompose/Statements/FrontierSearch.lean:17`.
+
+```text
+(∃ β : Slot,
+u < T.proposal β ∧
+(∀ b, u < T.proposal b → β ≤ b) ∧
+T.proposal (β + 2 * leaseSlots - 1) < T.proposal q) ∨
+(∃ b : Slot,
+u ≤ T.vote b ∧
+(∀ i, u ≤ T.vote i → b ≤ i) ∧
+leaseSlots ≤ b + 1 ∧
+GST ≤ T.vote (b + 1 - leaseSlots) ∧
+T.proposal (b + leaseSlots) < T.proposal q)
+```
+
+### C121 FrontierTailStatement
+
+Source: `AvailableChainFGCompose/Statements/FrontierSearch.lean:374`.
+
+```text
+deltaT = 2 * T.roundSlots → LivenessBoundW T ΔF →
+∀ i ev m kind, FrontierSearchStart R E rho O T Jst i ev m kind →
+StrongServed R S E rho O T I pair Jst leaseSlots m ev.time →
+(ev.time + (2 * FGCompose.P T + Γ T G - 9 * T.delta) ≤ rho.horizon →
+FrontierRiseBy R E rho i m (ev.time + (2 * FGCompose.P T + Γ T G - 9 * T.delta))) ∧
+(ev.time + (FGCompose.P T - 4 * T.delta) ≤ rho.horizon →
+FirstHeightRowBy S E rho T pair m (ev.time + (FGCompose.P T - 4 * T.delta)))
+```
+
+### C122 H0Reset
+
+Source: `AvailableChainFGCompose/Statements/ResetHistory.lean:52`.
+
+Producer recipe: d7n_reset (AvailableChainFGSAProofs/Proofs/Finality/Middle.lean:1170);
+file-private; all parameters/premises must be supplied for the selected instance.
+
+```text
+rG_after : recoveryStart ≤ T.action w.rG
+rG_first : ∀ r, recoveryStart ≤ T.action r → w.rG ≤ r
+cut : w.u0 = T.action (w.rG + 2)
+frontier : w.M = honestFrontier R E rho w.u0
+rowCap : ∀ j y r a h e t, HonestRowAt S E rho T j y r a →
+rho.events[j]? = some (.tick y t) → t ≤ w.u0 →
+entry a = some (h, e) → h ≤ w.M
+mu_le : muOf S E rho T entry recoveryStart ≤ w.M
+cut_lower : recoveryStart + 2 * (4 * (T.roundSlots : Time) * T.delta) ≤ w.u0
+cut_upper : w.u0 < recoveryStart + 3 * (4 * (T.roundSlots : Time) * T.delta)
+reset_row : HeightRow S E rho T entry w.rStar (w.M + 1)
+reset_first : ∀ r, HeightRow S E rho T entry r (w.M + 1) → w.rStar ≤ r
+label : w.sStar = w.rStar * T.roundSlots
+fresh : ∃ j y, ∃ (a : Wire) (C : (FGBlock (Fin n))), HonestRowAt S E rho T j y w.rStar a ∧
+entry a = some (w.M + 1, (O.height C).T_h.root) ∧
+actionSourceFG R E rho T y w.rStar = some (some C) ∧
+R.erase C = w.source ∧ (O.height C).h = w.M + 1
+synchronous : E.t_GST ≤ T.vote w.sStar
+```
+
+### C123 HeightMatch
+
+Source: `AvailableChainFGCompose/Statements/Channels.lean:107`.
+
+```text
+∃ nd H, proposalStateAt E rho I s = some nd ∧
+parentFG nd Q.parent = some H ∧ entry a = some (parentHeight nd s H)
+```
+
+### C124 HeightRow
+
+Source: `AvailableChainFGCompose/Statements/ResetHistory.lean:48`.
+
+```text
+∃ j y, ∃ (a : Wire) (e : BlockId), HonestRowAt S E rho T j y r a ∧ entry a = some (h, e)
+```
+
+### C125 HeldAt
+
+Source: `AvailableChainFGCompose/Statements/Channels.lean:62`.
+
+```text
+x ∈ rho.honest ∧ W ∈ (R.core (V2.D.Run.stateBefore E rho i x)).fg.TF
+```
+
+### C126 HeldBefore
+
+Source: `AvailableChainFGCompose/Statements/Channels.lean:100`.
+
+```text
+Gen.V2.Duty.HoldsBefore E rho (fun nd => rowHeld R blockWireRows nd a) d x
+```
+
+### C127 HighRecordEmission
+
+Source: `AvailableChainFGCompose/Statements/FinalityRecords.lean:52`.
+
+```text
+∀ j x r a u, HonestRowAt S E rho T j x r a → S.decode a = some u →
+(createRowOnce Ef cfg (S.record (V2.D.Run.stateBefore E rho j x)) u.signer
+(S.inputs (P.clock (V2.D.Run.stateBefore E rho j x) (T.action r))).1
+(S.inputs (P.clock (V2.D.Run.stateBefore E rho j x) (T.action r))).2).1 = some u
+```
+
+### C128 HighRecordFresh
+
+Source: `AvailableChainFGCompose/Statements/FinalityRecords.lean:35`.
+
+```text
+Λ.target y = none ∧ Λ.timeout y = false ∧ Λ.lock y = none ∧
+∀ b ∈ Λ.sent, ∀ U timeout, b.1 ≠ .vote y U timeout
+```
+
+### C129 HighRecordGuard_W
+
+Source: `AvailableChainFGCompose/Statements/FinalityRecords.lean:40`.
+
+```text
+(Λ.target y = none ∨ Λ.target y = some U.root) ∧ Λ.timeout y = false ∧
+(Λ.lock y = none ∨ Λ.lock y = some U.root)
+```
+
+### C130 HighRecordHead
+
+Source: `AvailableChainFGCompose/Statements/FinalityRecords.lean:67`.
+
+```text
+∀ i x t, x ∈ rho.honest →
+(S.inputs (P.clock (V2.D.Run.stateBefore E rho i x) t)).2 = ⟨0, genesisRoot, 0⟩ ∨
+∃ K, K ∈ (R.core (V2.D.Run.stateBefore E rho i x)).fg.TF ∧
+(S.inputs (P.clock (V2.D.Run.stateBefore E rho i x) t)).2 =
+certificateHeadFields O.height O.finality K
+```
+
+### C131 HighRecordInvariant
+
+Source: `AvailableChainFGCompose/Statements/FinalityRecords.lean:28`.
+
+```text
+∀ y, M + 1 ≤ y →
+(Λ.target y = none ∨ Λ.target y = some (entry y)) ∧ Λ.timeout y = false ∧
+(Λ.lock y = none ∨ Λ.lock y = some (entry y)) ∧
+∀ b ∈ Λ.sent, ∀ U timeout, b.1 = .vote y U timeout → U = entry y ∧ timeout = false
+```
+
+### C132 HighRecordNames
+
+Source: `AvailableChainFGCompose/Statements/FinalityRecords.lean:45`.
+
+```text
+∀ j x r a e, HonestRowAt S E rho T j x r a →
+namedEntry (D.heightPair a) = some e →
+∃ C, actionSourceFG R E rho T x r = some (some C) ∧
+e = ((O.height C).h, (O.height C).T_h.root)
+```
+
+### C133 HighRecordOwnOrigin
+
+Source: `AvailableChainFGCompose/Statements/FinalityRecords.lean:59`.
+
+```text
+∀ j x o u, x ∈ rho.honest →
+o ∈ (if (rho.events[j]?).map V2.Event.node = some x then
+(V2.D.Run.emitsAt E rho j).filter P.objSelfVisible else []) →
+S.decodeObject o = some u →
+∃ r a, HonestRowAt S E rho T j x r a ∧ S.decode a = some u
+```
+
+### C134 HighRecordSeedLeaves
+
+Source: `AvailableChainFGCompose/Statements/FinalityRecords.lean:82`.
+
+```text
+R.erase X = pt.seed ∧ (O.height X).h = b ∧ pt.reset.M + 1 ≤ b ∧
+cutoff ≤ pt.serviceStart ∧ HighRecordShieldRows R S O T E rho D X b cutoff
+```
+
+### C135 HighRecordShieldRows
+
+Source: `AvailableChainFGCompose/Statements/FinalityRecords.lean:75`.
+
+```text
+∀ j x r a y U timeout, HonestRowAt S E rho T j x r a → T.action r < cutoff →
+D.heightPair a = .vote y U timeout →
+y ≤ b ∧ (y = b → U = (O.height X).T_h.root)
+```
+
+### C136 HonestCarrier
+
+Source: `AvailableChainFGCompose/Statements/Channels.lean:68`.
+
+```text
+HonestProposal E rho I s Q ∧
+∃ o, V2.D.Run.emits E rho (V2.D.proposerOf rho I s) o
+(V2.D.proposalTime I s) ∧ carrier o s Q rows
+```
+
+### C137 HonestProposal
+
+Source: `AvailableChainFGCompose/Statements/Channels.lean:32`.
+
+```text
+Gen.V2.Duty.HonestSlot rho I s ∧ ∃ o,
+V2.D.Run.emits E rho (V2.D.proposerOf rho I s) o (V2.D.proposalTime I s) ∧
+I.block o.payload = some B
+```
+
+### C138 HonestRowAt
+
+Source: `AvailableChainFGCompose/Statements/Channels.lean:52`.
+
+```text
+y ∈ rho.honest ∧ rho.events[j]? = some (.tick y (T.action r)) ∧
+S.encode a ∈ V2.D.Run.emitsAt E rho j
+```
+
+### C139 HonestRowBefore
+
+Source: `AvailableChainFGCompose/Statements/Channels.lean:56`.
+
+```text
+∃ j < k, HonestRowAt S E rho T j y r a
+```
+
+### C140 InSuffix
+
+Source: `AvailableChainFGCompose/Statements/Service.lean:46`.
+
+```text
+pt.serviceStart ≤ t ∧ t ≤ horizon
+```
+
+### C141 JustifiedCross
+
+Source: `AvailableChainFGCompose/Statements/FinalityHistory.lean:51`.
+
+```text
+(H W.parent).h = y ∧ (H W).h = y + 1 ∧ (H W).J = U ∧ (H W).h_j = y
+```
+
+### C142 KernelActionSupply_W
+
+Source: `AvailableChainFGCompose/Statements/FinalityKernel.lean:188`.
+
+Producer: OPEN; selecting PC consumer owns the actual input.
+
+```text
+read : ∀ x nd, postClock E rho x (T.action (pt.r + 2)) = some nd →
+(R.core (V2.D.Run.stateBefore E rho (afterTicksIdx rho (T.action (pt.r + 2))) x)).fg =
+(R.core nd).fg
+service : ∀ x ∈ rho.honest, FGSourceService R E rho x (T.action (pt.r + 2))
+m.cD ((pt.r + 2) * T.roundSlots) m.X_D
+head : ∀ x nd, x ∈ rho.honest → postClock E rho x (T.action (pt.r + 2)) = some nd →
+∃ H, R.finalityHead nd = some H ∧ H ∈ (R.core nd).fg.TF
+walk : ∀ x nd, x ∈ rho.honest → postClock E rho x (T.action (pt.r + 2)) = some nd →
+∀ H, R.finalityHead nd = some H → Block.Preceq (R.erase m.X_D) (R.erase H)
+```
+
+### C143 KernelConclusion_W
+
+Source: `AvailableChainFGCompose/Statements/Finality.lean:61`.
+
+```text
+∀ A,
+HonestProposal E rho I (r * T.roundSlots) A →
+∃ Afg : (FGBlock (Fin n)), R.erase Afg = A ∧
+OpeningCarrier_W decodeProposal bodyErase bodyRows parentFG makeFG E rho I
+(r * T.roundSlots) A Afg ∧
+(∀ x ∈ rho.honest, Afg ∈ (R.core (V2.D.Run.stateBefore E rho rho.events.length x)).fg.TF) ∧
+∃ U : (FGBlock (Fin n)), FGBlock.Preceq Afg U ∧ Afg ≠ U ∧
+(O.height U).h = (O.height Afg).h + 1 ∧
+∀ x ∈ rho.honest,
+AcceptsFinalBefore R E rho x U (kernelDeadlineW T deltaF (r + 2))
+```
+
+### C144 KernelExactService
+
+Source: `AvailableChainFGCompose/Statements/FinalityKernel.lean:31`.
+
+```text
+(A.voteTime v ≤ horizon → ∀ x, A.honest x → A.headScope x v →
+A.headAtLabel x v = some Q) ∧
+(A.gateTime v ≤ horizon → ∀ x, A.honest x → A.gateScope x v →
+A.gate x v = some (some Q) ∧
+∀ r, v = A.gateLabel r → A.source x r = some (some Q))
+```
+
+### C145 KernelJoinedPrem
+
+Source: `AvailableChainFGCompose/Statements/Finality.lean:92`.
+
+Producer: OPEN; selecting PC consumer owns the actual input.
+
+```text
+bound : LivenessBoundW T deltaF
+window : Gen.Pure.FGoodE_W honestSlot T.roundSlots (kappaF T deltaF) r
+start : ∃ sp, Service sp ∧ sp.serviceStart ≤ (r : Time) * FGCompose.P T
+hhor : kernelDeadlineW T deltaF (r + 2) ≤ horizon
+honest_quorum : fgQuorum ≤ fgHonestWeight
+timeout_eq : timeoutSlots = 2 * T.roundSlots
+capacity_ge : 2 ≤ capacity
+```
+
+### C146 KernelMiddleWitness_W
+
+Source: `AvailableChainFGCompose/Statements/FinalityKernel.lean:82`.
+
+Producer recipe: d7n_middle_from (AvailableChainFGSAProofs/Proofs/Finality/Middle.lean:1053);
+file-private; all parameters/premises must be supplied for the selected instance.
+
+```text
+A₀ : FGBlock (Fin n)
+B : FGBlock (Fin n)
+U : FGBlock (Fin n)
+X_D : FGBlock (Fin n)
+cD : Slot
+d : Nat
+opening : HonestProposal E rho I (pt.r * T.roundSlots) A
+eraseA : R.erase A₀ = A
+carrierA : OpeningCarrier_W decodeProposal bodyErase bodyRows
+(fun nd Q => parentFG nd Q.parent) makeFG E rho I (pt.r * T.roundSlots) A A₀
+carrierB : OpeningCarrier_W decodeProposal bodyErase bodyRows
+(fun nd Q => parentFG nd Q.parent) makeFG E rho I ((pt.r + 1) * T.roundSlots) (R.erase B) B
+carrierD : OpeningCarrier_W decodeProposal bodyErase bodyRows
+(fun nd Q => parentFG nd Q.parent) makeFG E rho I cD (R.erase X_D) X_D
+honestB : HonestProposal E rho I ((pt.r + 1) * T.roundSlots) (R.erase B)
+honestD : HonestProposal E rho I cD (R.erase X_D)
+slotA : A₀.slot = pt.r * T.roundSlots
+slotB : B.slot = (pt.r + 1) * T.roundSlots
+slotD : X_D.slot = cD
+earlySlot : (pt.r + 1) * T.roundSlots + kappaF T ΔF ≤ cD ∧ cD ≤ (pt.r + 2) * T.roundSlots
+heightA : (O.height A₀).h = d
+highA : sp.reset.M + 1 ≤ d
+heightB : (O.height B).h = d + 1
+entryB : (O.height B).T_h = U
+freshEntry : EntryAt O.height U (d + 1)
+strictAU : FGBlock.Preceq A₀ U ∧ A₀ ≠ U
+pathUB : FGBlock.Preceq U B
+freshSlot : pt.r * T.roundSlots < U.slot ∧ U.slot ≤ (pt.r + 1) * T.roundSlots
+parentAB : FGBlock.Preceq A₀ B.parent
+parentBD : FGBlock.Preceq B X_D.parent
+sourceA : ∀ x ∈ rho.honest,
+actionSourceFG R E rho T x pt.r = some (some A₀)
+sourceB : ∀ x ∈ rho.honest,
+actionSourceFG R E rho T x (pt.r + 1) = some (some B)
+serviceD : KernelExactService ac rho.horizon cD (R.erase X_D)
+heightD : (O.height X_D).h = d + 2
+justifiedD : (O.height X_D).J = U
+justifiedHeightD : (O.height X_D).h_j = d + 1
+pendingD : (SimplexFG.Window.derive Ef cfg K X_D).h_F < d + 1
+retainedD : KitFG.Window.RetainedW Ef cfg K X_D (d + 1) U
+noFirstHeight : ∀ j x q a h t,
+HonestRowAt S E rho T j x q a → historyRowHeight S D a = some h →
+d + 1 ≤ h → eventTime rho j = some t →
+T.action (pt.r + 1) ≤ t
+noSecondHeight : ∀ j x q a h t,
+HonestRowAt S E rho T j x q a → historyRowHeight S D a = some h →
+d + 2 ≤ h → eventTime rho j = some t →
+T.action (pt.r + 2) ≤ t
+noEarlyFinality : ∀ j x q a h t,
+HonestRowAt S E rho T j x q a → historyFinHeight S D a = some h →
+d + 1 ≤ h → eventTime rho j = some t →
+T.action (pt.r + 2) ≤ t
+chainA : ChainRowsBefore R E rho A₀ (T.action pt.r)
+chainB : ChainRowsBefore R E rho B (T.action (pt.r + 1))
+chainD : ChainRowsBefore R E rho X_D (T.action (pt.r + 2))
+freshD : FreshPrem R S E rho T D Ef (pt.r + 1) (d + 1) X_D
+noMixedD : NoMixedOnPath O.height X_D (d + 1)
+batchB : (O.height B.parent).h = d →
+BatchPrem R S O T E rho I D Ef decodeProposal bodyErase bodyRows blockWireRows
+parentFG parentHeight validFor ΔF .target pt.r d (O.height A₀).T_h B
+batchD : (O.height X_D.parent).h = d + 1 →
+BatchPrem R S O T E rho I D Ef decodeProposal bodyErase bodyRows blockWireRows
+parentFG parentHeight validFor ΔF .target (pt.r + 1) (d + 1) U X_D
+targetsB : ∀ x ∈ rho.honest, ∃ j a,
+HonestRowAt S E rho T j x (pt.r + 1) a ∧
+RowComplete S rho D.signer valid x a ∧ NamesEntry (pair := D.heightPair) .target a (d + 1) U
+actionsInRun : T.action (pt.r + 2) ≤ rho.horizon
+capThroughBAction : ∀ i x W,
+i ≤ rho.events.length → i ≤ afterTicksIdx rho (T.action (pt.r + 1)) →
+HeldAt R E rho i x W → (O.height W).h ≤ d + 1
+capThroughFinalAction : ∀ i x W,
+i ≤ rho.events.length → i ≤ afterTicksIdx rho (T.action (pt.r + 2)) →
+HeldAt R E rho i x W → (O.height W).h ≤ d + 2
+finalityThroughFinalAction : ∀ i x W,
+i ≤ rho.events.length → i ≤ afterTicksIdx rho (T.action (pt.r + 2)) →
+HeldAt R E rho i x W → (O.finality W).h_F < d + 1
+heldDAtFinalAction : ∀ x ∈ rho.honest,
+X_D ∈ (R.core (V2.D.Run.stateBefore E rho (afterTicksIdx rho (T.action (pt.r + 2))) x)).fg.TF
+heldAAtEnd : ∀ x ∈ rho.honest,
+A₀ ∈ (R.core (V2.D.Run.stateBefore E rho rho.events.length x)).fg.TF
+```
+
+### C147 KernelPrem_W
+
+Source: `AvailableChainFGCompose/Statements/Finality.lean:28`.
+
+Producer recipe: d7n_kernel (AvailableChainFGSAProofs/Proofs/Finality/Middle.lean:1202);
+file-private; all parameters/premises must be supplied for the selected instance.
+
+```text
+bound : LivenessBoundW T deltaF
+window : Gen.Pure.FGoodE_W honestSlot T.roundSlots (kappaF T deltaF) pt.r
+start : sp.serviceStart ≤ (pt.r : Time) * FGCompose.P T
+hhor : kernelDeadlineW T deltaF (pt.r + 2) ≤ horizon
+honest_quorum : fgQuorum ≤ fgHonestWeight
+timeout_eq : timeoutSlots = 2 * T.roundSlots
+capacity_ge : 2 ≤ capacity
+```
+
+### C148 KernelPt
+
+Source: `AvailableChainFGCompose/Statements/Finality.lean:25`.
+
+Producer: OPEN; selecting PC consumer owns the actual input.
+
+```text
+r : Nat
+```
+
+### C149 KernelRunFacts
+
+Source: `AvailableChainFGCompose/Statements/FinalityKernel.lean:178`.
+
+Producer: OPEN; selecting PC consumer owns the actual input.
+
+```text
+schedule : V2.D.ScheduleWellFormed E rho
+fault_weight : Ef.weightOf (historyFaulty S rho) < Ef.q
+deltaF : E.Δ ≤ ΔF
+linked : Function.Injective (safetyHolder S rho)
+awake : ∀ x ∈ rho.honest, ∀ t, E.t_GST ≤ t → t ≤ rho.horizon → E.awake x t = true
+```
+
+### C150 LivenessBoundW
+
+Source: `AvailableChainFGCompose/Statements/Bounds.lean:44`.
+
+Producer: OPEN; selecting PC consumer owns the actual input.
+
+```text
+kappa_le_R : kappaF T deltaF ≤ T.roundSlots
+```
+
+### C151 MixedCross
+
+Source: `AvailableChainFGCompose/Statements/FinalityHistory.lean:55`.
+
+```text
+(H W.parent).h = y ∧ (H W).h = y + 1 ∧ (H W).h_j < y
+```
+
+### C152 NamesEntry
+
+Source: `AvailableChainFGCompose/Statements/Promotion.lean:22`.
+
+```text
+match kind with
+| .target => pair a = .vote height U.root false
+| .progress => ∃ timeout, pair a = .vote height U.root timeout
+```
+
+### C153 NoMixedOnPath
+
+Source: `AvailableChainFGCompose/Statements/FinalityHistory.lean:58`.
+
+```text
+∀ W, FGBlock.Preceq W X.parent → ¬ MixedCross H W y
+```
+
+### C154 OpeningCarrier_W
+
+Source: `AvailableChainFGCompose/Statements/Finality.lean:45`.
+
+```text
+∃ o N nd Par,
+V2.D.Run.emits E rho (V2.D.proposerOf rho I s) o (V2.D.proposalTime I s) ∧
+bodyErase N = A ∧ decodeProposal o = some (s, N) ∧
+proposalStateAt E rho I s = some nd ∧ parentFG nd A = some Par ∧
+makeFG Par A (bodyRows N) = Afg
+```
+
+### C155 OpeningCovered
+
+Source: `AvailableChainFGCompose/Statements/Promotion.lean:32`.
+
+```text
+∀ x ∈ rho.honest,
+∃ K nd j rSent a, postClock E rho x (T.action r) = some nd ∧
+actionSourceFG R E rho T x r = some (some K) ∧ K ∈ (R.core nd).fg.TF ∧
+Block.Preceq Q (R.erase K) ∧ rSent ≤ r ∧ HonestRowAt S E rho T j x rSent a ∧
+namedEntry (pair a) = some ((H K).h, (H K).T_h.root)
+```
+
+### C156 OpeningEntry
+
+Source: `AvailableChainFGCompose/Statements/Promotion.lean:28`.
+
+```text
+∃ e, ∀ x K, x ∈ rho.honest →
+actionSourceFG R E rho T x r = some (some K) → (H K).h = height ∧ (H K).T_h.root = e
+```
+
+### C157 PendingFold_W
+
+Source: `AvailableChainFGCompose/Statements/FinalityReceipts.lean:160`.
+
+Producer recipe: d7a5a_fold (AvailableChainFGSAProofs/Proofs/Finality/Accept.lean:352);
+file-private; all parameters/premises must be supplied for the selected instance.
+
+```text
+child : X ≠ .genesis
+cover : ∃ e ∈ (SimplexFG.Window.derive Ef cfg K X.parent).W, e.j = y ∧ e.X = U ∧
+∃ Q : Finset (Fin n), Ef.IsQuorum Q ∧ ∀ i ∈ Q,
+i ∈ e.Q ∨ ∃ row ∈ X.rows, row.signer = i ∧ row.finality_pair = some ⟨y, U.root⟩
+```
+
+### C158 PhaseInterval
+
+Source: `AvailableChainFGCompose/Statements/Phase.lean:60`.
+
+```text
+u ≤ v ∧ v ≤ rho.horizon ∧ 1 ≤ m ∧
+∀ i x, V2.D.Run.idxBefore rho u ≤ i → i ≤ timeIdx rho v → x ∈ rho.honest →
+let R := O.controls (V2.D.Run.stateBefore E rho i x)
+R.H = m ∧ R.contest = contested ∧
+(match J with | some B => R.rootIsJ = true ∧ R.J = B | none => R.rootIsJ = false)
+```
+
+### C159 PhaseWitnessReceiptScope
+
+Source: `AvailableChainFGCompose/Statements/PhaseReceipts.lean:28`.
+
+Producer recipe: healing_phase_witness_receipts_recovery
+(AvailableChainFGSAProofs/Proofs/Healing/PhaseService.lean:212); all parameters/premises must be
+supplied for the selected instance.
+
+```text
+frontier : ∃ x W, HeldAt R E rho i x W ∧ (O.height W).h = m ∧
+WitnessReceiptScope R E rho joined receipt W deadline
+top : TopEvidence R E rho i m →
+∃ x C, HeldAt R E rho i x C ∧ (O.height C).h = m ∧
+(O.height C).h_j + 1 = m ∧
+(O.height C).J = (R.core (V2.D.Run.stateBefore E rho i x)).fg.J ∧
+WitnessReceiptScope R E rho joined receipt C deadline
+contest : ContestEvidence R E rho O i m →
+∃ x C W, HeldAt R E rho i x C ∧ HeldAt R E rho i x W ∧
+(O.height C).h = m ∧ (O.height W).h = m ∧
+(O.height C).h_j + 1 = m ∧ ¬ FGBlock.Preceq (O.height C).J W ∧
+WitnessReceiptScope R E rho joined receipt C deadline ∧
+WitnessReceiptScope R E rho joined receipt W deadline
+```
+
+### C160 PreBatchPrem
+
+Source: `AvailableChainFGCompose/Statements/FinalityHistory.lean:74`.
+
+Producer recipe: d7a_pre (AvailableChainFGSAProofs/Proofs/Finality/History.lean:399);
+file-private; all parameters/premises must be supplied for the selected instance.
+
+```text
+schedule : V2.D.ScheduleWellFormed E rho
+fault_weight : Ef.weightOf (historyFaulty S rho) < Ef.q
+entry : EntryAt H U y
+path : FGBlock.Preceq U X.parent
+cut : Time
+early : cut ≤ T.action q
+rows : ChainRowsBefore R E rho X.parent cut
+noRow : ∀ j x r a h t, HonestRowAt S E rho T j x r a →
+historyRowHeight S D a = some h → y ≤ h → eventTime rho j = some t → T.action q ≤ t
+```
+
+### C161 ProgressCoveredByChild
+
+Source: `AvailableChainFGCompose/Statements/FrontierSearch.lean:150`.
+
+```text
+∃ Q : Finset (Fin n), Ef.q ≤ Ef.weightOf Q ∧ ∀ i ∈ Q,
+i ∈ (H X.parent).progress ∨ ∃ row ∈ X.rows, RowNames .progress row i y U
+```
+
+### C162 ProgressFoldAdvance
+
+Source: `AvailableChainFGCompose/Statements/FrontierSearch.lean:162`.
+
+```text
+∀ (y : Nat) (U X : FGBlock (Fin n)), X ≠ .genesis → EntryAt H U y →
+FGBlock.Preceq U X.parent →
+((H X.parent).h = y → ProgressCoveredByChild Ef H X U y) →
+U.slot + δt ≤ X.slot → y + 1 ≤ (H X).h
+```
+
+### C163 PromotionCapReceipt
+
+Source: `AvailableChainFGCompose/Statements/FrontierMaturity.lean:163`.
+
+```text
+∀ m s Qfg X, HonestProposal E rho I s (R.erase X) → E.t_GST ≤ T.proposal s →
+FGBlock.Preceq Qfg X.parent →
+(∀ i x, i ≤ V2.D.Run.idxBefore rho (T.proposal s + T.delta) → x ∈ rho.honest →
+(R.core (V2.D.Run.stateBefore E rho i x)).fg.h_max ≤ m) →
+(O.height Qfg).h = m → T.proposal s + T.delta ≤ rho.horizon →
+∃ y, y ∈ rho.honest ∧ Gen.V2.Duty.HoldsBefore E rho
+(fun nd => X ∈ (R.core nd).fg.TF) (T.proposal s + T.delta) y
+```
+
+### C164 PromotionPhaseReceipt
+
+Source: `AvailableChainFGCompose/Statements/FrontierMaturity.lean:148`.
+
+```text
+∀ u m J contested s X, Jst ≤ u → HonestProposal E rho I s (R.erase X) →
+u ≤ T.proposal s → PhaseInterval R E rho O u (T.proposal s + T.delta) m J contested →
+∃ y, y ∈ rho.honest ∧ Gen.V2.Duty.HoldsBefore E rho
+(fun nd => X ∈ (R.core nd).fg.TF) (T.proposal s + T.delta) y
+```
+
+### C165 PromotionProposalRead
+
+Source: `AvailableChainFGCompose/Statements/FrontierMaturity.lean:78`.
+
+```text
+∀ s X, HonestProposal E rho I s (R.erase X) → X.slot = s →
+(∃ rows, HonestCarrier E rho I (kernelCarrier decodeProposal bodyErase bodyRows) s
+(R.erase X) rows ∧ X.rows = rows.filterMap S.decode) ∧
+∃ nd, proposalStateAt E rho I s = some nd ∧
+parentFG nd (R.erase X).parent = some X.parent ∧
+(fold nd s X.parent).h = (O.height X.parent).h ∧
+(fold nd s X.parent).T_h = (O.height X.parent).T_h ∧
+parentHeight nd s X.parent = ((fold nd s X.parent).h, (fold nd s X.parent).T_h.root) ∧
+∀ a, validFor nd s X.parent a =
+match S.decode a with | none => false | some b => Window.r6w (fold nd s X.parent) b
+```
+
+### C166 PromotionRowOrder
+
+Source: `AvailableChainFGCompose/Statements/FrontierMaturity.lean:107`.
+
+```text
+∀ s X height U, HonestProposal E rho I s (R.erase X) → X.slot = s →
+(O.height X.parent).h = height → FGBlock.Preceq U X.parent →
+∀ i W, FGBlock.Preceq W X.parent → (∃ row ∈ W.rows, RowNames .progress row i height U) →
+FGBlock.Preceq U W.parent
+```
+
+### C167 PromotionRowSigner
+
+Source: `AvailableChainFGCompose/Statements/FrontierMaturity.lean:120`.
+
+```text
+(∀ j x r a, HonestRowAt S E rho T j x r a → ∃ b, S.decode a = some b) ∧
+∀ i j r a, HonestRowAt S E rho T j (safetyHolder S rho i) r a → D.signer a = some i
+```
+
+### C168 PromotionSlotProposal
+
+Source: `AvailableChainFGCompose/Statements/FrontierMaturity.lean:60`.
+
+```text
+∀ s, Gen.V2.Duty.HonestSlot rho I s → E.t_GST + 4 * T.delta ≤ T.proposal s →
+T.proposal s ≤ rho.horizon → ∃ X, HonestProposal E rho I s (R.erase X) ∧ X.slot = s
+```
+
+### C169 PromotionSourceAt
+
+Source: `AvailableChainFGCompose/Statements/FrontierMaturity.lean:24`.
+
+Producer: OPEN; selecting PC consumer owns the actual input.
+
+```text
+entry : EntryAt O.height U height
+parentPath : FGBlock.Preceq U X.parent
+proposal : HonestProposal E rho I s (R.erase X)
+slot : X.slot = s
+sync : E.t_GST ≤ T.action r
+carrier : carrierTimeW T ΔF r ≤ T.proposal s
+age : T.proposal U.slot + 2 * FGCompose.P T ≤ T.proposal s
+horizon : T.proposal s ≤ rho.horizon
+rows : ∀ x ∈ rho.honest, ∃ j rSent a, rSent ≤ r ∧ HonestRowAt S E rho T j x rSent a ∧
+NamesEntry D.heightPair .progress a height U
+```
+
+### C170 PromotionSourceParent
+
+Source: `AvailableChainFGCompose/Statements/FrontierMaturity.lean:131`.
+
+```text
+∀ u m J contested r s X x K, Jst ≤ u →
+PhaseInterval R E rho O u (T.proposal s) m J contested →
+u ≤ T.vote (r * T.roundSlots) → T.action r ≤ T.proposal s → r * T.roundSlots + 2 ≤ s →
+HonestProposal E rho I s (R.erase X) → x ∈ rho.honest →
+actionSourceFG R E rho T x r = some (some K) → FGBlock.Preceq K X.parent
+```
+
+### C171 RCap
+
+Source: `AvailableChainFGCompose/Statements/ChannelLaws.lean:29`.
+
+```text
+∀ y i x W,
+HeldAt R E rho i x W → y + 2 ≤ (O.height W).h →
+∃ j z r, ∃ (a : Wire) (e : BlockId), j < i ∧
+HonestRowAt S E rho T j z r a ∧ entry a = some (y + 1, e) ∧
+a ∈ chainWireRows (V2.D.Run.stateBefore E rho i x) (R.erase W)
+```
+
+### C172 RQCOrigin
+
+Source: `AvailableChainFGCompose/Statements/ChannelLaws.lean:41`.
+
+```text
+∀ i x W, x ∈ rho.honest →
+W ∈ (R.core (V2.D.Run.stateBefore E rho i x)).fg.TF →
+let origin := fun (carrier : (FGBlock (Fin n))) (a : Row (Fin n)) =>
+∃ y r, ∃ wire : Wire, HonestRowBefore S E rho T i y r wire ∧ S.decode wire = some a ∧
+storedCarrier (V2.D.Run.stateBefore E rho i x) carrier wire ∧
+∃ C, actionSourceFG R E rho T y r = some (some C) ∧
+namedEntry a.height_pair = some ((O.height C).h, (O.height C).T_h.root) ∧
+FGBlock.Preceq (O.height C).T_h C ∧ SourceService y r C
+(∀ m X (Q : Finset (Fin n)) (rows : Fin n → (FGBlock (Fin n)) × Row (Fin n)),
+1 ≤ m → m < (O.height W).h → FGBlock.Preceq X W →
+(O.height X).h = m → Ef.IsQuorum Q →
+(∀ k ∈ Q, FGBlock.Preceq (rows k).1 W ∧ (rows k).2 ∈ (rows k).1.rows ∧
+(rows k).2.signer = k ∧ (rows k).2.height_pair.matchesEntry m X.root = true) →
+∃ k ∈ Q, origin (rows k).1 (rows k).2) ∧
+(∀ (Q : Finset (Fin n)) (rows : Fin n → (FGBlock (Fin n)) × Row (Fin n)),
+(O.height W).h_j ≠ 0 → Ef.IsQuorum Q →
+(∀ k ∈ Q, FGBlock.Preceq (rows k).1 W ∧ (rows k).2 ∈ (rows k).1.rows ∧
+(rows k).2.signer = k ∧
+(rows k).2.height_pair = .vote (O.height W).h_j (O.height W).J.root false) →
+∃ k ∈ Q, origin (rows k).1 (rows k).2) ∧
+((O.finality W).F ≠ .genesis →
+∃ C, FGBlock.Preceq C W ∧ (O.height C).J = (O.finality W).F ∧
+(O.height C).h_j = (O.finality W).h_F ∧
+∃ (Q : Finset (Fin n)) (rows : Fin n → (FGBlock (Fin n)) × Row (Fin n)),
+Ef.IsQuorum Q ∧
+(∀ k ∈ Q, FGBlock.Preceq (rows k).1 C ∧ (rows k).2 ∈ (rows k).1.rows ∧
+(rows k).2.signer = k ∧
+(rows k).2.height_pair = .vote (O.height C).h_j (O.height C).J.root false) ∧
+∃ k ∈ Q, origin (rows k).1 (rows k).2)
+```
+
+### C173 RXing
+
+Source: `AvailableChainFGCompose/Statements/ChannelLaws.lean:22`.
+
+```text
+∀ i i' x y K W,
+x ∈ rho.honest → i ≤ i' →
+K ∈ (R.core (V2.D.Run.stateBefore E rho i x)).fg.TF →
+(O.finality K).F = (R.core (V2.D.Run.stateBefore E rho i x)).fg.F →
+HeldAt R E rho i' y W → (O.finality K).h_F < (O.height W).h →
+FGBlock.Preceq (R.core (V2.D.Run.stateBefore E rho i x)).fg.F W
+```
+
+### C174 RawHistoryOrigin
+
+Source: `AvailableChainFGCompose/Statements/FinalityHistory.lean:41`.
+
+```text
+∀ i x B, HeldAt R E rho i x B → ∀ u ∈ chainRows B,
+∃ a r, S.decode a = some u ∧ D.signer a = some u.signer ∧
+∃ k o t, k < i ∧ rho.events[k]? = some (.deliver x o t) ∧
+∀ z, RowSigner S rho D.signer a z → z ∈ rho.honest →
+HonestRowBefore S E rho T i z r a ∧ T.action r ≤ t
+```
+
+### C175 RowComplete
+
+Source: `AvailableChainFGCompose/Statements/Channels.lean:59`.
+
+```text
+valid a = true ∧ RowSigner S rho signer a x
+```
+
+### C176 RowNames
+
+Source: `AvailableChainFGCompose/Statements/FinalityKernel.lean:20`.
+
+```text
+row.signer = i ∧ match k with
+| .target => row.height_pair = .vote y U.root false
+| .progress => ∃ timeout, row.height_pair = .vote y U.root timeout
+```
+
+### C177 RowPermissionCoveredDriverStatement
+
+Source: `AvailableChainFGCompose/Statements/HolderClient.lean:132`.
+
+```text
+let O := driverFGExecutionObs E rho F T Op
+FGExecutionObsLaws E rho O → FGHolderClientLaws S Ef cfg E rho O holder →
+FGTimingLaws timing → FGRowPermissionWireLaws S entry → V2.D.ScheduleWellFormed E rho →
+(∀ C, ((derive Ef cfg C).h, (derive Ef cfg C).T_h.root) =
+((H C).h, (H C).T_h.root)) →
+∀ seat j r C, holder seat ∈ rho.honest →
+rho.events[j]? = some (.tick (holder seat) (timing.action r)) →
+FGRowPermissionInputs S H (obsDutyState O (holder seat) j) C →
+FGRowRecordHistory (S.record (obsDutyState O (holder seat) j)) →
+(∀ b ∈ (S.record (O.stateBefore j (holder seat))).sent,
+∃ k rSent a, k < j ∧ obsHonestRowAt S rho O timing k (holder seat) rSent a ∧
+entry a = namedEntry b.1) →
+E.awake (holder seat) (timing.action r) = true →
+S.enabled (timing.action r) = true →
+FGHolderRowCoverage S rho O timing entry (holder seat) j r ((H C).h, (H C).T_h.root)
+```
+
+### C178 RowSigner
+
+Source: `AvailableChainFGCompose/Statements/Channels.lean:49`.
+
+```text
+∃ i, signer a = some i ∧ safetyHolder S rho i = x
+```
+
+### C179 SafetyClientTraceDriverStatement
+
+Source: `AvailableChainFGCompose/Statements/HolderClient.lean:107`.
+
+```text
+let O := driverFGExecutionObs E rho F T Op
+FGExecutionObsLaws E rho O → FGHolderClientLaws S Ef cfg E rho O holder →
+FGHolderClientTrace S Ef cfg E rho O holder
+```
+
+### C180 SafetyEmittedNoSlashDriverStatement
+
+Source: `AvailableChainFGCompose/Statements/HolderClient.lean:119`.
+
+```text
+let O := driverFGExecutionObs E rho F T Op
+FGExecutionObsLaws E rho O → FGHolderClientLaws S Ef cfg E rho O holder →
+FGSafetyWireLaws S → ∀ i, holder i ∈ rho.honest → obsSafetyNoSlash S rho O (holder i)
+```
+
+### C181 SafetyWholeAccountable
+
+Source: `AvailableChainFGCompose/Statements/SafetyClaims.lean:21`.
+
+```text
+(∀ A B T T' h h',
+safetyRunBlock R S E rho A → safetyRunBlock R S E rho B →
+safetyFinalizedAt f A T h → safetyFinalizedAt f B T' h' →
+HasSlashableWeightBetween Ef (chainRows A) (chainRows B) ∨
+FGBlock.compatible T T' = true) ∧
+(∀ x ∈ rho.honest, ∀ y ∈ rho.honest, ∀ i j : Nat,
+HasSlashableWeightBetween Ef
+(safetyRows R (V2.D.Run.stateBefore E rho i x))
+(safetyRows R (V2.D.Run.stateBefore E rho j y)) ∨
+FGBlock.compatible (R.core (V2.D.Run.stateBefore E rho i x)).fg.F
+(R.core (V2.D.Run.stateBefore E rho j y)).fg.F = true) ∧
+(∀ x ∈ rho.honest, ∀ y ∈ rho.honest, ∀ t t' : Time,
+HasSlashableWeightBetween Ef
+(safetyRows R (V2.D.Run.readAt E rho t x))
+(safetyRows R (V2.D.Run.readAt E rho t' y)) ∨
+FGBlock.compatible (R.core (V2.D.Run.readAt E rho t x)).fg.F
+(R.core (V2.D.Run.readAt E rho t' y)).fg.F = true)
+```
+
+### C182 SafetyWholeAgreement
+
+Source: `AvailableChainFGCompose/Statements/SafetyClaims.lean:60`.
+
+```text
+(∀ A B T T' h h',
+safetyRunBlock R S E rho A → safetyRunBlock R S E rho B →
+safetyFinalizedAt f A T h → safetyFinalizedAt f B T' h' →
+FGBlock.compatible T T' = true) ∧
+(∀ x ∈ rho.honest, ∀ y ∈ rho.honest, ∀ t t' : Time,
+FGBlock.compatible (R.core (V2.D.Run.readAt E rho t x)).fg.F
+(R.core (V2.D.Run.readAt E rho t' y)).fg.F = true)
+```
+
+### C183 SelectedAcceptanceKeepStatement
+
+Source: `AvailableChainFGCompose/Statements/ExecutionBridges.lean:165`.
+
+```text
+FGObservedFinalityLaws R rho O →
+∀ x W U d (A : FGSelectedAcceptance R S E rho H Wr O update x W d),
+FGBlock.Preceq U (R.core (O.cutState x (A.step + 1))).fg.F →
+∀ k, A.step < k → k ≤ O.cutLength x → FGBlock.Preceq U (R.core (O.cutState x k)).fg.F
+```
+
+### C184 ServedFrontier
+
+Source: `AvailableChainFGCompose/Statements/Attempt.lean:150`.
+
+```text
+∃ s Q Qfg,
+HonestProposal E rho I s Q ∧ R.erase Qfg = Q ∧ (O.height Qfg).h = m ∧
+T.gate s ≤ t ∧ AttemptExactService R E rho T I A s Q
+```
+
+### C185 SettledPhaseFrame
+
+Source: `AvailableChainFGCompose/Statements/Phase.lean:45`.
+
+```text
+let frame := O.controls nd
+frame.H = m ∧ frame.contest = contested ∧ frame.lo = (if contested then m else m - 1) ∧
+(match J with
+| some B => frame.rootIsJ = true ∧ frame.J = B ∧ frame.Z = B ∧
+frame.j + 1 = m ∧ contested = false ∧ FGBlock.Preceq (R.core nd).fg.F B
+| none => frame.rootIsJ = false ∧ frame.Z = (R.core nd).fg.F ∧
+(∃ K ∈ (R.core nd).fg.TF, (O.finality K).F = (R.core nd).fg.F ∧
+(O.finality K).h_F < frame.lo) ∧
+((contested = false ∧ frame.j + 2 ≤ m) ∨
+(contested = true ∧ frame.j + 1 = m))) ∧
+(∃ W ∈ (R.core nd).fg.TF, (O.height W).h = m ∧ FGBlock.Preceq frame.Z W)
+```
+
+### C186 SlotChain
+
+Source: `AvailableChainFGCompose/Statements/FinalityKernel.lean:27`.
+
+```text
+∀ W, FGBlock.Preceq W X → W ≠ .genesis → W.parent.slot < W.slot
+```
+
+### C187 StrongServed
+
+Source: `AvailableChainFGCompose/Statements/FrontierSearch.lean:73`.
+
+```text
+∃ u J contested q Q Qfg,
+Jst ≤ u ∧ HonestProposal E rho I q Q ∧ R.erase Qfg = Q ∧
+(O.height Qfg).h = m ∧ FrontierProposalService R E rho T q Q ∧
+FrontierSeedQualification T leaseSlots E.t_GST u q ∧ u ≤ T.proposal q ∧
+PhaseInterval R E rho O u (T.gate q) m J contested ∧ T.gate q ≤ t ∧
+t ≤ rho.horizon ∧
+(∀ i x, timeIdx rho u ≤ i → i ≤ timeIdx rho t → x ∈ rho.honest →
+(R.core (rho.stateBefore E i x)).fg.h_max ≤ m) ∧
+FrontierLocalService R S E rho O T I pair q Q Qfg m t
+```
+
+### C188 TRowsReceipt
+
+Source: `AvailableChainFGCompose/Statements/Service.lean:169`.
+
+```text
+∀ j y r (a : Wire),
+HonestRowAt S E rho T j y r a → max (T.action r) E.t_GST + deltaF ≤ rho.horizon →
+∀ x ∈ rho.honest, HeldBefore R E rho blockWireRows x a (max (T.action r) E.t_GST + deltaF)
+```
+
+### C189 TRowsSelect
+
+Source: `AvailableChainFGCompose/Statements/Service.lean:155`.
+
+```text
+∀ s Q rows j y r (a : Wire),
+HonestCarrier E rho I carrier s Q rows → HonestRowAt S E rho T j y r a
+→ ValidForParent E rho I parentFG validFor s Q a
+→ heldAtProposal R E rho I blockWireRows s a → a ∈ rows
+∨ onParentChain E rho I chainWireRows s Q a
+```
+
+### C190 TargetCoveredByChild
+
+Source: `AvailableChainFGCompose/Statements/FinalityHistory.lean:62`.
+
+```text
+∃ Q : Finset (Fin n), Ef.q ≤ Ef.weightOf Q ∧ ∀ i ∈ Q,
+i ∈ (H X.parent).target_participation ∨
+∃ row ∈ X.rows, row.signer = i ∧ row.height_pair = .vote y U.root false
+```
+
+### C191 TargetJustification
+
+Source: `AvailableChainFGCompose/Statements/FinalityHistory.lean:69`.
+
+```text
+∀ y U X, X ≠ .genesis → EntryAt H U y → FGBlock.Preceq U X.parent →
+((H X.parent).h = y → TargetCoveredByChild Ef H X U y) →
+NoMixedOnPath H X y → ∃ C, FGBlock.Preceq C X ∧ JustifiedCross H C U y
+```
+
+### C192 TerminalCarriagePrem_W
+
+Source: `AvailableChainFGCompose/Statements/FinalityRows.lean:86`.
+
+Producer recipe: d7a4c_terminal_to (AvailableChainFGSAProofs/Proofs/Finality/Carry.lean:683);
+file-private; all parameters/premises must be supplied for the selected instance.
+
+```text
+schedule : V2.D.ScheduleWellFormed E rho
+fault_weight : Ef.weightOf (historyFaulty S rho) < Ef.q
+deltaF : E.Δ ≤ ΔF
+carrier : ∃ rows, HonestCarrier E rho I carrier X.slot (R.erase X) rows ∧
+X.rows = rows.filterMap S.decode
+parent : ∃ nd, proposalStateAt E rho I X.slot = some nd ∧
+parentFG nd (R.erase X).parent = some X.parent
+path : FGBlock.Preceq A X.parent
+freshHeight : (O.height A).h = y + 1
+retainedOrCovered : KitFG.Window.RetainedW Ef cfg K X.parent y U ∨
+KitFG.Window.CoveredW Ef cfg K X.parent y U
+horizon : max (T.action q) E.t_GST + ΔF ≤ T.proposal X.slot ∧
+T.proposal X.slot ≤ rho.horizon
+seats : Finset (Fin n)
+rows : Fin n → Wire
+fresh : FreshFinalityRows_W R S O T E rho D Ef valid q y U seats rows
+heightEntry : ∀ i ∈ seats,
+namedEntry (D.heightPair (rows i)) = some (y + 1, (O.height A).T_h.root)
+receipt : ∀ i ∈ seats,
+HeldBefore R E rho blockWireRows (V2.D.proposerOf rho I X.slot) (rows i)
+(max (T.action q) E.t_GST + ΔF) ∧
+heldAtProposal R E rho I blockWireRows X.slot (rows i)
+```
+
+### C193 TopEvidence
+
+Source: `AvailableChainFGCompose/Statements/Phase.lean:22`.
+
+```text
+∃ x, x ∈ rho.honest ∧
+(R.core (V2.D.Run.stateBefore E rho i x)).fg.h_j + 1 = m
+```
+
+### C194 ValidForParent
+
+Source: `AvailableChainFGCompose/Statements/Channels.lean:103`.
+
+```text
+∃ nd H, proposalStateAt E rho I s = some nd ∧
+parentFG nd Q.parent = some H ∧ validFor nd s H a = true
+```
+
+### C195 WitnessReceiptScope
+
+Source: `AvailableChainFGCompose/Statements/PhaseReceipts.lean:21`.
+
+Producer recipe: healing_witness_receipt_at_event
+(AvailableChainFGSAProofs/Proofs/Healing/PhaseService.lean:203); all parameters/premises must be
+supplied for the selected instance.
+
+```text
+atRead : ∀ iy y t, y ∈ rho.honest → rho.events[iy]? = some (.tick y t) →
+joined (P.clock (V2.D.Run.stateBefore E rho iy y) t) = true → deadline ≤ t →
+Block.Preceq (R.erase (R.core (rho.stateBeforeTime E deadline y)).fg.F)
+(R.erase W) → receipt (R.erase W) deadline y
+```
+
+### C196 dependencyActualRead
+
+Source: `AvailableChainFGCompose/Statements/DependencyTrace.lean:225`.
+
+```text
+∃ j e kind, rho.events[j]? = some e ∧
+dependencyReadRequired E F x (dependencyStateBefore E rho F x j) e kind ∧
+i = 4 * j + dependencyReadCode kind ∧ st = dependencyReadState E rho F x j e
+```
+
+### C197 dependencyClosed
+
+Source: `AvailableChainFGCompose/Statements/Dependency.lean:177`.
+
+```text
+¬ FGDependencyEnabled H D st
+```
+
+### C198 dependencyEmits
+
+Source: `AvailableChainFGCompose/Statements/DependencyTrace.lean:203`.
+
+```text
+∃ j, rho.events[j]? = some (.tick x t) ∧
+wire ∈ dependencyReleased E rho (dependencyDutyState E rho F x j (.tick x t)) x t
+```
+
+### C199 dependencyReadRequired
+
+Source: `AvailableChainFGCompose/Statements/DependencyTrace.lean:212`.
+
+```text
+match e with
+| .tick y t => y = x ∧ E.awake x t = true
+| .deliver _ _ _ | .restart _ _ => False
+```
+
+### C200 dependencyRefused
+
+Source: `AvailableChainFGCompose/Statements/Dependency.lean:36`.
+
+```text
+D.refused st b (H.root b) (H.root (H.parent b))
+```
+
+### C201 dependencyResolved
+
+Source: `AvailableChainFGCompose/Statements/Dependency.lean:40`.
+
+```text
+D.accepted st b ∨ dependencyRefused H D st b
+```
+
+### C202 dependencyStrictPrefix
+
+Source: `AvailableChainFGCompose/Statements/DependencyTrace.lean:243`.
+
+```text
+k ≤ T.length ∧ T.time k < deadline ∧
+∀ j e, rho.events[j]? = some e → T.start j ≤ k → e.time < deadline
+```
+
+### C203 heldAtProposal
+
+Source: `AvailableChainFGCompose/Statements/Channels.lean:94`.
+
+```text
+∃ nd, proposalStateAt E rho I s = some nd ∧ rowHeld R blockWireRows nd a
+```
+
+### C204 high
+
+Source: `AvailableChainFGCompose/Statements/ResetHistory.lean:50`.
+
+```text
+w.M + 1 ≤ (O.height C).h
+```
+
+### C205 kernelCarrier
+
+Source: `AvailableChainFGCompose/Statements/FinalityKernel.lean:43`.
+
+```text
+∃ N, decodeProposal o = some (s, N) ∧ bodyErase N = Q ∧ bodyRows N = rows
+```
+
+### C206 obsEmits
+
+Source: `AvailableChainFGCompose/Statements/ExecutionObs.lean:57`.
+
+```text
+∃ j, rho.events[j]? = some (.tick x t) ∧ o ∈ O.released x j
+```
+
+### C207 obsHonestRowAt
+
+Source: `AvailableChainFGCompose/Statements/HolderClient.lean:57`.
+
+```text
+x ∈ rho.honest ∧ rho.events[j]? = some (.tick x (T.action r)) ∧
+S.encode a ∈ O.released x j
+```
+
+### C208 obsSafetyNoSlash
+
+Source: `AvailableChainFGCompose/Statements/HolderClient.lean:44`.
+
+```text
+∀ a b, (∃ t, obsEmits O rho x (S.encode a) t) →
+(∃ t, obsEmits O rho x (S.encode b) t) →
+∀ u v, S.decode a = some u → S.decode b = some v → ¬ Slashable u v
+```
+
+### C209 onParentChain
+
+Source: `AvailableChainFGCompose/Statements/Channels.lean:97`.
+
+```text
+∃ nd, proposalStateAt E rho I s = some nd ∧ a ∈ chainWireRows nd Q.parent
+```
+
+### C210 rowHeld
+
+Source: `AvailableChainFGCompose/Statements/Channels.lean:91`.
+
+```text
+a ∈ (R.core nd).rowPool ∨ a ∈ blockWireRows nd
+```
+
+### C211 safetyBound
+
+Source: `AvailableChainFGCompose/Statements/SafetyReads.lean:99`.
+
+```text
+∀ K W, safetyRunBlock R S E rho K → safetyRunBlock R S E rho W →
+¬ HasSlashableWeightBetween Ef (chainRows K) (chainRows W)
+```
+
+### C212 safetyCarriage
+
+Source: `AvailableChainFGCompose/Statements/SafetyReads.lean:79`.
+
+```text
+∀ u ∈ A, ∃ a, S.decode a = some u ∧
+(safetyHolder S rho u.signer ∈ rho.honest →
+safetyEmits S E rho (safetyHolder S rho u.signer) a)
+```
+
+### C213 safetyEmits
+
+Source: `AvailableChainFGCompose/Statements/SafetyReads.lean:63`.
+
+```text
+∃ k t, rho.events[k]? = some (.tick x t) ∧
+S.encode a ∈ V2.D.Run.emitsAt E rho k
+```
+
+### C214 safetyNoSlash
+
+Source: `AvailableChainFGCompose/Statements/SafetyReads.lean:90`.
+
+```text
+∀ a b, safetyEmits S E rho x a → safetyEmits S E rho x b →
+∀ u v, S.decode a = some u → S.decode b = some v → ¬ Slashable u v
+```
+
+### C215 safetyRunBlock
+
+Source: `AvailableChainFGCompose/Statements/SafetyReads.lean:43`.
+
+```text
+∃ o b, S.proposalErase o = some b ∧
+((∃ x t, V2.D.Run.emits E rho x o t) ∨
+(∃ x t, V2.Event.deliver x o t ∈ rho.events)) ∧
+Block.Preceq (R.erase K) b
+```
+
+### C216 safetyScopedRoots
+
+Source: `AvailableChainFGCompose/Statements/SafetyStore.lean:66`.
+
+```text
+∀ K W, Q (R.erase K) → Q (R.erase W) → RootInjectiveOn K W
+```
+
+### C217 safetySlashesRead
+
+Source: `AvailableChainFGCompose/Statements/SafetyClaims.lean:79`.
+
+```text
+V) P) : Prop :=
+∀ v, I.slashes rho v ↔
+∃ x y t t' i,
+SlashableBetween (safetyRows R (V2.D.Run.readAt E rho t x))
+(safetyRows R (V2.D.Run.readAt E rho t' y)) i ∧
+safetyHolder S rho i = v
+```
+
+### C218 Gen.Pure.FGoodE_W
+
+Source: `AvailableChainGeneric/Statements/Pure/ScheduleW.lean:11`.
+
+```text
+H (r * R) ∧ H ((r + 1) * R) ∧
+(∃ c : Slot, (r + 1) * R + κ ≤ c ∧ c ≤ (r + 2) * R ∧ H c) ∧
+H ((r + 2) * R + κ)
+```
+
+### C219 Gen.Pure.FaultQ
+
+Source: `AvailableChainGeneric/Statements/Pure/Quorum.lean:24`.
+
+Producer recipe: fgsa_faultQ_of_count
+(AvailableChainFGSAProofs/Proofs/Foundations/Counts.lean:19); all parameters/premises must be
+supplied for the selected instance.
+
+```text
+lt : a < qF n
+```
+
+### C220 Gen.Pure.InWindow
+
+Source: `AvailableChainGeneric/Statements/Pure/Schedule.lean:15`.
+
+```text
+q ≤ r ∧ r < q + g
+```
+
+### C221 Gen.Pure.RecFE_W
+
+Source: `AvailableChainGeneric/Statements/Pure/ScheduleW.lean:24`.
+
+```text
+1 ≤ g ∧ ∀ q : Nat, 1 ≤ q → GST ≤ (q : Time) * P →
+((q : Time) + g + 1) * P + β + Δ ≤ horizon →
+∃ r, InWindow q g r ∧ FGoodE_W H R κ r
+```
+
+### C222 Gen.V2.Duty.HoldsBefore
+
+Source: `AvailableChainGeneric/Statements/V2/Duty/Reads.lean:65`.
+
+```text
+Q (D.Run.stateBeforeTime E rho d x)
+```
+
+### C223 Gen.V2.Duty.HonestNeverSlashed
+
+Source: `AvailableChainGeneric/Statements/V2/Duty/Slashing.lean:21`.
+
+```text
+V) P) (rho : D.Run V P) : Prop :=
+∀ v ∈ rho.honest, ¬ I.slashes rho v
+```
+
+### C224 Gen.V2.Duty.HonestSlot
+
+Source: `AvailableChainGeneric/Statements/V2/Duty/Reads.lean:54`.
+
+```text
+0 < s ∧ D.proposerOf rho I s ∈ rho.honest
+```
+
+### C225 Gen.V2.Duty.MonoAlong
+
+Source: `AvailableChainGeneric/Statements/V2/Duty/Reads.lean:76`.
+
+```text
+(∀ st t, Q st → Q (P.clock st t)) ∧
+(∀ st o, Q st → Q (P.process st o)) ∧
+(∀ st o, Q st → Q (P.recordOwn st o))
+```
+
+### C226 Gen.V2.Duty.SlashingInterface
+
+Source: `AvailableChainGeneric/Statements/V2/Duty/Slashing.lean:12`.
+
+Producer recipe: fgsaSlashing (AvailableChainFGSARun/Statements/Slashing.lean:26); all
+parameters/premises must be supplied for the selected instance.
+
+```text
+slashes : D.Run V P → V → Prop
+```
+
+### C227 Gen.Env
+
+Source: `AvailableChainModel/Generic/Env.lean:10`.
+
+Producer recipe: env1 (AvailableChainFGSAProofs/Proofs/Healing/RegressionFixture.lean:19); all
+parameters/premises must be supplied for the selected instance.
+
+```text
+Δ : Time
+Δ_pos : 0 < Δ
+t_GST : Time
+t_GST_nonneg : 0 ≤ t_GST
+awake : V → Time → Bool
+```
+
+### C228 KitFG.FGCertificateLaws
+
+Source: `AvailableChainKitFG/CertificateCoreDef.lean:100`.
+
+Producer recipe: fgCertificateLaws (AvailableChainFGSA/Proofs/StoreLaws.lean:18); all
+parameters/premises must be supplied for the selected instance.
+
+```text
+height : FGHeightLaws E H
+initial :
+f .genesis = ⟨.genesis, 0⟩
+justified_zero :
+∀ B, (H B).h_j = 0 → (H B).J = .genesis
+finalized_zero :
+∀ B, (f B).h_F = 0 → (f B).F = .genesis
+finalized_preceq_justified :
+∀ B, FGBlock.Preceq (f B).F (H B).J
+heights_ordered :
+∀ B, (f B).h_F ≤ (H B).h_j
+finalized_mono :
+∀ {A B}, FGBlock.Preceq A B →
+(f A).h_F ≤ (f B).h_F ∧
+FGBlock.Preceq (f A).F (f B).F
+finality_origin :
+∀ B, (f B).h_F ≠ 0 →
+∃ C D,
+StrictPrefix C D ∧
+FGBlock.Preceq D B ∧
+JustificationBirth E H C (f B).h_F (f B).F ∧
+(f D.parent).h_F < (f D).h_F ∧
+f D = f B ∧
+FinalityQCAfter E C D (f B).h_F (f B).F
+```
+
+### C229 KitFG.FGHeightLaws
+
+Source: `AvailableChainKitFG/HeightLawsDef.lean:12`.
+
+Producer recipe: windowHeightLaws (AvailableChainFGSA/Proofs/WindowHeightBridge.lean:211); all
+parameters/premises must be supplied for the selected instance.
+
+```text
+one_le_h :
+∀ B, 1 ≤ (v B).h
+h_mono :
+∀ {A B}, FGBlock.Preceq A B → (v A).h ≤ (v B).h
+node_cases :
+∀ (p : FGBlock V) (s : Slot) (r_s : BlockId) (x : Nat) (rs : List (Row V)),
+let B := FGBlock.node p s r_s x rs
+((v B).h = (v p).h ∧ (v B).T_h = (v p).T_h) ∨
+((v B).h = (v p).h + 1 ∧ (v B).T_h = B)
+entry_preceq :
+∀ B, FGBlock.Preceq (v B).T_h B
+entry_same_height :
+∀ B, (v (v B).T_h).h = (v B).h
+entry_idem :
+∀ B, (v (v B).T_h).T_h = (v B).T_h
+entry_plateau :
+∀ {A B}, FGBlock.Preceq A B →
+(v A).h = (v B).h → (v A).T_h = (v B).T_h
+justified_preceq_entry :
+∀ B, FGBlock.Preceq (v B).J (v B).T_h
+justified_below_height :
+∀ B, (v B).h_j < (v B).h
+target_sub_progress :
+∀ B, (v B).target_participation ⊆ (v B).progress
+target_origin :
+∀ B i, i ∈ (v B).target_participation →
+∃ (W : FGBlock V) (a : Row V),
+FGBlock.Preceq W B ∧ a ∈ W.rows ∧ a.signer = i ∧
+a.height_pair = .vote (v B).h (v B).T_h.root false
+progress_origin :
+∀ B i, i ∈ (v B).progress →
+∃ (W : FGBlock V) (a : Row V),
+FGBlock.Preceq W B ∧ a ∈ W.rows ∧ a.signer = i ∧
+a.height_pair.matchesEntry (v B).h (v B).T_h.root = true
+height_crossing :
+∀ (C : FGBlock V) (y : Height),
+1 ≤ y → y < (v C).h →
+∃ X : FGBlock V,
+FGBlock.Preceq X C ∧ (v X).h = y ∧
+∃ Q : Finset V, E.IsQuorum Q ∧
+∀ i ∈ Q, ∃ (W : FGBlock V) (a : Row V),
+FGBlock.Preceq W C ∧ a ∈ W.rows ∧ a.signer = i ∧
+a.height_pair.matchesEntry y X.root = true
+justification_certificate :
+∀ D, (v D).h_j ≠ 0 →
+∃ Q : Finset V, E.IsQuorum Q ∧
+∀ i ∈ Q, ∃ (W : FGBlock V) (a : Row V),
+FGBlock.Preceq W D ∧ a ∈ W.rows ∧ a.signer = i ∧
+a.height_pair = .vote (v D).h_j (v D).J.root false
+```
+
+### C230 KitFG.FGJustificationLaws
+
+Source: `AvailableChainKitFG/JustificationLawsDef.lean:10`.
+
+Producer recipe: fgJustificationLaws (AvailableChainFGSA/Proofs/StoreLaws.lean:23); all
+parameters/premises must be supplied for the selected instance.
+
+```text
+J_entry :
+∀ C, (H (H C).J).T_h = (H C).J
+J_height :
+∀ C, (H C).h_j ≠ 0 → (H (H C).J).h = (H C).h_j
+J_zero :
+∀ C, (H C).h_j = 0 → (H C).J = .genesis
+```
+
+### C231 KitFG.FGStoreInvariant
+
+Source: `AvailableChainKitFG/StoreSafetyDef.lean:28`.
+
+Producer recipe: windowStoreInvariant_init (AvailableChainFGSA/Proofs/WindowStore.lean:358); all
+parameters/premises must be supplied for the selected instance.
+
+```text
+closed :
+∀ B ∈ st.TF, B.parent ∈ st.TF
+gen :
+FGBlock.genesis ∈ st.TF
+Fmem :
+st.F ∈ st.TF
+hmax :
+st.h_max = st.TF.sup (fun B => (H B).h) ⊔ 1
+pair :
+(∃ C ∈ st.TF,
+FGBlock.Preceq st.F (H C).J ∧
+st.h_j = (H C).h_j ∧ st.J = (H C).J) ∧
+(∀ B ∈ st.TF, FGBlock.Preceq st.F (H B).J →
+lexKey ((H B).h_j, (H B).J) ≤ lexKey (st.h_j, st.J))
+FJ :
+FGBlock.Preceq st.F st.J
+Fcar :
+∃ D ∈ st.TF, (f D).F = st.F
+```
+
+### C232 KitFG.HeightBridge
+
+Source: `AvailableChainKitFG/HeightCoreDef.lean:42`.
+
+```text
+∀ B, v B = heightOf (derive E cfg B)
+```
+
+### C233 KitFG.JustificationBirth
+
+Source: `AvailableChainKitFG/CertificateCoreDef.lean:59`.
+
+```text
+C ≠ .genesis ∧
+(H C.parent).h = j ∧
+(H C.parent).T_h = X ∧
+(H C).h_j = j ∧
+(H C).J = X ∧
+(H C).h = j + 1 ∧
+TargetQCAt E C j X
+```
+
+### C234 KitFG.RecordInv
+
+Source: `AvailableChainKitFG/ClientSafety.lean:22`.
+
+```text
+∀ h T, Λ.lock h = some T → Λ.timeout h = false ∧ (Λ.target h = none ∨ Λ.target h = some T)
+```
+
+### C235 KitFG.RootInjectiveOn
+
+Source: `AvailableChainKitFG/RootScopeDef.lean:16`.
+
+```text
+∀ X Y : FGBlock V, (X.Preceq B₁ ∨ X.Preceq B₂) → (Y.Preceq B₁ ∨ Y.Preceq B₂) →
+X.root = Y.root → X = Y
+```
+
+### C236 KitFG.TargetQCAt
+
+Source: `AvailableChainKitFG/CertificateCoreDef.lean:42`.
+
+```text
+∃ Q : Finset V, E.IsQuorum Q ∧
+∀ i ∈ Q, ∃ carrier a,
+FGBlock.Preceq carrier B ∧
+a ∈ carrier.rows ∧ a.signer = i ∧
+a.height_pair = .vote j X.root false
+```
+
+### C237 KitFG.Window.CoveredW
+
+Source: `AvailableChainKitFG/WindowEntriesDef.lean:26`.
+
+```text
+j ≤ (derive E cfg K B).h_F ∧ FGBlock.Preceq U (derive E cfg K B).F
+```
+
+### C238 KitFG.Window.RetainedW
+
+Source: `AvailableChainKitFG/WindowEntriesDef.lean:16`.
+
+```text
+∃ e ∈ (derive E cfg K B).W, e.j = j ∧ e.X = U
+```
+
+### C239 FG.Electorate
+
+Source: `AvailableChainSimplexFG/Objects.lean:182`.
+
+Producer recipe: E (AvailableChainFGSA/Model/Objects.lean:33); all parameters/premises must be
+supplied for the selected instance.
+
+```text
+weight : V → Nat
+weight_pos : ∀ i, 0 < weight i
+namespace Electorate
+```
+
+### C240 FG.FGConfig
+
+Source: `AvailableChainSimplexFG/ChainState.lean:13`.
+
+Producer recipe: cfg (AvailableChainFGSA/Model/Objects.lean:36); all parameters/premises must be
+supplied for the selected instance.
+
+```text
+timeoutDelay : Nat
+deriving DecidableEq, Repr
+```
+
+### C241 FG.FinalityPair
+
+Source: `AvailableChainSimplexFG/Objects.lean:31`.
+
+Producer: OPEN; selecting PC consumer owns the actual input.
+
+```text
+height : Height
+target : BlockId
+deriving DecidableEq, Repr
+```
+
+### C242 FG.HasIntersectionWeight
+
+Source: `AvailableChainSimplexFG/Evidence.lean:81`.
+
+```text
+2 * E.q ≤ E.totalWeight + E.weightOf S
+```
+
+### C243 FG.HasSlashableWeightBetween
+
+Source: `AvailableChainSimplexFG/Evidence.lean:87`.
+
+```text
+∃ S : Finset V, HasIntersectionWeight E S ∧ ∀ i ∈ S, SlashableBetween A₁ A₂ i
+```
+
+### C244 FG.HeadFields
+
+Source: `AvailableChainSimplexFG/Client.lean:62`.
+
+Producer recipe: headFields (AvailableChainFGSA/Model/WindowViews.lean:35); all
+parameters/premises must be supplied for the selected instance.
+
+```text
+h_j : Height
+J : BlockId
+h_F : Height
+deriving DecidableEq, Repr
+```
+
+### C245 FG.Record
+
+Source: `AvailableChainSimplexFG/Client.lean:20`.
+
+Producer recipe: initial (AvailableChainSimplexFG/Client.lean:32); all parameters/premises must be
+supplied for the selected instance.
+
+```text
+target : Height → Option BlockId
+timeout : Height → Bool
+lock : Height → Option BlockId
+namespace Record
+```
+
+### C246 FG.RecordOnce
+
+Source: `AvailableChainKitFG/ClientOnce.lean:24`.
+
+Producer recipe: recordRow (AvailableChainFGSARun/Model/Protocol.lean:287); all
+parameters/premises must be supplied for the selected instance.
+
+```text
+sent : List (NamedHeightPair × Option FinalityPair)
+```
+
+### C247 FG.Row
+
+Source: `AvailableChainSimplexFG/Objects.lean:37`.
+
+Producer recipe: RowPayload.toRow (AvailableChainFGSA/Model/ProposalContent.lean:64); all
+parameters/premises must be supplied for the selected instance.
+
+```text
+signer : V
+height_pair : NamedHeightPair
+finality_pair : Option FinalityPair
+deriving DecidableEq, Repr
+class RowCodec (V : Type) where
+encodeSigner : V → Nat
+encodeSigner_inj : Function.Injective encodeSigner
+instance {n : Nat} : RowCodec (Fin n) := ⟨Fin.val, Fin.val_injective⟩
+```
+
+### C248 FG.RowCodec
+
+Source module: `AvailableChainSimplexFG.Objects` (compiled API field types).
+
+Producer: OPEN; selecting PC consumer owns the actual input.
+
+```text
+```
+
+### C249 FG.Slashable
+
+Source: `AvailableChainSimplexFG/Evidence.lean:63`.
+
+```text
+slashable left right = true
+instance (left right : Row V) : Decidable (Slashable left right) :=
+inferInstanceAs (Decidable (slashable left right = true))
+```
+
+### C250 FG.SlashableBetween
+
+Source: `AvailableChainSimplexFG/Evidence.lean:75`.
+
+```text
+∃ a ∈ A₁, ∃ b ∈ A₂, a.signer = i ∧ b.signer = i ∧ Slashable a b
+```
+
+### C251 FG.Store
+
+Source: `AvailableChainSimplexFG/Store.lean:17`.
+
+Producer recipe: update_finality (AvailableChainFGSA/Model/WindowStore.lean:24); all
+parameters/premises must be supplied for the selected instance.
+
+```text
+TF : Finset (FGBlock V)
+F : FGBlock V
+J : FGBlock V
+h_j : Height
+h_max : Height
+deriving DecidableEq
+```
+
+### C252 FG.ViewRootInj
+
+Source: `AvailableChainSimplexFG/Frame.lean:25`.
+
+```text
+∀ X Y, (∃ W ∈ Vw, FGBlock.Preceq X W) → (∃ W ∈ Vw, FGBlock.Preceq Y W) →
+X.root = Y.root → X = Y
+```
+
+### C253 FG.Window.Entry
+
+Source: `AvailableChainSimplexFG/Window.lean:11`.
+
+Producer recipe: window_addBit (AvailableChainFGSA/Proofs/WindowSteps.lean:148); all
+parameters/premises must be supplied for the selected instance.
+
+```text
+j : Height
+X : FGBlock V
+Q : Finset V
+deriving DecidableEq
+```
+
+### C254 FG.Window.State
+
+Source: `AvailableChainSimplexFG/Window.lean:19`.
+
+Producer recipe: gateStep (AvailableChainFGSA/Model/Clock.lean:30); all parameters/premises must
+be supplied for the selected instance.
+
+```text
+L : FGBlock V
+s : Slot
+h : Height
+T_h : FGBlock V
+target_participation : Finset V
+progress : Finset V
+W : List (Entry V)
+J : FGBlock V
+h_j : Height
+F : FGBlock V
+h_F : Height
+deriving DecidableEq
+```
+
+### C255 V2.D.Interface
+
+Source: `AvailableChainEngineV2/Conditions/Duty/Interface.lean:13`.
+
+Producer recipe: fgsaInterface (AvailableChainFGSARun/Statements/Interface.lean:42); all
+parameters/premises must be supplied for the selected instance.
+
+```text
+confirmed : P.State → Block
+stable : P.State → Block
+block : P.Payload → Option Block
+opening : Slot → Prop
+propLabel : Slot → P.Label
+propDuty : Slot → P.Duty
+propDuty_label : ∀ s, P.signLabel (propDuty s) = propLabel s
+propLabel_single : ∀ s, P.seats (propLabel s) = 1
+propLabel_injective : Function.Injective propLabel
+```
+
+### C256 V2.D.Linked
+
+Source: `AvailableChainEngineV2/Conditions/Duty/Committees.lean:21`.
+
+```text
+∃ (N : Nat) (e : Fin N ≃ V), ∀ ℓ, F ℓ →
+∃ h : P.seats ℓ = N, ∀ i, rho.seatOf ℓ i = e (Fin.cast h i)
+```
+
+### C257 V2.D.NoRestart
+
+Source: `AvailableChainEngineV2/Conditions/Duty/Schedule.lean:23`.
+
+```text
+∀ (i : Nat) (v : V) (t : Time), rho.events[i]? ≠ some (.restart v t)
+```
+
+### C258 V2.D.Run
+
+Source: `AvailableChainEngineV2/Engine/Duty/Run.lean:19`.
+
+Producer recipe: mkRun (AvailableChainFGSARun/Model/HealingFixture.lean:24); all
+parameters/premises must be supplied for the selected instance.
+
+```text
+honest : Finset V
+horizon : Time
+events : List (Event V P.Object)
+seatOf : (ℓ : P.Label) → Fin (P.seats ℓ) → V
+input : V → Time → In
+```
+
+### C259 V2.D.Run.emits
+
+Source: `AvailableChainEngineV2/Engine/Duty/Run.lean:90`.
+
+```text
+∃ i : Nat, rho.events[i]? = some (.tick v t) ∧ o ∈ emitsAt E rho i
+```
+
+### C260 V2.D.ScheduleWellFormed
+
+Source: `AvailableChainEngineV2/Conditions/Duty/Schedule.lean:13`.
+
+Producer recipe: spec_prune_schedule (AvailableChainFGSARun/Proofs/Spec/Simulation.lean:559); all
+parameters/premises must be supplied for the selected instance.
+
+```text
+horizon_nonneg : 0 ≤ rho.horizon
+sorted : rho.events.Pairwise (fun e f => e.key ≤ f.key)
+nodup : rho.events.Nodup
+in_horizon : ∀ e ∈ rho.events, 0 ≤ e.time ∧ e.time ≤ rho.horizon
+honest_only : ∀ e ∈ rho.events, e.node ∈ rho.honest
+tick_public : ∀ v t, Event.tick v t ∈ rho.events → PublicTime E t
+tick_total : ∀ v ∈ rho.honest, ∀ t, PublicTime E t → 0 ≤ t → t ≤ rho.horizon →
+E.awake v t = true → Event.tick v t ∈ rho.events
+```
+
+### C261 V2.D.UnforgeableSignatures
+
+Source: `AvailableChainEngineV2/Conditions/Duty/Schedule.lean:42`.
+
+Producer recipe: fgsa_unforgeable_of_base
+(AvailableChainFGSAProofs/Proofs/Foundations/Client.lean:24); all parameters/premises must be
+supplied for the selected instance.
+
+```text
+unforgeable : ∀ v o t,
+Run.processes rho v o t →
+∀ u ∈ rho.honest, Run.holder rho o.auth = some u →
+∃ t', t' ≤ t ∧ Run.emits E rho u o t'
+carried : ∀ v o t,
+Run.processes rho v o t →
+∀ o', P.carries o o' → ∀ u ∈ rho.honest,
+Run.holder rho o'.auth = some u →
+∃ t', t' ≤ t ∧ Run.emits E rho u o' t'
+```
+
+### C262 V2.D.Wakes
+
+Source: `AvailableChainEngineV2/Conditions/Duty/Sleep.lean:13`.
+
+```text
+E.awake v t = true ∧ E.awake v (t - 1) = false
+```
+
+### C263 V2.ProtocolSpecD
+
+Source: `AvailableChainEngineV2/Engine/Duty/Spec.lean:12`.
+
+Producer recipe: fgsa (AvailableChainFGSARun/Model/Protocol.lean:376); all parameters/premises
+must be supplied for the selected instance.
+
+```text
+State : Type
+Label : Type
+Duty : Type
+signLabel : Duty → Label
+seats : Label → Nat
+Payload : Type
+Durable : Type
+init : State
+clock : State → Time → State
+actTime : Duty → Time
+duties : Time → List Duty
+duties_spec : ∀ ℓ t, ℓ ∈ duties t ↔ actTime ℓ = t
+duties_nodup : ∀ t, (duties t).Nodup
+act : State → Duty → In → Option Payload
+gossip : State → Time → List Payload
+process : State → Signed Label seats Payload → State
+selfVisible : Label → Bool
+recordOwn : State → Signed Label seats Payload → State
+durable : State → Durable
+restore : Durable → Time → State
+wellFormed : Signed Label seats Payload → Bool
+depsPresent : State → Signed Label seats Payload → Bool
+processed : State → Signed Label seats Payload → Bool
+excludes : State → Signed Label seats Payload → Bool
+handles : State → Signed Label seats Payload → Signed Label seats Payload → Prop
+carries : Signed Label seats Payload → Signed Label seats Payload → Prop
+namespace ProtocolSpecD
+```
+
+### C264 V2.Signed
+
+Source: `AvailableChainEngineV2/Engine/Objects.lean:23`.
+
+Producer: OPEN; selecting PC consumer owns the actual input.
+
+```text
+auth : Auth L seats
+payload : Payload
+deriving DecidableEq, Repr
+```
+
+### OPEN input inventory
+
+The following are the distinct OPEN input records across every entry after expansion; caller data
+and actual law obligations are both explicit.
+
+- DriverCoreStepLaws (C031).
+- FGAcceptanceGuards (C040).
+- FGDependencyArrivalLeafLaws (C045).
+- FGDependencyDeliveryLaws (C046).
+- FGDependencyDriver (C047).
+- FGDependencyLeaf (C048).
+- FGDependencyReads (C049).
+- FGDependencyStateLaws (C050).
+- FGDependencyStepLaws (C051).
+- FGDependencyTrace (C052).
+- FGDependencyTraceLaws (C053).
+- FGDependencyWireReads (C054).
+- FGExecutionObsLaws (C056).
+- FGHistoricalLaws (C061).
+- FGHistoricalReads (C062).
+- FGHolderClientLaws (C064).
+- FGRowPermissionInputs (C074).
+- FinalizePrem_W (C102).
+- KernelActionSupply_W (C142).
+- KernelJoinedPrem (C145).
+- KernelPt (C148).
+- KernelRunFacts (C149).
+- LivenessBoundW (C150).
+- PromotionSourceAt (C169).
+- FG.FinalityPair (C241).
+- FG.RowCodec (C248).
+- V2.Signed (C264).
 
 ## Kernel argument to FG-SA fact ledger
 
