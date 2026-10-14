@@ -1019,5 +1019,34 @@ private theorem high_source_premises_sat :
 
 #print axioms high_source_premises_sat
 
+private theorem high_nonholder_source_progress :
+    (∀ j t a, highRun.events[j]? = some (.tick 7 t) →
+      highReads.encode a ∉ V2.D.Run.emitsAt env highRun j) ∧
+    ∃ s X, s = 8 ∧ X = highChild ∧ V2.D.proposerOf highRun highIface s = 7 ∧
+      actionSourceFG highCore env highRun d5cTiming 7 3 = some (some middle) ∧
+      HonestProposal env highRun highIface s (c5erase X) ∧ 2 ≤ (c5H X).h ∧
+      d5cTiming.action 3 < d5cTiming.proposal s ∧ d5cTiming.gate s ≤ highRun.horizon ∧
+      X.rows = [nextRow] ∧ HonestRowAt highReads env highRun d5cTiming 61 9 3 nextRow := by
+  have silence (j : Nat) (t : Time) (a : Row (Fin 1))
+      (hj : highRun.events[j]? = some (.tick 7 t)) :
+      highReads.encode a ∉ V2.D.Run.emitsAt env highRun j := by
+    have table : ∀ k : Fin 94, highRun.events[k.val]?.map V2.Event.node = some 7 →
+        (V2.D.Run.emitsAt env highRun k.val).all (fun o => decide (o.auth ≠ .seat 6 0)) =
+          true := by decide +kernel
+    have hlen : j < 94 := (List.getElem?_eq_some_iff.mp hj).1
+    have hnode : highRun.events[j]?.map V2.Event.node = some 7 := by rw [hj]; rfl
+    intro ha
+    have hn := of_decide_eq_true
+      ((List.all_eq_true.mp (table ⟨j, hlen⟩ hnode)) (highReads.encode a) ha)
+    exact hn rfl
+  obtain ⟨_, _, _, hproposer, hsource, _, hK, hp, hpath, ht, _, hg, hrow, hrows, _, _⟩ :=
+    high_source_premises_sat
+  refine ⟨silence, 8, highChild, rfl, rfl, hproposer, hsource, hp, ?_, ht, hg, hrows, hrow⟩
+  have hparent : FGBlock.Preceq highChild.parent highChild :=
+    preceq_parent_node _ _ _ _ _
+  exact (hK ▸ c5cert.height.h_mono hpath).trans (c5cert.height.h_mono hparent)
+
+#print axioms high_nonholder_source_progress
+
 end AvailableChain.FGCompose.Tests.PopulationSearchPhase
 end
