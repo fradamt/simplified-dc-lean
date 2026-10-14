@@ -132,6 +132,52 @@ private theorem m9anc_slot {A K : FGBlock (Fin 1)} (hK : m9slotsOK K = true)
 
 #print axioms m9anc_slot
 
+private theorem m9transition_progress (σ : ChainState (Fin 1)) (B : FGBlock (Fin 1))
+    (rs : List (Row (Fin 1))) (S : Finset (Fin 1)) (hS : c5E.IsQuorum S)
+    (hcover : ∀ i ∈ S, i ∈ σ.progress ∨
+      ∃ a ∈ rs, a.signer = i ∧ a.height_pair.matchesEntry σ.h σ.T_h.root = true)
+    (hmature : σ.T_h.slot + c5cfg.timeoutDelay ≤ B.slot) :
+    (transition c5E c5cfg σ B rs).h = σ.h + 1 := by
+  have hfold (rows : List (Row (Fin 1))) (σ : ChainState (Fin 1)) (i : Fin 1)
+      (hi : i ∈ σ.progress ∨
+        ∃ a ∈ rows, a.signer = i ∧ a.height_pair.matchesEntry σ.h σ.T_h.root = true) :
+      i ∈ (rows.foldl process_row σ).progress := by
+    induction rows generalizing σ with
+    | nil => simpa using hi
+    | cons a rows ih =>
+        apply ih
+        rw [(process_row_fields σ a).2.2.1, (process_row_fields σ a).2.2.2.1]
+        rcases hi with hi | ⟨b, hb, hbi, hm⟩
+        · left
+          rw [process_row_progress]
+          split_ifs
+          · exact Finset.mem_insert_of_mem hi
+          · exact hi
+        · rcases List.mem_cons.mp hb with rfl | hb
+          · left
+            rw [process_row_progress, ite_eq_left hm]
+            exact Finset.mem_insert.mpr (Or.inl hbi.symm)
+          · exact Or.inr ⟨b, hb, hbi, hm⟩
+  have hq : c5E.IsQuorum (foldRows σ B rs).progress :=
+    isQuorum_of_subset c5E hS (fun i hi => hfold rs { σ with s := B.slot } i (hcover i hi))
+  have hp : progReady c5E c5cfg (afterFin c5E (foldRows σ B rs)) = true := by
+    simp only [progReady, Bool.or_eq_true, Bool.and_eq_true]
+    right
+    constructor
+    · simpa only [afterFin_T_h, afterFin_s, (foldRows_fields σ B rs).2.2.1,
+        foldRows_s, decide_eq_true_eq] using hmature
+    · change decide (c5E.q ≤ c5E.weightOf (afterFin c5E (foldRows σ B rs)).progress) = true
+      rw [decide_eq_true_eq, afterFin_progress]
+      exact hq
+  change (process_height_events c5E c5cfg (foldRows σ B rs)).h = σ.h + 1
+  rw [process_height_events_eq]
+  have hh := (afterFin_h c5E (foldRows σ B rs)).trans (foldRows_fields σ B rs).2.1
+  split_ifs with ht
+  · exact congrArg (· + 1) hh
+  · exact congrArg (· + 1) hh
+
+#print axioms m9transition_progress
+
 -- POP-5 local fixture support ends here.
 
 end Fixture
