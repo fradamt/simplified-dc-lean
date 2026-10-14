@@ -152,5 +152,31 @@ private theorem mixed_premises_sat :
 
 #print axioms mixed_premises_sat
 
+private theorem geometry_premises_sat :
+    (∀ x y K L, x ∈ run.honest → y ∈ run.honest →
+      actionSourceFG core env run timing x 0 = some (some K) →
+      actionSourceFG core env run timing y 0 = some (some L) →
+      (height K).T_h.root = (height L).T_h.root → (height K).T_h = (height L).T_h) ∧
+    (∀ x K, x ∈ run.honest →
+      actionSourceFG core env run timing x 0 = some (some K) → K.slot ≤ 0 * timing.roundSlots) ∧
+    (∀ x K U, x ∈ run.honest →
+      actionSourceFG core env run timing x 0 = some (some K) → FGBlock.Preceq U K →
+      U.slot ≤ K.slot) := by
+  refine ⟨fun _ _ _ _ _ _ _ _ _ => rfl, ?_, ?_⟩
+  · intro x K hx hK
+    have he := mixed_premises_sat.2.2.2.2.2.2.2.2.1 x hx
+    have hk : K = .genesis := Option.some.inj (Option.some.inj (hK.symm.trans he))
+    subst K
+    exact le_rfl
+  · intro x K U hx hK hUK
+    have he := mixed_premises_sat.2.2.2.2.2.2.2.2.1 x hx
+    have hk : K = .genesis := Option.some.inj (Option.some.inj (hK.symm.trans he))
+    subst K
+    have hu : U = .genesis := by simpa [FGBlock.Preceq, FGBlock.preceq] using hUK
+    subst U
+    exact le_rfl
+
+#print axioms geometry_premises_sat
+
 end AvailableChain.FGCompose.Tests.PopulationPromotion
 end
