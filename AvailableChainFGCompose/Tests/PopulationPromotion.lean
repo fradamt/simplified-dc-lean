@@ -296,5 +296,32 @@ private theorem holder_row_identity {j r : Nat} {a : Row (Fin 1)}
 
 #print axioms holder_row_identity
 
+/-- One selected U/wire/index works at every later carrier cut in this run. -/
+private theorem mixed_same_rows :
+    ∃ U j rSent a, U = (.genesis : FGBlock (Fin 1)) ∧ j = 0 ∧ rSent = 0 ∧ a = row ∧
+      EntryAt height U 1 ∧ HonestRowAt reads env run timing j 9 rSent a ∧
+      ∀ s ∈ ({2, 3} : Finset Nat), FGBlock.Preceq U (child s).parent ∧
+        ValidForParent env run interface parent valid (child s).slot (core.erase (child s)) a ∧
+        HeightMatch env run interface (fun b => namedEntry b.height_pair) parent parentHeight
+          (child s).slot (core.erase (child s)) a := by
+  have hH := mixed_premises_sat.2.2.2.2.1
+  have hi : (0 : Fin 1) ∈ FGHonestSeats reads run := by rw [hH]; simp
+  obtain ⟨_, _, j, rSent, a, _, _, _, _, _, _, _, _, _, ha, _⟩ := mixed_fixed_rows.2 0 hi
+  obtain ⟨rfl, rfl, rfl⟩ := holder_row_identity ha
+  refine ⟨.genesis, 0, 0, row, rfl, rfl, rfl, rfl, mixed_fixed_rows.1, ha, ?_⟩
+  intro s hs
+  have hp := carrier_premises_sat s hs
+  obtain ⟨U, _, _, _, rows⟩ := healing_promotion_same_rows_holder core reads env run
+    height timing interface Row.height_pair parent parentHeight valid fold
+    (electorate 1) height_premises_sat (Finset.Subset.refl _) ⟨0, hi⟩
+    mixed_premises_sat.2.2.2.2.2.2.2.2.2.1 mixed_premises_sat.2.2.2.2.2.2.2.2.2.2
+    geometry_premises_sat.1 geometry_premises_sat.2.1 geometry_premises_sat.2.2
+    hp.2.2.1 (X := child s) rfl hp.2.2.2 (fun _ _ _ a _ => ⟨a, rfl, rfl⟩)
+  obtain ⟨_, _, j, rSent, a, _, _, _, _, _, _, _, _, _, ha', _, hv⟩ := rows 0 hi
+  obtain ⟨rfl, rfl, rfl⟩ := holder_row_identity ha'
+  exact ⟨preceq_refl _, hv rfl⟩
+
+#print axioms mixed_same_rows
+
 end AvailableChain.FGCompose.Tests.PopulationPromotion
 end
