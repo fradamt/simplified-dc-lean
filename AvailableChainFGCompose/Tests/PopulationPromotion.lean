@@ -227,5 +227,57 @@ private theorem old_coverage_rejected :
 
 #print axioms old_coverage_rejected
 
+private abbrev interface : V2.D.Interface protocol where
+  confirmed _ := .genesis
+  stable _ := .genesis
+  block _ := some .genesis
+  opening _ := True
+  propLabel s := 4 * (s : Time)
+  propDuty s := 4 * (s : Time)
+  propDuty_label _ := rfl
+  propLabel_single _ := rfl
+  propLabel_injective := by
+    intro a b h
+    change 4 * (a : Int) = 4 * (b : Int) at h
+    exact Int.ofNat_injective (mul_left_cancel₀ (by decide : (4 : Int) ≠ 0) h)
+private abbrev child (s : Slot) : FGBlock (Fin 1) := .node .genesis s ⟨s⟩ 0 []
+private abbrev parent (_ : RecordOnce) (_ : Block) := some (FGBlock.genesis : FGBlock (Fin 1))
+private abbrev parentHeight (_ : RecordOnce) (_ : Slot) (_ : FGBlock (Fin 1)) :=
+  (1, genesisRoot)
+private abbrev valid (_ : RecordOnce) (_ : Slot) (_ : FGBlock (Fin 1))
+    (a : Row (Fin 1)) := Window.r6w Window.initial a
+private abbrev fold (_ : RecordOnce) (_ : Slot) (_ : FGBlock (Fin 1)) :
+    Window.State (Fin 1) := Window.initial
+
+private theorem carrier_premises_sat (s : Slot) (hs : s ∈ ({2, 3} : Finset Nat)) :
+    V2.D.proposerOf run interface s = 7 ∧ timing.proposal s ≤ run.horizon ∧
+    (∀ x K, x ∈ run.honest →
+      actionSourceFG core env run timing x 0 = some (some K) →
+      FGBlock.Preceq K (child s).parent) ∧
+    ∃ nd, proposalStateAt env run interface s = some nd ∧
+      parent nd (core.erase (child s)).parent = some (child s).parent ∧
+      (fold nd s (child s).parent).h = (height (child s).parent).h ∧
+      (fold nd s (child s).parent).T_h = (height (child s).parent).T_h ∧
+      parentHeight nd s (child s).parent =
+        ((fold nd s (child s).parent).h, (fold nd s (child s).parent).T_h.root) ∧
+      ∀ a, valid nd s (child s).parent a =
+        match reads.decode a with
+        | none => false
+        | some b => Window.r6w (fold nd s (child s).parent) b := by
+  have hs' : s = 2 ∨ s = 3 := by simpa using hs
+  refine ⟨?_, ?_, ?_, ?_⟩
+  · rcases hs' with rfl | rfl <;> rfl
+  · rcases hs' with rfl | rfl <;> decide
+  · intro x K hx hK
+    have he := mixed_premises_sat.2.2.2.2.2.2.2.2.1 x hx
+    have hk : K = .genesis := Option.some.inj (Option.some.inj (hK.symm.trans he))
+    subst K
+    exact preceq_refl _
+  · rcases hs' with rfl | rfl
+    · exact ⟨V2.D.Run.stateBefore env run 2 7, rfl, rfl, rfl, rfl, rfl, fun _ => rfl⟩
+    · exact ⟨V2.D.Run.stateBefore env run 3 7, rfl, rfl, rfl, rfl, rfl, fun _ => rfl⟩
+
+#print axioms carrier_premises_sat
+
 end AvailableChain.FGCompose.Tests.PopulationPromotion
 end
