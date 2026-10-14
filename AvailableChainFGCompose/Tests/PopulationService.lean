@@ -264,5 +264,21 @@ private theorem mixed_saved_seed :
 
 #print axioms mixed_saved_seed
 
+/-- The sole negative cause: node 7 never emits any encoded FG wire. -/
+private theorem nonholder_no_encoded (j : Nat) (t : Time)
+    (ht : run.events[j]? = some (.tick 7 t)) (a : Row (Fin 1)) :
+    reads.encode a ∉ V2.D.Run.emitsAt env run j := by
+  have hj : j < 10 := (List.getElem?_eq_some_iff.mp ht).1
+  interval_cases j
+  all_goals first
+    | have hn : (9 : Nat) = 7 := congrArg V2.Event.node (Option.some.inj ht)
+      omega
+    | change (⟨.seat 6 0, a⟩ : protocol.Object) ∉ [⟨.none, row⟩]
+      simp
+    | change (⟨.seat 6 0, a⟩ : protocol.Object) ∉ [⟨.seat 8 0, row⟩, ⟨.none, row⟩]
+      simp
+
+#print axioms nonholder_no_encoded
+
 end AvailableChain.FGCompose.Tests.PopulationService
 end
