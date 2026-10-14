@@ -228,5 +228,40 @@ private theorem proposal_premises_sat :
 
 #print axioms proposal_premises_sat
 
+private theorem proposal_unique {s : Slot} {Q : Block}
+    (hp : HonestProposal env run iface s Q) :
+    (s = 1 ∨ s = 5 ∨ s = 7) ∧ Q = c5erase (chainAt s) := by
+  have hs := proposal_premises_sat.1 s hp.1
+  refine ⟨hs, ?_⟩
+  obtain ⟨_, o, ⟨j, hj, ho⟩, hb⟩ := hp
+  have hjlt : j < 86 := (List.getElem?_eq_some_iff.mp hj).1
+  rcases hs with rfl | rfl | rfl
+  · have hu : ∀ k : Fin 86, run.events[k.val]? = some (.tick 7 4) → k.val = 8 := by
+      decide +kernel
+    have hj' : j = 8 := hu ⟨j, hjlt⟩ hj
+    subst j
+    change o ∈ [⟨.seat 4 0, .inr low⟩] at ho
+    have ho' := List.mem_singleton.mp ho
+    subst o
+    exact (Option.some.inj hb).symm
+  · have hu : ∀ k : Fin 86, run.events[k.val]? = some (.tick 7 20) → k.val = 40 := by
+      decide +kernel
+    have hj' : j = 40 := hu ⟨j, hjlt⟩ hj
+    subst j
+    change o ∈ [⟨.seat 20 0, .inr middle⟩] at ho
+    have ho' := List.mem_singleton.mp ho
+    subst o
+    exact (Option.some.inj hb).symm
+  · have hu : ∀ k : Fin 86, run.events[k.val]? = some (.tick 7 28) → k.val = 56 := by
+      decide +kernel
+    have hj' : j = 56 := hu ⟨j, hjlt⟩ hj
+    subst j
+    change o ∈ [⟨.seat 28 0, .inr late⟩] at ho
+    have ho' := List.mem_singleton.mp ho
+    subst o
+    exact (Option.some.inj hb).symm
+
+#print axioms proposal_unique
+
 end AvailableChain.FGCompose.Tests.PopulationSearchPhase
 end
