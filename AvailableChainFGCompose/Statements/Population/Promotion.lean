@@ -1,6 +1,5 @@
 module
 public import AvailableChainFGCompose.Statements.Promotion
-public import AvailableChainFGCompose.Statements.Population.Seats
 
 @[expose] public section
 

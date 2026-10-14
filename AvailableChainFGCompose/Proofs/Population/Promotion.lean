@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGCompose.Statements.Population.Promotion
+public import AvailableChainFGCompose.Statements.Population.Seats
 public import AvailableChainFGCompose.Proofs.Healing.Promotion
 
 public section
