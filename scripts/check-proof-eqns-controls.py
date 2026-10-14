@@ -73,8 +73,9 @@ with tempfile.TemporaryDirectory(prefix="proof-eqns-neg.", dir=REPO / ".lake") a
                              'proof-eqns-control', str(private_repo)]
     prefix = "AvailableChainCoverageControl"
     with (private_repo / 'lakefile.toml').open('a') as config:
-        config.write('[[lean_lib]]\nname="' + prefix + '"\nroots=[]\n'
-                     'globs=["' + prefix + '.+"]\n')
+        for library in (prefix, 'OtherCoverageControl'):
+            config.write('[[lean_lib]]\nname="' + library + '"\nroots=[]\n'
+                         'globs=["' + library + '.+"]\n')
 
     def compile_module(module, body):
         file = source / (module.replace(".", "/") + ".lean")
@@ -156,6 +157,8 @@ with tempfile.TemporaryDirectory(prefix="proof-eqns-neg.", dir=REPO / ".lake") a
     link = private_repo / prefix
     assert not link.exists()
     link.symlink_to(source / prefix, target_is_directory=True)
+    other_link = private_repo / 'OtherCoverageControl'
+    other_link.symlink_to(source / 'OtherCoverageControl', target_is_directory=True)
     try:
         check("home equation", f"{prefix}.Statements.Valid", 0, "0 unaccepted")
         check("exposed predicate", f"{prefix}.Statements.Exposed", 0, "0 unaccepted")
@@ -205,6 +208,7 @@ with tempfile.TemporaryDirectory(prefix="proof-eqns-neg.", dir=REPO / ".lake") a
         complete_check('inventory omission', 1, "AUDIT INVENTORY MISSING name=Special.B'_resetF ")
     finally:
         link.unlink()
+        other_link.unlink()
 
     # Compose has its own proof leak and audit-owner controls.
     compose_owner = 'AvailableChainFGCompose.Statements.Control'
