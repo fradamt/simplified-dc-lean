@@ -421,5 +421,15 @@ theorem kernel_opening_and_middle_holder
         (head_read _ _ _ exA le_rfl n02 hx) _ _ le_rfl
         (List.length_filter_le _ _) }⟩
 
+variable (m : KernelMiddleWitnessFG_W R S O T E rho I D Ef decodeProposal bodyErase bodyRows
+  blockWireRows parentFG parentHeight validFor makeFG valid ac cfg K ΔF sp pt A)
+
+/-- The witness retains the same fresh entry; this does not make a new selection. -/
+theorem kernel_middle_fresh_U_holder :
+    FGBlock.Preceq m.A₀ m.U ∧ m.A₀ ≠ m.U ∧
+    (O.height m.U).h = (O.height m.A₀).h + 1 ∧ FGBlock.Preceq m.U m.B := by
+  refine ⟨m.strictAU.1, m.strictAU.2, ?_, m.pathUB⟩
+  rw [m.freshEntry.1, m.heightA]
+
 end AvailableChain.FGCompose
 end
