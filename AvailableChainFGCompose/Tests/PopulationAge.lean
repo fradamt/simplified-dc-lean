@@ -254,5 +254,94 @@ private theorem proposal_unique {s : Slot} {X : FGBlock (Fin 1)}
     exact ⟨hs, erase_injective (Option.some.inj hb).symm⟩
 
 #print axioms proposal_unique
+
+private theorem fold_premises_sat : ProgressFoldAdvance ef height 4 := by
+  have m9transition_progress (σ : ChainState (Fin 1)) (B : FGBlock (Fin 1))
+      (rs : List (Row (Fin 1))) (S : Finset (Fin 1)) (hS : ef.IsQuorum S)
+      (hcover : ∀ i ∈ S, i ∈ σ.progress ∨
+        ∃ a ∈ rs, a.signer = i ∧ a.height_pair.matchesEntry σ.h σ.T_h.root = true)
+      (hmature : σ.T_h.slot + cfg.timeoutDelay ≤ B.slot) :
+      (transition ef cfg σ B rs).h = σ.h + 1 := by
+    have hfold (rows : List (Row (Fin 1))) (σ : ChainState (Fin 1)) (i : Fin 1)
+        (hi : i ∈ σ.progress ∨
+          ∃ a ∈ rows, a.signer = i ∧ a.height_pair.matchesEntry σ.h σ.T_h.root = true) :
+        i ∈ (rows.foldl process_row σ).progress := by
+      induction rows generalizing σ with
+      | nil => simpa using hi
+      | cons a rows ih =>
+          apply ih
+          rw [(process_row_fields σ a).2.2.1, (process_row_fields σ a).2.2.2.1]
+          rcases hi with hi | ⟨b, hb, hbi, hm⟩
+          · left
+            rw [process_row_progress]
+            split_ifs
+            · exact Finset.mem_insert_of_mem hi
+            · exact hi
+          · rcases List.mem_cons.mp hb with rfl | hb
+            · left
+              rw [process_row_progress, ite_eq_left hm]
+              exact Finset.mem_insert.mpr (Or.inl hbi.symm)
+            · exact Or.inr ⟨b, hb, hbi, hm⟩
+    have hq : ef.IsQuorum (foldRows σ B rs).progress :=
+      isQuorum_of_subset ef hS (fun i hi => hfold rs { σ with s := B.slot } i (hcover i hi))
+    have hp : progReady ef cfg (afterFin ef (foldRows σ B rs)) = true := by
+      simp only [progReady, Bool.or_eq_true, Bool.and_eq_true]
+      right
+      constructor
+      · simpa only [afterFin_T_h, afterFin_s, (foldRows_fields σ B rs).2.2.1,
+          foldRows_s, decide_eq_true_eq] using hmature
+      · change decide (ef.q ≤ ef.weightOf (afterFin ef (foldRows σ B rs)).progress) = true
+        rw [decide_eq_true_eq, afterFin_progress]
+        exact hq
+    change (process_height_events ef cfg (foldRows σ B rs)).h = σ.h + 1
+    rw [process_height_events_eq]
+    have hh := (afterFin_h ef (foldRows σ B rs)).trans (foldRows_fields σ B rs).2.1
+    split_ifs with ht
+    · exact congrArg (· + 1) hh
+    · exact congrArg (· + 1) hh
+  have m9progress_of_cover (hb : HeightBridge ef cfg height)
+      (p : FGBlock (Fin 1)) (s : Slot) (r_s : BlockId) (x : Nat)
+      (rs : List (Row (Fin 1))) (S : Finset (Fin 1)) (hS : ef.IsQuorum S)
+      (hcover : ∀ i ∈ S, i ∈ (height p).progress ∨
+        ∃ a ∈ rs, a.signer = i ∧
+          a.height_pair.matchesEntry (height p).h (height p).T_h.root = true)
+      (hmature : (height p).T_h.slot + cfg.timeoutDelay ≤ s) :
+      (height (.node p s r_s x rs)).h = (height p).h + 1 := by
+    have heq : ∀ B, height B = heightOf (derive ef cfg B) := hb
+    simp only [heq, heightOf_def] at hcover hmature ⊢
+    exact m9transition_progress (derive ef cfg p) (.node p s r_s x rs) rs S hS hcover hmature
+  intro y U X hX hU hUX hc hm
+  have hb := KitFG.Window.windowHeightBridge ef cfg 2 (by decide)
+  have laws := heightLaws_of_bridge ef cfg _ hb
+  have hlow := laws.h_mono hUX
+  change (height U).h ≤ (height X.parent).h at hlow
+  rw [hU.1] at hlow
+  cases X with
+  | genesis => exact (hX rfl).elim
+  | node P s root x rs =>
+    change y ≤ (height P).h at hlow
+    by_cases hP : (height P).h = y
+    · have hT : (height P).T_h = U :=
+        (laws.entry_plateau hUX (hU.1.trans hP.symm)).symm.trans hU.2
+      obtain ⟨S, hS, hcov⟩ := hc hP
+      have hh := m9progress_of_cover hb P s root x rs S hS (by
+          intro i hi
+          rcases hcov i hi with hbit | ⟨a, ha, hs, timeout, hp⟩
+          · exact Or.inl hbit
+          · refine Or.inr ⟨a, ha, hs, ?_⟩
+            rw [hp]
+            change decide (y = (height P).h ∧ U.root = (height P).T_h.root) = true
+            simp only [hP, hT, and_self, decide_true]) (by
+          change (height P).T_h.slot + 4 ≤ s
+          rw [hT]
+          exact hm)
+      change (height (.node P s root x rs)).h = (height P).h + 1 at hh
+      rw [hh, hP]
+    · have hPX := laws.h_mono (preceq_parent_node P s root x rs)
+      change (height P).h ≤ (height (.node P s root x rs)).h at hPX
+      simp only [Height] at *
+      omega
+
+#print axioms fold_premises_sat
 end AvailableChain.FGCompose.Tests.PopulationAge
 end
