@@ -174,5 +174,90 @@ theorem healing_promotion_age_receipt_holder
   have hrec := receipt u m J contested s X hready hnew hut hpD
   exact ⟨s, X, hnew, hXslot, hlo, hhi, hh, hrec, hterminal⟩
 
+include laws in
+/-- Blueprint 21:1592–1638; r3 A5, persistent-phase HG.2.
+DC: SAME the age trigger uses q = U.slot for the actual fixed starting entry.
+The full G window and a phase through the gate budget are explicit local
+premises. First receipt remains strict and block delay remains Δ. -/
+theorem healing_promotion_age_service_holder
+    {A : Finset (Fin n)} (hA : A ⊆ FGHonestSeats S rho) (hne : A.Nonempty) (hT : FGTimingLaws T)
+    (schedule : V2.D.ScheduleWellFormed E rho)
+    (faultWeight : Ef.weightOf (historyFaulty S rho) < Ef.q)
+    {G ΔF : Time} (deltaF : E.Δ ≤ ΔF) (hdelta : E.Δ = T.delta)
+    (gap : ∀ t, E.t_GST ≤ t → t + G ≤ rho.horizon →
+      ∃ s, t < T.proposal s ∧ T.proposal s ≤ t + G ∧ Gen.V2.Duty.HonestSlot rho I s)
+    {Jst : Time} (hJst : E.t_GST ≤ Jst)
+    (slotProposal : PromotionSlotProposal R E rho T I)
+    (read : PromotionProposalRead R S E rho O I decodeProposal bodyErase bodyRows parentFG
+      parentHeight validFor fold)
+    (order : PromotionRowOrder R E rho O I) (signer : PromotionRowSigner S E rho T D)
+    (sourceParent : PromotionSourceParent R E rho O T I Jst)
+    (receipt : PromotionPhaseReceipt R E rho O T I Jst)
+    {deltaT : Nat} (hδ : deltaT = 2 * T.roundSlots) (hbound : LivenessBoundW T ΔF)
+    (rowsReceipt : TRowsReceipt R S E rho T blockWireRows ΔF)
+    (progressCoverage : ∀ (r height : Nat) (U X : FGBlock (Fin n)),
+      BatchPrem R S O T E rho I D Ef decodeProposal bodyErase bodyRows blockWireRows
+        parentFG parentHeight validFor ΔF .progress r height U X →
+      (O.height X.parent).h = height → ProgressCoveredByChild Ef O.height X U height)
+    (hfold : ProgressFoldAdvance Ef O.height deltaT)
+    (honestQuorum : Ef.q ≤ Ef.weightOf A)
+    {u : Time} {m : Nat} {J : Option (FGBlock (Fin n))} {contested : Bool}
+    {r height : Nat} {l : Slot} {Q : Block}
+    (hentry : OpeningEntry R E rho O.height T r height)
+    (hcovered : OpeningCoveredFG R S E rho O.height T D.heightPair A r Q)
+    (entryAgreement : ∀ x y K L, x ∈ rho.honest → y ∈ rho.honest →
+      actionSourceFG R E rho T x r = some (some K) →
+      actionSourceFG R E rho T y r = some (some L) →
+      (O.height K).T_h.root = (O.height L).T_h.root → (O.height K).T_h = (O.height L).T_h)
+    (sourceSlot : ∀ x K, x ∈ rho.honest →
+      actionSourceFG R E rho T x r = some (some K) → K.slot ≤ r * T.roundSlots)
+    (ancestorSlot : ∀ x K A, x ∈ rho.honest →
+      actionSourceFG R E rho T x r = some (some K) → FGBlock.Preceq A K →
+      A.slot ≤ K.slot)
+    (hready : Jst ≤ u) (hstart : E.t_GST ≤ (r : Time) * FGCompose.P T)
+    (hu : u ≤ T.vote (r * T.roundSlots))
+    (hl : T.proposal l < (r : Time) * FGCompose.P T)
+    (hrepair : ∀ v, PhaseInterval R E rho O u v m J contested → ∀ s Q,
+      T.proposal l < T.proposal s → T.gate s ≤ v → HonestProposal E rho I s Q →
+      FrontierProposalService R E rho T s Q) :
+    ∃ U : FGBlock (Fin n), EntryAt O.height U height ∧ U.slot ≤ r * T.roundSlots ∧
+      ∀ v, PhaseInterval R E rho O u v m J contested →
+        max ((r : Time) * FGCompose.P T + betaF T ΔF - 4 * T.delta)
+          (T.proposal U.slot + 2 * FGCompose.P T - 4 * T.delta) + G ≤ rho.horizon →
+        max (T.action r + Γ T G + 4 * T.delta + epsF T ΔF)
+          (T.proposal U.slot + 2 * FGCompose.P T + Γ T G + 2 * T.delta) ≤ v →
+        let U_F := max ((r : Time) * FGCompose.P T + betaF T ΔF - 4 * T.delta)
+          (T.proposal U.slot + 2 * FGCompose.P T - 4 * T.delta)
+        ∃ s X, HonestProposal E rho I s (R.erase X) ∧ X.slot = s ∧
+          U_F < T.proposal s ∧ T.proposal s ≤ U_F + Γ T G ∧
+          height + 1 ≤ (O.height X).h ∧
+          (∃ y, y ∈ rho.honest ∧ Gen.V2.Duty.HoldsBefore E rho
+            (fun nd => X ∈ (R.core nd).fg.TF) (T.proposal s + T.delta) y) ∧
+          T.proposal s + T.delta ≤
+            max (T.action r + Γ T G - T.delta + epsF T ΔF)
+              (T.proposal U.slot + 2 * FGCompose.P T + Γ T G - 3 * T.delta) ∧
+          (PhaseInterval R E rho O u (T.gate s) m J contested →
+            FrontierProposalService R E rho T s (R.erase X) ∧
+            T.gate s ≤
+              max (T.action r + Γ T G + 4 * T.delta + epsF T ΔF)
+                (T.proposal U.slot + 2 * FGCompose.P T + Γ T G + 2 * T.delta)) := by
+  obtain ⟨U, hU, hUslot, hreceipt⟩ := healing_promotion_age_receipt_holder R S O T E rho I D Ef
+    decodeProposal bodyErase bodyRows blockWireRows parentFG parentHeight validFor fold laws
+    hA hne hT schedule faultWeight deltaF hdelta gap hJst slotProposal read order signer
+    sourceParent receipt hδ hbound rowsReceipt progressCoverage hfold honestQuorum
+    (m := m) (J := J) (contested := contested)
+    hentry hcovered entryAgreement sourceSlot ancestorSlot hready hstart hu
+  refine ⟨U, hU, hUslot, ?_⟩
+  intro v hp hwin hbudget
+  have hb : max (T.action r + Γ T G - T.delta + epsF T ΔF)
+      (T.proposal U.slot + 2 * FGCompose.P T + Γ T G - 3 * T.delta) ≤ v := by
+    obtain ⟨ha, hU'⟩ := max_le_iff.mp hbudget
+    apply max_le <;> linarith [hT.delta_pos]
+  obtain ⟨s, X, hnew, hslot, hlo, hhi, hh, hr, ht⟩ := hreceipt v hp hwin hb
+  refine ⟨s, X, hnew, hslot, hlo, hhi, hh, hr, ht, ?_⟩
+  intro hpgate
+  exact healing_promotion_age_service_tail R O T E rho I hT deltaF hdelta hl hrepair hnew hlo
+    hhi hpgate
+
 end AvailableChain.FGCompose
 end
