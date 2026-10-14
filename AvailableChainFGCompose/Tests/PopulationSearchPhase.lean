@@ -1133,102 +1133,149 @@ private theorem old_common_service_rejected :
 
 #print axioms old_common_service_rejected
 
-/-! Isolated high-source branch: source holder and row sender remain distinct.
-The extra slot-8 proposal carries 9's exact action-3 row after the source read at 7. -/
-private abbrev highChild : FGBlock (Fin 1) := .node middle 8 ⟨108⟩ 0 [nextRow]
-private abbrev highProtocol : V2.ProtocolSpecD Unit :=
-  { protocol with act := fun st t input =>
-      if t = 32 then some (.inr highChild) else protocol.act st t input }
-private abbrev highRun : V2.D.Run Nat highProtocol where
-  honest := run.honest
-  horizon := run.horizon
-  events := run.events
-  seatOf l i := if l = 32 then 7 else run.seatOf l i
-  input := run.input
-private abbrev highCore : FGCoreReads highProtocol 1 Unit Unit (Row (Fin 1)) where
-  core := (core true).core
+/-! High branch on the same mixed event schedule. Node 7 records its proposal at time 8,
+so its source at the low seed's first opening is raised (height 2). Holder 9 still
+reads low and supplies its original event-13/round-0 row. Both later sources agree. -/
+namespace High
+
+private abbrev firstRow : Row (Fin 1) := ⟨0, .vote 1 genesisRoot true, none⟩
+private abbrev low : FGBlock (Fin 1) := .node .genesis 2 ⟨101⟩ 0 [firstRow]
+private abbrev raised : FGBlock (Fin 1) :=
+  .node low 2 ⟨102⟩ 0 [c5r 1 genesisRoot]
+private abbrev middle : FGBlock (Fin 1) := .node raised 5 ⟨105⟩ 0 [firstRow]
+private abbrev late : FGBlock (Fin 1) := .node middle 7 ⟨107⟩ 0 []
+private abbrev nextRow : Row (Fin 1) := ⟨0, .vote 2 raised.root true, none⟩
+private abbrev chainAt (s : Nat) : FGBlock (Fin 1) :=
+  if s ≤ 2 then low else if s ≤ 5 then middle else late
+private abbrev sourceAt (t : Time) : FGBlock (Fin 1) :=
+  if t < 14 then .genesis else if t < 30 then low else if t < 38 then middle else late
+private abbrev protocol : V2.ProtocolSpecD Unit where
+  State := Time × Bool
+  Label := Time
+  Duty := Time
+  signLabel t := if t = 6 ∨ t = 30 then 6 else t
+  seats _ := 1
+  Payload := Row (Fin 1) ⊕ FGBlock (Fin 1)
+  Durable := Time × Bool
+  init := (0, false)
+  clock st t := (t, st.2)
+  actTime := id
+  duties t := [t]
+  duties_spec := by intro d t; simp
+  duties_nodup := by intro t; simp
+  act _ t _ := if t = 6 then some (.inl firstRow)
+    else if t = 30 then some (.inl nextRow)
+    else if t = 8 then some (.inr low)
+    else if t = 20 then some (.inr middle)
+    else if t = 28 then some (.inr late) else none
+  gossip _ _ := []
+  process st _ := st
+  selfVisible _ := true
+  recordOwn st o := (st.1, st.2 || o.payload.isRight)
+  durable := id
+  restore st _ := st
+  wellFormed _ := true
+  depsPresent _ _ := true
+  processed _ _ := false
+  excludes _ _ := false
+  handles _ _ _ := False
+  carries _ _ := False
+private abbrev env : Generic.Env Nat := ⟨1, by decide, 0, by decide, fun _ _ => true⟩
+private abbrev run : V2.D.Run Nat protocol where
+  honest := {7, 9}
+  horizon := 46
+  events := (List.range 47).flatMap fun (t : Nat) => [.tick 7 (t : Time), .tick 9 (t : Time)]
+  seatOf l _ := if l = 6 then 9 else if l = 8 ∨ l = 20 ∨ l = 28 then 7 else 0
+  input _ _ := ()
+private abbrev reads : FGSafetyReads protocol 1 (Row (Fin 1)) where
+  proposalErase _ := none
+  proposalRows _ := []
+  encode a := ⟨.seat 6 0, .inl a⟩
+  decode := some
+  decodeObject o := match o.auth with
+    | .seat l _ => if l = 6 then o.payload.getLeft? else none
+    | .none => none
+  fgLabel := 6
+  fgSeats := Equiv.refl _
+  record _ := RecordOnce.initial
+  inputs st := (some (sourceAt st.1), ⟨0, genesisRoot, 0⟩)
+  enabled _ := true
+  finalizedOut _ := .genesis
+private abbrev stored (top : Bool) : Finset (FGBlock (Fin 1)) :=
+  if top then {.genesis, low, raised, middle, late, c5x1} else {.genesis, low, raised, middle, late}
+private abbrev core (top : Bool) : FGCoreReads protocol 1 Unit Unit (Row (Fin 1)) where
+  core _ := ⟨(), ⟨stored top, .genesis, .genesis, 1, 2⟩, [],
+    [firstRow, nextRow]⟩
   erase := c5erase
-  source := (core true).source
-  headVote := (core true).headVote
-  finalityHead := (core true).finalityHead
-  proposalFG := (core true).proposalFG
-private abbrev highIface : V2.D.Interface highProtocol where
-  confirmed := iface.confirmed
-  stable := iface.stable
-  block := iface.block
-  opening := iface.opening
-  propLabel := iface.propLabel
-  propDuty := iface.propDuty
-  propDuty_label := iface.propDuty_label
-  propLabel_single := iface.propLabel_single
-  propLabel_injective := iface.propLabel_injective
-private abbrev highReads : FGSafetyReads highProtocol 1 (Row (Fin 1)) where
-  proposalErase := reads.proposalErase
-  proposalRows := reads.proposalRows
-  encode := reads.encode
-  decode := reads.decode
-  decodeObject := reads.decodeObject
-  fgLabel := reads.fgLabel
-  fgSeats := reads.fgSeats
-  record := reads.record
-  inputs := reads.inputs
-  enabled := reads.enabled
-  finalizedOut := reads.finalizedOut
+  source st :=
+    some (if st.2 ∧ 14 ≤ st.1 ∧ st.1 < 30 then raised else sourceAt st.1)
+  headVote _ s := c5erase (chainAt s)
+  finalityHead _ := some .genesis
+  proposalFG _ _ := none
+private abbrev obs (top : Bool) : FGObservationReads (core top) where
+  height := c5H
+  finality := c5F
+  controls st := treeStoreControlsView c5H ((core top).core st).fg
+  viable st X := treeStoreFrameView c5H ((core top).core st).fg X
+private abbrev iface : V2.D.Interface protocol where
+  confirmed _ := .genesis
+  stable _ := c5erase late
+  block p := match p with | .inr X => some (c5erase X) | .inl _ => none
+  opening _ := True
+  propLabel s := 4 * (s : Time)
+  propDuty s := 4 * (s : Time)
+  propDuty_label s := by
+    change (if 4 * (s : Int) = 6 ∨ 4 * (s : Int) = 30 then 6 else 4 * (s : Int)) = _
+    rw [ite_eq_right (by omega)]
+  propLabel_single _ := rfl
+  propLabel_injective := by
+    intro a b h
+    change 4 * (a : Int) = 4 * (b : Int) at h
+    exact Int.ofNat_inj.mp (by omega)
+private abbrev wire : FGHistoryWireReads reads where
+  heightPair := Row.height_pair
+  finalityPair := Row.finality_pair
+  signer a := some a.signer
+  decode_height _ _ h := by cases h; rfl
+  decode_finality _ _ h := by cases h; rfl
+  decode_signer _ _ h := by cases h; rfl
+private abbrev decodeProposal (o : protocol.Object) : Option (Slot × FGBlock (Fin 1)) :=
+  match o.payload with | .inr X => some (X.slot, X) | .inl _ => none
+private abbrev parentFG (st : Time × Bool) (_ : Block) : Option (FGBlock (Fin 1)) :=
+  if st.1 = 8 then some .genesis
+  else if st.1 = 20 then some raised else some middle
+private abbrev fold (_ : Time × Bool) (_ : Slot) (P : FGBlock (Fin 1)) :=
+  Window.derive c5E c5cfg 2 P
+private abbrev parentHeight (t : Time × Bool) (s : Slot) (P : FGBlock (Fin 1)) : Height × BlockId :=
+  ((fold t s P).h, (fold t s P).T_h.root)
+private abbrev validFor (t : Time × Bool) (s : Slot) (P : FGBlock (Fin 1)) (a : Row (Fin 1)) :=
+  Window.r6w (fold t s P) a
 
-private theorem high_source_premises_sat :
-    V2.D.ScheduleWellFormed env highRun ∧ highRun.honest = {7, 9} ∧
-    (∀ i, safetyHolder highReads highRun i = 9) ∧
-    V2.D.proposerOf highRun highIface 8 = 7 ∧
-    actionSourceFG highCore env highRun d5cTiming 7 3 = some (some middle) ∧
-    middle ∈ (highCore.core (d5cTiming.action 3)).fg.TF ∧ (c5H middle).h = 2 ∧
-    HonestProposal env highRun highIface 8 (c5erase highChild) ∧
-    FGBlock.Preceq middle highChild.parent ∧
-    d5cTiming.action 3 < d5cTiming.proposal 8 ∧ 3 * d5cTiming.roundSlots + 2 ≤ 8 ∧
-    d5cTiming.gate 8 ≤ highRun.horizon ∧
-    HonestRowAt highReads env highRun d5cTiming 61 9 3 nextRow ∧
-    highChild.rows = [nextRow] ∧
-    highProtocol.objSelfVisible (highReads.encode nextRow) = true ∧
-    highReads.decodeObject (highReads.encode nextRow) = some nextRow := by
-  have hs := execution_premises_sat.1
-  refine ⟨⟨hs.horizon_nonneg, hs.sorted, hs.nodup, hs.in_horizon, hs.honest_only,
-    hs.tick_public, hs.tick_total⟩, rfl, fun _ => rfl, by decide, by decide +kernel,
-    by decide +kernel, by decide +kernel, ?_, by decide, by decide, by decide, by decide,
-    ?_, rfl, rfl, rfl⟩
-  · exact ⟨⟨by decide, by decide⟩, ⟨.seat 32 0, .inr highChild⟩,
-      ⟨64, by decide +kernel, by decide +kernel⟩, rfl⟩
-  · unfold HonestRowAt
-    decide +kernel
+private theorem geometry_premises_sat (top : Bool) :
+    FGCertificateLaws c5E (obs top).height (obs top).finality ∧
+    FGObservationLaws (core top) (obs top) ∧
+    (∀ i x, FGStoreInvariant (obs top).height (obs top).finality
+      ((core top).core (run.stateBefore env i x)).fg) ∧
+    (c5H low).h = 1 ∧ (c5H middle).h = 2 ∧ (c5H late).h = 2 ∧
+    (c5H low).T_h = .genesis ∧ (c5H middle).T_h = raised ∧ (c5H late).T_h = raised ∧
+    PhaseInterval (core top) env run (obs top) 0 46 2
+      (some .genesis) false := by
+  refine ⟨c5cert, ⟨fun _ => rfl, fun _ _ => rfl⟩, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+  · intro i x
+    cases top <;> constructor <;> dsimp [obs, core] <;> decide +kernel
+  · decide +kernel
+  · decide +kernel
+  · decide +kernel
+  · decide +kernel
+  · decide +kernel
+  · decide +kernel
+  · refine ⟨by decide, le_rfl, by decide, ?_⟩
+    intro i x _ _ _
+    cases top <;> dsimp [obs, core] <;> decide +kernel
 
-#print axioms high_source_premises_sat
+#print axioms geometry_premises_sat
 
-private theorem high_nonholder_source_progress :
-    (∀ j t a, highRun.events[j]? = some (.tick 7 t) →
-      highReads.encode a ∉ V2.D.Run.emitsAt env highRun j) ∧
-    ∃ s X, s = 8 ∧ X = highChild ∧ V2.D.proposerOf highRun highIface s = 7 ∧
-      actionSourceFG highCore env highRun d5cTiming 7 3 = some (some middle) ∧
-      HonestProposal env highRun highIface s (c5erase X) ∧ 2 ≤ (c5H X).h ∧
-      d5cTiming.action 3 < d5cTiming.proposal s ∧ d5cTiming.gate s ≤ highRun.horizon ∧
-      X.rows = [nextRow] ∧ HonestRowAt highReads env highRun d5cTiming 61 9 3 nextRow := by
-  have silence (j : Nat) (t : Time) (a : Row (Fin 1))
-      (hj : highRun.events[j]? = some (.tick 7 t)) :
-      highReads.encode a ∉ V2.D.Run.emitsAt env highRun j := by
-    have table : ∀ k : Fin 94, highRun.events[k.val]?.map V2.Event.node = some 7 →
-        (V2.D.Run.emitsAt env highRun k.val).all (fun o => decide (o.auth ≠ .seat 6 0)) =
-          true := by decide +kernel
-    have hlen : j < 94 := (List.getElem?_eq_some_iff.mp hj).1
-    have hnode : highRun.events[j]?.map V2.Event.node = some 7 := by rw [hj]; rfl
-    intro ha
-    have hn := of_decide_eq_true
-      ((List.all_eq_true.mp (table ⟨j, hlen⟩ hnode)) (highReads.encode a) ha)
-    exact hn rfl
-  obtain ⟨_, _, _, hproposer, hsource, _, hK, hp, hpath, ht, _, hg, hrow, hrows, _, _⟩ :=
-    high_source_premises_sat
-  refine ⟨silence, 8, highChild, rfl, rfl, hproposer, hsource, hp, ?_, ht, hg, hrows, hrow⟩
-  have hparent : FGBlock.Preceq highChild.parent highChild :=
-    preceq_parent_node _ _ _ _ _
-  exact (hK ▸ c5cert.height.h_mono hpath).trans (c5cert.height.h_mono hparent)
-
-#print axioms high_nonholder_source_progress
+end High
 
 end AvailableChain.FGCompose.Tests.PopulationSearchPhase
 end
