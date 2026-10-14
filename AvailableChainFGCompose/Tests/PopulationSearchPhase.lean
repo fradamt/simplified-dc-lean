@@ -491,5 +491,86 @@ private theorem transport_premises_sat (top : Bool) :
 
 #print axioms transport_premises_sat
 
+private theorem progress_premises_sat (top : Bool) :
+    PromotionRowOrder (core top) env run (obs top) iface ∧
+    (∀ r h U X, BatchPrem (core top) reads (obs top) d5cTiming env run iface wire c5E
+      decodeProposal c5erase FGBlock.rows (fun _ => [firstRow, nextRow]) parentFG parentHeight
+      validFor 1 .progress r h U X → (c5H X.parent).h = h →
+      ProgressCoveredByChild c5E c5H X U h) ∧
+    ProgressFoldAdvance c5E c5H 4 := by
+  refine ⟨?_, ?_, m9foldAdvance⟩
+  · intro s X h U hp _ hh _ i W hw hn
+    change (c5H X.parent).h = h at hh
+    obtain ⟨hs, he⟩ := proposal_unique hp
+    have hX : X = chainAt s := c5erase_inj he
+    subst X
+    rcases hs with rfl | rfl | rfl
+    · have hW : W = .genesis := preceq_genesis.mp hw
+      subst W
+      obtain ⟨a, ha, _⟩ := hn
+      cases ha
+    · rw [show chainAt 5 = middle by decide +kernel] at hw
+      change FGBlock.Preceq W low at hw
+      have hW : W = low ∨ W = .genesis := by
+        simpa only [low, FGBlock.Preceq, FGBlock.preceq,
+          Bool.or_eq_true, decide_eq_true_eq] using hw
+      rcases hW with rfl | rfl <;> obtain ⟨a, ha, _⟩ := hn <;> cases ha
+    · rw [show chainAt 7 = late by decide +kernel] at hw hh
+      change FGBlock.Preceq W middle at hw
+      have hh2 : h = 2 := hh.symm.trans (by decide +kernel)
+      subst h
+      have hW : W = middle ∨ W = low ∨ W = .genesis := by
+        simpa only [middle, low, FGBlock.Preceq, FGBlock.preceq,
+          Bool.or_eq_true, decide_eq_true_eq] using hw
+      rcases hW with rfl | rfl | rfl
+      · obtain ⟨a, ha, _, timeout, hn⟩ := hn
+        have ha' : a = firstRow := List.mem_singleton.mp ha
+        subst a
+        cases hn
+      · obtain ⟨a, ha, _⟩ := hn
+        cases ha
+      · obtain ⟨a, ha, _⟩ := hn
+        cases ha
+  · intro r h U X hb hh
+    obtain ⟨_, hcar, _⟩ := hb.carrier
+    obtain ⟨hs, he⟩ := proposal_unique hcar.1
+    have hX : X = chainAt X.slot := c5erase_inj he
+    have hu : U = (c5H X.parent).T_h :=
+      hb.entry.2.symm.trans (c5cert.height.entry_plateau hb.path (hb.entry.1.trans hh.symm))
+    have hafter : @LE.le Nat _ (r * 2 + 2) X.slot := hb.after
+    rcases hs with hs | hs | hs
+    · rw [hs] at hafter
+      omega
+    · have hx : X = middle := by
+        simpa only [hs, show chainAt 5 = middle by decide +kernel] using hX
+      subst X
+      have hu0 : U = .genesis := hu.trans (by decide +kernel)
+      have hh1 : h = 1 := hh.symm.trans (by decide +kernel)
+      subst U h
+      refine ⟨{0}, by decide, ?_⟩
+      intro i hi
+      have hi' := Finset.mem_singleton.mp hi
+      subst i
+      exact Or.inr ⟨firstRow, by decide, rfl, true, rfl⟩
+    · have hx : X = late := by
+        simpa only [hs, show chainAt 7 = late by decide +kernel] using hX
+      subst X
+      have hh2 : h = 2 := hh.symm.trans (by decide +kernel)
+      subst h
+      obtain ⟨Q, _, hq, hall⟩ := hb.valid
+      rcases Finset.eq_empty_or_nonempty Q with hQ | ⟨i, hi⟩
+      · rw [hQ] at hq
+        exact absurd hq (by decide)
+      obtain ⟨j, rSent, a, t, hr, hrow, _, hn, _⟩ := hall i hi
+      rcases row_identity hrow with ⟨_, _, _, ha⟩ | ⟨_, _, hSent, ha⟩
+      · subst a
+        obtain ⟨timeout, hn⟩ := hn
+        cases hn
+      · subst rSent
+        change r * 2 + 2 ≤ 7 at hafter
+        omega
+
+#print axioms progress_premises_sat
+
 end AvailableChain.FGCompose.Tests.PopulationSearchPhase
 end
