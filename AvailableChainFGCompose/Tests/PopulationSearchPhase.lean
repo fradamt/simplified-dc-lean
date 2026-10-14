@@ -338,5 +338,54 @@ private theorem row_identity {j r x : Nat} {a : Row (Fin 1)}
 
 #print axioms row_identity
 
+private theorem source_premises_sat (top : Bool) :
+    (∀ r x K, actionSourceFG (core top) env run d5cTiming x r = some (some K) →
+      K = sourceAt (d5cTiming.action r)) ∧
+    (∀ r x K, x ∈ run.honest →
+      actionSourceFG (core top) env run d5cTiming x r = some (some K) → K.slot ≤ r * 2) ∧
+    (∀ r x K A, x ∈ run.honest →
+      actionSourceFG (core top) env run d5cTiming x r = some (some K) → FGBlock.Preceq A K →
+      A.slot ≤ K.slot) ∧
+    (∀ r x y K L, x ∈ run.honest → y ∈ run.honest →
+      actionSourceFG (core top) env run d5cTiming x r = some (some K) →
+      actionSourceFG (core top) env run d5cTiming y r = some (some L) →
+      (c5H K).T_h.root = (c5H L).T_h.root → (c5H K).T_h = (c5H L).T_h) ∧
+    (∀ x ∈ run.honest,
+      actionSourceFG (core top) env run d5cTiming x 1 = some (some low)) ∧
+    (∀ x ∈ run.honest,
+      actionSourceFG (core top) env run d5cTiming x 3 = some (some middle)) := by
+  have src (r x K) (h : actionSourceFG (core top) env run d5cTiming x r = some (some K)) :
+      K = sourceAt (d5cTiming.action r) := by
+    delta actionSourceFG postClock at h
+    rw [Option.map_map] at h
+    obtain ⟨nd, _, he⟩ := Option.map_eq_some_iff.mp h
+    exact (Option.some.inj he).symm
+  refine ⟨src, ?_, ?_, ?_, ?_, ?_⟩
+  · intro r x K _ hk
+    rw [src r x K hk]
+    by_cases hr : r < 3
+    · interval_cases r <;> decide
+    · have h14 : ¬ d5cTiming.action r < 14 := by change ¬ 8 * (r : Int) + 6 < 14; omega
+      have h30 : ¬ d5cTiming.action r < 30 := by change ¬ 8 * (r : Int) + 6 < 30; omega
+      simp only [sourceAt, h14, h30, ite_false]
+      change 5 ≤ r * 2
+      omega
+  · intro r x K A _ hk ha
+    have hs : m9slotsOK K = true := by
+      rw [src r x K hk]
+      unfold sourceAt
+      split_ifs <;> decide +kernel
+    exact m9anc_slot hs ha
+  · intro r x y K L _ _ hk hl _
+    rw [src r x K hk, src r y L hl]
+  · intro x hx
+    rw [actionSourceFG, execution_premises_sat.2.2.2.2.2.2.2.1 x hx 1 (by decide)]
+    rfl
+  · intro x hx
+    rw [actionSourceFG, execution_premises_sat.2.2.2.2.2.2.2.1 x hx 3 (by decide)]
+    rfl
+
+#print axioms source_premises_sat
+
 end AvailableChain.FGCompose.Tests.PopulationSearchPhase
 end
