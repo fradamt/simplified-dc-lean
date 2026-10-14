@@ -1,5 +1,4 @@
 module
-public import AvailableChainGeneric.Proofs.Pure.BlockOrder
 public import Mathlib.Tactic.IntervalCases
 public import AvailableChainFGCompose.Proofs.Population.FrontierSearchBridges
 
@@ -207,12 +206,19 @@ private theorem mixed_service :
       2 .genesis .genesis 1 18 := by
   obtain ⟨_, _, _, _, _, _, _, _, _, _, _, he, hc⟩ := service_premises_sat
   refine ⟨?_, ?_, ?_, ?_, ?_⟩
-  · intro x s H _ _ _ _
-    exact Gen.Pure.block_genesis_preceq H
-  · intro s B _ _ _
-    exact Gen.Pure.block_genesis_preceq B.parent
+  · intro x s H _ _ _ hH
+    change (postClock env run x (timing.vote s)).map (fun _ => Block.genesis) = some H at hH
+    obtain ⟨_, _, h⟩ := Option.map_eq_some_iff.mp hH
+    change Block.genesis = H at h
+    subst H
+    decide
+  · intro s B _ _ hp
+    have hB := (proposal_unique hp).2
+    subst B
+    decide
   · intro i x _ _ _ _
-    exact Gen.Pure.block_genesis_preceq _
+    change Block.Preceq .genesis .genesis
+    decide
   · intro s B hs _ hp
     have hq := (proposal_unique hp).1
     subst s
