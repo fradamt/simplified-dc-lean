@@ -178,5 +178,30 @@ private theorem source_premises_sat :
     exact ⟨0, 0, row, le_rfl, hr, false, rfl⟩
 
 #print axioms source_premises_sat
+
+private theorem row_identity {j r x : Nat} {a : Row (Fin 1)}
+    (h : HonestRowAt reads env run timing j x r a) :
+    j = 0 ∧ x = 9 ∧ r = 0 ∧ a = row := by
+  obtain ⟨_, hj, ha⟩ := h
+  have hjlt : j < 3 := (List.getElem?_eq_some_iff.mp hj).1
+  interval_cases j
+  · have hx : x = 9 := by
+      have he := congrArg (fun e => e.map V2.Event.node) hj
+      exact Option.some.inj he.symm
+    have ht : timing.action r = 6 := by
+      have he := congrArg (fun e => e.map V2.Event.time) hj
+      exact Option.some.inj he.symm
+    have hr : r = 0 := by change 8 * (r : Int) + 6 = 6 at ht; omega
+    subst x r
+    change reads.encode a ∈ [reads.encode row] at ha
+    have he := congrArg V2.Signed.payload (List.mem_singleton.mp ha)
+    exact ⟨rfl, rfl, rfl, Sum.inl.inj he⟩
+  · change reads.encode a ∈ [] at ha
+    cases ha
+  · change reads.encode a ∈ [⟨.seat 16 0, .inr child⟩] at ha
+    have he := congrArg V2.Signed.payload (List.mem_singleton.mp ha)
+    cases he
+
+#print axioms row_identity
 end AvailableChain.FGCompose.Tests.PopulationAge
 end
