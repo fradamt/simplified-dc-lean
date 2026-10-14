@@ -206,5 +206,92 @@ private theorem block_premises_sat :
 
 #print axioms block_premises_sat
 
+private theorem exact_rows (j x q : Nat) (a : protocol.Object)
+    (ha : HonestRowAt reads (env Nat) run timing j x q a) :
+    (j = 6 ∧ x = 9 ∧ q = 0 ∧ a = wire row0) ∨
+    (j = 14 ∧ x = 9 ∧ q = 1 ∧ a = wire row1) ∨
+    (j = 22 ∧ x = 9 ∧ q = 2 ∧ a = wire row2) ∨
+    (j = 30 ∧ x = 9 ∧ q = 3 ∧ a = wire row3) := by
+  obtain ⟨_, hj, hw⟩ := ha
+  have hlen : j < 34 := (List.getElem?_eq_some_iff.mp hj).1
+  interval_cases j
+  · change a ∈ [] at hw; cases hw
+  · change a ∈ [] at hw; cases hw
+  · change a ∈ [] at hw; cases hw
+  · change a ∈ [] at hw; cases hw
+  · change a ∈ [] at hw; cases hw
+  · change a ∈ [] at hw; cases hw
+  · have he : 9 = x ∧ (6 : Time) = 4 * (q * 2 : Nat) + 6 :=
+      V2.Event.tick.inj (Option.some.inj hj)
+    have hn : (6 : Nat) = 4 * (q * 2) + 6 := by exact_mod_cast he.2
+    have hq : q = 0 := by omega
+    obtain rfl := he.1.symm
+    subst q
+    change a ∈ [wire row0] at hw
+    have hw' := List.mem_singleton.mp hw
+    exact Or.inl (⟨rfl, rfl, rfl, hw'⟩)
+  · change a ∈ [] at hw; cases hw
+  · change a ∈ [] at hw; cases hw
+  · have he : 7 = x ∧ (8 : Time) = 4 * (q * 2 : Nat) + 6 :=
+      V2.Event.tick.inj (Option.some.inj hj)
+    have hn : (8 : Nat) = 4 * (q * 2) + 6 := by exact_mod_cast he.2
+    omega
+  · change a ∈ [] at hw; cases hw
+  · change a ∈ [] at hw; cases hw
+  · change a ∈ [] at hw; cases hw
+  · change a ∈ [] at hw; cases hw
+  · have he : 9 = x ∧ (14 : Time) = 4 * (q * 2 : Nat) + 6 :=
+      V2.Event.tick.inj (Option.some.inj hj)
+    have hn : (14 : Nat) = 4 * (q * 2) + 6 := by exact_mod_cast he.2
+    have hq : q = 1 := by omega
+    obtain rfl := he.1.symm
+    subst q
+    change a ∈ [wire row1] at hw
+    have hw' := List.mem_singleton.mp hw
+    exact Or.inr (Or.inl (⟨rfl, rfl, rfl, hw'⟩))
+  · change a ∈ [] at hw; cases hw
+  · change a ∈ [] at hw; cases hw
+  · have he : 7 = x ∧ (16 : Time) = 4 * (q * 2 : Nat) + 6 :=
+      V2.Event.tick.inj (Option.some.inj hj)
+    have hn : (16 : Nat) = 4 * (q * 2) + 6 := by exact_mod_cast he.2
+    omega
+  · change a ∈ [] at hw; cases hw
+  · change a ∈ [] at hw; cases hw
+  · change a ∈ [] at hw; cases hw
+  · change a ∈ [] at hw; cases hw
+  · have he : 9 = x ∧ (22 : Time) = 4 * (q * 2 : Nat) + 6 :=
+      V2.Event.tick.inj (Option.some.inj hj)
+    have hn : (22 : Nat) = 4 * (q * 2) + 6 := by exact_mod_cast he.2
+    have hq : q = 2 := by omega
+    obtain rfl := he.1.symm
+    subst q
+    change a ∈ [wire row2] at hw
+    have hw' := List.mem_singleton.mp hw
+    exact Or.inr (Or.inr (Or.inl (⟨rfl, rfl, rfl, hw'⟩)))
+  · change a ∈ [] at hw; cases hw
+  · change a ∈ [] at hw; cases hw
+  · have he : 7 = x ∧ (24 : Time) = 4 * (q * 2 : Nat) + 6 :=
+      V2.Event.tick.inj (Option.some.inj hj)
+    have hn : (24 : Nat) = 4 * (q * 2) + 6 := by exact_mod_cast he.2
+    omega
+  · change a ∈ [] at hw; cases hw
+  · change a ∈ [] at hw; cases hw
+  · change a ∈ [] at hw; cases hw
+  · change a ∈ [] at hw; cases hw
+  · have he : 9 = x ∧ (30 : Time) = 4 * (q * 2 : Nat) + 6 :=
+      V2.Event.tick.inj (Option.some.inj hj)
+    have hn : (30 : Nat) = 4 * (q * 2) + 6 := by exact_mod_cast he.2
+    have hq : q = 3 := by omega
+    obtain rfl := he.1.symm
+    subst q
+    change a ∈ [wire row3] at hw
+    have hw' := List.mem_singleton.mp hw
+    exact Or.inr (Or.inr (Or.inr (⟨rfl, rfl, rfl, hw'⟩)))
+  · change a ∈ [] at hw; cases hw
+  · change a ∈ [] at hw; cases hw
+  · change a ∈ [] at hw; cases hw
+
+#print axioms exact_rows
+
 end AvailableChain.FGCompose.Tests.PopulationRows
 end
