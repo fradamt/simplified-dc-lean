@@ -34,9 +34,12 @@ SCOPES = {
 
 def source_modules(libraries):
     modules = []
+    layout = Layout(Path.cwd())
     for lib in libraries:
-        layout = Layout(Path.cwd())
-        facade = Path(layout.source_path(lib))
+        try:
+            facade = Path(layout.source_path(lib))
+        except ValueError:
+            raise ValueError('MISSING SOURCE SCOPE: ' + lib) from None
         if not facade.is_file() or not Path(layout.source_dir(lib)).is_dir():
             raise ValueError('MISSING SOURCE SCOPE: ' + lib)
         modules.append(lib)
@@ -46,8 +49,13 @@ def source_modules(libraries):
 
 def checkpoint_modules(path):
     modules = [row['name'] for row in deep.root_list(path)]
+    layout = Layout(Path.cwd())
     for module in modules:
-        if not Path(Layout(Path.cwd()).source_path(module)).is_file():
+        try:
+            source = Path(layout.source_path(module))
+        except ValueError:
+            raise ValueError('MISSING CHECKPOINT MODULE: ' + module) from None
+        if not source.is_file():
             raise ValueError('MISSING CHECKPOINT MODULE: ' + module)
     return modules
 
