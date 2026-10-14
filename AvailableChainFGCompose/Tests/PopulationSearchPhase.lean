@@ -178,6 +178,20 @@ private theorem m9transition_progress (σ : ChainState (Fin 1)) (B : FGBlock (Fi
 
 #print axioms m9transition_progress
 
+private theorem m9progress_of_cover (hb : HeightBridge c5E c5cfg c5H)
+    (p : FGBlock (Fin 1)) (s : Slot) (r_s : BlockId) (x : Nat)
+    (rs : List (Row (Fin 1))) (S : Finset (Fin 1)) (hS : c5E.IsQuorum S)
+    (hcover : ∀ i ∈ S, i ∈ (c5H p).progress ∨
+      ∃ a ∈ rs, a.signer = i ∧
+        a.height_pair.matchesEntry (c5H p).h (c5H p).T_h.root = true)
+    (hmature : (c5H p).T_h.slot + c5cfg.timeoutDelay ≤ s) :
+    (c5H (.node p s r_s x rs)).h = (c5H p).h + 1 := by
+  have heq : ∀ B, c5H B = heightOf (derive c5E c5cfg B) := hb
+  simp only [heq, heightOf_def] at hcover hmature ⊢
+  exact m9transition_progress (derive c5E c5cfg p) (.node p s r_s x rs) rs S hS hcover hmature
+
+#print axioms m9progress_of_cover
+
 -- POP-5 local fixture support ends here.
 
 end Fixture
