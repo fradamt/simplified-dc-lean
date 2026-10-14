@@ -566,5 +566,30 @@ private theorem frozen_source_premises_sat :
   decide +kernel
 
 #print axioms frozen_source_premises_sat
+
+private theorem frozen_source_bridges :
+    (PromotionSourceAtFG core reads frozenEnv frozenRun obs timing iface wire
+      (FGHonestSeats reads frozenRun) 1 0 1 .genesis 5 child ↔
+      PromotionSourceAt core reads frozenEnv frozenRun obs timing iface wire
+        1 0 1 .genesis 5 child) ∧
+    PromotionSourceAtFG core reads frozenEnv frozenRun obs timing iface wire
+      (FGHonestSeats reads frozenRun) 1 0 1 .genesis 5 child ∧
+    (∀ A, A ⊆ FGHonestSeats reads frozenRun →
+      PromotionSourceAt core reads frozenEnv frozenRun obs timing iface wire
+        1 0 1 .genesis 5 child →
+      PromotionSourceAtFG core reads frozenEnv frozenRun obs timing iface wire
+        A 1 0 1 .genesis 5 child) ∧
+    (∅ : Finset (Fin 1)) ⊂ FGHonestSeats reads frozenRun := by
+  have hb := promotionSourceAtFG_frozen_iff core reads frozenEnv frozenRun obs timing iface
+    wire (Equiv.refl _) frozen_source_premises_sat.1 1 0 1 .genesis 5 child
+  refine ⟨hb, hb.mpr frozen_source_premises_sat.2, ?_, ?_⟩
+  · intro A hA h
+    refine ⟨h.entry, h.parentPath, h.proposal, h.slot, h.sync, h.carrier, h.age, h.horizon, ?_⟩
+    intro i hi
+    exact h.rows _ (Finset.mem_filter.mp (hA hi)).2
+  · apply Finset.empty_ssubset.mpr
+    exact ⟨0, by simp [FGHonestSeats_def, safetyHolder]⟩
+
+#print axioms frozen_source_bridges
 end AvailableChain.FGCompose.Tests.PopulationAge
 end
