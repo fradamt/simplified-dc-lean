@@ -9071,4 +9071,20 @@
             'AvailableChain.FGCompose.StrongServedFG_def',
         ),
     },
+    'AvailableChainFGCompose.Tests.PopulationSearchAxioms': {
+        'AvailableChainFGCompose.Proofs.Population.FrontierSearchGap': (
+            'AvailableChain.FGCompose.frontierSearch_gap_phase_holder',
+            'AvailableChain.FGCompose.frontier_hg3_gap_holder',
+        ),
+        'AvailableChainFGCompose.Proofs.Population.FrontierSearchHG2a': (
+            'AvailableChain.FGCompose.frontier_hg2a_receipt_holder',
+        ),
+        'AvailableChainFGCompose.Proofs.Population.FrontierSearchRepair': (
+            'AvailableChain.FGCompose.frontierSearch_save_seed_holder',
+            'AvailableChain.FGCompose.frontier_hg3_contest_holder',
+        ),
+        'AvailableChainFGCompose.Proofs.Population.FrontierSearchTop': (
+            'AvailableChain.FGCompose.frontier_hg3_topJ_holder',
+        ),
+    },
 }
