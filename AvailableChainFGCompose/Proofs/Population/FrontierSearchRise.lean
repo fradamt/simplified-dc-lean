@@ -284,7 +284,8 @@ theorem healing_frontierTail_holder (hT : FGTimingLaws T)
       by_contra hn
       have he := Finset.not_nonempty_iff_eq_empty.mp hn
       rw [he] at hq
-      simp only [Electorate.weightOf, Finset.sum_empty] at hq
+      delta Electorate.weightOf at hq
+      rw [Finset.sum_empty] at hq
       omega
     obtain ⟨seat, hs⟩ := hne
     refine ⟨seat, ?_⟩
