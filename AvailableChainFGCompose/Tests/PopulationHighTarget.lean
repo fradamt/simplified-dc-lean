@@ -194,6 +194,21 @@ private theorem record_at_cut (k x : Nat) :
         simp_all [V2.D.World.init, V2.D.World.step, V2.D.tick,
           V2.D.Run.ownSeats, List.finRange_succ, protocol, run, env]
 
+private theorem exact_row (j x q : Nat) (a : protocol.Object)
+    (ha : HonestRowAt reads (env Nat) run timing j x q a) :
+    j = 0 ∧ x = 9 ∧ q = 0 ∧ a = wire := by
+  obtain ⟨_, hj, hw⟩ := ha
+  have hlen : j < 6 := (List.getElem?_eq_some_iff.mp hj).1
+  interval_cases j <;> simp at hj
+  · rcases hj with ⟨rfl, hr⟩
+    subst q
+    change a ∈ [wire] at hw
+    exact ⟨rfl, rfl, rfl, List.mem_singleton.mp hw⟩
+  · change a ∈ [] at hw; cases hw
+  · change a ∈ [] at hw; cases hw
+  · change a ∈ [] at hw; cases hw
+
+#print axioms exact_row
 #print axioms record_at_cut
 #print axioms global_client_premises_sat
 #print axioms mixed_client_premises_sat
