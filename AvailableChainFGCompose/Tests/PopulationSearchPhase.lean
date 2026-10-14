@@ -37,6 +37,35 @@ private theorem d5cTimingLaws : FGTimingLaws d5cTiming where
 
 #print axioms d5cTimingLaws
 
+private def c5r (h : Nat) (e : BlockId) : Row (Fin 1) := ⟨0, .vote h e false, none⟩
+
+private def c5x1 : FGBlock (Fin 1) := .node .genesis 1 ⟨1⟩ 0 [c5r 1 genesisRoot]
+
+private def c5erase : FGBlock (Fin 1) → Block
+  | .genesis => .genesis
+  | .node p s r x rs => .node (c5erase p) s r (encFGBody x rs)
+
+private theorem c5erase_inj : Function.Injective c5erase := by
+  intro A
+  induction A with
+  | genesis => intro B h; cases B <;> simp_all [c5erase]
+  | node p s r x rs ih =>
+    intro B h
+    cases B with
+    | genesis => simp [c5erase] at h
+    | node q t u y ts =>
+      simp only [c5erase, Block.node.injEq] at h
+      obtain ⟨hp, hs, hr, hb⟩ := h
+      obtain ⟨hx, hrows⟩ := encFGBody_inj hb
+      cases ih hp
+      cases hs
+      cases hr
+      cases hx
+      cases hrows
+      rfl
+
+#print axioms c5erase_inj
+
 -- POP-5 local fixture support ends here.
 
 end Fixture
