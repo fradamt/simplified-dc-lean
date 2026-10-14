@@ -226,5 +226,57 @@ private theorem missing_receiver_service_rejected :
 
 #print axioms missing_receiver_service_rejected
 
+private theorem frozen_seed_premises_sat :
+    FGTimingLaws timing ∧ FGObservationLaws core seedObs ∧
+    (∀ i, safetyHolder reads frozenRun i = (Equiv.refl (Fin 1)) i) ∧
+    HonestProposal frozenEnv frozenRun interface 2 .genesis ∧
+    FrontierSeedQualification timing 1 frozenEnv.t_GST 0 2 ∧
+    PhaseInterval core frozenEnv frozenRun seedObs 0 (timing.gate 2) 1
+      (some .genesis) false ∧
+    FrontierProposalService core frozenEnv frozenRun timing 2 .genesis ∧
+    FrontierLocalServiceFG core reads frozenEnv frozenRun seedObs timing interface Row.height_pair
+      2 .genesis .genesis 1 (timing.gate 2) ∧
+    HonestRowAt reads frozenEnv frozenRun timing 0 0 0 row := by
+  obtain ⟨he, _, hrow, hp, hcovered⟩ := frozen_premises_sat
+  have hc := (openingCoveredFG_frozen_iff core reads frozenEnv frozenRun height timing
+    Row.height_pair (Equiv.refl _) he 1 .genesis).2 hcovered
+  refine ⟨saved_seed_premises_sat.1, saved_seed_premises_sat.2.1, he, hp, ?_, ?_, ?_, ?_, hrow⟩
+  · exact Or.inr ⟨0, by decide, fun _ _ => Nat.zero_le _, by decide, by decide, by decide⟩
+  · refine ⟨by decide, by decide, by decide, ?_⟩
+    intro i x _ _ _
+    exact ⟨rfl, rfl, rfl, rfl⟩
+  · intro _ x _ _
+    have hx : x = 0 := Subsingleton.elim _ _
+    subst x
+    decide +kernel
+  · refine ⟨?_, ?_, ?_, ?_, ?_⟩
+    · intro x s H _ _ _ hH
+      delta headAtLabel at hH
+      obtain ⟨nd, _, he⟩ := Option.map_eq_some_iff.mp hH
+      change Block.genesis = H at he
+      subst H
+      decide
+    · intro s B _ _ hB
+      obtain ⟨_, o, _, hb⟩ := hB
+      have hB' : B = .genesis := (Option.some.inj hb).symm
+      subst B
+      decide
+    · intro i x _ _ _ _
+      change Block.Preceq .genesis .genesis
+      decide
+    · intro s B hs ht _
+      change 8 < 4 * (s : Int) at hs
+      change 4 * (s : Int) + 6 ≤ 14 at ht
+      omega
+    · intro r hqr ht
+      change @LE.le Nat _ 2 (r * 2) at hqr
+      change 8 * (r : Int) + 6 ≤ 14 at ht
+      have hr : @Eq Nat r 1 := by omega
+      subst r
+      exact ⟨hc, ⟨genesisRoot, fun _ _ _ _ => ⟨rfl, rfl⟩⟩,
+        fun _ _ _ _ => rfl, fun _ => by decide⟩
+
+#print axioms frozen_seed_premises_sat
+
 end AvailableChain.FGCompose.Tests.PopulationSearchSeed
 end
