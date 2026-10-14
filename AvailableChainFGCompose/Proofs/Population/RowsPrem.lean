@@ -108,5 +108,16 @@ theorem rowsPrem_anchor_cap_holder (CL : FGCoreLaws R) (L : FGTimingLaws T)
   rw [hh]
   exact bound
 
+/-- The same pending key survives the proved anchor cap or is already covered. -/
+theorem rowsPrem_anchor_retained_or_covered_holder
+    (height_eq : O.height = KitFG.Window.heightView Ef cfg K)
+    (hne : ¬ Ef.IsQuorum ∅) (hK : 2 ≤ K) (B : FGBlock (Fin n))
+    (hDB : FGBlock.Preceq m.X_D B) (hcap : (O.height B).h ≤ m.d + 3) :
+    KitFG.Window.RetainedW Ef cfg K B (m.d + 1) m.U ∨
+      KitFG.Window.CoveredW Ef cfg K B (m.d + 1) m.U := by
+  apply actual_anchor_retained_or_covered Ef cfg K hne hK (m.d + 1) m.X_D m.U B hDB m.retainedD
+  simpa only [height_eq] using hcap
+
+
 end AvailableChain.FGCompose
 end
