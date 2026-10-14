@@ -624,6 +624,7 @@ def test_scope(ctx: Context, m: Module, dep: str) -> bool:
         (PROOFS + ".Tests.P0d4", COMPOSE + ".Proofs.Healing.AttemptStop"),
         (PROOFS + ".Tests.P0d7c", COMPOSE + ".Proofs.Finality.Joined"),
         (PROOFS + ".Tests.P0d7c", COMPOSE + ".Proofs.Finality.Local"),
+        (PROOFS + ".Tests.P0Origin", COMPOSE + ".Proofs.SafetyOrigin"),
         (COMPOSE + ".Tests.P0d3", KITFG + ".WindowHeightBridge"),
         (PROOFS + ".Tests.P0c1", COMPOSE + ".Proofs.ObservationTransport"),
         (PROOFS + ".Tests.P0HistoricalReads", COMPOSE + ".Proofs.HistoricalReads"),
