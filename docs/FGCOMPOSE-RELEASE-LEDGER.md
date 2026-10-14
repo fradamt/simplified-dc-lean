@@ -3339,7 +3339,7 @@ Input records (including components of supplied contracts):
 - Gen.Env: env1 (recipe; C227).
 - V2.D.Run: mkRun (recipe; C258).
 - V2.ProtocolSpecD: fgsa (recipe; C263).
-- V2.Signed: OPEN (C264).
+- V2.Signed: FGSA.Run.ofWire (recipe; C264).
 
 F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
 Population: no explicit global runtime cardinality/bijection/fault-count premise in this
@@ -3499,7 +3499,7 @@ Input records (including components of supplied contracts):
 - AcceptGuards_W: d7a5a_guards (recipe; file-private; C003).
 - FGCoreReads: fgsaCoreReads (recipe; C044).
 - FGFinalityDurableLaws: d7a5a_durable (recipe; file-private; C057).
-- FinalizePrem_W: OPEN (C102).
+- FinalizePrem_W: inline in fgsa_finalizePending_W (conditional; standalone producer OPEN; C102).
 - PendingFold_W: d7a5a_fold (recipe; file-private; C157).
 - Gen.Env: env1 (recipe; C227).
 - KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
@@ -18971,7 +18971,9 @@ FGBlock.Preceq U (R.core (O.cutState x k)).fg.F
 
 Source: `AvailableChainFGCompose/Statements/FinalityReceipts.lean:167`.
 
-Producer: OPEN; selecting PC consumer owns the actual input.
+Producer: OPEN as a standalone producer. A conditional construction exists inline in
+`fgsa_finalizePending_W` (`AvailableChainFGSAProofs/Proofs/Finality/Accept.lean:387`), already
+credited as an application. The selecting PC consumer owns the actual input.
 
 ```text
 fold : PendingFold_W Ef cfg K y U X
@@ -21139,7 +21141,9 @@ namespace ProtocolSpecD
 
 Source: `AvailableChainEngineV2/Engine/Objects.lean:23`.
 
-Producer: OPEN; selecting PC consumer owns the actual input.
+Producer: recipe `FGSA.Run.ofWire` (through the `Obj` alias;
+`AvailableChainFGSARun/Model/Protocol.lean:140`), conditional on a store wire. A PC consumer
+supplies its own constructor.
 
 ```text
 auth : Auth L seats
@@ -21169,7 +21173,7 @@ and actual law obligations are both explicit.
 - FGHistoricalReads (C062).
 - FGHolderClientLaws (C064).
 - FGRowPermissionInputs (C074).
-- FinalizePrem_W (C102).
+- FinalizePrem_W (C102; standalone producer only, see C102).
 - KernelActionSupply_W (C142).
 - KernelJoinedPrem (C145).
 - KernelPt (C148).
@@ -21178,7 +21182,6 @@ and actual law obligations are both explicit.
 - PromotionSourceAt (C169).
 - FG.FinalityPair (C241).
 - FG.RowCodec (C248).
-- V2.Signed (C264).
 
 ## Kernel argument to FG-SA fact ledger
 
