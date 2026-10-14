@@ -511,5 +511,32 @@ private theorem search_premises_sat :
     decide +kernel
 
 #print axioms search_premises_sat
+
+private theorem mixed_search_age :
+    ∃ s X, s = 5 ∧ X = child ∧ HonestProposal env run iface s (erase X) ∧
+      X.slot = s ∧ timing.action 0 < timing.proposal s ∧ timing.gate s ≤ 38 ∧
+      2 ≤ (height X).h := by
+  obtain ⟨hl, ht, hs, hf, hb, hrec, hr, ho, hsi, hc, hq⟩ := advance_premises_sat
+  obtain ⟨gap, hslot, hparent, hentry, hcover, hagree, hsourceSlot, hancestorSlot, hp⟩ :=
+    search_premises_sat
+  have hne : (FGHonestSeats reads run).Nonempty := by
+    rw [source_premises_sat.2.2.2.2.1]
+    exact ⟨0, Finset.mem_singleton_self _⟩
+  have hsource : ∃ x K, x ∈ run.honest ∧
+      actionSourceFG core env run timing x 0 = some (some K) ∧
+      (height K).T_h = .genesis := by
+    obtain ⟨x, K, _, hx, hk, hu⟩ := mixed_age_advance.2.2
+    exact ⟨x, K, hx, hk, hu⟩
+  obtain ⟨s, X, hnew, hX, ha, hg, hheight⟩ :=
+    frontierSearch_age_service_holder core reads obs timing env run iface wire ef
+      decodeProposal erase FGBlock.rows (fun _ => [row]) parentFG parentHeight validFor fold hl
+      (Finset.Subset.refl _) hne ht hs hf (by decide) rfl gap (by decide : env.t_GST ≤ 0)
+      hslot hr ho hsi hparent rfl hb hrec hc fold_premises_sat hq
+      hentry hcover hsource hagree hsourceSlot hancestorSlot (by decide : (0 : Time) ≤ 0)
+      (by decide) (by decide) hp (by decide) (by decide)
+  obtain ⟨hs, hchild⟩ := proposal_unique hnew
+  exact ⟨s, X, hs, hchild, hnew, hX, ha, hg, hheight⟩
+
+#print axioms mixed_search_age
 end AvailableChain.FGCompose.Tests.PopulationAge
 end
