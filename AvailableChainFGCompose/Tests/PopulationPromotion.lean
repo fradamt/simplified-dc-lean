@@ -279,5 +279,22 @@ private theorem carrier_premises_sat (s : Slot) (hs : s ∈ ({2, 3} : Finset Nat
 
 #print axioms carrier_premises_sat
 
+private theorem holder_row_identity {j r : Nat} {a : Row (Fin 1)}
+    (ha : HonestRowAt reads env run timing j 9 r a) : j = 0 ∧ r = 0 ∧ a = row := by
+  have hj : j < 4 := (List.getElem?_eq_some_iff.mp ha.2.1).1
+  interval_cases j
+  · have ht : (6 : Int) = 8 * (r : Int) + 6 :=
+      congrArg V2.Event.time (Option.some.inj ha.2.1)
+    have hr : r = 0 := by omega
+    refine ⟨rfl, hr, ?_⟩
+    have hm := ha.2.2
+    change (⟨.seat 6 0, a⟩ : protocol.Object) ∈ [⟨.seat 6 0, row⟩, ⟨.none, row⟩] at hm
+    simpa using hm
+  all_goals
+    have hn : (7 : Nat) = 9 := congrArg V2.Event.node (Option.some.inj ha.2.1)
+    omega
+
+#print axioms holder_row_identity
+
 end AvailableChain.FGCompose.Tests.PopulationPromotion
 end
