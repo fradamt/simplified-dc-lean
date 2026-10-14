@@ -951,5 +951,73 @@ private theorem old_common_service_rejected :
 
 #print axioms old_common_service_rejected
 
+/-! Isolated high-source branch: source holder and row sender remain distinct.
+The extra slot-8 proposal carries 9's exact action-3 row after the source read at 7. -/
+private abbrev highChild : FGBlock (Fin 1) := .node middle 8 ⟨108⟩ 0 [nextRow]
+private abbrev highProtocol : V2.ProtocolSpecD Unit :=
+  { protocol with act := fun st t input =>
+      if t = 32 then some (.inr highChild) else protocol.act st t input }
+private abbrev highRun : V2.D.Run Nat highProtocol where
+  honest := run.honest
+  horizon := run.horizon
+  events := run.events
+  seatOf l i := if l = 32 then 7 else run.seatOf l i
+  input := run.input
+private abbrev highCore : FGCoreReads highProtocol 1 Unit Unit (Row (Fin 1)) where
+  core := (core true).core
+  erase := c5erase
+  source := (core true).source
+  headVote := (core true).headVote
+  finalityHead := (core true).finalityHead
+  proposalFG := (core true).proposalFG
+private abbrev highIface : V2.D.Interface highProtocol where
+  confirmed := iface.confirmed
+  stable := iface.stable
+  block := iface.block
+  opening := iface.opening
+  propLabel := iface.propLabel
+  propDuty := iface.propDuty
+  propDuty_label := iface.propDuty_label
+  propLabel_single := iface.propLabel_single
+  propLabel_injective := iface.propLabel_injective
+private abbrev highReads : FGSafetyReads highProtocol 1 (Row (Fin 1)) where
+  proposalErase := reads.proposalErase
+  proposalRows := reads.proposalRows
+  encode := reads.encode
+  decode := reads.decode
+  decodeObject := reads.decodeObject
+  fgLabel := reads.fgLabel
+  fgSeats := reads.fgSeats
+  record := reads.record
+  inputs := reads.inputs
+  enabled := reads.enabled
+  finalizedOut := reads.finalizedOut
+
+private theorem high_source_premises_sat :
+    V2.D.ScheduleWellFormed env highRun ∧ highRun.honest = {7, 9} ∧
+    (∀ i, safetyHolder highReads highRun i = 9) ∧
+    V2.D.proposerOf highRun highIface 8 = 7 ∧
+    actionSourceFG highCore env highRun d5cTiming 7 3 = some (some middle) ∧
+    middle ∈ (highCore.core (d5cTiming.action 3)).fg.TF ∧ (c5H middle).h = 2 ∧
+    HonestProposal env highRun highIface 8 (c5erase highChild) ∧
+    FGBlock.Preceq middle highChild.parent ∧
+    d5cTiming.action 3 < d5cTiming.proposal 8 ∧ 3 * d5cTiming.roundSlots + 2 ≤ 8 ∧
+    d5cTiming.gate 8 ≤ highRun.horizon ∧
+    HonestRowAt highReads env highRun d5cTiming 61 9 3 nextRow ∧
+    highChild.rows = [nextRow] ∧
+    highProtocol.objSelfVisible (highReads.encode nextRow) = true ∧
+    highReads.decodeObject (highReads.encode nextRow) = some nextRow := by
+  have hs := execution_premises_sat.1
+  refine ⟨⟨hs.horizon_nonneg, hs.sorted, hs.nodup, hs.in_horizon, hs.honest_only,
+    hs.tick_public, hs.tick_total⟩, rfl, fun _ => rfl, by decide, by decide +kernel,
+    by decide +kernel, by decide +kernel, ?_, by decide, by decide, by decide, by decide,
+    ?_, rfl, rfl, rfl⟩
+  · exact ⟨⟨by decide, by decide⟩, ⟨.seat 32 0, .inr highChild⟩,
+      ⟨64, by decide +kernel, by decide +kernel⟩, rfl⟩
+  · unfold HonestRowAt
+    decide +kernel
+
+#print axioms high_source_premises_sat
+
 end AvailableChain.FGCompose.Tests.PopulationSearchPhase
 end
