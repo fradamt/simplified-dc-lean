@@ -113,5 +113,22 @@ private theorem reflection_premises_sat (A B : FGBlock (Fin 1))
 
 #print axioms reflection_premises_sat
 
+private theorem pending_premises_sat : ∃ m : middleType run,
+    (m.A₀ = aBlock ∧ m.B = bBlock ∧ m.U = bBlock ∧ m.X_D = dBlock ∧
+      m.cD = 6 ∧ m.d = 2) ∧
+    (∀ x nd, x ∈ run.honest → postClock (env Nat) run x 30 = some nd →
+      ∃ H, core.finalityHead nd = some H ∧ FGBlock.Preceq m.X_D H ∧
+        (obs.height H).h = m.d + 2 ∧ (obs.height H).J = m.U ∧
+        (obs.height H).h_j = m.d + 1 ∧ (obs.finality H).h_F < m.d + 1 ∧
+        (obs.height H).T_h = (obs.height m.X_D).T_h) := by
+  obtain ⟨m, selected, act⟩ := action_premises_sat
+  refine ⟨m, selected, ?_⟩
+  exact rowsPrem_pending_head_holder m
+    (KitFG.Window.windowHeightLaws electorate cfg 2 (by decide))
+    (KitFG.Window.windowHeightBridge electorate cfg 2 (by decide)) act.read act.head act.walk
+    (fun _ A B _ _ hp => reflection_premises_sat A B hp)
+
+#print axioms pending_premises_sat
+
 end AvailableChain.FGCompose.Tests.PopulationRowsControls
 end
