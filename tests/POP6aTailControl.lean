@@ -47,5 +47,83 @@ private theorem geometry_premises_sat {V : Type} [DecidableEq V]
 
 #print axioms geometry_premises_sat
 
+private theorem mixed_premises_sat :
+    V2.D.ScheduleWellFormed env missingRun ∧ FGTimingLaws timing ∧
+    (FGHonestSeats missingReads missingRun).Nonempty ∧
+    HonestProposal env missingRun missingIface 2 .genesis ∧
+    PhaseInterval tailCore env missingRun tailObs 0 (timing.gate 2) 1
+      (some .genesis) false ∧
+    (∀ v, timing.gate 2 ≤ v → v ≤ missingRun.horizon →
+      FrontierLocalServiceFG tailCore missingReads env missingRun tailObs timing missingIface
+        Row.height_pair 2 .genesis .genesis 1 v) ∧
+    HonestRowAt missingReads env missingRun timing 13 9 0 row ∧
+    (∀ x ∈ missingRun.honest,
+      actionSourceFG tailCore env missingRun timing x 1 = some (some .genesis)) ∧
+    V2.D.proposerOf missingRun missingIface 2 = 7 ∧
+    timing.action 0 = 6 ∧ timing.action 1 = 14 ∧
+    14 + (FGCompose.P timing - 4 * timing.delta) ≤ missingRun.horizon := by
+  have hrow : HonestRowAt missingReads env missingRun timing 13 9 0 row := by
+    unfold HonestRowAt
+    decide +kernel
+  have hsource : ∀ x ∈ missingRun.honest,
+      actionSourceFG tailCore env missingRun timing x 1 = some (some .genesis) := by
+    intro x hx
+    have hx' : x = 7 ∨ x = 9 := by simpa using hx
+    rcases hx' with rfl | rfl <;> decide +kernel
+  have hc : OpeningCoveredFG tailCore missingReads env missingRun c5H timing Row.height_pair
+      (FGHonestSeats missingReads missingRun) 1 .genesis := by
+    intro i _
+    have hi : i = 0 := Subsingleton.elim _ _
+    subst i
+    exact ⟨.genesis, missingRun.stateBefore env 29 9, 13, 0, row,
+      rfl, hsource 9 (by decide), by decide, by decide, by decide, hrow, rfl⟩
+  refine ⟨missing_receiver_premises_sat.1, saved_seed_premises_sat.1,
+    ⟨0, by decide⟩, missing_receiver_premises_sat.2.2.2.2.1, ?_, ?_, hrow, hsource,
+    rfl, rfl, rfl, by decide⟩
+  · refine ⟨by decide, by decide, by decide, ?_⟩
+    intro i x _ _ _
+    exact ⟨rfl, rfl, rfl, rfl⟩
+  · intro v _ hv
+    refine ⟨?_, ?_, ?_, ?_, ?_⟩
+    · intro x s H _ _ _ hH
+      obtain ⟨nd, _, he⟩ := Option.map_eq_some_iff.mp hH
+      change Block.genesis = H at he
+      subst H
+      rfl
+    · intro s B _ _ hp
+      obtain ⟨_, o, _, hb⟩ := hp
+      have hB : B = .genesis := (Option.some.inj hb).symm
+      subst B
+      rfl
+    · intro i x _ _ _ _
+      rfl
+    · intro s B _ _ hp ht x hx _
+      obtain ⟨_, o, _, hb⟩ := hp
+      have hB : B = .genesis := (Option.some.inj hb).symm
+      subst B
+      have hs : (s : Nat) ≤ 4 := by
+        change 4 * (s : Int) + 1 ≤ 18 at ht
+        simp only [Slot, Time] at *
+        omega
+      have hx' : x = 7 ∨ x = 9 := by simpa using hx
+      rcases hx' with rfl | rfl <;> interval_cases s <;> decide +kernel
+    · intro r hqr ht
+      have hrt := ht.trans hv
+      change @LE.le Nat _ 2 (r * 2) at hqr
+      change 8 * (r : Int) + 6 ≤ 18 at hrt
+      have hr : @Eq Nat r 1 := by omega
+      subst r
+      refine ⟨hc, ⟨genesisRoot, ?_⟩, ?_, fun _ => by decide⟩
+      · intro x K hx hK
+        rw [hsource x hx] at hK
+        cases hK
+        exact ⟨rfl, rfl⟩
+      · intro x K hx hK
+        rw [hsource x hx] at hK
+        cases hK
+        rfl
+
+#print axioms mixed_premises_sat
+
 end AvailableChain.FGCompose.Tests.POP6aTail
 end
