@@ -572,5 +572,16 @@ private theorem progress_premises_sat (top : Bool) :
 
 #print axioms progress_premises_sat
 
+private theorem proposal_service_premises_sat (top : Bool) :
+    ∀ q Q, HonestProposal env run iface q Q →
+      FrontierProposalService (core top) env run d5cTiming q Q := by
+  intro q Q hp _ x hx _
+  obtain ⟨hq, he⟩ := proposal_unique hp
+  have h10 : @LE.le Nat _ q 10 := by rcases hq with rfl | rfl | rfl <;> decide
+  rw [headAtLabel, execution_premises_sat.2.2.2.2.2.2.2.2 x hx q h10]
+  exact congrArg some he.symm
+
+#print axioms proposal_service_premises_sat
+
 end AvailableChain.FGCompose.Tests.PopulationSearchPhase
 end
