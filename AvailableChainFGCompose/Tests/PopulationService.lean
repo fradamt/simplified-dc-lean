@@ -253,5 +253,16 @@ private theorem seed_premises_sat :
 
 #print axioms seed_premises_sat
 
+private theorem mixed_saved_seed :
+    StrongServedFG core reads env run obs timing interface Row.height_pair 0 1 1 18 := by
+  obtain ⟨hp, _, _, _, _, hh, hqual, hphase, hcap⟩ := seed_premises_sat
+  obtain ⟨_, _, _, _, _, _, _, _, hhead, _⟩ := service_premises_sat
+  refine ⟨0, some .genesis, false, 2, .genesis, .genesis, le_rfl, hp, rfl, rfl,
+    ?_, hqual, by decide, hphase, by decide, hh, hcap, mixed_service⟩
+  intro _ x hx _
+  exact hhead x hx
+
+#print axioms mixed_saved_seed
+
 end AvailableChain.FGCompose.Tests.PopulationService
 end
