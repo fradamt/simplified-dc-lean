@@ -113,6 +113,25 @@ private theorem m9erase_reflect (A B : FGBlock (Fin 1))
 
 #print axioms m9erase_reflect
 
+private def m9slotsOK : FGBlock (Fin 1) → Bool
+  | .genesis => true
+  | .node P s _ _ _ => decide (P.slot ≤ s) && m9slotsOK P
+
+private theorem m9anc_slot {A K : FGBlock (Fin 1)} (hK : m9slotsOK K = true)
+    (h : FGBlock.Preceq A K) : A.slot ≤ K.slot := by
+  induction K with
+  | genesis => rw [(preceq_genesis).mp h]
+  | node P s r x rs ih =>
+    change (decide (P.slot ≤ s) && m9slotsOK P) = true at hK
+    rw [Bool.and_eq_true] at hK
+    change (decide (A = .node P s r x rs) || FGBlock.preceq A P) = true at h
+    rw [Bool.or_eq_true] at h
+    rcases h with he | hp
+    · rw [of_decide_eq_true he]
+    · exact (ih hK.2 hp).trans (of_decide_eq_true hK.1)
+
+#print axioms m9anc_slot
+
 -- POP-5 local fixture support ends here.
 
 end Fixture
