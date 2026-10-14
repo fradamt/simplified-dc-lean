@@ -1191,5 +1191,11 @@ private theorem frozen_action_premises_sat : ∃ m : middleType frozenRun,
 
 #print axioms frozen_action_premises_sat
 
+private theorem timing_premises_sat : FGTimingLaws timing := by
+  constructor <;> intros <;> simp
+
+
+#print axioms timing_premises_sat
+
 end AvailableChain.FGCompose.Tests.PopulationRows
 end
