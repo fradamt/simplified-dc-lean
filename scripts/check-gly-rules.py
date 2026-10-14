@@ -91,7 +91,8 @@ import tempfile
 from collections import defaultdict
 
 sys.dont_write_bytecode = True
-import check_common as C  # noqa: E402
+import check_common as C
+from source_layout import Layout  # noqa: E402
 
 GEN = {'AvailableChainGeneric'}
 FGSA_ALL = {'AvailableChainFGSA', 'AvailableChainFGSARun', 'AvailableChainFGSAClaims',
@@ -172,7 +173,7 @@ def kitfg_def_modules():
         for line in open(KITFG_DEF, encoding='utf-8'):
             x = line.split('#', 1)[0].strip()
             if x:
-                x = x[:-5].replace('/', '.') if x.endswith('.lean') else x
+                x = Layout(C.ROOT).module_of_source(x) if x.endswith('.lean') else x
                 mods.add(x if x.startswith('AvailableChainKitFG') else 'AvailableChainKitFG.' + x)
     return mods
 

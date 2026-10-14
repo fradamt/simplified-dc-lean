@@ -73,7 +73,7 @@ for l in open(raw, encoding='utf-8'):
     m = re.match(r'^\s+(remove|add) #\[(.*)\]$', l)
     if m and path:
         for imp in m.group(2).split(', '):
-            lines.append(f'{m.group(1)} {path} {imp.strip()}')
+            lines.append(C.canonical_key(f'{m.group(1)} {path} {imp.strip()}'))
     elif l.strip():
         lines.append(f'other {l.strip()}')
 lines.sort()
@@ -104,7 +104,7 @@ def kept(l):
     _, p, imp = l.split(' ', 2)
     if p not in kept_lines:
         try:
-            src = open(os.path.join(C.ROOT, p), encoding='utf-8').read().splitlines()
+            src = open(os.path.join(C.ROOT, C.Layout(C.ROOT).physical_path(p)), encoding='utf-8').read().splitlines()
         except OSError:
             src = []
         kept_lines[p] = {' '.join(x.split('--', 1)[0].split()) for x in src if keep_re.search(x)}
