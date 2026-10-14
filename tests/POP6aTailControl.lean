@@ -173,5 +173,30 @@ private theorem row_identity {j r x : Nat} {a : Row (Fin 1)}
 
 #print axioms row_identity
 
+private theorem mixed_no_rise_tail :
+    FirstHeightRowBy missingReads env missingRun timing Row.height_pair 1 18 ∧
+    (∃ r j x a e, HeightRow missingReads env missingRun timing
+      (fun a => namedEntry (Row.height_pair a)) r 1 ∧
+      HonestRowAt missingReads env missingRun timing j x r a ∧
+      namedEntry (Row.height_pair a) = some (1, e) ∧
+      j = 13 ∧ x = 9 ∧ r = 0 ∧ a = row ∧ timing.action r = 6) ∧
+    V2.D.proposerOf missingRun missingIface 2 = 7 ∧
+    (∀ i x, (tailCore.core (missingRun.stateBefore env i x)).fg.h_max = 1) := by
+  obtain ⟨cert, inv, mono, cap, noRise⟩ := geometry_premises_sat env missingRun
+  obtain ⟨schedule, ht, hne, hp, phase, service, _, _, hproposer, _, _, hhor⟩ :=
+    mixed_premises_sat
+  have result := healing_frontierTail_row_holder tailCore missingReads env missingRun tailObs
+    timing missingIface Row.height_pair tailRows c5E cert inv ht schedule hne mono cap
+    phase hp (le_rfl : timing.gate 2 ≤ (14 : Time))
+    (fun v hv hh _ => service v hv hh) hhor
+  refine ⟨result, ?_, hproposer, noRise⟩
+  obtain ⟨r, hr, _, _⟩ := result
+  obtain ⟨j, x, a, e, hrow, hn⟩ := hr
+  obtain ⟨hj, hx, hrs, ha⟩ := row_identity hrow
+  exact ⟨r, j, x, a, e, ⟨j, x, a, e, hrow, hn⟩, hrow, hn, hj, hx, hrs, ha,
+    hrs ▸ rfl⟩
+
+#print axioms mixed_no_rise_tail
+
 end AvailableChain.FGCompose.Tests.POP6aTail
 end
