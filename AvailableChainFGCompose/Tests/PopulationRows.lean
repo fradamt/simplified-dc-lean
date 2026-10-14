@@ -1531,5 +1531,68 @@ private theorem missing_holder_row :
 
 #print axioms missing_holder_row
 
+-- The six exact conclusion predicates agree for the corresponding selected fields.
+private theorem frozen_conclusions_premises_sat :
+    ∃ m : frozenOldType, ∃ h : middleType frozenRun,
+    ((∀ x nd, x ∈ frozenRun.honest →
+      postClock (env (Fin 1)) frozenRun x 30 = some nd →
+      ∃ H, core.finalityHead nd = some H ∧ FGBlock.Preceq m.X_D H ∧
+        (obs.height H).h = m.d + 2 ∧ (obs.height H).J = m.U ∧
+        (obs.height H).h_j = m.d + 1 ∧ (obs.finality H).h_F < m.d + 1 ∧
+        (obs.height H).T_h = (obs.height m.X_D).T_h) ↔
+     (∀ x nd, x ∈ frozenRun.honest →
+      postClock (env (Fin 1)) frozenRun x 30 = some nd →
+      ∃ H, core.finalityHead nd = some H ∧ FGBlock.Preceq h.X_D H ∧
+        (obs.height H).h = h.d + 2 ∧ (obs.height H).J = h.U ∧
+        (obs.height H).h_j = h.d + 1 ∧ (obs.finality H).h_F < h.d + 1 ∧
+        (obs.height H).T_h = (obs.height h.X_D).T_h)) ∧
+    ((∀ x ∈ frozenRun.honest, ∃ nd C,
+      postClock (env (Fin 1)) frozenRun x 30 = some nd ∧ core.source nd = some C ∧
+      FGBlock.Preceq m.X_D C ∧ (obs.height C).h = m.d + 2 ∧
+      (obs.height C).T_h = (obs.height m.X_D).T_h) ↔
+     (∀ x ∈ frozenRun.honest, ∃ nd C,
+      postClock (env (Fin 1)) frozenRun x 30 = some nd ∧ core.source nd = some C ∧
+      FGBlock.Preceq h.X_D C ∧ (obs.height C).h = h.d + 2 ∧
+      (obs.height C).T_h = (obs.height h.X_D).T_h)) ∧
+    ((∀ i x W, i ≤ V2.D.Run.idxBefore frozenRun (timing.action 4) →
+      HeldAt core (env (Fin 1)) frozenRun i x W → (obs.height W).h ≤ m.d + 3) ↔
+     (∀ i x W, i ≤ V2.D.Run.idxBefore frozenRun (timing.action 4) →
+      HeldAt core (env (Fin 1)) frozenRun i x W → (obs.height W).h ≤ h.d + 3)) ∧
+    ((∀ B, FGBlock.Preceq m.X_D B → (obs.height B).h ≤ m.d + 3 →
+      KitFG.Window.RetainedW electorate cfg 2 B (m.d + 1) m.U ∨
+        KitFG.Window.CoveredW electorate cfg 2 B (m.d + 1) m.U) ↔
+     (∀ B, FGBlock.Preceq h.X_D B → (obs.height B).h ≤ h.d + 3 →
+      KitFG.Window.RetainedW electorate cfg 2 B (h.d + 1) h.U ∨
+        KitFG.Window.CoveredW electorate cfg 2 B (h.d + 1) h.U)) ∧
+    ((∃ rows : Fin 1 → protocol.Object,
+      FreshFinalityRows_W core reads obs timing (env (Fin 1)) frozenRun history electorate
+        (fun _ => true) 3 (m.d + 1) m.U {0} rows ∧
+      (∀ i ∈ ({0} : Finset (Fin 1)), namedEntry (history.heightPair (rows i)) =
+        some (m.d + 2, (obs.height m.X_D).T_h.root)) ∧
+      (∀ i ∈ ({0} : Finset (Fin 1)), history.heightPair (rows i) =
+        .vote (m.d + 2) (obs.height m.X_D).T_h.root false)) ↔
+     (∃ rows : Fin 1 → protocol.Object,
+      FreshFinalityRows_W core reads obs timing (env (Fin 1)) frozenRun history electorate
+        (fun _ => true) 3 (h.d + 1) h.U {0} rows ∧
+      (∀ i ∈ ({0} : Finset (Fin 1)), namedEntry (history.heightPair (rows i)) =
+        some (h.d + 2, (obs.height h.X_D).T_h.root)) ∧
+      (∀ i ∈ ({0} : Finset (Fin 1)), history.heightPair (rows i) =
+        .vote (h.d + 2) (obs.height h.X_D).T_h.root false))) ∧
+    ((∀ x nd, x ∈ frozenRun.honest →
+      postClock (env (Fin 1)) frozenRun x 30 = some nd →
+      HighRecordGuard_W (reads.record nd) (m.d + 1) m.U ∧
+        HighRecordFresh (m.d + 2) (reads.record nd)) ↔
+     (∀ x nd, x ∈ frozenRun.honest →
+      postClock (env (Fin 1)) frozenRun x 30 = some nd →
+      HighRecordGuard_W (reads.record nd) (h.d + 1) h.U ∧
+        HighRecordFresh (h.d + 2) (reads.record nd))) := by
+  obtain ⟨_, m, h, selected, _⟩ := frozen_bridge_premises_sat
+  refine ⟨m, h, ?_⟩
+  obtain ⟨_, _, hU, hX, _, hd⟩ := selected
+  rw [hU, hX, hd]
+  exact ⟨Iff.rfl, Iff.rfl, Iff.rfl, Iff.rfl, Iff.rfl, Iff.rfl⟩
+
+#print axioms frozen_conclusions_premises_sat
+
 end AvailableChain.FGCompose.Tests.PopulationRowsControls
 end
