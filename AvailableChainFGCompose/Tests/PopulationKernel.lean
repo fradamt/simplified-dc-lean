@@ -808,5 +808,18 @@ private theorem store_premises_sat : ∀ t,
 
 #print axioms store_premises_sat
 
+private theorem durable_premises_sat : FGFinalityDurableLaws core := by
+  have fin (t : Time) : (staged t).F = if t < 32 then .genesis else bBlock := by
+    unfold staged
+    split_ifs <;> first | rfl | decide +kernel | linarith
+  have mono (s t : Time) (h : s ≤ t) : FGBlock.Preceq (staged s).F (staged t).F := by
+    rw [fin s, fin t]
+    split_ifs <;> first | exact preceq_refl _ | exact genesis_preceq _ | linarith
+  refine ⟨fun X => ⟨?_, fun _ _ h => h, fun _ _ h => h⟩, fun _ _ => rfl⟩
+  intro st t h
+  exact KitFG.preceq_trans h (mono st (max st t) (le_max_left _ _))
+
+#print axioms durable_premises_sat
+
 end AvailableChain.FGCompose.Tests.PopulationKernel
 end
