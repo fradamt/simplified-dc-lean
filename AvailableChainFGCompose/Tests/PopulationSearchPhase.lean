@@ -684,5 +684,58 @@ private theorem local_service_premises_sat (top : Bool) (q : Nat) (hq : q = 5 �
 
 #print axioms local_service_premises_sat
 
+private theorem repair_premises_sat (top : Bool) :
+    AttemptProposalFloor (core top) env run (obs top) d5cTiming iface 0 ∧
+    (∀ u v m J c q Q, (0 : Time) ≤ u → PhaseInterval (core top) env run (obs top) u v m J c →
+      FrontierSeedQualification d5cTiming 1 env.t_GST u q → d5cTiming.gate q ≤ v →
+      HonestProposal env run iface q Q → ∃ i x Qfg, run.idxBefore u ≤ i ∧ i ≤ timeIdx run v ∧
+        x ∈ run.honest ∧ Qfg ∈ ((core top).core (run.stateBefore env i x)).fg.TF ∧
+        c5erase Qfg = Q) ∧
+    FrontierRepairAllowance (core top) env run (obs top) d5cTiming iface 0 1 20 14 0 ∧
+    (∀ i x A K, K ∈ ((core top).core (run.stateBefore env i x)).fg.TF →
+      FGBlock.Preceq A K → A.slot ≤ K.slot) ∧
+    (∀ q Q K, HonestProposal env run iface q Q → c5erase K = Q → K.slot = q) := by
+  refine ⟨?_, ?_, ?_, ?_, ?_⟩
+  · intro u v m J c q Q Qfg _ hp _ _ _ _
+    have hcut : run.idxBefore u ≤ timeIdx run v :=
+      (gidxBefore_le_timeIdx run u).trans (frontierSearch_timeIdx_mono run hp.1)
+    have hf := hp.2.2.2 _ 7 le_rfl hcut (by decide)
+    have hm : m = 2 := hf.1.symm
+    have hc : ((obs top).controls 0).contest = c := hf.2.1
+    have hc0 : ((obs top).controls 0).contest = false := by cases top <;> decide +kernel
+    have hc' : c = false := hc.symm.trans hc0
+    rw [hm, hc']
+    exact c5H_pos _
+  · intro u v m J c q Q _ hp _ _ hQ
+    obtain ⟨hq, he⟩ := proposal_unique hQ
+    refine ⟨run.idxBefore u, 7, chainAt q, le_rfl, ?_, by decide, ?_, he.symm⟩
+    · exact (gidxBefore_le_timeIdx run u).trans (frontierSearch_timeIdx_mono run hp.1)
+    · change chainAt q ∈ stored top
+      rcases hq with rfl | rfl | rfl <;> cases top <;> decide +kernel
+  · refine ⟨by decide, 0 + 1,
+      .one 0 (by decide) (fun _ _ => Nat.zero_le _) (by decide) (by decide), ?_⟩
+    intro _ v m J c _ _
+    refine ⟨fun s Q _ _ hp => proposal_service_premises_sat top s Q hp, fun _ => ?_⟩
+    have hp := (proposal_premises_sat.2 2 (Or.inl rfl)).1
+    exact ⟨2, c5erase low, by decide, by decide, hp,
+      proposal_service_premises_sat top 2 _ hp⟩
+  · intro i x A K hk ha
+    have hslots : m9slotsOK K = true := by
+      change K ∈ stored top at hk
+      cases top
+      · simp only [stored, Bool.false_eq_true, ite_false, Finset.mem_insert,
+          Finset.mem_singleton] at hk
+        rcases hk with rfl | rfl | rfl | rfl <;> decide +kernel
+      · simp only [stored, ite_true, Finset.mem_insert, Finset.mem_singleton] at hk
+        rcases hk with rfl | rfl | rfl | rfl | rfl <;> decide +kernel
+    exact m9anc_slot hslots ha
+  · intro q Q K hp he
+    obtain ⟨hq, hQ⟩ := proposal_unique hp
+    have hK : K = chainAt q := c5erase_inj (he.trans hQ)
+    rw [hK]
+    rcases hq with rfl | rfl | rfl <;> decide +kernel
+
+#print axioms repair_premises_sat
+
 end AvailableChain.FGCompose.Tests.PopulationSearchPhase
 end
