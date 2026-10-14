@@ -198,5 +198,20 @@ private theorem mixed_no_rise_tail :
 
 #print axioms mixed_no_rise_tail
 
+private theorem saved_tail_premises_sat :
+    StrongServedFG tailCore missingReads env missingRun tailObs timing missingIface
+      Row.height_pair 0 1 1 14 := by
+  obtain ⟨_, _, _, hp, phase, service, _⟩ := mixed_premises_sat
+  refine ⟨0, some .genesis, false, 2, .genesis, .genesis, by decide, hp, rfl, rfl,
+    ?_, ?_, by decide, phase, le_rfl, by decide, ?_, service 14 le_rfl (by decide)⟩
+  · intro _ x hx _
+    have hx' : x = 7 ∨ x = 9 := by simpa using hx
+    rcases hx' with rfl | rfl <;> decide +kernel
+  · exact Or.inr ⟨0, by decide, fun _ _ => Nat.zero_le _, by decide, by decide, by decide⟩
+  · intro i x _ _ _
+    exact le_rfl
+
+#print axioms saved_tail_premises_sat
+
 end AvailableChain.FGCompose.Tests.POP6aTail
 end
