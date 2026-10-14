@@ -82,7 +82,8 @@ class Layout:
         return (self.root / path).is_file()
 
     def declarations(self):
-        return [dict(lib) for lib in self._declarations]
+        return [dict(lib, srcDir=self._scopes[lib['name']][0])
+                for lib in self._declarations]
 
     def _src(self, module):
         matches = [p for p in self._prefixes if under(module, p)]
@@ -215,6 +216,12 @@ class Layout:
         return sorted(out)
 
     def check(self):
+        for prefix, src in self._prefixes.items():
+            if src == '.':
+                continue
+            flat = prefix.replace('.', '/')
+            if self.exists(flat + '.lean') or self._files(flat):
+                raise ValueError('source outside declared srcDir: ' + flat)
         files = self.source_files()
         for p in files:
             m = self.module_of_source(p)
@@ -232,8 +239,10 @@ def selftest():
             return
         raise AssertionError('expected layout rejection')
     with tempfile.TemporaryDirectory() as tmp:
-        root = Path(tmp)
+        base = Path(tmp)
         for nested in (False, True):
+            root = base / ('nested' if nested else 'flat')
+            root.mkdir()
             src = 'src' if nested else '.'
             (root / 'lakefile.toml').write_text(
                 'srcDir = "' + src + '"\n'
@@ -247,11 +256,16 @@ def selftest():
                 p.write_text('module\n')
             layout = Layout(root)
             assert layout.check() == 6
+            assert layout.declarations()[0]["srcDir"] == src
             assert layout.module_of_source(layout.source_path('ARun')) == 'ARun'
             assert len(layout.source_files(['ATests'])) == 1
             assert len(layout.declared_module_files()) == 6
             assert layout.logical_path(layout.source_path('A.Orphan')) == 'A/Orphan.lean'
             assert layout.physical_path('A/Orphan.lean') == layout.source_path('A.Orphan')
+            if nested:
+                (root / 'A.lean').write_text('module\n')
+                must_fail(lambda: layout.check())
+                (root / 'A.lean').unlink()
             must_fail(lambda: layout.source_path('AX'))
             must_fail(lambda: layout.source_files(['Missing']))
             assert layout.module_of_source('Fixture.lean', undeclared=True) == 'Fixture'

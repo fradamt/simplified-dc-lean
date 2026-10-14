@@ -36,10 +36,14 @@ SIMPLE_DEF = re.compile(r'def (' + LEAN_NAME + r')(?: : Nat)? := [0-9]+\n')
 
 
 def production_source(path, layout):
-    path = layout.logical_path(path)
-    return (path.endswith('.lean') and
-            any(path == p + '.lean' or path.startswith(p + '/') for p in P0) and
-            not re.search(r'Check|Control', path) and '/Tests/' not in path)
+    if not path.endswith('.lean'):
+        return False
+    try:
+        module = layout.module_of_source(path)
+    except ValueError:
+        return False
+    return (any(module == p or module.startswith(p + '.') for p in P0) and
+            not re.search(r'Check|Control', path) and '.Tests.' not in module)
 
 
 def source_additions(before, after):
@@ -391,6 +395,8 @@ def select(root, base, head='HEAD', reviewed=(), extractions=()):
                   any(logical == p + '.lean' or logical.startswith(p + '/') for p in P0) and
                   not re.search(r'Check|Control', path) and
                   ('/Tests/' not in path or not old_tree)):
+                # A physical folder prefix must not invent a new module or admit a stale flat file.
+                layouts[1].module_of_source(path)
                 if path in extraction_records:
                     reason = 'explicitly reviewed exact module extraction; source and facade imports preserved'
                 elif old_tree:

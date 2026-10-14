@@ -4,6 +4,7 @@ import importlib
 import json
 import os
 from pathlib import Path
+from source_layout import Layout
 import shutil
 import subprocess
 import tempfile
@@ -289,6 +290,8 @@ with tempfile.TemporaryDirectory(prefix='gate-integration-') as scratch:
     write(g0, 'AvailableChainFGSAProofs/Tests/Positive.lean', 'module\n')
     write(g0, 'AvailableChainFGSAProofs/Tests/Negative.lean', 'module\n')
     write(g0, 'AvailableChainPCSA/Tests/Unported.lean', 'module\n')
+    with (g0 / 'lakefile.toml').open('a') as config:
+        config.write('[[lean_lib]]\nname="AvailableChainPCSA"\n')
     write(g0, 'scripts/gate-common.sh',
           'gate_with_slot() { "$@"; }\n'
           'gate_build() { printf "%s\\n" "$@" > g0-calls; return "${G0_RC:-0}"; }\n')
@@ -305,4 +308,51 @@ with tempfile.TemporaryDirectory(prefix='gate-integration-') as scratch:
         assert all(row['rc'] == rc for row in record['results'])
         assert (g0 / 'g0-calls').read_text().startswith('--wfail\n')
     print('CONTROL package G0: positive/negative module coverage and failed freshness: PASS')
+    # Move a fixture using the real configuration's srcDirs, preserving every module identity.
+    def nested_tree(root):
+        before = Layout(root)
+        paths = before.source_files()
+        config = (root / 'lakefile.toml').read_text()
+        current = Layout(REPO)
+        for library in before.declarations():
+            name = library['name']
+            src = str(Path(current.source_dir(name)).parent)
+            config = config.replace('name="' + name + '"\n',
+                                    'name="' + name + '"\nsrcDir="' + src + '"\n')
+        (root / 'lakefile.toml').write_text(config)
+        after = Layout(root)
+        for path in paths:
+            target = root / after.source_path(before.module_of_source(path))
+            target.parent.mkdir(parents=True, exist_ok=True)
+            (root / path).rename(target)
+        after.check()
+        return after
+
+    nested_tree(g0)
+    commit(g0)
+    result = subprocess.run(['python3', '-B', str(REPO / 'scripts/integration_g0.py')],
+        cwd=g0, env=dict(os.environ, GATE_NO_BUILD='1', GATE_LOG_DIR=str(logs), G0_RC='0'))
+    assert result.returncode == 0
+    nested_record = json.loads((logs / 'package-g0.json').read_text())
+    assert {row['module'] for row in nested_record['results']} == modules
+    assert not any('PCSA' in row['module'] for row in nested_record['results'])
+    print('CONTROL nested package G0: same module identities; declared PC tests excluded: PASS')
+
+    nested_tree(seed)
+    base = commit(seed)
+    layout = Layout(seed)
+    source = layout.source_path('AvailableChainGeneric.Extract')
+    target = layout.source_path('AvailableChainGeneric.Extracted')
+    before = (seed / source).read_text()
+    candidate('nested-reviewed-extraction', {
+        source: before.partition('public section\n')[0] +
+                'public import AvailableChainGeneric.Extracted\n', target: before},
+        eligible=True, extractions=[source + ':' + target])
+    candidate('nested-source-addition', {
+        layout.source_path('AvailableChainGeneric.Keep'):
+        (seed / layout.source_path('AvailableChainGeneric.Keep')).read_text() +
+        'def Old.more := 2\n'}, eligible=True)
+    candidate('stale-flat-source', {
+        'AvailableChainFGSAProofs/Proofs/Shared/Extra.lean': 'module\n'})
+
 print('gate-integration-selftest: PASS')
