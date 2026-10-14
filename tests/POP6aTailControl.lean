@@ -314,5 +314,13 @@ private theorem empty_seats_premises_sat :
 
 #print axioms empty_seats_premises_sat
 
+-- Every other row-tail premise is proved above or by geometry_premises_sat.
+private theorem empty_seats_row_tail_rejected :
+    ¬ (FGHonestSeats missingReads emptyRun).Nonempty := by
+  rw [empty_seats_premises_sat.2.2.1]
+  exact Finset.not_nonempty_empty
+
+#print axioms empty_seats_row_tail_rejected
+
 end AvailableChain.FGCompose.Tests.POP6aTail
 end
