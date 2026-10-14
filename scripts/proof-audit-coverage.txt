@@ -9027,4 +9027,11 @@
             'AvailableChain.FGCompose.FGHonestSeats_def',
         ),
     },
+    'AvailableChainFGCompose.Tests.PopulationHighTargetAxioms': {
+        'AvailableChainFGCompose.Proofs.Population.HighTarget': (
+            'AvailableChain.FGCompose.high_target_first_row_holder',
+            'AvailableChain.FGCompose.high_target_quorum_covered_holder',
+            'AvailableChain.FGCompose.high_target_row_covered_holder',
+        ),
+    },
 }
