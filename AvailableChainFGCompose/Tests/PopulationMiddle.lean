@@ -723,5 +723,53 @@ private theorem action_premises_sat : ∃ m : middleType run,
 
 #print axioms action_premises_sat
 
+private theorem mixed_inspected : ∃ m : middleType run,
+    m.X_D = dBlock ∧ m.U = bBlock ∧
+    (FGBlock.Preceq aBlock bBlock ∧ aBlock ≠ bBlock ∧
+      (obs.height bBlock).h = (obs.height aBlock).h + 1) ∧
+    ((obs.height dBlock).J = bBlock ∧ (obs.height dBlock).h_j = 3) ∧
+    HonestRowAt reads (env Nat) run timing 22 9 2 (wire row2) ∧
+    RowComplete reads run history.signer (fun _ => true) 9 (wire row2) ∧
+    (∀ x ∈ run.honest,
+      actionSourceFG core (env Nat) run timing x 1 = some (some aBlock) ∧
+      actionSourceFG core (env Nat) run timing x 2 = some (some bBlock) ∧
+      dBlock ∈ (core.core (V2.D.Run.stateBefore (env Nat) run (afterTicksIdx run 30) x)).fg.TF ∧
+      FGSourceService core (env Nat) run x 30 6 6 dBlock ∧
+      ∃ H, core.finalityHead 30 = some H ∧ H ∈ (core.core 30).fg.TF ∧
+        Block.Preceq (erase dBlock) (erase H)) ∧
+    electorate.IsQuorum ({0} : Finset (Fin 1)) ∧
+    (FGHonestSeats reads run).card = 1 ∧ run.honest.card = 2 := by
+  obtain ⟨m, ⟨hA, hB, hU, hD, hc, hd⟩, act⟩ := action_premises_sat
+  have fresh := kernel_middle_fresh_U_holder (m := m)
+  have early := kernel_middle_early_justification_holder (m := m)
+  have hfresh : FGBlock.Preceq aBlock bBlock ∧ aBlock ≠ bBlock ∧
+      (obs.height bBlock).h = (obs.height aBlock).h + 1 := by
+    rw [hA, hU] at fresh
+    exact ⟨fresh.1, fresh.2.1, fresh.2.2.1⟩
+  have hearly : (obs.height dBlock).J = bBlock ∧ (obs.height dBlock).h_j = 3 := by
+    rw [hD, hU, hd] at early
+    exact ⟨early.2.1, early.2.2.1⟩
+  refine ⟨m, hD, hU, hfresh, hearly, ⟨by decide, rfl, by decide +kernel⟩,
+    ⟨rfl, 0, rfl, rfl⟩, ?_, by change (1 : Nat) ≤ 1; decide, ?_, by decide⟩
+  · intro x hx
+    have ha := m.sourceA x hx
+    have hb := m.sourceB x hx
+    have hh := m.heldDAtFinalAction x hx
+    have service := act.service x hx
+    rw [hA] at ha
+    rw [hB] at hb
+    rw [hD] at hh
+    rw [hc, hD] at service
+    have hnd : postClock (env Nat) run x 30 = some 30 := by
+      have hx' : x = 7 ∨ x = 9 := by simpa using hx
+      rcases hx' with rfl | rfl <;> decide +kernel
+    obtain ⟨H, hH, hheld⟩ := act.head x 30 hx hnd
+    exact ⟨ha, hb, hh, service, H, hH, hheld, by
+      simpa only [hD] using act.walk x 30 hx hnd H hH⟩
+  · change (Finset.univ.filter (fun _ : Fin 1 => (9 : Nat) ∈ ({7, 9} : Finset Nat))).card = 1
+    decide
+
+#print axioms mixed_inspected
+
 end AvailableChain.FGCompose.Tests.PopulationMiddle
 end
