@@ -64,12 +64,15 @@ echo "critical-path: cold build wall $(( $(date +%s) - t0 )) s; $(wc -l < "$d/ti
 python3 - "$d/ac" "$d/times.log" "$target" "$limit" <<'PY'
 import os, re, sys
 repo, log, target, limit = sys.argv[1], sys.argv[2], float(sys.argv[3]), float(sys.argv[4])
+sys.path.insert(0, os.path.join(repo, 'scripts'))
+from source_layout import Layout
+layout = Layout(repo)
 span = {}
 for line in open(log):
     t0, t1, rc, f = line.split(maxsplit=3)
-    span[os.path.relpath(f.strip(), repo)[:-5].replace('/', '.')] = float(t1) - float(t0)
+    span[layout.module_of_source(os.path.relpath(f.strip(), repo))] = float(t1) - float(t0)
 imp = re.compile(r'^\s*(?:public\s+)?(?:meta\s+)?import\s+(?:all\s+)?(\S+)')
-deps = {m: [i.group(1) for i in map(imp.match, open(os.path.join(repo, m.replace('.', '/') + '.lean')))
+deps = {m: [i.group(1) for i in map(imp.match, open(os.path.join(repo, layout.source_path(m))))
             if i and i.group(1) in span] for m in span}
 memo = {}
 def cp(m):

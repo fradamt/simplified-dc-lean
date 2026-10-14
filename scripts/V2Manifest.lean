@@ -288,23 +288,26 @@ def runCore (env : Environment) (x : CoreM α) : IO α :=
 def tryCore (env : Environment) (x : CoreM α) : IO (Except String α) :=
   try return .ok (← runCore env x) catch e => return .error (toString e)
 
+/-- Source lookup is owned by the caller's Lake configuration. -/
+def layoutOutput (args : Array String) : IO (Array String) := do
+  let result ← IO.Process.output { cmd := "python3", args :=
+    #["-B", "scripts/source_layout.py", "--root", ".", "--lines"] ++ args }
+  unless result.exitCode == 0 do
+    throw <| IO.userError s!"source layout failed: {result.stderr}"
+  let rows := (result.stdout.splitOn "\n").filter (!·.isEmpty)
+  if rows.isEmpty then throw <| IO.userError "source layout returned no paths"
+  return rows.toArray
+
 /-- Load existing roots and all source modules of the scope, including facade orphans. -/
 def familyImports (scope : Scope) : IO (Array Import) := do
   let mut roots : Std.HashSet Name := {}
-  let path (m : Name) : System.FilePath :=
-    (m.components.foldl (fun d c => d / c.toString) (System.FilePath.mk ".")).addExtension "lean"
-  for lib in familyLibraries scope do
-    if ← (path lib).pathExists then roots := roots.insert lib
-  for m in familyModules scope do
-    if ← (path m).pathExists then roots := roots.insert m
-  for pre in familyPrefixes scope do
-    if ← (path pre).pathExists then roots := roots.insert pre
-    let dir := pre.components.foldl (fun d c => d / c.toString) (System.FilePath.mk ".")
-    unless ← dir.isDir do continue
-    for f in ← dir.walkDir do
-      unless f.extension == some "lean" do continue
-      let parts := (f.withExtension "").components.filter (· != ".")
-      roots := roots.insert (parts.foldl Name.str .anonymous)
+  let libraries := (familyLibraries scope).map Name.toString
+  let modules ← layoutOutput (#["modules"] ++ libraries)
+  for text in modules do
+    let m := text.toName
+    if (familyLibraries scope).contains m || (familyModules scope).contains m ||
+        (familyPrefixes scope).any (·.isPrefixOf m) then
+      roots := roots.insert m
   return (roots.toArray.qsort Name.lt).map fun m => { module := m }
 
 /-- The header of the PC-SA doc (not frozen; D15 only until a freeze). -/
@@ -643,14 +646,16 @@ def main (args : List String) : IO UInt32 := do
       return 2
     try
       return ← runDeep o.scope o.mode
-        (o.manifest?.getD (if o.scope == .pcsa then "docs/PCSA-API.md" else "docs/FGSA-API.md"))
-        (o.snapshot?.getD (if o.scope == .pcsa then "docs/api/pcsa-deep.json"
-          else "docs/api/fgsa-deep.json")) o.roots? o.report?
+        (o.manifest?.getD (if o.scope == .pcsa then "docs/internal/PCSA-API.md"
+          else "docs/internal/FGSA-API.md"))
+        (o.snapshot?.getD (if o.scope == .pcsa then "docs/internal/api/pcsa-deep.json"
+          else "docs/internal/api/fgsa-deep.json")) o.roots? o.report?
     catch e => IO.eprintln s!"DEEP FAIL: {e}"; return 1
   let mode := o.mode
   let manifest := o.manifest?.getD (match o.scope with
-    | .v2 => "docs/V2-API.md" | .gen => "docs/GEN-API.md" | .fgsa => "docs/FGSA-API.md"
-    | .pcsa => "docs/PCSA-API.md")
+    | .v2 => "docs/internal/V2-API.md" | .gen => "docs/internal/GEN-API.md"
+    | .fgsa => "docs/internal/FGSA-API.md"
+    | .pcsa => "docs/internal/PCSA-API.md")
   if mode == "--check" && !(← manifest.pathExists) then
     IO.eprintln s!"cannot read {manifest}: it does not exist"
     return 2

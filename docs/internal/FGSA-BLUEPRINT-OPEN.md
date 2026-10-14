@@ -1,6 +1,6 @@
 # FG-SA blueprint: OPEN items
 
-Generated from `docs/FGSA-BLUEPRINT-LEAN.json` by
+Generated from `docs/internal/FGSA-BLUEPRINT-LEAN.json` by
 `python3 scripts/check-fgsa-blueprint.py --write`. Do not edit by hand.
 
 An OPEN item names a blueprint clause that has no reviewed Lean proof map.

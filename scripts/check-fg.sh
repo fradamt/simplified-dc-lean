@@ -46,9 +46,11 @@ lake build --wfail $targets >"$log" 2>&1 ||
   { rc=$?; echo "BUILD FAILED"; tail -30 "$log"; exit $rc; }
 step "root imports"
 missing=$(comm -23 \
-  <(ls AvailableChainKitFG/*.lean AvailableChainSimplexFG/*.lean |
-    sed 's/\.lean$//; s|/|.|g' | sort) \
-  <(grep -ho 'import [A-Za-z.]*' AvailableChainKitFG.lean AvailableChainSimplexFG.lean |
+  <(ls "$(gate_source_dir AvailableChainKitFG)"/*.lean \
+    "$(gate_source_dir AvailableChainSimplexFG)"/*.lean |
+    while IFS= read -r p; do python3 -B scripts/source_layout.py module "$p"; done | sort) \
+  <(grep -ho 'import [A-Za-z.]*' "$(gate_source_path AvailableChainKitFG)" \
+    "$(gate_source_path AvailableChainSimplexFG)" |
     sed 's/import //' | sort))
 [ -z "$missing" ] || { echo "NOT IMPORTED BY A LIBRARY ROOT: $missing"; exit 2; }
 step "scripts/check-fg-syntax.sh"
@@ -119,7 +121,7 @@ LEAN
 withdraw() {  # ID: a registry copy with the Index status of ID set to WITHDRAWN (control)
   I="$1" LC_ALL=C awk -F'│' -v OFS='│' '/^## Index/ { s = 1 } /^## / && !/^## Index/ { s = 0 }
     s && index($0, "│ " ENVIRON["I"] " ") == 1 { $4 = " WITHDRAWN (control) "; n++ }
-    { print } END { if (n != 1) exit 1 }' docs/FG-COMPOSITION.md > "$neg/reg-$1.md" ||
+    { print } END { if (n != 1) exit 1 }' docs/internal/FG-COMPOSITION.md > "$neg/reg-$1.md" ||
     { echo "NO INDEX ROW FOR THE CONTROL: $1"; exit 1; }
 }
 pins_check() { run env "$@" bash scripts/check-fg-pins.sh; }
@@ -225,9 +227,14 @@ mkdir -p "$orphan"
 # Lean resolves a library prefix from one search directory. Keep its compiled
 # modules together when adding the isolated orphan under that prefix.
 for lib in AvailableChainSimplexFG AvailableChainKitFG; do
+  cp -R "$(gate_source_dir "$lib")" "$(gate_source_path "$lib")" "$orphan/"
   cp -R ".lake/build/lib/lean/$lib" "$orphan/"
   cp .lake/build/lib/lean/"$lib".olean* "$orphan/"
 done
+mkdir -p "$orphan/scripts"
+cp scripts/source_layout.py "$orphan/scripts/"
+printf '[[lean_lib]]\nname="AvailableChainSimplexFG"\n[[lean_lib]]\nname="AvailableChainKitFG"\n' \
+  > "$orphan/lakefile.toml"
 mkdir -p "$orphan/AvailableChainKitFG/Tests"
 printf '%s\n' 'namespace AvailableChain.KitFG.Control' 'axiom orphanBad : Nat' \
   'end AvailableChain.KitFG.Control' > "$orphan/AvailableChainKitFG/Tests/Orphan.lean"

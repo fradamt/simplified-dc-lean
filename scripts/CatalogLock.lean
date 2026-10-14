@@ -296,7 +296,7 @@ structure Opts where
   mode : String := ""
   loc : Bool := false
   lockGiven : Bool := false
-  lock : System.FilePath := "docs/catalog.lock"
+  lock : System.FilePath := "docs/internal/catalog.lock"
 
 def parseArgs : List String → Opts → Option Opts
   | [], o => if o.mode.isEmpty || (o.loc && !o.lockGiven) then none else some o

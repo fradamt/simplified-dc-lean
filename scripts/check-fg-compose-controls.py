@@ -2,11 +2,13 @@
 """Use isolated source and compiled fixtures with the real Compose checks."""
 import os
 from pathlib import Path
+from source_layout import Layout
 import shutil
 import subprocess
 import tempfile
 
 REPO = Path(__file__).resolve().parents[1]
+LAYOUT = Layout(REPO)
 
 
 def run(args, cwd=REPO, env=None):
@@ -18,7 +20,7 @@ SAFETY_CONTROLS = 'AvailableChainFGCompose/Tests/SafetyControls.lean'
 
 def require_safety_controls(base):
     """The P13 behavior controls are required; a missing file fails."""
-    if not (Path(base) / SAFETY_CONTROLS).is_file():
+    if not (Path(base) / Layout(base).physical_path(SAFETY_CONTROLS)).is_file():
         raise SystemExit(f'MISSING SAFETY CONTROLS: {SAFETY_CONTROLS}')
 
 
@@ -45,7 +47,10 @@ with tempfile.TemporaryDirectory(prefix='compose-controls.', dir=REPO / '.lake')
         # The pure audit scans its source scope before the Compose audit.
         built = REPO / '.lake/build/lib/lean'
         for lib in ('AvailableChainSimplexFG', 'AvailableChainKitFG'):
-            shutil.copytree(REPO / lib, tree / lib)
+            shutil.copytree(REPO / LAYOUT.source_dir(lib), tree / lib)
+            shutil.copy2(REPO / LAYOUT.source_path(lib), tree / (lib + ".lean"))
+            with (tree / "lakefile.toml").open("a") as config:
+                config.write('[[lean_lib]]\nname = "' + lib + '"\n')
             shutil.copytree(built / lib, tree / lib, dirs_exist_ok=True)
             for part in built.glob(lib + '.olean*'):
                 shutil.copy2(part, tree / part.name)
@@ -198,7 +203,9 @@ with tempfile.TemporaryDirectory(prefix='compose-controls.', dir=REPO / '.lake')
     checker = tree / 'scripts/check-fg-syntax.sh'
     original = checker.read_text()
     checker.write_text(original.replace(' AvailableChainFGCompose;', ';')
-                       .replace(' AvailableChainFGCompose AvailableChainFGCompose.lean -name', ' -name'))
+                       .replace('AvailableChainSimplexFG AvailableChainKitFG '
+                                'AvailableChainFGCompose)',
+                                'AvailableChainSimplexFG AvailableChainKitFG)'))
     result = run(syntax, tree)
     assert result.returncode == 0
     try:
@@ -236,8 +243,6 @@ with tempfile.TemporaryDirectory(prefix='compose-controls.', dir=REPO / '.lake')
 
     # The compiled GEN-FIRST checker must see the new library by lakefile scope.
     tree, env = fixture('gen-first')
-    with (tree / 'lakefile.toml').open('a') as out:
-        out.write('[[lean_lib]]\nname = "AvailableChainKitFG"\n')
     compile_module(tree, env, 'AvailableChainKitFG',
                    'module\npublic section\ndef retainedScope (n : Nat) : Nat := n + 1\n')
     compile_module(tree, env, 'AvailableChainFGCompose', 'module\n')
@@ -266,9 +271,11 @@ with tempfile.TemporaryDirectory(prefix='compose-controls.', dir=REPO / '.lake')
 
     # The source extension guard must reject an orphan, including Tests.
     tree, env = fixture('global-extension')
-    shutil.copytree(REPO / 'AvailableChainFGCompose', tree / 'AvailableChainFGCompose',
+    shutil.copytree(REPO / LAYOUT.source_dir('AvailableChainFGCompose'),
+                    tree / 'AvailableChainFGCompose',
                     dirs_exist_ok=True)
-    shutil.copy2(REPO / 'AvailableChainFGCompose.lean', tree / 'AvailableChainFGCompose.lean')
+    shutil.copy2(REPO / LAYOUT.source_path('AvailableChainFGCompose'),
+                 tree / 'AvailableChainFGCompose.lean')
     for rel in ('AvailableChainFGCompose/Tests/Orphan.lean',):
         path = tree / rel
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -277,9 +284,11 @@ with tempfile.TemporaryDirectory(prefix='compose-controls.', dir=REPO / '.lake')
             1, 'FORBIDDEN GLOBAL EXTENSION:')
 
     tree, env = fixture('source-inventory')
-    shutil.copytree(REPO / 'AvailableChainFGCompose', tree / 'AvailableChainFGCompose',
+    shutil.copytree(REPO / LAYOUT.source_dir('AvailableChainFGCompose'),
+                    tree / 'AvailableChainFGCompose',
                     dirs_exist_ok=True)
-    shutil.copy2(REPO / 'AvailableChainFGCompose.lean', tree / 'AvailableChainFGCompose.lean')
+    shutil.copy2(REPO / LAYOUT.source_path('AvailableChainFGCompose'),
+                 tree / 'AvailableChainFGCompose.lean')
     orphan = tree / 'AvailableChainFGCompose/Statements/Unlisted.lean'
     orphan.write_text('module\npublic section\nnamespace Extra\n'
                       'opaque unlisted : Nat := 1\nend Extra\n')
@@ -306,7 +315,7 @@ with tempfile.TemporaryDirectory(prefix='compose-controls.', dir=REPO / '.lake')
                 2, 'COMPOSE INVENTORY MISSING:')
         source.write_bytes(saved)
 
-    if (REPO / 'AvailableChainFGCompose/Proofs/SourceHead.lean').exists():
+    if (REPO / LAYOUT.source_path('AvailableChainFGCompose.Proofs.SourceHead')).exists():
         # These attempts fail at the exact omitted contract premise.
         context = ("import AvailableChainFGCompose.Proofs.SourceHead\n"
                    "namespace AvailableChain.FGCompose.ContractControl\n"
@@ -333,6 +342,7 @@ with tempfile.TemporaryDirectory(prefix='compose-controls.', dir=REPO / '.lake')
             assert 'Application type mismatch' in result.stdout, result.stdout + result.stderr
 
     # Negative control: a tree without the controls file fails.
+    (root / "lakefile.toml").write_text('[[lean_lib]]\nname="AvailableChainFGCompose"\n')
     try:
         require_safety_controls(root)
     except SystemExit as exc:

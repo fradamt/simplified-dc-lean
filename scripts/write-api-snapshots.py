@@ -31,7 +31,7 @@ def main():
                 subprocess.run(cmd + ['--check'], check=True)
             if scope in ('v2', 'gen'):
                 subprocess.run(['python3', '-B', 'scripts/api-snapshot.py', '--scope', scope,
-                    '--output', 'docs/api/' + scope + '-deep.json', mode], check=True)
+                    '--output', 'docs/internal/api/' + scope + '-deep.json', mode], check=True)
             if scope in ('fgsa', 'pcsa'):
                 subprocess.run(cmd + ['--deep', mode], check=True)
 

@@ -564,6 +564,39 @@ with tempfile.TemporaryDirectory(prefix="check-layers-selftest-") as temporary:
         run(root, 1, expected)
         print("PASS discovery: roots/srcDir/globs/facades/support/unlisted files -> exit 1")
 
+        # Five-folder twin: every owner and overlapping Tests target uses Lake's mapping.
+        root = temp / "five-srcdirs"
+        setup(root)
+        module(root, F + ".Model.Control", F + ".Proofs.Helper")
+        module(root, "Unlisted", "AvailableChainCheckSupport.Helper", src="engine")
+        current = tomllib.loads((repo / "lakefile.toml").read_text())
+        sources = {lib["name"]: lib.get("srcDir", ".") for lib in current["lean_lib"]}
+        cfg = root / "lakefile.toml"
+        text = cfg.read_text()
+        for name in lib_names:
+            if sources[name] == "scripts":
+                continue
+            anchor = 'name = ' + json.dumps(name) + '\n'
+            assert text.count(anchor) == 1
+            text = text.replace(anchor, anchor + 'srcDir = ' + json.dumps(sources[name]) + '\n')
+        cfg.write_text(text)
+        files = list(root.glob("AvailableChain*.lean")) + list(root.glob("AvailableChain*/*.lean"))
+        for file in files:
+            name = file.relative_to(root).parts[0].removesuffix(".lean")
+            target = root / sources[name] / file.relative_to(root)
+            target.parent.mkdir(parents=True, exist_ok=True)
+            file.rename(target)
+        # The control above has a deeper source path; move any remaining descendants.
+        for directory in list(root.glob("AvailableChain*")):
+            if directory.is_dir():
+                for file in list(directory.rglob("*.lean")):
+                    target = root / sources[directory.name] / file.relative_to(root)
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    file.rename(target)
+        run(root, 1, {("B4", F + ".Model.Control", F + ".Proofs.Helper"),
+                      ("CHECK-SUPPORT", "engine.Unlisted", "AvailableChainCheckSupport.Helper")})
+        print("PASS five srcDirs: stable module names, Tests overlap, unlisted support guard")
+
         # An exact baseline accepts a legacy edge, still prints it, rejects
         # a new edge, and shrinks when --write-baseline runs after removal.
         root = temp / "baseline"

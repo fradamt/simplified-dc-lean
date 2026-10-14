@@ -16,6 +16,7 @@ import argparse
 import ast
 import os
 from pathlib import Path
+from source_layout import Layout
 import re
 import sys
 import tempfile
@@ -78,7 +79,7 @@ DISCOVER = (('AvailableChainFGCompose', re.compile(r'^Safety\w*\.lean$')),
 
 
 def source(root, module):
-    return root / (module.replace('.', '/') + '.lean')
+    return root / Layout(root).source_path(module)
 
 
 def public_declarations(root, module):
@@ -151,10 +152,10 @@ def audits_of(owner):
 def unlisted_modules(root, modules):
     found = []
     for lib, pattern in DISCOVER:
-        for path in sorted((root / lib).rglob('*.lean')):
+        for path in sorted((root / Layout(root).source_dir(lib)).rglob('*.lean')):
             if '/Tests/' in str(path) or not pattern.match(path.name):
                 continue
-            module = '.'.join(path.relative_to(root).with_suffix('').parts)
+            module = Layout(root).module_of_source(path)
             if module not in modules:
                 found.append(module)
     return found
@@ -250,26 +251,33 @@ def selftest():
     ]
     import contextlib
     import io
-    for label, change, code, reason in cases:
-        with tempfile.TemporaryDirectory(prefix='fg-fin-coverage.') as tmp:
-            root = Path(tmp)
-            files = {'src': (source(root, owner), good), 'audit': (source(root, audit), audit_src),
-                     'cover': (root / 'cover.txt', cover)}
-            if 'extra' in change:
-                extra = root / change['extra'][0]
-                extra.parent.mkdir(parents=True, exist_ok=True)
-                extra.write_text(change['extra'][1])
-            for key, (path, text) in files.items():
-                text = change.get(key, text)
-                if text is not None:
-                    path.parent.mkdir(parents=True, exist_ok=True)
-                    path.write_text(text)
-            out = io.StringIO()
-            with contextlib.redirect_stdout(out):
-                rc = report(root, modules={owner: audit}, coverage=root / 'cover.txt')
-            text = out.getvalue()
-            assert rc == code and reason in text, (label, rc, text)
-            print(f'SELFTEST FG finality coverage {label}: PASS (rc {code}; {reason})')
+    for nested in (False, True):
+        for label, change, code, reason in cases:
+            with tempfile.TemporaryDirectory(prefix='fg-fin-coverage.') as tmp:
+                root = Path(tmp)
+                (root / 'lakefile.toml').write_text(
+                    'srcDir="' + ('src' if nested else '.') + '"\n' +
+                    '[[lean_lib]]\nname="Fix"\n' + ''.join(
+                        '[[lean_lib]]\nname="' + lib + '"\n' for lib, _ in DISCOVER))
+                files = {'src': (source(root, owner), good),
+                         'audit': (source(root, audit), audit_src),
+                         'cover': (root / 'cover.txt', cover)}
+                if 'extra' in change:
+                    extra = root / Layout(root).physical_path(change['extra'][0])
+                    extra.parent.mkdir(parents=True, exist_ok=True)
+                    extra.write_text(change['extra'][1])
+                for key, (path, text) in files.items():
+                    text = change.get(key, text)
+                    if text is not None:
+                        path.parent.mkdir(parents=True, exist_ok=True)
+                        path.write_text(text)
+                out = io.StringIO()
+                with contextlib.redirect_stdout(out):
+                    rc = report(root, modules={owner: audit}, coverage=root / 'cover.txt')
+                text = out.getvalue()
+                assert rc == code and reason in text, (label, rc, text)
+                print(f'SELFTEST FG finality coverage nested={nested} {label}: '
+                      f'PASS (rc {code}; {reason})')
     print('FG finality coverage selftest: PASS')
     return 0
 

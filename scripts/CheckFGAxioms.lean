@@ -53,15 +53,18 @@ def closureRoots : List Name :=
     `Plausible, `LeanSearchClient, `ProofWidgets, `AvailableChainModel,
     `AvailableChainSimplexFG, `AvailableChainKitFG, `AvailableChainGeneric]
 
-partial def composeSources (path : System.FilePath) : IO (Array Name) := do
-  let mut names := #[]
-  for entry in ← path.readDir do
-    if entry.fileName.startsWith "." then continue
-    if ← entry.path.isDir then
-      names := names ++ (← composeSources entry.path)
-    else if entry.path.extension == some "lean" then
-      names := names.push ((entry.path.toString.dropEnd 5).toString.replace "/" ".").toName
-  return names
+/-- Source lookup is owned by the caller's Lake configuration. -/
+def layoutOutput (args : Array String) : IO (Array String) := do
+  let result ← IO.Process.output { cmd := "python3", args :=
+    #["-B", "scripts/source_layout.py", "--root", ".", "--lines"] ++ args }
+  unless result.exitCode == 0 do
+    throw <| IO.userError s!"source layout failed: {result.stderr}"
+  let rows := (result.stdout.splitOn "\n").filter (!·.isEmpty)
+  if rows.isEmpty then throw <| IO.userError "source layout returned no paths"
+  return rows.toArray
+
+def composeSources (scope : String) : IO (Array Name) := do
+  return (← layoutOutput #["modules", scope]).map String.toName
 
 def pureMain (args : List String) (useAxiomData := false) : IO UInt32 := do
   let usage := "USAGE: lake env lean --run scripts/CheckFGAxioms.lean [--root M] [--expect N …]"
@@ -76,8 +79,8 @@ def pureMain (args : List String) (useAxiomData := false) : IO UInt32 := do
   initSearchPath (← findSysroot)
   if useAxiomData then unsafe enableInitializersExecution
   -- Match the generated inventory, including modules absent from the facades.
-  let sources := #[`AvailableChainSimplexFG, `AvailableChainKitFG] ++
-    (← composeSources "AvailableChainSimplexFG") ++ (← composeSources "AvailableChainKitFG")
+  let sources := (← composeSources "AvailableChainSimplexFG") ++
+    (← composeSources "AvailableChainKitFG")
   let env ← importModules ((sources ++ extra).map ({ module := · })) {}
     (loadExts := useAxiomData) (level := .private)
   let mut badClosure := false
@@ -356,13 +359,15 @@ def composeMain (args : List String) : IO UInt32 := do
     IO.eprintln "USAGE: CheckFGAxioms --compose [--root M] [--expect N …]"
     return 2
   let expected := rest.drop 1
-  unless ← System.FilePath.pathExists "AvailableChainFGCompose.lean" do
+  let facade := (← layoutOutput #["path", "AvailableChainFGCompose"])[0]!
+  unless ← System.FilePath.pathExists facade do
     IO.eprintln "MISSING COMPOSE ROOT"
     return 2
-  unless ← System.FilePath.isDir "AvailableChainFGCompose" do
+  let directory := (← layoutOutput #["dir", "AvailableChainFGCompose"])[0]!
+  unless ← System.FilePath.isDir directory do
     IO.eprintln "MISSING COMPOSE DIRECTORY"
     return 2
-  let sources := #[`AvailableChainFGCompose] ++ (← composeSources "AvailableChainFGCompose")
+  let sources := (← composeSources "AvailableChainFGCompose")
   if sources.size ≤ 1 then
     IO.eprintln "EMPTY COMPOSE SOURCE SCOPE"
     return 2

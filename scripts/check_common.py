@@ -25,6 +25,7 @@ import os
 import re
 import sys
 import tomllib
+from source_layout import Layout
 from collections import Counter
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -68,9 +69,8 @@ class LeanFile:
 
 def libraries():
     """[(name, srcDir)] of every [[lean_lib]] in lakefile.toml."""
-    with open(os.path.join(ROOT, 'lakefile.toml'), 'rb') as f:
-        cfg = tomllib.load(f)
-    return [(lib['name'], lib.get('srcDir', '.')) for lib in cfg.get('lean_lib', [])]
+    return [(lib['name'], lib.get('srcDir', '.'))
+            for lib in Layout(ROOT).declarations()]
 
 
 def _is_lean(name):
@@ -79,24 +79,40 @@ def _is_lean(name):
 
 def library_files():
     """Every library file, sorted by path."""
-    out = []
-    for name, src in libraries():
-        base = os.path.normpath(os.path.join(ROOT, src))
-        root = os.path.join(base, name + '.lean')
-        if os.path.isfile(root):
-            out.append(LeanFile(name, os.path.relpath(root, ROOT), name))
-        top = os.path.join(base, name)
-        for dp, dns, fs in os.walk(top, followlinks=True):
-            dns.sort()
-            for f in sorted(fs):
-                if not _is_lean(f):
-                    continue
-                p = os.path.join(dp, f)
-                rel_mod = os.path.relpath(p, base)[:-len('.lean')]
-                out.append(LeanFile(name, os.path.relpath(p, ROOT),
-                                    rel_mod.replace(os.sep, '.')))
-    out.sort(key=lambda lf: lf.path)
-    return out
+    layout = Layout(ROOT)
+    return [LeanFile(layout.module_of_source(p).split('.')[0], p,
+                     layout.module_of_source(p)) for p in layout.source_files()]
+
+
+_layout_cache = {}
+
+
+def source_layout():
+    path = os.path.join(ROOT, 'lakefile.toml')
+    stamp = (ROOT, os.stat(path).st_mtime_ns)
+    if stamp not in _layout_cache:
+        _layout_cache.clear()
+        _layout_cache[stamp] = Layout(ROOT)
+    return _layout_cache[stamp]
+
+
+def logical_path(path):
+    return source_layout().logical_path(path)
+
+
+def canonical_key(key):
+    """Normalize only the documented path token in stable finding keys."""
+    tokens = key.split(' ')
+    if tokens[0] in ('not-module', 'expose-attribute', 'expose-section', 'expose-decl',
+                     'remove', 'add') and len(tokens) > 1:
+        tokens[1] = logical_path(tokens[1])
+    elif tokens[0] in ('F-18',) and len(tokens) > 2:
+        tokens[2] = logical_path(tokens[2])
+    elif tokens[0] in ('import-all', 'meta-import', 'plain-import', 'other-import',
+                       'script-module') and len(tokens) > 1:
+        # Header findings have <kind> <path> <token> keys.
+        tokens[1] = logical_path(tokens[1])
+    return ' '.join(tokens)
 
 
 def module_path(module):
@@ -448,7 +464,7 @@ class Finding:
     review list (listed, never fails)."""
 
     def __init__(self, key, msg, new=False, review=False, baselinable_in_new=False):
-        self.key, self.msg, self.new, self.review = key, msg, new, review
+        self.key, self.msg, self.new, self.review = canonical_key(key), msg, new, review
         self.baselinable_in_new = baselinable_in_new
 
 

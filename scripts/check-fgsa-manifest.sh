@@ -57,9 +57,9 @@ manifest_run legacy python3 -B scripts/api-snapshot.py --scope legacy --check
 # UNPORTED PC-SA is excluded by scripts/unported-libraries.txt in api-snapshot.py.
 # Its last shallow/deep snapshots stay in the tree; active scopes remain mandatory.
 manifest_run v2-deep python3 -B scripts/api-snapshot.py --scope v2 \
-  --output docs/api/v2-deep.json --check
+  --output docs/internal/api/v2-deep.json --check
 manifest_run gen-deep python3 -B scripts/api-snapshot.py --scope gen \
-  --output docs/api/gen-deep.json --check
+  --output docs/internal/api/gen-deep.json --check
 manifest_run compose-api python3 -B scripts/api-snapshot.py --scope compose --check
 manifest_run claims-api python3 -B scripts/api-snapshot.py \
   --scope fgsa-claims --check

@@ -483,11 +483,11 @@ def matrixText (env : Environment) (rows : Array Row) (insts : Array Name) : IO 
     "inhabitation; can be vacuous; not a certificate and not a `Candidate`.\n\n" ++
     dropped
 
-def registryPath : System.FilePath := "docs/REGISTRY.md"
+def registryPath : System.FilePath := "docs/internal/REGISTRY.md"
 
 /-- The default module name of a self-test file. -/
 def selftestModule : Name := `RegistrySelfTest
-def matrixPath : System.FilePath := "docs/MATRIX.md"
+def matrixPath : System.FilePath := "docs/internal/MATRIX.md"
 
 /-- The environment of `instanceLibraries` and `witnessModules`. -/
 def loadEnv : IO Environment :=

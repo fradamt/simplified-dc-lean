@@ -40,20 +40,25 @@ def inLibraries (env : Environment) (n : Name) : Bool :=
       libraries.any (·.isPrefixOf m)
   | none => false
 
+/-- Source lookup is owned by the caller's Lake configuration. -/
+def layoutOutput (args : Array String) : IO (Array String) := do
+  let result ← IO.Process.output { cmd := "python3", args :=
+    #["-B", "scripts/source_layout.py", "--root", ".", "--lines"] ++ args }
+  unless result.exitCode == 0 do
+    throw <| IO.userError s!"source layout failed: {result.stderr}"
+  let rows := (result.stdout.splitOn "\n").filter (!·.isEmpty)
+  if rows.isEmpty then throw <| IO.userError "source layout returned no paths"
+  return rows.toArray
+
 /-- The directories of the engine v2 and Kit v2 test modules, relative to the
 repository root. -/
-def testsDirs : List System.FilePath :=
-  ["AvailableChainEngineV2" / "Tests", "AvailableChainKitV2" / "Tests"]
+def testsDirs : IO (Array String) :=
+  layoutOutput #["dir", "AvailableChainEngineV2.Tests", "AvailableChainKitV2.Tests"]
 
-/-- Every module under the `testsDirs`: `AvailableChainEngineV2/Tests/A/B.lean`
-gives `AvailableChainEngineV2.Tests.A.B`. -/
+/-- Enumerate test identities independently of facade imports. -/
 def testModules : IO (Array Name) := do
-  let mut mods := #[]
-  for dir in testsDirs do
-    let files ← dir.walkDir
-    mods := mods ++ (files.filter (·.extension == some "lean")).map fun f =>
-      (f.withExtension "").components.foldl Name.str .anonymous
-  return mods
+  return (← layoutOutput #["modules", "AvailableChainEngineV2.Tests",
+    "AvailableChainKitV2.Tests"]).map String.toName
 
 /-- The axioms `n` transitively depends on. -/
 def axiomsOf (env : Environment) (n : Name) : IO (Array Name) :=
@@ -64,8 +69,8 @@ def main (args : List String) : IO UInt32 := do
   unless args.isEmpty do
     IO.eprintln "USAGE: lake env lean --run scripts/CheckFrameworkAxioms.lean"
     return 2
-  for dir in testsDirs do
-    unless ← dir.isDir do
+  for dir in ← testsDirs do
+    unless ← (System.FilePath.mk dir).isDir do
       IO.eprintln s!"NO DIRECTORY {dir}: run from the repository root"
       return 2
   let tests ← testModules

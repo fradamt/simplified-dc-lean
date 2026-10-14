@@ -66,11 +66,16 @@ with tempfile.TemporaryDirectory(prefix="proof-eqns-neg.", dir=REPO / ".lake") a
     private_repo = root / 'repo'
     private_repo.mkdir()
     command(['rsync', '-a', '--exclude=/.lake', '--exclude=/.git',
+                    '--exclude=/AGENTS.md', '--exclude=/state.md', '--exclude=/log.md',
                     '--exclude=/claude-files', str(REPO) + '/', str(private_repo) + '/'],
                    check=True)
     check_lean = lean[:-1] + ['bash', '-c', 'cd "$1" || exit; shift; exec lean "$@"',
                              'proof-eqns-control', str(private_repo)]
     prefix = "AvailableChainCoverageControl"
+    with (private_repo / 'lakefile.toml').open('a') as config:
+        for library in (prefix, 'OtherCoverageControl'):
+            config.write('[[lean_lib]]\nname="' + library + '"\nroots=[]\n'
+                         'globs=["' + library + '.+"]\n')
 
     def compile_module(module, body):
         file = source / (module.replace(".", "/") + ".lean")
@@ -152,6 +157,8 @@ with tempfile.TemporaryDirectory(prefix="proof-eqns-neg.", dir=REPO / ".lake") a
     link = private_repo / prefix
     assert not link.exists()
     link.symlink_to(source / prefix, target_is_directory=True)
+    other_link = private_repo / 'OtherCoverageControl'
+    other_link.symlink_to(source / 'OtherCoverageControl', target_is_directory=True)
     try:
         check("home equation", f"{prefix}.Statements.Valid", 0, "0 unaccepted")
         check("exposed predicate", f"{prefix}.Statements.Exposed", 0, "0 unaccepted")
@@ -201,6 +208,7 @@ with tempfile.TemporaryDirectory(prefix="proof-eqns-neg.", dir=REPO / ".lake") a
         complete_check('inventory omission', 1, "AUDIT INVENTORY MISSING name=Special.B'_resetF ")
     finally:
         link.unlink()
+        other_link.unlink()
 
     # Compose has its own proof leak and audit-owner controls.
     compose_owner = 'AvailableChainFGCompose.Statements.Control'
@@ -216,6 +224,8 @@ with tempfile.TemporaryDirectory(prefix="proof-eqns-neg.", dir=REPO / ".lake") a
                    'namespace ComposeLeak\ndef f (n : Nat) : Nat := n + 1\n'
                    'theorem test (n : Nat) : f n = n + 1 := f.eq_def n\nend ComposeLeak\n')
     (source / 'scripts/baselines').mkdir(parents=True, exist_ok=True)
+    (source / 'scripts/source_layout.py').write_bytes(
+        (REPO / 'scripts/source_layout.py').read_bytes())
     for name in ('kitfg-def-modules.txt', 'check-proof-eqns.txt'):
         (source / 'scripts/baselines' / name).write_bytes((REPO / 'scripts/baselines' / name).read_bytes())
     compile_module('AvailableChainCoverageControlRoot', 'module\n')

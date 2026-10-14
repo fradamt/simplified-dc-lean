@@ -28,6 +28,7 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+from source_layout import Layout
 import subprocess
 import sys
 import tempfile
@@ -61,6 +62,7 @@ class Repo:
     def __init__(self, root):
         self.root = Path(root)
         self._blobs = {}
+        self._layouts = {}
 
     def git(self, *args, check=True):
         r = subprocess.run(['git', '-C', str(self.root), *args], capture_output=True)
@@ -82,15 +84,22 @@ class Repo:
     def ancestor(self, a, b):
         return self.git('merge-base', '--is-ancestor', a, b, check=False).returncode == 0
 
+    def physical(self, path, rev=None):
+        if rev not in self._layouts:
+            self._layouts[rev] = Layout(self.root, rev)
+        layout = self._layouts[rev]
+        return (layout.archive_doc_path(path) if path.startswith('docs/')
+                else layout.physical_path(path))
+
     def blob(self, rev, path):
         key = (rev, path)
         if key not in self._blobs:
-            r = self.git('show', f'{rev}:{path}', check=False)
+            r = self.git('show', f'{rev}:{self.physical(path, rev)}', check=False)
             self._blobs[key] = sha(r.stdout) if r.returncode == 0 else None
         return self._blobs[key]
 
     def worktree(self, path):
-        p = self.root / path
+        p = self.root / self.physical(path)
         return sha(p.read_bytes()) if p.is_file() else None
 
     def touching(self, base, tip, path):
@@ -103,7 +112,8 @@ class Checker:
     def __init__(self, root, manifest=MANIFEST, step1=STEP1, record=RECORD):
         self.repo = Repo(root)
         self.root = Path(root)
-        self.manifest_path, self.step1_path, self.record_path = manifest, step1, record
+        self.manifest_path, self.step1_path, self.record_path = [
+            self.repo.physical(p) for p in (manifest, step1, record)]
         self.findings = []
 
     def fail(self, msg):
@@ -356,6 +366,7 @@ def selftest():
     def fixture(tmp, change=True):
         root = Path(tmp)
         sh(root, 'init', '-q')
+        write(root, 'lakefile.toml', 'name="archive-fixture"\n')
         write(root, 'a.lean', 'a0\n')
         write(root, 'b.lean', 'b0\n')
         man = {'a.lean': sha(b'a0\n'), 'b.lean': sha(b'b0\n')}

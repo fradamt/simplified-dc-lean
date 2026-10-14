@@ -4,6 +4,7 @@ import argparse
 from fnmatch import fnmatchcase
 import json
 from pathlib import Path
+from source_layout import Layout
 import subprocess
 
 
@@ -13,6 +14,9 @@ def matched_paths(root, base, head):
                 if line.strip() and not line.lstrip().startswith('#')]
     if not patterns:
         raise ValueError('empty checker path set')
+    layouts = [Layout(root, revision) for revision in (base, head)]
+    patterns = sorted(set(patterns) | {layout.expand_checker_pattern(p)
+                                      for layout in layouts for p in patterns})
     result = subprocess.check_output(['git', '-C', str(root), 'diff', '--no-ext-diff',
                                       '--no-renames', '--name-only', '-z', f'{base}..{head}'])
     paths = result.decode('utf-8', errors='surrogateescape').split('\0')

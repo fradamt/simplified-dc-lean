@@ -4,6 +4,7 @@ import importlib
 import json
 import os
 from pathlib import Path
+from source_layout import Layout
 import shutil
 import subprocess
 import tempfile
@@ -45,18 +46,21 @@ with tempfile.TemporaryDirectory(prefix='gate-integration-') as scratch:
         'scripts/baselines/check-layers.txt': 'old finding\n',
         'scripts/unported-libraries.txt': 'AvailableChainPCSA\n',
         'scripts/fixture.py': 'value = 1\n',
-        'lean-toolchain': 'fixed\n', 'lakefile.toml': 'name = "control"\n',
+        'lean-toolchain': 'fixed\n', 'lakefile.toml': ('name = "control"\n' + ''.join(
+            '[[lean_lib]]\nname="' + lib + '"\n' for lib in
+            ('AvailableChainGeneric', 'AvailableChainFGSAProofs', 'AvailableChainFGSA'))),
         'lake-manifest.json': '{}\n',
         'AvailableChainFGSAProofs/Proofs/Shared/Keep.lean': 'module\n',
         'AvailableChainGeneric.lean': 'module\npublic import AvailableChainGeneric.Keep\n',
         'AvailableChainGeneric/Keep.lean': 'module\npublic section\ndef Old.name := 1\n',
         'AvailableChainGeneric/Extract.lean': 'module\npublic import Init\n\npublic section\nnamespace Old\ndef moved := 1\nend Old\n',
         'AvailableChainFGSA/Tests/Control.lean': 'module\n',
-        'docs/api/compose-api.json': json.dumps(snapshot),
+        'docs/internal/api/compose-api.json': json.dumps(snapshot),
     }
     for path, text in files.items():
         write(seed, path, text)
-    for path in ('docs/GEN-API.md', 'docs/FGSA-API.md', 'docs/api/gen-deep.json'):
+    for path in ('docs/internal/GEN-API.md', 'docs/internal/FGSA-API.md',
+                 'docs/internal/api/gen-deep.json'):
         write(seed, path, (REPO / path).read_text())
     write(seed, 'scripts/check-fgsa-blueprint.py', (REPO / 'scripts/check-fgsa-blueprint.py').read_text())
     base = commit(seed)
@@ -136,7 +140,7 @@ with tempfile.TemporaryDirectory(prefix='gate-integration-') as scratch:
         'scripts/fgsa-claims-expected.txt': "('Old.name', 'New.name')\n",
         'scripts/claims-model-scope.txt': files['scripts/claims-model-scope.txt'] +
             'AvailableChainFGSA.Model.RowCore New.name\n',
-        'docs/api/compose-api.json': json.dumps(added),
+        'docs/internal/api/compose-api.json': json.dumps(added),
         'scripts/check-fgsa-claims.sh': ast_added,
         'AvailableChainFGSAProofs/Proofs/Shared/New.lean': 'module\n',
         'AvailableChainFGSAProofs/Tests/PackageG0.lean': 'module\n',
@@ -163,8 +167,8 @@ with tempfile.TemporaryDirectory(prefix='gate-integration-') as scratch:
         'module\npublic import AvailableChainGeneric.Keep\n'},
         extractions=['AvailableChainGeneric/Extract.lean:AvailableChainGeneric/Keep.lean'])
     # Use the real generated manifests and deep schema, not the toy snapshot.
-    shallow = (seed / 'docs/GEN-API.md').read_text()
-    deep = json.loads((seed / 'docs/api/gen-deep.json').read_text())
+    shallow = (seed / 'docs/internal/GEN-API.md').read_text()
+    deep = json.loads((seed / 'docs/internal/api/gen-deep.json').read_text())
     owner = 'AvailableChainGeneric.Statements.ZZGateEligibility'
     name = 'AvailableChain.Gen.gateEligibilityAdded'
     shallow_added = shallow.replace('Entries: 852; modules: 55.', 'Entries: 853; modules: 56.') + (
@@ -179,14 +183,14 @@ with tempfile.TemporaryDirectory(prefix='gate-integration-') as scratch:
         'AvailableChainGeneric.lean': files['AvailableChainGeneric.lean'] + f'public import {owner}\n',
         owner.replace('.', '/') + '.lean':
             'module\n\npublic section\nnamespace AvailableChain.Gen\ndef gateEligibilityAdded : Nat := 1\nend AvailableChain.Gen\n',
-        'docs/GEN-API.md': shallow_added,
-        'docs/api/gen-deep.json': json.dumps(deep),
+        'docs/internal/GEN-API.md': shallow_added,
+        'docs/internal/api/gen-deep.json': json.dumps(deep),
     }
     candidate('generic-shallow-and-deep-addition', generic, eligible=True)
-    fgsa = (seed / 'docs/FGSA-API.md').read_text()
+    fgsa = (seed / 'docs/internal/FGSA-API.md').read_text()
     fgsa_added = fgsa.replace('Entries: 1358;', 'Entries: 1359;', 1).replace(
         '```\n', 'def AvailableChain.FGSA.gateEligibilityAdded 123456789abcdef0\n```\n', 1)
-    candidate('fgsa-shallow-addition', {'docs/FGSA-API.md': fgsa_added}, eligible=True)
+    candidate('fgsa-shallow-addition', {'docs/internal/FGSA-API.md': fgsa_added}, eligible=True)
     for label, content in (
         ('shallow-declaration-removal', shallow_added.replace(
             'structure AvailableChain.Gen.AC.Duty.ACReads a5157729fa91592f\n', '').replace('Entries: 853;', 'Entries: 852;')),
@@ -199,8 +203,8 @@ with tempfile.TemporaryDirectory(prefix='gate-integration-') as scratch:
         ('shallow-duplicate', shallow_added.replace(f'def {name} ', 'def AvailableChain.Gen.AC.Duty.ACReads ')),
         ('shallow-unknown-markdown', shallow_added + '\nUnclassified policy text.\n'),
     ):
-        candidate(label, {'docs/GEN-API.md': content})
-    candidate('fgsa-library-change', {'docs/FGSA-API.md': fgsa_added.replace(
+        candidate(label, {'docs/internal/GEN-API.md': content})
+    candidate('fgsa-library-change', {'docs/internal/FGSA-API.md': fgsa_added.replace(
         '## `AvailableChainFGSA`', '## `AvailableChainFGSARun`', 1)})
     for label, edits in (
         ('declaration-removal', {'AvailableChainGeneric/Keep.lean': 'module\npublic section\n'}),
@@ -224,12 +228,16 @@ with tempfile.TemporaryDirectory(prefix='gate-integration-') as scratch:
         ('scope-switch', {'scripts/unported-libraries.txt': ''}),
         ('inventory-removal', {'scripts/fgsa-claims-expected.txt': "('New.name',)\n"}),
         ('map-change', {'scripts/claims-model-scope.txt': 'AvailableChainFGSA.Model.Objects New.name\n'}),
-        ('snapshot-change', {'docs/api/compose-api.json': json.dumps(dict(added, entries={'old': {}, 'new': {}}))}),
-        ('snapshot-removal', {'docs/api/compose-api.json': json.dumps(dict(added, entries={'new': {}}))}),
-        ('snapshot-pins', {'docs/api/compose-api.json': json.dumps(dict(added, pins={'toolchain': 'changed'}))}),
-        ('snapshot-duplicates', {'docs/api/compose-api.json': '{"entries": {}, "entries": {}}'}),
+        ('snapshot-change', {'docs/internal/api/compose-api.json':
+                              json.dumps(dict(added, entries={'old': {}, 'new': {}}))}),
+        ('snapshot-removal', {'docs/internal/api/compose-api.json':
+                              json.dumps(dict(added, entries={'new': {}}))}),
+        ('snapshot-pins', {'docs/internal/api/compose-api.json':
+                              json.dumps(dict(added, pins={'toolchain': 'changed'}))}),
+        ('snapshot-duplicates', {'docs/internal/api/compose-api.json':
+                                 '{"entries": {}, "entries": {}}'}),
         ('unknown-data', {'scripts/new-data.txt': 'New.name\n'}),
-        ('unknown-checker-markdown', {'docs/V2-API.md': '# Arbitrary Markdown\n'}),
+        ('unknown-checker-markdown', {'docs/internal/V2-API.md': '# Arbitrary Markdown\n'}),
         ('baseline-growth', {'scripts/baselines/check-layers.txt': 'old finding\nnew finding\n'}),
         ('allow-growth', {'scripts/gly-f13-allow.txt': 'Old.exemption\nNew.exemption\n'}),
         ('exclusion-growth', {'scripts/new-exclusions.txt': 'New.module\n'}),
@@ -282,6 +290,8 @@ with tempfile.TemporaryDirectory(prefix='gate-integration-') as scratch:
     write(g0, 'AvailableChainFGSAProofs/Tests/Positive.lean', 'module\n')
     write(g0, 'AvailableChainFGSAProofs/Tests/Negative.lean', 'module\n')
     write(g0, 'AvailableChainPCSA/Tests/Unported.lean', 'module\n')
+    with (g0 / 'lakefile.toml').open('a') as config:
+        config.write('[[lean_lib]]\nname="AvailableChainPCSA"\n')
     write(g0, 'scripts/gate-common.sh',
           'gate_with_slot() { "$@"; }\n'
           'gate_build() { printf "%s\\n" "$@" > g0-calls; return "${G0_RC:-0}"; }\n')
@@ -298,4 +308,51 @@ with tempfile.TemporaryDirectory(prefix='gate-integration-') as scratch:
         assert all(row['rc'] == rc for row in record['results'])
         assert (g0 / 'g0-calls').read_text().startswith('--wfail\n')
     print('CONTROL package G0: positive/negative module coverage and failed freshness: PASS')
+    # Move a fixture using the real configuration's srcDirs, preserving every module identity.
+    def nested_tree(root):
+        before = Layout(root)
+        paths = before.source_files()
+        config = (root / 'lakefile.toml').read_text()
+        current = Layout(REPO)
+        for library in before.declarations():
+            name = library['name']
+            src = str(Path(current.source_dir(name)).parent)
+            config = config.replace('name="' + name + '"\n',
+                                    'name="' + name + '"\nsrcDir="' + src + '"\n')
+        (root / 'lakefile.toml').write_text(config)
+        after = Layout(root)
+        for path in paths:
+            target = root / after.source_path(before.module_of_source(path))
+            target.parent.mkdir(parents=True, exist_ok=True)
+            (root / path).rename(target)
+        after.check()
+        return after
+
+    nested_tree(g0)
+    commit(g0)
+    result = subprocess.run(['python3', '-B', str(REPO / 'scripts/integration_g0.py')],
+        cwd=g0, env=dict(os.environ, GATE_NO_BUILD='1', GATE_LOG_DIR=str(logs), G0_RC='0'))
+    assert result.returncode == 0
+    nested_record = json.loads((logs / 'package-g0.json').read_text())
+    assert {row['module'] for row in nested_record['results']} == modules
+    assert not any('PCSA' in row['module'] for row in nested_record['results'])
+    print('CONTROL nested package G0: same module identities; declared PC tests excluded: PASS')
+
+    nested_tree(seed)
+    base = commit(seed)
+    layout = Layout(seed)
+    source = layout.source_path('AvailableChainGeneric.Extract')
+    target = layout.source_path('AvailableChainGeneric.Extracted')
+    before = (seed / source).read_text()
+    candidate('nested-reviewed-extraction', {
+        source: before.partition('public section\n')[0] +
+                'public import AvailableChainGeneric.Extracted\n', target: before},
+        eligible=True, extractions=[source + ':' + target])
+    candidate('nested-source-addition', {
+        layout.source_path('AvailableChainGeneric.Keep'):
+        (seed / layout.source_path('AvailableChainGeneric.Keep')).read_text() +
+        'def Old.more := 2\n'}, eligible=True)
+    candidate('stale-flat-source', {
+        'AvailableChainFGSAProofs/Proofs/Shared/Extra.lean': 'module\n'})
+
 print('gate-integration-selftest: PASS')

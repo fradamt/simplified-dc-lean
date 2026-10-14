@@ -58,7 +58,7 @@ def check_wiring(root=Path('.'), shell=None):
         assert start < boundary
         command = shell[start:shell.index('\n', start)]
         if scope in ('v2', 'gen'):
-            assert '--output docs/api/' + label + '.json --check' in command
+            assert '--output docs/internal/api/' + label + '.json --check' in command
         assert '--scope ' + scope in command and '--check' in command
     gate = (root / 'scripts/gate.sh').read_text()
     assert 'fgsa-manifest) step "$1" gate_measure_command bash scripts/check-fgsa-manifest.sh ;;' in gate

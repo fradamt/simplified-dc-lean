@@ -85,20 +85,21 @@ def finalityFields : List String := ["F", "h_F", "finalize"]
 /-- An external lemma about the old fold, for the indirect negative control. -/
 def indirectFixture : Name := `AvailableChain.KitFG.on_block_F_mono
 
+/-- Source lookup is owned by the caller's Lake configuration. -/
+def layoutOutput (args : Array String) : IO (Array String) := do
+  let result ← IO.Process.output { cmd := "python3", args :=
+    #["-B", "scripts/source_layout.py", "--root", ".", "--lines"] ++ args }
+  unless result.exitCode == 0 do
+    throw <| IO.userError s!"source layout failed: {result.stderr}"
+  let rows := (result.stdout.splitOn "\n").filter (!·.isEmpty)
+  if rows.isEmpty then throw <| IO.userError "source layout returned no paths"
+  return rows.toArray
+
 def activeModules : IO (Array Name) := do
-  let mut out := #[]
-  for lib in libs do
-    let dir : System.FilePath := lib
-    unless ← dir.pathExists do
-      throw <| IO.userError s!"missing source directory {lib}"
-    if ← (System.FilePath.mk (lib ++ ".lean")).pathExists then
-      out := out.push (Name.mkSimple lib)
-    for f in ← dir.walkDir do
-      if f.extension.map String.toLower == some "lean" then
-        let parts := (f.withExtension "").components.drop dir.components.length
-        if parts.contains "Tests" then continue
-        out := out.push (parts.foldl (fun n s => Name.str n s) (Name.mkSimple lib))
-  return out
+  let modules ← layoutOutput (#["modules"] ++ libs.toArray)
+  return modules.filterMap fun text =>
+    let m := text.toName
+    if m.components.contains `Tests then none else some m
 
 def isAuxComp (s : String) : Bool :=
   s.startsWith "_" ||

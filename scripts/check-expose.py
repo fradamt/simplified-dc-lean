@@ -26,7 +26,8 @@ import re
 import sys
 
 sys.dont_write_bytecode = True
-import check_common as C  # noqa: E402
+import check_common as C
+from source_layout import Layout  # noqa: E402
 
 NAME = 'check-expose'
 KIT_LIBS = ('AvailableChainKit', 'AvailableChainKitV2', 'AvailableChainKitFG')
@@ -54,7 +55,7 @@ def read_list(path, fields):
 def kitfg_def_modules():
     mods = set()
     for x in read_list(KITFG_DEF, 1):
-        x = x[:-len('.lean')].replace('/', '.') if x.endswith('.lean') else x
+        x = Layout(C.ROOT).module_of_source(x) if x.endswith('.lean') else x
         mods.add(x if x.startswith('AvailableChainKitFG') else 'AvailableChainKitFG.' + x)
     return mods
 
@@ -98,7 +99,8 @@ def main():
                 if kind == 'section':
                     key, msg = f'expose-section {lf.path}', f'{lf.path}:{line}: @[expose] section'
                 else:
-                    if kind in ('def', 'abbrev', 'instance') and (lf.path, dname) in allow:
+                    if (kind in ('def', 'abbrev', 'instance') and
+                            (C.logical_path(lf.path), dname) in allow):
                         continue
                     key = f'expose-decl {lf.path} {dname}'
                     msg = f'{lf.path}:{line}: @[expose] {kind} {dname} (not in scripts/expose-allow.txt)'

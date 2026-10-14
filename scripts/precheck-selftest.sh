@@ -68,8 +68,10 @@ init_snapshot "$bad" "$head"
 python3 - "$bad" "$repo/scripts/precheck-fixtures/forbidden-import.txt" <<'PY'
 from pathlib import Path
 import sys
+sys.path.insert(0, str(Path(sys.argv[1]) / 'scripts'))
+from source_layout import Layout
 root = Path(sys.argv[1])
-path = root / 'AvailableChainFGSA/Statements/Store.lean'
+path = root / Layout(root).source_path('AvailableChainFGSA.Statements.Store')
 text = path.read_text()
 assert 'module\n' in text
 path.write_text(text.replace('module\n', 'module\n' + Path(sys.argv[2]).read_text(), 1))
@@ -143,7 +145,9 @@ gate_precheck() {
   echo 'PRECHECK PASS; build not started'
 }
 SH
-cat "$repo/scripts/precheck-fixtures/claims-theorem.txt" >> "$target/AvailableChainFGSAClaims/Tests/Axioms.lean"
+claims_audit=$(python3 -B scripts/source_layout.py --root "$target" \
+  path AvailableChainFGSAClaims.Tests.Axioms)
+cat "$repo/scripts/precheck-fixtures/claims-theorem.txt" >> "$target/$claims_audit"
 control=$repo/scripts/precheck-fixtures/guard-lists-control.py
 python3 "$control" permissive "$target/scripts/check-fgsa-claims.sh" "$policy/scripts/check-fgsa-claims.sh"
 rc=0
@@ -190,7 +194,9 @@ gate_precheck() {
 SH
 # Target checker code must not replace main's checker.
 printf 'raise SystemExit(99)\n' > "$target/scripts/check-expose.py"
-source_path=AvailableChainGeneric/Proofs/Pure/Walk.lean
+source_path=$(python3 -B scripts/source_layout.py --root "$target" \
+  path AvailableChainGeneric.Proofs.Pure.Walk)
+logical_path=AvailableChainGeneric/Proofs/Pure/Walk.lean
 printf '\n@[expose] def precheckPolicyAllow : Nat := 0\n' >> "$target/$source_path"
 rc=0
 bash "$policy/scripts/precheck.sh" "$target" > "$scratch/data-no-allow.log" 2>&1 || rc=$?
@@ -208,7 +214,7 @@ expect_policy_pass() {
   echo "$pattern"
   expect_no_build "$target"
 }
-allow_line="$source_path precheckPolicyAllow"
+allow_line="$logical_path precheckPolicyAllow"
 printf '%s\n' "$allow_line" >> "$target/scripts/expose-allow.txt"
 rc=0
 bash "$policy/scripts/precheck.sh" "$target" > "$scratch/data-allow.log" 2>&1 || rc=$?
@@ -222,8 +228,10 @@ cp "$policy/scripts/expose-allow.txt" "$target/scripts/expose-allow.txt"
 python3 - "$target" <<'PY'
 from pathlib import Path
 import sys
+sys.path.insert(0, str(Path(sys.argv[1]) / 'scripts'))
+from source_layout import Layout
 root = Path(sys.argv[1])
-source = root / 'AvailableChainSAPC/Proofs/Archive.lean'
+source = root / Layout(root).source_path('AvailableChainSAPC.Proofs.Archive')
 text = source.read_text()
 assert text.count('@[expose] public section') == 1
 source.write_text(text.replace('@[expose] public section', 'public section'))

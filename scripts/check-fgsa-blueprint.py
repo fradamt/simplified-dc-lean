@@ -2,11 +2,11 @@
 """D10: check the FG-SA blueprint → Lean claim map.
 
 Inputs:
-- docs/blueprint/fgsa/: an exact snapshot of the current blueprint chapters.
+- docs/internal/blueprint/fgsa/: an exact snapshot of the current blueprint chapters.
   SOURCE.json records the source path, the source repository head and the
   SHA-256 of each file.
-- docs/FGSA-BLUEPRINT-LEAN.json: the reviewed claim map.
-- docs/FGSA-BLUEPRINT-OPEN.md: the OPEN items, generated from the map.
+- docs/internal/FGSA-BLUEPRINT-LEAN.json: the reviewed claim map.
+- docs/internal/FGSA-BLUEPRINT-OPEN.md: the OPEN items, generated from the map.
 
 The checker extracts the claim entries of outline §3 independently of the
 map: every line that starts with a bold id (`**bp.…`, `**fj.…`, …), and every
@@ -44,6 +44,7 @@ import io
 import json
 import os
 from pathlib import Path
+from source_layout import Layout
 import re
 import shutil
 import subprocess
@@ -51,9 +52,9 @@ import tempfile
 import textwrap
 
 REPO = Path(__file__).resolve().parents[1]
-MAP = 'docs/FGSA-BLUEPRINT-LEAN.json'
-OPEN_DOC = 'docs/FGSA-BLUEPRINT-OPEN.md'
-SNAPSHOT = 'docs/blueprint/fgsa'
+MAP = 'docs/internal/FGSA-BLUEPRINT-LEAN.json'
+OPEN_DOC = 'docs/internal/FGSA-BLUEPRINT-OPEN.md'
+SNAPSHOT = 'docs/internal/blueprint/fgsa'
 ORACLE = 'scripts/CheckBlueprintClaims.lean'
 ALLOWED_AXIOMS = {'propext', 'Classical.choice', 'Quot.sound'}
 STATUSES = ('PROVED', 'PARTIAL', 'OPEN', 'HISTORICAL')
@@ -179,7 +180,7 @@ def anchor_paragraph(section_lines, anchor):
 
 def claim_fields(root):
     """The fields of the FGSAClaims structures, read from the source."""
-    path = root / CLAIMS_SOURCE
+    path = root / Layout(root).physical_path(CLAIMS_SOURCE)
     if not path.is_file():
         raise InputError(f'MISSING SOURCE: {CLAIMS_SOURCE}')
     lines = path.read_text().split('\n')
@@ -205,7 +206,7 @@ def claim_fields(root):
 # The Lean oracle
 
 def module_source(root, module):
-    return root / (module.replace('.', '/') + '.lean')
+    return root / Layout(root).source_path(module)
 
 
 def module_olean(root, module):
@@ -303,7 +304,7 @@ def statement_of(entry, found, section_lines):
 
 def open_document(data):
     lines = ['# FG-SA blueprint: OPEN items', '',
-             'Generated from `docs/FGSA-BLUEPRINT-LEAN.json` by',
+             'Generated from `docs/internal/FGSA-BLUEPRINT-LEAN.json` by',
              '`python3 scripts/check-fgsa-blueprint.py --write`. Do not edit by hand.', '',
              'An OPEN item names a blueprint clause that has no reviewed Lean proof map.',
              'The D10 check passes with these items open; `--require-proved` fails while',
@@ -582,16 +583,19 @@ GOOD = {'Fix.alpha': {'kind': 'theorem', 'module': 'Fix.Proofs', 'fingerprint': 
                         'binders': '1', 'props': '0', 'axioms': set()}}
 
 
-def make_fixture(root, outline=OUTLINE, data=None):
+def make_fixture(root, outline=OUTLINE, data=None, src="."):
+    (root / 'lakefile.toml').write_text(
+        'srcDir="' + src + '"\n'
+        '[[lean_lib]]\nname="Fix"\n[[lean_lib]]\nname="AvailableChainFGSAClaims"\n')
     snap = root / SNAPSHOT
     snap.mkdir(parents=True)
     (snap / '00-outline.md').write_text(outline)
     (snap / 'SOURCE.json').write_text(json.dumps({
         'source_path': 'fixture', 'source_repository_head': '0' * 40, 'outline': '00-outline.md',
         'files': {'00-outline.md': hashlib.sha256(outline.encode()).hexdigest()}}))
-    (root / 'Fix').mkdir()
-    (root / 'Fix/Proofs.lean').write_text('-- fixture\n')
-    claims = root / CLAIMS_SOURCE
+    (root / src / 'Fix').mkdir(parents=True)
+    (root / Layout(root).source_path('Fix.Proofs')).write_text('-- fixture\n')
+    claims = root / Layout(root).physical_path(CLAIMS_SOURCE)
     claims.parent.mkdir(parents=True)
     claims.write_text('structure FGSASafetyClaims (p : Nat) : Prop where\n  base : True\n\n'
                       'structure FGSAClaims (p : Nat) : Prop extends FGSASafetyClaims p where\n'
@@ -604,6 +608,13 @@ def make_fixture(root, outline=OUTLINE, data=None):
 
 
 def selftest():
+    with tempfile.TemporaryDirectory(prefix='blueprint-nested-') as tmp:
+        root = Path(tmp)
+        make_fixture(root, src="src")
+        with contextlib.redirect_stdout(io.StringIO()):
+            assert run(root, oracle=fixture_oracle(GOOD), oleans=False) == 0
+        assert module_source(root, "Fix.Proofs") == root / "src/Fix/Proofs.lean"
+        print("SELFTEST fgsa-blueprint nested source/oracle fixture: PASS")
     def edit_map(root, fn):
         data = json.loads((root / MAP).read_text())
         fn(data)

@@ -29,12 +29,14 @@ import re
 import subprocess
 import sys
 import tomllib
+from pathlib import Path
+from source_layout import Layout
 
 ENTRY = "scripts/check-fg.sh"
 HELPER = re.compile(r"^scripts/check-fg-[a-z]+\.sh$")
 FIXED = ("lakefile.toml", "lakefile.lean", "lean-toolchain", "lake-manifest.json", "scripts/fg-closure.py")
 IMPORT = re.compile(r"^\s*(?:public\s+)?(?:meta\s+)?import\s+(?:all\s+)?([A-Za-z_][\w.']*)")
-NAMED = re.compile(r"(?<![\w/.-])((?:scripts|docs)/[\w.-]+)")
+NAMED = re.compile(r"(?<![\w/.-])((?:scripts|docs)/[\w./-]+)")
 BUILD = re.compile(r"(?:\blake\s+build|\bgate_build)\b((?:\s+[-\w.=\"$]+)*)")
 TARGET = re.compile(r"^[A-Z][\w]*(?:\.[\w]+)*$")
 
@@ -51,6 +53,7 @@ def closure(rev):
 
     if "lakefile.lean" in files:
         raise RuntimeError("lakefile.lean is not parsed by this script")
+    layout = Layout(Path.cwd(), rev)
     libs = {lib["name"]: lib for lib in tomllib.loads(show("lakefile.toml")).get("lean_lib", [])}
     src_dirs = sorted({lib.get("srcDir", ".") for lib in libs.values()})
 
@@ -96,11 +99,11 @@ def closure(rev):
                 lean_files.add(prefix(src, glob) + ".lean")
 
     def resolve(module):
-        for src in src_dirs:
-            path = prefix(src, module) + ".lean"
-            if path in files:
-                return path
-        return None
+        try:
+            path = layout.source_path(module)
+        except ValueError:
+            return None
+        return path if path in files else None
 
     todo, seen = sorted(lean_files), set()
     while todo:
@@ -128,17 +131,29 @@ def decide(changed, cl):
 def selftest(rev):
     cl = closure(rev)
     files = set(git("ls-tree", "-r", "--name-only", rev).split())
-    kit_tests = sorted(f for f in files if f.startswith("AvailableChainKitFG/Tests/") and f.endswith(".lean"))
+    layout = Layout(Path.cwd(), rev)
+    kit_dir = layout.source_dir("AvailableChainKitFG")
+    kit_tests = sorted(f for f in files
+                       if f.startswith(kit_dir + "/Tests/") and f.endswith(".lean"))
     checks = [
         ("a KitFG/Tests-only diff needs check-fg", bool(kit_tests) and decide(kit_tests[:1], cl)[0] == 1),
         ("every KitFG module is in the closure", all(f in cl for f in files
-                                                     if f.startswith("AvailableChainKitFG/") and f.endswith(".lean"))),
-        ("a SimplexFG module needs check-fg", decide(["AvailableChainSimplexFG.lean"], cl)[0] == 1),
+                                                     if f.startswith(kit_dir + "/") and
+                                                     f.endswith(".lean"))),
+        ("a SimplexFG module needs check-fg",
+         decide([layout.source_path("AvailableChainSimplexFG")], cl)[0] == 1),
         ("a check-fg script needs check-fg", decide(["scripts/check-fg-pins.sh"], cl)[0] == 1),
         ("gate-common.sh needs check-fg", decide(["scripts/gate-common.sh"], cl)[0] == 1),
         ("the toolchain needs check-fg", decide(["lean-toolchain"], cl)[0] == 1),
-        ("an FGSA-only diff skips", decide(["AvailableChainFGSAProofs/Proofs/Healing/Base.lean",
+        ("an FGSA-only diff skips",
+         decide([layout.source_path("AvailableChainFGSAProofs.Proofs.Healing.Base"),
                                             "scripts/check-fgsa-claims.sh"], cl)[0] == 0),
+    ]
+    checks += [
+        ("deep archived FG registry is in closure",
+         layout.archive_doc_path("docs/FG-COMPOSITION.md") in cl),
+        ("source layout helper is in closure when present",
+         "scripts/source_layout.py" not in files or "scripts/source_layout.py" in cl),
     ]
     bad = [name for name, ok in checks if not ok]
     for name, ok in checks:

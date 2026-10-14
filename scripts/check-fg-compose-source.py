@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Check the complete current compose source inventory and global extensions."""
 from pathlib import Path
+from source_layout import Layout
 from importlib import import_module
 import re
 import sys
@@ -76,7 +77,7 @@ found = set()
 derived = []
 texts = []
 files = [lf for lf in C.library_files() if lf.lib == 'AvailableChainFGCompose']
-if not files or not Path('AvailableChainFGCompose.lean').is_file():
+if not files or not Path(Layout(C.ROOT).source_path('AvailableChainFGCompose')).is_file():
     raise SystemExit('MISSING COMPOSE SOURCE SCOPE')
 found.update(import_module('current-inventory').source_names('compose'))
 for lf in files:
@@ -103,8 +104,10 @@ for lf in files:
             found.add('AvailableChain.FGCompose.' + name + '.mk')
             for field in re.findall(r'^  (\w+) :', body, re.M):
                 found.add('AvailableChain.FGCompose.' + name + '.' + field)
-for path in (Path('AvailableChainFGSAProofs/Proofs/Shared/FGCompose.lean'),
-             Path('AvailableChainPCSAProofs/Proofs/Shared/FGCompose.lean')):
+layout = Layout(C.ROOT)
+for logical in ('AvailableChainFGSAProofs/Proofs/Shared/FGCompose.lean',
+                'AvailableChainPCSAProofs/Proofs/Shared/FGCompose.lean'):
+    path = Path(C.ROOT) / layout.physical_path(logical)
     if path.exists():
         raw = C.strip(path.read_text())
         texts.append(raw)

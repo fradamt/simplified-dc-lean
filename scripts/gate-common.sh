@@ -52,7 +52,7 @@ gate_precheck() (
   gate_precheck_step unported python3 -B scripts/unported-selftest.py --check || exit $?
   gate_precheck_step sleep-scopes python3 -B scripts/check-sleep-scopes.py || exit $?
   gate_precheck_step legacy-inventory python3 scripts/current-inventory.py legacy \
-    docs/api/legacy-api.json || exit $?
+    docs/internal/api/legacy-api.json || exit $?
   gate_precheck_step import-policy python3 scripts/generate-import-policy.py --check || exit $?
   gate_precheck_step check-layers python3 scripts/check-layers.py || exit $?
   gate_precheck_step check-module-headers python3 scripts/check-module-headers.py || exit $?
@@ -324,7 +324,8 @@ gate_build() (
 # No hard links or writable package symlinks: a failed control cannot affect readers.
 gate_copy_control_tree() {
   local source=$1 target=$2 part
-  rsync -a --exclude=/.lake --exclude=/.git "$source/" "$target/"
+  rsync -a --exclude=/.lake --exclude=/.git --exclude=/AGENTS.md \
+    --exclude=/state.md --exclude=/log.md --exclude=/claude-files "$source/" "$target/"
   mkdir -p "$target/.lake"
   for part in build config packages; do
     [ -d "$source/.lake/$part" ] || continue
@@ -390,4 +391,24 @@ gate_control_serial() {
   gate_pool_wait || return $?
   gate_pool_add "$@"
   gate_pool_wait
+}
+
+# Source paths come from the specified tree; build targets remain module names.
+gate_source_file() {
+  python3 -B scripts/source_layout.py --root "$1" physical "$2"
+}
+gate_source_path() { python3 -B scripts/source_layout.py path "$@"; }
+gate_source_dir() { python3 -B scripts/source_layout.py dir "$@"; }
+gate_source_files() {
+  python3 -B - "$1" "$2" <<'PYTHON'
+import sys
+from pathlib import Path
+sys.path.insert(0, 'scripts')
+from source_layout import Layout
+layout = Layout(Path(sys.argv[1]))
+for path in layout.source_files([sys.argv[2]]):
+    logical = layout.logical_path(path)
+    if logical != sys.argv[2] + '.lean':
+        print(logical)
+PYTHON
 }

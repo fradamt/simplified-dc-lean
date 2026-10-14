@@ -4,6 +4,7 @@ import argparse
 import importlib.util
 import json
 from pathlib import Path
+from source_layout import Layout
 import subprocess
 import sys
 import tempfile
@@ -33,25 +34,34 @@ SCOPES = {
 
 def source_modules(libraries):
     modules = []
+    layout = Layout(Path.cwd())
     for lib in libraries:
-        facade = Path(lib + '.lean')
-        if not facade.is_file() or not Path(lib).is_dir():
+        try:
+            facade = Path(layout.source_path(lib))
+        except ValueError:
+            raise ValueError('MISSING SOURCE SCOPE: ' + lib) from None
+        if not facade.is_file() or not Path(layout.source_dir(lib)).is_dir():
             raise ValueError('MISSING SOURCE SCOPE: ' + lib)
         modules.append(lib)
-        modules.extend('.'.join(p.with_suffix('').parts)
-                       for p in Path(lib).rglob('*.lean'))
+        modules.extend(layout.module_of_source(p) for p in layout.source_files([lib]))
     return sorted(set(modules))
 
 
 def checkpoint_modules(path):
     modules = [row['name'] for row in deep.root_list(path)]
+    layout = Layout(Path.cwd())
     for module in modules:
-        if not Path(module.replace('.', '/') + '.lean').is_file():
+        try:
+            source = Path(layout.source_path(module))
+        except ValueError:
+            raise ValueError('MISSING CHECKPOINT MODULE: ' + module) from None
+        if not source.is_file():
             raise ValueError('MISSING CHECKPOINT MODULE: ' + module)
     return modules
 
 
-def extract(scope, inventory=False, roots=None, blueprint=Path('docs/FGSA-BLUEPRINT-LEAN.json'),
+def extract(scope, inventory=False, roots=None,
+            blueprint=Path('docs/internal/FGSA-BLUEPRINT-LEAN.json'),
             checkpoint='baseline', imports=None):
     libraries = SCOPES[scope]
     extra = ('AvailableChainPCSAProofs',) if (
@@ -178,7 +188,7 @@ def main():
                     default='baseline')
     ap.add_argument('--imports', type=Path, help='G-S1 REQUIRED modules, one exact name per line')
     args = ap.parse_args()
-    path = args.output or Path('docs/api') / (args.scope + '-api.json')
+    path = args.output or Path('docs/internal/api') / (args.scope + '-api.json')
     data = extract(args.scope, roots=args.roots, checkpoint=args.checkpoint, imports=args.imports)
     if args.write:
         path.parent.mkdir(parents=True, exist_ok=True)

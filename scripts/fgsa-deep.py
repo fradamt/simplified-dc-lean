@@ -14,8 +14,8 @@ from pathlib import Path
 import re
 import sys
 
-DEEP = Path('docs/api/fgsa-deep.json')
-MANIFEST = Path('docs/FGSA-API.md')
+DEEP = Path('docs/internal/api/fgsa-deep.json')
+MANIFEST = Path('docs/internal/FGSA-API.md')
 
 
 def sha(data):

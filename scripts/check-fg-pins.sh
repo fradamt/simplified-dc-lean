@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Checks the ELABORATED pin table of AvailableChainKitFG/Pins.lean against
-# docs/FG-COMPOSITION.md. It builds the two FG libraries (the emitter reads
+# docs/internal/FG-COMPOSITION.md. It builds the two FG libraries (the emitter reads
 # the built .olean files, which Lean does not compare with the sources), runs
 # scripts/FGPinIds.lean in this run and reads only its output. Threat model:
 # the check guards against emitter and parser bugs, stale registry data, stale
@@ -59,7 +59,7 @@ export LC_ALL=C
 cd "$(dirname "$0")/.."
 source scripts/gate-common.sh
 ETH=${ETH:-$HOME/ethereum}
-REG=${FGREG:-docs/FG-COMPOSITION.md}
+REG=${FGREG:-docs/internal/FG-COMPOSITION.md}
 # The allowlist of hist pins, one per line: <id> <date YYYY-MM-DD> <reason>.
 HIST='
 fj.frame.v3 2026-09-29 WITHDRAWN for current use, r212/r213; successor fj.frame.v4

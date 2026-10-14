@@ -25,7 +25,7 @@ def main():
         for scope in ('v2', 'gen', 'fgsa'):
             path = root / (scope + '.md')
             original = {'v2': 'V2', 'gen': 'GEN', 'fgsa': 'FGSA'}[scope]
-            shutil.copyfile('docs/' + original + '-API.md', path)
+            shutil.copyfile('docs/internal/' + original + '-API.md', path)
             lines = path.read_text().splitlines(keepends=True)
             entries = [(i, line.split()) for i, line in enumerate(lines)
                        if len(line.split()) == 3 and line.split()[0] in
@@ -65,7 +65,7 @@ def main():
             run('V2Manifest', '--scope', scope, '--check', '--manifest', path,
                 want=2, reasons=['cannot read'])
         lock = root / 'catalog.lock'
-        shutil.copyfile('docs/catalog.lock', lock)
+        shutil.copyfile('docs/internal/catalog.lock', lock)
         lines = lock.read_text().splitlines()
         first = lines.pop(0).rsplit(' ', 1)[0]
         changed, digest = lines[0].rsplit(' ', 1)
@@ -133,7 +133,7 @@ def main():
                                ('compose', 'compose-api'), ('fgsa-claims', 'fgsa-claims-api')]:
             actual = snapshot.extract(scope)
             snapshot.check_snapshot(snapshot.deep.read_baseline(
-                Path('docs/api') / (product + '.json')), actual)
+                Path('docs/internal/api') / (product + '.json')), actual)
             stale = deepcopy(actual)
             name = next(iter(stale['entries']))
             stale['nodes'][name]['digest'] = '0' * 64
