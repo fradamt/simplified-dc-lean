@@ -197,5 +197,34 @@ private theorem missing_receiver_premises_sat :
 
 #print axioms missing_receiver_premises_sat
 
+private theorem missing_receiver_service_rejected :
+    (¬ FrontierProposalService missingCore env missingRun timing 2 .genesis) ∧
+    ∀ t, ¬ StrongServedFG missingCore missingReads env missingRun missingObs timing
+      missingIface Row.height_pair 0 1 1 t := by
+  obtain ⟨_, _, _, _, _, _, _, _, _, _, heads, joined⟩ := missing_receiver_premises_sat
+  have noService (q : Nat) (hq : q < 5) (ht : timing.vote q ≤ missingRun.horizon) :
+      ¬ FrontierProposalService missingCore env missingRun timing q .genesis := by
+    intro hs
+    have hh := hs ht 7 (by decide) (joined q)
+    have hw : headAtLabel missingCore env missingRun timing 7 q = some wrongHead :=
+      heads ⟨q, hq⟩
+    rw [hw] at hh
+    cases hh
+  refine ⟨noService 2 (by decide) (by decide), ?_⟩
+  intro t hs
+  obtain ⟨u, J, c, q, Q, Qfg, _, hp, _, _, hsvc, _, _, _, hg, hh, _⟩ := hs
+  obtain ⟨_, o, _, hb⟩ := hp
+  have hQ : Q = .genesis := (Option.some.inj hb).symm
+  subst Q
+  have hgate := hg.trans hh
+  change 4 * (q : Int) + 6 ≤ 18 at hgate
+  have hq : @LT.lt Nat _ q 5 := by omega
+  have hvote : timing.vote q ≤ missingRun.horizon := by
+    change 4 * (q : Int) + 1 ≤ 18
+    omega
+  exact noService q hq hvote hsvc
+
+#print axioms missing_receiver_service_rejected
+
 end AvailableChain.FGCompose.Tests.PopulationSearchSeed
 end
