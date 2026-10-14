@@ -173,5 +173,71 @@ theorem high_target_first_row_holder (seat : Fin n)
   subst q
   exact ⟨j, a, ha, hc, hp⟩
 
+include hentry records finality prior hsrc hheight J client trace emission complete
+  wireLaws hT hs enabled in
+/-- A nonempty honest seat quorum supplies total rows and receipts at every honest node. -/
+theorem high_target_quorum_covered_holder
+    (Q : Finset (Fin n)) (hQH : Q ⊆ FGHonestSeats S rho)
+    (hne : Q.Nonempty) (hQ : Ef.IsQuorum Q)
+    (blockWireRows : P.State → List Wire) (deltaF : Time) (hdeltaF : 0 ≤ deltaF)
+    (receipt : TRowsReceipt R S E rho T blockWireRows deltaF)
+    (awake : ∀ x ∈ rho.honest, ∀ t, E.t_GST ≤ t → t ≤ rho.horizon → E.awake x t = true)
+    (r : Nat) (C : FGBlock (Fin n)) (hhigh : high R O pt.reset C)
+    (hsource : ∀ i ∈ Q, actionSourceFG R E rho T (safetyHolder S rho i) r = some (some C))
+    (hGST : E.t_GST ≤ T.action r) (hhor : T.action r + deltaF ≤ rho.horizon) :
+    Ef.IsQuorum Q ∧ ∃ rows : Fin n → Wire, ∀ i ∈ Q, ∃ j rSent,
+      rSent ≤ r ∧ HonestRowAt S E rho T j (safetyHolder S rho i) rSent (rows i) ∧
+      RowComplete S rho D.signer valid (safetyHolder S rho i) (rows i) ∧
+      D.signer (rows i) = some i ∧
+      D.heightPair (rows i) = .vote (O.height C).h (O.height C).T_h.root false ∧
+      ∀ x ∈ rho.honest, HeldBefore R E rho blockWireRows x (rows i)
+        (max (T.action rSent) E.t_GST + deltaF) := by
+  classical
+  refine ⟨hQ, ?_⟩
+  have haction : T.action r ≤ rho.horizon := by linarith
+  have forSeat : ∀ i ∈ Q, ∃ a, ∃ j rSent,
+      rSent ≤ r ∧ HonestRowAt S E rho T j (safetyHolder S rho i) rSent a ∧
+      RowComplete S rho D.signer valid (safetyHolder S rho i) a ∧ D.signer a = some i ∧
+      D.heightPair a = .vote (O.height C).h (O.height C).T_h.root false ∧
+      ∀ x ∈ rho.honest, HeldBefore R E rho blockWireRows x a
+        (max (T.action rSent) E.t_GST + deltaF) := by
+    intro i hi
+    have hx : safetyHolder S rho i ∈ rho.honest := by
+      simpa only [FGHonestSeats_def, Finset.mem_filter, Finset.mem_univ, true_and]
+        using hQH hi
+    obtain ⟨j, q, a, hr, ha, hc, hp⟩ := high_target_row_covered_holder entry hentry records
+      finality prior hsrc hheight J client trace emission complete wireLaws hT hs enabled
+      i hx r C (hsource i hi) hhigh (awake _ hx _ hGST haction)
+    have hauth : D.signer a = some i := by
+      obtain ⟨k, hk, hki⟩ := hc.2
+      exact hk.trans (congrArg some (client.holder_inj hki))
+    have hmono : T.action q ≤ T.action r := by
+      have hmul : ((q * T.roundSlots : Nat) : Time) ≤
+          ((r * T.roundSlots : Nat) : Time) := by
+        exact_mod_cast Nat.mul_le_mul_right T.roundSlots hr
+      rw [hT.action_eq, hT.action_eq, hT.gate_eq, hT.gate_eq,
+        hT.proposal_eq, hT.proposal_eq]
+      have := hT.delta_pos
+      nlinarith
+    have hdeadline : max (T.action q) E.t_GST + deltaF ≤ rho.horizon := by
+      have := max_le hmono hGST
+      linarith
+    exact ⟨a, j, q, hr, ha, hc, hauth, hp, receipt j _ q a ha hdeadline⟩
+  obtain ⟨k, hk⟩ := hne
+  obtain ⟨fallback, _⟩ := forSeat k hk
+  have total : ∀ i : Fin n, ∃ a, i ∈ Q → ∃ j rSent,
+      rSent ≤ r ∧ HonestRowAt S E rho T j (safetyHolder S rho i) rSent a ∧
+      RowComplete S rho D.signer valid (safetyHolder S rho i) a ∧ D.signer a = some i ∧
+      D.heightPair a = .vote (O.height C).h (O.height C).T_h.root false ∧
+      ∀ x ∈ rho.honest, HeldBefore R E rho blockWireRows x a
+        (max (T.action rSent) E.t_GST + deltaF) := by
+    intro i
+    by_cases hi : i ∈ Q
+    · obtain ⟨a, ha⟩ := forSeat i hi
+      exact ⟨a, fun _ => ha⟩
+    · exact ⟨fallback, fun h => (hi h).elim⟩
+  choose rows hrows using total
+  exact ⟨rows, hrows⟩
+
 end AvailableChain.FGCompose
 end
