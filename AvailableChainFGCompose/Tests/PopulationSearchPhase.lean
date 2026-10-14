@@ -236,6 +236,17 @@ private theorem gidxBefore_le_timeIdx {V : Type} {P : V2.ProtocolSpecD Unit}
 
 #print axioms gidxBefore_le_timeIdx
 
+private theorem c5H_pos (B : FGBlock (Fin 1)) : 1 ≤ (c5H B).h := by
+  have laws := heightLaws_of_bridge c5E c5cfg _
+    (KitFG.Window.windowHeightBridge c5E c5cfg 2 (by decide))
+  have h := laws.h_mono (genesis_preceq B)
+  have h0 : (c5H .genesis).h = 1 := by decide
+  change (c5H .genesis).h ≤ (c5H B).h at h
+  rw [h0] at h
+  exact h
+
+#print axioms c5H_pos
+
 -- POP-5 local fixture support ends here.
 
 end Fixture
