@@ -100,7 +100,7 @@ has an `.olean` in `.lake/build`. Test modules that only a glob builds are
 included, so the census does not depend on the root imports. Files that no
 target builds (no `.olean`) are skipped and counted on stderr. -/
 def projectModules : IO (Array Name) := do
-  let modules ← layoutOutput #["modules"]
+  let modules ← layoutOutput #["--exclude-source-dir", "scripts", "modules"]
   let mut out := #[]
   let mut skipped := 0
   for text in modules do

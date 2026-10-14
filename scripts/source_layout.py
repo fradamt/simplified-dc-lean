@@ -323,6 +323,7 @@ def main():
     ap.add_argument('--nul', action='store_true')
     ap.add_argument('--lines', action='store_true')
     ap.add_argument('--undeclared', action='store_true')
+    ap.add_argument('--exclude-source-dir', action='append', default=[])
     ap.add_argument('command', nargs='?', choices=('path', 'dir', 'module', 'files', 'modules',
                                                  'archive-doc', 'logical', 'physical'))
     ap.add_argument('values', nargs='*')
@@ -336,6 +337,9 @@ def main():
         return
     if a.command in ('files', 'modules'):
         out = layout.source_files(a.values or None)
+        out = [p for p in out if not any(
+            PurePosixPath(p).is_relative_to(PurePosixPath(d))
+            for d in a.exclude_source_dir)]
         if a.command == 'modules':
             out = sorted(layout.module_of_source(p) for p in out)
         if a.nul or a.lines:
