@@ -354,5 +354,30 @@ private theorem empty_premises_sat :
 
 #print axioms empty_premises_sat
 
+private theorem empty_witness_rejected :
+    ¬ (FGHonestSeats reads emptyRun).Nonempty ∧
+    ¬ (∃ U, EntryAt height U 0) ∧
+    ¬ (∃ i j r a, HonestRowAt reads env emptyRun timing j (safetyHolder reads emptyRun i) r a) ∧
+    (∀ x y K L, x ∈ emptyRun.honest → y ∈ emptyRun.honest →
+      actionSourceFG emptyCore env emptyRun timing x 0 = some (some K) →
+      actionSourceFG emptyCore env emptyRun timing y 0 = some (some L) →
+      (height K).T_h.root = (height L).T_h.root → (height K).T_h = (height L).T_h) ∧
+    (∀ x K, x ∈ emptyRun.honest →
+      actionSourceFG emptyCore env emptyRun timing x 0 = some (some K) →
+      K.slot ≤ 0 * timing.roundSlots) := by
+  refine ⟨?_, ?_, ?_, fun _ _ _ _ _ _ _ _ _ => rfl, ?_⟩
+  · rw [empty_premises_sat.2.2.1]
+    exact Finset.not_nonempty_empty
+  · rintro ⟨U, hU⟩
+    have hh : (1 : Nat) = 0 := hU.1
+    omega
+  · rintro ⟨i, j, r, a, ha⟩
+    have hh : (9 : Nat) ∈ ({7} : Finset Nat) := ha.1
+    simp at hh
+  · intro x K _ hK
+    exact (empty_premises_sat.2.2.2.2.2.2 x K hK).elim
+
+#print axioms empty_witness_rejected
+
 end AvailableChain.FGCompose.Tests.PopulationPromotion
 end
