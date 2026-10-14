@@ -213,5 +213,15 @@ private theorem saved_tail_premises_sat :
 
 #print axioms saved_tail_premises_sat
 
+-- The sole failed legacy premise is coverage at the honest nonholder proposer.
+private theorem old_proposer_call_rejected :
+    ¬ OpeningCovered tailCore missingReads env missingRun c5H timing Row.height_pair
+      1 .genesis := by
+  intro hc
+  obtain ⟨K, nd, j, rSent, a, _, _, _, _, _, hrow, _⟩ := hc 7 (by decide)
+  exact nonholder_no_encoded j _ hrow.2.1 a hrow.2.2
+
+#print axioms old_proposer_call_rejected
+
 end AvailableChain.FGCompose.Tests.POP6aTail
 end
