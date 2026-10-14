@@ -3,7 +3,6 @@
 AvailableChainFGCompose.Proofs.Population.HighTarget
 AvailableChainFGCompose.Tests.PopulationHighTarget
 AvailableChainFGCompose.Tests.PopulationHighTargetAxioms
-AvailableChainFGCompose.Tests.PopulationHighTargetFixture
 [GREEN]
 AvailableChainEngineV2
 AvailableChainEngineV2.Conditions.Committees
@@ -181,7 +180,6 @@ AvailableChainFGCompose.Tests.PopulationBridges
 AvailableChainFGCompose.Tests.PopulationCounts
 AvailableChainFGCompose.Tests.PopulationHighTarget
 AvailableChainFGCompose.Tests.PopulationHighTargetAxioms
-AvailableChainFGCompose.Tests.PopulationHighTargetFixture
 AvailableChainFGCompose.Tests.Reads
 AvailableChainFGCompose.Tests.Restart
 AvailableChainFGCompose.Tests.RestartKeep
