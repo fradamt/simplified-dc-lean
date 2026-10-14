@@ -757,5 +757,56 @@ private theorem action_premises_sat : ∃ m : middleType run,
 
 #print axioms action_premises_sat
 
+private abbrev blocks : Finset (FGBlock (Fin 1)) := {.genesis, aBlock, bBlock, dBlock, xBlock}
+
+private theorem store_premises_sat : ∀ t,
+    FGStoreInvariant obs.height obs.finality (staged t) := by
+  have closed : ∀ B ∈ blocks, B.parent ∈ blocks := by decide
+  have roots (st : Store (Fin 1)) (B : FGBlock (Fin 1))
+      (hst : st.TF ⊆ blocks) (hB : B ∈ blocks) : StoreStepRoots st B := by
+    have sub : insert B st.TF ⊆ blocks := Finset.insert_subset hB hst
+    intro X Y ⟨W, hW, hX⟩ ⟨Z, hZ, hY⟩ hr
+    have hx := KitFG.ancestor_closed_of_parent_closed blocks closed W (sub hW) X hX
+    have hy := KitFG.ancestor_closed_of_parent_closed blocks closed Z (sub hZ) Y hY
+    exact (by decide : ∀ X ∈ blocks, ∀ Y ∈ blocks, X.root = Y.root → X = Y) X hx Y hy hr
+  have invA : FGStoreInvariant obs.height obs.finality storeA :=
+    KitFG.Window.windowStoreInvariant_on_block electorate cfg 2
+      (by change ¬ (1 ≤ 0); decide) (by decide) _ _
+      (KitFG.Window.windowStoreInvariant_init electorate cfg 2)
+      (roots _ _ (by decide) (by decide))
+  have invB : FGStoreInvariant obs.height obs.finality storeB :=
+    KitFG.Window.windowStoreInvariant_on_block electorate cfg 2
+      (by change ¬ (1 ≤ 0); decide) (by decide) _ _ invA
+      (roots _ _ (by decide +kernel) (by decide))
+  have invD : FGStoreInvariant obs.height obs.finality storeD :=
+    KitFG.Window.windowStoreInvariant_on_block electorate cfg 2
+      (by change ¬ (1 ≤ 0); decide) (by decide) _ _ invB
+      (roots _ _ (by decide +kernel) (by decide))
+  have invX : FGStoreInvariant obs.height obs.finality storeX :=
+    KitFG.Window.windowStoreInvariant_on_block electorate cfg 2
+      (by change ¬ (1 ≤ 0); decide) (by decide) _ _ invD
+      (roots _ _ (by decide +kernel) (by decide))
+  intro t
+  unfold staged
+  split_ifs
+  · have he : { storeA with TF := {.genesis, aBlock} } = storeA := by
+      have ht : {.genesis, aBlock} = storeA.TF := by decide +kernel
+      rw [ht]
+    rw [he]; exact invA
+  · have he : { storeB with TF := {.genesis, aBlock, bBlock} } = storeB := by
+      have ht : {.genesis, aBlock, bBlock} = storeB.TF := by decide +kernel
+      rw [ht]
+    rw [he]; exact invB
+  · have he : { storeD with TF := {.genesis, aBlock, bBlock, dBlock} } = storeD := by
+      have ht : {.genesis, aBlock, bBlock, dBlock} = storeD.TF := by decide +kernel
+      rw [ht]
+    rw [he]; exact invD
+  · have he : { storeX with TF := {.genesis, aBlock, bBlock, dBlock, xBlock} } = storeX := by
+      have ht : {.genesis, aBlock, bBlock, dBlock, xBlock} = storeX.TF := by decide +kernel
+      rw [ht]
+    rw [he]; exact invX
+
+#print axioms store_premises_sat
+
 end AvailableChain.FGCompose.Tests.PopulationKernel
 end
