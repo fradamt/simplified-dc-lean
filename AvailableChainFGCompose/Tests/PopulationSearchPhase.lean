@@ -1,4 +1,5 @@
 module
+import AvailableChainFGCompose.Proofs.Finality.History -- shake: keep (window views)
 import AvailableChainFGCompose.Proofs.Population.FrontierSearchGap
 import all AvailableChainFGCompose.Proofs.Population.FrontierSearchTop
 import all AvailableChainFGCompose.Tests.P0d5c
@@ -9,6 +10,36 @@ noncomputable section
 namespace AvailableChain.FGCompose.Tests.PopulationSearchPhase
 open AvailableChain.SimplexFG AvailableChain.KitFG
 open AvailableChain.FGCompose.Tests.P0d5c
+
+namespace Fixture
+
+private def d5cTiming : FGTiming where
+  delta := 1
+  roundSlots := 2
+  proposal s := 4 * (s : Time)
+  vote s := 4 * (s : Time) + 1
+  early s := 4 * (s : Time) + 2
+  freeze s := 4 * (s : Time) + 3
+  release s := 4 * (s : Time) + 5
+  gate s := 4 * (s : Time) + 6
+  action r := 8 * (r : Time) + 6
+
+private theorem d5cTimingLaws : FGTimingLaws d5cTiming where
+  delta_pos := by decide
+  rounds := by decide
+  proposal_eq s := by simp [d5cTiming]
+  vote_eq _ := rfl
+  early_eq _ := rfl
+  freeze_eq _ := rfl
+  release_eq _ := rfl
+  gate_eq _ := rfl
+  action_eq r := by simp [d5cTiming]; ring
+
+#print axioms d5cTimingLaws
+
+-- POP-5 local fixture support ends here.
+
+end Fixture
 
 /-! Generic ordinary-event-fold fixture. Both honest runtime nodes tick at every time
 0..46. The FG seat belongs to 9; proposals at slots 2, 5 and 7 belong to 7. The low
