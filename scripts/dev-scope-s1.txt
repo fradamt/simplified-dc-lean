@@ -16,6 +16,7 @@ AvailableChainFGCompose.Statements.HolderClient
 AvailableChainFGCompose.Proofs.HolderClient
 AvailableChainFGCompose.Proofs.OrdinaryHolderClient
 AvailableChainFGCompose.Tests.PopulationService
+AvailableChainFGCompose.Tests.PopulationServiceAxioms
 AvailableChainFGCompose.Tests.X1c
 AvailableChainFGCompose.Statements.ExecutionAcceptance
 AvailableChainFGCompose.Proofs.ExecutionAcceptance
