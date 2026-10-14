@@ -59,5 +59,15 @@ private theorem receipt_premises_sat (t : Time) (ht : t ∈ ({20, 21} : Finset T
   rcases ht' with rfl | rfl <;> decide +kernel
 
 #print axioms receipt_premises_sat
+
+/-- A receipt exactly at the deadline is excluded solely by the strict time cut. -/
+private theorem receipt_deadline_strict :
+    Gen.V2.Duty.HoldsBefore env (run 20) (fun st => st = true) 21 7 ∧
+    ¬ Gen.V2.Duty.HoldsBefore env (run 21) (fun st => st = true) 21 7 ∧
+    Gen.V2.Duty.HoldsBefore env (run 21) (fun st => st = true) 22 7 := by
+  unfold Gen.V2.Duty.HoldsBefore
+  decide +kernel
+
+#print axioms receipt_deadline_strict
 end AvailableChain.FGCompose.Tests.PopulationAgeDeadline
 end
