@@ -116,5 +116,41 @@ private theorem height_premises_sat : FGHeightLaws (electorate 1) height where
 
 #print axioms height_premises_sat
 
+private theorem mixed_premises_sat :
+    run.honest = {7, 9} ∧ run.horizon = 20 ∧
+    run.events = [.tick 9 6, .tick 7 6, .tick 7 8, .tick 7 12] ∧
+    (∀ i, safetyHolder reads run i = 9) ∧ FGHonestSeats reads run = {0} ∧
+    protocol.objSelfVisible (reads.encode row) = true ∧
+    reads.decodeObject (reads.encode row) = some row ∧
+    HonestRowAt reads env run timing 0 9 0 row ∧
+    (∀ x ∈ run.honest,
+      actionSourceFG core env run timing x 0 = some (some .genesis)) ∧
+    OpeningEntry core env run height timing 0 1 ∧
+    OpeningCoveredFG core reads env run height timing Row.height_pair
+      (FGHonestSeats reads run) 0 .genesis := by
+  refine ⟨rfl, rfl, rfl, fun _ => rfl, ?_, rfl, rfl, ?_, ?_, ?_, ?_⟩
+  · ext i
+    have hi : i = 0 := Subsingleton.elim _ _
+    subst i
+    simp [FGHonestSeats_def, safetyHolder, reads, run]
+  · unfold HonestRowAt
+    decide +kernel
+  · intro x hx
+    have hx' : x = 7 ∨ x = 9 := by simpa using hx
+    rcases hx' with rfl | rfl <;> decide +kernel
+  · exact ⟨genesisRoot, fun _ _ _ _ => ⟨rfl, rfl⟩⟩
+  · intro i _
+    have hi : i = 0 := Subsingleton.elim _ _
+    subst i
+    refine ⟨.genesis, RecordOnce.initial, 0, 0, row, ?_, ?_, ?_, ?_, le_rfl, ?_, rfl⟩
+    · rfl
+    · decide +kernel
+    · decide
+    · decide
+    · unfold HonestRowAt
+      decide +kernel
+
+#print axioms mixed_premises_sat
+
 end AvailableChain.FGCompose.Tests.PopulationPromotion
 end
