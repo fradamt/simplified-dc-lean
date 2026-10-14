@@ -1275,6 +1275,54 @@ private theorem geometry_premises_sat (top : Bool) :
 
 #print axioms geometry_premises_sat
 
+private theorem execution_premises_sat :
+    V2.D.ScheduleWellFormed env run ∧ FGHonestSeats reads run = {0} ∧
+    c5E.weightOf (historyFaulty reads run) < c5E.q ∧
+    HonestRowAt reads env run d5cTiming 13 9 0 firstRow ∧
+    HonestRowAt reads env run d5cTiming 61 9 3 nextRow ∧
+    protocol.objSelfVisible (reads.encode firstRow) = true ∧
+    reads.decodeObject (reads.encode firstRow) = some firstRow ∧
+    (∀ x ∈ run.honest, ∀ r ≤ 5,
+      postClock env run x (d5cTiming.action r) =
+        some (d5cTiming.action r, decide (x = 7 ∧ 0 < r))) ∧
+    (∀ x ∈ run.honest, ∀ s ≤ 10,
+      postClock env run x (d5cTiming.vote s) =
+        some (d5cTiming.vote s, decide (x = 7 ∧ 2 ≤ s))) := by
+  refine ⟨?_, ?_, ?_, ?_, ?_, rfl, rfl, ?_, ?_⟩
+  · refine ⟨by decide, by decide, by decide, by decide, by decide, ?_, ?_⟩
+    · intro x t ht
+      dsimp only [run] at ht
+      obtain ⟨k, _, hk⟩ := List.mem_flatMap.mp ht
+      have hk' : (x = 7 ∧ t = (k : Time)) ∨ (x = 9 ∧ t = (k : Time)) := by
+        simpa only [List.mem_cons, List.mem_singleton, List.not_mem_nil, or_false,
+          V2.Event.tick.injEq] using hk
+      rcases hk' with ⟨_, rfl⟩ | ⟨_, rfl⟩ <;> exact ⟨k, by simp⟩
+    · intro x hx t ht _ hh _
+      obtain ⟨k, rfl⟩ := ht
+      have hk : k < 47 := by change (k : Int) * 1 ≤ 46 at hh; omega
+      have hx' : x = 7 ∨ x = 9 := by simpa using hx
+      dsimp only [run, env]
+      apply List.mem_flatMap.mpr
+      refine ⟨k, List.mem_range.mpr hk, ?_⟩
+      rcases hx' with rfl | rfl <;> simp
+  · ext i
+    have hi : i = 0 := Subsingleton.elim _ _
+    subst i
+    decide
+  · decide
+  · unfold HonestRowAt
+    decide +kernel
+  · unfold HonestRowAt
+    decide +kernel
+  · intro x hx r hr
+    have hx' : x = 7 ∨ x = 9 := by simpa using hx
+    rcases hx' with rfl | rfl <;> interval_cases r <;> decide +kernel
+  · intro x hx s hs
+    have hx' : x = 7 ∨ x = 9 := by simpa using hx
+    rcases hx' with rfl | rfl <;> interval_cases s <;> decide +kernel
+
+#print axioms execution_premises_sat
+
 end High
 
 end AvailableChain.FGCompose.Tests.PopulationSearchPhase
