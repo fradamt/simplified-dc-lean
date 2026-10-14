@@ -66,6 +66,7 @@ with tempfile.TemporaryDirectory(prefix="proof-eqns-neg.", dir=REPO / ".lake") a
     private_repo = root / 'repo'
     private_repo.mkdir()
     command(['rsync', '-a', '--exclude=/.lake', '--exclude=/.git',
+                    '--exclude=/AGENTS.md', '--exclude=/state.md', '--exclude=/log.md',
                     '--exclude=/claude-files', str(REPO) + '/', str(private_repo) + '/'],
                    check=True)
     check_lean = lean[:-1] + ['bash', '-c', 'cd "$1" || exit; shift; exec lean "$@"',

@@ -27,7 +27,8 @@ set -euo pipefail
 # copy; no gate/control/timing directory can enter through rsync or APFS clone.
 copy_repo() {
   local source=$1 target=$2 mode=${3:-auto} part
-  rsync -a --exclude=/.lake --exclude=/.git "$source/" "$target/"
+  rsync -a --exclude=/.lake --exclude=/.git --exclude=/AGENTS.md \
+    --exclude=/state.md --exclude=/log.md --exclude=/claude-files "$source/" "$target/"
   mkdir -p "$target/.lake"
   for part in build config; do
     [ -d "$source/.lake/$part" ] || continue

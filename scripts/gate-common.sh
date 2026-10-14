@@ -324,7 +324,8 @@ gate_build() (
 # No hard links or writable package symlinks: a failed control cannot affect readers.
 gate_copy_control_tree() {
   local source=$1 target=$2 part
-  rsync -a --exclude=/.lake --exclude=/.git "$source/" "$target/"
+  rsync -a --exclude=/.lake --exclude=/.git --exclude=/AGENTS.md \
+    --exclude=/state.md --exclude=/log.md --exclude=/claude-files "$source/" "$target/"
   mkdir -p "$target/.lake"
   for part in build config packages; do
     [ -d "$source/.lake/$part" ] || continue
