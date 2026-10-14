@@ -340,7 +340,8 @@ private theorem nonholder_frontier_premises_sat :
     frontierAtIdx maximumCore env missingRun 14 = 2 ∧
     (FGHonestSeats missingReads missingRun).sup
       (fun i => (maximumCore.core
-        (missingRun.stateBefore env 14 (safetyHolder missingReads missingRun i))).fg.h_max) = 1 := by
+        (missingRun.stateBefore env 14 (safetyHolder missingReads missingRun i))).fg.h_max) =
+        1 := by
   refine ⟨rfl, ?_, rfl, ?_, ?_, ?_, ?_, ?_⟩
   · ext i
     have hi : i = 0 := Subsingleton.elim _ _
