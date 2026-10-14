@@ -2,15 +2,14 @@ module
 import Mathlib.Tactic.IntervalCases
 import AvailableChainFGCompose.Proofs.Population.FrontierSearchBridges
 public import AvailableChainFGCompose.Proofs.Population.FrontierSearchRepair
-import all AvailableChainFGCompose.Tests.PopulationService
 
 set_option linter.privateModule false
 
 noncomputable section
 namespace AvailableChain.FGCompose.Tests.PopulationSearchSeed
 open AvailableChain.SimplexFG AvailableChain.KitFG
-open AvailableChain.FGCompose.Tests.PopulationService
 
+-- Private fixture support copied from the accepted PopulationService controls.
 namespace Fixture
 
 private abbrev electorate (n : Nat) : Electorate (Fin n) :=
@@ -309,9 +308,9 @@ private theorem frozen_premises_sat :
 
 #print axioms frozen_premises_sat
 
--- POP-5 local fixture support ends here.
-
 end Fixture
+
+open Fixture
 
 /-! Generic ordinary-event-fold control: the exact POP-4 mixed run, now consumed by
 POP-5's saved-seed theorem. Its proposer is 7; only holder 9 releases an FG row. -/

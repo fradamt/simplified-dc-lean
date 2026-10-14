@@ -2,15 +2,14 @@ module
 import AvailableChainFGCompose.Proofs.Finality.History -- shake: keep (window views)
 import AvailableChainFGCompose.Proofs.Population.FrontierSearchGap
 import all AvailableChainFGCompose.Proofs.Population.FrontierSearchTop
-import all AvailableChainFGCompose.Tests.P0d5c
 
 set_option linter.privateModule false
 
 noncomputable section
 namespace AvailableChain.FGCompose.Tests.PopulationSearchPhase
 open AvailableChain.SimplexFG AvailableChain.KitFG
-open AvailableChain.FGCompose.Tests.P0d5c
 
+-- Private fixture support copied from the accepted P0d5c controls.
 namespace Fixture
 
 private def d5cTiming : FGTiming where
@@ -247,9 +246,9 @@ private theorem c5H_pos (B : FGBlock (Fin 1)) : 1 ≤ (c5H B).h := by
 
 #print axioms c5H_pos
 
--- POP-5 local fixture support ends here.
-
 end Fixture
+
+open Fixture
 
 /-! Generic ordinary-event-fold fixture. Both honest runtime nodes tick at every time
 0..46. The FG seat belongs to 9; proposals at slots 2, 5 and 7 belong to 7. The low
