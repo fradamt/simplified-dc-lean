@@ -680,5 +680,54 @@ private theorem mixed_premises_sat : ∃ m : middleType run,
 
 #print axioms mixed_premises_sat
 
+private theorem action_premises_sat : ∃ m : middleType run,
+    (m.A₀ = aBlock ∧ m.B = bBlock ∧ m.U = bBlock ∧ m.X_D = dBlock ∧
+      m.cD = 6 ∧ m.d = 2) ∧
+    KernelActionSupplyFG_W core reads obs timing (env Nat) run interface history electorate m := by
+  obtain ⟨m, hA, hB, hU, hD, hc, hd⟩ := mixed_premises_sat
+  have honestRead (x : Nat) (nd : Time) (hnd : postClock (env Nat) run x 30 = some nd) :
+      x = 7 ∨ x = 9 := by
+    unfold postClock preTick at hnd
+    cases hi : V2.D.Run.tickIdx? run x 30 with
+    | none => simp only [hi, Option.map_none] at hnd; contradiction
+    | some j =>
+      have he := V2.D.Run.tickIdx?_spec hi
+      have hm := List.mem_of_getElem? he
+      have hx := schedule_premises_sat.honest_only _ hm
+      change x ∈ run.honest at hx
+      simpa using hx
+  refine ⟨m, ⟨hA, hB, hU, hD, hc, hd⟩, ?_⟩
+  constructor
+  · intro x nd hnd
+    change postClock (env Nat) run x 30 = some nd at hnd
+    have hx := honestRead x nd hnd
+    rcases hx with rfl | rfl
+    all_goals
+      change some 30 = some nd at hnd
+      obtain rfl := Option.some.inj hnd
+      decide +kernel
+  · intro x hx
+    rw [hc, hD]
+    have hx' : x = 7 ∨ x = 9 := by simpa using hx
+    rcases hx' with rfl | rfl
+    all_goals
+      constructor
+      · intro _; exact ⟨30, by decide +kernel, rfl⟩
+      · intro h; change (6 : Nat) < 6 at h; omega
+  · intro x nd hx hnd
+    have hx' : x = 7 ∨ x = 9 := by simpa using hx
+    rcases hx' with rfl | rfl
+    all_goals
+      change some 30 = some nd at hnd
+      obtain rfl := Option.some.inj hnd
+      exact ⟨dBlock, rfl, by decide⟩
+  · intro x nd _ _ H hH
+    have he : dBlock = H := Option.some.inj hH
+    subst H
+    rw [hD]
+    decide
+
+#print axioms action_premises_sat
+
 end AvailableChain.FGCompose.Tests.PopulationRows
 end
