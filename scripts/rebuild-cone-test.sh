@@ -40,7 +40,7 @@ copy_repo() {
   ln -s "$source/.lake/packages" "$target/.lake/packages"
 }
 
-if [ "${1:-}" = --controls ]; then
+if [ "${1:-}" = --controls ] || [ "${1:-}" = --copy-selftest ]; then
   TMP=$(mktemp -d "${TMPDIR:-/tmp}/cone-copy-control.XXXXXX")
   trap 'rm -rf "$TMP"' EXIT
   for mode in auto rsync; do
@@ -103,7 +103,7 @@ fi
 [ $# -ge 1 ] && [ $# -le 2 ] || { echo "usage: $0 <Module.Name> [<toolchain>]" >&2; exit 2; }
 REPO=$(cd "${CONE_REPO:-$(dirname "$0")/..}" && pwd); MOD=$1; TC=${2:-}
 LAKE=(lake); [ -n "$TC" ] && LAKE=(elan run "$TC" lake)
-REL=$(gate_source_path "$MOD")
+REL=$(python3 -B "$REPO/scripts/source_layout.py" --root "$REPO" path "$MOD")
 [ -f "$REPO/$REL" ] || { echo "no file $REPO/$REL" >&2; exit 2; }
 TMP=$(mktemp -d "${TMPDIR:-/tmp}/cone-test.XXXXXX")
 trap 'rm -rf "$TMP"' EXIT
@@ -154,7 +154,9 @@ if [ $RC -ne 0 ]; then
   echo "edited build failed" >&2; exit 2
 fi
 BUILT=$(echo "$OUT" | sed -nE 's/.*Built ([A-Za-z0-9_.«»]+).*/\1/p' |
-  while read -r m; do [ -f "${m//.//}.lean" ] && echo "$m"; done)
+  while read -r m; do
+    path=$(python3 -B scripts/source_layout.py path "$m") && [ -f "$path" ] && echo "$m"
+  done)
 N=$(echo "$BUILT" | grep -c . || true)
 echo "rebuilt $N module(s):"; echo "$BUILT" | sed 's/^/  /'
 [ "$N" -eq 1 ] && { echo "PASS: a proof-only edit in $MOD rebuilt one module"; exit 0; }
