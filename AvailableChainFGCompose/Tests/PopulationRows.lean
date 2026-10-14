@@ -976,5 +976,188 @@ private theorem frozen_batch_premises_sat :
 
 #print axioms frozen_batch_premises_sat
 
+private theorem frozen_premises_sat : ∃ m : middleType frozenRun,
+    m.A₀ = aBlock ∧ m.B = bBlock ∧ m.U = bBlock ∧ m.X_D = dBlock ∧
+    m.cD = 6 ∧ m.d = 2 := by
+  have first : ∀ j x q a h t, HonestRowAt reads (env (Fin 1)) frozenRun timing j x q a →
+      historyRowHeight reads history a = some h → 3 ≤ h → eventTime frozenRun j = some t →
+      timing.action 2 ≤ t := by
+    intro j x q a h t ha hh hy ht
+    rcases frozen_rows j x q a ha with he | he | he | he
+    all_goals
+      obtain ⟨rfl, rfl, rfl, rfl⟩ := he
+      simp only [historyRowHeight, decode, Option.map_some,
+        Option.getD_some, Option.some.injEq] at hh
+      obtain rfl := hh.symm
+      have htime : _ = t := Option.some.inj ht
+      subst t
+      first | omega | decide
+  have second : ∀ j x q a h t, HonestRowAt reads (env (Fin 1)) frozenRun timing j x q a →
+      historyRowHeight reads history a = some h → 4 ≤ h → eventTime frozenRun j = some t →
+      timing.action 3 ≤ t := by
+    intro j x q a h t ha hh hy ht
+    rcases frozen_rows j x q a ha with he | he | he | he
+    all_goals
+      obtain ⟨rfl, rfl, rfl, rfl⟩ := he
+      simp only [historyRowHeight, decode, Option.map_some,
+        Option.getD_some, Option.some.injEq] at hh
+      obtain rfl := hh.symm
+      have htime : _ = t := Option.some.inj ht
+      subst t
+      first | omega | decide
+  have noFin : ∀ j x q a h t, HonestRowAt reads (env (Fin 1)) frozenRun timing j x q a →
+      historyFinHeight reads history a = some h → 3 ≤ h → eventTime frozenRun j = some t →
+      timing.action 3 ≤ t := by
+    intro j x q a h t ha hh _ ht
+    rcases frozen_rows j x q a ha with he | he | he | he
+    all_goals
+      obtain ⟨rfl, rfl, rfl, rfl⟩ := he
+      cases hh
+      all_goals exact le_of_eq (Option.some.inj ht)
+  have chains : ChainRowsBefore core (env (Fin 1)) frozenRun aBlock 14 ∧
+      ChainRowsBefore core (env (Fin 1)) frozenRun bBlock 22 ∧
+      ChainRowsBefore core (env (Fin 1)) frozenRun dBlock 30 := by
+    refine ⟨?_, ?_, ?_⟩
+    · intro W hp row hr
+      simp only [FGBlock.Preceq, FGBlock.preceq, Bool.or_eq_true,
+        decide_eq_true_eq] at hp
+      rcases hp with rfl | rfl
+      · exact ⟨0, 1, by decide, by decide, by unfold Gen.V2.Duty.HoldsBefore; decide +kernel⟩
+      · cases hr
+    · intro W hp row hr
+      simp only [FGBlock.Preceq, FGBlock.preceq, Bool.or_eq_true,
+        decide_eq_true_eq] at hp
+      rcases hp with rfl | rfl | rfl
+      · exact ⟨0, 17, by decide, by decide, by unfold Gen.V2.Duty.HoldsBefore; decide +kernel⟩
+      · exact ⟨0, 1, by decide, by decide, by unfold Gen.V2.Duty.HoldsBefore; decide +kernel⟩
+      · cases hr
+    · intro W hp row hr
+      simp only [FGBlock.Preceq, FGBlock.preceq, Bool.or_eq_true,
+        decide_eq_true_eq] at hp
+      rcases hp with rfl | rfl | rfl | rfl
+      · exact ⟨0, 25, by decide, by decide, by unfold Gen.V2.Duty.HoldsBefore; decide +kernel⟩
+      · exact ⟨0, 17, by decide, by decide, by unfold Gen.V2.Duty.HoldsBefore; decide +kernel⟩
+      · exact ⟨0, 1, by decide, by decide, by unfold Gen.V2.Duty.HoldsBefore; decide +kernel⟩
+      · cases hr
+  have capB : ∀ i x W, i ≤ frozenRun.events.length → i ≤ afterTicksIdx frozenRun 22 →
+      HeldAt core (env (Fin 1)) frozenRun i x W → (obs.height W).h ≤ 3 := by
+    intro i x W _ hi ⟨hx, hW⟩
+    have hx' : x = (0 : Fin 1) := Subsingleton.elim _ _
+    have hib : i ≤ 12 := hi
+    have ht : V2.D.Run.stateBefore (env (Fin 1)) frozenRun i x < 24 := by
+      rcases hx' with rfl
+      interval_cases i <;> decide +kernel
+    change W ∈ (if V2.D.Run.stateBefore (env (Fin 1)) frozenRun i x < 16 then
+      ({FGBlock.genesis, aBlock} :
+        Finset (FGBlock (Fin 1))) else if V2.D.Run.stateBefore (env (Fin 1)) frozenRun i x < 24 then
+      ({FGBlock.genesis, aBlock, bBlock} :
+        Finset (FGBlock (Fin 1))) else ({FGBlock.genesis, aBlock, bBlock, dBlock} :
+        Finset (FGBlock (Fin 1)))) at hW
+    rw [ite_eq_left ht] at hW
+    split_ifs at hW
+    all_goals
+      simp only [Finset.mem_insert, Finset.mem_singleton] at hW
+      rcases hW with rfl | rfl | rfl <;> decide +kernel
+  have capFinal : ∀ i x W, HeldAt core (env (Fin 1)) frozenRun i x W →
+      (obs.height W).h ≤ 4 ∧ (obs.finality W).h_F < 3 := by
+    intro i x W ⟨_, hW⟩
+    change W ∈ (if V2.D.Run.stateBefore (env (Fin 1)) frozenRun i x < 16 then
+      ({FGBlock.genesis, aBlock} :
+        Finset (FGBlock (Fin 1))) else if V2.D.Run.stateBefore (env (Fin 1)) frozenRun i x < 24 then
+      ({FGBlock.genesis, aBlock, bBlock} :
+        Finset (FGBlock (Fin 1))) else ({FGBlock.genesis, aBlock, bBlock, dBlock} :
+        Finset (FGBlock (Fin 1)))) at hW
+    split_ifs at hW
+    all_goals
+      simp only [Finset.mem_insert, Finset.mem_singleton] at hW
+      rcases hW with rfl | rfl | rfl | rfl <;> constructor <;> decide +kernel
+  let m : middleType frozenRun := {
+    A₀ := aBlock
+    B := bBlock
+    U := bBlock
+    X_D := dBlock
+    cD := 6
+    d := 2
+    opening := ⟨⟨by decide, by decide⟩, prop aBlock, ⟨4, rfl, by decide +kernel⟩, rfl⟩
+    eraseA := rfl
+    carrierA := ⟨prop aBlock, aBlock, 8, .genesis,
+      ⟨4, rfl, by decide +kernel⟩, rfl, rfl, by decide +kernel, by decide +kernel, rfl⟩
+    carrierB := ⟨prop bBlock, bBlock, 16, aBlock,
+      ⟨8, rfl, by decide +kernel⟩, rfl, rfl, by decide +kernel, by decide +kernel, by decide⟩
+    carrierD := ⟨prop dBlock, dBlock, 24, bBlock,
+      ⟨12, rfl, by decide +kernel⟩, rfl, rfl, by decide +kernel, by decide +kernel, by decide⟩
+    honestB := ⟨⟨by decide, by decide⟩, prop bBlock, ⟨8, rfl, by decide +kernel⟩, rfl⟩
+    honestD := ⟨⟨by decide, by decide⟩, prop dBlock, ⟨12, rfl, by decide +kernel⟩, rfl⟩
+    slotA := rfl
+    slotB := rfl
+    slotD := rfl
+    earlySlot := ⟨by decide, by decide⟩
+    heightA := block_premises_sat.1
+    highA := by decide
+    heightB := block_premises_sat.2.1
+    entryB := block_premises_sat.2.2.1
+    freshEntry := ⟨by decide +kernel, by decide +kernel⟩
+    strictAU := ⟨by decide, by decide⟩
+    pathUB := preceq_refl _
+    freshSlot := ⟨by decide, by decide⟩
+    parentAB := preceq_refl _
+    parentBD := preceq_refl _
+    sourceA := by
+      intro x hx
+      have hx' : x = (0 : Fin 1) := Subsingleton.elim _ _
+      rcases hx' with rfl
+      decide +kernel
+    sourceB := by
+      intro x hx
+      have hx' : x = (0 : Fin 1) := Subsingleton.elim _ _
+      rcases hx' with rfl
+      decide +kernel
+    serviceD := ⟨fun _ x _ _ => rfl, fun _ x _ _ => ⟨rfl, fun _ _ => rfl⟩⟩
+    heightD := by decide +kernel
+    justifiedD := by decide +kernel
+    justifiedHeightD := by decide +kernel
+    pendingD := by decide +kernel
+    retainedD := block_premises_sat.2.2.2.2.2.2.2
+    noFirstHeight := first
+    noSecondHeight := second
+    noEarlyFinality := noFin
+    chainA := chains.1
+    chainB := chains.2.1
+    chainD := chains.2.2
+    freshD := ⟨frozen_schedule_premises_sat, by change (0 : Nat) < 1; decide,
+      30, le_rfl, chains.2.2, second, noFin⟩
+    noMixedD := by
+      intro W hp
+      change FGBlock.Preceq W bBlock at hp
+      simp only [FGBlock.Preceq, FGBlock.preceq, Bool.or_eq_true,
+        decide_eq_true_eq] at hp
+      rcases hp with rfl | rfl | rfl <;> unfold MixedCross <;> decide +kernel
+    batchB := fun _ => frozen_batch_premises_sat.1
+    batchD := fun _ => frozen_batch_premises_sat.2
+    targetsB := by
+      intro i _
+      have hi : i = 0 := Subsingleton.elim _ _
+      subst i
+      exact ⟨11, wire row2, ⟨by decide, rfl, by decide +kernel⟩,
+        ⟨rfl, 0, rfl, rfl⟩, rfl⟩
+    actionsInRun := by decide
+    capThroughBAction := capB
+    capThroughFinalAction := fun i x W _ _ h => (capFinal i x W h).1
+    finalityThroughFinalAction := fun i x W _ _ h => (capFinal i x W h).2
+    heldDAtFinalAction := by
+      intro x hx
+      have hx' : x = (0 : Fin 1) := Subsingleton.elim _ _
+      rcases hx' with rfl
+      decide +kernel
+    heldAAtEnd := by
+      intro x hx
+      have hx' : x = (0 : Fin 1) := Subsingleton.elim _ _
+      rcases hx' with rfl
+      decide +kernel
+  }
+  exact ⟨m, rfl, rfl, rfl, rfl, rfl, rfl⟩
+
+#print axioms frozen_premises_sat
+
 end AvailableChain.FGCompose.Tests.PopulationRows
 end
