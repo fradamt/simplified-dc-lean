@@ -62,7 +62,8 @@ private abbrev reads : FGSafetyReads protocol 1 (Row (Fin 1)) where
   inputs := fun _ => (some .genesis, ⟨0, genesisRoot, 0⟩)
   enabled := fun _ => true
   finalizedOut := fun _ => .genesis
-private abbrev env : Generic.Env Nat := ⟨1, by decide, 0, by decide, fun _ _ => true⟩
+private abbrev env : Generic.Env Nat :=
+  ⟨1, by decide, 0, by decide, fun x t => decide (t = 6 ∨ (x = 7 ∧ t = 16))⟩
 private abbrev run : V2.D.Run Nat protocol where
   honest := {7, 9}
   horizon := 30
@@ -230,5 +231,28 @@ private theorem nonholder_source_rejected :
       cases he
 
 #print axioms nonholder_source_rejected
+
+private theorem proposal_unique {s : Slot} {X : FGBlock (Fin 1)}
+    (h : HonestProposal env run iface s (erase X)) : s = 4 ∧ X = child := by
+  obtain ⟨_, o, ⟨j, hj, ho⟩, hb⟩ := h
+  have hjlt : j < 3 := (List.getElem?_eq_some_iff.mp hj).1
+  interval_cases j
+  · have ht : (6 : Int) = 4 * (s : Int) :=
+      Option.some.inj (congrArg (fun e => e.map V2.Event.time) hj)
+    omega
+  · change o ∈ [] at ho
+    cases ho
+  · have ht : (16 : Int) = 4 * (s : Int) :=
+      Option.some.inj (congrArg (fun e => e.map V2.Event.time) hj)
+    have hs : s = 4 := by
+      apply Int.ofNat_injective
+      change (s : Int) = 4
+      linarith only [ht]
+    change o ∈ [⟨.seat 16 0, .inr child⟩] at ho
+    have ho' := List.mem_singleton.mp ho
+    subst o
+    exact ⟨hs, erase_injective (Option.some.inj hb).symm⟩
+
+#print axioms proposal_unique
 end AvailableChain.FGCompose.Tests.PopulationAge
 end
