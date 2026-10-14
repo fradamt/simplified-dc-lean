@@ -1515,5 +1515,21 @@ private theorem missing_row_premises_sat :
 
 #print axioms missing_row_premises_sat
 
+private theorem missing_holder_row :
+    ¬ ∃ rows : Fin 1 → protocol.Object,
+      FreshFinalityRows_W core reads obs timing missingEnv run history electorate
+        (fun _ => true) 3 3 bBlock {0} rows := by
+  rintro ⟨rows, _, _, hr⟩
+  obtain ⟨j, _, ha, _⟩ := hr 0 (by simp)
+  have he := ha.2.1
+  have eqj : j = 30 := (List.Nodup.getElem?_inj
+    (List.getElem?_eq_some_iff.mp he).1 schedule_premises_sat.nodup).mp he
+  subst j
+  have hw := ha.2.2
+  change rows 0 ∈ ([] : List protocol.Object) at hw
+  cases hw
+
+#print axioms missing_holder_row
+
 end AvailableChain.FGCompose.Tests.PopulationRowsControls
 end
