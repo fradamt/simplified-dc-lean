@@ -1,6 +1,7 @@
 module
-public import AvailableChainFGCompose.Proofs.Population.FrontierSearchAge
-public import AvailableChainFGCompose.Proofs.Population.PromotionSourceBridges
+public import AvailableChainFGCompose.Proofs.Population.PromotionAge -- shake: keep (audit)
+public import AvailableChainFGCompose.Proofs.Population.FrontierSearchAge -- shake: keep (audit)
+public import AvailableChainFGCompose.Proofs.Population.PromotionSourceBridges -- shake: keep (audit)
 
 #print axioms AvailableChain.FGCompose.PromotionSourceAtFG
 #print axioms AvailableChain.FGCompose.PromotionSourceAtFG.mk

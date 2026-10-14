@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGCompose.Statements.FrontierMaturity
+public import AvailableChainFGCompose.Statements.Promotion
 
 @[expose] public section
 

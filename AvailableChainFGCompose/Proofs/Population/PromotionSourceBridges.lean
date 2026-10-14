@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGCompose.Statements.FrontierMaturity
 public import AvailableChainFGCompose.Statements.Population.FrontierMaturity
 public import AvailableChainFGCompose.Statements.Population.Seats
 

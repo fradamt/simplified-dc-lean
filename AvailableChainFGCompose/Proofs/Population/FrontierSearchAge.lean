@@ -1,5 +1,7 @@
 module
-public import AvailableChainFGCompose.Proofs.Population.PromotionAge
+public import AvailableChainFGCompose.Proofs.Healing.PromotionAge
+public import AvailableChainFGCompose.Proofs.Population.Promotion
+public import AvailableChainFGCompose.Proofs.Population.PromotionSource
 
 public section
 

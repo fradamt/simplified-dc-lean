@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGCompose.Statements.FrontierMaturity
+public import AvailableChainFGCompose.Statements.Channels -- shake: keep (Compose test scope)
 
 set_option linter.privateModule false
 

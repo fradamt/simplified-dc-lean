@@ -1,7 +1,5 @@
 module
 public import AvailableChainFGCompose.Proofs.Population.PromotionSource
-public import AvailableChainFGCompose.Proofs.Healing.PromotionRows
-public import AvailableChainFGCompose.Proofs.Healing.PromotionArithmetic
 
 set_option linter.privateModule false
 
