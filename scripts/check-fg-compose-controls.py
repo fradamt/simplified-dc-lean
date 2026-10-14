@@ -243,8 +243,6 @@ with tempfile.TemporaryDirectory(prefix='compose-controls.', dir=REPO / '.lake')
 
     # The compiled GEN-FIRST checker must see the new library by lakefile scope.
     tree, env = fixture('gen-first')
-    with (tree / 'lakefile.toml').open('a') as out:
-        out.write('[[lean_lib]]\nname = "AvailableChainKitFG"\n')
     compile_module(tree, env, 'AvailableChainKitFG',
                    'module\npublic section\ndef retainedScope (n : Nat) : Nat := n + 1\n')
     compile_module(tree, env, 'AvailableChainFGCompose', 'module\n')
