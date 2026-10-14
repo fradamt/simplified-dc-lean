@@ -9087,4 +9087,14 @@
             'AvailableChain.FGCompose.frontier_hg3_topJ_holder',
         ),
     },
+    'AvailableChainFGCompose.Tests.PopulationTailAxioms': {
+        'AvailableChainFGCompose.Proofs.Population.FrontierSearchRise': (
+            'AvailableChain.FGCompose.healing_frontierTail_holder',
+            'AvailableChain.FGCompose.healing_frontierTail_rise_holder',
+            'AvailableChain.FGCompose.healing_frontierTail_rise_of_seed_holder',
+        ),
+        'AvailableChainFGCompose.Proofs.Population.FrontierSearchTail': (
+            'AvailableChain.FGCompose.healing_frontierTail_row_holder',
+        ),
+    },
 }
