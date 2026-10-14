@@ -61,5 +61,27 @@ theorem rowsPrem_pending_head_holder (height : FGHeightLaws Ef O.height)
   · intro B hB
     exact m.finalityThroughFinalAction _ x B hi le_rfl ⟨hx, by rw [hread]; exact hB⟩
 
+/-- The opening/covered supplier produces an actual source at the middle action. -/
+theorem rowsPrem_action_source_holder (CL : FGCoreLaws R) (height : FGHeightLaws Ef O.height)
+    (read : ∀ x nd, postClock E rho x (T.action (pt.r + 2)) = some nd →
+      (R.core (V2.D.Run.stateBefore E rho (afterTicksIdx rho (T.action (pt.r + 2))) x)).fg =
+        (R.core nd).fg)
+    (service : ∀ x, x ∈ rho.honest → FGSourceService R E rho x (T.action (pt.r + 2))
+      m.cD ((pt.r + 2) * T.roundSlots) m.X_D) :
+    ∀ x ∈ rho.honest, ∃ nd C,
+      postClock E rho x (T.action (pt.r + 2)) = some nd ∧ R.source nd = some C ∧
+      FGBlock.Preceq m.X_D C ∧ (O.height C).h = m.d + 2 ∧
+      (O.height C).T_h = (O.height m.X_D).T_h := by
+  intro x hx
+  apply finality_action_source R O T E rho CL Ef height x (pt.r + 2) (m.d + 1)
+    m.cD m.X_D (service x hx) m.earlySlot.2 m.heightD
+  intro nd hnd B hB
+  exact m.capThroughFinalAction _ x B (List.length_filter_le _ _) le_rfl
+    ⟨hx, by
+      change B ∈ (R.core (V2.D.Run.stateBefore E rho
+        (afterTicksIdx rho (T.action (pt.r + 2))) x)).fg.TF
+      rw [read x nd hnd]
+      exact hB⟩
+
 end AvailableChain.FGCompose
 end
