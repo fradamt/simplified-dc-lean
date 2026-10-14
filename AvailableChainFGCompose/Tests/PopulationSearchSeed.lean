@@ -1,6 +1,6 @@
 module
 import Mathlib.Tactic.IntervalCases
-import AvailableChainFGCompose.Proofs.Population.FrontierSearchBridges
+public import AvailableChainFGCompose.Proofs.Population.FrontierSearchBridges
 public import AvailableChainFGCompose.Proofs.Population.FrontierSearchRepair
 
 set_option linter.privateModule false
