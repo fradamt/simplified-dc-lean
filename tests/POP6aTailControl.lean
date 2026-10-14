@@ -125,5 +125,21 @@ private theorem mixed_premises_sat :
 
 #print axioms mixed_premises_sat
 
+private theorem nonholder_no_encoded (j : Nat) (t : Time)
+    (hj : missingRun.events[j]? = some (.tick 7 t)) (a : Row (Fin 1)) :
+    missingReads.encode a ∉ V2.D.Run.emitsAt env missingRun j := by
+  have table : ∀ k : Fin 38, missingRun.events[k.val]?.map V2.Event.node = some 7 →
+      (V2.D.Run.emitsAt env missingRun k.val).all
+        (fun o => decide (o.auth ≠ .seat 6 0)) = true := by
+    decide +kernel
+  have hlen : j < 38 := (List.getElem?_eq_some_iff.mp hj).1
+  have hnode : missingRun.events[j]?.map V2.Event.node = some 7 := by rw [hj]; rfl
+  have hsafe := table ⟨j, hlen⟩ hnode
+  intro ha
+  have hn := of_decide_eq_true ((List.all_eq_true.mp hsafe) (missingReads.encode a) ha)
+  exact hn rfl
+
+#print axioms nonholder_no_encoded
+
 end AvailableChain.FGCompose.Tests.POP6aTail
 end
