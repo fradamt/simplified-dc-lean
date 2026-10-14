@@ -601,6 +601,7 @@ AvailableChainFGCompose.Proofs.Population.PromotionBridges
 AvailableChainFGCompose.Proofs.Population.PromotionRows
 AvailableChainFGCompose.Statements.Population.Promotion
 AvailableChainFGCompose.Tests.PopulationPromotion
+AvailableChainFGCompose.Tests.PopulationPromotionAxioms
 [DEFERRED]
 AvailableChainFGSAProofs.Proofs.Shared.Claims P-ShA
 
