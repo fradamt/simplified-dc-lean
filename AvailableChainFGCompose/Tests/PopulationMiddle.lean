@@ -1283,5 +1283,70 @@ private theorem frozen_bridge :
 
 #print axioms frozen_bridge
 
+private abbrev twoProtocol : V2.ProtocolSpecD Unit where
+  State := Time
+  Label := Nat
+  Duty := Time
+  signLabel t := if t % 8 = 6 then 0 else t.toNat + 1
+  seats _ := 2
+  Payload := FGBlock (Fin 1) ⊕ Row (Fin 1)
+  Durable := Time
+  init := 0
+  clock _ t := t
+  actTime := id
+  duties t := [t]
+  duties_spec := by intro d t; simp
+  duties_nodup := by intro t; simp
+  act _ t _ := if t = 6 then some (.inr row0) else
+    if t = 14 then some (.inr row1) else if t = 22 then some (.inr row2) else
+    if t = 30 then some (.inr row3) else if t = 8 then some (.inl aBlock) else
+    if t = 16 then some (.inl bBlock) else if t = 24 then some (.inl dBlock) else none
+  gossip _ _ := []
+  process st _ := st
+  selfVisible _ := true
+  recordOwn st _ := st
+  durable := id
+  restore st _ := st
+  wellFormed _ := true
+  depsPresent _ _ := true
+  processed _ _ := false
+  excludes _ _ := false
+  handles _ _ _ := False
+  carries _ _ := False
+-- Pure-data signer control: both seats have distinct owners; the second wire is valid.
+private abbrev twoReads : FGSafetyReads twoProtocol 2 (Fin 2) where
+  proposalErase _ := none
+  proposalRows _ := []
+  encode i := ⟨.seat 0 i, .inr row0⟩
+  decode i := some ⟨i, .vote 1 genesisRoot false, none⟩
+  decodeObject o := match o.auth with
+    | .none => none
+    | .seat _ i => some ⟨i, .vote 1 genesisRoot false, none⟩
+  fgLabel := 0
+  fgSeats := Equiv.refl _
+  record _ := RecordOnce.initial
+  inputs _ := (none, ⟨0, genesisRoot, 0⟩)
+  enabled _ := true
+  finalizedOut _ := .genesis
+private abbrev twoRun : V2.D.Run Nat twoProtocol where
+  honest := {7, 9}
+  horizon := 32
+  events := []
+  seatOf _ i := if i = 0 then 9 else 11
+  input _ _ := ()
+private abbrev twoSigner (i : Fin 2) : Option (Fin 2) := some i
+
+private theorem two_seat_premises_sat :
+    Function.Injective (safetyHolder twoReads twoRun) ∧
+    safetyHolder twoReads twoRun 0 = 9 ∧ safetyHolder twoReads twoRun 1 = 11 ∧
+    RowComplete twoReads twoRun twoSigner (fun _ => true) 9 0 ∧
+    (fun _ : Fin 2 => true) 1 = true ∧ twoSigner 1 = some 1 ∧
+    twoReads.decode 1 = some ⟨1, .vote 1 genesisRoot false, none⟩ := by
+  refine ⟨?_, rfl, rfl, ⟨rfl, 0, rfl, rfl⟩, rfl, rfl, rfl⟩
+  intro i j hi
+  fin_cases i <;> fin_cases j <;> simp_all [safetyHolder, twoReads]
+
+#print axioms two_seat_premises_sat
+
 end AvailableChain.FGCompose.Tests.PopulationMiddle
 end
