@@ -918,5 +918,20 @@ private theorem mixed_top_low :
 
 #print axioms mixed_top_low
 
+private theorem nonholder_no_encoded (j : Nat) (t : Time)
+    (hj : run.events[j]? = some (.tick 7 t)) (a : Row (Fin 1)) :
+    reads.encode a ∉ V2.D.Run.emitsAt env run j := by
+  have table : ∀ k : Fin 94, run.events[k.val]?.map V2.Event.node = some 7 →
+      (V2.D.Run.emitsAt env run k.val).all (fun o => decide (o.auth ≠ .seat 6 0)) = true := by
+    decide +kernel
+  have hlen : j < 94 := (List.getElem?_eq_some_iff.mp hj).1
+  have hnode : run.events[j]?.map V2.Event.node = some 7 := by rw [hj]; rfl
+  have hsafe := table ⟨j, hlen⟩ hnode
+  intro ha
+  have hn := of_decide_eq_true ((List.all_eq_true.mp hsafe) (reads.encode a) ha)
+  exact hn rfl
+
+#print axioms nonholder_no_encoded
+
 end AvailableChain.FGCompose.Tests.PopulationSearchPhase
 end
