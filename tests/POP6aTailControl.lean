@@ -141,5 +141,37 @@ private theorem nonholder_no_encoded (j : Nat) (t : Time)
 
 #print axioms nonholder_no_encoded
 
+private theorem row_identity {j r x : Nat} {a : Row (Fin 1)}
+    (h : HonestRowAt missingReads env missingRun timing j x r a) :
+    j = 13 ∧ x = 9 ∧ r = 0 ∧ a = row := by
+  have ht := (mixed_premises_sat.1.in_horizon _ (List.mem_of_getElem? h.2.1)).2
+  have hr : r ≤ 1 := by change 8 * (r : Int) + 6 ≤ 18 at ht; omega
+  have hx : x = 7 ∨ x = 9 := by simpa using h.1
+  rcases hx with rfl | rfl
+  · exact (nonholder_no_encoded j _ h.2.1 a h.2.2).elim
+  · obtain ⟨_, hj, ha⟩ := h
+    have hjlt : j < 38 := (List.getElem?_eq_some_iff.mp hj).1
+    interval_cases r
+    · have hu : ∀ k : Fin 38,
+          missingRun.events[k.val]? = some (.tick 9 6) → k.val = 13 := by
+        decide +kernel
+      have hj' : j = 13 := hu ⟨j, hjlt⟩ hj
+      subst j
+      have hall : (V2.D.Run.emitsAt env missingRun 13).all
+          (fun o => decide (o.payload = row)) = true := by decide +kernel
+      exact ⟨rfl, rfl, rfl,
+        of_decide_eq_true ((List.all_eq_true.mp hall) (missingReads.encode a) ha)⟩
+    · have hu : ∀ k : Fin 38,
+          missingRun.events[k.val]? = some (.tick 9 14) → k.val = 29 := by
+        decide +kernel
+      have hj' : j = 29 := hu ⟨j, hjlt⟩ hj
+      subst j
+      have hall : (V2.D.Run.emitsAt env missingRun 29).all
+          (fun o => decide (o.auth ≠ .seat 6 0)) = true := by decide +kernel
+      exact (of_decide_eq_true
+        ((List.all_eq_true.mp hall) (missingReads.encode a) ha) rfl).elim
+
+#print axioms row_identity
+
 end AvailableChain.FGCompose.Tests.POP6aTail
 end
