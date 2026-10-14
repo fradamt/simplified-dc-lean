@@ -379,5 +379,62 @@ private theorem empty_witness_rejected :
 
 #print axioms empty_witness_rejected
 
+private abbrev frozenEnv : Generic.Env (Fin 1) :=
+  ⟨1, by decide, 0, by decide, fun _ _ => true⟩
+private abbrev frozenRun : V2.D.Run (Fin 1) protocol where
+  honest := {0}
+  horizon := 20
+  events := [.tick 0 6, .tick 0 8, .tick 0 12]
+  seatOf := fun _ i => i
+  input := fun _ _ => ()
+
+private theorem frozen_premises_sat :
+    (∀ i, safetyHolder reads frozenRun i = (Equiv.refl (Fin 1)) i) ∧
+    FGHonestSeats reads frozenRun = {0} ∧
+    OpeningCovered core reads frozenEnv frozenRun height timing Row.height_pair 0 .genesis ∧
+    OpeningEntry core frozenEnv frozenRun height timing 0 1 ∧
+    (∀ x K, actionSourceFG core frozenEnv frozenRun timing x 0 = some (some K) →
+      K = .genesis) ∧
+    ∀ s ∈ ({2, 3} : Finset Nat), timing.proposal s ≤ frozenRun.horizon ∧
+      ∃ nd, proposalStateAt frozenEnv frozenRun interface s = some nd ∧
+        parent nd (core.erase (child s)).parent = some (child s).parent ∧
+        (fold nd s (child s).parent).h = (height (child s).parent).h ∧
+        (fold nd s (child s).parent).T_h = (height (child s).parent).T_h ∧
+        parentHeight nd s (child s).parent =
+          ((fold nd s (child s).parent).h, (fold nd s (child s).parent).T_h.root) ∧
+        ∀ a, valid nd s (child s).parent a =
+          match reads.decode a with
+          | none => false
+          | some b => Window.r6w (fold nd s (child s).parent) b := by
+  refine ⟨fun _ => rfl, ?_, ?_, ?_, ?_, ?_⟩
+  · ext i
+    have hi : i = 0 := Subsingleton.elim _ _
+    subst i
+    simp [FGHonestSeats_def, safetyHolder, reads, frozenRun]
+  · intro x _
+    have hx : x = 0 := Subsingleton.elim _ _
+    subst x
+    refine ⟨.genesis, RecordOnce.initial, 0, 0, row, rfl, ?_, ?_, ?_, le_rfl, ?_, rfl⟩
+    · decide +kernel
+    · decide
+    · decide
+    · unfold HonestRowAt
+      decide +kernel
+  · exact ⟨genesisRoot, fun _ _ _ _ => ⟨rfl, rfl⟩⟩
+  · intro x K hK
+    have hx : x = 0 := Subsingleton.elim _ _
+    subst x
+    have hs : actionSourceFG core frozenEnv frozenRun timing 0 0 = some (some .genesis) := rfl
+    exact Option.some.inj (Option.some.inj (hK.symm.trans hs))
+  · intro s hs
+    have hs' : s = 2 ∨ s = 3 := by simpa using hs
+    rcases hs' with rfl | rfl
+    · exact ⟨by decide, V2.D.Run.stateBefore frozenEnv frozenRun 1 0,
+        rfl, rfl, rfl, rfl, rfl, fun _ => rfl⟩
+    · exact ⟨by decide, V2.D.Run.stateBefore frozenEnv frozenRun 2 0,
+        rfl, rfl, rfl, rfl, rfl, fun _ => rfl⟩
+
+#print axioms frozen_premises_sat
+
 end AvailableChain.FGCompose.Tests.PopulationPromotion
 end
