@@ -1785,6 +1785,66 @@ private theorem proposal_service_premises_sat (top : Bool) :
 
 #print axioms proposal_service_premises_sat
 
+private theorem local_service_premises_sat (top : Bool) (q : Nat) (hq : q = 5 ∨ q = 7)
+    (v : Time) (hhor : v ≤ 46) :
+    FrontierLocalServiceFG (core top) reads env run (obs top) d5cTiming iface wire.heightPair
+      q (c5erase (chainAt q)) (chainAt q) 2 v := by
+  refine ⟨?_, ?_, ?_, ?_, ?_⟩
+  · intro x s H _ hqs _ hhead
+    change @LE.le Nat _ (q + 1) s at hqs
+    have hs : @LE.le Nat _ 6 s := by rcases hq with rfl | rfl <;> omega
+    have h1 : ¬ s ≤ 2 := Nat.not_le.mpr (by omega)
+    have h5 : ¬ s ≤ 5 := Nat.not_le.mpr (by omega)
+    have hl : chainAt s = late := by simp only [chainAt, h1, h5, ite_false]
+    delta headAtLabel at hhead
+    obtain ⟨nd, _, he⟩ := Option.map_eq_some_iff.mp hhead
+    change c5erase (chainAt s) = H at he
+    rw [← he, hl]
+    rcases hq with rfl | rfl <;> decide +kernel
+  · intro s B hqs _ hp
+    change @LE.le Nat _ (q + 2) s at hqs
+    obtain ⟨hs, he⟩ := proposal_unique hp
+    subst B
+    rcases hq with rfl | rfl <;> rcases hs with rfl | rfl | rfl
+    all_goals first | omega | decide +kernel
+  · intro i x _ _ _ _
+    change Block.Preceq (c5erase (chainAt q)) (c5erase late)
+    rcases hq with rfl | rfl <;> decide +kernel
+  · intro s B _ _ hp
+    exact proposal_service_premises_sat top s B hp
+  · intro r hqr ht
+    change @LE.le Nat _ q (r * 2) at hqr
+    have ht46 := ht.trans hhor
+    change 8 * (r : Int) + 6 ≤ 46 at ht46
+    have hr5 : @LE.le Nat _ r 5 := by omega
+    have hr3 : @LE.le Nat _ 3 r := by rcases hq with rfl | rfl <;> omega
+    have hopen := opening_premises_sat top r (by omega) hr5
+    have hh : (c5H (sourceAt (d5cTiming.action r))).h = 2 := by
+      interval_cases r <;> decide +kernel
+    have he : (c5H (sourceAt (d5cTiming.action r))).T_h = (c5H (chainAt q)).T_h := by
+      rcases hq with rfl | rfl <;> interval_cases r <;> decide +kernel
+    have hpath : FGBlock.Preceq (chainAt q) (sourceAt (d5cTiming.action r)) := by
+      rcases hq with rfl | rfl <;> interval_cases r
+      all_goals first | omega | decide +kernel
+    refine ⟨hopen.2 _ hpath, ?_, ?_, ?_⟩
+    · simpa only [hh] using hopen.1 hr3
+    · intro x K _ hk
+      rcases (source_premises_sat top).1 r x K hk with ⟨_, _, hr2⟩ | rfl
+      · omega
+      · exact he
+    · intro hfirst
+      rcases hq with rfl | rfl
+      · have hr : @LE.le Nat _ r 3 := hfirst 3 (by decide)
+        have hr' : @Eq Nat r 3 := by omega
+        subst r
+        decide
+      · have hr : @LE.le Nat _ r 4 := hfirst 4 (by decide)
+        have hr' : @Eq Nat r 4 := by omega
+        subst r
+        decide
+
+#print axioms local_service_premises_sat
+
 end High
 
 end AvailableChain.FGCompose.Tests.PopulationSearchPhase
