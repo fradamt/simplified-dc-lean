@@ -933,5 +933,23 @@ private theorem nonholder_no_encoded (j : Nat) (t : Time)
 
 #print axioms nonholder_no_encoded
 
+/-- Both old suppliers fail solely on row 7; all their other fields are supplied by
+opening_premises_sat, local_service_premises_sat, and branch_premises_sat on this run. -/
+private theorem old_common_service_rejected :
+    (¬ OpeningCovered (core false) reads env run c5H d5cTiming wire.heightPair
+      1 (c5erase low)) ∧
+    ¬ FrontierLocalService (core false) reads env run (obs false) d5cTiming iface
+      wire.heightPair 5 (c5erase middle) middle 2 46 := by
+  constructor
+  · intro hc
+    obtain ⟨K, nd, j, rSent, a, _, _, _, _, _, hrow, _⟩ := hc 7 (by decide)
+    exact nonholder_no_encoded j _ hrow.2.1 a hrow.2.2
+  · intro hs
+    obtain ⟨hc, _⟩ := hs.2.2.2.2 3 (by decide) (by decide)
+    obtain ⟨K, nd, j, rSent, a, _, _, _, _, _, hrow, _⟩ := hc 7 (by decide)
+    exact nonholder_no_encoded j _ hrow.2.1 a hrow.2.2
+
+#print axioms old_common_service_rejected
+
 end AvailableChain.FGCompose.Tests.PopulationSearchPhase
 end
