@@ -1348,5 +1348,16 @@ private theorem two_seat_premises_sat :
 
 #print axioms two_seat_premises_sat
 
+private theorem two_seat_mismatched_signer :
+    ¬ RowComplete twoReads twoRun twoSigner (fun _ => true) 9 1 := by
+  intro h
+  obtain ⟨i, hi, holder⟩ := h.2
+  have he : (1 : Fin 2) = i := Option.some.inj hi
+  subst i
+  change (11 : Nat) = 9 at holder
+  omega
+
+#print axioms two_seat_mismatched_signer
+
 end AvailableChain.FGCompose.Tests.PopulationMiddle
 end
