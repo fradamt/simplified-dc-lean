@@ -491,5 +491,44 @@ private theorem frozen_same_rows (s : Slot) (hs : s ∈ ({2, 3} : Finset Nat)) :
 
 #print axioms frozen_same_rows
 
+private theorem frozen_bridges :
+    (OpeningCoveredFG core reads frozenEnv frozenRun height timing Row.height_pair
+      (FGHonestSeats reads frozenRun) 0 .genesis ↔
+      OpeningCovered core reads frozenEnv frozenRun height timing Row.height_pair 0 .genesis) ∧
+    (∀ U, FixedRowsFG core reads frozenEnv frozenRun height timing Row.height_pair
+      (FGHonestSeats reads frozenRun) 0 1 .genesis U ↔
+      FixedRows core reads frozenEnv frozenRun height timing Row.height_pair 0 1 .genesis U) ∧
+    (∃ U, FixedRows core reads frozenEnv frozenRun height timing Row.height_pair 0 1 .genesis U ∧
+      FixedRowsFG core reads frozenEnv frozenRun height timing Row.height_pair
+        (FGHonestSeats reads frozenRun) 0 1 .genesis U) ∧
+    (∅ : Finset (Fin 1)) ⊂ FGHonestSeats reads frozenRun ∧
+    ∀ A ⊆ FGHonestSeats reads frozenRun,
+      (OpeningCovered core reads frozenEnv frozenRun height timing Row.height_pair 0 .genesis →
+        OpeningCoveredFG core reads frozenEnv frozenRun height timing Row.height_pair
+          A 0 .genesis) ∧
+      (∀ U, FixedRows core reads frozenEnv frozenRun height timing Row.height_pair 0 1 .genesis U →
+        FixedRowsFG core reads frozenEnv frozenRun height timing Row.height_pair
+          A 0 1 .genesis U) := by
+  have ho := openingCoveredFG_frozen_iff core reads frozenEnv frozenRun height timing
+    Row.height_pair (Equiv.refl _) frozen_premises_sat.1 0 .genesis
+  have hf := fixedRowsFG_frozen_iff core reads frozenEnv frozenRun height timing
+    Row.height_pair (Equiv.refl _) frozen_premises_sat.1 0 1 .genesis
+  refine ⟨ho, hf, ?_, ?_, ?_⟩
+  · obtain ⟨U, _, _, _, rows⟩ := frozen_same_rows 2 (by simp)
+    have hr : FixedRows core reads frozenEnv frozenRun height timing Row.height_pair
+        0 1 .genesis U := by
+      intro x hx
+      obtain ⟨K, nd, j, rSent, a, hnd, hK, hm, hQ, hUK, hs, hh, hu, hr, ha, hn, _⟩ := rows x hx
+      exact ⟨K, nd, j, rSent, a, hnd, hK, hm, hQ, hUK, hs, hh, hu, hr, ha, hn⟩
+    exact ⟨U, hr, (hf U).2 hr⟩
+  · rw [frozen_premises_sat.2.1]
+    simp
+  · intro A hA
+    have honest (i) (hi : i ∈ A) : safetyHolder reads frozenRun i ∈ frozenRun.honest := by
+      simpa only [FGHonestSeats_def, Finset.mem_filter, Finset.mem_univ, true_and] using hA hi
+    exact ⟨fun h i hi => h _ (honest i hi), fun U h i hi => h _ (honest i hi)⟩
+
+#print axioms frozen_bridges
+
 end AvailableChain.FGCompose.Tests.PopulationPromotion
 end
