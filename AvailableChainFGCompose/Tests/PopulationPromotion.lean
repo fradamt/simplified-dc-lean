@@ -323,5 +323,36 @@ private theorem mixed_same_rows :
 
 #print axioms mixed_same_rows
 
+private abbrev emptyRun : V2.D.Run Nat protocol := { run with honest := {7} }
+private abbrev emptyCore : FGCoreReads protocol 1 Unit Unit (Row (Fin 1)) :=
+  { core with source := fun _ => none }
+
+/-- Every fixed-row premise other than seat nonemptiness is inhabited at height zero. -/
+private theorem empty_premises_sat :
+    emptyRun.honest = {7} ∧ emptyRun.honest.Nonempty ∧ FGHonestSeats reads emptyRun = ∅ ∧
+    OpeningEntry emptyCore env emptyRun height timing 0 0 ∧
+    OpeningCoveredFG emptyCore reads env emptyRun height timing Row.height_pair
+      (FGHonestSeats reads emptyRun) 0 .genesis ∧
+    FixedRowsFG emptyCore reads env emptyRun height timing Row.height_pair
+      (FGHonestSeats reads emptyRun) 0 0 .genesis .genesis ∧
+    (∀ x K, actionSourceFG emptyCore env emptyRun timing x 0 ≠ some (some K)) := by
+  have hH : FGHonestSeats reads emptyRun = ∅ := by
+    ext i
+    simp [FGHonestSeats_def, safetyHolder, reads, emptyRun]
+  have hn (x) (K) : actionSourceFG emptyCore env emptyRun timing x 0 ≠ some (some K) := by
+    intro hK
+    change (postClock env emptyRun x (timing.action 0)).map (fun _ => none) = _ at hK
+    cases postClock env emptyRun x (timing.action 0) <;> simp at hK
+  refine ⟨rfl, ⟨7, by simp⟩, hH, ?_, ?_, ?_, hn⟩
+  · exact ⟨genesisRoot, fun x K _ hK => (hn x K hK).elim⟩
+  · intro i hi
+    rw [hH] at hi
+    exact (Finset.notMem_empty i hi).elim
+  · intro i hi
+    rw [hH] at hi
+    exact (Finset.notMem_empty i hi).elim
+
+#print axioms empty_premises_sat
+
 end AvailableChain.FGCompose.Tests.PopulationPromotion
 end
