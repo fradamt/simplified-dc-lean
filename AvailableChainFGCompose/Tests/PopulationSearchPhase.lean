@@ -807,5 +807,59 @@ private theorem branch_premises_sat (top : Bool) :
 
 #print axioms branch_premises_sat
 
+private theorem mixed_gap_low :
+    (∀ q Q, HonestProposal env run iface q Q → d5cTiming.gate q ≤ 14 →
+      q = 2 ∧ Q = c5erase low) ∧
+    ∃ t, (0 : Time) ≤ t ∧ t ≤ 46 ∧
+      StrongServedFG (core false) reads env run (obs false) d5cTiming iface wire.heightPair
+        0 1 2 t ∧ 26 ≤ t ∧ V2.D.proposerOf run iface 2 = 7 ∧
+      HonestRowAt reads env run d5cTiming 13 9 0 firstRow := by
+  constructor
+  · intro q Q hp hg
+    obtain ⟨hq, he⟩ := proposal_unique hp
+    rcases hq with rfl | rfl | rfl
+    · exact ⟨rfl, he⟩
+    · exact absurd hg (by decide)
+    · exact absurd hg (by decide)
+  · obtain ⟨cert, obsLaws, inv, _, _, _, _, _, _, phase⟩ := geometry_premises_sat false
+    obtain ⟨gap, slotProposal, read, sourceParent, signer, rowsReceipt⟩ :=
+      transport_premises_sat false
+    obtain ⟨order, coverage, hfold⟩ := progress_premises_sat false
+    obtain ⟨floor, copy, allowance, heldSlot, proposalSlot⟩ := repair_premises_sat false
+    obtain ⟨service, common⟩ := branch_premises_sat false
+    obtain ⟨_, sourceSlot, ancestorSlot, entryAgreement, _, _⟩ := source_premises_sat false
+    obtain ⟨t, ht0, ht46, hs⟩ := frontierSearch_gap_phase_holder
+      (R := core false) (S := reads) (O := obs false) (T := d5cTiming)
+      (E := env) (rho := run) (I := iface) (D := wire) (Ef := c5E)
+      (decodeProposal := decodeProposal) (bodyErase := c5erase) (bodyRows := FGBlock.rows)
+      (blockWireRows := fun _ => [firstRow, nextRow]) (parentFG := parentFG)
+      (parentHeight := parentHeight) (validFor := validFor) (fold := fold) (Jst := 0)
+      (leaseSlots := 1) (obs := obsLaws) (cert := cert) (inv := inv)
+      (hT := d5cTimingLaws) (hk := le_rfl) (schedule := execution_premises_sat.1)
+      (faultWeight := execution_premises_sat.2.2.1) (G := 20) (ΔF := 1)
+      (ρbar := 14) (u := 0) (Dl := 46) (deltaF := le_rfl) (hdelta := rfl)
+      (gap := gap) (hJst := le_rfl) (hG := by decide) (slotProposal := slotProposal)
+      (read := read) (order := order) (signer := signer) (sourceParent := sourceParent)
+      (deltaT := 4) (hδ := rfl) (hbound := ⟨by decide⟩) (rowsReceipt := rowsReceipt)
+      (progressCoverage := coverage) (hfold := hfold)
+      (honestQuorum := ⟨{0}, fun _ _ => by change (9 : Nat) ∈ {7, 9}; decide, by decide⟩)
+      (entryAgreement := entryAgreement) (sourceSlot := sourceSlot) (ancestorSlot := ancestorSlot)
+      (eraseInj := c5erase_inj) (eraseReflect := m9erase_reflect) (floor := floor)
+      (gateCopy := copy) (service := service) (common := common) (heldSlot := heldSlot)
+      (proposalSlot := proposalSlot) (m := 2) (hready := le_rfl) (hp := phase)
+      (allowance := allowance) (hbudget := by decide)
+    refine ⟨t, ht0, ht46, hs, ?_, by decide, execution_premises_sat.2.2.2.1⟩
+    obtain ⟨u, J, c, q, Q, Qfg, _, hp, he, hh, _, _, _, _, hg, _⟩ := hs
+    obtain ⟨hq, hQ⟩ := proposal_unique hp
+    have hB : Qfg = chainAt q := c5erase_inj (he.trans hQ)
+    rw [hB] at hh
+    change (c5H (chainAt q)).h = 2 at hh
+    rcases hq with rfl | rfl | rfl
+    · exact absurd hh (by decide +kernel)
+    · exact hg
+    · exact (by decide : (26 : Time) ≤ d5cTiming.gate 7).trans hg
+
+#print axioms mixed_gap_low
+
 end AvailableChain.FGCompose.Tests.PopulationSearchPhase
 end
