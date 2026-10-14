@@ -8999,4 +8999,27 @@
             'AvailableChain.FGCompose.FGHonestSeats_def',
         ),
     },
+    'AvailableChainFGCompose.Tests.PopulationPromotionAxioms': {
+        'AvailableChainFGCompose.Proofs.Population.Promotion': (
+            'AvailableChain.FGCompose.healing_promotion_bounded_rows_holder',
+            'AvailableChain.FGCompose.healing_promotion_fixed_rows_holder',
+            'AvailableChain.FGCompose.p0d3_bound_batch_holder',
+        ),
+        'AvailableChainFGCompose.Proofs.Population.PromotionBridges': (
+            'AvailableChain.FGCompose.fixedRowsFG_frozen_iff',
+            'AvailableChain.FGCompose.openingCoveredFG_frozen_iff',
+        ),
+        'AvailableChainFGCompose.Proofs.Population.PromotionRows': (
+            'AvailableChain.FGCompose.healing_promotion_same_rows_holder',
+            'AvailableChain.FGCompose.healing_promotion_same_rows_on_holder',
+            'AvailableChain.FGCompose.p0d3_same_batch_holder',
+            'AvailableChain.FGCompose.p0d3_same_batch_on_holder',
+        ),
+        'AvailableChainFGCompose.Statements.Population.Promotion': (
+            'AvailableChain.FGCompose.FixedRowsFG',
+            'AvailableChain.FGCompose.FixedRowsFG_def',
+            'AvailableChain.FGCompose.OpeningCoveredFG',
+            'AvailableChain.FGCompose.OpeningCoveredFG_def',
+        ),
+    },
 }
