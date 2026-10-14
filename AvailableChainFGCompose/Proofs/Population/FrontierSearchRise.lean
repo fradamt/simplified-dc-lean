@@ -220,5 +220,89 @@ theorem healing_frontierTail_rise_holder (hT : FGTimingLaws T)
     (fun v hv hvh hcap => service u v m J contested q Q Qfg hready hQ he hQm hs hseed hu hp hv
       hvh hcap) hf.le hhor
 
+include cert inv keep in
+/-- ROOT-DIGEST W2b. Blueprint 21:1695–1720; S5 F2, full HG.4.
+DC: SAME combine the capped rise and the exact-height row under their separate guards.
+There is no second repair allowance and no fixed F interval. -/
+theorem healing_frontierTail_holder (hT : FGTimingLaws T)
+    (schedule : V2.D.ScheduleWellFormed E rho)
+    (cap : RCap R S E rho O T (fun a => namedEntry (D.heightPair a)) chainRows)
+    (faultWeight : Ef.weightOf (historyFaulty S rho) < Ef.q)
+    {G ΔF : Time} (deltaF : E.Δ ≤ ΔF) (hdelta : E.Δ = T.delta)
+    (gap : ∀ t, E.t_GST ≤ t → t + G ≤ rho.horizon →
+      ∃ s, t < T.proposal s ∧ T.proposal s ≤ t + G ∧ Gen.V2.Duty.HonestSlot rho I s)
+    (hJst : E.t_GST ≤ Jst) (mono : FGRunOrderLaws E rho R)
+    (eraseParent : ∀ X : FGBlock (Fin n), (R.erase X).parent = R.erase X.parent)
+    (eraseReflect : ∀ A B : FGBlock (Fin n), Block.Preceq (R.erase A) (R.erase B) →
+      FGBlock.Preceq A B)
+    (slotProposal : PromotionSlotProposal R E rho T I)
+    (read : PromotionProposalRead R S E rho O I decodeProposal bodyErase bodyRows parentFG
+      parentHeight validFor fold)
+    (order : PromotionRowOrder R E rho O I) (signer : PromotionRowSigner S E rho T D)
+    (capReceipt : PromotionCapReceipt R E rho O T I)
+    {deltaT : Nat} (hδ : deltaT = 2 * T.roundSlots) (hbound : LivenessBoundW T ΔF)
+    (rowsReceipt : TRowsReceipt R S E rho T blockWireRows ΔF)
+    (progressCoverage : ∀ (r height : Nat) (U X : FGBlock (Fin n)),
+      BatchPrem R S O T E rho I D Ef decodeProposal bodyErase bodyRows blockWireRows
+        parentFG parentHeight validFor ΔF .progress r height U X →
+      (O.height X.parent).h = height → ProgressCoveredByChild Ef O.height X U height)
+    (hfold : ProgressFoldAdvance Ef O.height deltaT)
+    (honestQuorum : ∃ Q : Finset (Fin n),
+      (∀ i ∈ Q, safetyHolder S rho i ∈ rho.honest) ∧ Ef.q ≤ Ef.weightOf Q)
+    (entryAgreement : ∀ r x y K L, x ∈ rho.honest → y ∈ rho.honest →
+      actionSourceFG R E rho T x r = some (some K) →
+      actionSourceFG R E rho T y r = some (some L) →
+      (O.height K).T_h.root = (O.height L).T_h.root → (O.height K).T_h = (O.height L).T_h)
+    (sourceSlot : ∀ r x K, x ∈ rho.honest →
+      actionSourceFG R E rho T x r = some (some K) → K.slot ≤ r * T.roundSlots)
+    (ancestorSlot : ∀ r x K A, x ∈ rho.honest →
+      actionSourceFG R E rho T x r = some (some K) → FGBlock.Preceq A K →
+      A.slot ≤ K.slot)
+    (heldSlot : ∀ i x A K, K ∈ (R.core (rho.stateBefore E i x)).fg.TF →
+      FGBlock.Preceq A K → A.slot ≤ K.slot)
+    (proposalSlot : ∀ q Q K, HonestProposal E rho I q Q → R.erase K = Q → K.slot = q)
+    (eraseInj : Function.Injective R.erase)
+    (gateCopy : ∀ u v m J contested q Q, Jst ≤ u →
+      PhaseInterval R E rho O u v m J contested →
+      FrontierSeedQualification T leaseSlots E.t_GST u q → T.gate q ≤ v →
+      HonestProposal E rho I q Q → ∃ i x Qfg, V2.D.Run.idxBefore rho u ≤ i ∧
+        i ≤ timeIdx rho v ∧ x ∈ rho.honest ∧
+        Qfg ∈ (R.core (rho.stateBefore E i x)).fg.TF ∧ R.erase Qfg = Q)
+    (service : ∀ u v m J contested q Q Qfg, Jst ≤ u → HonestProposal E rho I q Q →
+      R.erase Qfg = Q → (O.height Qfg).h = m → FrontierProposalService R E rho T q Q →
+      FrontierSeedQualification T leaseSlots E.t_GST u q → u ≤ T.proposal q →
+      PhaseInterval R E rho O u (T.gate q) m J contested → T.gate q ≤ v →
+      v ≤ rho.horizon →
+      (∀ i x, timeIdx rho u ≤ i → i ≤ timeIdx rho v → x ∈ rho.honest →
+        (R.core (rho.stateBefore E i x)).fg.h_max ≤ m) →
+      FrontierLocalServiceFG R S E rho O T I D.heightPair q Q Qfg m v)
+    : FrontierTailStatementFG R S E rho O T I D.heightPair Jst leaseSlots deltaT G ΔF := by
+  classical
+  have honestSeats : (FGHonestSeats S rho).Nonempty := by
+    obtain ⟨A, hA, hq⟩ := honestQuorum
+    have hne : A.Nonempty := by
+      by_contra hn
+      have he := Finset.not_nonempty_iff_eq_empty.mp hn
+      rw [he] at hq
+      simp only [Electorate.weightOf, Finset.sum_empty] at hq
+      omega
+    obtain ⟨seat, hs⟩ := hne
+    refine ⟨seat, ?_⟩
+    simpa only [FGHonestSeats_def, Finset.mem_filter, Finset.mem_univ, true_and]
+      using hA seat hs
+  intro _ _ i ev m kind hstart hserved
+  refine ⟨fun hhor => healing_frontierTail_rise_holder R S O T E rho I D Ef decodeProposal bodyErase
+    bodyRows blockWireRows parentFG parentHeight validFor fold Jst leaseSlots cert inv keep hT
+    schedule faultWeight deltaF hdelta gap hJst mono eraseParent eraseReflect slotProposal read
+    order signer capReceipt hδ hbound rowsReceipt progressCoverage hfold honestQuorum
+    entryAgreement sourceSlot ancestorSlot heldSlot proposalSlot eraseInj gateCopy service hstart
+    hserved hhor, fun hhor => ?_⟩
+  obtain ⟨u, J, contested, q, Q, Qfg, hready, hQ, he, hQm, hs, hseed, hu, hp, hqt, _, _,
+    _⟩ := hserved
+  exact healing_frontierTail_row_holder R S E rho O T I D.heightPair chainRows Ef cert inv hT
+    schedule honestSeats mono cap hp hQ hqt
+    (fun v hv hvh hcap => service u v m J contested q Q Qfg hready hQ he hQm hs hseed hu hp hv
+      hvh hcap) hhor
+
 end AvailableChain.FGCompose
 end
