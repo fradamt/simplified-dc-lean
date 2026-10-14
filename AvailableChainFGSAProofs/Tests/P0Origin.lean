@@ -1,6 +1,7 @@
 module
 public import AvailableChainFGCompose.Proofs.SafetyOrigin
-public import AvailableChainFGSAProofs.Proofs.Foundations.FGSafetyBridge
+public import AvailableChainFGSAProofs.Proofs.Shared.FGSafetyScope
+public import AvailableChainFGSAProofs.Proofs.Shared.FGSafetyStore
 
 set_option linter.privateModule false
 

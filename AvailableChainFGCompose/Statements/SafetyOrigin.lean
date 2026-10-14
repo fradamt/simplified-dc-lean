@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGCompose.Statements.SafetyStore
+public import AvailableChainFGCompose.Statements.SafetyStore -- shake: keep (frozen record)
 
 @[expose] public section
 

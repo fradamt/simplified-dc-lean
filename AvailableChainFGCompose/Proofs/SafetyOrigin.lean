@@ -1,7 +1,9 @@
 module
 public import AvailableChainFGCompose.Statements.SafetyOrigin
+public import AvailableChainFGCompose.Statements.SafetyClaims
+public import AvailableChainFGCompose.Proofs.SafetyStore
 public import AvailableChainFGCompose.Proofs.SafetyAccountable
-public import AvailableChainFGCompose.Proofs.SafetySlashing
+public import AvailableChainFGCompose.Proofs.SafetyClient
 
 public section
 
