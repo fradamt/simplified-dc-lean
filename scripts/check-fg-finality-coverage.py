@@ -259,7 +259,8 @@ def selftest():
                     'srcDir="' + ('src' if nested else '.') + '"\n' +
                     '[[lean_lib]]\nname="Fix"\n' + ''.join(
                         '[[lean_lib]]\nname="' + lib + '"\n' for lib, _ in DISCOVER))
-                files = {'src': (source(root, owner), good), 'audit': (source(root, audit), audit_src),
+                files = {'src': (source(root, owner), good),
+                         'audit': (source(root, audit), audit_src),
                          'cover': (root / 'cover.txt', cover)}
                 if 'extra' in change:
                     extra = root / Layout(root).physical_path(change['extra'][0])
@@ -275,7 +276,8 @@ def selftest():
                     rc = report(root, modules={owner: audit}, coverage=root / 'cover.txt')
                 text = out.getvalue()
                 assert rc == code and reason in text, (label, rc, text)
-                print(f'SELFTEST FG finality coverage nested={nested} {label}: PASS (rc {code}; {reason})')
+                print(f'SELFTEST FG finality coverage nested={nested} {label}: '
+                      f'PASS (rc {code}; {reason})')
     print('FG finality coverage selftest: PASS')
     return 0
 
