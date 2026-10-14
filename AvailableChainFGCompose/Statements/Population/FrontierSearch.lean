@@ -55,5 +55,29 @@ theorem FrontierLocalServiceFG_def (q : Slot) (Q : Block) (Qfg : FGBlock (Fin n)
     ((∀ r', q ≤ r' * T.roundSlots → r ≤ r') →
       T.action r - T.gate q ≤ FGCompose.P T - 4 * T.delta)) := Iff.rfl
 
+/-- A saved seed keeps the actual proposal, phase, read cutoff, and local service. -/
+def StrongServedFG (m : Nat) (t : Time) : Prop :=
+  ∃ u J contested q Q Qfg,
+    Jst ≤ u ∧ HonestProposal E rho I q Q ∧ R.erase Qfg = Q ∧
+    (O.height Qfg).h = m ∧ FrontierProposalService R E rho T q Q ∧
+    FrontierSeedQualification T leaseSlots E.t_GST u q ∧ u ≤ T.proposal q ∧
+    PhaseInterval R E rho O u (T.gate q) m J contested ∧ T.gate q ≤ t ∧
+    t ≤ rho.horizon ∧
+    (∀ i x, timeIdx rho u ≤ i → i ≤ timeIdx rho t → x ∈ rho.honest →
+      (R.core (rho.stateBefore E i x)).fg.h_max ≤ m) ∧
+    FrontierLocalServiceFG R S E rho O T I pair q Q Qfg m t
+
+theorem StrongServedFG_def (m : Nat) (t : Time) :
+    StrongServedFG R S E rho O T I pair Jst leaseSlots m t ↔
+  ∃ u J contested q Q Qfg,
+    Jst ≤ u ∧ HonestProposal E rho I q Q ∧ R.erase Qfg = Q ∧
+    (O.height Qfg).h = m ∧ FrontierProposalService R E rho T q Q ∧
+    FrontierSeedQualification T leaseSlots E.t_GST u q ∧ u ≤ T.proposal q ∧
+    PhaseInterval R E rho O u (T.gate q) m J contested ∧ T.gate q ≤ t ∧
+    t ≤ rho.horizon ∧
+    (∀ i x, timeIdx rho u ≤ i → i ≤ timeIdx rho t → x ∈ rho.honest →
+      (R.core (rho.stateBefore E i x)).fg.h_max ≤ m) ∧
+    FrontierLocalServiceFG R S E rho O T I pair q Q Qfg m t := Iff.rfl
+
 end AvailableChain.FGCompose
 end
