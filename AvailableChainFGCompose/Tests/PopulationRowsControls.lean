@@ -130,5 +130,56 @@ private theorem pending_premises_sat : ∃ m : middleType run,
 
 #print axioms pending_premises_sat
 
+private theorem fresh_rows_premises_sat : ∃ m : middleType run,
+    m.X_D = dBlock ∧ m.U = bBlock ∧ m.d = 2 ∧
+    (∀ x ∈ run.honest, ∃ H, core.finalityHead 30 = some H ∧
+      FGBlock.Preceq m.X_D H ∧ (obs.height H).J = m.U ∧ (obs.height H).h_j = 3) ∧
+    (∀ x ∈ run.honest, HighRecordGuard_W (reads.record 30) 3 m.U ∧
+      HighRecordFresh 4 (reads.record 30)) ∧
+    ∃ rows : Fin 1 → protocol.Object,
+      FreshFinalityRows_W core reads obs timing (env Nat) run history electorate
+        (fun _ => true) 3 3 m.U {0} rows ∧
+      (∀ i ∈ ({0} : Finset (Fin 1)), history.heightPair (rows i) =
+        .vote 4 (obs.height m.X_D).T_h.root false) := by
+  obtain ⟨m, ⟨_, _, hU, hD, _, hd⟩, heads⟩ := pending_premises_sat
+  have sources : ∀ x ∈ run.honest, ∃ nd C,
+      postClock (env Nat) run x (timing.action (pt.r + 2)) = some nd ∧
+      core.source nd = some C ∧ FGBlock.Preceq m.X_D C ∧
+      (obs.height C).h = m.d + 2 ∧ (obs.height C).T_h = (obs.height m.X_D).T_h := by
+    intro x hx
+    rw [hD, hd]
+    have hx' : x = 7 ∨ x = 9 := by simpa using hx
+    rcases hx' with rfl | rfl
+    all_goals exact ⟨30, dBlock, by decide +kernel, rfl, preceq_refl _,
+      by decide +kernel, rfl⟩
+  have records : ∀ x nd, x ∈ run.honest →
+      postClock (env Nat) run x (timing.action (pt.r + 2)) = some nd →
+      HighRecordGuard_W (reads.record nd) (m.d + 1) m.U ∧
+        HighRecordFresh (m.d + 2) (reads.record nd) := by
+    intro x nd _ _
+    rw [hd, hU]
+    exact client_premises_sat.2.2 nd
+  have result := rowsPrem_fresh_rows_holder m
+    (KitFG.Window.windowHeightLaws electorate cfg 2 (by decide))
+    (KitFG.Window.windowHeightBridge electorate cfg 2 (by decide)) wire
+    (fun _ => rfl) (fun _ _ _ _ => rfl) client_premises_sat.1 release_premises_sat
+    sources heads client_premises_sat.2.1 records timing_premises_sat {0}
+    (by intro i _; change (9 : Nat) ∈ run.honest; decide)
+    (by change (1 : Nat) ≤ 1; decide) (by intros; rfl)
+  refine ⟨m, hD, hU, hd, ?_, ?_, ?_⟩
+  · intro x hx
+    have hnd : postClock (env Nat) run x 30 = some 30 := by
+      have hx' : x = 7 ∨ x = 9 := by simpa using hx
+      rcases hx' with rfl | rfl <;> decide +kernel
+    obtain ⟨H, hH, hp, _, hJ, hj, _⟩ := heads x 30 hx hnd
+    exact ⟨H, hH, hp, hJ, by simpa only [hd] using hj⟩
+  · intro x hx
+    rw [hU]
+    exact client_premises_sat.2.2 30
+  · obtain ⟨rows, fresh, _, hp⟩ := result
+    exact ⟨rows, by simpa only [hd] using fresh, by simpa only [hd] using hp⟩
+
+#print axioms fresh_rows_premises_sat
+
 end AvailableChain.FGCompose.Tests.PopulationRowsControls
 end
