@@ -771,5 +771,20 @@ private theorem mixed_inspected : ∃ m : middleType run,
 
 #print axioms mixed_inspected
 
+-- The only obstruction is signer ownership, independent of every selected field.
+private theorem old_middle_impossible (config : FGConfig) (capacity : Nat) (delay : Time)
+    (sp : FGServicePoint) (p : KernelPt) (A : Block) :
+    ¬ Nonempty (KernelMiddleWitness_W core reads obs timing (env Nat) run interface
+      history electorate decodeProposal erase (fun X => X.rows.map wire) (fun _ => [])
+      parentRead parentHeight (fun _ _ _ _ => true) makeFG (fun _ => true) (ac Nat)
+      config capacity delay sp p A) := by
+  rintro ⟨m⟩
+  obtain ⟨_, _, _, complete, _⟩ := m.targetsB 7 (by decide)
+  obtain ⟨i, _, hi⟩ := complete.2
+  change (9 : Nat) = 7 at hi
+  omega
+
+#print axioms old_middle_impossible
+
 end AvailableChain.FGCompose.Tests.PopulationMiddle
 end
