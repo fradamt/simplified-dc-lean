@@ -110,7 +110,7 @@ private theorem empty_seats_no_fallback :
   refine ⟨⟨7, by simp⟩, he, ?_, ?_, ?_⟩
   · intro i hi
     rw [he] at hi
-    exact (Finset.mem_empty.mp hi).elim
+    simp at hi
   · rw [he]; exact Finset.not_nonempty_empty
   · rintro ⟨rows⟩
     exact Empty.elim (rows 0)
