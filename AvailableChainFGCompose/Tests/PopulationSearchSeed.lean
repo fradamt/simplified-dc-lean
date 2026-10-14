@@ -1,5 +1,4 @@
 module
-import Mathlib.Tactic.IntervalCases
 public import AvailableChainFGCompose.Proofs.Population.FrontierSearchBridges
 public import AvailableChainFGCompose.Proofs.Population.FrontierSearchRepair
 
