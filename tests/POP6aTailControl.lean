@@ -322,5 +322,41 @@ private theorem empty_seats_row_tail_rejected :
 
 #print axioms empty_seats_row_tail_rejected
 
+-- A read-only frontier fixture: both stores satisfy the same certificate invariant.
+-- At cut 14, nonholder 7 holds height 2 while holder 9 holds only genesis (height 1).
+private abbrev maximumCore : FGCoreReads missingProtocol 1 Unit Unit (Row (Fin 1)) :=
+  { tailCore with core := fun nd => ⟨(),
+      if nd.sent.isEmpty then ⟨{.genesis, c5x1}, .genesis, .genesis, 1, 2⟩ else Store.init,
+      [], []⟩ }
+
+private theorem nonholder_frontier_premises_sat :
+    missingRun.honest = {7, 9} ∧
+    FGHonestSeats missingReads missingRun = {0} ∧
+    safetyHolder missingReads missingRun 0 = 9 ∧
+    (∀ i x, FGStoreInvariant c5H c5F
+      (maximumCore.core (missingRun.stateBefore env i x)).fg) ∧
+    (maximumCore.core (missingRun.stateBefore env 14 7)).fg.h_max = 2 ∧
+    (maximumCore.core (missingRun.stateBefore env 14 9)).fg.h_max = 1 ∧
+    frontierAtIdx maximumCore env missingRun 14 = 2 ∧
+    (FGHonestSeats missingReads missingRun).sup
+      (fun i => (maximumCore.core
+        (missingRun.stateBefore env 14 (safetyHolder missingReads missingRun i))).fg.h_max) = 1 := by
+  refine ⟨rfl, ?_, rfl, ?_, ?_, ?_, ?_, ?_⟩
+  · ext i
+    have hi : i = 0 := Subsingleton.elim _ _
+    subst i
+    decide
+  · intro i x
+    change FGStoreInvariant c5H c5F
+      (if (missingRun.stateBefore env i x).sent.isEmpty then
+        ⟨{.genesis, c5x1}, .genesis, .genesis, 1, 2⟩ else Store.init)
+    split <;> constructor <;> decide +kernel
+  · decide +kernel
+  · decide +kernel
+  · decide +kernel
+  · decide +kernel
+
+#print axioms nonholder_frontier_premises_sat
+
 end AvailableChain.FGCompose.Tests.POP6aTail
 end
