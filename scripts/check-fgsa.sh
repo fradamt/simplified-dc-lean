@@ -199,7 +199,8 @@ echo "== ext names of the FG pin table"
 neg=$(mktemp -d "$PWD/.lake/fgsa-neg.XXXXXX")
 trap 'rm -rf "$neg"' EXIT
 gate_build --wfail AvailableChainSimplexFG AvailableChainKitFG
-nlean=$(perl -CSD -e "$strip_comments" < AvailableChainKitFG/Pins.lean | grep -o '\.leanIn ""' |
+pins=$(gate_source_path AvailableChainKitFG.Pins)
+nlean=$(perl -CSD -e "$strip_comments" < "$pins" | grep -o '\.leanIn ""' |
   wc -l | tr -d ' ')
 check_ext() {  # EMITTER: its ext records, the lower bound, and CheckFGSAExt.lean
   lake env lean --run "$1" --ext > "$neg/extrecs" || {
@@ -302,7 +303,8 @@ expect_fail "library glob removed (tests escape the build)" $code "$out" "MISSIN
 # is in a private copy of the current tree and all stable Lake data. The copy
 # uses file clones where supported; it never shares writable build outputs.
 control_glob_build() {
-local m=NegBuildC23 f=AvailableChainFGSA/Tests/NegBuildC23.lean
+local m=NegBuildC23 f
+f=$(gate_source_path AvailableChainFGSA.Tests.NegBuildC23)
 [ ! -e "$f" ] || { echo "CONTROL SETUP FAIL: $f exists"; exit 1; }
 local tree=$neg/build-tree
 gate_copy_control_tree "$PWD" "$tree"

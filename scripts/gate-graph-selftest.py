@@ -287,7 +287,7 @@ def graph(root, tier, slots, fail='', change='', force=False, env_neg='0', integ
 
 def copy_control(root):
     source, target = root / 'source', root / 'private'
-    for path in ('AvailableChainFGSA/Tests/Keep.lean', '.lake/build/keep.olean',
+    for path in ('fgsa/AvailableChainFGSA/Tests/Keep.lean', '.lake/build/keep.olean',
                  '.lake/config/keep', '.lake/packages/dependency/keep'):
         write(source / path, 'unchanged\n')
     write(source / '.lake/gate-logs.live/log', 'excluded\n')
@@ -297,7 +297,7 @@ def copy_control(root):
                     str(source), str(target)], check=True)
     assert not (target / '.git').exists()
     assert set(p.name for p in (target / '.lake').iterdir()) == {'build', 'config', 'packages'}
-    for path in ('AvailableChainFGSA/Tests/Keep.lean', '.lake/build/keep.olean',
+    for path in ('fgsa/AvailableChainFGSA/Tests/Keep.lean', '.lake/build/keep.olean',
                  '.lake/config/keep', '.lake/packages/dependency/keep'):
         assert not (target / path).is_symlink()
         assert (source / path).stat().st_ino != (target / path).stat().st_ino
@@ -312,11 +312,14 @@ def copy_control(root):
     for path in ('.lake/build/keep.olean', '.lake/packages/dependency/keep'):
         (fallback / path).write_text('fallback edit\n')
         assert (source / path).read_text() == 'unchanged\n'
-    # Exercise the actual C23 function, including its diagnostic and cleanup assertions.
+    # Exercise C23 in a nested source tree, including diagnostic and cleanup assertions.
+    write(source / 'lakefile.toml',
+          '[[lean_lib]]\nname="AvailableChainFGSA"\nsrcDir="fgsa"\n')
+    write(source / 'scripts/source_layout.py', (REPO / 'scripts/source_layout.py').read_text())
     text = (REPO / 'scripts/check-fgsa.sh').read_text()
     function = text[text.index('control_glob_build() {'):text.index('control_closure() {')]
     write(source / 'bin/lake', '#!/usr/bin/env bash\n'
-          'test -f AvailableChainFGSA/Tests/NegBuildC23.lean || exit 2\n'
+          'test -f fgsa/AvailableChainFGSA/Tests/NegBuildC23.lean || exit 2\n'
           'echo private-build > .lake/build/keep.olean\n'
           'echo private-package > .lake/packages/dependency/keep\n'
           'echo "AvailableChainFGSA.Tests.NegBuildC23 rejected"\nexit 1\n', True)
@@ -328,7 +331,7 @@ def copy_control(root):
     subprocess.run(['bash', '-c', harness, 'c23-control', str(REPO / 'scripts/gate-common.sh')],
                    cwd=source, env=dict(os.environ, PATH=str(source / 'bin') + os.pathsep +
                                        os.environ['PATH']), check=True)
-    assert not (source / 'AvailableChainFGSA/Tests/NegBuildC23.lean').exists()
+    assert not (source / 'fgsa/AvailableChainFGSA/Tests/NegBuildC23.lean').exists()
     assert (source / '.lake/build/keep.olean').read_text() == 'unchanged\n'
     assert (source / '.lake/packages/dependency/keep').read_text() == 'unchanged\n'
     print('private source/build/config/packages (clone and rsync); C23 cleanup: PASS')
