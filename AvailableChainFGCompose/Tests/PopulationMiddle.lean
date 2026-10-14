@@ -856,5 +856,64 @@ private theorem frozen_rows (j : Nat) (x : Fin 1) (q : Nat) (a : protocol.Object
 
 #print axioms frozen_rows
 
+private theorem frozen_schedule_premises_sat :
+    V2.D.ScheduleWellFormed (env (Fin 1)) frozenRun := by
+  constructor
+  · decide
+  · decide +kernel
+  · decide +kernel
+  · intro ev hm
+    simp only [List.mem_cons, List.mem_nil_iff, or_false] at hm
+    rcases hm with
+      rfl | rfl | rfl | rfl | rfl | rfl
+      | rfl | rfl | rfl | rfl | rfl | rfl
+      | rfl | rfl | rfl | rfl | rfl
+    all_goals decide
+  · intro ev hm
+    simp only [List.mem_cons, List.mem_nil_iff, or_false] at hm
+    rcases hm with
+      rfl | rfl | rfl | rfl | rfl | rfl
+      | rfl | rfl | rfl | rfl | rfl | rfl
+      | rfl | rfl | rfl | rfl | rfl
+    all_goals decide
+  · intro x t hm
+    simp only [List.mem_cons, List.mem_nil_iff, V2.Event.tick.injEq,
+      or_false] at hm
+    rcases hm with
+      ⟨_, rfl⟩ | ⟨_, rfl⟩ | ⟨_, rfl⟩ | ⟨_, rfl⟩
+      | ⟨_, rfl⟩ | ⟨_, rfl⟩ | ⟨_, rfl⟩ | ⟨_, rfl⟩
+      | ⟨_, rfl⟩ | ⟨_, rfl⟩ | ⟨_, rfl⟩ | ⟨_, rfl⟩
+      | ⟨_, rfl⟩ | ⟨_, rfl⟩ | ⟨_, rfl⟩ | ⟨_, rfl⟩
+      | ⟨_, rfl⟩
+    · exact ⟨0, rfl⟩
+    · exact ⟨1, rfl⟩
+    · exact ⟨2, rfl⟩
+    · exact ⟨3, rfl⟩
+    · exact ⟨4, rfl⟩
+    · exact ⟨5, rfl⟩
+    · exact ⟨6, rfl⟩
+    · exact ⟨7, rfl⟩
+    · exact ⟨8, rfl⟩
+    · exact ⟨9, rfl⟩
+    · exact ⟨10, rfl⟩
+    · exact ⟨11, rfl⟩
+    · exact ⟨12, rfl⟩
+    · exact ⟨13, rfl⟩
+    · exact ⟨14, rfl⟩
+    · exact ⟨15, rfl⟩
+    · exact ⟨16, rfl⟩
+  · intro x _ t ht _ hhor _
+    obtain rfl : x = 0 := Subsingleton.elim _ _
+    obtain ⟨k, hk⟩ := ht
+    change t = (k : Time) * 2 at hk
+    change t ≤ 32 at hhor
+    rw [hk] at hhor
+    have hb : k * 2 ≤ 32 := by exact_mod_cast hhor
+    have hbound : k ≤ 16 := by omega
+    subst t
+    interval_cases k <;> simp
+
+#print axioms frozen_schedule_premises_sat
+
 end AvailableChain.FGCompose.Tests.PopulationMiddle
 end
