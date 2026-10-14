@@ -9022,4 +9022,32 @@
             'AvailableChain.FGCompose.OpeningCoveredFG_def',
         ),
     },
+    'AvailableChainFGCompose.Tests.PopulationAgeAxioms': {
+        'AvailableChainFGCompose.Proofs.Population.FrontierSearchAge': (
+            'AvailableChain.FGCompose.frontierSearch_age_service_holder',
+        ),
+        'AvailableChainFGCompose.Proofs.Population.PromotionAge': (
+            'AvailableChain.FGCompose.healing_promotion_age_receipt_holder',
+            'AvailableChain.FGCompose.healing_promotion_age_service_holder',
+        ),
+        'AvailableChainFGCompose.Proofs.Population.PromotionSource': (
+            'AvailableChain.FGCompose.promotion_age_advance_of_source_holder',
+        ),
+        'AvailableChainFGCompose.Proofs.Population.PromotionSourceBridges': (
+            'AvailableChain.FGCompose.promotionSourceAtFG_frozen_iff',
+        ),
+        'AvailableChainFGCompose.Statements.Population.FrontierMaturity': (
+            'AvailableChain.FGCompose.PromotionSourceAtFG',
+            'AvailableChain.FGCompose.PromotionSourceAtFG.age',
+            'AvailableChain.FGCompose.PromotionSourceAtFG.carrier',
+            'AvailableChain.FGCompose.PromotionSourceAtFG.entry',
+            'AvailableChain.FGCompose.PromotionSourceAtFG.horizon',
+            'AvailableChain.FGCompose.PromotionSourceAtFG.mk',
+            'AvailableChain.FGCompose.PromotionSourceAtFG.parentPath',
+            'AvailableChain.FGCompose.PromotionSourceAtFG.proposal',
+            'AvailableChain.FGCompose.PromotionSourceAtFG.rows',
+            'AvailableChain.FGCompose.PromotionSourceAtFG.slot',
+            'AvailableChain.FGCompose.PromotionSourceAtFG.sync',
+        ),
+    },
 }
