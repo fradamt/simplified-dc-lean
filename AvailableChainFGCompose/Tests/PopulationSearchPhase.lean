@@ -1048,5 +1048,7 @@ private theorem high_nonholder_source_progress :
 
 #print axioms high_nonholder_source_progress
 
+#print axioms AvailableChain.FGCompose.p0d5c_top_phase_holder
+
 end AvailableChain.FGCompose.Tests.PopulationSearchPhase
 end
