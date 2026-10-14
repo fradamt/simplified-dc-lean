@@ -86,5 +86,16 @@ private theorem mixed_targets :
 
 #print axioms mixed_targets
 
+-- Only the signer obstruction is used: every seat belongs to 9, never to 7.
+private theorem old_nonholder_target_impossible :
+    ¬ ∃ j q a, q ≤ 0 ∧ HonestRowAt reads (env Nat) run timing j 7 q a ∧
+      RowComplete reads run history.signer (fun _ => true) 7 a ∧
+      history.heightPair a = .vote 1 genesisRoot false := by
+  rintro ⟨j, q, a, _, _, hc, _⟩
+  obtain ⟨i, _, hi⟩ := hc.2
+  change (9 : Nat) = 7 at hi
+  omega
+
+#print axioms old_nonholder_target_impossible
 end AvailableChain.FGCompose.Tests.PopulationHighTarget
 end
