@@ -34,7 +34,7 @@ private abbrev protocol : V2.ProtocolSpecD Unit where
   duties := fun t => [t]
   duties_spec := by intro d t; simp
   duties_nodup := by intro t; simp
-  act := fun _ _ t => if t = 6 then some (.inl row)
+  act := fun _ t _ => if t = 6 then some (.inl row)
     else if t = 16 then some (.inr child) else none
   gossip := fun _ _ => []
   process := fun st _ => st
@@ -53,9 +53,9 @@ private abbrev reads : FGSafetyReads protocol 1 (Row (Fin 1)) where
   proposalRows := fun _ => []
   encode := fun a => ⟨.seat 6 0, .inl a⟩
   decode := some
-  decodeObject := fun o => match o.auth, o.payload with
-    | .seat l _, .inl a => if l = 6 then some a else none
-    | _, _ => none
+  decodeObject := fun o => match o.auth with
+    | .seat l _ => if l = 6 then o.payload.getLeft? else none
+    | .none => none
   fgLabel := 6
   fgSeats := Equiv.refl _
   record := fun _ => RecordOnce.initial
@@ -141,5 +141,42 @@ private theorem erase_injective : Function.Injective erase := by
       rfl
 
 #print axioms erase_injective
+
+private theorem source_premises_sat :
+    run.honest = {7, 9} ∧ run.horizon = 30 ∧
+    run.events = [.tick 9 6, .tick 7 6, .tick 7 16] ∧
+    (∀ i, safetyHolder reads run i = 9) ∧ FGHonestSeats reads run = {0} ∧
+    protocol.objSelfVisible (reads.encode row) = true ∧
+    reads.decodeObject (reads.encode row) = some row ∧
+    HonestRowAt reads env run timing 0 9 0 row ∧
+    V2.D.proposerOf run iface 4 = 7 ∧
+    HonestCarrier env run iface (kernelCarrier decodeProposal erase FGBlock.rows)
+      4 (erase child) [row] ∧
+    (∀ x ∈ run.honest,
+      actionSourceFG core env run timing x 0 = some (some .genesis)) ∧
+    PromotionSourceAtFG core reads env run obs timing iface wire
+      (FGHonestSeats reads run) 1 0 1 .genesis 4 child := by
+  have hp : HonestProposal env run iface 4 (erase child) := by
+    refine ⟨⟨by decide, by decide⟩, ⟨.seat 16 0, .inr child⟩,
+      ⟨2, by decide +kernel, by decide +kernel⟩, rfl⟩
+  have hr : HonestRowAt reads env run timing 0 9 0 row := by
+    unfold HonestRowAt
+    decide +kernel
+  refine ⟨rfl, rfl, rfl, fun _ => rfl, ?_, rfl, rfl, hr, rfl, ?_, ?_, ?_⟩
+  · ext i
+    have hi : i = 0 := Subsingleton.elim _ _
+    subst i
+    simp [FGHonestSeats_def, safetyHolder, reads, run]
+  · exact ⟨hp, ⟨.seat 16 0, .inr child⟩,
+      ⟨2, by decide +kernel, by decide +kernel⟩, child, rfl, rfl, rfl⟩
+  · intro x hx
+    have hx' : x = 7 ∨ x = 9 := by simpa using hx
+    rcases hx' with rfl | rfl <;> decide +kernel
+  · refine ⟨⟨rfl, rfl⟩, preceq_refl _, hp, rfl, by decide,
+      by decide, by decide, by decide, ?_⟩
+    intro i _
+    exact ⟨0, 0, row, le_rfl, hr, false, rfl⟩
+
+#print axioms source_premises_sat
 end AvailableChain.FGCompose.Tests.PopulationAge
 end
