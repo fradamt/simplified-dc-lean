@@ -821,5 +821,27 @@ private theorem durable_premises_sat : FGFinalityDurableLaws core := by
 
 #print axioms durable_premises_sat
 
+private abbrev ready (i : Nat) (x : Nat) (W : FGBlock (Fin 1)) (t : Time) : Prop :=
+  ((i = 32 ∧ x = 9) ∨ (i = 33 ∧ x = 7)) ∧ W = xBlock ∧ t = 32
+
+-- Both actual terminal ticks run exactly the window insertion/update required by the owner.
+set_option maxRecDepth 2048 in
+private theorem acceptance_effect_premises_sat :
+    AcceptStep_W core (env Nat) run electorate cfg 2 ready ∧
+    ready 32 9 xBlock 32 ∧ ready 33 7 xBlock 32 ∧
+    (SimplexFG.Window.derive electorate cfg 2 xBlock).F = bBlock := by
+  refine ⟨?_, by decide, by decide, by decide +kernel⟩
+  rintro i x W t _ ⟨h, rfl, rfl⟩
+  rcases h with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
+  all_goals
+    constructor
+    · change Store.mk _ _ _ _ _ = Store.mk _ _ _ _ _
+      simp only [Store.mk.injEq]
+      refine ⟨?_, rfl, rfl, rfl, rfl⟩
+      decide +kernel
+    · decide +kernel
+
+#print axioms acceptance_effect_premises_sat
+
 end AvailableChain.FGCompose.Tests.PopulationKernel
 end
