@@ -56,5 +56,21 @@ theorem healing_promotion_fixed_rows_holder {A : Finset (Fin n)} {r height : Nat
     cases heq
     exact ⟨timeout, rfl⟩
 
+/-- SAME: add the slot bound to the same entry and the same selected batch. -/
+theorem p0d3_bound_batch_holder {A : Finset (Fin n)} {r height : Nat} {Q : Block}
+    (hA : A ⊆ FGHonestSeats S rho) (hne : A.Nonempty)
+    (batch : ∃ U, EntryAt H U height ∧ FixedRowsFG R S E rho H T pair A r height Q U)
+    (entrySlot : ∀ x K U, x ∈ rho.honest →
+      actionSourceFG R E rho T x r = some (some K) → (H K).T_h = U →
+      U.slot ≤ r * T.roundSlots) :
+    ∃ U, EntryAt H U height ∧ U.slot ≤ r * T.roundSlots ∧
+      FixedRowsFG R S E rho H T pair A r height Q U := by
+  obtain ⟨U, hU, hrows⟩ := batch
+  obtain ⟨i, hi⟩ := hne
+  have hx : safetyHolder S rho i ∈ rho.honest := by
+    simpa only [FGHonestSeats_def, Finset.mem_filter, Finset.mem_univ, true_and] using hA hi
+  obtain ⟨K, _, _, _, _, _, hK, _, _, _, _, _, he, _⟩ := hrows i hi
+  exact ⟨U, hU, entrySlot (safetyHolder S rho i) K U hx hK he, hrows⟩
+
 end AvailableChain.FGCompose
 end
