@@ -1159,5 +1159,37 @@ private theorem frozen_premises_sat : ∃ m : middleType frozenRun,
 
 #print axioms frozen_premises_sat
 
+private theorem frozen_action_premises_sat : ∃ m : middleType frozenRun,
+    (m.A₀ = aBlock ∧ m.B = bBlock ∧ m.U = bBlock ∧ m.X_D = dBlock ∧
+      m.cD = 6 ∧ m.d = 2) ∧
+    KernelActionSupplyFG_W core reads obs timing (env (Fin 1)) frozenRun interface
+      history electorate m := by
+  obtain ⟨m, hA, hB, hU, hD, hc, hd⟩ := frozen_premises_sat
+  refine ⟨m, ⟨hA, hB, hU, hD, hc, hd⟩, ?_⟩
+  constructor
+  · intro x nd hnd
+    obtain rfl : x = 0 := Subsingleton.elim _ _
+    change some 30 = some nd at hnd
+    obtain rfl := Option.some.inj hnd
+    decide +kernel
+  · intro x _
+    obtain rfl : x = 0 := Subsingleton.elim _ _
+    rw [hc, hD]
+    constructor
+    · intro _; exact ⟨30, by decide +kernel, rfl⟩
+    · intro h; change (6 : Nat) < 6 at h; omega
+  · intro x nd _ hnd
+    obtain rfl : x = 0 := Subsingleton.elim _ _
+    change some 30 = some nd at hnd
+    obtain rfl := Option.some.inj hnd
+    exact ⟨dBlock, rfl, by decide⟩
+  · intro x nd _ _ H hH
+    have he : dBlock = H := Option.some.inj hH
+    subst H
+    rw [hD]
+    decide
+
+#print axioms frozen_action_premises_sat
+
 end AvailableChain.FGCompose.Tests.PopulationRows
 end
