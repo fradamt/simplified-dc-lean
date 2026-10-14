@@ -227,6 +227,15 @@ private theorem m9foldAdvance : ProgressFoldAdvance c5E c5H 4 := by
 
 #print axioms m9foldAdvance
 
+private theorem gidxBefore_le_timeIdx {V : Type} {P : V2.ProtocolSpecD Unit}
+    (rho : V2.D.Run V P) (a : Time) : V2.D.Run.idxBefore rho a ≤ timeIdx rho a := by
+  change (rho.events.filter (fun e => decide (e.time < a))).length ≤
+    (rho.events.filter (fun e => decide (e.time ≤ a))).length
+  rw [← List.countP_eq_length_filter, ← List.countP_eq_length_filter]
+  exact List.countP_mono_left fun e _ he => decide_eq_true (of_decide_eq_true he).le
+
+#print axioms gidxBefore_le_timeIdx
+
 -- POP-5 local fixture support ends here.
 
 end Fixture
