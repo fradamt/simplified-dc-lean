@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGCompose.Proofs.Population.FrontierSearchTop
+import AvailableChainFGCompose.Proofs.Population.FrontierSearchGap
 import all AvailableChainFGCompose.Proofs.Population.FrontierSearchTop
 import all AvailableChainFGCompose.Tests.P0d5c
 
