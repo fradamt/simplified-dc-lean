@@ -83,5 +83,30 @@ theorem rowsPrem_action_source_holder (CL : FGCoreLaws R) (height : FGHeightLaws
       rw [read x nd hnd]
       exact hB⟩
 
+/-- The actual earlier sources and the middle cap bound the anchor height. -/
+theorem rowsPrem_anchor_cap_holder (CL : FGCoreLaws R) (L : FGTimingLaws T)
+    (hs : V2.D.ScheduleWellFormed E rho) (names : HighRecordNames R S O T E rho D)
+    (hcapBefore : ∀ (cut : Time) (b i : Nat) (x : V) (W : FGBlock (Fin n)),
+      i ≤ V2.D.Run.idxBefore rho cut → HeldAt R E rho i x W →
+      (∀ j z r a u h B timeout, HonestRowAt S E rho T j z r a →
+        S.decode a = some u → u.height_pair = .vote h B timeout →
+        T.action r < cut → h < b + 1) → (O.height W).h < b + 2) :
+    ∀ i x W, i ≤ V2.D.Run.idxBefore rho (T.action (pt.r + 3)) →
+      HeldAt R E rho i x W → (O.height W).h ≤ m.d + 3 := by
+  apply actual_anchor_cap R S O T E rho (pt.r + 2) (m.d + 1) hcapBefore
+  intro j x r a u h B timeout ha hu hp hr
+  obtain ⟨C, hsrc, he⟩ := names j x r a (h, B) ha (by
+    rw [D.decode_height a u hu, hp]; rfl)
+  obtain ⟨i, hi, _hilt, hheld⟩ := kmid_source_held_at_tick R T E rho CL hs ha.1 hsrc
+  have hrq : r ≤ pt.r + 2 := by
+    have hlt : r < pt.r + 3 := (kmid_action_strictMono T L).lt_iff_lt.mp hr
+    omega
+  have hcut := kmid_tick_lt_afterTicks E rho hs hi ((kmid_action_strictMono T L).monotone hrq)
+  have bound := m.capThroughFinalAction i x C (List.getElem?_eq_some_iff.mp hi).1.le
+    hcut.le hheld
+  have hh : h = (O.height C).h := congrArg Prod.fst he
+  rw [hh]
+  exact bound
+
 end AvailableChain.FGCompose
 end
