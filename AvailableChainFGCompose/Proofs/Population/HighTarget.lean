@@ -5,8 +5,6 @@ public import AvailableChainFGCompose.Proofs.HolderClient
 public import AvailableChainFGCompose.Proofs.OrdinaryHolderClient
 public import AvailableChainFGCompose.Proofs.Finality.RecordInv
 
-set_option linter.privateModule false
-
 public section
 
 namespace AvailableChain.FGCompose
@@ -39,6 +37,115 @@ private theorem d7r_history_holder
   change a.height_pair = .vote h U timeout at hh
   exact ⟨fun ht => (hc.2.2 a ha).1 h U (ht ▸ hh),
     fun ht => (hc.2.2 a ha).2.1 h U (ht ▸ hh)⟩
+
+-- P9 supplies the entry, durable invariant, HEAD alignment and exact prior origins.
+-- These remain all-node leaves; this package produces rows only at honest FG holders.
+variable (entry : Nat → BlockId)
+variable (hentry : ∀ x r C, x ∈ rho.honest →
+  actionSourceFG R E rho T x r = some (some C) → high R O pt.reset C →
+  entry (O.height C).h = (O.height C).T_h.root)
+variable (records : ∀ j x, x ∈ rho.honest →
+  HighRecordInvariant pt.reset.M entry (S.record (V2.D.Run.stateBefore E rho j x)))
+variable (finality : ∀ j x t Λ fp, x ∈ rho.honest →
+  finality_pair Λ (S.inputs (P.clock (V2.D.Run.stateBefore E rho j x) t)).2 = some fp →
+  pt.reset.M + 1 ≤ fp.height → fp.target = entry fp.height)
+variable (prior : ∀ j x, x ∈ rho.honest →
+  ∀ b ∈ (S.record (V2.D.Run.stateBefore E rho j x)).sent,
+  ∃ k rSent a, k < j ∧ HonestRowAt S E rho T k x rSent a ∧
+    namedEntry (D.heightPair a) = namedEntry b.1)
+variable (hsrc : ∀ nd, (S.inputs nd).1 = R.source nd)
+variable (hheight : ∀ C, ((derive Ef cfg C).h, (derive Ef cfg C).T_h.root) =
+  ((O.height C).h, (O.height C).T_h.root))
+variable (J : FGSafetyClientLaws S Ef cfg)
+variable (client : FGHolderClientLaws S Ef cfg E rho (ordinaryFGExecutionObs E rho)
+  (safetyHolder S rho))
+variable (trace : FGHolderClientTrace S Ef cfg E rho (ordinaryFGExecutionObs E rho)
+  (safetyHolder S rho))
+variable (emission : HighRecordEmission S T E rho Ef cfg)
+variable {valid : Wire → Bool}
+variable (complete : ∀ j x r a, HonestRowAt S E rho T j x r a →
+  ∃ u, S.decode a = some u ∧ RowComplete S rho D.signer valid x a)
+variable (wireLaws : FGRowPermissionWireLaws S (fun a => namedEntry (D.heightPair a)))
+variable (hT : FGTimingLaws T) (hs : V2.D.ScheduleWellFormed E rho)
+variable (enabled : ∀ r, S.enabled (T.action r) = true)
+
+include hentry records finality prior hsrc hheight J client trace emission complete
+  wireLaws hT hs enabled in
+/-- The current/prior target split at an honest holder retains the original send index. -/
+theorem high_target_row_covered_holder (seat : Fin n)
+    (hx : safetyHolder S rho seat ∈ rho.honest) (r : Nat) (C : FGBlock (Fin n))
+    (hsource : actionSourceFG R E rho T (safetyHolder S rho seat) r = some (some C))
+    (hhigh : high R O pt.reset C)
+    (hawake : E.awake (safetyHolder S rho seat) (T.action r) = true) :
+    ∃ j rSent a, rSent ≤ r ∧ HonestRowAt S E rho T j (safetyHolder S rho seat) rSent a ∧
+      RowComplete S rho D.signer valid (safetyHolder S rho seat) a ∧
+      D.heightPair a = .vote (O.height C).h (O.height C).T_h.root false := by
+  let x := safetyHolder S rho seat
+  obtain ⟨nd, hnd, hC⟩ := Option.map_eq_some_iff.mp hsource
+  obtain ⟨i, htick, hclock⟩ := postClock_tick E rho hnd
+  have hrec : S.record nd = S.record (V2.D.Run.stateBefore E rho i x) := by
+    rw [← hclock, J.clock_record]
+  have he := hentry x r C hx hsource hhigh
+  obtain ⟨_, _, hl, _⟩ := records i x hx (O.height C).h hhigh
+  have hol : own_lock (S.record nd).toRecord (O.height C).h
+      (finality_pair (S.record nd).toRecord (S.inputs nd).2) = none ∨
+      own_lock (S.record nd).toRecord (O.height C).h
+        (finality_pair (S.record nd).toRecord (S.inputs nd).2) = some (O.height C).T_h.root := by
+    cases hp : finality_pair (S.record nd).toRecord (S.inputs nd).2 with
+    | none => simpa only [own_lock, hrec, he] using hl
+    | some fp =>
+      by_cases hy : fp.height = (O.height C).h
+      · have hf := finality i x (T.action r) (S.record nd).toRecord fp hx
+          (by rw [hclock]; exact hp) (hy ▸ hhigh)
+        have hf' : fp.target = (O.height C).T_h.root := by simpa only [hy, he] using hf
+        exact Or.inr (by simp only [own_lock, hy, ite_true, hf'])
+      · simpa only [own_lock, hy, ite_false, hrec, he] using hl
+  have hist : FGRowRecordHistory (S.record nd) := by
+    rw [hrec]; exact d7r_history_holder trace seat hx i
+  have hduty := ordinary_obsDutyState_tick E rho htick
+  have coverage := rowPermission_covered_obs S Ef cfg E rho _
+    (ordinaryFGExecutionObs_laws E rho) client O.height T hT
+    (fun a => namedEntry (D.heightPair a)) wireLaws hs hheight i r seat hx htick C
+    (by rw [hduty, hclock]; exact ⟨(hsrc nd).trans hC, hol⟩)
+    (by rw [hduty, hclock]; exact hist)
+    (by
+      intro b hb
+      obtain ⟨k, q, a, hk, ha, hn⟩ := prior i x hx b hb
+      exact ⟨k, q, a, hk, (ordinary_obsHonestRowAt_iff S E rho T k x q a).2 ha, hn⟩)
+    hawake (enabled r)
+  obtain ⟨j, q, a, hqr, ha, hn⟩ := ordinary_rowPermission_covered S E rho T
+    (fun a => namedEntry (D.heightPair a)) x i r _ coverage
+  obtain ⟨u, hd, hc⟩ := complete j x q a ha
+  have hn' : namedEntry u.height_pair = some ((O.height C).h, (O.height C).T_h.root) := by
+    rwa [D.decode_height a u hd] at hn
+  have hp : u.height_pair = .vote (O.height C).h (O.height C).T_h.root false := by
+    cases hu : u.height_pair with
+    | empty => rw [hu] at hn'; cases hn'
+    | vote y U timeout =>
+      rw [hu] at hn'
+      have heq : (y, U) = ((O.height C).h, (O.height C).T_h.root) := Option.some.inj hn'
+      cases heq
+      let Λ := S.record (V2.D.Run.stateBefore E rho j x)
+      let duty := P.clock (V2.D.Run.stateBefore E rho j x) (T.action q)
+      obtain ⟨g, B, tm, hpair, hrow, _, _, _⟩ :=
+        createRowOnce_released Ef cfg Λ u.signer (S.inputs duty).1 (S.inputs duty).2
+          (emission j x q a u ha hd)
+      have hhp := congrArg Row.height_pair hrow
+      rw [hu] at hhp
+      cases hhp
+      rw [height_pair_vote_fields hpair] at hpair
+      obtain ⟨ht, hn, hl, _⟩ := records j x hx (O.height C).h hhigh
+      have choice := high_record_target_choice Λ.toRecord (O.height C).h
+        (O.height C).T_h.root (finality_pair Λ.toRecord (S.inputs duty).2)
+        (by simpa only [he] using ht) hn (by simpa only [he] using hl)
+        (by
+          intro fp hf hfy
+          have hfroot := finality j x (T.action q) Λ.toRecord fp hx hf (hfy ▸ hhigh)
+          simpa only [hfy, he] using hfroot)
+      rw [choice] at hpair
+      cases hpair
+      rfl
+  exact ⟨j, q, a, hqr, ha, hc, (D.decode_height a u hd).trans hp⟩
 
 end AvailableChain.FGCompose
 end
