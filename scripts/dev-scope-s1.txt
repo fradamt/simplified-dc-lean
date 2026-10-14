@@ -592,6 +592,13 @@ AvailableChainFGCompose.Proofs.Healing.FrontierSearchFull
 AvailableChainFGCompose.Tests.P0d5db
 AvailableChainFGCompose.Proofs.Healing.Reset
 AvailableChainFGCompose.Tests.P0d6b
+AvailableChainFGCompose.Proofs.Population.Safety
+AvailableChainFGCompose.Proofs.Population.Seats
+AvailableChainFGCompose.Statements.Population.Seats
+AvailableChainFGCompose.Tests.Population
+AvailableChainFGCompose.Tests.PopulationAxioms
+AvailableChainFGCompose.Tests.PopulationBridges
+AvailableChainFGCompose.Tests.PopulationCounts
 [DEFERRED]
 AvailableChainFGSAProofs.Proofs.Shared.Claims P-ShA
 
