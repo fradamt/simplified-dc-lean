@@ -597,6 +597,7 @@ AvailableChainFGCompose.Tests.PopulationAxioms
 AvailableChainFGCompose.Tests.PopulationBridges
 AvailableChainFGCompose.Tests.PopulationCounts
 AvailableChainFGCompose.Proofs.Population.Promotion
+AvailableChainFGCompose.Proofs.Population.PromotionBridges
 [DEFERRED]
 AvailableChainFGSAProofs.Proofs.Shared.Claims P-ShA
 
