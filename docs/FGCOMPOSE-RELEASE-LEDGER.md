@@ -55,12 +55,21 @@ Reclassified a → c (all findings verified against source):
 └─────────────────────────────┴────────────┴───────────────────────────────────────────────────────┘
 ```
 
-Generator/check command (existing local release tooling): python3
-/home/fradamt/.claude/jobs/22f59f85/tmp/tmp/p0-zf/make-ledger.py --check. The check regenerates in
-memory, compares the complete ledger, checks class counts against rendered classified rows,
-resolves all 864 explicit Compose rows to compose-api.json and checks all 393 consumer input
-lists. Generated API fields and constructors remain covered by the snapshot, outside the
-source-declaration row count.
+Integration census at 71454591 (P0 batch 10): 889 explicit public Compose declarations and 411
+production proof consumers, including 25 declarations and 18 consumers from POP-0/1 and
+SafetyOrigin. The same mechanical class test still yields a = 323, b = 19, c = 382, d = 1 (725
+classified FG-SA declarations/intermediates). The additive Compose modules re-point no frozen
+FG-SA wrapper; they change no class count. Their generic declarations are indexed by kind below,
+separately from frozen-wrapper release classes.
+
+Integrated ledger consistency command: python3 -B
+/home/fradamt/.claude/jobs/22f59f85/tmp/tmp/p0int10/round3/extend-ledger.py --check. It uses the
+unchanged accepted source/contract extractors, preserves existing rows and source keys, checks the
+complete additive rendering, derives class counts from proof bodies, resolves every public Compose
+declaration exactly once against compose-api.json, and checks all 411 translated telescopes and
+expanded input lists. The old make-ledger.py --check remains unchanged and pinned to 864
+declarations / 393 consumers; it is a baseline-only checker. Generated API fields and constructors
+remain covered by the snapshot.
 
 ## What the library proves and does not prove
 
@@ -143,7 +152,7 @@ protocols. FG-SA supplies the stronger one-delivery provenance through fgsaSafet
 (Shared/FGSafetyStore.lean:11) and ordinaryFGExecutionObs_safety (:427). PC safety consumers use
 the origin variants on branch p0-origin, commit 3948e907: FGSafetyStoreOriginLaws,
 safety_origin_stateBefore and the six *_origin consumers (Statements/SafetyOrigin.lean and
-Proofs/SafetyOrigin.lean at that commit; not imported into this ledger source pin). Its
+Proofs/SafetyOrigin.lean at that commit; indexed in the batch-10 supplement below). Its
 Tests/P0Origin.lean:155, :230, :249 and :265 prove a two-body control and reject the frozen law.
 Leave the frozen observed field unchanged; driver-native observations remain available.
 
@@ -16967,17 +16976,700 @@ telescope.
 
 FG-SA producer/application: finality_action_time_bounds (`S138:36`).
 
+### selection_tick_rows_holder
+
+Source: `S193:16`.
+
+Translated telescope: In V, P, inst, n, Wire, S, E, rho, Ef, cfg, Q, [FGSelectionClientLaws Q S],
+[FGHolderClientLaws S Ef cfg E rho (ordinaryFGExecutionObs E rho) (safetyHolder S rho)], i, j, t,
+[Eq (List.instGetElem?NatLtLength.getElem? rho.events j) (Option.some (V2.Event.tick (safetyHolder
+S rho i) t))].
+
+Contract expansion keys: C064 FGHolderClientLaws, C080 FGSafetyReads, C087 FGSelectionClientLaws,
+C089 FGSelectionReads, C227 Gen.Env, C239 FG.Electorate, C240 FG.FGConfig, C258 V2.D.Run, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGHolderClientLaws: ordinary_FGHolderClientLaws (recipe; C064).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGSelectionClientLaws: p0c1_client_laws (recipe; file-private; C087).
+- FGSelectionReads: p0c1_selection (recipe; file-private; C089).
+- Gen.Env: env1 (recipe; C227).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: Actual holders and honest nonholders are distinct. The rows law supplies holder
+equality, injectivity and nonholder decoded-row exclusion; no Fin n ≃ V is a premise of these
+variants. safety_noSlash_all_of_holder takes honest-holder he and proves safety for all honest
+nodes. safety_honest_never_slashed_holder needs only carriage hc, honest-holder he and the exact
+slashing-read binding hi; no Linked, unit weights or global node cardinality.
+
+FG-SA specialization: fgsaSafetyClientLaws
+(AvailableChainFGSAProofs/Proofs/Shared/FGSafetyClient.lean:102) with ordinary_FGHolderClientLaws
+(S052:185) supplies ordinary holder laws only on the all-holders e/he path.
+legacy_tick_specialization (AvailableChainFGCompose/Tests/PopulationBridges.lean:18) proves
+equality with the old actual-tick equation; legacy_safety_specialization (:39) proves the
+unchanged honest-never-slashed conclusion from the old store, Linked and client premises. Both are
+conditional test-private bridges, not PC law producers. No frozen FG-SA wrapper is newly
+re-pointed.
+
+### safety_nonholder_noSlash
+
+Source: `S193:41`.
+
+Translated telescope: In V, P, inst, n, Wire, S, E, rho, Ef, cfg, [FGHolderClientLaws S Ef cfg E
+rho (ordinaryFGExecutionObs E rho) (safetyHolder S rho)], [FGSafetyWireLaws S], x, [(∀ (i : Fin
+n), Ne (safetyHolder S rho i) x)].
+
+Contract expansion keys: C064 FGHolderClientLaws, C080 FGSafetyReads, C085 FGSafetyWireLaws, C213
+safetyEmits, C214 safetyNoSlash, C227 Gen.Env, C239 FG.Electorate, C240 FG.FGConfig, C247 FG.Row,
+C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGHolderClientLaws: ordinary_FGHolderClientLaws (recipe; C064).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGSafetyWireLaws: fgsaSafetyWireLaws (recipe; C085).
+- Gen.Env: env1 (recipe; C227).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: Actual holders and honest nonholders are distinct. The rows law supplies holder
+equality, injectivity and nonholder decoded-row exclusion; no Fin n ≃ V is a premise of these
+variants. safety_noSlash_all_of_holder takes honest-holder he and proves safety for all honest
+nodes. safety_honest_never_slashed_holder needs only carriage hc, honest-holder he and the exact
+slashing-read binding hi; no Linked, unit weights or global node cardinality.
+
+FG-SA specialization: fgsaSafetyClientLaws
+(AvailableChainFGSAProofs/Proofs/Shared/FGSafetyClient.lean:102) with ordinary_FGHolderClientLaws
+(S052:185) supplies ordinary holder laws only on the all-holders e/he path.
+legacy_tick_specialization (AvailableChainFGCompose/Tests/PopulationBridges.lean:18) proves
+equality with the old actual-tick equation; legacy_safety_specialization (:39) proves the
+unchanged honest-never-slashed conclusion from the old store, Linked and client premises. Both are
+conditional test-private bridges, not PC law producers. No frozen FG-SA wrapper is newly
+re-pointed.
+
+### safety_noSlash_all_of_holder
+
+Source: `S193:61`.
+
+Translated telescope: In V, P, inst, n, Wire, S, E, rho, Ef, cfg, [FGHolderClientLaws S Ef cfg E
+rho (ordinaryFGExecutionObs E rho) (safetyHolder S rho)], [FGSafetyWireLaws S], [(∀ (i : Fin n),
+SetLike.instMembership.mem rho.honest (safetyHolder S rho i) → safetyNoSlash S E rho (safetyHolder
+S rho i))], x, [SetLike.instMembership.mem rho.honest x].
+
+Contract expansion keys: C064 FGHolderClientLaws, C080 FGSafetyReads, C085 FGSafetyWireLaws, C213
+safetyEmits, C214 safetyNoSlash, C227 Gen.Env, C239 FG.Electorate, C240 FG.FGConfig, C247 FG.Row,
+C249 FG.Slashable, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGHolderClientLaws: ordinary_FGHolderClientLaws (recipe; C064).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGSafetyWireLaws: fgsaSafetyWireLaws (recipe; C085).
+- Gen.Env: env1 (recipe; C227).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: Actual holders and honest nonholders are distinct. The rows law supplies holder
+equality, injectivity and nonholder decoded-row exclusion; no Fin n ≃ V is a premise of these
+variants. safety_noSlash_all_of_holder takes honest-holder he and proves safety for all honest
+nodes. safety_honest_never_slashed_holder needs only carriage hc, honest-holder he and the exact
+slashing-read binding hi; no Linked, unit weights or global node cardinality.
+
+FG-SA specialization: fgsaSafetyClientLaws
+(AvailableChainFGSAProofs/Proofs/Shared/FGSafetyClient.lean:102) with ordinary_FGHolderClientLaws
+(S052:185) supplies ordinary holder laws only on the all-holders e/he path.
+legacy_tick_specialization (AvailableChainFGCompose/Tests/PopulationBridges.lean:18) proves
+equality with the old actual-tick equation; legacy_safety_specialization (:39) proves the
+unchanged honest-never-slashed conclusion from the old store, Linked and client premises. Both are
+conditional test-private bridges, not PC law producers. No frozen FG-SA wrapper is newly
+re-pointed.
+
+### safety_honest_never_slashed_holder
+
+Source: `S193:76`.
+
+Translated telescope: In V, P, inst, n, Wire, S, E, rho, Base Proposal, R, [(∀ (t : Time) (x : V),
+safetyCarriage S E rho (safetyRows R (V2.D.Run.readAt E rho t x)))], [(∀ (i : Fin n),
+SetLike.instMembership.mem rho.honest (safetyHolder S rho i) → safetyNoSlash S E rho (safetyHolder
+S rho i))], I, [safetySlashesRead R S E rho I].
+
+Contract expansion keys: C044 FGCoreReads, C080 FGSafetyReads, C212 safetyCarriage, C213
+safetyEmits, C214 safetyNoSlash, C217 safetySlashesRead, C223 Gen.V2.Duty.HonestNeverSlashed, C226
+Gen.V2.Duty.SlashingInterface, C227 Gen.Env, C247 FG.Row, C249 FG.Slashable, C250
+FG.SlashableBetween, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- Gen.V2.Duty.SlashingInterface: fgsaSlashing (recipe; C226).
+- Gen.Env: env1 (recipe; C227).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: Actual holders and honest nonholders are distinct. The rows law supplies holder
+equality, injectivity and nonholder decoded-row exclusion; no Fin n ≃ V is a premise of these
+variants. safety_noSlash_all_of_holder takes honest-holder he and proves safety for all honest
+nodes. safety_honest_never_slashed_holder needs only carriage hc, honest-holder he and the exact
+slashing-read binding hi; no Linked, unit weights or global node cardinality.
+
+FG-SA specialization: safety_read_carriage with fgsaCoreLaws, fgsaSafetyStoreLaws and
+fgsaSafetyWireLaws supplies hc under unforgeable signatures. safety_emitted_noSlash with
+fgsaSafetyClientLaws and Linked supplies he on honest holders. legacy_safety_specialization
+(AvailableChainFGCompose/Tests/PopulationBridges.lean:39) applies this exact boundary.
+fgsa_safetySlashesRead (AvailableChainFGSAProofs/Proofs/Foundations/FGSafetyBridge.lean:337)
+supplies hi for the FG-SA slashing interface on Fin p.n. These are conditional recipes; no new
+production FG-SA re-point is credited.
+
+### fgHonestSeats_eq_compl
+
+Source: `S194:15`.
+
+Translated telescope: In V, P, inst, n, Wire, S, rho.
+
+Contract expansion keys: C080 FGSafetyReads, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: FG seats only: historyFaulty and FGHonestSeats partition Fin n; positive quorum
+supplies a nonempty honest-seat set; unit laws plus the explicit seat fault-count bound supply
+fault weight and honest quorum. Only fg_fault_count_eq_nodes_of_equiv requires Fintype V and e :
+Fin n ≃ V with the exact holder equality he. Other seat consumers require no global node count or
+bijection.
+
+FG-SA specialization: fgsaSafetyReads and fgsaSafetyUnitLaws supply the reads and unit electorate.
+The file-private d7f_honest_eq (AvailableChainFGSAProofs/Proofs/Finality/RecordInv.lean:858)
+identifies the same honest-seat filter with honestSeats. The all-holders count bridge is
+fg_fault_count_eq_nodes_of_equiv (S194:54); its bounded control all_holders_count_bridge
+(AvailableChainFGCompose/Tests/PopulationCounts.lean:109) is test-private. No frozen FG-SA wrapper
+is newly re-pointed.
+
+### fgHonestSeats_nonempty_of_quorum
+
+Source: `S194:22`.
+
+Translated telescope: In V, P, inst, n, Wire, S, rho, Ef, [instLTNat.lt 0 Ef.q], [Ef.IsQuorum
+(FGHonestSeats S rho)].
+
+Contract expansion keys: C080 FGSafetyReads, C239 FG.Electorate, C258 V2.D.Run, C263
+V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: FG seats only: historyFaulty and FGHonestSeats partition Fin n; positive quorum
+supplies a nonempty honest-seat set; unit laws plus the explicit seat fault-count bound supply
+fault weight and honest quorum. Only fg_fault_count_eq_nodes_of_equiv requires Fintype V and e :
+Fin n ≃ V with the exact holder equality he. Other seat consumers require no global node count or
+bijection.
+
+FG-SA specialization: fgsaSafetyReads and fgsaSafetyUnitLaws supply the reads and unit electorate.
+The file-private d7f_honest_eq (AvailableChainFGSAProofs/Proofs/Finality/RecordInv.lean:858)
+identifies the same honest-seat filter with honestSeats. The all-holders count bridge is
+fg_fault_count_eq_nodes_of_equiv (S194:54); its bounded control all_holders_count_bridge
+(AvailableChainFGCompose/Tests/PopulationCounts.lean:109) is test-private. No frozen FG-SA wrapper
+is newly re-pointed.
+
+### fg_fault_weight_of_count
+
+Source: `S194:34`.
+
+Translated telescope: In V, P, inst, n, Wire, S, rho, Ef, [FGSafetyUnitLaws Ef], [instLENat.le
+(historyFaulty S rho).card (instHDiv.hDiv (instHSub.hSub n 1) 3)].
+
+Contract expansion keys: C080 FGSafetyReads, C084 FGSafetyUnitLaws, C239 FG.Electorate, C258
+V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGSafetyUnitLaws: fgsaSafetyUnitLaws (recipe; C084).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: FG seats only: historyFaulty and FGHonestSeats partition Fin n; positive quorum
+supplies a nonempty honest-seat set; unit laws plus the explicit seat fault-count bound supply
+fault weight and honest quorum. Only fg_fault_count_eq_nodes_of_equiv requires Fintype V and e :
+Fin n ≃ V with the exact holder equality he. Other seat consumers require no global node count or
+bijection.
+
+FG-SA specialization: fgsaSafetyReads and fgsaSafetyUnitLaws supply the reads and unit electorate.
+The file-private d7f_honest_eq (AvailableChainFGSAProofs/Proofs/Finality/RecordInv.lean:858)
+identifies the same honest-seat filter with honestSeats. The all-holders count bridge is
+fg_fault_count_eq_nodes_of_equiv (S194:54); its bounded control all_holders_count_bridge
+(AvailableChainFGCompose/Tests/PopulationCounts.lean:109) is test-private. No frozen FG-SA wrapper
+is newly re-pointed.
+
+### high_target_honest_quorum_holder
+
+Source: `S194:42`.
+
+Translated telescope: In V, P, inst, n, Wire, S, rho, Ef, [FGSafetyUnitLaws Ef], [instLENat.le
+(historyFaulty S rho).card (instHDiv.hDiv (instHSub.hSub n 1) 3)].
+
+Contract expansion keys: C080 FGSafetyReads, C084 FGSafetyUnitLaws, C239 FG.Electorate, C258
+V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGSafetyUnitLaws: fgsaSafetyUnitLaws (recipe; C084).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: FG seats only: historyFaulty and FGHonestSeats partition Fin n; positive quorum
+supplies a nonempty honest-seat set; unit laws plus the explicit seat fault-count bound supply
+fault weight and honest quorum. Only fg_fault_count_eq_nodes_of_equiv requires Fintype V and e :
+Fin n ≃ V with the exact holder equality he. Other seat consumers require no global node count or
+bijection.
+
+FG-SA specialization: fgsaSafetyReads and fgsaSafetyUnitLaws supply the reads and unit electorate.
+The file-private d7f_honest_eq (AvailableChainFGSAProofs/Proofs/Finality/RecordInv.lean:858)
+identifies the same honest-seat filter with honestSeats. The all-holders count bridge is
+fg_fault_count_eq_nodes_of_equiv (S194:54); its bounded control all_holders_count_bridge
+(AvailableChainFGCompose/Tests/PopulationCounts.lean:109) is test-private. No frozen FG-SA wrapper
+is newly re-pointed.
+
+### fg_fault_count_eq_nodes_of_equiv
+
+Source: `S194:54`.
+
+Translated telescope: In V, P, inst, n, Wire, S, rho, inst_1, e, [(∀ (i : Fin n), Eq (safetyHolder
+S rho i) (EquivLike.toFunLike.coe e i))].
+
+Contract expansion keys: C080 FGSafetyReads, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: FG seats only: historyFaulty and FGHonestSeats partition Fin n; positive quorum
+supplies a nonempty honest-seat set; unit laws plus the explicit seat fault-count bound supply
+fault weight and honest quorum. Only fg_fault_count_eq_nodes_of_equiv requires Fintype V and e :
+Fin n ≃ V with the exact holder equality he. Other seat consumers require no global node count or
+bijection.
+
+FG-SA specialization: fgsaSafetyReads and fgsaSafetyUnitLaws supply the reads and unit electorate.
+The file-private d7f_honest_eq (AvailableChainFGSAProofs/Proofs/Finality/RecordInv.lean:858)
+identifies the same honest-seat filter with honestSeats. The all-holders count bridge is
+fg_fault_count_eq_nodes_of_equiv (S194:54); its bounded control all_holders_count_bridge
+(AvailableChainFGCompose/Tests/PopulationCounts.lean:109) is test-private. No frozen FG-SA wrapper
+is newly re-pointed.
+
+### safetyStoreOriginLaws_of_storeLaws
+
+Source: `S195:27`.
+
+Translated telescope: In, P, n, Base Proposal Wire, R, S, H, f, Good, [FGSafetyStoreLaws R S H f
+Good].
+
+Contract expansion keys: C044 FGCoreReads, C080 FGSafetyReads, C083 FGSafetyStoreLaws, C231
+KitFG.FGStoreInvariant, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGSafetyStoreLaws: fgsaSafetyStoreLaws (recipe; C083).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: The origin variants retain the corresponding frozen safety telescope. Origin records
+impose no global runtime cardinality or holder bijection. safety_honest_never_slashed_origin still
+requires Linked; the holder variant S193:76 uses the separate minimal hc/he boundary instead. hr,
+where present, is safetyScopedRoots: ViewRootInj on every Q-scoped tree, supplied on the FG-SA
+scope by reachable-store viewRootInj_TF; the actual PC scoped-root instance remains P5a.
+
+FG-SA specialization: safetyStoreOriginLaws_of_storeLaws (S195:27) applied to fgsaSafetyStoreLaws
+produces the origin laws with pending := False. The test-private fgsa_origin_laws
+(AvailableChainFGSAProofs/Tests/P0Origin.lean:20) records that instance;
+fgsa_origin_event_agreement (:27) and fgsa_origin_read_carriage (:37) apply the origin consumers
+to the FG-SA reads. This is a one-way conversion from the frozen store laws, not a production
+FG-SA re-point. PC must supply its actual nonempty-pending origin laws (E1F).
+
+### safety_origin_stateBefore
+
+Source: `S195:45`.
+
+Translated telescope: In V, P, n, Base Proposal Wire, R, S, H, f, inst, Good, pending, [FGCoreLaws
+R], [FGSafetyStoreOriginLaws R S H f Good pending], E, rho, i, x.
+
+Contract expansion keys: C043 FGCoreLaws, C044 FGCoreReads, C265 FGPendingOrigin, C266
+FGProcessOrigin, C080 FGSafetyReads, C267 FGSafetyStoreOriginLaws, C227 Gen.Env, C231
+KitFG.FGStoreInvariant, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGSafetyStoreOriginLaws: safetyStoreOriginLaws_of_storeLaws (recipe; C267; empty pending only);
+actual nonempty pending: OPEN (E1F).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: The origin variants retain the corresponding frozen safety telescope. Origin records
+impose no global runtime cardinality or holder bijection. safety_honest_never_slashed_origin still
+requires Linked; the holder variant S193:76 uses the separate minimal hc/he boundary instead. hr,
+where present, is safetyScopedRoots: ViewRootInj on every Q-scoped tree, supplied on the FG-SA
+scope by reachable-store viewRootInj_TF; the actual PC scoped-root instance remains P5a.
+
+FG-SA specialization: safetyStoreOriginLaws_of_storeLaws (S195:27) applied to fgsaSafetyStoreLaws
+produces the origin laws with pending := False. The test-private fgsa_origin_laws
+(AvailableChainFGSAProofs/Tests/P0Origin.lean:20) records that instance;
+fgsa_origin_event_agreement (:27) and fgsa_origin_read_carriage (:37) apply the origin consumers
+to the FG-SA reads. This is a one-way conversion from the frozen store laws, not a production
+FG-SA re-point. PC must supply its actual nonempty-pending origin laws (E1F).
+
+### safety_stored_runBlock_origin
+
+Source: `S195:135`.
+
+Translated telescope: In V, P, n, Base Proposal Wire, R, S, H, f, inst, Good, pending, [FGCoreLaws
+R], [FGSafetyStoreOriginLaws R S H f Good pending], E, rho, i, x, B, [SetLike.instMembership.mem
+(R.core (V2.D.Run.stateBefore E rho i x)).fg.TF B], [Ne B FG.FGBlock.genesis].
+
+Contract expansion keys: C043 FGCoreLaws, C044 FGCoreReads, C265 FGPendingOrigin, C266
+FGProcessOrigin, C080 FGSafetyReads, C267 FGSafetyStoreOriginLaws, C215 safetyRunBlock, C227
+Gen.Env, C231 KitFG.FGStoreInvariant, C258 V2.D.Run, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGSafetyStoreOriginLaws: safetyStoreOriginLaws_of_storeLaws (recipe; C267; empty pending only);
+actual nonempty pending: OPEN (E1F).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: The origin variants retain the corresponding frozen safety telescope. Origin records
+impose no global runtime cardinality or holder bijection. safety_honest_never_slashed_origin still
+requires Linked; the holder variant S193:76 uses the separate minimal hc/he boundary instead. hr,
+where present, is safetyScopedRoots: ViewRootInj on every Q-scoped tree, supplied on the FG-SA
+scope by reachable-store viewRootInj_TF; the actual PC scoped-root instance remains P5a.
+
+FG-SA specialization: safetyStoreOriginLaws_of_storeLaws (S195:27) applied to fgsaSafetyStoreLaws
+produces the origin laws with pending := False. The test-private fgsa_origin_laws
+(AvailableChainFGSAProofs/Tests/P0Origin.lean:20) records that instance;
+fgsa_origin_event_agreement (:27) and fgsa_origin_read_carriage (:37) apply the origin consumers
+to the FG-SA reads. This is a one-way conversion from the frozen store laws, not a production
+FG-SA re-point. PC must supply its actual nonempty-pending origin laws (E1F).
+
+### safety_read_scope_origin
+
+Source: `S195:165`.
+
+Translated telescope: In V, P, n, Base Proposal Wire, R, S, H, f, inst, E, rho, Good, pending, Q,
+[FGCoreLaws R], [FGSafetyStoreOriginLaws R S H f Good pending], [FGSafetyScopeLaws R S E rho Q],
+t, x, [SetLike.instMembership.mem rho.honest x], B, [SetLike.instMembership.mem (R.core
+(V2.D.Run.readAt E rho t x)).fg.TF B].
+
+Contract expansion keys: C043 FGCoreLaws, C044 FGCoreReads, C265 FGPendingOrigin, C266
+FGProcessOrigin, C080 FGSafetyReads, C082 FGSafetyScopeLaws, C267 FGSafetyStoreOriginLaws, C215
+safetyRunBlock, C227 Gen.Env, C231 KitFG.FGStoreInvariant, C258 V2.D.Run, C259 V2.D.Run.emits,
+C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGSafetyScopeLaws: fgsaSafetyScopeLaws (recipe; C082).
+- FGSafetyStoreOriginLaws: safetyStoreOriginLaws_of_storeLaws (recipe; C267; empty pending only);
+actual nonempty pending: OPEN (E1F).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: The origin variants retain the corresponding frozen safety telescope. Origin records
+impose no global runtime cardinality or holder bijection. safety_honest_never_slashed_origin still
+requires Linked; the holder variant S193:76 uses the separate minimal hc/he boundary instead. hr,
+where present, is safetyScopedRoots: ViewRootInj on every Q-scoped tree, supplied on the FG-SA
+scope by reachable-store viewRootInj_TF; the actual PC scoped-root instance remains P5a.
+
+FG-SA specialization: safetyStoreOriginLaws_of_storeLaws (S195:27) applied to fgsaSafetyStoreLaws
+produces the origin laws with pending := False. The test-private fgsa_origin_laws
+(AvailableChainFGSAProofs/Tests/P0Origin.lean:20) records that instance;
+fgsa_origin_event_agreement (:27) and fgsa_origin_read_carriage (:37) apply the origin consumers
+to the FG-SA reads. This is a one-way conversion from the frozen store laws, not a production
+FG-SA re-point. PC must supply its actual nonempty-pending origin laws (E1F).
+
+### safety_run_accountable_origin
+
+Source: `S195:178`.
+
+Translated telescope: In V, P, n, Base Proposal Wire, R, S, Ef, H, f, inst, E, rho, Good, pending,
+Q, [FGCoreLaws R], [FGSafetyStoreOriginLaws R S H f Good pending], [KitFG.FGCertificateLaws Ef H
+f], [FGSafetyScopeLaws R S E rho Q], [safetyScopedRoots R Q].
+
+Contract expansion keys: C043 FGCoreLaws, C044 FGCoreReads, C265 FGPendingOrigin, C266
+FGProcessOrigin, C080 FGSafetyReads, C082 FGSafetyScopeLaws, C267 FGSafetyStoreOriginLaws, C181
+SafetyWholeAccountable, C215 safetyRunBlock, C216 safetyScopedRoots, C227 Gen.Env, C228
+KitFG.FGCertificateLaws, C231 KitFG.FGStoreInvariant, C235 KitFG.RootInjectiveOn, C239
+FG.Electorate, C258 V2.D.Run, C259 V2.D.Run.emits, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGSafetyScopeLaws: fgsaSafetyScopeLaws (recipe; C082).
+- FGSafetyStoreOriginLaws: safetyStoreOriginLaws_of_storeLaws (recipe; C267; empty pending only);
+actual nonempty pending: OPEN (E1F).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: The origin variants retain the corresponding frozen safety telescope. Origin records
+impose no global runtime cardinality or holder bijection. safety_honest_never_slashed_origin still
+requires Linked; the holder variant S193:76 uses the separate minimal hc/he boundary instead. hr,
+where present, is safetyScopedRoots: ViewRootInj on every Q-scoped tree, supplied on the FG-SA
+scope by reachable-store viewRootInj_TF; the actual PC scoped-root instance remains P5a.
+
+FG-SA specialization: safetyStoreOriginLaws_of_storeLaws (S195:27) applied to fgsaSafetyStoreLaws
+produces the origin laws with pending := False. The test-private fgsa_origin_laws
+(AvailableChainFGSAProofs/Tests/P0Origin.lean:20) records that instance;
+fgsa_origin_event_agreement (:27) and fgsa_origin_read_carriage (:37) apply the origin consumers
+to the FG-SA reads. This is a one-way conversion from the frozen store laws, not a production
+FG-SA re-point. PC must supply its actual nonempty-pending origin laws (E1F).
+
+### safety_run_agreement_origin
+
+Source: `S195:198`.
+
+Translated telescope: In V, P, n, Base Proposal Wire, R, S, Ef, H, f, inst, E, rho, Good, pending,
+Q, [FGCoreLaws R], [FGSafetyStoreOriginLaws R S H f Good pending], [KitFG.FGCertificateLaws Ef H
+f], [FGSafetyScopeLaws R S E rho Q], [safetyScopedRoots R Q], [safetyBound R S Ef E rho].
+
+Contract expansion keys: C043 FGCoreLaws, C044 FGCoreReads, C265 FGPendingOrigin, C266
+FGProcessOrigin, C080 FGSafetyReads, C082 FGSafetyScopeLaws, C267 FGSafetyStoreOriginLaws, C182
+SafetyWholeAgreement, C211 safetyBound, C215 safetyRunBlock, C216 safetyScopedRoots, C227 Gen.Env,
+C228 KitFG.FGCertificateLaws, C231 KitFG.FGStoreInvariant, C235 KitFG.RootInjectiveOn, C239
+FG.Electorate, C242 FG.HasIntersectionWeight, C243 FG.HasSlashableWeightBetween, C249
+FG.Slashable, C250 FG.SlashableBetween, C258 V2.D.Run, C259 V2.D.Run.emits, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGSafetyScopeLaws: fgsaSafetyScopeLaws (recipe; C082).
+- FGSafetyStoreOriginLaws: safetyStoreOriginLaws_of_storeLaws (recipe; C267; empty pending only);
+actual nonempty pending: OPEN (E1F).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: The origin variants retain the corresponding frozen safety telescope. Origin records
+impose no global runtime cardinality or holder bijection. safety_honest_never_slashed_origin still
+requires Linked; the holder variant S193:76 uses the separate minimal hc/he boundary instead. hr,
+where present, is safetyScopedRoots: ViewRootInj on every Q-scoped tree, supplied on the FG-SA
+scope by reachable-store viewRootInj_TF; the actual PC scoped-root instance remains P5a.
+
+FG-SA specialization: safetyStoreOriginLaws_of_storeLaws (S195:27) applied to fgsaSafetyStoreLaws
+produces the origin laws with pending := False. The test-private fgsa_origin_laws
+(AvailableChainFGSAProofs/Tests/P0Origin.lean:20) records that instance;
+fgsa_origin_event_agreement (:27) and fgsa_origin_read_carriage (:37) apply the origin consumers
+to the FG-SA reads. This is a one-way conversion from the frozen store laws, not a production
+FG-SA re-point. PC must supply its actual nonempty-pending origin laws (E1F).
+
+### safety_event_agreement_origin
+
+Source: `S195:214`.
+
+Translated telescope: In V, P, n, Base Proposal Wire, R, S, Ef, H, f, inst, E, rho, Good, pending,
+Q, [FGCoreLaws R], [FGSafetyStoreOriginLaws R S H f Good pending], [KitFG.FGCertificateLaws Ef H
+f], [FGSafetyScopeLaws R S E rho Q], [safetyScopedRoots R Q], [safetyBound R S Ef E rho], i j, x
+y.
+
+Contract expansion keys: C043 FGCoreLaws, C044 FGCoreReads, C265 FGPendingOrigin, C266
+FGProcessOrigin, C080 FGSafetyReads, C082 FGSafetyScopeLaws, C267 FGSafetyStoreOriginLaws, C211
+safetyBound, C215 safetyRunBlock, C216 safetyScopedRoots, C227 Gen.Env, C228
+KitFG.FGCertificateLaws, C231 KitFG.FGStoreInvariant, C235 KitFG.RootInjectiveOn, C239
+FG.Electorate, C242 FG.HasIntersectionWeight, C243 FG.HasSlashableWeightBetween, C249
+FG.Slashable, C250 FG.SlashableBetween, C258 V2.D.Run, C259 V2.D.Run.emits, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGSafetyScopeLaws: fgsaSafetyScopeLaws (recipe; C082).
+- FGSafetyStoreOriginLaws: safetyStoreOriginLaws_of_storeLaws (recipe; C267; empty pending only);
+actual nonempty pending: OPEN (E1F).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGCertificateLaws: fgCertificateLaws (recipe; C228).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: The origin variants retain the corresponding frozen safety telescope. Origin records
+impose no global runtime cardinality or holder bijection. safety_honest_never_slashed_origin still
+requires Linked; the holder variant S193:76 uses the separate minimal hc/he boundary instead. hr,
+where present, is safetyScopedRoots: ViewRootInj on every Q-scoped tree, supplied on the FG-SA
+scope by reachable-store viewRootInj_TF; the actual PC scoped-root instance remains P5a.
+
+FG-SA specialization: safetyStoreOriginLaws_of_storeLaws (S195:27) applied to fgsaSafetyStoreLaws
+produces the origin laws with pending := False. The test-private fgsa_origin_laws
+(AvailableChainFGSAProofs/Tests/P0Origin.lean:20) records that instance;
+fgsa_origin_event_agreement (:27) and fgsa_origin_read_carriage (:37) apply the origin consumers
+to the FG-SA reads. This is a one-way conversion from the frozen store laws, not a production
+FG-SA re-point. PC must supply its actual nonempty-pending origin laws (E1F).
+
+### safety_read_carriage_origin
+
+Source: `S195:249`.
+
+Translated telescope: In V, P, n, Base Proposal Wire, R, S, H, f, inst, E, rho, Good, pending,
+[FGCoreLaws R], [FGSafetyStoreOriginLaws R S H f Good pending], [FGSafetyWireLaws S],
+[V2.D.UnforgeableSignatures E rho], t, x.
+
+Contract expansion keys: C043 FGCoreLaws, C044 FGCoreReads, C265 FGPendingOrigin, C266
+FGProcessOrigin, C080 FGSafetyReads, C267 FGSafetyStoreOriginLaws, C085 FGSafetyWireLaws, C212
+safetyCarriage, C227 Gen.Env, C231 KitFG.FGStoreInvariant, C247 FG.Row, C258 V2.D.Run, C261
+V2.D.UnforgeableSignatures, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGSafetyStoreOriginLaws: safetyStoreOriginLaws_of_storeLaws (recipe; C267; empty pending only);
+actual nonempty pending: OPEN (E1F).
+- FGSafetyWireLaws: fgsaSafetyWireLaws (recipe; C085).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Row: RowPayload.toRow (recipe; C247).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.UnforgeableSignatures: fgsa_unforgeable_of_base (recipe; C261).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: The origin variants retain the corresponding frozen safety telescope. Origin records
+impose no global runtime cardinality or holder bijection. safety_honest_never_slashed_origin still
+requires Linked; the holder variant S193:76 uses the separate minimal hc/he boundary instead. hr,
+where present, is safetyScopedRoots: ViewRootInj on every Q-scoped tree, supplied on the FG-SA
+scope by reachable-store viewRootInj_TF; the actual PC scoped-root instance remains P5a.
+
+FG-SA specialization: safetyStoreOriginLaws_of_storeLaws (S195:27) applied to fgsaSafetyStoreLaws
+produces the origin laws with pending := False. The test-private fgsa_origin_laws
+(AvailableChainFGSAProofs/Tests/P0Origin.lean:20) records that instance;
+fgsa_origin_event_agreement (:27) and fgsa_origin_read_carriage (:37) apply the origin consumers
+to the FG-SA reads. This is a one-way conversion from the frozen store laws, not a production
+FG-SA re-point. PC must supply its actual nonempty-pending origin laws (E1F).
+
+### safety_honest_never_slashed_origin
+
+Source: `S195:272`.
+
+Translated telescope: In V, P, n, Base Proposal Wire, R, S, Ef, H, f, cfg, inst, E, rho, Good,
+pending, [FGCoreLaws R], [FGSafetyWireLaws S], [FGSafetyStoreOriginLaws R S H f Good pending],
+[FGSafetyClientLaws S Ef cfg], linked, [linked S.fgLabel], I, [safetySlashesRead R S E rho I],
+[V2.D.UnforgeableSignatures E rho], [V2.D.Linked linked rho].
+
+Contract expansion keys: C043 FGCoreLaws, C044 FGCoreReads, C265 FGPendingOrigin, C266
+FGProcessOrigin, C078 FGSafetyClientLaws, C080 FGSafetyReads, C267 FGSafetyStoreOriginLaws, C085
+FGSafetyWireLaws, C217 safetySlashesRead, C223 Gen.V2.Duty.HonestNeverSlashed, C226
+Gen.V2.Duty.SlashingInterface, C227 Gen.Env, C231 KitFG.FGStoreInvariant, C239 FG.Electorate, C240
+FG.FGConfig, C249 FG.Slashable, C250 FG.SlashableBetween, C256 V2.D.Linked, C258 V2.D.Run, C261
+V2.D.UnforgeableSignatures, C263 V2.ProtocolSpecD.
+
+Input records (including components of supplied contracts):
+
+- FGCoreLaws: fgsaCoreLaws (recipe; C043).
+- FGCoreReads: fgsaCoreReads (recipe; C044).
+- FGSafetyClientLaws: fgsaSafetyClientLaws (recipe; C078).
+- FGSafetyReads: fgsaSafetyReads (recipe; C080).
+- FGSafetyStoreOriginLaws: safetyStoreOriginLaws_of_storeLaws (recipe; C267; empty pending only);
+actual nonempty pending: OPEN (E1F).
+- FGSafetyWireLaws: fgsaSafetyWireLaws (recipe; C085).
+- Gen.V2.Duty.SlashingInterface: fgsaSlashing (recipe; C226).
+- Gen.Env: env1 (recipe; C227).
+- KitFG.FGStoreInvariant: windowStoreInvariant_init (recipe; C231).
+- FG.Electorate: E (recipe; C239).
+- FG.FGConfig: cfg (recipe; C240).
+- V2.D.Run: mkRun (recipe; C258).
+- V2.D.UnforgeableSignatures: fgsa_unforgeable_of_base (recipe; C261).
+- V2.ProtocolSpecD: fgsa (recipe; C263).
+
+F-3: no direct ViewRootInj binder; any supplied law record must be instantiated in full.
+Population: The origin variants retain the corresponding frozen safety telescope. Origin records
+impose no global runtime cardinality or holder bijection. safety_honest_never_slashed_origin still
+requires Linked; the holder variant S193:76 uses the separate minimal hc/he boundary instead. hr,
+where present, is safetyScopedRoots: ViewRootInj on every Q-scoped tree, supplied on the FG-SA
+scope by reachable-store viewRootInj_TF; the actual PC scoped-root instance remains P5a.
+
+FG-SA specialization: safetyStoreOriginLaws_of_storeLaws (S195:27) applied to fgsaSafetyStoreLaws
+produces the origin laws with pending := False. The test-private fgsa_origin_laws
+(AvailableChainFGSAProofs/Tests/P0Origin.lean:20) records that instance;
+fgsa_origin_event_agreement (:27) and fgsa_origin_read_carriage (:37) apply the origin consumers
+to the FG-SA reads. This is a one-way conversion from the frozen store laws, not a production
+FG-SA re-point. PC must supply its actual nonempty-pending origin laws (E1F).
+
 ## One-level contract expansions and input producers
 
-Round-2 mechanical audit covers all 393 production proof entries. It parses every compiled outer
-telescope, unfolds each referenced Prop-valued definition by its API body and each record by its
-source-declared field types, and repeats one-level inspection for nested input contracts until no
-unseen input law contract remains. Conclusion-only record results and data returned by reader
-fields are not counted as independent input records. Nested Prop record fields are components of
-the supplied law record. Definition antecedents inside driver statements count even when absent
-from the outer telescope. The per-entry keys identify every inspected expansion; each input record
-has an explicit producer name or OPEN status. These lists supplement, rather than replace, the
-translated telescopes above.
+The mechanical audit covers all 411 production proof entries at the batch-10 census. It parses
+every compiled outer telescope, unfolds each referenced Prop-valued definition by its API body and
+each record by its source-declared field types, and repeats one-level inspection for nested input
+contracts until no unseen input law contract remains. Conclusion-only record results and data
+returned by reader fields are not counted as independent input records. Nested Prop record fields
+are components of the supplied law record. Definition antecedents inside driver statements count
+even when absent from the outer telescope. The per-entry keys identify every inspected expansion;
+each input record has an explicit producer name or OPEN status. These lists supplement, rather
+than replace, the translated telescopes above.
 
 A named producer is a conditional construction recipe on its exact cited parameters, not an
 unconditional instance for arbitrary PC data. File-private recipes are module-local. OPEN means no
@@ -21151,10 +21843,62 @@ payload : Payload
 deriving DecidableEq, Repr
 ```
 
+### C265 FGPendingOrigin
+
+Source: `AvailableChainFGCompose/Statements/SafetyOrigin.lean:39`.
+
+```text
+(∀ o, ¬ pending P.init o) ∧
+(∀ nd t o, Good nd → pending (P.clock nd t) o → pending nd o) ∧
+(∀ nd o q, Good nd → pending (P.process nd o) q → pending nd q ∨ q = o) ∧
+(∀ nd o q, Good nd → pending (P.recordOwn nd o) q → pending nd q) ∧
+(∀ nd t o, Good nd → pending (P.restore (P.durable nd) t) o → pending nd o)
+```
+
+### C266 FGProcessOrigin
+
+Source: `AvailableChainFGCompose/Statements/SafetyOrigin.lean:19`.
+
+```text
+∀ nd o B, Good nd →
+B ∈ (R.core (P.process nd o)).fg.TF → B ∉ (R.core nd).fg.TF →
+∃ origin, (origin = o ∨ pending nd origin) ∧
+S.proposalErase origin = some (R.erase B) ∧
+B.rows = (S.proposalRows origin).filterMap S.decode
+```
+
+### C267 FGSafetyStoreOriginLaws
+
+Source: `AvailableChainFGCompose/Statements/SafetyOrigin.lean:56`.
+
+Producer recipe: safetyStoreOriginLaws_of_storeLaws
+(AvailableChainFGCompose/Proofs/SafetyOrigin.lean:27); all parameters/premises must be supplied
+for the selected instance.
+
+FG-SA bridge: fgsaSafetyStoreLaws followed by safetyStoreOriginLaws_of_storeLaws yields pending :=
+False. For a protocol that keeps pending objects, this recipe supplies no instance: the selecting
+PC consumer owns Good, pending, FGProcessOrigin and FGPendingOrigin (OPEN: E1F). The preserved
+FGObservedSafetyLaws.new_block obligation is not discharged by this weaker origin record.
+
+```text
+initial_good : Good P.init
+clock_good : ∀ nd t, Good nd → Good (P.clock nd t)
+process_good : ∀ nd o, Good nd → Good (P.process nd o)
+own_good : ∀ nd o, Good nd → Good (P.recordOwn nd o)
+restart_good : ∀ nd t, Good nd → Good (P.restore (P.durable nd) t)
+invariant : ∀ nd, Good nd → FGStoreInvariant H f (R.core nd).fg
+initial_tf : ∀ B ∈ (R.core P.init).fg.TF, B = .genesis
+restart_tf : ∀ nd t B, Good nd →
+B ∈ (R.core (P.restore (P.durable nd) t)).fg.TF → B ∈ (R.core nd).fg.TF
+process_origin : FGProcessOrigin R S Good pending
+pending_origin : FGPendingOrigin Good pending
+```
+
 ### OPEN input inventory
 
 The following are the distinct OPEN input records across every entry after expansion; caller data
-and actual law obligations are both explicit.
+and actual law obligations are both explicit. Batch 10 has 27 distinct OPEN records;
+the added origin obligation is for actual nonempty pending, not the empty-pending recipe.
 
 - DriverCoreStepLaws (C031).
 - FGAcceptanceGuards (C040).
@@ -21173,6 +21917,8 @@ and actual law obligations are both explicit.
 - FGHistoricalReads (C062).
 - FGHolderClientLaws (C064).
 - FGRowPermissionInputs (C074).
+- FGSafetyStoreOriginLaws (C267; actual nonempty-pending instance: E1F; the named recipe covers
+empty pending only).
 - FinalizePrem_W (C102; standalone producer only, see C102).
 - KernelActionSupply_W (C142).
 - KernelJoinedPrem (C145).
@@ -24212,6 +24958,86 @@ AvailableChainFGSAProofs/Proofs/Shared/FGCompose.lean
 
 AvailableChainFGSAProofs/Proofs/Shared/FGSafetyStore.lean
 
+### S193
+
+AvailableChainFGCompose/Proofs/Population/Safety.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ selection_tick_rows_holder                                         │ theorem    │ 16     │
+│ safety_nonholder_noSlash                                           │ theorem    │ 41     │
+│ safety_noSlash_all_of_holder                                       │ theorem    │ 61     │
+│ safety_honest_never_slashed_holder                                 │ theorem    │ 76     │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S194
+
+AvailableChainFGCompose/Proofs/Population/Seats.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ fgHonestSeats_eq_compl                                             │ theorem    │ 15     │
+│ fgHonestSeats_nonempty_of_quorum                                   │ theorem    │ 22     │
+│ fg_fault_weight_of_count                                           │ theorem    │ 34     │
+│ high_target_honest_quorum_holder                                   │ theorem    │ 42     │
+│ fg_fault_count_eq_nodes_of_equiv                                   │ theorem    │ 54     │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S195
+
+AvailableChainFGCompose/Proofs/SafetyOrigin.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ safetyStoreOriginLaws_of_storeLaws                                 │ theorem    │ 27     │
+│ safety_origin_stateBefore                                          │ theorem    │ 45     │
+│ safety_stored_runBlock_origin                                      │ theorem    │ 135    │
+│ safety_read_scope_origin                                           │ theorem    │ 165    │
+│ safety_run_accountable_origin                                      │ theorem    │ 178    │
+│ safety_run_agreement_origin                                        │ theorem    │ 198    │
+│ safety_event_agreement_origin                                      │ theorem    │ 214    │
+│ safety_read_carriage_origin                                        │ theorem    │ 249    │
+│ safety_honest_never_slashed_origin                                 │ theorem    │ 272    │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S196
+
+AvailableChainFGCompose/Statements/Population/Seats.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ FGHonestSeats                                                      │ def        │ 11     │
+│ FGHonestSeats_def                                                  │ theorem    │ 15     │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
+### S197
+
+AvailableChainFGCompose/Statements/SafetyOrigin.lean
+
+```text
+┌────────────────────────────────────────────────────────────────────┬────────────┬────────┐
+│ Declaration                                                        │ Kind       │ Line   │
+├────────────────────────────────────────────────────────────────────┼────────────┼────────┤
+│ FGProcessOrigin                                                    │ def        │ 19     │
+│ FGProcessOrigin_def                                                │ theorem    │ 27     │
+│ FGPendingOrigin                                                    │ def        │ 39     │
+│ FGPendingOrigin_def                                                │ theorem    │ 46     │
+│ FGSafetyStoreOriginLaws                                            │ structure  │ 56     │
+└────────────────────────────────────────────────────────────────────┴────────────┴────────┘
+```
+
 ## P0/X1 map completion
 
 Only GREEN lines were appended for current required Compose modules absent from older maps.
@@ -24254,4 +25080,3 @@ no edit. These changes are committed separately from this document.
 │ X1b.txt                                              │ 18                   │
 └──────────────────────────────────────────────────────┴──────────────────────┘
 ```
-
