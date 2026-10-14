@@ -15,18 +15,16 @@ holds, with the queue as the pending reader. -/
 
 private abbrev Obj : Type := V2.Signed Unit (fun _ : Unit => 1) Nat
 
-/-- `stage` 0: genesis only; 1: the parent; 2: the parent and the child. -/
-private structure TB where
-  queued : Option Obj
-  stage : Nat
-  deriving DecidableEq
+/-- The queue and the stage. Stage 0: genesis only; 1: the parent; 2: the parent and the
+child. -/
+private abbrev TB : Type := Option Obj × Nat
 
 private def tbProcess (st : TB) (o : Obj) : TB :=
   if o.payload = 0 then
-    (if st.stage = 0 then ⟨none, st.queued.elim 1 (fun _ => 2)⟩ else st)
+    (if st.2 = 0 then ⟨none, st.1.elim 1 (fun _ => 2)⟩ else st)
   else if o.payload = 1 then
-    (if st.stage = 1 then ⟨none, 2⟩
-      else if st.stage = 0 ∧ st.queued.isNone then ⟨some o, 0⟩ else st)
+    (if st.2 = 1 then ⟨none, 2⟩
+      else if st.2 = 0 ∧ st.1.isNone then ⟨some o, 0⟩ else st)
   else st
 
 private abbrev twoBody : V2.ProtocolSpecD Unit where
@@ -87,7 +85,7 @@ private theorem tbErase_inj : Function.Injective tbErase := by
       rfl
 
 private noncomputable abbrev tbR : FGCoreReads twoBody 1 Unit Unit Unit where
-  core st := ⟨(), ⟨tbTF st.stage, .genesis, .genesis, 0, 1⟩, [], []⟩
+  core st := ⟨(), ⟨tbTF st.2, .genesis, .genesis, 0, 1⟩, [], []⟩
   erase := tbErase
   source := fun _ => none
   headVote := fun _ _ => .genesis
@@ -114,8 +112,8 @@ private abbrev tbH : FGHeightView (Fin 1) :=
 private abbrev tbF : FGFinalityView (Fin 1) := fun _ => ⟨.genesis, 0⟩
 
 /-- A queued object is a child body, and the parent is not yet held. -/
-private def tbGood (st : TB) : Prop := ∀ q, st.queued = some q → q.payload = 1 ∧ st.stage = 0
-private def tbPending (st : TB) (q : Obj) : Prop := st.queued = some q
+private def tbGood (st : TB) : Prop := ∀ q, st.1 = some q → q.payload = 1 ∧ st.2 = 0
+private def tbPending (st : TB) (q : Obj) : Prop := st.1 = some q
 
 private def parentObj : Obj := ⟨.none, 0⟩
 private def childObj : Obj := ⟨.none, 1⟩
@@ -130,18 +128,18 @@ private theorem tbTF_parent (k : Nat) (X : FGBlock (Fin 1)) (h : X ∈ tbTF k) :
     simp [FGBlock.parent, tbA, tbB]
 
 private theorem tbInvariant (st : TB) : FGStoreInvariant tbH tbF (tbR.core st).fg where
-  closed := tbTF_parent st.stage
-  gen := tbTF_genesis st.stage
-  Fmem := tbTF_genesis st.stage
+  closed := tbTF_parent st.2
+  gen := tbTF_genesis st.2
+  Fmem := tbTF_genesis st.2
   hmax := by
-    have h0 : (tbTF st.stage).sup (fun _ => (0 : Nat)) = 0 :=
+    have h0 : (tbTF st.2).sup (fun _ => (0 : Nat)) = 0 :=
       Nat.eq_zero_of_le_zero (Finset.sup_le (fun _ _ => le_rfl))
-    change 1 = (tbTF st.stage).sup (fun _ => (0 : Nat)) ⊔ 1
+    change 1 = (tbTF st.2).sup (fun _ => (0 : Nat)) ⊔ 1
     rw [h0]; rfl
-  pair := ⟨⟨.genesis, tbTF_genesis st.stage,
+  pair := ⟨⟨.genesis, tbTF_genesis st.2,
     by change FGBlock.Preceq .genesis .genesis; decide, rfl, rfl⟩, fun _ _ _ => le_rfl⟩
   FJ := by change FGBlock.Preceq .genesis .genesis; decide
-  Fcar := ⟨.genesis, tbTF_genesis st.stage, rfl⟩
+  Fcar := ⟨.genesis, tbTF_genesis st.2, rfl⟩
 
 private theorem tbGood_process (st : TB) (o : Obj) (h : tbGood st) : tbGood (tbProcess st o) := by
   unfold tbProcess
@@ -163,11 +161,11 @@ private theorem two_blocks_one_delivery :
 private theorem tbProcessOrigin : FGProcessOrigin tbR tbS tbGood tbPending := by
   rw [FGProcessOrigin_def]
   intro st o B hg hB hold
-  change B ∈ tbTF (tbProcess st o).stage at hB
-  change B ∉ tbTF st.stage at hold
+  change B ∈ tbTF (tbProcess st o).2 at hB
+  change B ∉ tbTF st.2 at hold
   unfold tbProcess at hB
   split_ifs at hB with h0 hs h1 hs1 hq
-  · cases hqd : st.queued with
+  · cases hqd : st.1 with
     | none =>
       rw [hqd] at hB
       rw [hs] at hold
@@ -199,7 +197,7 @@ private theorem tbPendingOrigin : FGPendingOrigin (P := twoBody) tbGood tbPendin
   rw [FGPendingOrigin_def]
   refine ⟨fun o h => (by cases h), fun _ _ _ _ h => h, fun st o q _ h => ?_,
     fun _ _ _ _ h => h, fun _ _ o _ h => (by cases h)⟩
-  change (tbProcess st o).queued = some q at h
+  change (tbProcess st o).1 = some q at h
   unfold tbProcess at h
   split_ifs at h with h0 hs h1 hs1 hq
   · exact Or.inl h
@@ -212,7 +210,7 @@ private theorem tbCore : FGCoreLaws tbR where
   clock_proposals _ _ := rfl
   clock_rowPool _ _ := rfl
   process_tf st o := by
-    change tbTF st.stage ⊆ tbTF (tbProcess st o).stage
+    change tbTF st.2 ⊆ tbTF (tbProcess st o).2
     unfold tbProcess
     split_ifs with h0 hs h1 hs1 hq
     · rw [hs]; intro X hX; simp [tbTF] at hX; subst hX; exact tbTF_genesis _

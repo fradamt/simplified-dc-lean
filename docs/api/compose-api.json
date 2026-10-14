@@ -2895,6 +2895,26 @@
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.ExecutionRecords"
     },
+    "AvailableChain.FGCompose.FGPendingOrigin": {
+      "digest": "53ef9b06afd07683c92762526e2d1eb087ec77437319dff86c0af43a8d6a10a4",
+      "kind": "def",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin"
+    },
+    "AvailableChain.FGCompose.FGPendingOrigin_def": {
+      "digest": "20ecb2cc82beafd2226cc50052a7db72afd9cb3e84dd70c10e8126a6d8a0ba3b",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin"
+    },
+    "AvailableChain.FGCompose.FGProcessOrigin": {
+      "digest": "5f98708dfdb3ff8d72a2e81db9681cb42e63c24514cb9747a2ca9308b331dc92",
+      "kind": "def",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin"
+    },
+    "AvailableChain.FGCompose.FGProcessOrigin_def": {
+      "digest": "866c2bdfa88557251b9e9880605204db3bca0c2888deb99acf1d96697fb5467b",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin"
+    },
     "AvailableChain.FGCompose.FGReceiptOrigin": {
       "digest": "60cb6999ddda648041e5f7c14def4b97ade63031c75878a869a7053027121f1d",
       "kind": "structure",
@@ -3319,6 +3339,66 @@
       "digest": "ac4c211bdbac1b4886146139063e0a00627d8fe3e965fe187ceb72f57dac0ac4",
       "kind": "field",
       "module": "AvailableChainFGCompose.Statements.SafetyStore"
+    },
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws": {
+      "digest": "3315270e7abb06cd07c43064c2680154fc5aa4fd30b5c57b296df921156ce7b5",
+      "kind": "structure",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin"
+    },
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.clock_good": {
+      "digest": "f6e62bba06d5a9dbef0285858f701d83d3f4a9d8aca70c130b8b73019fd35050",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin"
+    },
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.initial_good": {
+      "digest": "2f4587b6003ceb5bd36637e0ba6766634b53e8a5e91315679687ee2e4253a5d8",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin"
+    },
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.initial_tf": {
+      "digest": "6fb913b0abe159c13921eb28bbfb29121a736ddb4f6a504088327147fdd7696d",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin"
+    },
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.invariant": {
+      "digest": "180f211927783ffb5aac5cdc7847e14eb2c1fcf9622112d89402731cd8934282",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin"
+    },
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.mk": {
+      "digest": "3315270e7abb06cd07c43064c2680154fc5aa4fd30b5c57b296df921156ce7b5",
+      "kind": "ctor",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin"
+    },
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.own_good": {
+      "digest": "54b9004a12c763b6ada3e81312c584ec97594472395a3de1996485270822fd65",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin"
+    },
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.pending_origin": {
+      "digest": "c85355518dcc4df2354f96ed3567bcf863f37fe470fb7ce947343db9c716a3d5",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin"
+    },
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.process_good": {
+      "digest": "27d65216bea01bcc4c2b7d663a7aef4ffac0b9baacf24a44a2c0ad62645e5e91",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin"
+    },
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.process_origin": {
+      "digest": "f262e30ea14e1be16723e90e220d229fbb114e7982da16cec887f0ff93b10eeb",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin"
+    },
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.restart_good": {
+      "digest": "ac9e4bc8f28ae5bd8321642a4da51d062aa0339cf3ca432ab9581498a7067f8c",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin"
+    },
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.restart_tf": {
+      "digest": "e73f6fcfc46d758779233332ca294e415ee47f602ccae7f4be7321f2e1049528",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin"
     },
     "AvailableChain.FGCompose.FGSafetyUnitLaws": {
       "digest": "99121dd4767836d4b0c38040ec70ef22153386343197cdc52f9b2338d11a098d",
@@ -8355,6 +8435,11 @@
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Statements.SafetyClaims"
     },
+    "AvailableChain.FGCompose.safetyStoreOriginLaws_of_storeLaws": {
+      "digest": "e778b6c998debd72aaf1c5dcadb0599df522b7767ccda27d104eab99fdcfc36c",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.SafetyOrigin"
+    },
     "AvailableChain.FGCompose.safety_F_mono": {
       "digest": "9acaac225e78afc77d575ab5c2f910c8e2259ac21b8ce7fdbfaeb1b32d6cc326",
       "kind": "theorem",
@@ -8400,6 +8485,11 @@
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Proofs.SafetyAccountable"
     },
+    "AvailableChain.FGCompose.safety_event_agreement_origin": {
+      "digest": "36e3a76792cc6fa69fc273c29cc8707fee5950e61d2cf16ccc542e622d7803f1",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.SafetyOrigin"
+    },
     "AvailableChain.FGCompose.safety_fault_count_bound": {
       "digest": "6839a38988d30e61e31ffacbcd294821bd3e7edd6dea590a3d8ed31625b98879",
       "kind": "theorem",
@@ -8440,6 +8530,11 @@
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Proofs.SafetySlashing"
     },
+    "AvailableChain.FGCompose.safety_honest_never_slashed_origin": {
+      "digest": "49a4e26170d9a2da291fa569be91faad135e0bc4e3e41dc97f6905d041b31389",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.SafetyOrigin"
+    },
     "AvailableChain.FGCompose.safety_invariant_readAt": {
       "digest": "965fa26c94e86a9d5894fe4307961e3f094371d49c578473a3b333633251753d",
       "kind": "theorem",
@@ -8455,6 +8550,11 @@
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Proofs.SafetyClient"
     },
+    "AvailableChain.FGCompose.safety_origin_stateBefore": {
+      "digest": "8d3bddb34c05a3c4fb83c900ffda686e15ade6e207fef72e22d2cabd922b8a4e",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.SafetyOrigin"
+    },
     "AvailableChain.FGCompose.safety_readAt_prefix": {
       "digest": "f16e3221f3fd1c434099ff7b813d812ae0bd41d771298cdb6b478b7ad465bd52",
       "kind": "theorem",
@@ -8469,6 +8569,11 @@
       "digest": "15603a7db5a77829b37b037e6556fdb346a19da7691d76d6c96a17831e9ae186",
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Proofs.SafetySlashing"
+    },
+    "AvailableChain.FGCompose.safety_read_carriage_origin": {
+      "digest": "a0b565ef4fc743988b32619b0e9592fc0ff2565b00ec97d2a071e5040ffb93af",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.SafetyOrigin"
     },
     "AvailableChain.FGCompose.safety_read_delivery": {
       "digest": "2db4e8702d812a811b3d56c2ac1943377eca5d09ad49403dea453e4dd8e5c407",
@@ -8490,6 +8595,11 @@
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Proofs.SafetyStore"
     },
+    "AvailableChain.FGCompose.safety_read_scope_origin": {
+      "digest": "b9ab9a2b241df7a68ab903392b333da7056727aaf9f649efb641e06544cba55c",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.SafetyOrigin"
+    },
     "AvailableChain.FGCompose.safety_record_fold": {
       "digest": "43d311187fbe6796f7d81dcb90b5f571abb30524f3aca00072203ad8fc1fdd55",
       "kind": "theorem",
@@ -8505,10 +8615,20 @@
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Proofs.SafetyAccountable"
     },
+    "AvailableChain.FGCompose.safety_run_accountable_origin": {
+      "digest": "a997488b7fb05ba6fe949530f4c18bcdaa1b4a9612a13dc7a584b6c51f3b7e18",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.SafetyOrigin"
+    },
     "AvailableChain.FGCompose.safety_run_agreement": {
       "digest": "f2cfad28f8beca80e4da0320233f566f115dd83e930c4cfcb224f5ef6c8d3125",
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Proofs.SafetyAccountable"
+    },
+    "AvailableChain.FGCompose.safety_run_agreement_origin": {
+      "digest": "508446801189ef502620611de5e85cb7f0e1553a88feda4dec67454015800606",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.SafetyOrigin"
     },
     "AvailableChain.FGCompose.safety_slashable_faulty_count": {
       "digest": "76281ef9d7f0e66f3f71bb414c29e97a40df28bafc0830d93f74d63e8c43ab9c",
@@ -8539,6 +8659,11 @@
       "digest": "5d9400273f0fdf1841c501dd477df048c0fdf2d8abba302e69cfe3bb9bda4dfa",
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Proofs.SafetyStore"
+    },
+    "AvailableChain.FGCompose.safety_stored_runBlock_origin": {
+      "digest": "156bec38416c912625a45acd7464483f98ba75f08bd0312de2ed7938101d9d09",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.SafetyOrigin"
     },
     "AvailableChain.FGCompose.safety_stored_scope": {
       "digest": "781ed30682bfd62e6d17c93a838dd32d0f2bdbe582be8c27d9f25e657421e633",
@@ -9610,6 +9735,10 @@
     "AvailableChain.FGCompose.FGObservedOrderLaws",
     "AvailableChain.FGCompose.FGObservedPoolLaws",
     "AvailableChain.FGCompose.FGObservedSafetyLaws",
+    "AvailableChain.FGCompose.FGPendingOrigin",
+    "AvailableChain.FGCompose.FGPendingOrigin_def",
+    "AvailableChain.FGCompose.FGProcessOrigin",
+    "AvailableChain.FGCompose.FGProcessOrigin_def",
     "AvailableChain.FGCompose.FGReceiptOrigin",
     "AvailableChain.FGCompose.FGReceiptToken",
     "AvailableChain.FGCompose.FGResetHistory",
@@ -9623,6 +9752,7 @@
     "AvailableChain.FGCompose.FGSafetyRestartLaws",
     "AvailableChain.FGCompose.FGSafetyScopeLaws",
     "AvailableChain.FGCompose.FGSafetyStoreLaws",
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws",
     "AvailableChain.FGCompose.FGSafetyUnitLaws",
     "AvailableChain.FGCompose.FGSafetyWireLaws",
     "AvailableChain.FGCompose.FGSelectedAcceptance",
@@ -10295,6 +10425,7 @@
     "AvailableChain.FGCompose.safetyScopedRoots_def",
     "AvailableChain.FGCompose.safetySlashesRead",
     "AvailableChain.FGCompose.safetySlashesRead_def",
+    "AvailableChain.FGCompose.safetyStoreOriginLaws_of_storeLaws",
     "AvailableChain.FGCompose.safety_F_mono",
     "AvailableChain.FGCompose.safety_F_mono_all",
     "AvailableChain.FGCompose.safety_client_trace",
@@ -10304,6 +10435,7 @@
     "AvailableChain.FGCompose.safety_emitted_noSlash_driver",
     "AvailableChain.FGCompose.safety_emitted_noSlash_obs",
     "AvailableChain.FGCompose.safety_event_agreement",
+    "AvailableChain.FGCompose.safety_event_agreement_origin",
     "AvailableChain.FGCompose.safety_fault_count_bound",
     "AvailableChain.FGCompose.safety_fault_count_bound_fg_lt",
     "AvailableChain.FGCompose.safety_fault_count_bound_lt",
@@ -10312,26 +10444,33 @@
     "AvailableChain.FGCompose.safety_good_readAt",
     "AvailableChain.FGCompose.safety_good_stateBefore",
     "AvailableChain.FGCompose.safety_honest_never_slashed",
+    "AvailableChain.FGCompose.safety_honest_never_slashed_origin",
     "AvailableChain.FGCompose.safety_invariant_readAt",
     "AvailableChain.FGCompose.safety_invariant_stateBefore",
     "AvailableChain.FGCompose.safety_linked_seats",
+    "AvailableChain.FGCompose.safety_origin_stateBefore",
     "AvailableChain.FGCompose.safety_readAt_prefix",
     "AvailableChain.FGCompose.safety_readAt_replay",
     "AvailableChain.FGCompose.safety_read_carriage",
+    "AvailableChain.FGCompose.safety_read_carriage_origin",
     "AvailableChain.FGCompose.safety_read_delivery",
     "AvailableChain.FGCompose.safety_read_row_origin",
     "AvailableChain.FGCompose.safety_read_runBlock",
     "AvailableChain.FGCompose.safety_read_scope",
+    "AvailableChain.FGCompose.safety_read_scope_origin",
     "AvailableChain.FGCompose.safety_record_fold",
     "AvailableChain.FGCompose.safety_runBlock_accountable",
     "AvailableChain.FGCompose.safety_run_accountable",
+    "AvailableChain.FGCompose.safety_run_accountable_origin",
     "AvailableChain.FGCompose.safety_run_agreement",
+    "AvailableChain.FGCompose.safety_run_agreement_origin",
     "AvailableChain.FGCompose.safety_slashable_faulty_count",
     "AvailableChain.FGCompose.safety_slashable_fg_faulty_count",
     "AvailableChain.FGCompose.safety_store_accountable",
     "AvailableChain.FGCompose.safety_store_agreement",
     "AvailableChain.FGCompose.safety_stored_delivery",
     "AvailableChain.FGCompose.safety_stored_runBlock",
+    "AvailableChain.FGCompose.safety_stored_runBlock_origin",
     "AvailableChain.FGCompose.safety_stored_scope",
     "AvailableChain.FGCompose.selectedAcceptance_keep",
     "AvailableChain.FGCompose.selection_at_read",
@@ -11260,6 +11399,17 @@
     "AvailableChain.FGCompose.FGSafetyStoreLaws.process_new",
     "AvailableChain.FGCompose.FGSafetyStoreLaws.restart_good",
     "AvailableChain.FGCompose.FGSafetyStoreLaws.restart_tf",
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.clock_good",
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.initial_good",
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.initial_tf",
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.invariant",
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.mk",
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.own_good",
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.pending_origin",
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.process_good",
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.process_origin",
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.restart_good",
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.restart_tf",
     "AvailableChain.FGCompose.FGSafetyUnitLaws.mk",
     "AvailableChain.FGCompose.FGSafetyUnitLaws.n_pos",
     "AvailableChain.FGCompose.FGSafetyUnitLaws.quorum",
@@ -43096,6 +43246,231 @@
         "                (Eq (H.erase b) B))"
       ]
     },
+    "AvailableChain.FGCompose.FGPendingOrigin": {
+      "body": [
+        "fun {In} {P} Good pending =>",
+        "  And (∀ (o : P.Object), Not (pending P.init o))",
+        "    (And",
+        "      (∀ (nd : P.State) (t : AvailableChain.Time) (o : P.Object),",
+        "        Good nd → pending (P.clock nd t) o → pending nd o)",
+        "      (And",
+        "        (∀ (nd : P.State) (o : AvailableChain.V2.Signed P.Label P.seats P.Payload)",
+        "          (q : P.Object),",
+        "          Good nd → pending (P.process nd o) q → Or (pending nd q) (Eq q o))",
+        "        (And",
+        "          (∀ (nd : P.State) (o : AvailableChain.V2.Signed P.Label P.seats P.Payload)",
+        "            (q : P.Object), Good nd → pending (P.recordOwn nd o) q → pending nd q)",
+        "          (∀ (nd : P.State) (t : AvailableChain.Time) (o : P.Object),",
+        "            Good nd → pending (P.restore (P.durable nd) t) o → pending nd o))))"
+      ],
+      "dependencies": [
+        "And",
+        "AvailableChain.Time",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Label",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "AvailableChain.V2.ProtocolSpecD.Payload",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "AvailableChain.V2.ProtocolSpecD.clock",
+        "AvailableChain.V2.ProtocolSpecD.durable",
+        "AvailableChain.V2.ProtocolSpecD.init",
+        "AvailableChain.V2.ProtocolSpecD.process",
+        "AvailableChain.V2.ProtocolSpecD.recordOwn",
+        "AvailableChain.V2.ProtocolSpecD.restore",
+        "AvailableChain.V2.ProtocolSpecD.seats",
+        "AvailableChain.V2.Signed",
+        "Eq",
+        "Not",
+        "Or"
+      ],
+      "digest": "f63c4c7e333ef178b7c345256e7a2c16311c658eb99316f685c7e0af5e708b4f",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose15:FGPendingOrigin",
+      "kind": "def",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin",
+      "type": [
+        "{In : Type} →",
+        "  {P : AvailableChain.V2.ProtocolSpecD In} →",
+        "    (P.State → Prop) → (P.State → P.Object → Prop) → Prop"
+      ]
+    },
+    "AvailableChain.FGCompose.FGPendingOrigin_def": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "And",
+        "AvailableChain.FGCompose.FGPendingOrigin",
+        "AvailableChain.Time",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Label",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "AvailableChain.V2.ProtocolSpecD.Payload",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "AvailableChain.V2.ProtocolSpecD.clock",
+        "AvailableChain.V2.ProtocolSpecD.durable",
+        "AvailableChain.V2.ProtocolSpecD.init",
+        "AvailableChain.V2.ProtocolSpecD.process",
+        "AvailableChain.V2.ProtocolSpecD.recordOwn",
+        "AvailableChain.V2.ProtocolSpecD.restore",
+        "AvailableChain.V2.ProtocolSpecD.seats",
+        "AvailableChain.V2.Signed",
+        "Eq",
+        "Not",
+        "Or"
+      ],
+      "digest": "2d88b2d7dfcaf31007542666e97939e646cf262bb657838f9c9fb6e8a187c003",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose19:FGPendingOrigin_def",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin",
+      "type": [
+        "∀ {In : Type} {P : AvailableChain.V2.ProtocolSpecD In} (Good : P.State → Prop)",
+        "  (pending : P.State → P.Object → Prop),",
+        "  Eq (AvailableChain.FGCompose.FGPendingOrigin Good pending)",
+        "    (And (∀ (o : P.Object), Not (pending P.init o))",
+        "      (And",
+        "        (∀ (nd : P.State) (t : AvailableChain.Time) (o : P.Object),",
+        "          Good nd → pending (P.clock nd t) o → pending nd o)",
+        "        (And",
+        "          (∀ (nd : P.State) (o : AvailableChain.V2.Signed P.Label P.seats P.Payload)",
+        "            (q : P.Object),",
+        "            Good nd → pending (P.process nd o) q → Or (pending nd q) (Eq q o))",
+        "          (And",
+        "            (∀ (nd : P.State) (o : AvailableChain.V2.Signed P.Label P.seats P.Payload)",
+        "              (q : P.Object), Good nd → pending (P.recordOwn nd o) q → pending nd q)",
+        "            (∀ (nd : P.State) (t : AvailableChain.Time) (o : P.Object),",
+        "              Good nd → pending (P.restore (P.durable nd) t) o → pending nd o)))))"
+      ]
+    },
+    "AvailableChain.FGCompose.FGProcessOrigin": {
+      "body": [
+        "fun {In} {P} {n} {Base Proposal Wire} R S Good pending =>",
+        "  ∀ (nd : P.State) (o : AvailableChain.V2.Signed P.Label P.seats P.Payload)",
+        "    (B : AvailableChain.SimplexFG.FGBlock (Fin n)),",
+        "    Good nd →",
+        "      SetLike.instMembership.mem (R.core (P.process nd o)).fg.TF B →",
+        "        Not (SetLike.instMembership.mem (R.core nd).fg.TF B) →",
+        "          Exists fun origin =>",
+        "            And (Or (Eq origin o) (pending nd origin))",
+        "              (And (Eq (S.proposalErase origin) (Option.some (R.erase B)))",
+        "                (Eq B.rows (List.filterMap S.decode (S.proposalRows origin))))"
+      ],
+      "dependencies": [
+        "And",
+        "AvailableChain.Block",
+        "AvailableChain.FGCompose.FGCore.fg",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGCoreReads.core",
+        "AvailableChain.FGCompose.FGCoreReads.erase",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.FGSafetyReads.decode",
+        "AvailableChain.FGCompose.FGSafetyReads.proposalErase",
+        "AvailableChain.FGCompose.FGSafetyReads.proposalRows",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.FGBlock.rows",
+        "AvailableChain.SimplexFG.Row",
+        "AvailableChain.SimplexFG.Store.TF",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Label",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "AvailableChain.V2.ProtocolSpecD.Payload",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "AvailableChain.V2.ProtocolSpecD.process",
+        "AvailableChain.V2.ProtocolSpecD.seats",
+        "AvailableChain.V2.Signed",
+        "Eq",
+        "Exists",
+        "Fin",
+        "Finset",
+        "Finset.instSetLike",
+        "List",
+        "List.filterMap",
+        "Membership.mem",
+        "Nat",
+        "Not",
+        "Option",
+        "Option.some",
+        "Or",
+        "SetLike.instMembership"
+      ],
+      "digest": "def379516188cb50535472af24bd25b89b8be5a0f89ef9f8b22857efaebf78d6",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose15:FGProcessOrigin",
+      "kind": "def",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin",
+      "type": [
+        "{In : Type} →",
+        "  {P : AvailableChain.V2.ProtocolSpecD In} →",
+        "    {n : Nat} →",
+        "      {Base Proposal Wire : Type} →",
+        "        AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire →",
+        "          AvailableChain.FGCompose.FGSafetyReads P n Wire →",
+        "            (P.State → Prop) → (P.State → P.Object → Prop) → Prop"
+      ]
+    },
+    "AvailableChain.FGCompose.FGProcessOrigin_def": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "And",
+        "AvailableChain.Block",
+        "AvailableChain.FGCompose.FGCore.fg",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGCoreReads.core",
+        "AvailableChain.FGCompose.FGCoreReads.erase",
+        "AvailableChain.FGCompose.FGProcessOrigin",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.FGSafetyReads.decode",
+        "AvailableChain.FGCompose.FGSafetyReads.proposalErase",
+        "AvailableChain.FGCompose.FGSafetyReads.proposalRows",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.FGBlock.rows",
+        "AvailableChain.SimplexFG.Row",
+        "AvailableChain.SimplexFG.Store.TF",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Label",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "AvailableChain.V2.ProtocolSpecD.Payload",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "AvailableChain.V2.ProtocolSpecD.process",
+        "AvailableChain.V2.ProtocolSpecD.seats",
+        "AvailableChain.V2.Signed",
+        "Eq",
+        "Exists",
+        "Fin",
+        "Finset",
+        "Finset.instSetLike",
+        "List",
+        "List.filterMap",
+        "Membership.mem",
+        "Nat",
+        "Not",
+        "Option",
+        "Option.some",
+        "Or",
+        "SetLike.instMembership"
+      ],
+      "digest": "20d1f428779903dcea6efa4a15b7a39855f1811c121d548001c89b1c1eb28541",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose19:FGProcessOrigin_def",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin",
+      "type": [
+        "∀ {In : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  (R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire)",
+        "  (S : AvailableChain.FGCompose.FGSafetyReads P n Wire) (Good : P.State → Prop)",
+        "  (pending : P.State → P.Object → Prop),",
+        "  Eq (AvailableChain.FGCompose.FGProcessOrigin R S Good pending)",
+        "    (∀ (nd : P.State) (o : AvailableChain.V2.Signed P.Label P.seats P.Payload)",
+        "      (B : AvailableChain.SimplexFG.FGBlock (Fin n)),",
+        "      Good nd →",
+        "        SetLike.instMembership.mem (R.core (P.process nd o)).fg.TF B →",
+        "          Not (SetLike.instMembership.mem (R.core nd).fg.TF B) →",
+        "            Exists fun origin =>",
+        "              And (Or (Eq origin o) (pending nd origin))",
+        "                (And (Eq (S.proposalErase origin) (Option.some (R.erase B)))",
+        "                  (Eq B.rows (List.filterMap S.decode (S.proposalRows origin)))))"
+      ]
+    },
     "AvailableChain.FGCompose.FGReceiptOrigin": {
       "body": [
         ""
@@ -46079,6 +46454,492 @@
         "  {H : AvailableChain.KitFG.FGHeightView (Fin n)}",
         "  {f : AvailableChain.KitFG.FGFinalityView (Fin n)} {Good : P.State → Prop},",
         "  AvailableChain.FGCompose.FGSafetyStoreLaws R S H f Good →",
+        "    ∀ (nd : P.State) (t : AvailableChain.Time)",
+        "      (B : AvailableChain.SimplexFG.FGBlock (Fin n)),",
+        "      Good nd →",
+        "        SetLike.instMembership.mem (R.core (P.restore (P.durable nd) t)).fg.TF B →",
+        "          SetLike.instMembership.mem (R.core nd).fg.TF B"
+      ]
+    },
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.FGSafetyStoreOriginLaws",
+        "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.mk",
+        "AvailableChain.KitFG.FGFinalityView",
+        "AvailableChain.KitFG.FGHeightView",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "Fin",
+        "Nat"
+      ],
+      "digest": "cf779ef8e4d3fdd70b02dd3b50f464babdf3d6714870bf3b11668111827ee2fb",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose23:FGSafetyStoreOriginLaws",
+      "kind": "structure",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin",
+      "type": [
+        "{In : Type} →",
+        "  {P : AvailableChain.V2.ProtocolSpecD In} →",
+        "    {n : Nat} →",
+        "      {Base Proposal Wire : Type} →",
+        "        AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire →",
+        "          AvailableChain.FGCompose.FGSafetyReads P n Wire →",
+        "            AvailableChain.KitFG.FGHeightView (Fin n) →",
+        "              AvailableChain.KitFG.FGFinalityView (Fin n) →",
+        "                (P.State → Prop) → (P.State → P.Object → Prop) → Prop"
+      ]
+    },
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.clock_good": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.FGSafetyStoreOriginLaws",
+        "AvailableChain.KitFG.FGFinalityView",
+        "AvailableChain.KitFG.FGHeightView",
+        "AvailableChain.Time",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "AvailableChain.V2.ProtocolSpecD.clock",
+        "Fin",
+        "Nat"
+      ],
+      "digest": "2819f06ae6e122a9e73151b2a6ea3bc331b45d7c6ad024848c7b7880e383144b",
+      "kernel_name": "str:2:93:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose23:FGSafetyStoreOriginLaws10:clock_good",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin",
+      "type": [
+        "∀ {In : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire}",
+        "  {S : AvailableChain.FGCompose.FGSafetyReads P n Wire}",
+        "  {H : AvailableChain.KitFG.FGHeightView (Fin n)}",
+        "  {f : AvailableChain.KitFG.FGFinalityView (Fin n)} {Good : P.State → Prop}",
+        "  {pending : P.State → P.Object → Prop},",
+        "  AvailableChain.FGCompose.FGSafetyStoreOriginLaws R S H f Good pending →",
+        "    ∀ (nd : P.State) (t : AvailableChain.Time), Good nd → Good (P.clock nd t)"
+      ]
+    },
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.initial_good": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.FGSafetyStoreOriginLaws",
+        "AvailableChain.KitFG.FGFinalityView",
+        "AvailableChain.KitFG.FGHeightView",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "AvailableChain.V2.ProtocolSpecD.init",
+        "Fin",
+        "Nat"
+      ],
+      "digest": "2d3f23204680b03e738755c869d9de24bfd772f08176dcb4832c2383df9a0dc2",
+      "kernel_name": "str:2:93:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose23:FGSafetyStoreOriginLaws12:initial_good",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin",
+      "type": [
+        "∀ {In : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire}",
+        "  {S : AvailableChain.FGCompose.FGSafetyReads P n Wire}",
+        "  {H : AvailableChain.KitFG.FGHeightView (Fin n)}",
+        "  {f : AvailableChain.KitFG.FGFinalityView (Fin n)} {Good : P.State → Prop}",
+        "  {pending : P.State → P.Object → Prop},",
+        "  AvailableChain.FGCompose.FGSafetyStoreOriginLaws R S H f Good pending → Good P.init"
+      ]
+    },
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.initial_tf": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGCore.fg",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGCoreReads.core",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.FGSafetyStoreOriginLaws",
+        "AvailableChain.KitFG.FGFinalityView",
+        "AvailableChain.KitFG.FGHeightView",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.FGBlock.genesis",
+        "AvailableChain.SimplexFG.Store.TF",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "AvailableChain.V2.ProtocolSpecD.init",
+        "Eq",
+        "Fin",
+        "Finset",
+        "Finset.instSetLike",
+        "Membership.mem",
+        "Nat",
+        "SetLike.instMembership"
+      ],
+      "digest": "c518ca837027f0ed13c649a1bb4da18fee7347bcc68caf0ad1a4437c6d2ccb33",
+      "kernel_name": "str:2:93:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose23:FGSafetyStoreOriginLaws10:initial_tf",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin",
+      "type": [
+        "∀ {In : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire}",
+        "  {S : AvailableChain.FGCompose.FGSafetyReads P n Wire}",
+        "  {H : AvailableChain.KitFG.FGHeightView (Fin n)}",
+        "  {f : AvailableChain.KitFG.FGFinalityView (Fin n)} {Good : P.State → Prop}",
+        "  {pending : P.State → P.Object → Prop},",
+        "  AvailableChain.FGCompose.FGSafetyStoreOriginLaws R S H f Good pending →",
+        "    ∀ (B : AvailableChain.SimplexFG.FGBlock (Fin n)),",
+        "      SetLike.instMembership.mem (R.core P.init).fg.TF B →",
+        "        Eq B AvailableChain.SimplexFG.FGBlock.genesis"
+      ]
+    },
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.invariant": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGCore.fg",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGCoreReads.core",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.FGSafetyStoreOriginLaws",
+        "AvailableChain.KitFG.FGFinalityView",
+        "AvailableChain.KitFG.FGHeightView",
+        "AvailableChain.KitFG.FGStoreInvariant",
+        "AvailableChain.SimplexFG.instRowCodecFin",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "Fin",
+        "Nat",
+        "instDecidableEqFin"
+      ],
+      "digest": "2fb7ad3df2290d3308aee1cc213d286319a2a461e0b8dbe5dac6d883f7e59c7f",
+      "kernel_name": "str:2:93:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose23:FGSafetyStoreOriginLaws9:invariant",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin",
+      "type": [
+        "∀ {In : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire}",
+        "  {S : AvailableChain.FGCompose.FGSafetyReads P n Wire}",
+        "  {H : AvailableChain.KitFG.FGHeightView (Fin n)}",
+        "  {f : AvailableChain.KitFG.FGFinalityView (Fin n)} {Good : P.State → Prop}",
+        "  {pending : P.State → P.Object → Prop},",
+        "  AvailableChain.FGCompose.FGSafetyStoreOriginLaws R S H f Good pending →",
+        "    ∀ (nd : P.State), Good nd → AvailableChain.KitFG.FGStoreInvariant H f (R.core nd).fg"
+      ]
+    },
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.mk": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGCore.fg",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGCoreReads.core",
+        "AvailableChain.FGCompose.FGPendingOrigin",
+        "AvailableChain.FGCompose.FGProcessOrigin",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.FGSafetyStoreOriginLaws",
+        "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.mk",
+        "AvailableChain.KitFG.FGFinalityView",
+        "AvailableChain.KitFG.FGHeightView",
+        "AvailableChain.KitFG.FGStoreInvariant",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.FGBlock.genesis",
+        "AvailableChain.SimplexFG.Store.TF",
+        "AvailableChain.SimplexFG.instRowCodecFin",
+        "AvailableChain.Time",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Label",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "AvailableChain.V2.ProtocolSpecD.Payload",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "AvailableChain.V2.ProtocolSpecD.clock",
+        "AvailableChain.V2.ProtocolSpecD.durable",
+        "AvailableChain.V2.ProtocolSpecD.init",
+        "AvailableChain.V2.ProtocolSpecD.process",
+        "AvailableChain.V2.ProtocolSpecD.recordOwn",
+        "AvailableChain.V2.ProtocolSpecD.restore",
+        "AvailableChain.V2.ProtocolSpecD.seats",
+        "AvailableChain.V2.Signed",
+        "Eq",
+        "Fin",
+        "Finset",
+        "Finset.instSetLike",
+        "Membership.mem",
+        "Nat",
+        "SetLike.instMembership",
+        "instDecidableEqFin"
+      ],
+      "digest": "ec4311974675bcc7ed06ebebeff0e36e690d613eba0c63b899022bec5094791d",
+      "kernel_name": "str:2:93:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose23:FGSafetyStoreOriginLaws2:mk",
+      "kind": "ctor",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin",
+      "type": [
+        "∀ {In : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire}",
+        "  {S : AvailableChain.FGCompose.FGSafetyReads P n Wire}",
+        "  {H : AvailableChain.KitFG.FGHeightView (Fin n)}",
+        "  {f : AvailableChain.KitFG.FGFinalityView (Fin n)} {Good : P.State → Prop}",
+        "  {pending : P.State → P.Object → Prop},",
+        "  Good P.init →",
+        "    (∀ (nd : P.State) (t : AvailableChain.Time), Good nd → Good (P.clock nd t)) →",
+        "      (∀ (nd : P.State) (o : AvailableChain.V2.Signed P.Label P.seats P.Payload),",
+        "          Good nd → Good (P.process nd o)) →",
+        "        (∀ (nd : P.State) (o : AvailableChain.V2.Signed P.Label P.seats P.Payload),",
+        "            Good nd → Good (P.recordOwn nd o)) →",
+        "          (∀ (nd : P.State) (t : AvailableChain.Time),",
+        "              Good nd → Good (P.restore (P.durable nd) t)) →",
+        "            (∀ (nd : P.State),",
+        "                Good nd → AvailableChain.KitFG.FGStoreInvariant H f (R.core nd).fg) →",
+        "              (∀ (B : AvailableChain.SimplexFG.FGBlock (Fin n)),",
+        "                  SetLike.instMembership.mem (R.core P.init).fg.TF B →",
+        "                    Eq B AvailableChain.SimplexFG.FGBlock.genesis) →",
+        "                (∀ (nd : P.State) (t : AvailableChain.Time)",
+        "                    (B : AvailableChain.SimplexFG.FGBlock (Fin n)),",
+        "                    Good nd →",
+        "                      SetLike.instMembership.mem",
+        "                          (R.core (P.restore (P.durable nd) t)).fg.TF B →",
+        "                        SetLike.instMembership.mem (R.core nd).fg.TF B) →",
+        "                  AvailableChain.FGCompose.FGProcessOrigin R S Good pending →",
+        "                    AvailableChain.FGCompose.FGPendingOrigin Good pending →",
+        "                      AvailableChain.FGCompose.FGSafetyStoreOriginLaws R S H f Good",
+        "                        pending"
+      ]
+    },
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.own_good": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.FGSafetyStoreOriginLaws",
+        "AvailableChain.KitFG.FGFinalityView",
+        "AvailableChain.KitFG.FGHeightView",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Label",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "AvailableChain.V2.ProtocolSpecD.Payload",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "AvailableChain.V2.ProtocolSpecD.recordOwn",
+        "AvailableChain.V2.ProtocolSpecD.seats",
+        "AvailableChain.V2.Signed",
+        "Fin",
+        "Nat"
+      ],
+      "digest": "0d6af638f4790dbb3f60b0dfc2801ae79742607fb8fb847046177da3854bd11c",
+      "kernel_name": "str:2:93:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose23:FGSafetyStoreOriginLaws8:own_good",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin",
+      "type": [
+        "∀ {In : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire}",
+        "  {S : AvailableChain.FGCompose.FGSafetyReads P n Wire}",
+        "  {H : AvailableChain.KitFG.FGHeightView (Fin n)}",
+        "  {f : AvailableChain.KitFG.FGFinalityView (Fin n)} {Good : P.State → Prop}",
+        "  {pending : P.State → P.Object → Prop},",
+        "  AvailableChain.FGCompose.FGSafetyStoreOriginLaws R S H f Good pending →",
+        "    ∀ (nd : P.State) (o : AvailableChain.V2.Signed P.Label P.seats P.Payload),",
+        "      Good nd → Good (P.recordOwn nd o)"
+      ]
+    },
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.pending_origin": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGPendingOrigin",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.FGSafetyStoreOriginLaws",
+        "AvailableChain.KitFG.FGFinalityView",
+        "AvailableChain.KitFG.FGHeightView",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "Fin",
+        "Nat"
+      ],
+      "digest": "64cb064ee8333e993152906c24b29f7d9d6427c12957b5416e604b41f3b1bafc",
+      "kernel_name": "str:2:93:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose23:FGSafetyStoreOriginLaws14:pending_origin",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin",
+      "type": [
+        "∀ {In : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire}",
+        "  {S : AvailableChain.FGCompose.FGSafetyReads P n Wire}",
+        "  {H : AvailableChain.KitFG.FGHeightView (Fin n)}",
+        "  {f : AvailableChain.KitFG.FGFinalityView (Fin n)} {Good : P.State → Prop}",
+        "  {pending : P.State → P.Object → Prop},",
+        "  AvailableChain.FGCompose.FGSafetyStoreOriginLaws R S H f Good pending →",
+        "    AvailableChain.FGCompose.FGPendingOrigin Good pending"
+      ]
+    },
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.process_good": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.FGSafetyStoreOriginLaws",
+        "AvailableChain.KitFG.FGFinalityView",
+        "AvailableChain.KitFG.FGHeightView",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Label",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "AvailableChain.V2.ProtocolSpecD.Payload",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "AvailableChain.V2.ProtocolSpecD.process",
+        "AvailableChain.V2.ProtocolSpecD.seats",
+        "AvailableChain.V2.Signed",
+        "Fin",
+        "Nat"
+      ],
+      "digest": "a37e51c4a2d5e2e260cae6c3c3653467bbc20450ae549bab5aebad061b41bb8b",
+      "kernel_name": "str:2:93:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose23:FGSafetyStoreOriginLaws12:process_good",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin",
+      "type": [
+        "∀ {In : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire}",
+        "  {S : AvailableChain.FGCompose.FGSafetyReads P n Wire}",
+        "  {H : AvailableChain.KitFG.FGHeightView (Fin n)}",
+        "  {f : AvailableChain.KitFG.FGFinalityView (Fin n)} {Good : P.State → Prop}",
+        "  {pending : P.State → P.Object → Prop},",
+        "  AvailableChain.FGCompose.FGSafetyStoreOriginLaws R S H f Good pending →",
+        "    ∀ (nd : P.State) (o : AvailableChain.V2.Signed P.Label P.seats P.Payload),",
+        "      Good nd → Good (P.process nd o)"
+      ]
+    },
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.process_origin": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGProcessOrigin",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.FGSafetyStoreOriginLaws",
+        "AvailableChain.KitFG.FGFinalityView",
+        "AvailableChain.KitFG.FGHeightView",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "Fin",
+        "Nat"
+      ],
+      "digest": "fcfa7c4520f7b0378712023346a5062c22a2fc9e4ce718a64c21a794d7511b21",
+      "kernel_name": "str:2:93:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose23:FGSafetyStoreOriginLaws14:process_origin",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin",
+      "type": [
+        "∀ {In : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire}",
+        "  {S : AvailableChain.FGCompose.FGSafetyReads P n Wire}",
+        "  {H : AvailableChain.KitFG.FGHeightView (Fin n)}",
+        "  {f : AvailableChain.KitFG.FGFinalityView (Fin n)} {Good : P.State → Prop}",
+        "  {pending : P.State → P.Object → Prop},",
+        "  AvailableChain.FGCompose.FGSafetyStoreOriginLaws R S H f Good pending →",
+        "    AvailableChain.FGCompose.FGProcessOrigin R S Good pending"
+      ]
+    },
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.restart_good": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.FGSafetyStoreOriginLaws",
+        "AvailableChain.KitFG.FGFinalityView",
+        "AvailableChain.KitFG.FGHeightView",
+        "AvailableChain.Time",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "AvailableChain.V2.ProtocolSpecD.durable",
+        "AvailableChain.V2.ProtocolSpecD.restore",
+        "Fin",
+        "Nat"
+      ],
+      "digest": "dc39f466188a7dbfa86649f84cae0924ee738b7daa37d41a163999152e4007f1",
+      "kernel_name": "str:2:93:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose23:FGSafetyStoreOriginLaws12:restart_good",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin",
+      "type": [
+        "∀ {In : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire}",
+        "  {S : AvailableChain.FGCompose.FGSafetyReads P n Wire}",
+        "  {H : AvailableChain.KitFG.FGHeightView (Fin n)}",
+        "  {f : AvailableChain.KitFG.FGFinalityView (Fin n)} {Good : P.State → Prop}",
+        "  {pending : P.State → P.Object → Prop},",
+        "  AvailableChain.FGCompose.FGSafetyStoreOriginLaws R S H f Good pending →",
+        "    ∀ (nd : P.State) (t : AvailableChain.Time),",
+        "      Good nd → Good (P.restore (P.durable nd) t)"
+      ]
+    },
+    "AvailableChain.FGCompose.FGSafetyStoreOriginLaws.restart_tf": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGCore.fg",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGCoreReads.core",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.FGSafetyStoreOriginLaws",
+        "AvailableChain.KitFG.FGFinalityView",
+        "AvailableChain.KitFG.FGHeightView",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.Store.TF",
+        "AvailableChain.Time",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "AvailableChain.V2.ProtocolSpecD.durable",
+        "AvailableChain.V2.ProtocolSpecD.restore",
+        "Fin",
+        "Finset",
+        "Finset.instSetLike",
+        "Membership.mem",
+        "Nat",
+        "SetLike.instMembership"
+      ],
+      "digest": "f125e3ca680606792ff07e36e89007ba88994fed0714bf1ac55c7515673b3c97",
+      "kernel_name": "str:2:93:str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose23:FGSafetyStoreOriginLaws10:restart_tf",
+      "kind": "field",
+      "module": "AvailableChainFGCompose.Statements.SafetyOrigin",
+      "type": [
+        "∀ {In : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire}",
+        "  {S : AvailableChain.FGCompose.FGSafetyReads P n Wire}",
+        "  {H : AvailableChain.KitFG.FGHeightView (Fin n)}",
+        "  {f : AvailableChain.KitFG.FGFinalityView (Fin n)} {Good : P.State → Prop}",
+        "  {pending : P.State → P.Object → Prop},",
+        "  AvailableChain.FGCompose.FGSafetyStoreOriginLaws R S H f Good pending →",
         "    ∀ (nd : P.State) (t : AvailableChain.Time)",
         "      (B : AvailableChain.SimplexFG.FGBlock (Fin n)),",
         "      Good nd →",
@@ -129256,6 +130117,39 @@
         "                    (Eq (AvailableChain.FGCompose.safetyHolder S rho i) v)))"
       ]
     },
+    "AvailableChain.FGCompose.safetyStoreOriginLaws_of_storeLaws": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.FGSafetyStoreLaws",
+        "AvailableChain.FGCompose.FGSafetyStoreOriginLaws",
+        "AvailableChain.KitFG.FGFinalityView",
+        "AvailableChain.KitFG.FGHeightView",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "False",
+        "Fin",
+        "Nat"
+      ],
+      "digest": "400b692836abda1131d06d80702a86c0234e59f84fdaa1ff987ee8d14820bc48",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose34:safetyStoreOriginLaws_of_storeLaws",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.SafetyOrigin",
+      "type": [
+        "∀ {In : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire}",
+        "  {S : AvailableChain.FGCompose.FGSafetyReads P n Wire}",
+        "  {H : AvailableChain.KitFG.FGHeightView (Fin n)}",
+        "  {f : AvailableChain.KitFG.FGFinalityView (Fin n)} {Good : P.State → Prop},",
+        "  AvailableChain.FGCompose.FGSafetyStoreLaws R S H f Good →",
+        "    AvailableChain.FGCompose.FGSafetyStoreOriginLaws R S H f Good fun x x_1 => False"
+      ]
+    },
     "AvailableChain.FGCompose.safety_F_mono": {
       "body": [
         ""
@@ -129689,6 +130583,73 @@
         "  (Good : P.State → Prop) (Q : AvailableChain.Block → Prop),",
         "  AvailableChain.FGCompose.FGCoreLaws R →",
         "    AvailableChain.FGCompose.FGSafetyStoreLaws R S H f Good →",
+        "      AvailableChain.KitFG.FGCertificateLaws Ef H f →",
+        "        AvailableChain.FGCompose.FGSafetyScopeLaws R S E rho Q →",
+        "          AvailableChain.FGCompose.safetyScopedRoots R Q →",
+        "            AvailableChain.FGCompose.safetyBound R S Ef E rho →",
+        "              ∀ (i j : Nat) (x y : V),",
+        "                Eq",
+        "                  ((R.core",
+        "                            (AvailableChain.V2.D.Run.stateBefore E rho i",
+        "                              x)).fg.F.compatible",
+        "                    (R.core (AvailableChain.V2.D.Run.stateBefore E rho j y)).fg.F)",
+        "                  Bool.true"
+      ]
+    },
+    "AvailableChain.FGCompose.safety_event_agreement_origin": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.Block",
+        "AvailableChain.FGCompose.FGCore.fg",
+        "AvailableChain.FGCompose.FGCoreLaws",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGCoreReads.core",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.FGSafetyScopeLaws",
+        "AvailableChain.FGCompose.FGSafetyStoreOriginLaws",
+        "AvailableChain.FGCompose.safetyBound",
+        "AvailableChain.FGCompose.safetyScopedRoots",
+        "AvailableChain.Generic.Env",
+        "AvailableChain.KitFG.FGCertificateLaws",
+        "AvailableChain.KitFG.FGFinalityView",
+        "AvailableChain.KitFG.FGHeightView",
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.FGBlock.compatible",
+        "AvailableChain.SimplexFG.Store.F",
+        "AvailableChain.SimplexFG.instRowCodecFin",
+        "AvailableChain.V2.D.Run",
+        "AvailableChain.V2.D.Run.stateBefore",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "Bool",
+        "Bool.true",
+        "DecidableEq",
+        "Eq",
+        "Fin",
+        "Fin.fintype",
+        "Nat",
+        "instDecidableEqFin"
+      ],
+      "digest": "052a2bf418ed37429b4479ba77bc531ccc187573041016bfb87942f5c5845eaf",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose29:safety_event_agreement_origin",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.SafetyOrigin",
+      "type": [
+        "∀ {In V : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  (R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire)",
+        "  (S : AvailableChain.FGCompose.FGSafetyReads P n Wire)",
+        "  (Ef : AvailableChain.SimplexFG.Electorate (Fin n))",
+        "  (H : AvailableChain.KitFG.FGHeightView (Fin n))",
+        "  (f : AvailableChain.KitFG.FGFinalityView (Fin n)) [inst : DecidableEq V]",
+        "  (E : AvailableChain.Generic.Env V) (rho : AvailableChain.V2.D.Run V P)",
+        "  (Good : P.State → Prop) (pending : P.State → P.Object → Prop)",
+        "  (Q : AvailableChain.Block → Prop),",
+        "  AvailableChain.FGCompose.FGCoreLaws R →",
+        "    AvailableChain.FGCompose.FGSafetyStoreOriginLaws R S H f Good pending →",
         "      AvailableChain.KitFG.FGCertificateLaws Ef H f →",
         "        AvailableChain.FGCompose.FGSafetyScopeLaws R S E rho Q →",
         "          AvailableChain.FGCompose.safetyScopedRoots R Q →",
@@ -130180,6 +131141,66 @@
         "                      AvailableChain.Gen.V2.Duty.HonestNeverSlashed I rho"
       ]
     },
+    "AvailableChain.FGCompose.safety_honest_never_slashed_origin": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGCoreLaws",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGSafetyClientLaws",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.FGSafetyReads.fgLabel",
+        "AvailableChain.FGCompose.FGSafetyStoreOriginLaws",
+        "AvailableChain.FGCompose.FGSafetyWireLaws",
+        "AvailableChain.FGCompose.safetySlashesRead",
+        "AvailableChain.Gen.V2.Duty.HonestNeverSlashed",
+        "AvailableChain.Gen.V2.Duty.SlashingInterface",
+        "AvailableChain.Generic.Env",
+        "AvailableChain.KitFG.FGFinalityView",
+        "AvailableChain.KitFG.FGHeightView",
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.FGConfig",
+        "AvailableChain.V2.D.Linked",
+        "AvailableChain.V2.D.Run",
+        "AvailableChain.V2.D.UnforgeableSignatures",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Label",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "DecidableEq",
+        "Fin",
+        "Fin.fintype",
+        "Nat"
+      ],
+      "digest": "8d98205d20ca7c64897da71d4c36459ceeda9fd6e1f35c4466a5df87010b6dbe",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose34:safety_honest_never_slashed_origin",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.SafetyOrigin",
+      "type": [
+        "∀ {In V : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  (R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire)",
+        "  (S : AvailableChain.FGCompose.FGSafetyReads P n Wire)",
+        "  (Ef : AvailableChain.SimplexFG.Electorate (Fin n))",
+        "  (H : AvailableChain.KitFG.FGHeightView (Fin n))",
+        "  (f : AvailableChain.KitFG.FGFinalityView (Fin n))",
+        "  (cfg : AvailableChain.SimplexFG.FGConfig) [inst : DecidableEq V]",
+        "  (E : AvailableChain.Generic.Env V) (rho : AvailableChain.V2.D.Run V P)",
+        "  (Good : P.State → Prop) (pending : P.State → P.Object → Prop),",
+        "  AvailableChain.FGCompose.FGCoreLaws R →",
+        "    AvailableChain.FGCompose.FGSafetyWireLaws S →",
+        "      AvailableChain.FGCompose.FGSafetyStoreOriginLaws R S H f Good pending →",
+        "        AvailableChain.FGCompose.FGSafetyClientLaws S Ef cfg →",
+        "          ∀ (linked : P.Label → Prop),",
+        "            linked S.fgLabel →",
+        "              ∀ (I : AvailableChain.Gen.V2.Duty.SlashingInterface P),",
+        "                AvailableChain.FGCompose.safetySlashesRead R S E rho I →",
+        "                  AvailableChain.V2.D.UnforgeableSignatures E rho →",
+        "                    AvailableChain.V2.D.Linked linked rho →",
+        "                      AvailableChain.Gen.V2.Duty.HonestNeverSlashed I rho"
+      ]
+    },
     "AvailableChain.FGCompose.safety_invariant_readAt": {
       "body": [
         ""
@@ -130306,6 +131327,92 @@
         "            (EquivLike.toFunLike.coe e i)"
       ]
     },
+    "AvailableChain.FGCompose.safety_origin_stateBefore": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "And",
+        "AvailableChain.Block",
+        "AvailableChain.FGCompose.FGCore.fg",
+        "AvailableChain.FGCompose.FGCoreLaws",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGCoreReads.core",
+        "AvailableChain.FGCompose.FGCoreReads.erase",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.FGSafetyReads.decode",
+        "AvailableChain.FGCompose.FGSafetyReads.proposalErase",
+        "AvailableChain.FGCompose.FGSafetyReads.proposalRows",
+        "AvailableChain.FGCompose.FGSafetyStoreOriginLaws",
+        "AvailableChain.Generic.Env",
+        "AvailableChain.KitFG.FGFinalityView",
+        "AvailableChain.KitFG.FGHeightView",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.FGBlock.genesis",
+        "AvailableChain.SimplexFG.FGBlock.rows",
+        "AvailableChain.SimplexFG.Row",
+        "AvailableChain.SimplexFG.Store.TF",
+        "AvailableChain.Time",
+        "AvailableChain.V2.D.Run",
+        "AvailableChain.V2.D.Run.events",
+        "AvailableChain.V2.D.Run.stateBefore",
+        "AvailableChain.V2.Event",
+        "AvailableChain.V2.Event.deliver",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "DecidableEq",
+        "Eq",
+        "Exists",
+        "Fin",
+        "Finset",
+        "Finset.instSetLike",
+        "List",
+        "List.filterMap",
+        "List.instMembership",
+        "Membership.mem",
+        "Nat",
+        "Option",
+        "Option.some",
+        "Or",
+        "SetLike.instMembership"
+      ],
+      "digest": "d6054eeb08db863687d370eaeed3ebfb74c3fb1678f0b87b9d0e1d2cde6529d1",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose25:safety_origin_stateBefore",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.SafetyOrigin",
+      "type": [
+        "∀ {In V : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire}",
+        "  {S : AvailableChain.FGCompose.FGSafetyReads P n Wire}",
+        "  {H : AvailableChain.KitFG.FGHeightView (Fin n)}",
+        "  {f : AvailableChain.KitFG.FGFinalityView (Fin n)} [inst : DecidableEq V]",
+        "  {Good : P.State → Prop} {pending : P.State → P.Object → Prop},",
+        "  AvailableChain.FGCompose.FGCoreLaws R →",
+        "    AvailableChain.FGCompose.FGSafetyStoreOriginLaws R S H f Good pending →",
+        "      ∀ (E : AvailableChain.Generic.Env V) (rho : AvailableChain.V2.D.Run V P) (i : Nat)",
+        "        (x : V),",
+        "        And (Good (AvailableChain.V2.D.Run.stateBefore E rho i x))",
+        "          (And",
+        "            (∀ (B : AvailableChain.SimplexFG.FGBlock (Fin n)),",
+        "              SetLike.instMembership.mem",
+        "                  (R.core (AvailableChain.V2.D.Run.stateBefore E rho i x)).fg.TF B →",
+        "                Or (Eq B AvailableChain.SimplexFG.FGBlock.genesis)",
+        "                  (Exists fun o =>",
+        "                    Exists fun t =>",
+        "                      And",
+        "                        (List.instMembership.mem rho.events",
+        "                          (AvailableChain.V2.Event.deliver x o t))",
+        "                        (And (Eq (S.proposalErase o) (Option.some (R.erase B)))",
+        "                          (Eq B.rows (List.filterMap S.decode (S.proposalRows o))))))",
+        "            (∀ (q : P.Object),",
+        "              pending (AvailableChain.V2.D.Run.stateBefore E rho i x) q →",
+        "                Exists fun t =>",
+        "                  List.instMembership.mem rho.events",
+        "                    (AvailableChain.V2.Event.deliver x q t)))"
+      ]
+    },
     "AvailableChain.FGCompose.safety_readAt_prefix": {
       "body": [
         ""
@@ -130429,6 +131536,55 @@
         "  {Good : P.State → Prop},",
         "  AvailableChain.FGCompose.FGCoreLaws R →",
         "    AvailableChain.FGCompose.FGSafetyStoreLaws R S H f Good →",
+        "      AvailableChain.FGCompose.FGSafetyWireLaws S →",
+        "        AvailableChain.V2.D.UnforgeableSignatures E rho →",
+        "          ∀ (t : AvailableChain.Time) (x : V),",
+        "            AvailableChain.FGCompose.safetyCarriage S E rho",
+        "              (AvailableChain.FGCompose.safetyRows R",
+        "                (AvailableChain.V2.D.Run.readAt E rho t x))"
+      ]
+    },
+    "AvailableChain.FGCompose.safety_read_carriage_origin": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGCoreLaws",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.FGSafetyStoreOriginLaws",
+        "AvailableChain.FGCompose.FGSafetyWireLaws",
+        "AvailableChain.FGCompose.safetyCarriage",
+        "AvailableChain.FGCompose.safetyRows",
+        "AvailableChain.Generic.Env",
+        "AvailableChain.KitFG.FGFinalityView",
+        "AvailableChain.KitFG.FGHeightView",
+        "AvailableChain.Time",
+        "AvailableChain.V2.D.Run",
+        "AvailableChain.V2.D.Run.readAt",
+        "AvailableChain.V2.D.UnforgeableSignatures",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "DecidableEq",
+        "Fin",
+        "Nat"
+      ],
+      "digest": "a4f7aa744353f5e6637e0a7522d9a82c05d1fceb656458b26e25441515d802df",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose27:safety_read_carriage_origin",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.SafetyOrigin",
+      "type": [
+        "∀ {In V : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire}",
+        "  {S : AvailableChain.FGCompose.FGSafetyReads P n Wire}",
+        "  {H : AvailableChain.KitFG.FGHeightView (Fin n)}",
+        "  {f : AvailableChain.KitFG.FGFinalityView (Fin n)} [inst : DecidableEq V]",
+        "  {E : AvailableChain.Generic.Env V} {rho : AvailableChain.V2.D.Run V P}",
+        "  {Good : P.State → Prop} {pending : P.State → P.Object → Prop},",
+        "  AvailableChain.FGCompose.FGCoreLaws R →",
+        "    AvailableChain.FGCompose.FGSafetyStoreOriginLaws R S H f Good pending →",
         "      AvailableChain.FGCompose.FGSafetyWireLaws S →",
         "        AvailableChain.V2.D.UnforgeableSignatures E rho →",
         "          ∀ (t : AvailableChain.Time) (x : V),",
@@ -130704,6 +131860,65 @@
         "                Q (R.erase B)"
       ]
     },
+    "AvailableChain.FGCompose.safety_read_scope_origin": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.Block",
+        "AvailableChain.FGCompose.FGCore.fg",
+        "AvailableChain.FGCompose.FGCoreLaws",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGCoreReads.core",
+        "AvailableChain.FGCompose.FGCoreReads.erase",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.FGSafetyScopeLaws",
+        "AvailableChain.FGCompose.FGSafetyStoreOriginLaws",
+        "AvailableChain.Generic.Env",
+        "AvailableChain.KitFG.FGFinalityView",
+        "AvailableChain.KitFG.FGHeightView",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.Store.TF",
+        "AvailableChain.Time",
+        "AvailableChain.V2.D.Run",
+        "AvailableChain.V2.D.Run.honest",
+        "AvailableChain.V2.D.Run.readAt",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "DecidableEq",
+        "Fin",
+        "Finset",
+        "Finset.instSetLike",
+        "Membership.mem",
+        "Nat",
+        "SetLike.instMembership"
+      ],
+      "digest": "6cb22d09f5fe72ec3534e277a510d00d1f4d7f8c9f3bfac0a30fe6bb30e63765",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose24:safety_read_scope_origin",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.SafetyOrigin",
+      "type": [
+        "∀ {In V : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire}",
+        "  {S : AvailableChain.FGCompose.FGSafetyReads P n Wire}",
+        "  {H : AvailableChain.KitFG.FGHeightView (Fin n)}",
+        "  {f : AvailableChain.KitFG.FGFinalityView (Fin n)} [inst : DecidableEq V]",
+        "  {E : AvailableChain.Generic.Env V} {rho : AvailableChain.V2.D.Run V P}",
+        "  {Good : P.State → Prop} {pending : P.State → P.Object → Prop}",
+        "  {Q : AvailableChain.Block → Prop},",
+        "  AvailableChain.FGCompose.FGCoreLaws R →",
+        "    AvailableChain.FGCompose.FGSafetyStoreOriginLaws R S H f Good pending →",
+        "      AvailableChain.FGCompose.FGSafetyScopeLaws R S E rho Q →",
+        "        ∀ (t : AvailableChain.Time) (x : V),",
+        "          SetLike.instMembership.mem rho.honest x →",
+        "            ∀ (B : AvailableChain.SimplexFG.FGBlock (Fin n)),",
+        "              SetLike.instMembership.mem",
+        "                  (R.core (AvailableChain.V2.D.Run.readAt E rho t x)).fg.TF B →",
+        "                Q (R.erase B)"
+      ]
+    },
     "AvailableChain.FGCompose.safety_record_fold": {
       "body": [
         ""
@@ -130848,6 +132063,58 @@
         "            AvailableChain.FGCompose.SafetyWholeAccountable R S Ef f E rho"
       ]
     },
+    "AvailableChain.FGCompose.safety_run_accountable_origin": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.Block",
+        "AvailableChain.FGCompose.FGCoreLaws",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.FGSafetyScopeLaws",
+        "AvailableChain.FGCompose.FGSafetyStoreOriginLaws",
+        "AvailableChain.FGCompose.SafetyWholeAccountable",
+        "AvailableChain.FGCompose.safetyScopedRoots",
+        "AvailableChain.Generic.Env",
+        "AvailableChain.KitFG.FGCertificateLaws",
+        "AvailableChain.KitFG.FGFinalityView",
+        "AvailableChain.KitFG.FGHeightView",
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.instRowCodecFin",
+        "AvailableChain.V2.D.Run",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "DecidableEq",
+        "Fin",
+        "Fin.fintype",
+        "Nat",
+        "instDecidableEqFin"
+      ],
+      "digest": "8d0df27b95be03c4ce07c4d487c7eb75fccf3509b299c5240786fd65eb2c4321",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose29:safety_run_accountable_origin",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.SafetyOrigin",
+      "type": [
+        "∀ {In V : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  (R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire)",
+        "  (S : AvailableChain.FGCompose.FGSafetyReads P n Wire)",
+        "  (Ef : AvailableChain.SimplexFG.Electorate (Fin n))",
+        "  (H : AvailableChain.KitFG.FGHeightView (Fin n))",
+        "  (f : AvailableChain.KitFG.FGFinalityView (Fin n)) [inst : DecidableEq V]",
+        "  (E : AvailableChain.Generic.Env V) (rho : AvailableChain.V2.D.Run V P)",
+        "  (Good : P.State → Prop) (pending : P.State → P.Object → Prop)",
+        "  (Q : AvailableChain.Block → Prop),",
+        "  AvailableChain.FGCompose.FGCoreLaws R →",
+        "    AvailableChain.FGCompose.FGSafetyStoreOriginLaws R S H f Good pending →",
+        "      AvailableChain.KitFG.FGCertificateLaws Ef H f →",
+        "        AvailableChain.FGCompose.FGSafetyScopeLaws R S E rho Q →",
+        "          AvailableChain.FGCompose.safetyScopedRoots R Q →",
+        "            AvailableChain.FGCompose.SafetyWholeAccountable R S Ef f E rho"
+      ]
+    },
     "AvailableChain.FGCompose.safety_run_agreement": {
       "body": [
         ""
@@ -130893,6 +132160,60 @@
         "  (Good : P.State → Prop) (Q : AvailableChain.Block → Prop),",
         "  AvailableChain.FGCompose.FGCoreLaws R →",
         "    AvailableChain.FGCompose.FGSafetyStoreLaws R S H f Good →",
+        "      AvailableChain.KitFG.FGCertificateLaws Ef H f →",
+        "        AvailableChain.FGCompose.FGSafetyScopeLaws R S E rho Q →",
+        "          AvailableChain.FGCompose.safetyScopedRoots R Q →",
+        "            AvailableChain.FGCompose.safetyBound R S Ef E rho →",
+        "              AvailableChain.FGCompose.SafetyWholeAgreement R S f E rho"
+      ]
+    },
+    "AvailableChain.FGCompose.safety_run_agreement_origin": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.Block",
+        "AvailableChain.FGCompose.FGCoreLaws",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.FGSafetyScopeLaws",
+        "AvailableChain.FGCompose.FGSafetyStoreOriginLaws",
+        "AvailableChain.FGCompose.SafetyWholeAgreement",
+        "AvailableChain.FGCompose.safetyBound",
+        "AvailableChain.FGCompose.safetyScopedRoots",
+        "AvailableChain.Generic.Env",
+        "AvailableChain.KitFG.FGCertificateLaws",
+        "AvailableChain.KitFG.FGFinalityView",
+        "AvailableChain.KitFG.FGHeightView",
+        "AvailableChain.SimplexFG.Electorate",
+        "AvailableChain.SimplexFG.instRowCodecFin",
+        "AvailableChain.V2.D.Run",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "DecidableEq",
+        "Fin",
+        "Fin.fintype",
+        "Nat",
+        "instDecidableEqFin"
+      ],
+      "digest": "48fe2c8dfdf0f2a6c90c58396041da47011c5802e8451ad1d311b2025349f4ca",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose27:safety_run_agreement_origin",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.SafetyOrigin",
+      "type": [
+        "∀ {In V : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  (R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire)",
+        "  (S : AvailableChain.FGCompose.FGSafetyReads P n Wire)",
+        "  (Ef : AvailableChain.SimplexFG.Electorate (Fin n))",
+        "  (H : AvailableChain.KitFG.FGHeightView (Fin n))",
+        "  (f : AvailableChain.KitFG.FGFinalityView (Fin n)) [inst : DecidableEq V]",
+        "  (E : AvailableChain.Generic.Env V) (rho : AvailableChain.V2.D.Run V P)",
+        "  (Good : P.State → Prop) (pending : P.State → P.Object → Prop)",
+        "  (Q : AvailableChain.Block → Prop),",
+        "  AvailableChain.FGCompose.FGCoreLaws R →",
+        "    AvailableChain.FGCompose.FGSafetyStoreOriginLaws R S H f Good pending →",
         "      AvailableChain.KitFG.FGCertificateLaws Ef H f →",
         "        AvailableChain.FGCompose.FGSafetyScopeLaws R S E rho Q →",
         "          AvailableChain.FGCompose.safetyScopedRoots R Q →",
@@ -131302,6 +132623,60 @@
         "  {Good : P.State → Prop},",
         "  AvailableChain.FGCompose.FGCoreLaws R →",
         "    AvailableChain.FGCompose.FGSafetyStoreLaws R S H f Good →",
+        "      ∀ (E : AvailableChain.Generic.Env V) (rho : AvailableChain.V2.D.Run V P) (i : Nat)",
+        "        (x : V) (B : AvailableChain.SimplexFG.FGBlock (Fin n)),",
+        "        SetLike.instMembership.mem",
+        "            (R.core (AvailableChain.V2.D.Run.stateBefore E rho i x)).fg.TF B →",
+        "          Ne B AvailableChain.SimplexFG.FGBlock.genesis →",
+        "            AvailableChain.FGCompose.safetyRunBlock R S E rho B"
+      ]
+    },
+    "AvailableChain.FGCompose.safety_stored_runBlock_origin": {
+      "body": [
+        ""
+      ],
+      "dependencies": [
+        "AvailableChain.FGCompose.FGCore.fg",
+        "AvailableChain.FGCompose.FGCoreLaws",
+        "AvailableChain.FGCompose.FGCoreReads",
+        "AvailableChain.FGCompose.FGCoreReads.core",
+        "AvailableChain.FGCompose.FGSafetyReads",
+        "AvailableChain.FGCompose.FGSafetyStoreOriginLaws",
+        "AvailableChain.FGCompose.safetyRunBlock",
+        "AvailableChain.Generic.Env",
+        "AvailableChain.KitFG.FGFinalityView",
+        "AvailableChain.KitFG.FGHeightView",
+        "AvailableChain.SimplexFG.FGBlock",
+        "AvailableChain.SimplexFG.FGBlock.genesis",
+        "AvailableChain.SimplexFG.Store.TF",
+        "AvailableChain.V2.D.Run",
+        "AvailableChain.V2.D.Run.stateBefore",
+        "AvailableChain.V2.ProtocolSpecD",
+        "AvailableChain.V2.ProtocolSpecD.Object",
+        "AvailableChain.V2.ProtocolSpecD.State",
+        "DecidableEq",
+        "Fin",
+        "Finset",
+        "Finset.instSetLike",
+        "Membership.mem",
+        "Nat",
+        "Ne",
+        "SetLike.instMembership"
+      ],
+      "digest": "b57e8428664d29c4861bb86e26983f91a439d07ee23d14db212346717c1ac3a7",
+      "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose29:safety_stored_runBlock_origin",
+      "kind": "theorem",
+      "module": "AvailableChainFGCompose.Proofs.SafetyOrigin",
+      "type": [
+        "∀ {In V : Type} {P : AvailableChain.V2.ProtocolSpecD In} {n : Nat}",
+        "  {Base Proposal Wire : Type}",
+        "  {R : AvailableChain.FGCompose.FGCoreReads P n Base Proposal Wire}",
+        "  {S : AvailableChain.FGCompose.FGSafetyReads P n Wire}",
+        "  {H : AvailableChain.KitFG.FGHeightView (Fin n)}",
+        "  {f : AvailableChain.KitFG.FGFinalityView (Fin n)} [inst : DecidableEq V]",
+        "  {Good : P.State → Prop} {pending : P.State → P.Object → Prop},",
+        "  AvailableChain.FGCompose.FGCoreLaws R →",
+        "    AvailableChain.FGCompose.FGSafetyStoreOriginLaws R S H f Good pending →",
         "      ∀ (E : AvailableChain.Generic.Env V) (rho : AvailableChain.V2.D.Run V P) (i : Nat)",
         "        (x : V) (B : AvailableChain.SimplexFG.FGBlock (Fin n)),",
         "        SetLike.instMembership.mem",

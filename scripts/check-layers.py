@@ -1445,6 +1445,16 @@ COMPOSE_EDGES |= frozenset({
      'AvailableChainFGCompose.Proofs.Finality.Forward'),
 })
 
+# P0-origin: the origin store record and its consumers; one FG-SA test edge.
+COMPOSE_MODULES += (
+    'AvailableChainFGCompose.Statements.SafetyOrigin',
+    'AvailableChainFGCompose.Proofs.SafetyOrigin',
+)
+COMPOSE_EDGES |= frozenset({
+    ('AvailableChainFGSAProofs.Tests.P0Origin',
+     'AvailableChainFGCompose.Proofs.SafetyOrigin'),
+})
+
 # P0d7c: exact private test-adapter edges (generic finality chain G0).
 COMPOSE_EDGES |= frozenset({
     ('AvailableChainFGSAProofs.Tests.P0d7c',
