@@ -79,5 +79,18 @@ theorem StrongServedFG_def (m : Nat) (t : Time) :
       (R.core (rho.stateBefore E i x)).fg.h_max ≤ m) ∧
     FrontierLocalServiceFG R S E rho O T I pair q Q Qfg m t := Iff.rfl
 
+/-- Holder-served alternative with the original first-stop and rise alternatives. -/
+def FrontierHG3ResultFG (i m : Nat) (start deadline : Time) : Prop :=
+  FirstPhaseStopBy R E rho O i m deadline ∨
+  FirstRiseStopBy R E rho O i m deadline ∨
+  ∃ t, start ≤ t ∧ t ≤ deadline ∧ StrongServedFG R S E rho O T I pair Jst leaseSlots m t
+
+/-- Blueprint 21 HG.3. DC: SAME the public conclusion interface. -/
+theorem FrontierHG3ResultFG_def (i m : Nat) (start deadline : Time) :
+    FrontierHG3ResultFG R S E rho O T I pair Jst leaseSlots i m start deadline ↔
+  FirstPhaseStopBy R E rho O i m deadline ∨
+  FirstRiseStopBy R E rho O i m deadline ∨
+  ∃ t, start ≤ t ∧ t ≤ deadline ∧ StrongServedFG R S E rho O T I pair Jst leaseSlots m t := Iff.rfl
+
 end AvailableChain.FGCompose
 end
