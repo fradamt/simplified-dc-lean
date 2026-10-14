@@ -535,9 +535,9 @@ source = replace_exact(source, 'def inLib (env : Environment)',
 source = replace_exact(source, '| some m => inLibraries m',
     '| some m => inLibraries m || modelAuditScope.contains (m, n)', 1)
 source = replace_exact(source,
-    'let mut dir : System.FilePath :=\n'
-    '    if args.contains "--files" then "" else '
-    '(← layoutOutput #["dir", "AvailableChainFGSARun"])[0]!',
+    'let mut dir : System.FilePath := ""\n'
+    '  unless args.contains "--files" do\n'
+    '    dir := (← layoutOutput #["dir", "AvailableChainFGSARun"])[0]!',
     'let mut dir : System.FilePath := ""')
 source = replace_exact(source, '(#[lib] ++ extra)', '(libs.toArray ++ extra)')
 source = replace_exact(source, '  for m in ← sourceModules dir do',
