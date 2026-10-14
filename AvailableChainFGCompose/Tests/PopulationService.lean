@@ -280,5 +280,16 @@ private theorem nonholder_no_encoded (j : Nat) (t : Time)
 
 #print axioms nonholder_no_encoded
 
+/-- All other local-service fields are supplied by mixed_service on these same data. -/
+private theorem old_service_rejected (Qfg : FGBlock (Fin 1)) :
+    ¬ FrontierLocalService core reads env run obs timing interface Row.height_pair
+      2 .genesis Qfg 1 18 := by
+  intro h
+  have hc := (h.2.2.2.2 1 (by decide) (by decide)).1
+  obtain ⟨_, _, j, rSent, a, _, _, _, _, _, ha, _⟩ := hc 7 (by decide)
+  exact nonholder_no_encoded j _ ha.2.1 a ha.2.2
+
+#print axioms old_service_rejected
+
 end AvailableChain.FGCompose.Tests.PopulationService
 end
