@@ -39,5 +39,12 @@ theorem frontierHG3ResultFG_frozen_iff (i m : Nat) (start deadline : Time) :
   simp only [FrontierHG3ResultFG_def, FrontierHG3Result_def,
     strongServedFG_frozen_iff R S E rho O T I pair Jst leaseSlots e he]
 
+/-- Iff: transport only the saved-seed alternative under the original repair guard. -/
+theorem interruptedRepairStatementFG_frozen_iff (G ΔF ρbar : Time) :
+    InterruptedRepairStatementFG R S E rho O T I pair Jst leaseSlots deltaT G ΔF ρbar ↔
+      InterruptedRepairStatement R S E rho O T I pair Jst leaseSlots deltaT G ΔF ρbar := by
+  simp only [InterruptedRepairStatementFG_def, InterruptedRepairStatement,
+    strongServedFG_frozen_iff R S E rho O T I pair Jst leaseSlots e he]
+
 end AvailableChain.FGCompose
 end
