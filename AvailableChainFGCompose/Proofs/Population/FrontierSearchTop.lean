@@ -1,7 +1,7 @@
 module
 public import AvailableChainFGCompose.Proofs.Population.FrontierSearchAge
 public import AvailableChainFGCompose.Proofs.Population.FrontierSearchRepair
-import all AvailableChainFGCompose.Proofs.Healing.FrontierSearchTop
+public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchTop
 
 public section
 
@@ -104,6 +104,67 @@ private theorem p0d5c_top_phase_holder (hT : FGTimingLaws T) (hk : 1 ≤ leaseSl
     ∃ t, u ≤ t ∧ t ≤ Dl ∧
       StrongServedFG R S E rho O T I D.heightPair Jst leaseSlots m t := by
   classical
+  have p0d5c_top_eps_nonneg (T : FGTiming) (hT : FGTimingLaws T) {ΔF : Time} (hF : 0 ≤ ΔF) :
+      0 ≤ epsF T ΔF := by
+    clear * - hT hF
+    have hd : 0 < 4 * T.delta := by linarith [hT.delta_pos]
+    have hn : 0 ≤ 6 * T.delta + ΔF + 4 * T.delta - 1 := by
+      have hd1 : (1 : Time) ≤ T.delta := hT.delta_pos
+      linarith
+    have hc : 6 * T.delta + ΔF ≤ (kappaF T ΔF : Time) * (4 * T.delta) := by
+      delta kappaF
+      rw [Int.toNat_of_nonneg (Int.ediv_nonneg hn hd.le)]
+      have hhi := Int.lt_ediv_add_one_mul_self (6 * T.delta + ΔF + 4 * T.delta - 1) hd
+      nlinarith
+    have hnat : 2 ≤ kappaF T ΔF := by
+      by_contra hk
+      have hk' : (kappaF T ΔF : Time) ≤ 1 := by
+        exact_mod_cast (show kappaF T ΔF ≤ 1 by omega)
+      nlinarith [hT.delta_pos]
+    have hk2 : (2 : Time) ≤ kappaF T ΔF := by exact_mod_cast hnat
+    unfold epsF betaF
+    nlinarith [hT.delta_pos]
+  have p0d5c_top_first_time (T : FGTiming) (hT : FGTimingLaws T) {q r : Nat}
+      (hqr : q ≤ r * T.roundSlots) (hfirst : ∀ r', q ≤ r' * T.roundSlots → r ≤ r') :
+      T.gate q ≤ T.action r ∧ T.action r ≤ T.gate q + FGCompose.P T - 4 * T.delta := by
+    clear * - hT hqr hfirst
+    have hd := hT.delta_pos
+    rw [hT.action_eq, hT.gate_eq, hT.gate_eq, hT.proposal_eq, hT.proposal_eq]
+    have hqrI : (q : Time) ≤ ((r * T.roundSlots : Nat) : Time) := by exact_mod_cast hqr
+    have hup : r * T.roundSlots + 1 ≤ q + T.roundSlots := by
+      rcases Nat.eq_zero_or_pos r with hr | hr
+      · subst hr
+        have := hT.rounds
+        omega
+      · have hlt : ¬ q ≤ (r - 1) * T.roundSlots := fun h => by
+          have := hfirst (r - 1) h
+          omega
+        have he : (r - 1) * T.roundSlots + T.roundSlots = r * T.roundSlots := by
+          rw [← Nat.succ_mul, Nat.succ_eq_add_one, Nat.sub_add_cancel hr]
+        omega
+    have hupI : ((r * T.roundSlots : Nat) : Time) + 1 ≤ (q : Time) + T.roundSlots := by
+      exact_mod_cast hup
+    unfold FGCompose.P
+    constructor <;> nlinarith
+  have p0d5c_top_action (T : FGTiming) (hT : FGTimingLaws T) (r : Nat) :
+      T.action r = (r : Time) * FGCompose.P T + 6 * T.delta := by
+    clear * - hT
+    rw [hT.action_eq, hT.gate_eq, hT.proposal_eq]
+    unfold FGCompose.P
+    push_cast
+    ring
+  have p0d5c_top_slot_time (T : FGTiming) (hT : FGTimingLaws T) {a b : Slot} (h : a ≤ b) :
+      T.proposal a ≤ T.proposal b := by
+    clear * - hT h
+    rw [hT.proposal_eq, hT.proposal_eq]
+    have hI : (a : Time) ≤ b := by exact_mod_cast h
+    nlinarith [hT.delta_pos]
+  have p0d5c_top_beta (T : FGTiming) (hT : FGTimingLaws T) {ΔF : Time}
+      (hbound : LivenessBoundW T ΔF) : betaF T ΔF ≤ FGCompose.P T := by
+    clear * - hT hbound
+    have hk : (kappaF T ΔF : Time) ≤ T.roundSlots := by exact_mod_cast hbound.kappa_le_R
+    delta betaF FGCompose.P
+    nlinarith [hT.delta_pos]
   have hGST : E.t_GST ≤ u := hJst.trans hready
   have hd := hT.delta_pos
   have hP := frontierSearch_period_bound T hT
@@ -360,6 +421,26 @@ theorem frontier_hg3_topJ_holder (hT : FGTimingLaws T) (hk : 1 ≤ leaseSlots)
     (hhor : ev.time + E_jF T ΔF G ρbar ≤ rho.horizon) :
     FrontierHG3ResultFG R S E rho O T I D.heightPair Jst leaseSlots i m ev.time
       (ev.time + E_jF T ΔF G ρbar) := by
+  have p0d5c_top_eps_nonneg (T : FGTiming) (hT : FGTimingLaws T) {ΔF : Time} (hF : 0 ≤ ΔF) :
+      0 ≤ epsF T ΔF := by
+    clear * - hT hF
+    have hd : 0 < 4 * T.delta := by linarith [hT.delta_pos]
+    have hn : 0 ≤ 6 * T.delta + ΔF + 4 * T.delta - 1 := by
+      have hd1 : (1 : Time) ≤ T.delta := hT.delta_pos
+      linarith
+    have hc : 6 * T.delta + ΔF ≤ (kappaF T ΔF : Time) * (4 * T.delta) := by
+      delta kappaF
+      rw [Int.toNat_of_nonneg (Int.ediv_nonneg hn hd.le)]
+      have hhi := Int.lt_ediv_add_one_mul_self (6 * T.delta + ΔF + 4 * T.delta - 1) hd
+      nlinarith
+    have hnat : 2 ≤ kappaF T ΔF := by
+      by_contra hk
+      have hk' : (kappaF T ΔF : Time) ≤ 1 := by
+        exact_mod_cast (show kappaF T ΔF ≤ 1 by omega)
+      nlinarith [hT.delta_pos]
+    have hk2 : (2 : Time) ≤ kappaF T ΔF := by exact_mod_cast hnat
+    unfold epsF betaF
+    nlinarith [hT.delta_pos]
   obtain ⟨hi, hgst0, _, hfront, hm, hkind⟩ :=
     (FrontierSearchStart_def R E rho O T Jst i ev m .topJ).mp hstart
   have hρ : 0 ≤ ρbar := allowance.1
@@ -393,10 +474,181 @@ theorem frontier_hg3_topJ_holder (hT : FGTimingLaws T) (hk : 1 ≤ leaseSlots)
     crossing schedule mono hdelta hJst awake joinedTick readyCut hServices receiptHeld
     i ev _ m .topJ hi hgst0 (by linarith) hhor hm hfront hkind hquiet
   have hready : Jst ≤ ev.time + 3 * T.delta := by linarith
-  have hage := p0d5c_top_seed_age (R := R) (S := S) (O := O) (T := T) (E := E) (rho := rho)
-    (I := I) (Ef := Ef) (Jst := Jst) (obs := obs) (cert := cert) (inv := inv)
-    (justif := justif) (keep := keep) (erasePreceq := erasePreceq)
-    (joined := joined) (receipt := receipt) hT crossing schedule mono joinedTick
+  have p0d5c_top_idx_le (hs : V2.D.ScheduleWellFormed E rho)
+      {j : Nat} {e : V2.Event V Prot.Object} (hj : rho.events[j]? = some e) {u : Time}
+      (hu : u ≤ e.time) : V2.D.Run.idxBefore rho u ≤ j := by
+    by_contra hn
+    have hlt := (Gen.V2.Duty.index_lt_idxBefore_iff hs hj u).mp (Nat.lt_of_not_ge hn)
+    exact (not_lt.mpr hu) hlt
+  have p0d5c_top_lt_timeIdx (hs : V2.D.ScheduleWellFormed E rho)
+      {k : Nat} {e : V2.Event V Prot.Object} (hk : rho.events[k]? = some e) {t : Time}
+      (ht : e.time ≤ t) : k < timeIdx rho t := by
+    have hlt := (Gen.V2.Duty.index_lt_idxBefore_iff hs hk (t + 1)).mpr (Int.lt_add_one_iff.mpr ht)
+    refine hlt.trans_le ?_
+    change (rho.events.filter (fun e => decide (e.time < t + 1))).length ≤
+      (rho.events.filter (fun e => decide (e.time ≤ t))).length
+    rw [← List.countP_eq_length_filter, ← List.countP_eq_length_filter]
+    exact List.countP_mono_left (fun e _ he =>
+      decide_eq_true (Int.lt_add_one_iff.mp (of_decide_eq_true he)))
+  have p0d5c_top_low_entry (hs : V2.D.ScheduleWellFormed E rho)
+      (parentFrame : ∀ q Q, HonestProposal E rho I q Q → ∃ j,
+        rho.events[j]? = some (.tick (V2.D.proposerOf rho I q) (T.proposal q)) ∧
+        ∀ Qfg, R.erase Qfg = Q → FGBlock.Preceq
+          (O.controls (rho.stateBefore E j (V2.D.proposerOf rho I q))).Z Qfg.parent)
+      {u Dl : Time} {m q : Nat} {J Qfg : FGBlock (Fin n)} {Q : Block}
+      (hp : PhaseInterval R E rho O u Dl m (some J) false)
+      (hQ : HonestProposal E rho I q Q) (he : R.erase Qfg = Q)
+      (huq : u ≤ T.proposal q) (hqD : T.proposal q ≤ Dl)
+      (hlow : (O.height Qfg).h = m - 1) : (O.height Qfg).T_h = J := by
+    obtain ⟨j, hj, hframe⟩ := parentFrame q Q hQ
+    let y := V2.D.proposerOf rho I q
+    have hy : y ∈ rho.honest := hQ.1.2
+    obtain ⟨hH, hc, hr⟩ := hp.2.2.2 j y (p0d5c_top_idx_le hs hj huq)
+      (p0d5c_top_lt_timeIdx hs hj hqD).le hy
+    have hZ : (O.controls (rho.stateBefore E j y)).Z = J := by
+      unfold Controls.Z
+      rw [hr.1]
+      exact hr.2
+    have hJQ : FGBlock.Preceq J Qfg := by
+      have hPQ : FGBlock.Preceq Qfg.parent Qfg := by
+        cases Qfg with
+        | genesis => exact KitFG.preceq_refl _
+        | node P s root body rows => exact KitFG.preceq_parent_node _ _ _ _ _
+      exact KitFG.preceq_trans (hZ ▸ hframe Qfg he) hPQ
+    have hroot := hr.1
+    rw [obs.controls_eq] at hH hroot hr
+    unfold Controls.rootIsJ at hroot
+    have htop : (R.core (rho.stateBefore E j y)).fg.h_max =
+        (R.core (rho.stateBefore E j y)).fg.h_j + 1 :=
+      of_decide_eq_true (Bool.and_eq_true_iff.mp hroot).1
+    obtain ⟨C, _, _, hjC, hJC⟩ := (inv j y).pair.1
+    have hCJ : (O.height C).J = J := hJC.symm.trans hr.2
+    have hpos := cert.height.one_le_h Qfg
+    have hjC' : (O.height C).h_j = m - 1 := by
+      change (R.core (rho.stateBefore E j y)).fg.h_max = m at hH
+      simp only [Height] at *
+      omega
+    have hJheight : (O.height J).h = m - 1 := by
+      rw [← hCJ, justif.J_height C (by simp only [Height] at *; omega)]
+      exact hjC'
+    have hJe : (O.height J).T_h = J := by
+      rw [← hCJ]
+      exact justif.J_entry C
+    exact (cert.height.entry_plateau hJQ (hJheight.trans hlow.symm)).symm.trans hJe
+  have p0d5c_top_seed_age (hT : FGTimingLaws T)
+      (crossing : RXing R E rho O) (hs : V2.D.ScheduleWellFormed E rho)
+      (mono : FGRunOrderLaws E rho R)
+      (joinedTick : ∀ iy y t, y ∈ rho.honest →
+        rho.events[iy]? = some (.tick y t) → t ≤ rho.horizon →
+        E.t_GST ≤ slotStartZ T (((slotAt T t : Slot) : Int) - 1) →
+        joined (Prot.clock (rho.stateBefore E iy y) t) = true)
+      (readyCut : ∀ t, Jst ≤ t → E.t_GST ≤ slotStartZ T (((slotAt T t : Slot) : Int) - 1))
+      (hServices : ∀ i (ev : V2.Event V Prot.Object) m,
+        rho.events[i]? = some ev → Jst ≤ ev.time → 1 ≤ m →
+        frontierAtIdx R E rho (i + 1) = m → ev.time + T.delta ≤ rho.horizon →
+        PhaseWitnessReceiptScope R E rho O joined receipt (i + 1) m (ev.time + T.delta))
+      (receiptHeld : ∀ W d y, y ∈ rho.honest → receipt (R.erase W) d y →
+        W ∈ (R.core (rho.stateBeforeTime E d y)).fg.TF)
+      (justifiedSource : ∀ i x, x ∈ rho.honest →
+        (R.core (rho.stateBefore E i x)).fg.h_j ≠ 0 →
+        ∃ j y r a K, j < i ∧ HonestRowAt S E rho T j y r a ∧
+          actionSourceFG R E rho T y r = some (some K) ∧
+          (O.height K).T_h = (R.core (rho.stateBefore E i x)).fg.J)
+      (sourceSlot : ∀ r x K, x ∈ rho.honest →
+        actionSourceFG R E rho T x r = some (some K) → K.slot ≤ r * T.roundSlots)
+      (ancestorSlot : ∀ r x K A, x ∈ rho.honest →
+        actionSourceFG R E rho T x r = some (some K) → FGBlock.Preceq A K →
+        A.slot ≤ K.slot)
+      (parentFrame : ∀ q Q, HonestProposal E rho I q Q → ∃ j,
+        rho.events[j]? = some (.tick (V2.D.proposerOf rho I q) (T.proposal q)) ∧
+        ∀ Qfg, R.erase Qfg = Q → FGBlock.Preceq
+          (O.controls (rho.stateBefore E j (V2.D.proposerOf rho I q))).Z Qfg.parent)
+      {Dl : Time} {i m : Nat} {ev : V2.Event V Prot.Object} {J : FGBlock (Fin n)}
+      (hstart : FrontierSearchStart R E rho O T Jst i ev m .topJ)
+      (hquiet : ∀ j, i < j → j < timeIdx rho Dl → ¬ EffectiveEvent R E rho O j)
+      (hp : PhaseInterval R E rho O (ev.time + 3 * T.delta) Dl m (some J) false) :
+      ∀ q Q Qfg, HonestProposal E rho I q Q → R.erase Qfg = Q →
+        ev.time + 3 * T.delta ≤ T.proposal q → T.gate q ≤ Dl → (O.height Qfg).h = m - 1 →
+        T.proposal (O.height Qfg).T_h.slot ≤ ev.time - 6 * T.delta := by
+    intro q Q Qfg hQ he huq hgate hlow
+    have hd := hT.delta_pos
+    obtain ⟨hi, hgst, _, hfront, hm, ht, _⟩ :=
+      (FrontierSearchStart_def R E rho O T Jst i ev m .topJ).mp hstart
+    have hwin := healing_phase_window_all R E rho O mono hfront hquiet
+    obtain ⟨j, hq, hframe⟩ := parentFrame q Q hQ
+    let y := V2.D.proposerOf rho I q
+    have hy : y ∈ rho.honest := hQ.1.2
+    have hqg : T.proposal q ≤ T.gate q := by rw [hT.gate_eq]; linarith
+    have hcut : V2.D.Run.idxBefore rho (ev.time + T.delta) ≤ j :=
+      p0d5c_top_idx_le hs hq (show ev.time + T.delta ≤ T.proposal q by linarith)
+    have hiCut : i + 1 ≤ V2.D.Run.idxBefore rho (ev.time + T.delta) :=
+      Nat.succ_le_of_lt ((Gen.V2.Duty.index_lt_idxBefore_iff hs hi _).mpr
+        (lt_add_of_pos_right _ hd))
+    have hjD : j ≤ timeIdx rho Dl := (p0d5c_top_lt_timeIdx hs hq (hqg.trans hgate)).le
+    have hreceiptHor : ev.time + T.delta ≤ rho.horizon := by linarith [hp.1, hp.2.1]
+    have hqHor : T.proposal q ≤ rho.horizon := (hqg.trans hgate).trans hp.2.1
+    have hslotq : slotAt T (T.proposal q) = q := by
+      unfold slotAt
+      rw [hT.proposal_eq, show 4 * (q : Time) * T.delta = (q : Time) * (4 * T.delta) by ring,
+        Int.mul_ediv_cancel _ (by linarith)]
+      simp
+    have hjoin := joinedTick j y (T.proposal q) hy hq hqHor
+      (hslotq ▸ readyCut (T.proposal q) (hgst.trans (by linarith)))
+    obtain ⟨x, C, ⟨hx, hC⟩, hh, hj, hJ, hReceipt⟩ :=
+      (hServices i ev m hi hgst hm hfront hreceiptHor).top ht
+    let k := V2.D.Run.idxBefore rho (ev.time + T.delta)
+    have hkD : k ≤ timeIdx rho Dl := hcut.trans hjD
+    have hCk : C ∈ (R.core (rho.stateBefore E k x)).fg.TF := keep _ _ hiCut x hC
+    have hFcut : FGBlock.Preceq (R.core (rho.stateBefore E k y)).fg.F C := by
+      obtain ⟨Kc, hKc, hKcF⟩ := (inv k y).Fcar
+      have hf := (healing_phase_finality_le (R := R) (E := E) (rho := rho) (O := O) (Ef := Ef)
+        (cert := cert) (inv := inv) hKc hKcF).trans_lt
+        (healing_phase_justified_lt (R := R) (E := E) (rho := rho) (O := O) (Ef := Ef)
+          (cert := cert) (inv := inv) k y)
+      have hloc := (healing_phase_local_le_frontier (R := R) (E := E) (rho := rho) hy
+        (i := k)).trans_eq (hwin k hiCut hkD).1
+      exact crossing k k y x Kc C hy le_rfl hKc hKcF ⟨hx, hCk⟩
+        (hf.trans_le (hloc.trans hh.symm.le))
+    have hservice := hReceipt.atRead j y (T.proposal q) hy hq hjoin (by linarith) (by
+      rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hs]
+      exact erasePreceq hFcut)
+    have hCcut := receiptHeld C (ev.time + T.delta) y hy hservice
+    rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hs] at hCcut
+    have hCj : C ∈ (R.core (rho.stateBefore E j y)).fg.TF := keep _ _ hcut y hCcut
+    have hcapj : frontierAtIdx R E rho j ≤ m := (hwin j (hiCut.trans hcut) hjD).1.le
+    obtain ⟨hHj, htopj, hJj⟩ := phase_top_carrier R E rho O Ef cert inv justif crossing hy hCj
+      hh hj hcapj
+    obtain ⟨_, hc, hr⟩ := hp.2.2.2 j y (p0d5c_top_idx_le hs hq huq) hjD hy
+    rw [obs.controls_eq] at hc hr
+    have hJC : FGBlock.Preceq (R.core (rho.stateBefore E j y)).fg.J C := by
+      by_contra hn
+      change (decide ((R.core (rho.stateBefore E j y)).fg.h_max =
+        (R.core (rho.stateBefore E j y)).fg.h_j + 1) &&
+        decide (∃ W ∈ (R.core (rho.stateBefore E j y)).fg.TF,
+          FGBlock.Preceq (R.core (rho.stateBefore E j y)).fg.F W ∧
+          (O.height W).h = (R.core (rho.stateBefore E j y)).fg.h_max ∧
+          ¬ FGBlock.Preceq (R.core (rho.stateBefore E j y)).fg.J W)) = false at hc
+      have hroot := (healing_phase_frontier_root (R := R) (E := E) (rho := rho) (O := O)
+        (Ef := Ef) (obs := obs) (cert := cert) (inv := inv) crossing hy hCj (by
+          rw [obs.controls_eq]; exact hh.trans hHj.symm)).1
+      rcases Bool.and_eq_false_iff.mp hc with h | h
+      · exact of_decide_eq_false h (hHj.trans htopj.symm)
+      · exact of_decide_eq_false h ⟨C, hCj, hroot, hh.trans hHj.symm, hn⟩
+    have hJJ : J = (R.core (rho.stateBefore E (i + 1) x)).fg.J :=
+      hr.2.symm.trans ((hJj hJC).trans hJ)
+    have hj0 : (R.core (rho.stateBefore E (i + 1) x)).fg.h_j ≠ 0 := by
+      have hm2 := cert.height.one_le_h Qfg
+      have hlocalTop := (phase_top_carrier R E rho O Ef cert inv justif crossing hx hC hh hj
+        hfront.le).2.1
+      simp only [Height] at *
+      omega
+    have hage := frontierSearch_initial_J_age R S O T E rho Ef cert hT hs justifiedSource
+      sourceSlot ancestorSlot hi hx hj0
+    have heJ := p0d5c_top_low_entry hs parentFrame hp hQ
+      he huq (hqg.trans hgate) hlow
+    rw [heJ, hJJ]
+    exact hage
+  have hage := p0d5c_top_seed_age hT crossing schedule mono joinedTick
     readyCut hServices receiptHeld justifiedSource sourceSlot ancestorSlot parentFrame hstart
     hquiet hp
   obtain ⟨t, hut, htD, hs⟩ := p0d5c_top_phase_holder (R := R) (S := S) (O := O) (T := T)
