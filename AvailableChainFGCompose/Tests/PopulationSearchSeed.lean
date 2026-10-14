@@ -53,5 +53,17 @@ private theorem saved_seed_premises_sat :
 
 #print axioms saved_seed_premises_sat
 
+private theorem mixed_saved_seed_consumer :
+    StrongServedFG core reads env run seedObs timing interface Row.height_pair 0 1 1 14 ∧
+    V2.D.proposerOf run interface 2 = 7 ∧
+    HonestRowAt reads env run timing 0 9 0 row := by
+  obtain ⟨ht, ho, hp, hproposer, hqual, hphase, hservice, hlocal, hrow, _⟩ :=
+    saved_seed_premises_sat
+  refine ⟨?_, hproposer, hrow⟩
+  exact frontierSearch_save_seed_holder core reads env run seedObs timing interface
+    Row.height_pair 0 1 ho ht le_rfl le_rfl hphase hqual hp rfl rfl hservice le_rfl hlocal
+
+#print axioms mixed_saved_seed_consumer
+
 end AvailableChain.FGCompose.Tests.PopulationSearchSeed
 end
