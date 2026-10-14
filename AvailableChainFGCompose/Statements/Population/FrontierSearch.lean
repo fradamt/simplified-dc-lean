@@ -118,5 +118,25 @@ theorem InterruptedRepairStatementFG_def (G ΔF ρbar : Time) :
     (∃ t, ev.time ≤ t ∧ t ≤ ev.time + interruptedRepairBudget T G ΔF ρbar kind ∧
       StrongServedFG R S E rho O T I pair Jst leaseSlots m t) := Iff.rfl
 
+/-- The served antecedent uses holder coverage; both task horizons are unchanged. -/
+def FrontierTailStatementFG (G ΔF : Time) : Prop :=
+  deltaT = 2 * T.roundSlots → LivenessBoundW T ΔF →
+  ∀ i ev m kind, FrontierSearchStart R E rho O T Jst i ev m kind →
+    StrongServedFG R S E rho O T I pair Jst leaseSlots m ev.time →
+    (ev.time + (2 * FGCompose.P T + Γ T G - 9 * T.delta) ≤ rho.horizon →
+      FrontierRiseBy R E rho i m (ev.time + (2 * FGCompose.P T + Γ T G - 9 * T.delta))) ∧
+    (ev.time + (FGCompose.P T - 4 * T.delta) ≤ rho.horizon →
+      FirstHeightRowBy S E rho T pair m (ev.time + (FGCompose.P T - 4 * T.delta)))
+
+theorem FrontierTailStatementFG_def (G ΔF : Time) :
+    FrontierTailStatementFG R S E rho O T I pair Jst leaseSlots deltaT G ΔF ↔
+  deltaT = 2 * T.roundSlots → LivenessBoundW T ΔF →
+  ∀ i ev m kind, FrontierSearchStart R E rho O T Jst i ev m kind →
+    StrongServedFG R S E rho O T I pair Jst leaseSlots m ev.time →
+    (ev.time + (2 * FGCompose.P T + Γ T G - 9 * T.delta) ≤ rho.horizon →
+      FrontierRiseBy R E rho i m (ev.time + (2 * FGCompose.P T + Γ T G - 9 * T.delta))) ∧
+    (ev.time + (FGCompose.P T - 4 * T.delta) ≤ rho.horizon →
+      FirstHeightRowBy S E rho T pair m (ev.time + (FGCompose.P T - 4 * T.delta))) := Iff.rfl
+
 end AvailableChain.FGCompose
 end
