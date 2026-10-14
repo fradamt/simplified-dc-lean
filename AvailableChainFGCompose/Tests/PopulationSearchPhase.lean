@@ -1323,6 +1323,41 @@ private theorem execution_premises_sat :
 
 #print axioms execution_premises_sat
 
+private theorem proposal_premises_sat :
+    (∀ s, Gen.V2.Duty.HonestSlot run iface s → s = 2 ∨ s = 5 ∨ s = 7) ∧
+    (∀ s, s = 2 ∨ s = 5 ∨ s = 7 →
+      HonestCarrier env run iface (kernelCarrier decodeProposal c5erase FGBlock.rows)
+        s (c5erase (chainAt s)) (chainAt s).rows) := by
+  constructor
+  · intro s hs
+    have hp := hs.2
+    change (if 4 * (s : Int) = 6 then 9 else
+      if 4 * (s : Int) = 8 ∨ 4 * (s : Int) = 20 ∨ 4 * (s : Int) = 28
+      then 7 else 0) ∈ ({7, 9} : Finset Nat) at hp
+    split_ifs at hp with h6 hslot
+    · omega
+    · rcases hslot with h | h | h
+      · exact Or.inl (Int.ofNat.inj (show (s : Int) = 2 by omega))
+      · exact Or.inr (Or.inl (Int.ofNat.inj (show (s : Int) = 5 by omega)))
+      · exact Or.inr (Or.inr (Int.ofNat.inj (show (s : Int) = 7 by omega)))
+    · simp at hp
+  · intro s hs
+    rcases hs with rfl | rfl | rfl
+    · refine ⟨?_, ⟨.seat 8 0, .inr low⟩,
+        ⟨16, by decide +kernel, by decide +kernel⟩, low, rfl, rfl, rfl⟩
+      refine ⟨⟨by decide, by decide⟩, ⟨.seat 8 0, .inr low⟩,
+        ⟨16, by decide +kernel, by decide +kernel⟩, rfl⟩
+    · refine ⟨?_, ⟨.seat 20 0, .inr middle⟩,
+        ⟨40, by decide +kernel, by decide +kernel⟩, middle, rfl, rfl, rfl⟩
+      refine ⟨⟨by decide, by decide⟩, ⟨.seat 20 0, .inr middle⟩,
+        ⟨40, by decide +kernel, by decide +kernel⟩, rfl⟩
+    · refine ⟨?_, ⟨.seat 28 0, .inr late⟩,
+        ⟨56, by decide +kernel, by decide +kernel⟩, late, rfl, rfl, rfl⟩
+      refine ⟨⟨by decide, by decide⟩, ⟨.seat 28 0, .inr late⟩,
+        ⟨56, by decide +kernel, by decide +kernel⟩, rfl⟩
+
+#print axioms proposal_premises_sat
+
 end High
 
 end AvailableChain.FGCompose.Tests.PopulationSearchPhase
