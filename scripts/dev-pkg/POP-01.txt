@@ -601,4 +601,7 @@ AvailableChainKitV2.Tests.Counterexamples
 AvailableChainKitV2.Tests.Duties
 AvailableChainKitV2.Tests.Sleep
 AvailableChainKitV2.Tests.Toy
+AvailableChainFGCompose.Proofs.SafetyOrigin
+AvailableChainFGCompose.Statements.SafetyOrigin
+AvailableChainFGCompose.Tests.P0Origin
 [EXPECTED-FAIL]

@@ -597,4 +597,11 @@ AvailableChainKitV2.Tests.Counterexamples
 AvailableChainKitV2.Tests.Duties
 AvailableChainKitV2.Tests.Sleep
 AvailableChainKitV2.Tests.Toy
+AvailableChainFGCompose.Proofs.Population.Safety
+AvailableChainFGCompose.Proofs.Population.Seats
+AvailableChainFGCompose.Statements.Population.Seats
+AvailableChainFGCompose.Tests.Population
+AvailableChainFGCompose.Tests.PopulationAxioms
+AvailableChainFGCompose.Tests.PopulationBridges
+AvailableChainFGCompose.Tests.PopulationCounts
 [EXPECTED-FAIL]
