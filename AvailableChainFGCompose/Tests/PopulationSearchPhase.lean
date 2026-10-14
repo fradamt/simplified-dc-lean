@@ -59,7 +59,7 @@ private abbrev env : Generic.Env Nat := ⟨1, by decide, 0, by decide, fun _ _ =
 private abbrev run : V2.D.Run Nat protocol where
   honest := {7, 9}
   horizon := 42
-  events := (List.range 43).flatMap fun t => [.tick 7 (t : Time), .tick 9 (t : Time)]
+  events := (List.range 43).flatMap fun (t : Nat) => [.tick 7 (t : Time), .tick 9 (t : Time)]
   seatOf l _ := if l = 6 then 9 else if l = 4 ∨ l = 20 ∨ l = 28 then 7 else 0
   input _ _ := ()
 private abbrev reads : FGSafetyReads protocol 1 (Row (Fin 1)) where
@@ -146,6 +146,52 @@ private theorem geometry_premises_sat (top : Bool) :
     cases top <;> dsimp [obs, core] <;> decide +kernel
 
 #print axioms geometry_premises_sat
+
+private theorem execution_premises_sat :
+    V2.D.ScheduleWellFormed env run ∧ FGHonestSeats reads run = {0} ∧
+    c5E.weightOf (historyFaulty reads run) < c5E.q ∧
+    HonestRowAt reads env run d5cTiming 13 9 0 firstRow ∧
+    HonestRowAt reads env run d5cTiming 61 9 3 nextRow ∧
+    protocol.objSelfVisible (reads.encode firstRow) = true ∧
+    reads.decodeObject (reads.encode firstRow) = some firstRow ∧
+    (∀ x ∈ run.honest, ∀ r ≤ 4,
+      postClock env run x (d5cTiming.action r) = some (d5cTiming.action r)) ∧
+    (∀ x ∈ run.honest, ∀ s ≤ 10,
+      postClock env run x (d5cTiming.vote s) = some (d5cTiming.vote s)) := by
+  refine ⟨?_, ?_, ?_, ?_, ?_, rfl, rfl, ?_, ?_⟩
+  · refine ⟨by decide, by decide, by decide, by decide, by decide, ?_, ?_⟩
+    · intro x t ht
+      dsimp only [run] at ht
+      obtain ⟨k, _, hk⟩ := List.mem_flatMap.mp ht
+      have hk' : (x = 7 ∧ t = (k : Time)) ∨ (x = 9 ∧ t = (k : Time)) := by
+        simpa only [List.mem_cons, List.mem_singleton, List.not_mem_nil, or_false,
+          V2.Event.tick.injEq] using hk
+      rcases hk' with ⟨_, rfl⟩ | ⟨_, rfl⟩ <;> exact ⟨k, by simp⟩
+    · intro x hx t ht _ hh _
+      obtain ⟨k, rfl⟩ := ht
+      have hk : k < 43 := by change (k : Int) * 1 ≤ 42 at hh; omega
+      have hx' : x = 7 ∨ x = 9 := by simpa using hx
+      dsimp only [run, env]
+      apply List.mem_flatMap.mpr
+      refine ⟨k, List.mem_range.mpr hk, ?_⟩
+      rcases hx' with rfl | rfl <;> simp
+  · ext i
+    have hi : i = 0 := Subsingleton.elim _ _
+    subst i
+    decide
+  · decide
+  · unfold HonestRowAt
+    decide +kernel
+  · unfold HonestRowAt
+    decide +kernel
+  · intro x hx r hr
+    have hx' : x = 7 ∨ x = 9 := by simpa using hx
+    rcases hx' with rfl | rfl <;> interval_cases r <;> decide +kernel
+  · intro x hx s hs
+    have hx' : x = 7 ∨ x = 9 := by simpa using hx
+    rcases hx' with rfl | rfl <;> interval_cases s <;> decide +kernel
+
+#print axioms execution_premises_sat
 
 end AvailableChain.FGCompose.Tests.PopulationSearchPhase
 end
