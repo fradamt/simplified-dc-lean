@@ -1247,5 +1247,41 @@ private theorem frozen_action_premises_sat : ∃ m : middleType frozenRun,
 
 #print axioms frozen_action_premises_sat
 
+private abbrev frozenOldType :=
+  KernelMiddleWitness_W core reads obs timing (env (Fin 1)) frozenRun interface history
+    electorate decodeProposal erase (fun X => X.rows.map wire) (fun _ => []) parentRead
+    parentHeight (fun _ _ _ _ => true) makeFG (fun _ => true) (ac (Fin 1)) cfg 2 2 point pt
+    (erase aBlock)
+
+private theorem frozen_bridge :
+    (Nonempty frozenOldType ↔ Nonempty (middleType frozenRun)) ∧
+    ∃ m : frozenOldType, ∃ h : middleType frozenRun,
+      (m.A₀ = h.A₀ ∧ m.B = h.B ∧ m.U = h.U ∧ m.X_D = h.X_D ∧
+        m.cD = h.cD ∧ m.d = h.d) ∧
+      (m.X_D = dBlock ∧ m.cD = 6 ∧ h.X_D = dBlock ∧ h.cD = 6) ∧
+      KernelActionSupply_W core reads obs timing (env (Fin 1)) frozenRun interface
+        history electorate m ∧
+      KernelActionSupplyFG_W core reads obs timing (env (Fin 1)) frozenRun interface
+        history electorate h := by
+  have bridge := kernel_middle_holder_frozen_iff core reads obs timing (env (Fin 1))
+    frozenRun interface history electorate decodeProposal erase (fun X => X.rows.map wire)
+    (fun _ => []) parentRead parentHeight (fun _ _ _ _ => true) makeFG (fun _ => true)
+    (ac (Fin 1)) cfg 2 2 point pt (erase aBlock) (Equiv.refl (Fin 1))
+    (fun _ => Subsingleton.elim _ _)
+  obtain ⟨h₀, ⟨_, _, _, hD, hc, _⟩, act₀⟩ := frozen_action_premises_sat
+  obtain ⟨m, paired₀⟩ := bridge.2.2 h₀
+  have oldAct := (kernel_action_holder_frozen_iff
+    (m := m) (h := h₀) (selected := paired₀)).mpr act₀
+  obtain ⟨h, paired⟩ := bridge.2.1 m
+  have newAct := (kernel_action_holder_frozen_iff
+    (m := m) (h := h) (selected := paired)).mp oldAct
+  have hmD : m.X_D = dBlock := paired₀.2.2.2.1.trans hD
+  have hmc : m.cD = 6 := paired₀.2.2.2.2.1.trans hc
+  exact ⟨bridge.1, m, h, paired,
+    ⟨hmD, hmc, paired.2.2.2.1.symm.trans hmD, paired.2.2.2.2.1.symm.trans hmc⟩,
+    oldAct, newAct⟩
+
+#print axioms frozen_bridge
+
 end AvailableChain.FGCompose.Tests.PopulationMiddle
 end
