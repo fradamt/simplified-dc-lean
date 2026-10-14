@@ -22,7 +22,8 @@ theorem frontierLocalServiceFG_frozen_iff (q : Slot) (Q : Block) (Qfg : FGBlock 
     (m : Nat) (v : Time) :
     FrontierLocalServiceFG R S E rho O T I pair q Q Qfg m v ↔
       FrontierLocalService R S E rho O T I pair q Q Qfg m v := by
-  simp only [FrontierLocalServiceFG_def, FrontierLocalService,
+  dsimp only [FrontierLocalService]
+  simp only [FrontierLocalServiceFG_def,
     openingCoveredFG_frozen_iff R S E rho O.height T pair e he]
 
 /-- Iff: preserve the selected seed witnesses and every all-node clause. -/
