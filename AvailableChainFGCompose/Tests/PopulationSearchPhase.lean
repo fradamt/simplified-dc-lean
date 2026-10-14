@@ -23,7 +23,7 @@ private abbrev nextRow : Row (Fin 1) := ⟨0, .vote 2 middle.root true, none⟩
 private abbrev chainAt (s : Nat) : FGBlock (Fin 1) :=
   if s ≤ 1 then low else if s ≤ 5 then middle else late
 private abbrev sourceAt (t : Time) : FGBlock (Fin 1) :=
-  if t < 14 then .genesis else if t < 30 then low else middle
+  if t < 14 then .genesis else if t < 30 then low else if t < 38 then middle else late
 private abbrev protocol : V2.ProtocolSpecD Unit where
   State := Time
   Label := Time
@@ -363,12 +363,13 @@ private theorem source_premises_sat (top : Bool) :
   refine ⟨src, ?_, ?_, ?_, ?_, ?_⟩
   · intro r x K _ hk
     rw [src r x K hk]
-    by_cases hr : r < 3
+    by_cases hr : r < 4
     · interval_cases r <;> decide
     · have h14 : ¬ d5cTiming.action r < 14 := by change ¬ 8 * (r : Int) + 6 < 14; omega
       have h30 : ¬ d5cTiming.action r < 30 := by change ¬ 8 * (r : Int) + 6 < 30; omega
-      simp only [sourceAt, h14, h30, ite_false]
-      change 5 ≤ r * 2
+      have h38 : ¬ d5cTiming.action r < 38 := by change ¬ 8 * (r : Int) + 6 < 38; omega
+      simp only [sourceAt, h14, h30, h38, ite_false]
+      change 7 ≤ r * 2
       omega
   · intro r x K A _ hk ha
     have hs : m9slotsOK K = true := by
