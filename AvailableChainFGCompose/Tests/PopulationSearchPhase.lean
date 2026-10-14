@@ -388,5 +388,48 @@ private theorem source_premises_sat (top : Bool) :
 
 #print axioms source_premises_sat
 
+private theorem opening_premises_sat (top : Bool) (r : Nat) (hr : 1 ≤ r) (hr4 : r ≤ 4) :
+    OpeningEntry (core top) env run c5H d5cTiming r
+      (c5H (sourceAt (d5cTiming.action r))).h ∧
+    ∀ Q, FGBlock.Preceq Q (sourceAt (d5cTiming.action r)) →
+      OpeningCoveredFG (core top) reads env run c5H d5cTiming wire.heightPair
+        (FGHonestSeats reads run) r (c5erase Q) := by
+  constructor
+  · refine ⟨(c5H (sourceAt (d5cTiming.action r))).T_h.root, ?_⟩
+    intro x K _ hk
+    rw [(source_premises_sat top).1 r x K hk]
+    exact ⟨rfl, rfl⟩
+  · intro Q hQ i _
+    have hi : i = 0 := Subsingleton.elim _ _
+    subst i
+    have hpost := execution_premises_sat.2.2.2.2.2.2.2.1 9 (by decide) r hr4
+    have hsource : actionSourceFG (core top) env run d5cTiming 9 r =
+        some (some (sourceAt (d5cTiming.action r))) := by
+      rw [actionSourceFG, hpost]
+      rfl
+    interval_cases r
+    · refine ⟨sourceAt (d5cTiming.action 1), d5cTiming.action 1, 13, 0, firstRow,
+        hpost, hsource, ?_, c5erase_mono hQ, by decide,
+        execution_premises_sat.2.2.2.1, ?_⟩
+      · cases top <;> decide +kernel
+      · decide +kernel
+    · refine ⟨sourceAt (d5cTiming.action 2), d5cTiming.action 2, 13, 0, firstRow,
+        hpost, hsource, ?_, c5erase_mono hQ, by decide,
+        execution_premises_sat.2.2.2.1, ?_⟩
+      · cases top <;> decide +kernel
+      · decide +kernel
+    · refine ⟨sourceAt (d5cTiming.action 3), d5cTiming.action 3, 61, 3, nextRow,
+        hpost, hsource, ?_, c5erase_mono hQ, by decide,
+        execution_premises_sat.2.2.2.2.1, ?_⟩
+      · cases top <;> decide +kernel
+      · decide +kernel
+    · refine ⟨sourceAt (d5cTiming.action 4), d5cTiming.action 4, 61, 3, nextRow,
+        hpost, hsource, ?_, c5erase_mono hQ, by decide,
+        execution_premises_sat.2.2.2.2.1, ?_⟩
+      · cases top <;> decide +kernel
+      · decide +kernel
+
+#print axioms opening_premises_sat
+
 end AvailableChain.FGCompose.Tests.PopulationSearchPhase
 end
