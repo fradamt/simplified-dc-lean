@@ -173,6 +173,45 @@ private theorem service_premises_sat :
 
 #print axioms service_premises_sat
 
+private theorem proposal_unique {s : Slot} {B : Block}
+    (h : HonestProposal env run interface s B) : s = 2 ∧ B = .genesis := by
+  obtain ⟨_, o, ⟨j, hj, _⟩, hb⟩ := h
+  refine ⟨?_, (Option.some.inj hb).symm⟩
+  have hjlt : j < 10 := (List.getElem?_eq_some_iff.mp hj).1
+  interval_cases j
+  · have ht : (6 : Int) = 4 * (s : Int) :=
+      Option.some.inj (congrArg (fun e => e.map V2.Event.time) hj)
+    omega
+  · have ht : (8 : Int) = 4 * (s : Int) :=
+      Option.some.inj (congrArg (fun e => e.map V2.Event.time) hj)
+    exact Int.ofNat.inj (show (s : Int) = 2 by omega)
+  · have ht : (9 : Int) = 4 * (s : Int) :=
+      Option.some.inj (congrArg (fun e => e.map V2.Event.time) hj)
+    omega
+  · have ht : (9 : Int) = 4 * (s : Int) :=
+      Option.some.inj (congrArg (fun e => e.map V2.Event.time) hj)
+    omega
+  · have ht : (13 : Int) = 4 * (s : Int) :=
+      Option.some.inj (congrArg (fun e => e.map V2.Event.time) hj)
+    omega
+  · have ht : (13 : Int) = 4 * (s : Int) :=
+      Option.some.inj (congrArg (fun e => e.map V2.Event.time) hj)
+    omega
+  · have ht : (14 : Int) = 4 * (s : Int) :=
+      Option.some.inj (congrArg (fun e => e.map V2.Event.time) hj)
+    omega
+  · have ht : (14 : Int) = 4 * (s : Int) :=
+      Option.some.inj (congrArg (fun e => e.map V2.Event.time) hj)
+    omega
+  · have ht : (18 : Int) = 4 * (s : Int) :=
+      Option.some.inj (congrArg (fun e => e.map V2.Event.time) hj)
+    omega
+  · have ht : (18 : Int) = 4 * (s : Int) :=
+      Option.some.inj (congrArg (fun e => e.map V2.Event.time) hj)
+    omega
+
+#print axioms proposal_unique
+
 -- POP-5 local fixture support ends here.
 
 end Fixture
