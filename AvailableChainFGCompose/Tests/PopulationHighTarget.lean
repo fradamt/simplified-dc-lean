@@ -124,5 +124,143 @@ private theorem honest_nodes_are_not_seat_votes :
   decide
 
 #print axioms honest_nodes_are_not_seat_votes
+private theorem frozen_premises_sat : TargetPremises frozenRun := by
+  have cut (k : Nat) (x : Fin 1) :
+      reads.record (V2.D.Run.stateBefore (env (Fin 1)) frozenRun k x) =
+        if 3 < k then old else RecordOnce.initial := by
+    have hx : x = 0 := Subsingleton.elim _ _
+    subst x
+    by_cases hk : k < 10
+    · interval_cases k <;> rfl
+    · have ht : frozenRun.events.take k = frozenRun.events :=
+        List.take_of_length_le (by simpa using hk)
+      rw [ite_eq_left (by omega), V2.D.Run.stateBefore, ht]
+      rfl
+  have onlyRow (j : Nat) (x : Fin 1) (q : Nat) (a : protocol.Object)
+      (ha : HonestRowAt reads (env (Fin 1)) frozenRun timing j x q a) :
+      j = 3 ∧ x = 0 ∧ q = 0 ∧ a = wire := by
+    obtain ⟨_, hj, hw⟩ := ha
+    have hlen : j < 10 := (List.getElem?_eq_some_iff.mp hj).1
+    interval_cases j
+    · change a ∈ [] at hw; cases hw
+    · change a ∈ [] at hw; cases hw
+    · change a ∈ [] at hw; cases hw
+    · have he : x = 0 ∧ q = 0 := by simpa using hj.symm
+      rcases he with ⟨rfl, rfl⟩
+      change a ∈ [wire] at hw
+      exact ⟨rfl, rfl, rfl, List.mem_singleton.mp hw⟩
+    · change a ∈ [] at hw; cases hw
+    · change a ∈ [] at hw; cases hw
+    · change a ∈ [] at hw; cases hw
+    · change a ∈ [] at hw; cases hw
+    · change a ∈ [] at hw; cases hw
+    · change a ∈ [] at hw; cases hw
+  have client : FGHolderClientLaws reads electorate cfg (env (Fin 1)) frozenRun
+      (ordinaryFGExecutionObs (env (Fin 1)) frozenRun) (safetyHolder reads frozenRun) := by
+    have he : safetyHolder reads frozenRun = fun i : Fin 1 => i :=
+      funext (fun _ => Subsingleton.elim _ _)
+    rw [he]
+    exact ordinary_FGHolderClientLaws reads electorate cfg (env (Fin 1)) frozenRun
+      global_client_premises_sat (Equiv.refl _) (fun _ => Subsingleton.elim _ _)
+  refine {
+    entry_source x r C _ hs _ := by
+      obtain ⟨nd, _, he⟩ := Option.map_eq_some_iff.mp hs
+      have hC : C = .genesis := (Option.some.inj he).symm
+      subst C
+      rfl
+    records j x _ := by
+      rw [cut]
+      split_ifs
+      · intro y _
+        refine ⟨?_, rfl, Or.inl rfl, ?_⟩
+        · by_cases hy : y = 1
+          · subst y; exact Or.inr rfl
+          · exact Or.inl (by
+              change (if y = 1 then some genesisRoot else none) = none
+              rw [ite_eq_right hy])
+        · intro b hb U tm hp
+          change b ∈ [row.onceKey] at hb
+          have hb' : b = row.onceKey := List.mem_singleton.mp hb
+          subst b
+          have he : 1 = y ∧ genesisRoot = U ∧ false = tm := NamedHeightPair.vote.inj hp
+          exact ⟨he.2.1.symm, he.2.2.symm⟩
+      · intro y _
+        exact ⟨Or.inl rfl, rfl, Or.inl rfl, fun b hb => (List.not_mem_nil hb).elim⟩
+    finality j x t Λ fp _ hf _ := by
+      change finality_pair Λ head = some fp at hf
+      simp [finality_pair] at hf
+    prior j x _ b hb := by
+      have hx : x = 0 := Subsingleton.elim _ _
+      subst x
+      rw [cut] at hb
+      split_ifs at hb with hx
+      · have hpos := hx
+        change b ∈ [row.onceKey] at hb
+        have hb' : b = row.onceKey := List.mem_singleton.mp hb
+        subst b
+        exact ⟨3, 0, wire, hpos, ⟨by simp, rfl, by decide⟩, rfl⟩
+      · cases hb
+    emission j x r a u ha hd := by
+      obtain ⟨rfl, rfl, rfl, rfl⟩ := onlyRow j x r a ha
+      have hu : row = u := Option.some.inj hd
+      subst u
+      rfl
+    complete j x r a ha := by
+      obtain ⟨rfl, rfl, rfl, rfl⟩ := onlyRow j x r a ha
+      exact ⟨row, rfl, rfl, 0, rfl, rfl⟩
+    wires := by
+      constructor
+      intro o u hd
+      refine ⟨o, rfl, hd, ?_⟩
+      cases o with | mk auth payload => cases auth <;> cases hd; rfl
+    client := client
+    trace := safety_client_trace_obs reads electorate cfg (env (Fin 1)) frozenRun _
+      (ordinaryFGExecutionObs_laws (env (Fin 1)) frozenRun) client
+    timing_laws := ⟨by decide, by decide, fun _ => by simp, fun _ => rfl, fun _ => rfl,
+      fun _ => rfl, fun _ => rfl, fun _ => rfl, fun _ => rfl⟩
+    schedule := by
+      constructor
+      · decide
+      · decide +kernel
+      · decide +kernel
+      · intro ev hm
+        simp only [List.mem_cons, List.mem_nil_iff, or_false] at hm
+        rcases hm with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;> decide
+      · intro _ _; exact Finset.mem_univ _
+      · intro x t hm
+        simp only [List.mem_cons, List.mem_nil_iff, V2.Event.tick.injEq,
+          reduceCtorEq, or_false, false_or] at hm
+        rcases hm with ⟨_, rfl⟩ | ⟨_, rfl⟩ | ⟨_, rfl⟩ | ⟨_, rfl⟩ | ⟨_, rfl⟩
+          | ⟨_, rfl⟩ | ⟨_, rfl⟩ | ⟨_, rfl⟩ | ⟨_, rfl⟩
+        · exact ⟨0, rfl⟩
+        · exact ⟨1, rfl⟩
+        · exact ⟨2, rfl⟩
+        · exact ⟨3, rfl⟩
+        · exact ⟨4, rfl⟩
+        · exact ⟨5, rfl⟩
+        · exact ⟨6, rfl⟩
+        · exact ⟨7, rfl⟩
+        · exact ⟨8, rfl⟩
+      · intro x _ t ht _ hhor _
+        have hx : x = 0 := Subsingleton.elim _ _
+        subst x
+        obtain ⟨k, hk⟩ := ht
+        change t = (k : Time) * 2 at hk
+        change t ≤ 16 at hhor
+        rw [hk] at hhor
+        have hb : k * 2 ≤ 16 := by exact_mod_cast hhor
+        have hbound : k ≤ 8 := by omega
+        subst t
+        interval_cases k <;> simp
+    receipt j y r a ha _ x _ := by
+      obtain ⟨rfl, rfl, rfl, rfl⟩ := onlyRow j y r a ha
+      have hx : x = 0 := Subsingleton.elim _ _
+      subst x
+      change wire ∈ (V2.D.Run.stateBeforeTime (env (Fin 1)) frozenRun 8 0).2 ∨ _
+      exact Or.inl (by decide +kernel)
+  }
+
+#print axioms frozen_premises_sat
+
 end AvailableChain.FGCompose.Tests.PopulationHighTarget
 end
