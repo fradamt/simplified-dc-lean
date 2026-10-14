@@ -32,5 +32,12 @@ theorem strongServedFG_frozen_iff (m : Nat) (t : Time) :
   simp only [StrongServedFG_def, StrongServed_def,
     frontierLocalServiceFG_frozen_iff R S E rho O T I pair e he]
 
+/-- Iff: the first-stop and rise alternatives and served time bounds are unchanged. -/
+theorem frontierHG3ResultFG_frozen_iff (i m : Nat) (start deadline : Time) :
+    FrontierHG3ResultFG R S E rho O T I pair Jst leaseSlots i m start deadline ↔
+      FrontierHG3Result R S E rho O T I pair Jst leaseSlots i m start deadline := by
+  simp only [FrontierHG3ResultFG_def, FrontierHG3Result_def,
+    strongServedFG_frozen_iff R S E rho O T I pair Jst leaseSlots e he]
+
 end AvailableChain.FGCompose
 end
