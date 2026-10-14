@@ -16,7 +16,7 @@ open AvailableChain.SimplexFG AvailableChain.KitFG
 private abbrev ef : Electorate (Fin 1) := ⟨fun _ => 1, fun _ => by decide⟩
 private abbrev cfg : FGConfig := ⟨4⟩
 private abbrev row : Row (Fin 1) := ⟨0, .vote 1 genesisRoot false, none⟩
-private abbrev child : FGBlock (Fin 1) := .node .genesis 4 ⟨41⟩ 0 [row]
+private abbrev child : FGBlock (Fin 1) := .node .genesis 5 ⟨41⟩ 0 [row]
 private def erase : FGBlock (Fin 1) → Block
   | .genesis => .genesis
   | .node p s r x rs => .node (erase p) s r (encFGBody x rs)
@@ -35,7 +35,7 @@ private abbrev protocol : V2.ProtocolSpecD Unit where
   duties_spec := by intro d t; simp
   duties_nodup := by intro t; simp
   act := fun _ t _ => if t = 6 then some (.inl row)
-    else if t = 16 then some (.inr child) else none
+    else if t = 20 then some (.inr child) else none
   gossip := fun _ _ => []
   process := fun st _ => st
   selfVisible := fun _ => true
@@ -63,12 +63,12 @@ private abbrev reads : FGSafetyReads protocol 1 (Row (Fin 1)) where
   enabled := fun _ => true
   finalizedOut := fun _ => .genesis
 private abbrev env : Generic.Env Nat :=
-  ⟨1, by decide, 0, by decide, fun x t => decide (t = 6 ∨ (x = 7 ∧ t = 16))⟩
+  ⟨1, by decide, 0, by decide, fun x t => decide (t = 6 ∨ (x = 7 ∧ t = 20))⟩
 private abbrev run : V2.D.Run Nat protocol where
   honest := {7, 9}
-  horizon := 30
-  events := [.tick 9 6, .tick 7 6, .tick 7 16]
-  seatOf := fun l _ => if l = 6 then 9 else 7
+  horizon := 38
+  events := [.tick 9 6, .tick 7 6, .tick 7 20]
+  seatOf := fun l _ => if l = 6 then 9 else if l = 20 then 7 else 0
   input := fun _ _ => ()
 private abbrev timing : FGTiming where
   delta := 1
@@ -144,21 +144,21 @@ private theorem erase_injective : Function.Injective erase := by
 #print axioms erase_injective
 
 private theorem source_premises_sat :
-    run.honest = {7, 9} ∧ run.horizon = 30 ∧
-    run.events = [.tick 9 6, .tick 7 6, .tick 7 16] ∧
+    run.honest = {7, 9} ∧ run.horizon = 38 ∧
+    run.events = [.tick 9 6, .tick 7 6, .tick 7 20] ∧
     (∀ i, safetyHolder reads run i = 9) ∧ FGHonestSeats reads run = {0} ∧
     protocol.objSelfVisible (reads.encode row) = true ∧
     reads.decodeObject (reads.encode row) = some row ∧
     HonestRowAt reads env run timing 0 9 0 row ∧
-    V2.D.proposerOf run iface 4 = 7 ∧
+    V2.D.proposerOf run iface 5 = 7 ∧
     HonestCarrier env run iface (kernelCarrier decodeProposal erase FGBlock.rows)
-      4 (erase child) [row] ∧
+      5 (erase child) [row] ∧
     (∀ x ∈ run.honest,
       actionSourceFG core env run timing x 0 = some (some .genesis)) ∧
     PromotionSourceAtFG core reads env run obs timing iface wire
-      (FGHonestSeats reads run) 1 0 1 .genesis 4 child := by
-  have hp : HonestProposal env run iface 4 (erase child) := by
-    refine ⟨⟨by decide, by decide⟩, ⟨.seat 16 0, .inr child⟩,
+      (FGHonestSeats reads run) 1 0 1 .genesis 5 child := by
+  have hp : HonestProposal env run iface 5 (erase child) := by
+    refine ⟨⟨by decide, by decide⟩, ⟨.seat 20 0, .inr child⟩,
       ⟨2, by decide +kernel, by decide +kernel⟩, rfl⟩
   have hr : HonestRowAt reads env run timing 0 9 0 row := by
     unfold HonestRowAt
@@ -168,7 +168,7 @@ private theorem source_premises_sat :
     have hi : i = 0 := Subsingleton.elim _ _
     subst i
     simp [FGHonestSeats_def, safetyHolder, reads, run]
-  · exact ⟨hp, ⟨.seat 16 0, .inr child⟩,
+  · exact ⟨hp, ⟨.seat 20 0, .inr child⟩,
       ⟨2, by decide +kernel, by decide +kernel⟩, child, rfl, rfl, rfl⟩
   · intro x hx
     have hx' : x = 7 ∨ x = 9 := by simpa using hx
@@ -199,7 +199,7 @@ private theorem row_identity {j r x : Nat} {a : Row (Fin 1)}
     exact ⟨rfl, rfl, rfl, Sum.inl.inj he⟩
   · change reads.encode a ∈ [] at ha
     cases ha
-  · change reads.encode a ∈ [⟨.seat 16 0, .inr child⟩] at ha
+  · change reads.encode a ∈ [⟨.seat 20 0, .inr child⟩] at ha
     have he := congrArg V2.Signed.payload (List.mem_singleton.mp ha)
     cases he
 
@@ -207,7 +207,7 @@ private theorem row_identity {j r x : Nat} {a : Row (Fin 1)}
 
 /-- The sole missing old premise is a row at honest nonholder 7. -/
 private theorem nonholder_source_rejected :
-    (¬ PromotionSourceAt core reads env run obs timing iface wire 1 0 1 .genesis 4 child) ∧
+    (¬ PromotionSourceAt core reads env run obs timing iface wire 1 0 1 .genesis 5 child) ∧
     (∀ j r a, ¬ HonestRowAt reads env run timing j 7 r a) ∧
     (∀ j t a, run.events[j]? = some (.tick 7 t) →
       reads.encode a ∉ V2.D.Run.emitsAt env run j) := by
@@ -226,14 +226,14 @@ private theorem nonholder_source_rejected :
       omega
     · change reads.encode a ∈ [] at ha
       cases ha
-    · change reads.encode a ∈ [⟨.seat 16 0, .inr child⟩] at ha
+    · change reads.encode a ∈ [⟨.seat 20 0, .inr child⟩] at ha
       have he := congrArg V2.Signed.payload (List.mem_singleton.mp ha)
       cases he
 
 #print axioms nonholder_source_rejected
 
 private theorem proposal_unique {s : Slot} {X : FGBlock (Fin 1)}
-    (h : HonestProposal env run iface s (erase X)) : s = 4 ∧ X = child := by
+    (h : HonestProposal env run iface s (erase X)) : s = 5 ∧ X = child := by
   obtain ⟨_, o, ⟨j, hj, ho⟩, hb⟩ := h
   have hjlt : j < 3 := (List.getElem?_eq_some_iff.mp hj).1
   interval_cases j
@@ -242,13 +242,13 @@ private theorem proposal_unique {s : Slot} {X : FGBlock (Fin 1)}
     omega
   · change o ∈ [] at ho
     cases ho
-  · have ht : (16 : Int) = 4 * (s : Int) :=
+  · have ht : (20 : Int) = 4 * (s : Int) :=
       Option.some.inj (congrArg (fun e => e.map V2.Event.time) hj)
-    have hs : s = 4 := by
+    have hs : s = 5 := by
       apply Int.ofNat_injective
-      change (s : Int) = 4
+      change (s : Int) = 5
       linarith only [ht]
-    change o ∈ [⟨.seat 16 0, .inr child⟩] at ho
+    change o ∈ [⟨.seat 20 0, .inr child⟩] at ho
     have ho' := List.mem_singleton.mp ho
     subst o
     exact ⟨hs, erase_injective (Option.some.inj hb).symm⟩
@@ -362,16 +362,16 @@ private theorem advance_premises_sat :
       fun _ => by simp; ring⟩
   · refine ⟨by decide, by decide, by decide, by decide, by decide, ?_, ?_⟩
     · intro x t ht
-      have ht' : (x = 9 ∧ t = 6) ∨ (x = 7 ∧ t = 6) ∨ (x = 7 ∧ t = 16) := by
+      have ht' : (x = 9 ∧ t = 6) ∨ (x = 7 ∧ t = 6) ∨ (x = 7 ∧ t = 20) := by
         simpa only [run, List.mem_cons, List.mem_singleton, List.not_mem_nil, or_false,
           V2.Event.tick.injEq] using ht
       rcases ht' with ⟨_, rfl⟩ | ⟨_, rfl⟩ | ⟨_, rfl⟩
       · exact ⟨6, rfl⟩
       · exact ⟨6, rfl⟩
-      · exact ⟨16, rfl⟩
+      · exact ⟨20, rfl⟩
     · intro x hx t _ _ _ ht
       have hx' : x = 7 ∨ x = 9 := by simpa using hx
-      have ht' : t = 6 ∨ (x = 7 ∧ t = 16) := of_decide_eq_true ht
+      have ht' : t = 6 ∨ (x = 7 ∧ t = 20) := of_decide_eq_true ht
       rcases ht' with rfl | ⟨rfl, rfl⟩
       · rcases hx' with rfl | rfl <;> decide
       · decide
@@ -415,5 +415,23 @@ private theorem advance_premises_sat :
     decide
 
 #print axioms advance_premises_sat
+
+private theorem mixed_age_advance :
+    2 ≤ (height child).h ∧
+    (∀ j x r a, HonestRowAt reads env run timing j x r a →
+      j = 0 ∧ x = 9 ∧ r = 0 ∧ a = row) ∧
+    (∃ x K, x = 7 ∧ x ∈ run.honest ∧
+      actionSourceFG core env run timing x 0 = some (some K) ∧
+      (height K).T_h = .genesis) := by
+  obtain ⟨hl, ht, hs, hf, hb, hrec, hr, ho, hsi, hc, hq⟩ := advance_premises_sat
+  obtain ⟨_, _, _, _, _, _, _, _, _, _, hsource, src⟩ := source_premises_sat
+  refine ⟨?_, fun _ _ _ _ h => row_identity h, 7, .genesis, rfl, by decide,
+    hsource 7 (by decide), rfl⟩
+  exact promotion_age_advance_of_source_holder core reads obs timing env run iface wire ef
+    decodeProposal erase FGBlock.rows (fun _ => [row]) parentFG parentHeight validFor fold hl
+    (Finset.Subset.refl _) ht hs hf (by decide) rfl src rfl hb hrec hc fold_premises_sat
+    hq hr ho hsi
+
+#print axioms mixed_age_advance
 end AvailableChain.FGCompose.Tests.PopulationAge
 end
