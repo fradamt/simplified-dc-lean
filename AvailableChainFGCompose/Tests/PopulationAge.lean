@@ -81,7 +81,7 @@ private abbrev timing : FGTiming where
   gate s := 4 * (s : Time) + 6
   action r := 8 * (r : Time) + 6
 private abbrev core : FGCoreReads protocol 1 Unit Unit (Row (Fin 1)) where
-  core _ := ⟨(), ⟨{.genesis, child}, .genesis, .genesis, 1, 1⟩, [], [row]⟩
+  core _ := ⟨(), ⟨{.genesis, child}, .genesis, .genesis, 0, 1⟩, [], [row]⟩
   erase := erase
   source := fun _ => some .genesis
   headVote := fun _ _ => .genesis
@@ -433,5 +433,83 @@ private theorem mixed_age_advance :
     hq hr ho hsi
 
 #print axioms mixed_age_advance
+
+private theorem search_premises_sat :
+    (∀ t, env.t_GST ≤ t → t + 20 ≤ run.horizon →
+      ∃ s, t < timing.proposal s ∧ timing.proposal s ≤ t + 20 ∧
+        Gen.V2.Duty.HonestSlot run iface s) ∧
+    PromotionSlotProposal core env run timing iface ∧
+    PromotionSourceParent core env run obs timing iface 0 ∧
+    OpeningEntry core env run height timing 0 1 ∧
+    OpeningCoveredFG core reads env run height timing wire.heightPair
+      (FGHonestSeats reads run) 0 .genesis ∧
+    (∀ x y K L, x ∈ run.honest → y ∈ run.honest →
+      actionSourceFG core env run timing x 0 = some (some K) →
+      actionSourceFG core env run timing y 0 = some (some L) →
+      (height K).T_h.root = (height L).T_h.root → (height K).T_h = (height L).T_h) ∧
+    (∀ x K, x ∈ run.honest →
+      actionSourceFG core env run timing x 0 = some (some K) → K.slot ≤ 0 * timing.roundSlots) ∧
+    (∀ x K A, x ∈ run.honest →
+      actionSourceFG core env run timing x 0 = some (some K) → FGBlock.Preceq A K →
+      A.slot ≤ K.slot) ∧
+    PhaseInterval core env run obs 0 38 1 (some .genesis) false := by
+  have src_eq {x r K} (h : actionSourceFG core env run timing x r = some (some K)) :
+      K = .genesis := by
+    unfold actionSourceFG at h
+    obtain ⟨nd, _, hnd⟩ := Option.map_eq_some_iff.mp h
+    exact (Option.some.inj hnd).symm
+  obtain ⟨_, _, _, _, _, _, _, hr, _, hcar, hsrc, _⟩ := source_premises_sat
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+  · intro t ht hh
+    refine ⟨5, ?_, ?_, hcar.1.1⟩
+    · change 0 ≤ t at ht
+      change t + 20 ≤ 38 at hh
+      change t < 20
+      linarith only [hh]
+    · change 0 ≤ t at ht
+      change 20 ≤ t + 20
+      linarith only [ht]
+  · intro s hs _ _
+    have hn : (4 : Int) * (s : Int) ≠ 6 := by omega
+    have hs5 : s = 5 := by
+      have hh := hs.2
+      change (if 4 * (s : Int) = 6 then 9 else
+        if 4 * (s : Int) = 20 then 7 else 0) ∈ ({7, 9} : Finset Nat) at hh
+      rw [ite_eq_right hn] at hh
+      split_ifs at hh with he
+      · apply Int.ofNat_injective
+        change (s : Int) = 5
+        linarith only [he]
+      · simp at hh
+    subst s
+    exact ⟨child, hcar.1, rfl⟩
+  · intro u m J c r s X x K _ _ _ _ _ _ _ hk
+    rw [src_eq hk]
+    exact genesis_preceq _
+  · refine ⟨genesisRoot, ?_⟩
+    intro x K _ hk
+    rw [src_eq hk]
+    exact ⟨rfl, rfl⟩
+  · intro i _
+    refine ⟨.genesis, (), 0, 0, row, rfl, ?_, by decide, by decide, le_rfl, hr, rfl⟩
+    exact hsrc 9 (by decide)
+  · intro x y K L _ _ hk hl _
+    rw [src_eq hk, src_eq hl]
+  · intro x K _ hk
+    rw [src_eq hk]
+    exact le_rfl
+  · intro x K A _ hk ha
+    have hk' := src_eq hk
+    subst K
+    have ha' := preceq_genesis.mp ha
+    subst A
+    exact le_rfl
+  · refine ⟨by decide, le_rfl, le_rfl, ?_⟩
+    intro i x _ _ _
+    change (obs.controls ()).H = 1 ∧ (obs.controls ()).contest = false ∧
+      (obs.controls ()).rootIsJ = true ∧ (obs.controls ()).J = .genesis
+    decide +kernel
+
+#print axioms search_premises_sat
 end AvailableChain.FGCompose.Tests.PopulationAge
 end
