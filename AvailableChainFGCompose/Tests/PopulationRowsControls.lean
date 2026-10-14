@@ -181,5 +181,27 @@ private theorem fresh_rows_premises_sat : ∃ m : middleType run,
 
 #print axioms fresh_rows_premises_sat
 
+private theorem cap_premises_sat : ∃ m : middleType run,
+    HeldAt core (env Nat) run (afterTicksIdx run 30) 7 dBlock ∧
+    actionSourceFG core (env Nat) run timing 7 3 = some (some dBlock) ∧
+    m.d + 1 < (obs.height dBlock).h ∧ (obs.height dBlock).h ≤ m.d + 2 ∧
+    (KitFG.Window.RetainedW electorate cfg 2 dBlock (m.d + 1) m.U ∨
+      KitFG.Window.CoveredW electorate cfg 2 dBlock (m.d + 1) m.U) := by
+  obtain ⟨m, _, _, hU, hD, _, hd⟩ := mixed_premises_sat
+  have held : HeldAt core (env Nat) run (afterTicksIdx run 30) 7 dBlock :=
+    ⟨by decide, by decide +kernel⟩
+  have cap := m.capThroughFinalAction (afterTicksIdx run 30) 7 dBlock
+    (List.length_filter_le _ _) le_rfl held
+  refine ⟨m, held, by decide +kernel, ?_, cap, ?_⟩
+  · rw [hd]
+    decide +kernel
+  · apply rowsPrem_anchor_retained_or_covered_holder m rfl
+      (by change ¬ (1 ≤ 0); decide) (by decide) dBlock
+    · rw [hD]
+      exact preceq_refl _
+    · exact cap.trans (Nat.add_le_add_left (by decide : 2 ≤ 3) m.d)
+
+#print axioms cap_premises_sat
+
 end AvailableChain.FGCompose.Tests.PopulationRowsControls
 end
