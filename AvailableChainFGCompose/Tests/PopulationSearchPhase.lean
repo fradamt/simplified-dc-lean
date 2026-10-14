@@ -192,6 +192,41 @@ private theorem m9progress_of_cover (hb : HeightBridge c5E c5cfg c5H)
 
 #print axioms m9progress_of_cover
 
+private theorem m9foldAdvance : ProgressFoldAdvance c5E c5H 4 := by
+  intro y U X hX hU hUX hc hm
+  have hb := KitFG.Window.windowHeightBridge c5E c5cfg 2 (by decide)
+  have laws := heightLaws_of_bridge c5E c5cfg _ hb
+  have hlow := laws.h_mono hUX
+  change (c5H U).h ≤ (c5H X.parent).h at hlow
+  rw [hU.1] at hlow
+  cases X with
+  | genesis => exact (hX rfl).elim
+  | node P s root x rs =>
+    change y ≤ (c5H P).h at hlow
+    by_cases hP : (c5H P).h = y
+    · have hT : (c5H P).T_h = U :=
+        (laws.entry_plateau hUX (hU.1.trans hP.symm)).symm.trans hU.2
+      obtain ⟨S, hS, hcov⟩ := hc hP
+      have hh := m9progress_of_cover hb P s root x rs S hS (by
+          intro i hi
+          rcases hcov i hi with hbit | ⟨a, ha, hs, timeout, hp⟩
+          · exact Or.inl hbit
+          · refine Or.inr ⟨a, ha, hs, ?_⟩
+            rw [hp]
+            change decide (y = (c5H P).h ∧ U.root = (c5H P).T_h.root) = true
+            simp only [hP, hT, and_self, decide_true]) (by
+          change (c5H P).T_h.slot + 4 ≤ s
+          rw [hT]
+          exact hm)
+      change (c5H (.node P s root x rs)).h = (c5H P).h + 1 at hh
+      rw [hh, hP]
+    · have hPX := laws.h_mono (preceq_parent_node P s root x rs)
+      change (c5H P).h ≤ (c5H (.node P s root x rs)).h at hPX
+      simp only [Height] at *
+      omega
+
+#print axioms m9foldAdvance
+
 -- POP-5 local fixture support ends here.
 
 end Fixture
