@@ -25,5 +25,12 @@ theorem frontierLocalServiceFG_frozen_iff (q : Slot) (Q : Block) (Qfg : FGBlock 
   simp only [FrontierLocalServiceFG_def, FrontierLocalService,
     openingCoveredFG_frozen_iff R S E rho O.height T pair e he]
 
+/-- Iff: preserve the selected seed witnesses and every all-node clause. -/
+theorem strongServedFG_frozen_iff (m : Nat) (t : Time) :
+    StrongServedFG R S E rho O T I pair Jst leaseSlots m t ↔
+      StrongServed R S E rho O T I pair Jst leaseSlots m t := by
+  simp only [StrongServedFG_def, StrongServed_def,
+    frontierLocalServiceFG_frozen_iff R S E rho O T I pair e he]
+
 end AvailableChain.FGCompose
 end
