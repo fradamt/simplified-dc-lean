@@ -203,5 +203,32 @@ private theorem row_identity {j r x : Nat} {a : Row (Fin 1)}
     cases he
 
 #print axioms row_identity
+
+/-- The sole missing old premise is a row at honest nonholder 7. -/
+private theorem nonholder_source_rejected :
+    (¬ PromotionSourceAt core reads env run obs timing iface wire 1 0 1 .genesis 4 child) ∧
+    (∀ j r a, ¬ HonestRowAt reads env run timing j 7 r a) ∧
+    (∀ j t a, run.events[j]? = some (.tick 7 t) →
+      reads.encode a ∉ V2.D.Run.emitsAt env run j) := by
+  have hn (j r a) (h : HonestRowAt reads env run timing j 7 r a) : False := by
+    have hx := (row_identity h).2.1
+    omega
+  refine ⟨?_, hn, ?_⟩
+  · intro h
+    obtain ⟨j, r, a, _, hr, _⟩ := h.rows 7 (by decide)
+    exact hn j r a hr
+  · intro j t a hj ha
+    have hjlt : j < 3 := (List.getElem?_eq_some_iff.mp hj).1
+    interval_cases j
+    · have he := congrArg (fun e => e.map V2.Event.node) hj
+      have hx : (9 : Nat) = 7 := Option.some.inj he
+      omega
+    · change reads.encode a ∈ [] at ha
+      cases ha
+    · change reads.encode a ∈ [⟨.seat 16 0, .inr child⟩] at ha
+      have he := congrArg V2.Signed.payload (List.mem_singleton.mp ha)
+      cases he
+
+#print axioms nonholder_source_rejected
 end AvailableChain.FGCompose.Tests.PopulationAge
 end
