@@ -38,9 +38,10 @@ class Layout:
             if not isinstance(name, str) or not name or name in names:
                 raise ValueError('missing or duplicate library name')
             names.add(name)
-            src = lib.get('srcDir', default)
-            if not isinstance(src, str):
+            src = lib.get('srcDir', '.')
+            if not isinstance(default, str) or not isinstance(src, str):
                 raise ValueError('srcDir must be a string')
+            src = (PurePosixPath(default) / src).as_posix()
             p = PurePosixPath(src)
             if p.is_absolute() or '..' in p.parts or '\\' in src:
                 raise ValueError('out-of-root srcDir: ' + src)
@@ -280,6 +281,23 @@ def selftest():
         (root/'src/A/dup.lean').write_text('module\n')
         (root/'src/A/dup.LEAN').write_text('module\n')
         must_fail(lambda: Layout(root).check())
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        (root / 'lakefile.toml').write_text(
+            'srcDir="src"\n[[lean_lib]]\nname="A"\nsrcDir="nested"\nglobs=["A.*"]\n')
+        for module in ('A', 'A.Child'):
+            path = root / 'src/nested' / (module.replace('.', '/') + '.lean')
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text('module\n')
+        layout = Layout(root)
+        assert layout.source_path('A') == 'src/nested/A.lean'
+        assert layout.source_path('A.Child') == 'src/nested/A/Child.lean'
+        assert layout.module_of_source('src/nested/A.lean') == 'A'
+        assert layout.module_of_source('src/nested/A/Child.lean') == 'A.Child'
+        assert layout.check() == 2
+        (root / 'src/nested').rename(root / 'outside')
+        (root / 'src/nested').symlink_to(root.parent, target_is_directory=True)
+        must_fail(lambda: Layout(root))
     with tempfile.TemporaryDirectory() as tmp:
         root = Path(tmp)
         def git(*args):
