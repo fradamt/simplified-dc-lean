@@ -263,5 +263,80 @@ private theorem proposal_unique {s : Slot} {Q : Block}
 
 #print axioms proposal_unique
 
+private theorem row_identity {j r x : Nat} {a : Row (Fin 1)}
+    (h : HonestRowAt reads env run d5cTiming j x r a) :
+    (j = 13 ∧ x = 9 ∧ r = 0 ∧ a = firstRow) ∨
+      (j = 61 ∧ x = 9 ∧ r = 3 ∧ a = nextRow) := by
+  have ht := (execution_premises_sat.1.in_horizon _ (List.mem_of_getElem? h.2.1)).2
+  have hr : r ≤ 4 := by change 8 * (r : Int) + 6 ≤ 42 at ht; omega
+  have hx : x = 7 ∨ x = 9 := by simpa using h.1
+  obtain ⟨_, hj, ha⟩ := h
+  have hjlt : j < 86 := (List.getElem?_eq_some_iff.mp hj).1
+  rcases hx with rfl | rfl <;> interval_cases r
+  · have hu : ∀ k : Fin 86, run.events[k.val]? = some (.tick 7 6) → k.val = 12 := by
+      decide +kernel
+    have hj' : j = 12 := hu ⟨j, hjlt⟩ hj
+    subst j
+    change reads.encode a ∈ [] at ha
+    cases ha
+  · have hu : ∀ k : Fin 86, run.events[k.val]? = some (.tick 7 14) → k.val = 28 := by
+      decide +kernel
+    have hj' : j = 28 := hu ⟨j, hjlt⟩ hj
+    subst j
+    change reads.encode a ∈ [] at ha
+    cases ha
+  · have hu : ∀ k : Fin 86, run.events[k.val]? = some (.tick 7 22) → k.val = 44 := by
+      decide +kernel
+    have hj' : j = 44 := hu ⟨j, hjlt⟩ hj
+    subst j
+    change reads.encode a ∈ [] at ha
+    cases ha
+  · have hu : ∀ k : Fin 86, run.events[k.val]? = some (.tick 7 30) → k.val = 60 := by
+      decide +kernel
+    have hj' : j = 60 := hu ⟨j, hjlt⟩ hj
+    subst j
+    change reads.encode a ∈ [] at ha
+    cases ha
+  · have hu : ∀ k : Fin 86, run.events[k.val]? = some (.tick 7 38) → k.val = 76 := by
+      decide +kernel
+    have hj' : j = 76 := hu ⟨j, hjlt⟩ hj
+    subst j
+    change reads.encode a ∈ [] at ha
+    cases ha
+  · have hu : ∀ k : Fin 86, run.events[k.val]? = some (.tick 9 6) → k.val = 13 := by
+      decide +kernel
+    have hj' : j = 13 := hu ⟨j, hjlt⟩ hj
+    subst j
+    change reads.encode a ∈ [reads.encode firstRow] at ha
+    have he := congrArg V2.Signed.payload (List.mem_singleton.mp ha)
+    exact Or.inl ⟨rfl, rfl, rfl, Sum.inl.inj he⟩
+  · have hu : ∀ k : Fin 86, run.events[k.val]? = some (.tick 9 14) → k.val = 29 := by
+      decide +kernel
+    have hj' : j = 29 := hu ⟨j, hjlt⟩ hj
+    subst j
+    change reads.encode a ∈ [] at ha
+    cases ha
+  · have hu : ∀ k : Fin 86, run.events[k.val]? = some (.tick 9 22) → k.val = 45 := by
+      decide +kernel
+    have hj' : j = 45 := hu ⟨j, hjlt⟩ hj
+    subst j
+    change reads.encode a ∈ [] at ha
+    cases ha
+  · have hu : ∀ k : Fin 86, run.events[k.val]? = some (.tick 9 30) → k.val = 61 := by
+      decide +kernel
+    have hj' : j = 61 := hu ⟨j, hjlt⟩ hj
+    subst j
+    change reads.encode a ∈ [reads.encode nextRow] at ha
+    have he := congrArg V2.Signed.payload (List.mem_singleton.mp ha)
+    exact Or.inr ⟨rfl, rfl, rfl, Sum.inl.inj he⟩
+  · have hu : ∀ k : Fin 86, run.events[k.val]? = some (.tick 9 38) → k.val = 77 := by
+      decide +kernel
+    have hj' : j = 77 := hu ⟨j, hjlt⟩ hj
+    subst j
+    change reads.encode a ∈ [] at ha
+    cases ha
+
+#print axioms row_identity
+
 end AvailableChain.FGCompose.Tests.PopulationSearchPhase
 end
