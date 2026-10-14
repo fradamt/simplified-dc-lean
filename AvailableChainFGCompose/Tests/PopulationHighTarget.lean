@@ -262,5 +262,74 @@ private theorem frozen_premises_sat : TargetPremises frozenRun := by
 
 #print axioms frozen_premises_sat
 
+-- At Q = H in the all-holder setting, the three conclusions are the old conclusions.
+private theorem frozen_targets_bridge :
+    (∀ x ∈ frozenRun.honest, ∃ j a,
+      HonestRowAt reads (env (Fin 1)) frozenRun timing j x 0 a ∧
+      RowComplete reads frozenRun history.signer (fun _ => true) x a ∧
+      history.heightPair a = .vote 1 genesisRoot false) ∧
+    (∀ x ∈ frozenRun.honest, ∃ j q a, q ≤ 1 ∧
+      HonestRowAt reads (env (Fin 1)) frozenRun timing j x q a ∧
+      RowComplete reads frozenRun history.signer (fun _ => true) x a ∧
+      history.heightPair a = .vote 1 genesisRoot false) ∧
+    (let honest := Finset.univ.filter
+        (fun i : Fin 1 => safetyHolder reads frozenRun i ∈ frozenRun.honest);
+      electorate.IsQuorum honest ∧ ∃ rows : Fin 1 → protocol.Object,
+        ∀ i ∈ honest, ∃ j q, q ≤ 1 ∧
+          HonestRowAt reads (env (Fin 1)) frozenRun timing j
+            (safetyHolder reads frozenRun i) q (rows i) ∧
+          RowComplete reads frozenRun history.signer (fun _ => true)
+            (safetyHolder reads frozenRun i) (rows i) ∧
+          history.signer (rows i) = some i ∧
+          history.heightPair (rows i) = .vote 1 genesisRoot false ∧
+          ∀ x ∈ frozenRun.honest, HeldBefore core (env (Fin 1)) frozenRun Prod.snd x (rows i)
+            (max (timing.action q) (env (Fin 1)).t_GST + 2)) := by
+  let p := frozen_premises_sat
+  obtain ⟨_, _, _, _, _, _, enabled⟩ := mixed_actions_premises_sat
+  have hx : safetyHolder reads frozenRun 0 ∈ frozenRun.honest := Finset.mem_univ _
+  have hh : high core obs point.reset .genesis := by change (1 : Nat) ≤ 1; decide
+  have source (r : Nat) (hr : r ≤ 1) :
+      actionSourceFG core (env (Fin 1)) frozenRun timing 0 r = some (some .genesis) := by
+    interval_cases r <;> rfl
+  obtain ⟨j, a, ha, hc, hp⟩ := high_target_first_row_holder (D := history) (pt := point)
+    (fun _ => genesisRoot) p.entry_source p.records p.finality p.prior
+    (fun _ => rfl) (fun _ => rfl) global_client_premises_sat p.client p.trace p.emission
+    p.complete p.wires p.timing_laws p.schedule enabled 0 hx 0 .genesis (source 0 (by decide))
+    hh rfl (by intro j q a h hq; omega)
+  refine ⟨?_, ?_⟩
+  · intro x _
+    have he : x = 0 := Subsingleton.elim _ _
+    subst x
+    exact ⟨j, a, ha, hc, hp⟩
+  obtain ⟨j, q, a, hq, ha, hc, hp⟩ := high_target_row_covered_holder
+    (D := history) (pt := point) (fun _ => genesisRoot) p.entry_source p.records p.finality
+    p.prior (fun _ => rfl) (fun _ => rfl) global_client_premises_sat p.client p.trace
+    p.emission p.complete p.wires p.timing_laws p.schedule enabled
+    0 hx 1 .genesis (source 1 (by decide)) hh rfl
+  refine ⟨?_, ?_⟩
+  · intro x _
+    have he : x = 0 := Subsingleton.elim _ _
+    subst x
+    exact ⟨j, q, a, hq, ha, hc, hp⟩
+  have hH : FGHonestSeats reads frozenRun = Finset.univ := by
+    ext i
+    simp [FGHonestSeats_def, safetyHolder]
+  have hQ : electorate.IsQuorum (FGHonestSeats reads frozenRun) := by
+    rw [hH]
+    change (1 : Nat) ≤ 1
+    decide
+  exact high_target_quorum_covered_holder (D := history) (pt := point)
+    (fun _ => genesisRoot) p.entry_source p.records p.finality p.prior
+    (fun _ => rfl) (fun _ => rfl) global_client_premises_sat p.client p.trace p.emission
+    p.complete p.wires p.timing_laws p.schedule enabled (FGHonestSeats reads frozenRun)
+    (Finset.Subset.refl _) (by rw [hH]; exact ⟨0, Finset.mem_univ _⟩) hQ
+    Prod.snd 2 (by decide) p.receipt (by intro x _ t _ _; rfl) 1 .genesis hh
+    (by
+      intro i _
+      have he : i = 0 := Subsingleton.elim _ _
+      subst i
+      exact source 1 (by decide)) (by decide) (by decide)
+
+#print axioms frozen_targets_bridge
 end AvailableChain.FGCompose.Tests.PopulationHighTarget
 end
