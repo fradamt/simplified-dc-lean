@@ -108,7 +108,8 @@ def canonical_key(key):
         tokens[1] = logical_path(tokens[1])
     elif tokens[0] in ('F-18',) and len(tokens) > 2:
         tokens[2] = logical_path(tokens[2])
-    elif len(tokens) > 1 and tokens[1].endswith('.lean'):
+    elif tokens[0] in ('import-all', 'meta-import', 'plain-import', 'other-import',
+                       'script-module') and len(tokens) > 1:
         # Header findings have <kind> <path> <token> keys.
         tokens[1] = logical_path(tokens[1])
     return ' '.join(tokens)

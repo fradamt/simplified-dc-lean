@@ -2,6 +2,7 @@
 import json
 import os
 from pathlib import Path
+from source_layout import Layout
 import subprocess
 import sys
 
@@ -12,9 +13,11 @@ def run(root, output):
     if os.environ.get('GATE_NO_BUILD') != '1':
         raise ValueError('package G0 requires the complete build barrier')
     files = subprocess.check_output(['git', '-C', str(root), 'ls-files', '-z']).decode().split('\0')
-    modules = sorted(p[:-5].replace('/', '.') for p in files
-                     if p.startswith('AvailableChain') and '/Tests/' in p and
-                     p.endswith('.lean') and not unported.contains(p.split('/')[0]))
+    layout = Layout(root)
+    declared = set(layout.source_files())
+    modules = sorted(layout.module_of_source(p) for p in files
+                     if p in declared and '/Tests/' in p and
+                     p.endswith('.lean') and not unported.contains(layout.module_of_source(p)))
     if not modules:
         raise ValueError('package G0 has no active test modules')
     result = subprocess.run(['bash', '-c',

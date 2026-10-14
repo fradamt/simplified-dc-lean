@@ -141,7 +141,8 @@ failed=0
 tier_path() {
   case "$1" in
     scripts/*|*allow*.txt|lakefile.toml|lean-toolchain|lake-manifest.json|\
-    Statements/*|*/Statements/*|docs/FGSA-API.md|docs/PCSA-API.md|docs/api/*)
+    Statements/*|*/Statements/*|docs/FGSA-API.md|docs/PCSA-API.md|docs/api/*|\
+    docs/internal/FGSA-API.md|docs/internal/PCSA-API.md|docs/internal/api/*)
       reason="gate input changed: $1"; return 0 ;;
   esac
   return 1
@@ -344,24 +345,24 @@ step proof-audit-coverage gate_with_slot python3 scripts/check-proof-coverage.py
 summary proof-audit-coverage
 stop_if_failed
 for lib in Generic FGSA FGSARun; do
-  step "$lib-axioms" audit "AvailableChain$lib/Tests/Axioms.lean" "$logs/$lib.axioms"
+  step "$lib-axioms" audit "$(gate_source_path "AvailableChain$lib.Tests.Axioms")" "$logs/$lib.axioms"
   summary "$lib-axioms"
   stop_if_failed
 done
-step FGCompose-axioms audit AvailableChainFGCompose/Tests/Axioms.lean "$logs/FGCompose.axioms"
+step FGCompose-axioms audit "$(gate_source_path AvailableChainFGCompose.Tests.Axioms)" "$logs/FGCompose.axioms"
 summary FGCompose-axioms
 stop_if_failed
-step FGSACompose-axioms audit AvailableChainFGSAProofs/Tests/FGCompose.lean "$logs/FGSACompose.axioms"
+step FGSACompose-axioms audit "$(gate_source_path AvailableChainFGSAProofs.Tests.FGCompose)" "$logs/FGSACompose.axioms"
 summary FGSACompose-axioms
 stop_if_failed
-step FGSafety-axioms audit AvailableChainFGCompose/Tests/SafetyAxioms.lean "$logs/FGSafety.axioms"
+step FGSafety-axioms audit "$(gate_source_path AvailableChainFGCompose.Tests.SafetyAxioms)" "$logs/FGSafety.axioms"
 summary FGSafety-axioms
 stop_if_failed
-step FGSASafety-axioms audit AvailableChainFGSAProofs/Tests/FGSafety.lean "$logs/FGSASafety.axioms"
+step FGSASafety-axioms audit "$(gate_source_path AvailableChainFGSAProofs.Tests.FGSafety)" "$logs/FGSASafety.axioms"
 summary FGSASafety-axioms
 stop_if_failed
 # P13: the growth companion audit and blueprint → Lean map (D10, FULL only).
-step FGSAGrowth-axioms audit_strict AvailableChainFGSAProofs/Tests/WeakContinuationGrowthAssemblyAxioms.lean \
+step FGSAGrowth-axioms audit_strict "$(gate_source_path AvailableChainFGSAProofs.Tests.WeakContinuationGrowthAssemblyAxioms)" \
   "$logs/FGSAGrowth.axioms"
 summary FGSAGrowth-axioms
 stop_if_failed

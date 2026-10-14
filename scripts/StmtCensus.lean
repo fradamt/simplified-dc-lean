@@ -84,31 +84,30 @@ def hex (x : UInt64) : String :=
   let s := String.ofList (Nat.toDigits 16 x.toNat)
   "".pushn '0' (16 - s.length) ++ s
 
+/-- Source lookup is owned by the caller's Lake configuration. -/
+def layoutOutput (args : Array String) : IO (Array String) := do
+  let result ← IO.Process.output { cmd := "python3", args :=
+    #["-B", "scripts/source_layout.py", "--root", ".", "--lines"] ++ args }
+  unless result.exitCode == 0 do
+    throw <| IO.userError s!"source layout failed: {result.stderr}"
+  let rows := (result.stdout.splitOn "\n").filter (!·.isEmpty)
+  if rows.isEmpty then throw <| IO.userError "source layout returned no paths"
+  return rows.toArray
+
 /-- Every built module of the project: each `.lean` file under an
 `AvailableChain*` directory of the working directory, and the root files, that
 has an `.olean` in `.lake/build`. Test modules that only a glob builds are
 included, so the census does not depend on the root imports. Files that no
 target builds (no `.olean`) are skipped and counted on stderr. -/
-partial def projectModules : IO (Array Name) := do
-  let mut srcs : Array System.FilePath := #[]
-  for e in (← System.FilePath.readDir ".") do
-    let n := e.fileName
-    if !n.startsWith "AvailableChain" then continue
-    if n.endsWith ".lean" then
-      srcs := srcs.push n
-    else if (← e.path.isDir) then
-      for f in (← e.path.walkDir) do
-        if f.extension == some "lean" then srcs := srcs.push f
+def projectModules : IO (Array Name) := do
+  let modules ← layoutOutput #["modules"]
   let mut out := #[]
   let mut skipped := 0
-  for f in srcs do
-    let rel := (f.withExtension "").toString
-    let parts := rel.splitOn "/" |>.filter (· != ".")
+  for text in modules do
+    let rel := text.replace "." "/"
     let olean := (System.FilePath.mk ".lake/build/lib/lean" / rel).withExtension "olean"
-    if ← olean.pathExists then
-      out := out.push (".".intercalate parts).toName
-    else
-      skipped := skipped + 1
+    if ← olean.pathExists then out := out.push text.toName
+    else skipped := skipped + 1
   IO.eprintln s!"census: {out.size} modules, {skipped} unbuilt files skipped"
   return out.qsort Name.lt
 

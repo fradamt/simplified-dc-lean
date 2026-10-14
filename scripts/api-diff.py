@@ -4,6 +4,7 @@ import argparse
 import importlib.util
 import json
 from pathlib import Path
+from source_layout import Layout
 import subprocess
 
 spec = importlib.util.spec_from_file_location('deep', 'scripts/fgsa-deep.py')
@@ -54,7 +55,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument('--base', required=True, help='exact snapshot base commit')
     ap.add_argument('--target', default='HEAD')
-    ap.add_argument('--snapshots', nargs='+', default=['docs/api/fgsa-deep.json'])
+    ap.add_argument('--snapshots', nargs='+', default=None)
     ap.add_argument('--roots', type=Path)
     ap.add_argument('--output', type=Path, required=True)
     ap.add_argument('--checkpoint', choices=('baseline', 'g-s1', 'g-s2', 'g-s3'),
@@ -64,7 +65,9 @@ def main():
     graphs, inputs = [], []
     for commit in commits:
         side = []
-        for path in args.snapshots:
+        for logical in args.snapshots or ['docs/api/fgsa-deep.json']:
+            path = (Layout(Path.cwd(), commit).archive_doc_path(logical)
+                    if args.snapshots is None else logical)
             raw = subprocess.check_output(['git', 'show', commit + ':' + path])
             # Use the same duplicate-key parser for Git object inputs.
             import tempfile

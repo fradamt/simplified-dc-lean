@@ -89,8 +89,12 @@ def graph(root, tier, slots, fail='', change='', force=False, env_neg='0', integ
     (root / '.lake').mkdir()
     for name in ('gate.sh', 'gate-common.sh', 'checker_scope.py', 'checker-paths.txt',
                  'unported.py', 'unported-libraries.txt', 'gate_timing.py',
-                 'integration_scope.py', 'full-pass.py', 'check_inventory.py'):
+                 'integration_scope.py', 'full-pass.py', 'check_inventory.py', 'source_layout.py'):
         shutil.copy2(REPO / 'scripts' / name, scripts / name)
+    write(root / 'lakefile.toml', ''.join(
+        '[[lean_lib]]\nname="' + lib + '"\n' for lib in
+        ('AvailableChainGeneric', 'AvailableChainFGSA', 'AvailableChainFGSARun',
+         'AvailableChainFGSAClaims', 'AvailableChainFGSAProofs', 'AvailableChainFGCompose')))
     # Test the driver after precheck. Real source prechecks run separately.
     with (scripts / 'gate-common.sh').open('a') as out:
         out.write('\ngate_precheck() { echo "STUB PRECHECK PASS"; }\n')
@@ -136,7 +140,7 @@ def graph(root, tier, slots, fail='', change='', force=False, env_neg='0', integ
     write(root / 'scripts/fgsa-claims-expected.txt', "('Old.name',)\n")
     snapshot = {'entries': {'Old.name': {'digest': 'old'}}, 'nodes': {},
                 'node_order': [], 'format_version': 1, 'pins': {}}
-    write(root / 'docs/api/gen-deep.json', json.dumps(snapshot))
+    write(root / 'docs/internal/api/gen-deep.json', json.dumps(snapshot))
     subprocess.run(['git', 'init', '-q', str(root)], check=True)
     subprocess.run(['git', 'symbolic-ref', 'HEAD', 'refs/heads/p0-control'], cwd=root, check=True)
     subprocess.run(['git', 'add', '.'], cwd=root, check=True)
@@ -149,7 +153,7 @@ def graph(root, tier, slots, fail='', change='', force=False, env_neg='0', integ
         changed_text = 'Old.allowed\nNew.allowed\n' if reviewed else 'changed\n'
         if integration and change == 'scripts/fgsa-claims-expected.txt':
             changed_text = "('Old.name', 'New.name')\n"
-        if integration and change == 'docs/api/gen-deep.json':
+        if integration and change == 'docs/internal/api/gen-deep.json':
             snapshot['entries']['New.name'] = {'digest': 'new'}
             changed_text = json.dumps(snapshot)
         write(root / change, changed_text)
@@ -161,7 +165,7 @@ def graph(root, tier, slots, fail='', change='', force=False, env_neg='0', integ
         subprocess.run(['git', 'update-ref', 'HEAD', head], cwd=root, check=True)
     else:
         head = base
-    selected = bool(reviewed) if integration else (force or env_neg == '1' or not change or change.startswith(('scripts/', 'docs/')))
+    selected = bool(reviewed) if integration else (force or env_neg == '1' or not change or change.startswith(('scripts/', 'docs/internal/')))
     stamp = root / '.lake/gate-last-full'
     if old_stamp:
         stamp.write_text('prior FULL evidence\n')
@@ -235,7 +239,7 @@ def graph(root, tier, slots, fail='', change='', force=False, env_neg='0', integ
             completed = json.loads((logs / 'integration-result.json').read_text())
             assert completed['result'] == 'PROVISIONAL PASS'
             assert bool(completed['deferred_controls']) == (not reviewed)
-            if change.startswith(('scripts/', 'docs/api/')):
+            if change.startswith(('scripts/', 'docs/internal/api/')):
                 assert completed['matched_checker_paths'] == [change]
             assert completed['package_g0']['results'][0]['rc'] == 0
             assert set(completed['positive_steps']) == (set(CHEAP) - {'fgsa-old-reads'} | set(HEAVY) |
@@ -362,7 +366,7 @@ with tempfile.TemporaryDirectory(prefix='gate-graph-') as temp:
         for label, change, force, env_neg in (
                 ('proof', 'AvailableChainFGSAProofs/Proofs/Shared/Example.lean', False, '0'),
                 ('script', 'scripts/new-check-data.txt', False, '0'),
-                ('doc', 'docs/catalog.lock', False, '0'),
+                ('doc', 'docs/internal/catalog.lock', False, '0'),
                 ('override', '', True, '0'), ('env-override', '', False, '1')):
             graph(root / (tier + '-' + label), tier, 2, change=change, force=force,
                   env_neg=env_neg)
@@ -372,7 +376,7 @@ with tempfile.TemporaryDirectory(prefix='gate-graph-') as temp:
     graph(root / 'integration-reviewed', 'full', 2, change='scripts/gly-f13-allow.txt',
           integration=True, reviewed=['scripts/gly-f13-allow.txt'])
     for label, change in (('inventory', 'scripts/fgsa-claims-expected.txt'),
-                          ('snapshot', 'docs/api/gen-deep.json')):
+                          ('snapshot', 'docs/internal/api/gen-deep.json')):
         graph(root / ('integration-' + label), 'full', 2, change=change, integration=True)
     graph(root / 'integration-g0-fail', 'full', 2, fail='package-g0',
           change='AvailableChainFGSAProofs/Proofs/Shared/New.lean', integration=True)

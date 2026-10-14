@@ -21,6 +21,7 @@ import tempfile
 sys.dont_write_bytecode = True
 sys.path.insert(0, 'scripts')
 import check_common as C
+from source_layout import Layout
 import import_policy as P
 from check_inventory import read_names
 from importlib import import_module
@@ -34,6 +35,7 @@ L = importlib.util.module_from_spec(spec)
 sys.modules['layers'] = L
 spec.loader.exec_module(L)
 ROOT = Path.cwd()
+LAYOUT = Layout(ROOT)
 SOURCE_ONLY = os.environ.get('SOURCE_ONLY', '0') == '1'
 NEG = os.environ.get('NEG', '1') == '1'
 LIBS = ('AvailableChainFGSAClaims', 'AvailableChainFGSAProofs', 'AvailableChainFGSAInhabit')
@@ -58,7 +60,7 @@ def read_model_scope(raw):
         if len(fields) != 2 or not fields[0].startswith('AvailableChainFGSA.Model.') or not all(
                 re.fullmatch(r'[A-Za-z_][A-Za-z0-9_.]*', value) for value in fields):
             raise SystemExit(f'INVALID MODEL AUDIT SCOPE: {line}')
-        if not Path(fields[0].replace('.', '/') + '.lean').is_file():
+        if not Path(LAYOUT.source_path(fields[0])).is_file():
             raise SystemExit(f'MISSING MODEL AUDIT MODULE: {fields[0]}')
         pair = tuple(fields)
         if pair in seen:
@@ -113,15 +115,10 @@ def owned(name):
     return any(L.under(name, lib) for lib in LIBS)
 
 def sources():
-    files = []
-    for lib in LIBS:
-        files.append(Path(lib + '.lean'))
-        for directory, _, names in os.walk(lib, followlinks=True):
-            files.extend(Path(directory) / n for n in sorted(names) if n.lower().endswith('.lean'))
-    return sorted(files)
+    return [Path(p) for p in LAYOUT.source_files(LIBS)]
 
 def module(path):
-    return str(path.with_suffix('')).replace(os.sep, '.')
+    return LAYOUT.module_of_source(path)
 
 def direct_ok(m, dep):
     if dep == 'Init':
@@ -152,12 +149,12 @@ def direct_ok(m, dep):
 
 # O m4: the F2 constants are the declarations of Statements/CleanInvariant.
 F2_NAMES = set(re.findall(r"(?m)^(?:def|structure|abbrev|theorem)\s+([A-Za-z_][A-Za-z0-9_']*)",
-                          Path(PROOFS + '/Statements/CleanInvariant.lean').read_text()))
+                          Path(LAYOUT.source_path(PROOFS + '.Statements.CleanInvariant')).read_text()))
 
 def source_findings(m, raw):
     imports, body = L.read_header(raw)
     owner = next(x for x in LIBS if L.under(m, x))
-    item = L.Module(m, Path(m.replace('.', '/') + '.lean'), owner, m in LIBS, imports, body)
+    item = L.Module(m, Path(LAYOUT.source_path(m)), owner, m in LIBS, imports, body)
     findings = []
     for dep in imports:
         for rule, predicate in L.EDGE_RULES.items():
@@ -487,7 +484,7 @@ if twin_hits:
 print('f2-constant-twin: rc 0 (a frozen Claims name passes)', flush=True)
 
 # The seven home equation theorems must pass the same source policy.
-reads_path = Path(CLAIMS + '/Statements/Reads.lean')
+reads_path = Path(LAYOUT.source_path(CLAIMS + '.Statements.Reads'))
 positive_hits = source_findings(module(reads_path), reads_path.read_text())
 if positive_hits:
     raise SystemExit(f'STOP: Statements _def positive case failed: {positive_hits}')
@@ -512,29 +509,38 @@ print('compiled import table: SYN L58 Assembly.Root -> FGSAClaims included', flu
 edge_cases = '\n'.join('  | `' + m + ' => [' + ', '.join('`' + d for d in deps) + '].contains imp' for m, deps in edges)
 allowed_import = 'def allowedImport (mod imp : Name) : Bool :=\n  imp == `Init || match mod with\n' + edge_cases + '\n  | _ => false\n\n'
 source = Path('scripts/CheckFGSARunAxioms.lean').read_text()
-source = source.replace('import AvailableChainFGSARun\n', ''.join('import ' + x + '\n' for x in LIBS), 1)
-source = source.replace('def lib : Name := `AvailableChainFGSARun',
+def replace_exact(text, old, new, count=None):
+    actual = text.count(old)
+    if actual == 0 or (count is not None and actual != count):
+        raise SystemExit(f'AUDITOR TEMPLATE ANCHOR: {old!r} (found {actual})')
+    return text.replace(old, new) if count is None else text.replace(old, new, count)
+
+source = replace_exact(source, 'import AvailableChainFGSARun\n', ''.join('import ' + x + '\n' for x in LIBS), 1)
+source = replace_exact(source, 'def lib : Name := `AvailableChainFGSARun',
     'def libs : List Name := [' + ', '.join('`' + x for x in LIBS) + ']\n' +
     'def inLibraries (m : Name) : Bool := libs.any (·.isPrefixOf m)')
 a = source.index('def allowedImport ('); b = source.index('/-- The module names', a)
 source = source[:a] + allowed_import + source[b:]
-source = source.replace('parts.foldl (fun n s => Name.str n s) lib', 'parts.foldl (fun n s => Name.str n s) dir.fileName.get!.toName')
-source = source.replace('lib.isPrefixOf m', 'inLibraries m')
+source = replace_exact(source, 'parts.foldl (fun n s => Name.str n s) lib', 'parts.foldl (fun n s => Name.str n s) dir.fileName.get!.toName')
+source = replace_exact(source, 'lib.isPrefixOf m', 'inLibraries m')
 # Only these exact Model declaration/owner pairs join the constant audit.
 # Imports still use the source-validated library table. FGSA audits Model imports.
 model_scope = ('def modelAuditScope : List (Name × Name) := [\n' +
                ',\n'.join(f'  (`{m}, `{n})' for m, n in MODEL_SCOPE) + ']\n\n')
-source = source.replace('def inLib (env : Environment)',
+source = replace_exact(source, 'def inLib (env : Environment)',
                         model_scope + 'def inLib (env : Environment)', 1)
-source = source.replace('| some m => inLibraries m',
+source = replace_exact(source, '| some m => inLibraries m',
     '| some m => inLibraries m || modelAuditScope.contains (m, n)', 1)
-source = source.replace('let mut dir : System.FilePath := "AvailableChainFGSARun"', 'let mut dir : System.FilePath := ""')
-source = source.replace('(#[lib] ++ extra)', '(libs.toArray ++ extra)')
-source = source.replace('  for m in ← sourceModules dir do',
-    '  let dirs := if dir.toString.isEmpty then libs.map (fun n => System.FilePath.mk n.toString) else [dir]\n' +
+source = replace_exact(source, 'let mut dir : System.FilePath :=\n    if args.contains "--files" then "" else (← layoutOutput #["dir", "AvailableChainFGSARun"])[0]!', 'let mut dir : System.FilePath := ""')
+source = replace_exact(source, '(#[lib] ++ extra)', '(libs.toArray ++ extra)')
+source = replace_exact(source, '  for m in ← sourceModules dir do',
+    '  let dirs ← if dir.toString.isEmpty then do\n' +
+    '    let paths ← layoutOutput (#["dir"] ++ libs.toArray.map Name.toString)\n' +
+    '    pure (paths.toList.map System.FilePath.mk)\n' +
+    '    else pure [dir]\n' +
     '  let mut sourceMods := #[]\n  for d in dirs do sourceMods := sourceMods ++ (← sourceModules d)\n' +
     '  for m in sourceMods do')
-source = source.replace('  if cs.isEmpty then\n    IO.eprintln "NO CONSTANTS FOUND"\n    return 2\n',
+source = replace_exact(source, '  if cs.isEmpty then\n    IO.eprintln "NO CONSTANTS FOUND"\n    return 2\n',
     '  -- Empty libraries are valid only with successful source/build coverage.\n')
 # Change only the generated claims auditor. The T7 template and its users
 # keep their existing behavior. Tasks share the imported, read-only
@@ -655,7 +661,7 @@ def auditAxioms (env : Environment) (names : Array Name) :
   return rows.qsort (fun a b => a.1 < b.1)
 
 '''
-source = source.replace('def main (args : List String)', parallel_axioms + 'def main (args : List String)', 1)
+source = replace_exact(source, 'def main (args : List String)', parallel_axioms + 'def main (args : List String)', 1)
 serial_loop = '''  for (n, _) in cs do
     let axs ← axiomsOf env n
     let bad := axs.filter (fun a => !allowed.contains a)
@@ -664,7 +670,7 @@ serial_loop = '''  for (n, _) in cs do
       badAxioms := true
 '''
 assert source.count(serial_loop) == 1, 'STOP: claims axiom loop changed'
-source = source.replace(serial_loop, '''  let axiomRows ← auditAxioms env (cs.map Prod.fst).toArray
+source = replace_exact(source, serial_loop, '''  let axiomRows ← auditAxioms env (cs.map Prod.fst).toArray
   for (_, n, bad) in axiomRows do
     IO.println s!"BAD AXIOMS {n}: {bad}"
     badAxioms := true
@@ -677,7 +683,7 @@ expect_loop = '''  for s in expected do
     unless cs.any (fun (n, _) => s.toName.isSuffixOf n) do
 '''
 assert source.count(expect_loop) == 1, 'STOP: claims expect loop changed'
-source = source.replace(expect_loop, '''  let mut suffixes : NameHashSet := {}
+source = replace_exact(source, expect_loop, '''  let mut suffixes : NameHashSet := {}
   for (n, _) in cs do
     let parts := n.components
     for k in [:parts.length + 1] do
@@ -692,7 +698,7 @@ source = source.replace(expect_loop, '''  let mut suffixes : NameHashSet := {}
 # P10/Q-10: each theorem in a lane Export has a matching Claims/<Lane>
 # proposition as its type head (after binders). Helpers belong in lane files.
 anchor = '  let mut badAxioms := false\n'
-source = source.replace(anchor, anchor + '''  for (n, ci) in cs do
+source = replace_exact(source, anchor, anchor + '''  for (n, ci) in cs do
     let some m := moduleOf env n | continue
     let parts := m.components.map (·.toString)
     if parts.length == 4 && parts[0]! == "AvailableChainFGSAProofs" &&
@@ -885,7 +891,7 @@ queue_shadow('default-lease', ['--run', str(lease_file), lease_bad], expect='BAD
 # The generated table still contains its validated, unchanged source edges.
 assembly_bad = PROOFS + '.Proofs.Assembly.Foundations'
 neg = control_dir('assembly-facade-compiled-import', shadow=True)
-assembly_text = Path(assembly_bad.replace('.', '/') + '.lean').read_text()
+assembly_text = Path(LAYOUT.source_path(assembly_bad)).read_text()
 compile_module(assembly_bad, assembly_text.replace(
     'module\n', 'module\npublic import ' + CLAIMS + '.FGSAClaims\n', 1))
 queue_shadow('assembly-facade-compiled-import', ['--run', str(audit), '--root', assembly_bad],

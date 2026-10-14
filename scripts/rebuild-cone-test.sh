@@ -103,7 +103,7 @@ fi
 [ $# -ge 1 ] && [ $# -le 2 ] || { echo "usage: $0 <Module.Name> [<toolchain>]" >&2; exit 2; }
 REPO=$(cd "${CONE_REPO:-$(dirname "$0")/..}" && pwd); MOD=$1; TC=${2:-}
 LAKE=(lake); [ -n "$TC" ] && LAKE=(elan run "$TC" lake)
-REL=${MOD//.//}.lean
+REL=$(gate_source_path "$MOD")
 [ -f "$REPO/$REL" ] || { echo "no file $REPO/$REL" >&2; exit 2; }
 TMP=$(mktemp -d "${TMPDIR:-/tmp}/cone-test.XXXXXX")
 trap 'rm -rf "$TMP"' EXIT

@@ -80,12 +80,23 @@ def axiomsOf (env : Environment) (n : Name) : IO (Array Name) :=
   Core.CoreM.toIO' (collectAxioms n)
     { fileName := "CheckFGSAAxioms", fileMap := .ofString "" } { env := env }
 
+/-- Source lookup is owned by the caller's Lake configuration. -/
+def layoutOutput (args : Array String) : IO (Array String) := do
+  let result ← IO.Process.output { cmd := "python3", args :=
+    #["-B", "scripts/source_layout.py", "--root", ".", "--lines"] ++ args }
+  unless result.exitCode == 0 do
+    throw <| IO.userError s!"source layout failed: {result.stderr}"
+  let rows := (result.stdout.splitOn "\n").filter (!·.isEmpty)
+  if rows.isEmpty then throw <| IO.userError "source layout returned no paths"
+  return rows.toArray
+
 def main (args : List String) : IO UInt32 := do
   let usage := "USAGE: lake env lean --run scripts/CheckFGSAAxioms.lean \
     [--root M …] [--files D] [--expect N …]"
   let mut rest := args
   let mut extra : Array Name := #[]
-  let mut dir : System.FilePath := "AvailableChainFGSA"
+  let mut dir : System.FilePath :=
+    if args.contains "--files" then "" else (← layoutOutput #["dir", "AvailableChainFGSA"])[0]!
   while rest.head? == some "--root" do
     match rest with
     | _ :: m :: r => extra := extra.push m.toName; rest := r

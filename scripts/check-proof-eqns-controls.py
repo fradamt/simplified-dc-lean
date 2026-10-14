@@ -71,6 +71,9 @@ with tempfile.TemporaryDirectory(prefix="proof-eqns-neg.", dir=REPO / ".lake") a
     check_lean = lean[:-1] + ['bash', '-c', 'cd "$1" || exit; shift; exec lean "$@"',
                              'proof-eqns-control', str(private_repo)]
     prefix = "AvailableChainCoverageControl"
+    with (private_repo / 'lakefile.toml').open('a') as config:
+        config.write('[[lean_lib]]\nname="' + prefix + '"\nroots=[]\n'
+                     'globs=["' + prefix + '.+"]\n')
 
     def compile_module(module, body):
         file = source / (module.replace(".", "/") + ".lean")
@@ -216,6 +219,8 @@ with tempfile.TemporaryDirectory(prefix="proof-eqns-neg.", dir=REPO / ".lake") a
                    'namespace ComposeLeak\ndef f (n : Nat) : Nat := n + 1\n'
                    'theorem test (n : Nat) : f n = n + 1 := f.eq_def n\nend ComposeLeak\n')
     (source / 'scripts/baselines').mkdir(parents=True, exist_ok=True)
+    (source / 'scripts/source_layout.py').write_bytes(
+        (REPO / 'scripts/source_layout.py').read_bytes())
     for name in ('kitfg-def-modules.txt', 'check-proof-eqns.txt'):
         (source / 'scripts/baselines' / name).write_bytes((REPO / 'scripts/baselines' / name).read_bytes())
     compile_module('AvailableChainCoverageControlRoot', 'module\n')

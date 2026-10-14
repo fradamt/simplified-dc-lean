@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Check docs/PCSA-API.md against the code (V2Manifest --scope pcsa --check, D15),
+# Check docs/internal/PCSA-API.md against the code (V2Manifest --scope pcsa --check, D15),
 # then (full tier) the write control and the negative controls on temp files.
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -24,10 +24,10 @@ tmp=$(mktemp -d "$PWD/.lake/pcsa-manifest.XXXXXX")
 lake env lean --run scripts/V2Manifest.lean --scope pcsa --write --manifest "$tmp/base.md"
 entries() { sed -n '/^## `/,$p' "$1"; }
 entries "$tmp/base.md" > "$tmp/base.entries"
-entries docs/PCSA-API.md > "$tmp/doc.entries"
+entries docs/internal/PCSA-API.md > "$tmp/doc.entries"
 [ -s "$tmp/base.entries" ] || { echo "CONTROL SETUP FAIL: no entry sections" >&2; exit 1; }
 cmp "$tmp/base.entries" "$tmp/doc.entries" ||
-  { echo "CONTROL W FAIL: --write differs from docs/PCSA-API.md; write the doc again" >&2; exit 1; }
+  { echo "CONTROL W FAIL: --write differs from docs/internal/PCSA-API.md; write the doc again" >&2; exit 1; }
 echo "CONTROL W OK"
 
 # Three different entries: drop the first, change the hash of the second, and add

@@ -47,18 +47,21 @@ with tempfile.TemporaryDirectory(prefix='gate-neg-') as tmp:
     git(root, 'init', '-q')
     (root / 'scripts').mkdir()
     shutil.copy2(REPO / 'scripts/checker-paths.txt', root / 'scripts/checker-paths.txt')
+    (root / 'lakefile.toml').write_text(
+        '[[lean_lib]]\nname="AvailableChainKitFG"\n'
+        '[[lean_lib]]\nname="AvailableChainFGSAProofs"\n')
     base = commit(root)
     for label, path, want in (
             ('proof only', 'AvailableChainFGSAProofs/Proofs/Shared/Example.lean', 0),
             ('scripts data', 'scripts/new-inventory.txt', 1),
-            ('docs data outside old tier list', 'docs/catalog.lock', 1),
-            ('current dependency snapshot', 'docs/api/fgsa-deep.json', 1),
-            ('historical port ledger', 'docs/FGSA-PORT-CHANGES.json', 0),
-            ('blueprint chapter', 'docs/blueprint/fgsa/new.tex', 1),
+            ('docs data outside old tier list', 'docs/internal/catalog.lock', 1),
+            ('current dependency snapshot', 'docs/internal/api/fgsa-deep.json', 1),
+            ('historical port ledger', 'docs/internal/FGSA-PORT-CHANGES.json', 0),
+            ('blueprint chapter', 'docs/internal/blueprint/fgsa/new.tex', 1),
             ('new control module', 'FGSAControl/New.lean', 1),
             ('audit input', 'AvailableChainFGSAProofs/Tests/Axioms.lean', 1),
             ('FG pin checker data', 'AvailableChainKitFG/Pins.lean', 1),
-            ('ordinary docs', 'docs/unrelated.md', 0)):
+            ('ordinary docs', 'docs/internal/unrelated.md', 0)):
         target = root / path
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text('fixture\n')

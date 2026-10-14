@@ -6,6 +6,7 @@ from difflib import SequenceMatcher
 import json
 from importlib import import_module
 from pathlib import Path
+from source_layout import Layout
 import re
 import subprocess
 import sys
@@ -34,7 +35,8 @@ IMPORT = re.compile(r'(?:public )?import (' + LEAN_NAME + r')\n')
 SIMPLE_DEF = re.compile(r'def (' + LEAN_NAME + r')(?: : Nat)? := [0-9]+\n')
 
 
-def production_source(path):
+def production_source(path, layout):
+    path = layout.logical_path(path)
     return (path.endswith('.lean') and
             any(path == p + '.lean' or path.startswith(p + '/') for p in P0) and
             not re.search(r'Check|Control', path) and '/Tests/' not in path)
@@ -71,6 +73,7 @@ def source_additions(before, after):
 
 def reviewed_extractions(root, base, head, pairs, paths):
     records = {}
+    layouts = [Layout(root, rev) for rev in (base, head)]
     targets = set()
     for pair in pairs:
         parts = pair.split(':')
@@ -78,8 +81,8 @@ def reviewed_extractions(root, base, head, pairs, paths):
             raise ValueError('--reviewed-extraction requires exact SOURCE:TARGET paths')
         source, target = parts
         if (source == target or source in records or target in targets or
-                any(p not in paths or not production_source(p) or
-                    any(c in p for c in '*?[]') for p in parts)):
+                any(p not in paths or not production_source(p, layouts[i]) or
+                    any(c in p for c in '*?[]') for i, p in enumerate(parts))):
             raise ValueError('invalid or duplicate reviewed extraction paths')
         if git(root, 'ls-tree', base, '--', target).strip():
             raise ValueError('extraction target must be a new module')
@@ -87,7 +90,7 @@ def reviewed_extractions(root, base, head, pairs, paths):
         after = git(root, 'show', head + ':' + source).decode()
         moved = git(root, 'show', head + ':' + target).decode()
         header, marker, body = before.partition('public section\n')
-        module = target[:-5].replace('/', '.')
+        module = layouts[1].module_of_source(target)
         exact_names([module])
         if (not marker or not body.strip() or not header.startswith('module\n') or
                 any(line not in ('module\n', '\n') and not IMPORT.fullmatch(line)
@@ -338,8 +341,11 @@ def select(root, base, head='HEAD', reviewed=(), extractions=()):
     if any(p not in paths or not p.startswith('scripts/') or not p.endswith('.txt') or not policy_file(p) or
            any(c in p for c in '*?[]') for p in reviewed):
         raise ValueError('--reviewed-allow must name changed, exact policy-data files')
+    layouts = [Layout(root, rev) for rev in (base, head)]
     evidence = []
     for path in paths:
+        logical = layouts[1].logical_path(path)
+        doc = path.replace("docs/internal/", "docs/", 1)
         try:
             old_tree, new_tree = [git(root, 'ls-tree', rev, '--', path).decode().strip()
                                   for rev in (base, head)]
@@ -373,15 +379,15 @@ def select(root, base, head='HEAD', reviewed=(), extractions=()):
                         raise ValueError('invalid audit owner/name map entry')
                     exact_names(pair)
                 reason = 'exact owner/name map additions'
-            elif path in SNAPSHOTS:
+            elif doc in SNAPSHOTS:
                 reason = f'structural snapshot additions: {snapshot_additions(before, after)}'
-            elif path in SHALLOW_MANIFESTS:
-                reason = f'structural shallow manifest additions: {shallow_additions(before, after, path)}'
+            elif doc in SHALLOW_MANIFESTS:
+                reason = f'structural shallow manifest additions: {shallow_additions(before, after, doc)}'
             elif path in CONSTANTS:
                 reason = 'AST coverage-list additions: ' + ', '.join(constant_additions(
                     before, after, CONSTANTS[path], path.endswith('.sh')))
             elif (path.endswith('.lean') and
-                  any(path == p + '.lean' or path.startswith(p + '/') for p in P0) and
+                  any(logical == p + '.lean' or logical.startswith(p + '/') for p in P0) and
                   not re.search(r'Check|Control', path) and
                   ('/Tests/' not in path or not old_tree)):
                 if path in extraction_records:
@@ -390,7 +396,7 @@ def select(root, base, head='HEAD', reviewed=(), extractions=()):
                     reason = f'classified P0 source additions: {source_additions(before, after)}'
                 else:
                     reason = 'new P0 source; complete positive and package G0 checks required'
-            elif path.startswith(('scripts/', 'docs/api/')) or path in matched:
+            elif doc.startswith(('scripts/', 'docs/api/')) or path in matched:
                 raise ValueError('checker logic, parser, fixture, toolchain, dependency, or unknown checker data')
             elif path.startswith('docs/') and path.endswith('.md'):
                 reason = 'non-checker documentation'

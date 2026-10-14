@@ -49,7 +49,7 @@ def scoped_write_control(tmp):
     root = tmp / 'coverage-build'
     scripts = root / 'scripts'
     scripts.mkdir(parents=True)
-    for name in ('check-proof-coverage.py', 'CheckProofEqns.lean'):
+    for name in ('check-proof-coverage.py', 'CheckProofEqns.lean', 'source_layout.py'):
         shutil.copyfile(ROOT / 'scripts' / name, scripts / name)
     support = scripts / 'AvailableChainCheckSupport'
     support.mkdir()

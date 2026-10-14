@@ -4,6 +4,7 @@ import importlib.util
 import json
 import os
 from pathlib import Path
+from source_layout import Layout
 import shutil
 import subprocess
 import sys
@@ -153,7 +154,7 @@ with tempfile.TemporaryDirectory(prefix='policy-controls-') as tmp:
     # Exercise the gate entry point before any precheck, build or allocation.
     gate = root / 'gate/scripts'
     gate.mkdir(parents=True)
-    for name in ('gate.sh', 'gate-common.sh', 'checker_scope.py', 'checker-paths.txt'):
+    for name in ('gate.sh', 'gate-common.sh', 'checker_scope.py', 'checker-paths.txt', 'source_layout.py'):
         shutil.copy2(REPO / 'scripts' / name, gate / name)
     result = subprocess.run(['bash', str(gate / 'gate.sh'), '--tier', 'full'],
                             env=dict(os.environ, SOURCE_ONLY='1'), capture_output=True, text=True)
@@ -199,8 +200,8 @@ with tempfile.TemporaryDirectory(prefix='policy-controls-') as tmp:
         data.write_text(name + '\n')
         refused('KitFG definition ' + name, reason, lambda: layers.load_context(source))
     data.write_text('ViewLock\n')
-    (source / 'AvailableChainKitFG').mkdir()
-    (source / 'AvailableChainKitFG/ViewLock.lean').write_text('module\n')
+    (source / Layout(source).source_dir('AvailableChainKitFG')).mkdir(parents=True)
+    (source / Layout(source).source_path('AvailableChainKitFG.ViewLock')).write_text('module\n')
     assert layers.load_context(source).definitions == {'AvailableChainKitFG.ViewLock'}
     print('CONTROL KitFG short existing module: PASS')
 
@@ -209,7 +210,8 @@ with tempfile.TemporaryDirectory(prefix='policy-controls-') as tmp:
     repo.mkdir()
     call(['git', 'init', '-q', str(repo)])
     (repo / 'scripts').mkdir()
-    for name in ('precheck.sh', 'full-pass.py', 'checker_scope.py', 'checker-paths.txt'):
+    (repo / 'lakefile.toml').write_text('name="policy-fixture"\n')
+    for name in ('precheck.sh', 'full-pass.py', 'checker_scope.py', 'checker-paths.txt', 'source_layout.py'):
         shutil.copy2(REPO / 'scripts' / name, repo / 'scripts' / name)
     (repo / 'allowed').mkdir()
     (repo / 'allowed/a').write_text('base\n')
@@ -352,8 +354,12 @@ with tempfile.TemporaryDirectory(prefix='compose-gate-policy-') as tmp:
     scripts.mkdir()
     (tree / '.lake').mkdir()
     for name in ('gate.sh', 'gate-common.sh', 'checker_scope.py', 'checker-paths.txt',
-                 'unported.py', 'unported-libraries.txt', 'gate_timing.py'):
+                 'unported.py', 'unported-libraries.txt', 'gate_timing.py', 'source_layout.py'):
         shutil.copy2(REPO / 'scripts' / name, scripts / name)
+    (tree / 'lakefile.toml').write_text(''.join(
+        '[[lean_lib]]\nname="' + lib + '"\n' for lib in
+        ('AvailableChainGeneric', 'AvailableChainFGSA', 'AvailableChainFGSARun',
+         'AvailableChainFGSAClaims', 'AvailableChainFGSAProofs', 'AvailableChainFGCompose')))
     # Keep the real tier dispatch. The unrelated steps have local stub commands.
     with (scripts / 'gate-common.sh').open('a') as out:
         out.write('\ngate_precheck() { return 0; }\n'

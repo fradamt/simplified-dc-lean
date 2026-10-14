@@ -11,24 +11,24 @@ lakefile.lean
 lean-toolchain
 lake-manifest.json
 # CatalogLock.lean; Registry.lean --check
-docs/catalog.lock
-docs/REGISTRY.md
-docs/MATRIX.md
+docs/internal/catalog.lock
+docs/internal/REGISTRY.md
+docs/internal/MATRIX.md
 # V2Manifest.lean (all scopes and anchor files); fgsa-deep.py
-docs/V2-API.md
-docs/GEN-API.md
-docs/FGSA-API.md
-docs/PCSA-API.md
-docs/api/**
+docs/internal/V2-API.md
+docs/internal/GEN-API.md
+docs/internal/FGSA-API.md
+docs/internal/PCSA-API.md
+docs/internal/api/**
 # check-fg-pins.sh; check-fg.sh controls
 # Pin table, history/registry parsing, manifest and external names (FGPinIds.lean)
 AvailableChainKitFG/Pins.lean
-docs/FG-COMPOSITION.md
+docs/internal/FG-COMPOSITION.md
 # check-fgsa-blueprint.py: claim map, generated OPEN document and chapter snapshots
-docs/FGSA-BLUEPRINT-LEAN.json
-docs/FGSA-BLUEPRINT-OPEN.md
-docs/blueprint/fgsa/**
+docs/internal/FGSA-BLUEPRINT-LEAN.json
+docs/internal/FGSA-BLUEPRINT-OPEN.md
+docs/internal/blueprint/fgsa/**
 # Archival check-fg-finality-freeze.py inputs (kept as checker data)
-docs/FG-FINALITY-SAFETY-S0-hashes.json
-docs/FG-FINALITY-SAFETY-S0-step1-hashes.json
-docs/FG-FINALITY-SAFETY-S0-inherited.json
+docs/internal/FG-FINALITY-SAFETY-S0-hashes.json
+docs/internal/FG-FINALITY-SAFETY-S0-step1-hashes.json
+docs/internal/FG-FINALITY-SAFETY-S0-inherited.json

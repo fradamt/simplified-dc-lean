@@ -311,14 +311,30 @@ def auditNames (env : Environment) (text : String) (complete := false) :
     throw <| IO.userError "COVERAGE PARSE UNSUPPORTED"
   return out
 
-def auditFile (a : Name) : System.FilePath :=
-  (a.components.foldl (fun p c => p / c.toString) (System.FilePath.mk ".")).addExtension "lean"
+/-- Source lookup is owned by the caller's Lake configuration. -/
+def layoutOutput (args : Array String) : IO (Array String) := do
+  let result ← IO.Process.output { cmd := "python3", args :=
+    #["-B", "scripts/source_layout.py", "--root", ".", "--lines"] ++ args }
+  unless result.exitCode == 0 do
+    throw <| IO.userError s!"source layout failed: {result.stderr}"
+  let rows := (result.stdout.splitOn "\n").filter (!·.isEmpty)
+  if rows.isEmpty then throw <| IO.userError "source layout returned no paths"
+  return rows.toArray
+
+def auditFiles (audits : Array Name) : IO (Std.HashMap Name System.FilePath) := do
+  if audits.isEmpty then return {}
+  let paths ← layoutOutput (#["path"] ++ audits.map Name.toString)
+  unless paths.size == audits.size do throw <| IO.userError "audit source count mismatch"
+  let mut out := {}
+  for i in [:audits.size] do out := out.insert audits[i]! (System.FilePath.mk paths[i]!)
+  return out
 
 def writeAuditCoverage (env : Environment) (audits : Array Name) (path : System.FilePath) :
     IO Unit := do
+  let files ← auditFiles audits
   let mut rows := #[]
   for audit in audits do
-    let names ← auditNames env (← IO.FS.readFile (auditFile audit)) true
+    let names ← auditNames env (← IO.FS.readFile files[audit]!) true
     for name in names.toArray.qsort Name.lt do
       let some owner := moduleOf env name |
         throw <| IO.userError s!"AUDIT OWNER MISSING name={name} audit={audit}"
@@ -327,10 +343,14 @@ def writeAuditCoverage (env : Environment) (audits : Array Name) (path : System.
 
 def auditCoverage (env : Environment) (path : System.FilePath) (complete := false) :
     IO (Array String) := do
+  let lines ← dataLines path
+  let audits := (lines.filterMap fun line =>
+    ((line.splitOn " ").filter (!·.isEmpty))[2]?.map String.toName).toArray
+  let files ← auditFiles audits
   let mut out := #[]
   let mut cache : Std.HashMap Name (Std.HashSet Name) := {}
   let mut required : Std.HashMap Name (Std.HashSet Name) := {}
-  for line in ← dataLines path do
+  for line in lines do
     let [owner, decl, audit] := (line.splitOn " ").filter (!·.isEmpty) |
       throw <| IO.userError s!"invalid coverage row: {line}"
     let m := owner.toName
@@ -346,7 +366,7 @@ def auditCoverage (env : Environment) (path : System.FilePath) (complete := fals
     let names ← match cache[a]? with
       | some ns => pure ns
       | none =>
-          let file := auditFile a
+          let file := files[a]!
           let ns ← try auditNames env (← IO.FS.readFile file) complete
             catch error => throw <| IO.userError s!"{file}: {error}"
           cache := cache.insert a ns

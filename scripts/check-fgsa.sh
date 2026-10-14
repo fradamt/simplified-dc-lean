@@ -62,7 +62,7 @@ header_imports='
   print "!UNPARSED\n" if $s =~ /(?<![\w.\x27!?])(?:import|prelude)(?![\w\x27!?])/;'
 imports_of() { perl -CSD -e "$strip_comments" < "$1" | perl -CSD -e "$header_imports"; }
 # The FGSA source files under base directory $1, relative to it.
-source_files() { (cd "$1" && find -L AvailableChainFGSA -iname '*.lean' | sort); }
+source_files() { gate_source_files "$1" AvailableChainFGSA; }
 
 # Root imports under base directory $1: every source file outside Tests/ is a root import.
 # Tests/ modules need no root import (backlog C23, lead 2026-10-01): the library
@@ -86,9 +86,9 @@ check_root_imports() {
   missing=$(comm -23 \
     <(source_files "$base" | grep -iv '^AvailableChainFGSA/Tests/' |
         sed -E 's/\.[lL][eE][aA][nN]$//; s|/|.|g' | sort) \
-    <(imports_of "$base/AvailableChainFGSA.lean" | sort))
+    <(imports_of "$base/$(gate_source_file "$base" AvailableChainFGSA.lean)" | sort))
   [ -z "$missing" ] || { echo "NOT IMPORTED BY THE ROOT: $missing"; return 1; }
-  if imports_of "$base/AvailableChainFGSA.lean" | grep -qx '!UNPARSED'; then
+  if imports_of "$base/$(gate_source_file "$base" AvailableChainFGSA.lean)" | grep -qx '!UNPARSED'; then
     echo "UNPARSED IMPORT HEADER: AvailableChainFGSA.lean"; return 1
   fi
 }
@@ -108,7 +108,7 @@ check_direct_imports() {
   for f in $(source_files "$base") AvailableChainFGSA.lean; do
     rel=${f#AvailableChainFGSA/}
     if [ "$f" = AvailableChainFGSA.lean ]; then layer=root; else layer=${rel%%/*}; fi
-    for m in $(imports_of "$base/$f"); do
+    for m in $(imports_of "$base/$(gate_source_file "$base" "$f")"); do
       if [ "$m" = '!UNPARSED' ]; then echo "UNPARSED IMPORT HEADER: $f"; bad=1; continue; fi
       fgsa_import_allowed "$layer" "$m" && continue
       echo "IMPORT NOT ALLOWED: $f imports $m"; bad=1
@@ -121,7 +121,7 @@ check_direct_imports() {
 check_boundary() {
   local base=$1 bad=0 f
   for f in $(source_files "$base") AvailableChainFGSA.lean; do
-    if perl -CSD -e "$strip_comments" < "$base/$f" |
+    if perl -CSD -e "$strip_comments" < "$base/$(gate_source_file "$base" "$f")" |
         grep -nE 'ProtocolSpec|Generic\.Run|(^|[^A-Za-z0-9_])(Run|Env)([^A-Za-z0-9_]|$)|World|Interface|Claims|pendingRow'; then
       echo "ENGINE REFERENCE in $f"; bad=1
     fi
@@ -138,7 +138,8 @@ if [ "${SOURCE_ONLY:-0}" != 1 ]; then
   gate_build --wfail AvailableChainCheckSupport
 fi
 echo "== no protocol library imports the check support library"
-! grep -RlE 'import[[:space:]]+AvailableChainCheckSupport' AvailableChain*/ AvailableChain*.lean || { echo "PROTOCOL LIBRARY IMPORTS AvailableChainCheckSupport"; exit 1; }
+! python3 -B scripts/source_layout.py --nul files |
+  xargs -0 grep -lE 'import[[:space:]]+AvailableChainCheckSupport' || { echo "PROTOCOL LIBRARY IMPORTS AvailableChainCheckSupport"; exit 1; }
 python3 -B scripts/current-inventory.py fgsa scripts/fgsa-expected.txt
 echo "== root imports"
 check_root_imports . || exit 2
@@ -147,7 +148,7 @@ check_lib_glob lakefile.toml || exit 2
 echo "== native evaluation"
 status=0
 for f in $(source_files .) AvailableChainFGSA.lean; do
-  if perl -CSD -e "$strip_comments" < "$f" |
+  if perl -CSD -e "$strip_comments" < "$(gate_source_file . "$f")" |
       grep -nE '(^|[^A-Za-z0-9_.])native_decide([^A-Za-z0-9_]|$)|\+native|native := true|ofReduceBool|ofReduceNat' >/dev/null; then
     echo "native evaluation in $f"; status=1
   fi
@@ -231,7 +232,9 @@ expect_fail() {
   echo "rejected, as expected: $name"
 }
 # A scratch copy of the source tree for the import controls.
-mk_tree() { mkdir -p "$neg/tree"; cp -R AvailableChainFGSA AvailableChainFGSA.lean "$neg/tree/"; }
+mk_tree() { mkdir -p "$neg/tree"; cp -R "$(gate_source_dir AvailableChainFGSA)" "$(gate_source_path AvailableChainFGSA)" "$neg/tree/"
+  printf '[[lean_lib]]\nname = "AvailableChainFGSA"\nglobs = ["AvailableChainFGSA.*"]\n' \
+    > "$neg/tree/lakefile.toml"; }
 run() { set +e; out=$("$@" 2>&1); code=$?; set -e; }
 
 control_unlisted() {

@@ -2,6 +2,7 @@
 """Development checks for sleep packages and the fixed S1 scope."""
 import argparse
 from pathlib import Path
+from source_layout import Layout
 import re
 import subprocess
 import sys
@@ -157,7 +158,7 @@ def main():
         path = args.package_map or ROOT / 'scripts/dev-pkg' / (args.package + '.txt')
         green = validate_package(path, required, graph)
         audits = [m for m in sorted(green) if re.search(
-            r'^#print axioms\b', (ROOT / (m.replace('.', '/') + '.lean')).read_text(), re.M)]
+            r'^#print axioms\b', (ROOT / Layout(ROOT).source_path(m)).read_text(), re.M)]
         label = 'package ' + args.package
     elif args.stage:
         if args.package_map:
@@ -170,7 +171,7 @@ def main():
     run(['lake', 'build', '--wfail', *(sorted(green) if green is not None else ['@']),
          'AvailableChainCheckSupport'])
     for module in audits:
-        audit_strict(ROOT / (module.replace('.', '/') + '.lean'))
+        audit_strict(ROOT / Layout(ROOT).source_path(module))
     if args.stage:
         run(['python3', '-B', 'scripts/check-proof-coverage.py', '--audits', *COVERAGE])
         run(['python3', '-B', 'scripts/check-fg-compose-source.py'])
@@ -186,7 +187,7 @@ def main():
         spec.loader.exec_module(coverage)
         for module in coverage.AUDITS:
             if module not in audits:
-                audit_strict(ROOT / (module.replace('.', '/') + '.lean'))
+                audit_strict(ROOT / Layout(ROOT).source_path(module))
     if __import__('os').environ.get('NEG', '1') != '0':
         run(['python3', '-B', 'scripts/dev-check-controls.py'])
     print(f'DCK PASS ({label})', flush=True)

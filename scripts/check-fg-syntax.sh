@@ -10,12 +10,15 @@
 # file is missing, or no files.
 set -euo pipefail
 cd "$(dirname "$0")/.."
-for d in AvailableChainSimplexFG AvailableChainKitFG AvailableChainFGCompose; do
+source scripts/gate-common.sh
+for lib in AvailableChainSimplexFG AvailableChainKitFG AvailableChainFGCompose; do
+  d=$(gate_source_dir "$lib")
+  f=$(gate_source_path "$lib")
   [ -d "$d" ] || { echo "MISSING DIRECTORY: $d"; exit 2; }
-  [ -f "$d.lean" ] || { echo "MISSING ROOT FILE: $d.lean"; exit 2; }
+  [ -f "$f" ] || { echo "MISSING ROOT FILE: $f"; exit 2; }
 done
-files=$(find AvailableChainSimplexFG AvailableChainKitFG AvailableChainSimplexFG.lean \
-  AvailableChainKitFG.lean AvailableChainFGCompose AvailableChainFGCompose.lean -name '*.lean')
+files=$(python3 -B scripts/source_layout.py --lines files \
+  AvailableChainSimplexFG AvailableChainKitFG AvailableChainFGCompose)
 [ -n "$files" ] || { echo "NO FILES"; exit 2; }
 pat='(^|[^A-Za-z0-9_.])native_decide([^A-Za-z0-9_]|$)|\+native|native *:= *true|ofReduceBool|ofReduceNat'
 status=0

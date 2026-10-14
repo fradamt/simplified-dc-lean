@@ -48,7 +48,7 @@ class Layout:
             if not (self.root / src).resolve().is_relative_to(self.root):
                 raise ValueError('out-of-root srcDir: ' + src)
             roots = lib.get('roots', [name])
-            globs = lib.get('globs', [name + '.*'])
+            globs = lib.get('globs', [])
             for values in (roots, globs):
                 if not isinstance(values, list) or not all(isinstance(v, str) for v in values):
                     raise ValueError('roots/globs must be string arrays')
@@ -149,11 +149,13 @@ class Layout:
             text = 'docs/' + text
         moved = 'docs/internal/' + text[5:]
         # Layout state, not basename existence, selects the archive.
-        relocated = any(src in ('engine', 'generic', 'fgsa', 'pcsa', 'legacy')
-                        for src in self._prefixes.values())
+        relocated = (any(p.startswith('docs/internal/') for p in self._tree)
+                     if self._tree is not None else (self.root / 'docs/internal').is_dir())
         return moved if relocated else text
 
     def expand_checker_pattern(self, pattern):
+        if pattern.startswith('docs/'):
+            return self.archive_doc_path(pattern)
         return self.physical_path(pattern)
 
     def _files(self, directory):

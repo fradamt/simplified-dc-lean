@@ -384,7 +384,7 @@ header_imports='
   print "!UNPARSED\n" if $s =~ /(?<![\w.\x27!?])(?:import|prelude)(?![\w\x27!?])/;'
 imports_of() { perl -CSD -e "$strip_comments" < "$1" | perl -CSD -e "$header_imports"; }
 # The library source files under base directory $1, relative to it.
-source_files() { (cd "$1" && find -L AvailableChainFGSARun -iname '*.lean' | sort); }
+source_files() { gate_source_files "$1" AvailableChainFGSARun; }
 
 # The Tests/ modules under base directory $1 (the library glob builds them;
 # the root does not import them, BUILD B7-TESTS).
@@ -399,11 +399,11 @@ check_root_imports() {
   missing=$(comm -23 \
     <(source_files "$base" | grep -iv '^AvailableChainFGSARun/Tests/' |
         sed -E 's/\.[lL][eE][aA][nN]$//; s|/|.|g' | sort) \
-    <(imports_of "$base/AvailableChainFGSARun.lean" | sort))
+    <(imports_of "$base/$(gate_source_file "$base" AvailableChainFGSARun.lean)" | sort))
   [ -z "$missing" ] || { echo "NOT IMPORTED BY THE ROOT: $missing"; return 1; }
-  tests=$(imports_of "$base/AvailableChainFGSARun.lean" | grep '^AvailableChainFGSARun\.Tests\.' || true)
+  tests=$(imports_of "$base/$(gate_source_file "$base" AvailableChainFGSARun.lean)" | grep '^AvailableChainFGSARun\.Tests\.' || true)
   [ -z "$tests" ] || { echo "ROOT IMPORTS A TEST MODULE: $tests"; return 1; }
-  if imports_of "$base/AvailableChainFGSARun.lean" | grep -qx '!UNPARSED'; then
+  if imports_of "$base/$(gate_source_file "$base" AvailableChainFGSARun.lean)" | grep -qx '!UNPARSED'; then
     echo "UNPARSED IMPORT HEADER: AvailableChainFGSARun.lean"; return 1
   fi
 }
@@ -429,7 +429,7 @@ check_direct_imports() {
   for f in $(source_files "$base") AvailableChainFGSARun.lean; do
     rel=${f#AvailableChainFGSARun/}
     if [ "$f" = AvailableChainFGSARun.lean ]; then layer=root; else layer=${rel%%/*}; fi
-    for m in $(imports_of "$base/$f"); do
+    for m in $(imports_of "$base/$(gate_source_file "$base" "$f")"); do
       if [ "$m" = '!UNPARSED' ]; then echo "UNPARSED IMPORT HEADER: $f"; bad=1; continue; fi
       run_import_allowed "$layer" "$m" && continue
       echo "IMPORT NOT ALLOWED: $f imports $m"; bad=1
@@ -486,7 +486,7 @@ v2_open='
 check_v2_open() {
   local base=$1 bad=0 f out
   for f in $(source_files "$base") AvailableChainFGSARun.lean; do
-    out=$(perl -CSD -e "$strip_comments" < "$base/$f" | perl -CSD -e "$v2_open")
+    out=$(perl -CSD -e "$strip_comments" < "$base/$(gate_source_file "$base" "$f")" | perl -CSD -e "$v2_open")
     if [ -n "$out" ]; then printf '%s\n' "$out"; echo "V2 NAME CLASH in $f"; bad=1; fi
   done
   return $bad
@@ -505,7 +505,7 @@ check_root_imports . || exit 2
 echo "== native evaluation"
 status=0
 for f in $(source_files .) AvailableChainFGSARun.lean; do
-  if perl -CSD -e "$strip_comments" < "$f" |
+  if perl -CSD -e "$strip_comments" < "$(gate_source_file . "$f")" |
       grep -nE '(^|[^A-Za-z0-9_.])native_decide([^A-Za-z0-9_]|$)|\+native|native := true|ofReduceBool|ofReduceNat' >/dev/null; then
     echo "native evaluation in $f"; status=1
   fi
@@ -552,7 +552,9 @@ expect_fail() {
 # A scratch copy of the source tree for the text controls.
 mk_tree() {
   mkdir -p "$neg/tree"
-  cp -R AvailableChainFGSARun AvailableChainFGSARun.lean "$neg/tree/"
+  cp -R "$(gate_source_dir AvailableChainFGSARun)" "$(gate_source_path AvailableChainFGSARun)" "$neg/tree/"
+  printf '[[lean_lib]]\nname = "AvailableChainFGSARun"\nglobs = ["AvailableChainFGSARun.*"]\n' \
+    > "$neg/tree/lakefile.toml"
   mkdir -p "$neg/tree/AvailableChainFGSARun/"{Model,Statements,Proofs,Tests}
 }
 run() { set +e; out=$("$@" 2>&1); code=$?; set -e; }
