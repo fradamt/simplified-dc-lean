@@ -1755,6 +1755,18 @@
             'AvailableChain.FGCompose.KernelMiddleWitnessFG_W.targetsB',
         ),
     },
+    'AvailableChainFGCompose.Tests.PopulationRowsAxioms': {
+        'AvailableChainFGCompose.Proofs.Population.RowsPrem': (
+            'AvailableChain.FGCompose.rowsPrem_action_source_holder',
+            'AvailableChain.FGCompose.rowsPrem_anchor_cap_holder',
+            'AvailableChain.FGCompose.rowsPrem_anchor_retained_or_covered_holder',
+            'AvailableChain.FGCompose.rowsPrem_fresh_rows_holder',
+            'AvailableChain.FGCompose.rowsPrem_pending_head_holder',
+        ),
+        'AvailableChainFGCompose.Proofs.Population.RowsRecords': (
+            'AvailableChain.FGCompose.rowsPrem_action_record_holder',
+        ),
+    },
     'AvailableChainFGCompose.Tests.SafetyAxioms': {
         'AvailableChainFGCompose.Proofs.SafetyAccountable': (
             'AvailableChain.FGCompose.safety_event_agreement',
