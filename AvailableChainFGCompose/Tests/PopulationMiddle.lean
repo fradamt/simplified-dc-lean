@@ -1,7 +1,7 @@
 module
-public import AvailableChainFGCompose.Proofs.Population.Middle
-public import AvailableChainFGCompose.Proofs.Population.KernelBridges
-public import AvailableChainFGCompose.Statements.Population.Seats
+public import AvailableChainFGCompose.Proofs.Population.Middle -- shake: keep (private controls)
+public import AvailableChainFGCompose.Proofs.Population.KernelBridges -- shake: keep (controls)
+public import AvailableChainFGCompose.Statements.Population.Seats -- shake: keep (private controls)
 
 set_option linter.privateModule false
 noncomputable section
