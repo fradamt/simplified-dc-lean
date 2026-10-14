@@ -343,5 +343,77 @@ private theorem fold_premises_sat : ProgressFoldAdvance ef height 4 := by
       omega
 
 #print axioms fold_premises_sat
+
+private theorem advance_premises_sat :
+    FGHeightLaws ef height ∧ FGTimingLaws timing ∧ V2.D.ScheduleWellFormed env run ∧
+    ef.weightOf (historyFaulty reads run) < ef.q ∧ LivenessBoundW timing 1 ∧
+    TRowsReceipt core reads env run timing (fun _ => [row]) 1 ∧
+    PromotionProposalRead core reads env run obs iface decodeProposal erase FGBlock.rows
+      parentFG parentHeight validFor fold ∧
+    PromotionRowOrder core env run obs iface ∧ PromotionRowSigner reads env run timing wire ∧
+    (∀ r h U X, BatchPrem core reads obs timing env run iface wire ef decodeProposal erase
+      FGBlock.rows (fun _ => [row]) parentFG parentHeight validFor 1 .progress r h U X →
+      (height X.parent).h = h → ProgressCoveredByChild ef height X U h) ∧
+    ef.q ≤ ef.weightOf (FGHonestSeats reads run) := by
+  refine ⟨heightLaws_of_bridge ef cfg _ (Window.windowHeightBridge ef cfg 2 (by decide)),
+    ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+  · exact ⟨by decide, by decide, fun _ => by simp, fun _ => rfl,
+      fun _ => rfl, fun _ => rfl, fun _ => rfl, fun _ => rfl,
+      fun _ => by simp; ring⟩
+  · refine ⟨by decide, by decide, by decide, by decide, by decide, ?_, ?_⟩
+    · intro x t ht
+      have ht' : (x = 9 ∧ t = 6) ∨ (x = 7 ∧ t = 6) ∨ (x = 7 ∧ t = 16) := by
+        simpa only [run, List.mem_cons, List.mem_singleton, List.not_mem_nil, or_false,
+          V2.Event.tick.injEq] using ht
+      rcases ht' with ⟨_, rfl⟩ | ⟨_, rfl⟩ | ⟨_, rfl⟩
+      · exact ⟨6, rfl⟩
+      · exact ⟨6, rfl⟩
+      · exact ⟨16, rfl⟩
+    · intro x hx t _ _ _ ht
+      have hx' : x = 7 ∨ x = 9 := by simpa using hx
+      have ht' : t = 6 ∨ (x = 7 ∧ t = 16) := of_decide_eq_true ht
+      rcases ht' with rfl | ⟨rfl, rfl⟩
+      · rcases hx' with rfl | rfl <;> decide
+      · decide
+  · have hf : historyFaulty reads run = ∅ := by
+      ext i
+      change (i ∈ Finset.univ.filter (fun i => safetyHolder reads run i ∉ run.honest)) ↔ _
+      simp [safetyHolder]
+    rw [hf]
+    decide
+  · constructor; decide
+  · intro j x r a hr _ y _
+    obtain ⟨_, _, _, rfl⟩ := row_identity hr
+    exact Or.inl (List.mem_singleton_self _)
+  · intro s X hp _
+    obtain ⟨rfl, rfl⟩ := proposal_unique hp
+    refine ⟨⟨[row], ?_, rfl⟩, (), rfl, rfl, rfl, rfl, rfl, fun _ => rfl⟩
+    exact source_premises_sat.2.2.2.2.2.2.2.2.2.1
+  · intro s X h U hp _ _ _ i W hw hn
+    obtain ⟨_, rfl⟩ := proposal_unique hp
+    have hg : W = .genesis := preceq_genesis.mp hw
+    subst W
+    obtain ⟨a, ha, _⟩ := hn
+    cases ha
+  · refine ⟨fun _ _ _ a _ => ⟨a, rfl⟩, ?_⟩
+    intro i j r a ha
+    obtain ⟨_, _, _, rfl⟩ := row_identity ha
+    rw [Subsingleton.elim i 0]
+  · intro r h U X hb hh
+    obtain ⟨_, hc, _⟩ := hb.carrier
+    obtain ⟨_, rfl⟩ := proposal_unique hc.1
+    have hU : U = .genesis := preceq_genesis.mp hb.path
+    subst U
+    have hh' : h = 1 := hh.symm
+    subst h
+    refine ⟨{0}, by decide, ?_⟩
+    intro i hi
+    have hi' : i = 0 := Finset.mem_singleton.mp hi
+    subst i
+    exact Or.inr ⟨row, List.mem_singleton_self _, rfl, false, rfl⟩
+  · rw [source_premises_sat.2.2.2.2.1]
+    decide
+
+#print axioms advance_premises_sat
 end AvailableChain.FGCompose.Tests.PopulationAge
 end
