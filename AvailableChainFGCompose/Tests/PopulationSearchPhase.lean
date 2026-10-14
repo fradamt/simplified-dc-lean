@@ -1967,6 +1967,54 @@ private theorem branch_premises_sat (top : Bool) :
 
 #print axioms branch_premises_sat
 
+/-- Exact trigger: the only repair seed is low; its first opening has a high source
+only at nonholder 7, while holder 9 supplies the original low row. -/
+private theorem high_source_premises_sat :
+    run.honest = {7, 9} ∧ (∀ i, safetyHolder reads run i = 9) ∧
+    (∀ q Q, HonestProposal env run iface q Q → d5cTiming.gate q ≤ 14 →
+      q = 2 ∧ Q = c5erase low) ∧
+    (∀ r, 2 ≤ r * d5cTiming.roundSlots →
+      (∀ r', 2 ≤ r' * d5cTiming.roundSlots → r ≤ r') → r = 1) ∧
+    actionSourceFG (core true) env run d5cTiming 7 1 = some (some raised) ∧
+    (c5H raised).h = 2 ∧
+    actionSourceFG (core true) env run d5cTiming 9 1 = some (some low) ∧
+    (c5H low).h = 1 ∧
+    (¬ OpeningEntry (core true) env run c5H d5cTiming 1 1) ∧
+    HonestRowAt reads env run d5cTiming 13 9 0 firstRow ∧
+    protocol.objSelfVisible (reads.encode firstRow) = true ∧
+    reads.decodeObject (reads.encode firstRow) = some firstRow ∧
+    (∀ j t a, run.events[j]? = some (.tick 7 t) →
+      reads.encode a ∉ V2.D.Run.emitsAt env run j) := by
+  refine ⟨rfl, fun _ => rfl, ?_, ?_, (source_premises_sat true).2.2.2.2.1,
+    by decide +kernel, by decide +kernel, by decide +kernel, ?_,
+    execution_premises_sat.2.2.2.1, rfl, rfl, ?_⟩
+  · intro q Q hp hg
+    obtain ⟨hq, he⟩ := proposal_unique hp
+    rcases hq with rfl | rfl | rfl
+    · exact ⟨rfl, he⟩
+    · exact absurd hg (by decide)
+    · exact absurd hg (by decide)
+  · intro r hr hf
+    have h1 := hf 1 (by decide)
+    change 2 ≤ r * 2 at hr
+    omega
+  · intro he
+    have hh := (he.choose_spec 7 raised (by decide)
+      (source_premises_sat true).2.2.2.2.1).1
+    exact absurd hh (by decide +kernel)
+  · intro j t a hj
+    have table : ∀ k : Fin 94, run.events[k.val]?.map V2.Event.node = some 7 →
+        (V2.D.Run.emitsAt env run k.val).all (fun o => decide (o.auth ≠ .seat 6 0)) =
+          true := by decide +kernel
+    have hlen : j < 94 := (List.getElem?_eq_some_iff.mp hj).1
+    have hnode : run.events[j]?.map V2.Event.node = some 7 := by rw [hj]; rfl
+    intro ha
+    have hn := of_decide_eq_true
+      ((List.all_eq_true.mp (table ⟨j, hlen⟩ hnode)) (reads.encode a) ha)
+    exact hn rfl
+
+#print axioms high_source_premises_sat
+
 end High
 
 end AvailableChain.FGCompose.Tests.PopulationSearchPhase
