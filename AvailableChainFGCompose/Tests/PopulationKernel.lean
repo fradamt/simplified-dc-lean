@@ -2762,7 +2762,7 @@ private theorem proposal_read_premises_sat (k : Fin 7) :
     intro s
     change (if 4 * s + 1 = 0 then 9 else 7) = 7
     exact ite_eq_right (Nat.succ_ne_zero _)
-  
+
   have getter : ∀ k : Fin 7, V2.D.Run.tickIdx? run 7
       (V2.D.proposalTime interface (2 * (k.val + 1))) = some (20 * k.val + 19) := by
     decide +kernel
