@@ -193,5 +193,90 @@ private theorem phase_premises_sat :
 
 #print axioms phase_premises_sat
 
+private abbrev receipt (B : Block) (d : Time) (y : Nat) : Prop :=
+  ∃ W, v5erase W = B ∧ W ∈ (core.core (run.stateBeforeTime env d y)).fg.TF
+
+private theorem receipt_premises_sat :
+    (∀ i (ev : V2.Event Nat protocol.Object) m, run.events[i]? = some ev →
+      (12 : Time) ≤ ev.time → 1 ≤ m → frontierAtIdx core env run (i + 1) = m →
+      ev.time + v5T.delta ≤ run.horizon → PhaseWitnessReceiptScope core env run obs
+        (fun _ => true) receipt (i + 1) m (ev.time + v5T.delta)) ∧
+    (∀ W d y, y ∈ run.honest → receipt (v5erase W) d y →
+      W ∈ (core.core (run.stateBeforeTime env d y)).fg.TF) := by
+  constructor
+  · intro i ev m hi _ _ hf hhor
+    let d := ev.time + v5T.delta
+    have hd0 : 0 ≤ d := by
+      have h := (execution_premises_sat.1.in_horizon _ (List.mem_of_getElem? hi)).1
+      change 0 ≤ ev.time + 1
+      simp only [Time] at *
+      omega
+    have hdNat : (d.toNat : Time) = d := Int.toNat_of_nonneg hd0
+    have hdlim : d.toNat < 257 := by
+      change ev.time + 1 ≤ 256 at hhor
+      dsimp only [d, v5T]
+      simp only [Time] at *
+      omega
+    have same (x y : Nat) (hx : x ∈ run.honest) (hy : y ∈ run.honest) :
+        run.stateBeforeTime env d x = run.stateBeforeTime env d y := by
+      have all (z : Nat) (hz : z ∈ run.honest) :
+          run.stateBeforeTime env d z = (d.toNat - 1) / 4 := by
+        rw [← hdNat]
+        have hz' : z = 7 ∨ z = 9 := by simpa [run] using hz
+        rcases hz' with rfl | rfl
+        · exact (clock_premises_sat.1 ⟨d.toNat, hdlim⟩).1
+        · exact (clock_premises_sat.1 ⟨d.toNat, hdlim⟩).2
+      exact (all x hx).trans (all y hy).symm
+    have future {x : Nat} {W : FGBlock (Fin 1)} (hx : x ∈ run.honest)
+        (hW : W ∈ (core.core (run.stateBefore env (i + 1) x)).fg.TF)
+        (y : Nat) (hy : y ∈ run.honest) :
+        W ∈ (core.core (run.stateBeforeTime env d y)).fg.TF := by
+      have hij : i < V2.D.Run.idxBefore run d :=
+        (Gen.V2.Duty.index_lt_idxBefore_iff execution_premises_sat.1 hi d).mpr (by
+          change ev.time < ev.time + 1
+          simp only [Time] at *
+          omega)
+      have held := core_premises_sat.2.2.1 (i + 1) (V2.D.Run.idxBefore run d) hij x hW
+      change W ∈ (core.core (run.stateBefore env (V2.D.Run.idxBefore run d) x)).fg.TF at held
+      rw [Gen.V2.Duty.stateBefore_idxBefore env run d execution_premises_sat.1,
+        same x y hx hy] at held
+      exact held
+    have scope {x : Nat} {W : FGBlock (Fin 1)} (hx : x ∈ run.honest)
+        (hW : W ∈ (core.core (run.stateBefore env (i + 1) x)).fg.TF) :
+        WitnessReceiptScope core env run (fun _ => true) receipt W d :=
+      ⟨fun _ y _ hy _ _ _ _ => ⟨W, rfl, future hx hW y hy⟩⟩
+    have hs : frontierAtIdx core env run (i + 1) =
+        max (core.core (run.stateBefore env (i + 1) 7)).fg.h_max
+          (core.core (run.stateBefore env (i + 1) 9)).fg.h_max := by
+      unfold frontierAtIdx
+      change ({7, 9} : Finset Nat).sup _ = _
+      rw [Finset.sup_insert, Finset.sup_singleton]
+    obtain ⟨x, hx, hmax⟩ : ∃ x ∈ run.honest,
+        (core.core (run.stateBefore env (i + 1) x)).fg.h_max = m := by
+      rw [hs] at hf
+      by_cases h : (core.core (run.stateBefore env (i + 1) 7)).fg.h_max ≤
+          (core.core (run.stateBefore env (i + 1) 9)).fg.h_max
+      · exact ⟨9, by decide, (max_eq_right h).symm.trans hf⟩
+      · exact ⟨7, by decide, (max_eq_left (Nat.le_of_not_ge h)).symm.trans hf⟩
+    obtain ⟨W, hW, hh⟩ := healing_phase_frontier_witness (R := core) (E := env) (rho := run)
+      (O := obs) (Ef := v5E) (cert := v5cert)
+      (inv := fun _ _ => geometry_premises_sat.2.2 _) (i + 1) x
+    refine ⟨⟨x, W, ⟨hx, hW⟩, hh.trans hmax, scope hx hW⟩, ?_, ?_⟩
+    · rintro ⟨z, _, ht⟩
+      have hm : m = 1 := by change 0 + 1 = m at ht; omega
+      have hg := (geometry_premises_sat.2.2 (run.stateBefore env (i + 1) 9)).gen
+      have hh : (obs.height FGBlock.genesis).h = 1 := by decide +kernel
+      have hj : (obs.height FGBlock.genesis).h_j + 1 = 1 := by decide +kernel
+      exact ⟨9, .genesis, ⟨by decide, hg⟩, hh.trans hm.symm,
+        hj.trans hm.symm, rfl, scope (by decide) hg⟩
+    · rintro ⟨z, _, _, hc⟩
+      rw [(phase_premises_sat.1 _).1] at hc
+      cases hc
+  · intro W d y _ h
+    obtain ⟨W', he, hW⟩ := h
+    exact v5erase_inj he ▸ hW
+
+#print axioms receipt_premises_sat
+
 end AvailableChain.FGCompose.Tests.POP6bMixed
 end
