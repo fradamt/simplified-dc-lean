@@ -875,5 +875,45 @@ private theorem reset_premises_sat :
 #print axioms reset_premises_sat
 
 
+private theorem mixed_reset : ∃ w : FGResetHistory,
+    H0Reset core reads env run obs v5T (fun a => namedEntry (wire.heightPair a)) 12 w ∧
+    w.rG = 1 ∧ w.u0 = 30 ∧ w.M = 2 ∧ w.rStar = 4 ∧ w.sStar = 8 ∧
+    w.source = v5erase (chain 8) ∧ v5T.action w.rStar = 38 ∧
+    v5T.action w.rStar < 12 + 209 := by
+  obtain ⟨hl, cl, keep, inv, name, schedule, start, gst, hδ, hb, hρ, family, search,
+    budget, hor, _⟩ := reset_premises_sat
+  obtain ⟨w, hw, hG, hu, hm, deadline⟩ := healing_resetWitness (T := v5T) (L := v5TLaws)
+    (Jst := 12) (R := core) (S := reads) (E := env) (rho := run) (O := obs) (I := iface)
+    (pair := Row.height_pair) (Ef := v5E) (HL := hl) (CL := cl) (K := keep) (storeInv := inv)
+    (emittedName := name) (leaseSlots := 1) (deltaT := 4) (G := 4) (ΔF := 1) (ρbar := 16)
+    (budget := 209) schedule start gst hδ hb hρ family search budget hor
+  obtain ⟨_, _, _, _, _, _, hfront, _, _, _, _, _, _, _, _, row4, lower, _⟩ :=
+    search_premises_sat
+  have first : resetFirstRound v5T v5TLaws 12 = 1 :=
+    ladfirst (reset_rG_after v5T v5TLaws 12) (reset_rG_first v5T v5TLaws 12)
+  have cut : resetCutTime v5T v5TLaws 12 = 30 := by rw [reset_cut, first]; rfl
+  have frontier : resetCutFrontier core env run v5T v5TLaws 12 = 2 := by
+    rw [reset_frontier, cut]
+    exact hfront.symm
+  rw [first] at hG
+  rw [cut] at hu
+  rw [frontier] at hm
+  have hr := hw.reset_row
+  rw [hm] at hr
+  have hfirst := hw.reset_first
+  rw [hm] at hfirst
+  have hr4 : w.rStar = 4 := Nat.le_antisymm (hfirst 4 row4) (lower w.rStar hr)
+  obtain ⟨j, y, a, C, ha, _, hC, hErase, _⟩ := hw.fresh
+  rw [hr4] at hC
+  have hC8 : C = chain 8 := (observed_premises_sat.1 4 y C ha.1 hC).2
+  refine ⟨w, hw, hG, hu, hm, hr4, ?_, ?_, ?_, deadline⟩
+  · rw [hw.label, hr4]
+    rfl
+  · exact hErase.symm.trans (congrArg v5erase hC8)
+  · rw [hr4]
+    rfl
+
+#print axioms mixed_reset
+
 end AvailableChain.FGCompose.Tests.POP6bMixed
 end
