@@ -4,6 +4,7 @@
 AvailableChainFGCompose.Tests.PopulationTailAxioms
 AvailableChainFGCompose.Proofs.Population.FrontierSearchRise
 AvailableChainFGCompose.Proofs.Population.FrontierSearchTail
+AvailableChainFGCompose.Proofs.Population.FrontierSearchCompose
 AvailableChainFGCompose.Tests.PopulationSearchPhase
 AvailableChainFGCompose.Tests.PopulationSearchSeed
 AvailableChainFGCompose.Tests.PopulationSearchAxioms
