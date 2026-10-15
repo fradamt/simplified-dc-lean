@@ -2751,6 +2751,115 @@ private theorem proposal_read_premises_sat (k : Fin 7) :
 
 #print axioms proposal_read_premises_sat
 
+private theorem proposal_data_premises_sat (k : Fin 7) :
+    HonestProposal (env Nat) run interface (2 * (k.val + 1)) (erase (block (k.val + 1))) ∧
+    OpeningCarrier_W (P := protocol) (n := 1) decodeProposal erase (fun X => X.rows.map wire)
+      (fun nd Q => parentRead nd Q.parent) makeFG (env Nat) run interface
+      (2 * (k.val + 1)) (erase (block (k.val + 1))) (block (k.val + 1)) ∧
+    (∃ rows, HonestCarrier (env Nat) run interface
+      (kernelCarrier (P := protocol) decodeProposal erase (fun X => X.rows.map wire))
+      (2 * (k.val + 1)) (erase (block (k.val + 1))) rows ∧
+      (block (k.val + 1)).rows = rows.filterMap reads.decode) ∧
+    (∃ nd, proposalStateAt (env Nat) run interface (2 * (k.val + 1)) = some nd ∧
+      parentRead nd (erase (block (k.val + 1))).parent = some (block k) ∧
+      block k ∈ (core.core nd).fg.TF) ∧
+    KernelExactService service run.horizon (2 * (k.val + 1)) (erase (block (k.val + 1))) := by
+  have proposer : ∀ s, V2.D.proposerOf run interface s = 7 := by
+    intro s
+    change (if 4 * s + 1 = 0 then 9 else 7) = 7
+    exact ite_eq_right (Nat.succ_ne_zero _)
+  have emits : ∀ k : Fin 7,
+      prop (k.val + 1) ∈ V2.D.Run.emitsAt (env Nat) run (20 * k.val + 19) := by
+    decide +kernel
+  have look : ∀ k : Fin 8, lookup (erase (block k)) = some (block k) := by decide +kernel
+  have slot : ∀ k : Fin 8, (block k).slot = 2 * k.val := by decide +kernel
+  have par : ∀ k : Fin 7, (erase (block (k.val + 1))).parent = erase (block k) := by
+    intro k
+    rw [block, erase]
+    rfl
+  have voteStage : ∀ k : Fin 7, ∀ x : Fin 2,
+      (postClock (env Nat) run (node x) (timing.vote (2 * (k.val + 1)))).map
+        (fun st : protocol.State => st.1.val) = some (k.val + 1) := by decide +kernel
+  have heads : ∀ k : Fin 7, ∀ x : Fin 2,
+      headAtLabel core (env Nat) run timing (node x) (2 * (k.val + 1)) =
+        some (erase (block (k.val + 1))) := by
+    intro k x
+    have hv := voteStage k x
+    cases hs : postClock (env Nat) run (node x) (timing.vote (2 * (k.val + 1))) with
+    | none => rw [hs] at hv; cases hv
+    | some st =>
+      rw [hs] at hv
+      have hv' : st.1.val = k.val + 1 := Option.some.inj hv
+      unfold headAtLabel
+      rw [hs]
+      change some (erase (block st.1.val)) = _
+      rw [hv']
+  obtain ⟨nd, hnd, hv⟩ := proposal_read_premises_sat k
+  have hem : V2.D.Run.emits (env Nat) run 7 (prop (k.val + 1))
+      (V2.D.proposalTime interface (2 * (k.val + 1))) :=
+    ⟨20 * k.val + 19, (trace_premises_sat.2.2.1 k).2.1, emits k⟩
+  have hp : HonestProposal (env Nat) run interface (2 * (k.val + 1))
+      (erase (block (k.val + 1))) := by
+    refine ⟨⟨by simp only [Slot]; omega, ?_⟩, prop (k.val + 1), ?_, rfl⟩
+    · rw [proposer]; decide
+    · rw [proposer]; exact hem
+  have hd : decodeProposal (prop (k.val + 1)) =
+      some (2 * (k.val + 1), block (k.val + 1)) := by
+    change some ((block (k.val + 1)).slot, block (k.val + 1)) = _
+    rw [slot ⟨k.val + 1, by omega⟩]
+  have hpar : parentRead nd (erase (block (k.val + 1))).parent = some (block k) := by
+    change lookup _ = _
+    rw [par k, look ⟨k.val, by omega⟩]
+  have hmake : makeFG (block k) (erase (block (k.val + 1)))
+      ((block (k.val + 1)).rows.map wire) = block (k.val + 1) := by
+    change (lookup _).getD .genesis = _
+    rw [look ⟨k.val + 1, by omega⟩]
+    rfl
+  have held := core_premises_sat.source_mem nd (block nd.1) rfl
+  change block nd.1 ∈ (core.core nd).fg.TF at held
+  rw [hv] at held
+  have rowsDecode : ∀ rs : List (Row (Fin 1)), (rs.map wire).filterMap reads.decode = rs := by
+    intro rs
+    induction rs with
+    | nil => rfl
+    | cons a rs ih =>
+      change a :: (rs.map wire).filterMap reads.decode = a :: rs
+      rw [ih]
+  refine ⟨hp, ⟨prop (k.val + 1), block (k.val + 1), nd, block k, ?_, rfl, hd,
+    hnd, hpar, hmake⟩, ?_, ⟨nd, hnd, hpar, held⟩, ?_⟩
+  · rw [proposer]; exact hem
+  · refine ⟨(block (k.val + 1)).rows.map wire, ⟨hp, prop (k.val + 1), ?_,
+      block (k.val + 1), hd, rfl, rfl⟩, (rowsDecode _).symm⟩
+    rw [proposer]; exact hem
+  · constructor
+    · intro _ x hx _
+      have hx' : x = 7 ∨ x = 9 := by simpa using hx
+      rcases hx' with rfl | rfl
+      · exact heads k 0
+      · exact heads k 1
+    · intro hg x hx _
+      change (4 : Int) * (2 * (k.val + 1) : Nat) + 6 ≤ 57 at hg
+      have hr : k.val + 1 < 7 := by omega
+      have hx' : x = 7 ∨ x = 9 := by simpa using hx
+      have hs : actionSourceFG core (env Nat) run timing x (k.val + 1) =
+          some (some (block (k.val + 1))) := by
+        rcases hx' with rfl | rfl
+        · exact trace_premises_sat.2.2.2 ⟨k.val + 1, hr⟩ 0
+        · exact trace_premises_sat.2.2.2 ⟨k.val + 1, hr⟩ 1
+      constructor
+      · change (actionSourceFG core (env Nat) run timing x (2 * (k.val + 1) / 2)).map _ = _
+        rw [show 2 * (k.val + 1) / 2 = k.val + 1 by omega, hs]
+        rfl
+      · intro r he
+        change 2 * (k.val + 1) = r * 2 at he
+        have he' : r = k.val + 1 := by omega
+        subst r
+        change (actionSourceFG core (env Nat) run timing x (k.val + 1)).map _ = _
+        rw [hs]
+        rfl
+
+#print axioms proposal_data_premises_sat
+
 end Owner
 
 end AvailableChain.FGCompose.Tests.PopulationKernel
