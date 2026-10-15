@@ -1585,5 +1585,11 @@ private theorem frozen_bridge_premises_sat :
 
 #print axioms frozen_bridge_premises_sat
 
+private theorem timing_premises_sat : FGTimingLaws timing := by
+  constructor <;> intros <;> simp
+
+
+#print axioms timing_premises_sat
+
 end AvailableChain.FGCompose.Tests.PopulationKernel
 end
