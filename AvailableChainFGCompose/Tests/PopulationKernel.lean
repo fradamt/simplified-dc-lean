@@ -2269,6 +2269,74 @@ private theorem stage_before_premises_sat (i : Nat) (x : Fin 2) :
 
 #print axioms stage_before_premises_sat
 
+private abbrev blocks : Finset (FGBlock (Fin 1)) := (Finset.range 8).image block
+
+private theorem store_invariant_premises_sat : ∀ nd : protocol.State,
+    FGStoreInvariant obs.height obs.finality (core.core nd).fg := by
+  have closed : ∀ B ∈ blocks, B.parent ∈ blocks := by decide +kernel
+  have subset : ∀ k : Fin 8, (store k).TF ⊆ blocks := by decide +kernel
+  have roots (st : Store (Fin 1)) (B : FGBlock (Fin 1))
+      (hst : st.TF ⊆ blocks) (hB : B ∈ blocks) : StoreStepRoots st B := by
+    have sub : insert B st.TF ⊆ blocks := Finset.insert_subset hB hst
+    intro X Y ⟨W, hW, hX⟩ ⟨Z, hZ, hY⟩ hr
+    have hx := KitFG.ancestor_closed_of_parent_closed blocks closed W (sub hW) X hX
+    have hy := KitFG.ancestor_closed_of_parent_closed blocks closed Z (sub hZ) Y hY
+    exact (by decide +kernel : ∀ X ∈ blocks, ∀ Y ∈ blocks, X.root = Y.root → X = Y)
+      X hx Y hy hr
+  have inv0 : FGStoreInvariant obs.height obs.finality (store 0) := by
+    rw [store]
+    exact KitFG.Window.windowStoreInvariant_init electorate cfg 2
+  have inv1 : FGStoreInvariant obs.height obs.finality (store 1) := by
+    rw [store]
+    exact KitFG.Window.windowStoreInvariant_on_block electorate cfg 2
+      (by change ¬ (1 ≤ 0); decide) (by decide) _ _ inv0
+      (roots _ _ (subset 0) (by decide +kernel))
+  have inv2 : FGStoreInvariant obs.height obs.finality (store 2) := by
+    rw [store]
+    exact KitFG.Window.windowStoreInvariant_on_block electorate cfg 2
+      (by change ¬ (1 ≤ 0); decide) (by decide) _ _ inv1
+      (roots _ _ (subset 1) (by decide +kernel))
+  have inv3 : FGStoreInvariant obs.height obs.finality (store 3) := by
+    rw [store]
+    exact KitFG.Window.windowStoreInvariant_on_block electorate cfg 2
+      (by change ¬ (1 ≤ 0); decide) (by decide) _ _ inv2
+      (roots _ _ (subset 2) (by decide +kernel))
+  have inv4 : FGStoreInvariant obs.height obs.finality (store 4) := by
+    rw [store]
+    exact KitFG.Window.windowStoreInvariant_on_block electorate cfg 2
+      (by change ¬ (1 ≤ 0); decide) (by decide) _ _ inv3
+      (roots _ _ (subset 3) (by decide +kernel))
+  have inv5 : FGStoreInvariant obs.height obs.finality (store 5) := by
+    rw [store]
+    exact KitFG.Window.windowStoreInvariant_on_block electorate cfg 2
+      (by change ¬ (1 ≤ 0); decide) (by decide) _ _ inv4
+      (roots _ _ (subset 4) (by decide +kernel))
+  have inv6 : FGStoreInvariant obs.height obs.finality (store 6) := by
+    rw [store]
+    exact KitFG.Window.windowStoreInvariant_on_block electorate cfg 2
+      (by change ¬ (1 ≤ 0); decide) (by decide) _ _ inv5
+      (roots _ _ (subset 5) (by decide +kernel))
+  have inv7 : FGStoreInvariant obs.height obs.finality (store 7) := by
+    rw [store]
+    exact KitFG.Window.windowStoreInvariant_on_block electorate cfg 2
+      (by change ¬ (1 ≤ 0); decide) (by decide) _ _ inv6
+      (roots _ _ (subset 6) (by decide +kernel))
+  have inv : ∀ k : Fin 8, FGStoreInvariant obs.height obs.finality (store k) := by
+    intro k
+    fin_cases k
+    · exact inv0
+    · exact inv1
+    · exact inv2
+    · exact inv3
+    · exact inv4
+    · exact inv5
+    · exact inv6
+    · exact inv7
+  intro nd
+  exact inv nd.1
+
+#print axioms store_invariant_premises_sat
+
 end Owner
 
 end AvailableChain.FGCompose.Tests.PopulationKernel
