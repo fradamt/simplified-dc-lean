@@ -1356,6 +1356,7 @@
     'AvailableChain.FGCompose.frontierSearch_rise_of_stop',
     'AvailableChain.FGCompose.frontierSearch_rise_rebase',
     'AvailableChain.FGCompose.frontierSearch_rise_task',
+    'AvailableChain.FGCompose.frontierSearch_rise_task_holder',
     'AvailableChain.FGCompose.frontierSearch_row_of_rise',
     'AvailableChain.FGCompose.frontierSearch_row_task',
     'AvailableChain.FGCompose.frontierSearch_save_seed',
