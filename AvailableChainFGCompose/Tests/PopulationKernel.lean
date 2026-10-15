@@ -2680,6 +2680,54 @@ private theorem universal_action_premises_sat : ∀ A (m : middleType A),
 
 #print axioms universal_action_premises_sat
 
+private theorem acceptance_effect_premises_sat :
+    AcceptStep_W core (env Nat) run electorate cfg 2 ready ∧
+    FGFinalityDurableLaws core ∧ ready 140 7 (block 7) 56 ∧ ready 141 9 (block 7) 56 := by
+  let arrivalPred (i : Nat) (e : V2.Event Nat protocol.Object) : Prop :=
+    match e with
+    | .deliver x o t => ∀ k : Fin 7, o = prop (k.val + 1) →
+        t = timing.proposal (2 * (k.val + 1)) ∧
+        ((x = 7 ∧ i = 20 * k.val + 20) ∨ (x = 9 ∧ i = 20 * k.val + 21))
+    | _ => True
+  let arrivalDec (i : Nat) (e : V2.Event Nat protocol.Object) : Decidable (arrivalPred i e) := by
+    cases e <;> dsimp only [arrivalPred] <;> infer_instance
+  have arrivals : ∀ i : Fin 144,
+      ((run.events[i.val]?).map (fun e => @decide (arrivalPred i e) (arrivalDec i e))).getD
+        true = true := by decide +kernel
+  have updates : ∀ k : Fin 7, ∀ x : Fin 2,
+      let i := 20 * k.val + if x = 0 then 20 else 21
+      let W := block (k.val + 1)
+      (core.core (V2.D.Run.stateBefore (env Nat) run (i + 1) (node x))).fg =
+        SimplexFG.Window.update_finality electorate cfg 2
+          { (core.core (V2.D.Run.stateBefore (env Nat) run i (node x))).fg with
+            TF := insert W (core.core (V2.D.Run.stateBefore (env Nat) run i (node x))).fg.TF } W ∧
+      (SimplexFG.Window.derive electorate cfg 2 W).F ∈
+        insert W (core.core (V2.D.Run.stateBefore (env Nat) run i (node x))).fg.TF := by
+    decide +kernel
+  refine ⟨?_, ?_, ⟨6, rfl, rfl⟩, ⟨6, rfl, rfl⟩⟩
+  · rintro i x W t _ ⟨k, rfl, he⟩
+    have hi : i < 144 := (List.getElem?_eq_some_iff.mp he).1
+    have h := arrivals ⟨i, hi⟩
+    rw [he] at h
+    have hp : arrivalPred i (.deliver x (prop (k.val + 1)) t) := of_decide_eq_true h
+    obtain ⟨rfl, hpos⟩ := hp k rfl
+    rcases hpos with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
+    · exact updates k 0
+    · exact updates k 1
+  · have mono : ∀ i j : Fin 8, i ≤ j → FGBlock.Preceq (store i).F (store j).F := by
+      decide +kernel
+    refine ⟨fun X => ⟨fun _ _ h => h, ?_, fun _ _ h => h⟩, fun _ _ => rfl⟩
+    intro st o h
+    have hl : st.1 ≤ (protocol.process st o).1 := by
+      cases hp : o.payload with
+      | inl X =>
+        simpa only [protocol, hp] using
+          (le_max_left st.1 (⟨min 7 (X.slot / 2), by omega⟩ : Fin 8))
+      | inr u => simpa only [protocol, hp] using (le_refl st.1)
+    exact KitFG.preceq_trans h (mono st.1 (protocol.process st o).1 hl)
+
+#print axioms acceptance_effect_premises_sat
+
 end Owner
 
 end AvailableChain.FGCompose.Tests.PopulationKernel
