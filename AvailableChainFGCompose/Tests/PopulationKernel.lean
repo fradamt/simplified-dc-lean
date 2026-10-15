@@ -843,5 +843,47 @@ private theorem acceptance_effect_premises_sat :
 
 #print axioms acceptance_effect_premises_sat
 
+private def selectedDelivery : BlockDelivery_W core (env Nat) run ready xBlock bBlock 32
+    (kernelDeadlineW timing 2 3) where
+  selected x _ := if x = 9 then ⟨32, 32⟩ else ⟨33, 32⟩
+  witness x hx := by
+    have hx : x = 7 ∨ x = 9 := by simpa using hx
+    rcases hx with rfl | rfl
+    all_goals
+      refine ⟨rfl, by decide, Or.inr ⟨le_rfl, ?_⟩⟩
+      decide
+
+set_option maxRecDepth 2048 in
+private theorem receipt_premises_sat :
+    Nonempty (AcceptPrem_W core (env Nat) run electorate cfg 2 ready xBlock bBlock 32
+      (kernelDeadlineW timing 2 3)) := by
+  refine ⟨⟨schedule_premises_sat, ?_, selectedDelivery, ?_, by decide⟩⟩
+  · rw [acceptance_effect_premises_sat.2.2.2]
+    exact preceq_refl _
+  · constructor
+    · intro x hx
+      dsimp only
+      intro _
+      have hx : x = 7 ∨ x = 9 := by simpa using hx
+      rcases hx with rfl | rfl
+      all_goals
+        change FGBlock.Preceq .genesis bBlock ∨ FGBlock.Preceq bBlock .genesis
+        exact Or.inl (genesis_preceq _)
+    · intro x hx
+      dsimp only
+      intro _ _
+      have hx : x = 7 ∨ x = 9 := by simpa using hx
+      rcases hx with rfl | rfl
+      all_goals
+        change FGBlock.Preceq bBlock xBlock ∨ (3 : Nat) < (obs.height xBlock).h_j
+        exact Or.inl (by decide)
+    · intro x hx
+      dsimp only
+      intro _ _
+      have hx : x = 7 ∨ x = 9 := by simpa using hx
+      rcases hx with rfl | rfl <;> dsimp only [selectedDelivery] <;> decide +kernel
+
+#print axioms receipt_premises_sat
+
 end AvailableChain.FGCompose.Tests.PopulationKernel
 end
