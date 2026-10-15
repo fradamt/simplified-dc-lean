@@ -115,5 +115,29 @@ private theorem frozen_premises_sat :
 
 #print axioms frozen_premises_sat
 
+private theorem frozen_full_bridge :
+    FrontierSearchStatement ladR ladS v5env ladrho ladO v5T ladI ladD.heightPair 12 1 4 4 1 := by
+  obtain ⟨hT, hk, crossing, schedule, mono, awake, joinedTick, readyCut, hServices,
+    receiptHeld, faultWeight, deltaF, hdelta, gap, hJst, hG, slotProposal, read, order,
+    signer, sourceParent, rowsReceipt, progressCoverage, hfold, honestQuorum, entryAgreement,
+    sourceSlot, ancestorSlot, eraseReflect, floor, gateCopy, service, common, heldSlot,
+    proposalSlot, justifiedSource, parentFrame, eraseParent, capReceipt, cap, hne, transfer⟩ :=
+    frozen_premises_sat
+  exact frontierSearch_holder (R := ladR) (S := ladS) (O := ladO) (T := v5T) (E := v5env) (rho := ladrho)
+    (I := ladI) (D := ladD) (Ef := v5E) (decodeProposal := laddecode) (bodyErase := id)
+    (bodyRows := fun _ => []) (blockWireRows := fun _ => []) (parentFG := ladparentFG)
+    (parentHeight := ladparentHeight) (validFor := ladvalidFor) (fold := ladfold) (Jst := 12)
+    (leaseSlots := 1) (obs := ladobs) (cert := v5cert) (inv := ladinv) (justif := v5justif)
+    (keep := ladkeep) (positive := by decide) (coreLaws := ladcore)
+    (erasePreceq := fun h => v5erase_mono h) (joined := fun _ => true) (receipt := ladreceipt)
+    (chainRows := fun _ _ => ladAllRows) (G := 4) (ΔF := 1) (deltaT := 4)
+    hT hk crossing schedule mono awake joinedTick readyCut hServices receiptHeld faultWeight
+    deltaF hdelta gap hJst hG slotProposal read order signer sourceParent rowsReceipt
+    progressCoverage hfold honestQuorum entryAgreement sourceSlot ancestorSlot eraseReflect
+    floor gateCopy service common heldSlot proposalSlot justifiedSource parentFrame eraseParent
+    capReceipt cap hne transfer
+
+#print axioms frozen_full_bridge
+
 end AvailableChain.FGCompose.Tests.POP6bFrozen
 end
