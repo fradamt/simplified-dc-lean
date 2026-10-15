@@ -1359,6 +1359,7 @@
     'AvailableChain.FGCompose.frontierSearch_rise_task_holder',
     'AvailableChain.FGCompose.frontierSearch_row_of_rise',
     'AvailableChain.FGCompose.frontierSearch_row_task',
+    'AvailableChain.FGCompose.frontierSearch_row_task_holder',
     'AvailableChain.FGCompose.frontierSearch_save_seed',
     'AvailableChain.FGCompose.frontierSearch_save_seed_holder',
     'AvailableChain.FGCompose.frontierSearch_seed_after',
