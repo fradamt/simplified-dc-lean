@@ -1457,6 +1457,7 @@
     'AvailableChain.FGCompose.frontierSearch_save_seed_fields_core',
     'AvailableChain.FGCompose.frontierSearch_save_seed_holder',
     'AvailableChain.FGCompose.frontierSearch_save_seed_holder_local_core',
+    'AvailableChain.FGCompose.frontierSearch_save_seed_holder_witness_core',
     'AvailableChain.FGCompose.frontierSearch_seed_after',
     'AvailableChain.FGCompose.frontierSearch_seed_after_core',
     'AvailableChain.FGCompose.frontierSearch_seed_later',
