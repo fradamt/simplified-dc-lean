@@ -350,6 +350,17 @@ private theorem do_entry_steps (x : Bool) : FGDependencySteps do_step x 2 6 := b
   exact .tail .notification (.tail .notification
     (.tail .leafRetry (.tail .leafRetry (.refl 2) s1) s2) s3) s4
 
+private theorem do_trace_facts (k : Nat) (hk : k ≤ 14) :
+    (1 ≤ do_trace.state k → do_trace.start 0 < k) ∧
+    (2 ≤ do_trace.state k → do_trace.start 2 < k) ∧
+    (∀ b, do_reads.notified (do_trace.state (k + 1)) b →
+      ¬ do_reads.notified (do_trace.state k) b →
+      (k = 10 ∧ b = 1) ∨ (k = 11 ∧ b = 2)) ∧
+    (∀ b, do_reads.accepted (do_trace.state (k + 1)) b →
+      ¬ do_reads.accepted (do_trace.state k) b →
+      (k = 8 ∧ b = 1) ∨ (k = 9 ∧ b = 2)) := by
+  interval_cases k <;> refine ⟨by decide, by decide, ?_, ?_⟩ <;> decide
+
 private theorem do_trace_laws :
     FGDependencyTraceLaws do_env do_run false do_history do_wireReads do_reads do_leaf
       do_step do_trace do_driver do_op do_arrival do_notify
@@ -364,11 +375,12 @@ private theorem do_trace_laws :
       List.getElem?_cons_succ, Option.some.injEq] at h <;> subst e <;> exact ⟨rfl, rfl⟩
   step_kind k hk := by
     change k < 14 at hk
-    interval_cases k <;> simp [dependencyOperationKind, do_op, do_step]
+    interval_cases k <;> decide
   operation_bound k hk := by
     change k < 14 at hk
     interval_cases k <;> simp only [do_op]
     all_goals first
+      | rfl
       | exact ⟨Or.inl ⟨rfl, rfl, rfl, rfl⟩, rfl, do_child_origin, rfl⟩
       | exact ⟨Or.inr ⟨rfl, rfl, rfl, rfl⟩, rfl, do_parent_origin, rfl⟩
       | exact ⟨rfl, 1, rfl, rfl⟩
@@ -442,8 +454,17 @@ private theorem do_trace_laws :
     have hj := do_events_bound h
     interval_cases j <;> simp only [List.getElem?_cons_zero,
       List.getElem?_cons_succ, Option.some.injEq] at h <;> subst e <;>
-      norm_num [do_trace] at lo hi <;> interval_cases k <;> simp [do_op]
-    all_goals intro q lo hi; interval_cases q
+      norm_num [do_trace] at lo hi <;> interval_cases k
+    all_goals first
+      | exact Or.inl ⟨_, _, _, rfl⟩
+      | exact Or.inr (Or.inr (Or.inl ⟨_, _, rfl⟩))
+      | exact Or.inr (Or.inr (Or.inr (Or.inl ⟨_, _, rfl⟩)))
+      | exact Or.inr (Or.inr (Or.inr (Or.inr (Or.inr (Or.inl rfl)))))
+      | exact Or.inr (Or.inr (Or.inr (Or.inr (Or.inr (Or.inr
+          (Or.inl ⟨_, rfl, rfl, rfl⟩))))))
+      | refine Or.inr (Or.inr (Or.inr (Or.inr (Or.inr (Or.inr
+          (Or.inr ⟨_, rfl, by decide, rfl, ?_⟩))))))
+    all_goals intro q lo hi; norm_num [do_trace] at lo hi; omega
   boundary_idle k hk outside := by
     change k < 14 at hk
     interval_cases k <;> simp only [do_op]
@@ -488,7 +509,7 @@ private theorem do_trace_laws :
     interval_cases j <;> simp only [List.getElem?_cons_zero,
       List.getElem?_cons_succ, Option.some.injEq] at h
     all_goals cases h <;> norm_num [do_trace] at lo hi ⊢
-    all_goals interval_cases k <;> simp_all [do_op]
+    all_goals interval_cases k <;> first | decide | cases op
   rebuild_program _ _ := rfl
   rebuild_data st _ := by
     refine ⟨rfl, rfl, fun _ => Iff.rfl, fun _ _ _ => Iff.rfl,
@@ -504,7 +525,7 @@ private theorem do_trace_laws :
     refine ⟨5, by decide, by decide, rfl, ?_, ?_, ?_, rfl⟩
     · intro q t lo hi op
       norm_num [do_trace] at lo hi
-      interval_cases q <;> simp_all [do_op]
+      interval_cases q <;> first | rfl | cases op
     · intro q lo hi
       norm_num [do_trace] at lo hi
       interval_cases q
@@ -516,10 +537,12 @@ private theorem do_trace_laws :
   refusal_history _ _ _ refused := refused.elim
   notification_creation k b hk notified fresh := by
     change k < 14 at hk
-    interval_cases k <;> simp_all
-    all_goals rcases notified with rfl | ⟨rfl, _⟩ | ⟨rfl, _⟩
-    · exact ⟨rfl, Or.inl ⟨rfl, rfl, rfl⟩, 8, by decide, by simp [do_op]⟩
-    · exact ⟨rfl, Or.inr ⟨rfl, rfl, rfl⟩, 9, by decide, by simp [do_op]⟩
+    have key := (do_trace_facts k (Nat.le_of_lt hk)).2.2.1 b notified fresh
+    rcases key with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
+    · exact ⟨do_parent, rfl, Or.inl ⟨rfl, rfl, rfl⟩, 8, by decide,
+        Or.inl ⟨by decide, Or.inl ⟨rfl, rfl, rfl, rfl⟩, rfl⟩⟩
+    · exact ⟨do_child, rfl, Or.inr ⟨rfl, rfl, rfl⟩, 9, by decide,
+        Or.inl ⟨by decide, Or.inr ⟨rfl, rfl, rfl, rfl⟩, rfl⟩⟩
   actual_read i st := by
     constructor
     · rintro ⟨lo, hi, rfl⟩
@@ -547,36 +570,32 @@ private theorem do_trace_laws :
     change k ≤ 14 at hk
     rcases origin with ⟨rfl, h, rfl⟩ | ⟨rfl, h, rfl⟩
     · refine ⟨do_child_origin, ?_⟩
-      interval_cases k <;> simp_all
+      exact (do_trace_facts k hk).1 h
     · refine ⟨do_parent_origin, ?_⟩
-      interval_cases k <;> simp_all
+      exact (do_trace_facts k hk).2.1 h
   leaf_step k b o z hk leaf hz := by
     change k < 14 at hk
     rcases leaf with ⟨_, (⟨ha, rfl, rfl, rfl⟩ | ⟨ha, rfl, rfl, rfl⟩)⟩
     · refine ⟨do_parent_origin, ?_, ?_⟩
-      · clear hz
-        interval_cases k <;> simp_all
+      · apply (do_trace_facts k (Nat.le_of_lt hk)).2.1
+        rw [ha]
       · change 3 = do_leafProtocol.process (do_trace.state k) (do_wire 1)
         rw [ha]
         rfl
     · refine ⟨do_child_origin, ?_, ?_⟩
-      · clear hz
-        interval_cases k <;> simp_all
+      · apply (do_trace_facts k (Nat.le_of_lt hk)).1
+        rw [ha]
+        decide
       · change 4 = do_leafProtocol.process (do_trace.state k) (do_wire 2)
         rw [ha]
         rfl
   origin_attribution k b hk held fresh := by
-    obtain ⟨kind, step⟩ := do_micro_steps k hk
-    obtain ⟨o, leaf⟩ := do_step_laws.insertion_leaf kind false _ _ b step held fresh
-    rcases leaf with ⟨_, (⟨ha, rfl, rfl, hz⟩ | ⟨ha, rfl, rfl, hz⟩)⟩
-    · exact ⟨do_parent, ⟨rfl, Or.inl ⟨ha, rfl, rfl, hz⟩⟩,
-        Or.inr ⟨rfl, by omega, rfl⟩, by
-          change k < 14 at hk
-          interval_cases k <;> simp_all [do_op], rfl, rfl⟩
-    · exact ⟨do_child, ⟨rfl, Or.inr ⟨ha, rfl, rfl, hz⟩⟩,
-        Or.inl ⟨rfl, by omega, rfl⟩, by
-          change k < 14 at hk
-          interval_cases k <;> simp_all [do_op], rfl, rfl⟩
+    have key := (do_trace_facts k (Nat.le_of_lt hk)).2.2.2 b held fresh
+    rcases key with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
+    · exact ⟨do_parent, ⟨rfl, Or.inl ⟨rfl, rfl, rfl, rfl⟩⟩,
+        Or.inr ⟨rfl, by decide, rfl⟩, rfl, rfl, rfl⟩
+    · exact ⟨do_child, ⟨rfl, Or.inr ⟨rfl, rfl, rfl, rfl⟩⟩,
+        Or.inl ⟨rfl, by decide, rfl⟩, rfl, rfl, rfl⟩
   read_correspondence i st read := by
     rcases read with ⟨_, _, rfl⟩
     exact ⟨Nat.le_refl 14, rfl, do_closed 6 (Or.inr rfl)⟩
@@ -613,7 +632,7 @@ private theorem do_trace_laws :
   event_order i j ei ej hi hj lt := by
     have bi := do_events_bound hi
     have bj := do_events_bound hj
-    interval_cases i <;> interval_cases j <;> simp_all
+    interval_cases i <;> interval_cases j <;> decide
   completion_cut j e deadline h strict := by
     have hj := do_events_bound h
     refine ⟨?_, ?_, ?_⟩
@@ -1737,6 +1756,17 @@ private theorem dr4_step_laws :
   no_signing _ _ _ _ _ := not_false
 
 
+private theorem dr4_trace_facts (k : Nat) (hk : k ≤ 21) :
+    (1 ≤ dr4_trace.state k → dr4_trace.start 0 < k) ∧
+    (2 ≤ dr4_trace.state k → dr4_trace.start 2 < k) ∧
+    (∀ b, dr4_reads.notified (dr4_trace.state (k + 1)) b →
+      ¬ dr4_reads.notified (dr4_trace.state k) b →
+      (k = 10 ∧ b = 1) ∨ (k = 11 ∧ b = 2)) ∧
+    (∀ b, dr4_reads.accepted (dr4_trace.state (k + 1)) b →
+      ¬ dr4_reads.accepted (dr4_trace.state k) b →
+      (k = 8 ∧ b = 1) ∨ (k = 9 ∧ b = 2)) := by
+  interval_cases k <;> refine ⟨by decide, by decide, ?_, ?_⟩ <;> decide
+
 set_option maxHeartbeats 800000 in
 -- Finite cases cover 21 microsteps, five events, and one read in the restart segment.
 private theorem dr4_trace_laws :
@@ -1753,11 +1783,12 @@ private theorem dr4_trace_laws :
       List.getElem?_cons_succ, Option.some.injEq] at h <;> subst e <;> exact ⟨rfl, rfl⟩
   step_kind k hk := by
     change k < 21 at hk
-    interval_cases k <;> simp [dependencyOperationKind, dr4_op, dr4_step, do_step]
+    interval_cases k <;> decide
   operation_bound k hk := by
     change k < 21 at hk
     interval_cases k <;> simp only [dr4_op]
     all_goals first
+      | rfl
       | exact ⟨Or.inl ⟨rfl, rfl, rfl, rfl⟩, rfl, dr4_child_origin, rfl⟩
       | exact ⟨Or.inr ⟨rfl, rfl, rfl, rfl⟩, rfl, dr4_parent_origin, rfl⟩
       | exact ⟨rfl, 1, rfl, rfl⟩
@@ -1848,8 +1879,17 @@ private theorem dr4_trace_laws :
     have hj := dr4_events_bound h
     interval_cases j <;> simp only [List.getElem?_cons_zero,
       List.getElem?_cons_succ, Option.some.injEq] at h <;> subst e <;>
-      norm_num [dr4_trace] at lo hi <;> interval_cases k <;> simp [dr4_op] <;>
-      intro q lo hi <;> interval_cases q <;> simp
+      norm_num [dr4_trace] at lo hi <;> interval_cases k
+    all_goals first
+      | exact Or.inl ⟨_, _, _, rfl⟩
+      | exact Or.inr (Or.inr (Or.inl ⟨_, _, rfl⟩))
+      | exact Or.inr (Or.inr (Or.inr (Or.inl ⟨_, _, rfl⟩)))
+      | exact Or.inr (Or.inr (Or.inr (Or.inr (Or.inr (Or.inl rfl)))))
+      | exact Or.inr (Or.inr (Or.inr (Or.inr (Or.inr (Or.inr
+          (Or.inl ⟨_, rfl, rfl, rfl⟩))))))
+      | refine Or.inr (Or.inr (Or.inr (Or.inr (Or.inr (Or.inr
+          (Or.inr ⟨_, rfl, by decide, rfl, ?_⟩))))))
+    all_goals intro q lo hi; norm_num at lo hi; interval_cases q <;> exact ⟨_, _, rfl⟩
   boundary_idle k hk outside := by
     change k < 21 at hk
     interval_cases k <;> simp only [dr4_op]
@@ -1895,7 +1935,7 @@ private theorem dr4_trace_laws :
     interval_cases j <;> simp only [List.getElem?_cons_zero,
       List.getElem?_cons_succ, Option.some.injEq] at h
     all_goals cases h <;> norm_num [dr4_trace] at lo hi ⊢
-    all_goals interval_cases k <;> simp_all [dr4_op]
+    all_goals interval_cases k <;> first | decide | cases op
   rebuild_program _ _ := rfl
   rebuild_data st t := by
     by_cases h : st = 8
@@ -1916,7 +1956,7 @@ private theorem dr4_trace_laws :
     · refine ⟨5, by decide, by decide, rfl, ?_, ?_, ?_, rfl⟩
       · intro q t lo hi op
         norm_num [dr4_trace] at lo hi
-        interval_cases q <;> simp_all [dr4_op]
+        interval_cases q <;> first | rfl | cases op
       · intro q lo hi
         norm_num [dr4_trace] at lo hi
         interval_cases q
@@ -1926,7 +1966,7 @@ private theorem dr4_trace_laws :
     · refine ⟨19, by decide, by decide, rfl, ?_, ?_, ?_, rfl⟩
       · intro q t lo hi op
         norm_num [dr4_trace] at lo hi
-        interval_cases q <;> simp_all [dr4_op]
+        interval_cases q <;> first | rfl | cases op
       · intro q lo hi
         norm_num [dr4_trace] at lo hi
         interval_cases q <;> simp [dr4_op]
@@ -1938,10 +1978,12 @@ private theorem dr4_trace_laws :
   refusal_history _ _ _ refused := refused.elim
   notification_creation k b hk notified fresh := by
     change k < 21 at hk
-    interval_cases k <;> simp_all
-    all_goals rcases notified with rfl | ⟨rfl, _⟩ | ⟨rfl, _⟩
-    · exact ⟨rfl, Or.inl (Or.inl ⟨rfl, rfl, rfl⟩), 8, by decide, by simp [dr4_op]⟩
-    · exact ⟨rfl, Or.inl (Or.inr ⟨rfl, rfl, rfl⟩), 9, by decide, by simp [dr4_op]⟩
+    have key := (dr4_trace_facts k (Nat.le_of_lt hk)).2.2.1 b notified fresh
+    rcases key with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
+    · exact ⟨do_parent, rfl, Or.inl (Or.inl ⟨rfl, rfl, rfl⟩), 8, by decide,
+        Or.inl ⟨by decide, Or.inl ⟨rfl, rfl, rfl, rfl⟩, rfl⟩⟩
+    · exact ⟨do_child, rfl, Or.inl (Or.inr ⟨rfl, rfl, rfl⟩), 9, by decide,
+        Or.inl ⟨by decide, Or.inr ⟨rfl, rfl, rfl, rfl⟩, rfl⟩⟩
   actual_read i st := by
     constructor
     · rintro ⟨lo, hi, rfl⟩
@@ -1969,36 +2011,32 @@ private theorem dr4_trace_laws :
     change k ≤ 21 at hk
     rcases origin with ⟨rfl, h, rfl⟩ | ⟨rfl, h, rfl⟩
     · refine ⟨dr4_child_origin, ?_⟩
-      interval_cases k <;> simp_all
+      exact (dr4_trace_facts k hk).1 h
     · refine ⟨dr4_parent_origin, ?_⟩
-      interval_cases k <;> simp_all
+      exact (dr4_trace_facts k hk).2.1 h
   leaf_step k b o z hk leaf hz := by
     change k < 21 at hk
     rcases leaf with ⟨_, (⟨ha, rfl, rfl, rfl⟩ | ⟨ha, rfl, rfl, rfl⟩)⟩
     · refine ⟨dr4_parent_origin, ?_, ?_⟩
-      · clear hz
-        interval_cases k <;> simp_all
+      · apply (dr4_trace_facts k (Nat.le_of_lt hk)).2.1
+        rw [ha]
       · change 3 = do_leafProtocol.process (dr4_trace.state k) (do_wire 1)
         rw [ha]
         rfl
     · refine ⟨dr4_child_origin, ?_, ?_⟩
-      · clear hz
-        interval_cases k <;> simp_all
+      · apply (dr4_trace_facts k (Nat.le_of_lt hk)).1
+        rw [ha]
+        decide
       · change 4 = do_leafProtocol.process (dr4_trace.state k) (do_wire 2)
         rw [ha]
         rfl
   origin_attribution k b hk held fresh := by
-    obtain ⟨kind, step⟩ := dr4_micro_steps k hk
-    obtain ⟨o, leaf⟩ := dr4_step_laws.insertion_leaf kind false _ _ b step held fresh
-    rcases leaf with ⟨_, (⟨ha, rfl, rfl, hz⟩ | ⟨ha, rfl, rfl, hz⟩)⟩
-    · exact ⟨do_parent, ⟨rfl, Or.inl ⟨ha, rfl, rfl, hz⟩⟩,
-        Or.inr ⟨rfl, by omega, rfl⟩, by
-          change k < 21 at hk
-          interval_cases k <;> simp_all [dr4_op], rfl, rfl⟩
-    · exact ⟨do_child, ⟨rfl, Or.inr ⟨ha, rfl, rfl, hz⟩⟩,
-        Or.inl ⟨rfl, by omega, rfl⟩, by
-          change k < 21 at hk
-          interval_cases k <;> simp_all [dr4_op], rfl, rfl⟩
+    have key := (dr4_trace_facts k (Nat.le_of_lt hk)).2.2.2 b held fresh
+    rcases key with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
+    · exact ⟨do_parent, ⟨rfl, Or.inl ⟨rfl, rfl, rfl, rfl⟩⟩,
+        Or.inr ⟨rfl, by decide, rfl⟩, rfl, rfl, rfl⟩
+    · exact ⟨do_child, ⟨rfl, Or.inr ⟨rfl, rfl, rfl, rfl⟩⟩,
+        Or.inl ⟨rfl, by decide, rfl⟩, rfl, rfl, rfl⟩
   read_correspondence i st read := by
     rcases read with ⟨_, _, rfl⟩
     exact ⟨by change 14 ≤ 21; decide, rfl, dr4_closed 6 (Or.inr (Or.inl rfl))⟩
@@ -2037,7 +2075,7 @@ private theorem dr4_trace_laws :
   event_order i j ei ej hi hj lt := by
     have bi := dr4_events_bound hi
     have bj := dr4_events_bound hj
-    interval_cases i <;> interval_cases j <;> simp_all
+    interval_cases i <;> interval_cases j <;> decide
   completion_cut j e deadline h strict := by
     have hj := dr4_events_bound h
     refine ⟨?_, ?_, ?_⟩
@@ -3223,6 +3261,17 @@ private theorem rs_micro_steps (k : Nat) (hk : k < rs_trace.length) :
 
 private noncomputable abbrev rs_read (_ : Bool) (_ _ : Nat) : Prop := False
 
+private theorem rs_trace_facts (k : Nat) (hk : k ≤ 12) :
+    (1 ≤ rs_trace.state k → rs_trace.start 0 < k) ∧
+    (2 ≤ rs_trace.state k → rs_trace.start 1 < k) ∧
+    (∀ b, rs_reads.notified (rs_trace.state (k + 1)) b →
+      ¬ rs_reads.notified (rs_trace.state k) b →
+      (k = 5 ∧ b = 1) ∨ (k = 10 ∧ b = 2)) ∧
+    (∀ b, rs_reads.accepted (rs_trace.state (k + 1)) b →
+      ¬ rs_reads.accepted (rs_trace.state k) b →
+      (k = 4 ∧ b = 1) ∨ (k = 9 ∧ b = 2)) := by
+  interval_cases k <;> refine ⟨by decide, by decide, ?_, ?_⟩ <;> decide
+
 private theorem rs_trace_laws :
     FGDependencyTraceLaws do_env rs_run false rs_history do_wireReads rs_reads rs_leaf
       rs_step rs_trace rs_driver rs_op rs_arrival rs_notify
@@ -3237,11 +3286,12 @@ private theorem rs_trace_laws :
       List.getElem?_cons_succ, Option.some.injEq] at h <;> subst e <;> exact ⟨rfl, rfl⟩
   step_kind k hk := by
     change k < 12 at hk
-    interval_cases k <;> simp [dependencyOperationKind, rs_op, rs_step]
+    interval_cases k <;> decide
   operation_bound k hk := by
     change k < 12 at hk
     interval_cases k <;> simp only [rs_op]
     all_goals first
+      | rfl
       | exact ⟨Or.inl ⟨rfl, rfl, rfl, rfl⟩, rfl, rs_child_origin, rfl⟩
       | exact ⟨Or.inr ⟨rfl, rfl, rfl, rfl⟩, rfl, rs_parent_origin, rfl⟩
       | exact ⟨rfl, 2, rfl, rfl⟩
@@ -3297,8 +3347,17 @@ private theorem rs_trace_laws :
     have hj := rs_events_bound h
     interval_cases j <;> simp only [List.getElem?_cons_zero,
       List.getElem?_cons_succ, Option.some.injEq] at h <;> subst e <;>
-      norm_num [rs_trace] at lo hi <;> interval_cases k <;> simp [rs_op]
-    all_goals intro q lo hi; omega
+      norm_num [rs_trace] at lo hi <;> interval_cases k
+    all_goals first
+      | exact Or.inl ⟨_, _, _, rfl⟩
+      | exact Or.inr (Or.inr (Or.inl ⟨_, _, rfl⟩))
+      | exact Or.inr (Or.inr (Or.inr (Or.inl ⟨_, _, rfl⟩)))
+      | exact Or.inr (Or.inr (Or.inr (Or.inr (Or.inr (Or.inl rfl)))))
+      | exact Or.inr (Or.inr (Or.inr (Or.inr (Or.inr (Or.inr
+          (Or.inl ⟨_, rfl, rfl, rfl⟩))))))
+      | refine Or.inr (Or.inr (Or.inr (Or.inr (Or.inr (Or.inr
+          (Or.inr ⟨_, rfl, by decide, rfl, ?_⟩))))))
+    all_goals intro q lo hi; norm_num [rs_trace] at lo hi; omega
   boundary_idle k hk outside := by
     change k < 12 at hk
     interval_cases k <;> simp only [rs_op]
@@ -3353,7 +3412,7 @@ private theorem rs_trace_laws :
       List.getElem?_cons_succ, Option.some.injEq] at h
     all_goals cases h
     norm_num [rs_trace] at lo hi ⊢
-    interval_cases k <;> simp_all [rs_op]
+    interval_cases k <;> first | decide | cases op
   rebuild_program _ _ := rfl
   rebuild_data st _ := by
     refine ⟨rfl, rfl, fun _ => Iff.rfl, fun _ _ _ => Iff.rfl,
@@ -3369,7 +3428,7 @@ private theorem rs_trace_laws :
     refine ⟨11, by decide, by decide, rfl, ?_, ?_, ?_, rfl⟩
     · intro q t lo hi op
       norm_num [rs_trace] at lo hi
-      interval_cases q <;> simp_all [rs_op]
+      interval_cases q <;> first | rfl | cases op
     · intro q lo hi
       norm_num [rs_trace] at lo hi
       omega
@@ -3381,10 +3440,12 @@ private theorem rs_trace_laws :
   refusal_history _ _ _ refused := refused.elim
   notification_creation k b hk notified fresh := by
     change k < 12 at hk
-    interval_cases k <;> simp_all
-    all_goals rcases notified with rfl | ⟨rfl, _⟩ | ⟨rfl, _⟩
-    · exact ⟨rfl, Or.inl ⟨rfl, rfl, rfl⟩, 4, by decide, by simp [rs_op]⟩
-    · exact ⟨rfl, Or.inr ⟨rfl, rfl, rfl⟩, 9, by decide, by simp [rs_op]⟩
+    have key := (rs_trace_facts k (Nat.le_of_lt hk)).2.2.1 b notified fresh
+    rcases key with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
+    · exact ⟨rs_parent, rfl, Or.inl ⟨rfl, rfl, rfl⟩, 4, by decide,
+        Or.inl ⟨by decide, Or.inl ⟨rfl, rfl, rfl, rfl⟩, rfl⟩⟩
+    · exact ⟨rs_child, rfl, Or.inr ⟨rfl, rfl, rfl⟩, 9, by decide,
+        Or.inl ⟨by decide, Or.inr ⟨rfl, rfl, rfl, rfl⟩, rfl⟩⟩
   actual_read i st := by
     constructor
     · intro h; exact h.elim
@@ -3405,30 +3466,27 @@ private theorem rs_trace_laws :
     change k ≤ 12 at hk
     rcases origin with ⟨rfl, h, rfl⟩ | ⟨rfl, h, rfl⟩
     · refine ⟨rs_child_origin, ?_⟩
-      interval_cases k <;> simp_all
+      exact (rs_trace_facts k hk).1 h
     · refine ⟨rs_parent_origin, ?_⟩
-      interval_cases k <;> simp_all
+      exact (rs_trace_facts k hk).2.1 h
   leaf_step k b o z hk leaf hz := by
     change k < 12 at hk
     rcases leaf with ⟨_, (⟨ha, rfl, rfl, rfl⟩ | ⟨ha, rfl, rfl, rfl⟩)⟩
     · refine ⟨rs_parent_origin, ?_, ?_⟩
-      · clear hz
-        interval_cases k <;> simp_all
+      · apply (rs_trace_facts k (Nat.le_of_lt hk)).2.1
+        rw [ha]
       · change 3 = rs_leafProtocol.process (rs_trace.state k) (do_wire 1)
         rw [ha]
         rfl
     · refine ⟨rs_child_origin, ?_, ?_⟩
-      · clear hz
-        interval_cases k <;> simp_all
+      · apply (rs_trace_facts k (Nat.le_of_lt hk)).1
+        rw [ha]
+        decide
       · change 6 = rs_leafProtocol.process (rs_trace.state k) (do_wire 2)
         rw [ha]
         rfl
   origin_attribution k b hk held fresh := by
-    have key : (k = 4 ∧ b = 1) ∨ (k = 9 ∧ b = 2) := by
-      change k < 12 at hk
-      revert held fresh
-      revert b
-      interval_cases k <;> decide
+    have key := (rs_trace_facts k (Nat.le_of_lt hk)).2.2.2 b held fresh
     rcases key with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
     · exact ⟨rs_parent, ⟨rfl, Or.inl ⟨rfl, rfl, rfl, rfl⟩⟩,
         Or.inr ⟨rfl, by decide, rfl⟩, rfl, rfl, rfl⟩
@@ -3466,7 +3524,7 @@ private theorem rs_trace_laws :
   event_order i j ei ej hi hj lt := by
     have bi := rs_events_bound hi
     have bj := rs_events_bound hj
-    interval_cases i <;> interval_cases j <;> simp_all
+    interval_cases i <;> interval_cases j <;> decide
   completion_cut j e deadline h strict := by
     have hj := rs_events_bound h
     refine ⟨?_, ?_, ?_⟩
