@@ -117,7 +117,7 @@ private abbrev wire : FGHistoryWireReads reads where
 private abbrev decodeProposal (o : protocol.Object) : Option (Slot × FGBlock (Fin 1)) :=
   match o.payload with | .inr X => some (X.slot, X) | .inl _ => none
 private abbrev parentFG (_ : Nat) (B : Block) : Option (FGBlock (Fin 1)) :=
-  ((List.range 65).map chain).find? (fun X => decide (v5erase X = B))
+  some (chain B.slot)
 private abbrev fold (_ : Nat) (_ : Slot) (P : FGBlock (Fin 1)) := Window.derive v5E v5cfg 2 P
 private abbrev parentHeight (st : Nat) (s : Slot) (P : FGBlock (Fin 1)) : Height × BlockId :=
   ((fold st s P).h, (fold st s P).T_h.root)
