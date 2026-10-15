@@ -139,5 +139,35 @@ private theorem frozen_full_bridge :
 
 #print axioms frozen_full_bridge
 
+private theorem frozen_selected_witness :
+    (∃ j ev, timeIdx ladrho 30 ≤ j ∧ ladrho.events[j]? = some ev ∧
+      ev.time ≤ 30 + frontierSearchRiseBudget v5T 4 1 7 ∧
+      j = 44 ∧ ev = ladDel (ladp 4) 37) ∧
+    ∃ rStar, ladHR rStar 5 ∧
+      (∀ r, ladHR r 5 → rStar ≤ r) ∧ rStar = 4 ∧
+      ∀ ρ : Time, ρ = 7 ∨ ρ = 8 → ∃ j ev, ladrho.events[j]? = some ev ∧
+        j = 44 ∧ ev.time = 37 ∧
+        v5T.action rStar ≤ ev.time + frontierSearchRowBudget v5T 4 1 ρ := by
+  obtain ⟨h1, h2, h3, h4, h5, ha7, ha8, _, hd7, hd8, hH, _⟩ := ladSearch_premises_sat
+  obtain ⟨hrise, hrow⟩ := (FrontierSearchStatement_def ladR ladS v5env ladrho ladO v5T ladI
+    ladD.heightPair 12 1 4 4 1).mp frozen_full_bridge rfl ⟨by decide⟩ 1 30 4 h1 h2 h3 h4 h5 ladrowCap
+  refine ⟨?_, ?_⟩
+  · obtain ⟨j, ev, hj, hev, ht, hh, hcap⟩ := hrise 7 ha7 (by decide +kernel)
+    obtain ⟨rfl, rfl⟩ := ladriseWitness hj hev hh hcap
+    exact ⟨_, _, hj, hev, ht, rfl, rfl⟩
+  · obtain ⟨rStar, hr, hfirst, hall⟩ := hrow ⟨7, ha7, by decide +kernel⟩
+    have hr4 : rStar = 4 := (ladrow5 rStar).mp hr
+    refine ⟨rStar, hr, hfirst, hr4, ?_⟩
+    rintro ρ (rfl | rfl)
+    · obtain ⟨j, ev, hj, hev, _, hh, hcap, hrowt⟩ := hall 7 ha7 (by decide +kernel)
+      obtain ⟨rfl, rfl⟩ := ladriseWitness hj hev hh hcap
+      exact ⟨_, _, hev, rfl, rfl, hrowt⟩
+    · obtain ⟨j, ev, hj, hev, _, hh, hcap, hrowt⟩ := hall 8 ha8 (by decide +kernel)
+      obtain ⟨rfl, rfl⟩ := ladriseWitness hj hev hh hcap
+      exact ⟨_, _, hev, rfl, rfl, hrowt⟩
+
+
+#print axioms frozen_selected_witness
+
 end AvailableChain.FGCompose.Tests.POP6bFrozen
 end
