@@ -2,6 +2,10 @@ module
 public import AvailableChainFGCompose.Proofs.Healing.PromotionAge
 public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchStop
 
+public import AvailableChainFGCompose.Proofs.Population.FrontierSearchHG2a
+
+public import AvailableChainFGCompose.Proofs.Population.HolderBaseService
+
 public section
 
 namespace AvailableChain.FGCompose
@@ -22,39 +26,6 @@ variable (validFor : Prot.State → Slot → FGBlock (Fin n) → Wire → Bool)
 variable (fold : Prot.State → Slot → FGBlock (Fin n) → Window.State (Fin n))
 variable (laws : FGHeightLaws Ef O.height)
 
-private theorem p0d5b_hg2a_action (hT : FGTimingLaws T) (r : Nat) :
-    T.action r = (r : Time) * FGCompose.P T + 6 * T.delta := by
-  rw [hT.action_eq, hT.gate_eq, hT.proposal_eq]
-  unfold FGCompose.P
-  push_cast
-  ring
-
-private theorem p0d5b_hg2a_kappa_two (hT : FGTimingLaws T) (ΔF : Time) (hF : 0 ≤ ΔF) :
-    (2 : Time) ≤ kappaF T ΔF := by
-  have hd : 0 < 4 * T.delta := by linarith [hT.delta_pos]
-  have hn : 0 ≤ 6 * T.delta + ΔF + 4 * T.delta - 1 := by
-    have hd1 : (1 : Time) ≤ T.delta := hT.delta_pos
-    linarith
-  have hc : 6 * T.delta + ΔF ≤ (kappaF T ΔF : Time) * (4 * T.delta) := by
-    delta kappaF
-    rw [Int.toNat_of_nonneg (Int.ediv_nonneg hn hd.le)]
-    have hhi := Int.lt_ediv_add_one_mul_self (6 * T.delta + ΔF + 4 * T.delta - 1) hd
-    nlinarith
-  have hnat : 2 ≤ kappaF T ΔF := by
-    by_contra hk
-    have hk' : (kappaF T ΔF : Time) ≤ 1 := by
-      exact_mod_cast (show kappaF T ΔF ≤ 1 by omega)
-    nlinarith [hT.delta_pos]
-  exact_mod_cast hnat
-
-omit [DecidableEq V] in
-private theorem p0d5b_hg2a_idx_mono {d d' : Time} (hdd : d ≤ d') :
-    V2.D.Run.idxBefore rho d ≤ V2.D.Run.idxBefore rho d' := by
-  rw [V2.D.Run.idxBefore_def, V2.D.Run.idxBefore_def, ← List.countP_eq_length_filter,
-    ← List.countP_eq_length_filter]
-  exact List.countP_mono_left (fun e _ he => decide_eq_true
-    (lt_of_lt_of_le (of_decide_eq_true he) hdd))
-
 /-- Blueprint 21:1695--1720; HG4-RISE F1/F2.
 DC: SAME the capped entry and first-opening bounds fit the fixed HG.4 guard.
 The epsF bound follows from the LivenessBoundW field. -/
@@ -64,12 +35,7 @@ theorem frontierSearch_hg2a_bound (hT : FGTimingLaws T) (G ΔF d a tU : Time)
     max (a + Γ T G - T.delta + epsF T ΔF)
       (tU + 2 * FGCompose.P T + Γ T G - 3 * T.delta) ≤
         d + (2 * FGCompose.P T + Γ T G - 9 * T.delta) := by
-  have he : epsF T ΔF ≤ FGCompose.P T - 8 * T.delta := by
-    have hk : (kappaF T ΔF : Time) ≤ T.roundSlots := by exact_mod_cast hbound.kappa_le_R
-    change 4 * (kappaF T ΔF : Time) * T.delta - 8 * T.delta ≤
-      4 * (T.roundSlots : Time) * T.delta - 8 * T.delta
-    nlinarith [hT.delta_pos]
-  apply max_le <;> linarith [hT.delta_pos]
+  exact frontierSearch_hg2a_bound_core T hT G ΔF d a tU hbound ha hU
 
 /-- Blueprint 21:1592--1640; HG4-RISE F1 STOP evidence.
 DC: SAME the existing service budget is 5Δ after the terminal budget.
@@ -79,8 +45,7 @@ theorem frontierSearch_hg2a_gate_cost (G ΔF a tU : Time) :
       (tU + 2 * FGCompose.P T + Γ T G + 2 * T.delta) =
     max (a + Γ T G - T.delta + epsF T ΔF)
       (tU + 2 * FGCompose.P T + Γ T G - 3 * T.delta) + 5 * T.delta := by
-  rw [← max_add_add_right]
-  congr 1 <;> ring
+  exact frontierSearch_hg2a_gate_cost_core T G ΔF a tU
 
 omit [DecidableEq V] in
 /-- Blueprint 21:1592--1640; HG4-RISE F1, slot component only.
@@ -106,18 +71,7 @@ theorem frontierSearch_hg2a_gap (hT : FGTimingLaws T) {G ΔF : Time}
       T.gate s ≤
         max (T.action r + Γ T G + 4 * T.delta + epsF T ΔF)
           (T.proposal U.slot + 2 * FGCompose.P T + Γ T G + 2 * T.delta) := by
-  have hF : 0 ≤ ΔF := by
-    rw [hdelta] at deltaF
-    linarith [hT.delta_pos]
-  have hwin : max ((r : Time) * FGCompose.P T + betaF T ΔF - 4 * T.delta)
-      (T.proposal U.slot + 2 * FGCompose.P T - 4 * T.delta) + G ≤ rho.horizon := by
-    have := (healing_promotion_gap_remainder T hT G).1
-    rw [← max_add_add_right]
-    obtain ⟨ha, hU⟩ := max_le_iff.mp hhor
-    rw [p0d5b_hg2a_action T hT] at ha
-    unfold epsF at ha
-    apply max_le <;> linarith [hT.delta_pos]
-  exact healing_promotion_age_gap T hT I E rho gap hF r U.slot hgst hwin
+  exact frontierSearch_hg2a_gap_core T E rho I hT deltaF hdelta gap r U hgst hhor
 
 include laws in
 /-- ROOT-DIGEST W2b. Blueprint 21:1592–1640; S5 H2, route steps 1–8.
@@ -170,90 +124,12 @@ theorem frontier_hg2a_receipt (hT : FGTimingLaws T)
     (hhor : max (T.action r + Γ T G - T.delta + epsF T ΔF)
       (T.proposal U.slot + 2 * FGCompose.P T + Γ T G - 3 * T.delta) ≤ rho.horizon) :
     FrontierHG2aResult R E rho O T I G ΔF i m r U := by
-  have hGST : E.t_GST ≤ u := hJst.trans hready
-  classical
-  let Dl := max (T.action r + Γ T G - T.delta + epsF T ΔF)
-    (T.proposal U.slot + 2 * FGCompose.P T + Γ T G - 3 * T.delta)
-  rcases frontierSearch_strict_cap_or_rise R E rho schedule mono i m Dl hstart
-      with hrise | hcap
-  · exact Or.inl hrise
-  · right
-    have hqT : T.proposal q ≤ (r : Time) * FGCompose.P T := by
-      have hc : (q : Time) ≤ (r : Time) * T.roundSlots := by exact_mod_cast hqr
-      rw [hT.proposal_eq]
-      change _ ≤ (r : Time) * (4 * (T.roundSlots : Time) * T.delta)
-      nlinarith [hT.delta_pos]
-    have hsync : E.t_GST ≤ (r : Time) * FGCompose.P T := hGST.trans (hu.trans hqT)
-    obtain ⟨_, s, hlo, hhi, hslot, hterminal, _⟩ :=
-      frontierSearch_hg2a_gap T E rho I hT deltaF hdelta gap r U hsync hhor
-    have htD : T.proposal s < Dl := by linarith [hT.delta_pos]
-    have hshor : T.proposal s ≤ rho.horizon := htD.le.trans hhor
-    obtain ⟨hc, hage⟩ := promotion_age_grid T hT r s U ΔF hlo
-    have hF : 0 ≤ ΔF := by
-      rw [hdelta] at deltaF
-      linarith [hT.delta_pos]
-    have hk := p0d5b_hg2a_kappa_two T hT ΔF hF
-    have hb8 : 8 * T.delta ≤ betaF T ΔF := by
-      change 8 * T.delta ≤ 4 * (kappaF T ΔF : Time) * T.delta
-      nlinarith [hT.delta_pos]
-    have hat : T.action r ≤ T.proposal s := by
-      have hc' := hc
-      change (r : Time) * FGCompose.P T + betaF T ΔF ≤ T.proposal s at hc'
-      rw [p0d5b_hg2a_action T hT]
-      linarith [hT.delta_pos]
-    have hqgate : T.gate q ≤ T.proposal s := by
-      rw [hT.gate_eq]
-      rw [p0d5b_hg2a_action T hT] at hat
-      linarith only [hqT, hat]
-    have hstartAction : E.t_GST ≤ T.action r := by
-      rw [p0d5b_hg2a_action T hT]
-      linarith [hT.delta_pos]
-    have hgsts : E.t_GST + 4 * T.delta ≤ T.proposal s := by
-      have hc' := hc
-      change (r : Time) * FGCompose.P T + betaF T ΔF ≤ T.proposal s at hc'
-      linarith
-    obtain ⟨X, hnew, hXslot⟩ := slotProposal s hslot hgsts hshor
-    have hf := service (T.proposal s) hqgate hshor (fun k x _ hkt hx => hcap k x
-      (hkt.trans (frontierSearch_timeIdx_le_idxBefore rho htD)) hx)
-    obtain ⟨hcovered, hentry, hentryEq, _⟩ := hf.2.2.2.2 r hqr hat
-    obtain ⟨U0, hU0, _, hrows⟩ := healing_promotion_bounded_rows R S E rho O.height T
-      D.heightPair Ef laws ⟨_, hQ.1.2⟩ hentry hcovered entryAgreement sourceSlot ancestorSlot
-    have hU0U : U0 = U := by
-      obtain ⟨K, _, _, _, _, _, hK, _, _, _, _, _, hKU0, _⟩ := hrows _ hQ.1.2
-      exact hKU0.symm.trans ((hentryEq _ K hQ.1.2 hK).trans hU.symm)
-    subst U0
-    have hqs : q + 2 ≤ s := by
-      obtain ⟨_, _, _, _, _, hafter⟩ :=
-        healing_promotion_row_deadline T hT E hF hbound (rSent := r) le_rfl hstartAction hc
-      omega
-    have hQX : FGBlock.Preceq Qfg X.parent := by
-      have hb := hf.2.1 s (R.erase X) hqs le_rfl hnew
-      rw [← he, eraseParent] at hb
-      exact erasePreceq _ _ hb
-    have hUP : FGBlock.Preceq U X.parent := by
-      rw [hU]
-      exact KitFG.preceq_trans (laws.entry_preceq Qfg) hQX
-    have src : PromotionSourceAt R S E rho O T I D ΔF r m U s X := by
-      refine ⟨hU0, hUP, hnew, hXslot, hstartAction, hc, hage, hshor, ?_⟩
-      intro x hx
-      obtain ⟨_, _, j, rSent, a, _, _, _, _, _, _, _, _, hr, ha, hn⟩ := hrows x hx
-      exact ⟨j, rSent, a, hr, ha, hn⟩
-    have hh := promotion_age_advance_of_source R S O T E rho I D Ef decodeProposal bodyErase
-      bodyRows blockWireRows parentFG parentHeight validFor fold laws hT schedule faultWeight
-      deltaF hdelta src hδ hbound rowsReceipt progressCoverage hfold honestQuorum read order
-      signer
-    obtain ⟨y, hy, hheld⟩ := capReceipt m s Qfg X hnew (by linarith [hT.delta_pos]) hQX
-      (fun k x hk hx => hcap k x (hk.trans (p0d5b_hg2a_idx_mono rho hterminal)) hx)
-      hQm (hterminal.trans hhor)
-    have heldMono {d d' : Time} (hdd : d ≤ d')
-        (hheld : Gen.V2.Duty.HoldsBefore E rho (fun nd => X ∈ (R.core nd).fg.TF) d y) :
-        Gen.V2.Duty.HoldsBefore E rho (fun nd => X ∈ (R.core nd).fg.TF) d' y := by
-      rw [Gen.V2.Duty.HoldsBefore_def,
-        ← Gen.V2.Duty.stateBefore_idxBefore E rho d schedule] at hheld
-      rw [Gen.V2.Duty.HoldsBefore_def,
-        ← Gen.V2.Duty.stateBefore_idxBefore E rho d' schedule]
-      exact keep _ _ (p0d5b_hg2a_idx_mono rho hdd) y hheld
-    exact ⟨s, X, hnew, hXslot, hh, y, hy, heldMono hterminal hheld⟩
+  exact frontier_hg2a_receipt_holder R S O T E rho I D Ef decodeProposal bodyErase bodyRows
+    blockWireRows parentFG parentHeight validFor fold laws hT schedule faultWeight deltaF hdelta
+    gap hJst mono keep eraseParent erasePreceq slotProposal read order signer capReceipt hδ hbound
+    rowsReceipt progressCoverage hfold honestQuorum hready hQ he hQm hu hqr hU (fun t hg ht hc =>
+    frontierLocalService_to_holder_core (service t hg ht hc)) entryAgreement sourceSlot
+    ancestorSlot hstart hhor
 
 end AvailableChain.FGCompose
 end
