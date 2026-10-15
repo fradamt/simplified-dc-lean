@@ -1,5 +1,4 @@
 module
-public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchHG2a
 public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchTail
 public import AvailableChainFGCompose.Proofs.Population.FrontierSearchRise
 

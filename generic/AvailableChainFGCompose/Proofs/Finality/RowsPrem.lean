@@ -1,6 +1,4 @@
 module
-public import AvailableChainFGCompose.Proofs.Finality.Rows
-public import AvailableChainFGCompose.Proofs.Finality.RowsRecords
 public import AvailableChainFGCompose.Proofs.Population.RowsPrem
 
 public section
