@@ -2337,6 +2337,37 @@ private theorem store_invariant_premises_sat : ∀ nd : protocol.State,
 
 #print axioms store_invariant_premises_sat
 
+private theorem tree_cases :
+    (∀ k W, FGBlock.Preceq W (block k) → ∃ l ≤ k, W = block l) ∧
+    (∀ (nd : protocol.State) W, W ∈ (core.core nd).fg.TF →
+      ∃ k : Fin 8, k ≤ nd.1 ∧ W = block k) := by
+  constructor
+  · intro k
+    induction k with
+    | zero =>
+      intro W h
+      rw [block] at h
+      obtain rfl := preceq_genesis.mp h
+      exact ⟨0, le_rfl, by rw [block]⟩
+    | succ k ih =>
+      intro W h
+      by_cases he : W = block (k + 1)
+      · exact ⟨k + 1, le_rfl, he⟩
+      · rw [block] at h
+        rw [block] at he
+        obtain ⟨l, hl, hw⟩ := ih W (preceq_parent_of_preceq_node h he)
+        exact ⟨l, by omega, hw⟩
+  · intro nd W hW
+    obtain ⟨_, _, _, _, _, _, htf, _, _⟩ := data_premises_sat.1 nd.1
+    change W ∈ (store nd.1).TF at hW
+    rw [htf] at hW
+    obtain ⟨k, hk, rfl⟩ := Finset.mem_image.mp hW
+    have hk' := Finset.mem_range.mp hk
+    have hn := nd.1.isLt
+    exact ⟨⟨k, by omega⟩, by exact Nat.le_of_lt_succ hk', rfl⟩
+
+#print axioms tree_cases
+
 end Owner
 
 end AvailableChain.FGCompose.Tests.PopulationKernel
