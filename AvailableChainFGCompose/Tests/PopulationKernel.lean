@@ -1487,5 +1487,39 @@ private theorem frozen_action_premises_sat : ∃ m : middleType frozenRun,
 
 #print axioms frozen_action_premises_sat
 
+private theorem reflection_premises_sat (A B : FGBlock (Fin 1))
+    (h : Block.Preceq (erase A) (erase B)) : FGBlock.Preceq A B := by
+  have inj : Function.Injective erase := by
+    intro X
+    induction X with
+    | genesis => intro Y he; cases Y <;> simp_all [erase]
+    | node p s r x rs ih =>
+      intro Y he
+      cases Y with
+      | genesis => simp [erase] at he
+      | node q t u y ts =>
+        simp only [erase, Block.node.injEq] at he
+        obtain ⟨hp, hs, hr, hb⟩ := he
+        obtain ⟨hx, hrows⟩ := encFGBody_inj hb
+        cases ih hp
+        cases hs
+        cases hr
+        cases hx
+        cases hrows
+        rfl
+  induction B with
+  | genesis =>
+    have he : erase A = erase .genesis := of_decide_eq_true h
+    exact inj he ▸ preceq_refl _
+  | node P slot root app rows ih =>
+    change (decide (erase A = erase (.node P slot root app rows)) ||
+      Block.preceq (erase A) (erase P)) = true at h
+    rw [Bool.or_eq_true] at h
+    rcases h with he | hp
+    · exact inj (of_decide_eq_true he) ▸ preceq_refl _
+    · exact preceq_node_of_preceq slot root app rows (ih hp)
+
+#print axioms reflection_premises_sat
+
 end AvailableChain.FGCompose.Tests.PopulationKernel
 end
