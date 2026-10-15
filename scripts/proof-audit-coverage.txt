@@ -9027,4 +9027,115 @@
             'AvailableChain.FGCompose.FGHonestSeats_def',
         ),
     },
+    'AvailableChainFGCompose.Tests.PopulationPromotionAxioms': {
+        'AvailableChainFGCompose.Proofs.Population.Promotion': (
+            'AvailableChain.FGCompose.healing_promotion_bounded_rows_holder',
+            'AvailableChain.FGCompose.healing_promotion_fixed_rows_holder',
+            'AvailableChain.FGCompose.p0d3_bound_batch_holder',
+        ),
+        'AvailableChainFGCompose.Proofs.Population.PromotionBridges': (
+            'AvailableChain.FGCompose.fixedRowsFG_frozen_iff',
+            'AvailableChain.FGCompose.openingCoveredFG_frozen_iff',
+        ),
+        'AvailableChainFGCompose.Proofs.Population.PromotionRows': (
+            'AvailableChain.FGCompose.healing_promotion_same_rows_holder',
+            'AvailableChain.FGCompose.healing_promotion_same_rows_on_holder',
+            'AvailableChain.FGCompose.p0d3_same_batch_holder',
+            'AvailableChain.FGCompose.p0d3_same_batch_on_holder',
+        ),
+        'AvailableChainFGCompose.Statements.Population.Promotion': (
+            'AvailableChain.FGCompose.FixedRowsFG',
+            'AvailableChain.FGCompose.FixedRowsFG_def',
+            'AvailableChain.FGCompose.OpeningCoveredFG',
+            'AvailableChain.FGCompose.OpeningCoveredFG_def',
+        ),
+    },
+    'AvailableChainFGCompose.Tests.PopulationAgeAxioms': {
+        'AvailableChainFGCompose.Proofs.Population.FrontierSearchAge': (
+            'AvailableChain.FGCompose.frontierSearch_age_service_holder',
+        ),
+        'AvailableChainFGCompose.Proofs.Population.PromotionAge': (
+            'AvailableChain.FGCompose.healing_promotion_age_receipt_holder',
+            'AvailableChain.FGCompose.healing_promotion_age_service_holder',
+        ),
+        'AvailableChainFGCompose.Proofs.Population.PromotionSource': (
+            'AvailableChain.FGCompose.promotion_age_advance_of_source_holder',
+        ),
+        'AvailableChainFGCompose.Proofs.Population.PromotionSourceBridges': (
+            'AvailableChain.FGCompose.promotionSourceAtFG_frozen_iff',
+        ),
+        'AvailableChainFGCompose.Statements.Population.FrontierMaturity': (
+            'AvailableChain.FGCompose.PromotionSourceAtFG',
+            'AvailableChain.FGCompose.PromotionSourceAtFG.age',
+            'AvailableChain.FGCompose.PromotionSourceAtFG.carrier',
+            'AvailableChain.FGCompose.PromotionSourceAtFG.entry',
+            'AvailableChain.FGCompose.PromotionSourceAtFG.horizon',
+            'AvailableChain.FGCompose.PromotionSourceAtFG.mk',
+            'AvailableChain.FGCompose.PromotionSourceAtFG.parentPath',
+            'AvailableChain.FGCompose.PromotionSourceAtFG.proposal',
+            'AvailableChain.FGCompose.PromotionSourceAtFG.rows',
+            'AvailableChain.FGCompose.PromotionSourceAtFG.slot',
+            'AvailableChain.FGCompose.PromotionSourceAtFG.sync',
+        ),
+    },
+    'AvailableChainFGCompose.Tests.PopulationServiceAxioms': {
+        'AvailableChainFGCompose.Proofs.Population.FrontierSearchBridges': (
+            'AvailableChain.FGCompose.frontierHG3ResultFG_frozen_iff',
+            'AvailableChain.FGCompose.frontierLocalServiceFG_frozen_iff',
+            'AvailableChain.FGCompose.frontierTailStatementFG_frozen_iff',
+            'AvailableChain.FGCompose.interruptedRepairStatementFG_frozen_iff',
+            'AvailableChain.FGCompose.strongServedFG_frozen_iff',
+        ),
+        'AvailableChainFGCompose.Statements.Population.FrontierSearch': (
+            'AvailableChain.FGCompose.FrontierHG3ResultFG',
+            'AvailableChain.FGCompose.FrontierHG3ResultFG_def',
+            'AvailableChain.FGCompose.FrontierLocalServiceFG',
+            'AvailableChain.FGCompose.FrontierLocalServiceFG_def',
+            'AvailableChain.FGCompose.FrontierTailStatementFG',
+            'AvailableChain.FGCompose.FrontierTailStatementFG_def',
+            'AvailableChain.FGCompose.InterruptedRepairStatementFG',
+            'AvailableChain.FGCompose.InterruptedRepairStatementFG_def',
+            'AvailableChain.FGCompose.StrongServedFG',
+            'AvailableChain.FGCompose.StrongServedFG_def',
+        ),
+    },
+    'AvailableChainFGCompose.Tests.PopulationSearchAxioms': {
+        'AvailableChainFGCompose.Proofs.Population.FrontierSearchGap': (
+            'AvailableChain.FGCompose.frontierSearch_gap_phase_holder',
+            'AvailableChain.FGCompose.frontier_hg3_gap_holder',
+        ),
+        'AvailableChainFGCompose.Proofs.Population.FrontierSearchHG2a': (
+            'AvailableChain.FGCompose.frontier_hg2a_receipt_holder',
+        ),
+        'AvailableChainFGCompose.Proofs.Population.FrontierSearchRepair': (
+            'AvailableChain.FGCompose.frontierSearch_save_seed_holder',
+            'AvailableChain.FGCompose.frontier_hg3_contest_holder',
+        ),
+        'AvailableChainFGCompose.Proofs.Population.FrontierSearchTop': (
+            'AvailableChain.FGCompose.frontier_hg3_topJ_holder',
+        ),
+    },
+    'AvailableChainFGCompose.Tests.PopulationTailAxioms': {
+        'AvailableChainFGCompose.Proofs.Population.FrontierSearchRise': (
+            'AvailableChain.FGCompose.healing_frontierTail_holder',
+            'AvailableChain.FGCompose.healing_frontierTail_rise_holder',
+            'AvailableChain.FGCompose.healing_frontierTail_rise_of_seed_holder',
+        ),
+        'AvailableChainFGCompose.Proofs.Population.FrontierSearchTail': (
+            'AvailableChain.FGCompose.healing_frontierTail_row_holder',
+        ),
+    },
+    'AvailableChainFGCompose.Tests.PopulationOwnerSearchAxioms': {
+        'AvailableChainFGCompose.Proofs.Population.FrontierSearchCompose': (
+            'AvailableChain.FGCompose.frontierSearch_phase_tail_holder',
+        ),
+        'AvailableChainFGCompose.Proofs.Population.FrontierSearchFull': (
+            'AvailableChain.FGCompose.frontierSearch_family_holder',
+            'AvailableChain.FGCompose.frontierSearch_holder',
+        ),
+        'AvailableChainFGCompose.Proofs.Population.FrontierSearchTasks': (
+            'AvailableChain.FGCompose.frontierSearch_rise_task_holder',
+            'AvailableChain.FGCompose.frontierSearch_row_task_holder',
+        ),
+    },
 }
