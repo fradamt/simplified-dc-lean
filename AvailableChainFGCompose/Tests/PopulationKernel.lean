@@ -2513,6 +2513,84 @@ private theorem proposal_cases (s : Slot) (Q : Block)
 
 #print axioms proposal_cases
 
+private theorem reset_premises_sat :
+    H0Reset core reads (env Nat) run obs timing
+      (fun a => namedEntry (history.heightPair a)) 0 point.reset ∧
+    timing.proposal (point.reset.sStar + 2) ≤ point.serviceStart ∧
+    (env Nat).t_GST ≤ point.serviceStart ∧
+    KernelPrem_W timing 2 run.horizon point pt honestSlot electorate.q
+      (electorate.weightOf (Finset.univ \ historyFaulty reads run)) cfg.timeoutDelay 2 ∧
+    KernelRunFacts reads (env Nat) run electorate 2 := by
+  have old : oldRowHeights reads (env Nat) run timing
+      (fun a => namedEntry (history.heightPair a)) 0 = ∅ := by
+    ext h
+    constructor
+    · rintro ⟨j, y, r, a, e, _, _, ht⟩
+      change (4 : Int) * (r * 2 : Nat) + 1 < 0 at ht
+      omega
+    · intro h
+      cases h
+  have mu : muOf reads (env Nat) run timing
+      (fun a => namedEntry (history.heightPair a)) 0 = 1 := by
+    unfold muOf
+    rw [old]
+    simp
+  have release : ∀ l : Fin 7,
+      HonestRowAt reads (env Nat) run timing (20 * l.val + 12) 9 l (wire (row l)) := by
+    intro l
+    fin_cases l <;> exact ⟨by decide, rfl, by decide +kernel⟩
+  refine ⟨?_, by decide, by decide, ?_, ?_⟩
+  · constructor
+    · decide
+    · intro r _; exact Nat.zero_le r
+    · decide
+    · decide +kernel
+    · intro j y r a h e t ha he ht hn
+      obtain ⟨k, rfl, rfl, rfl, rfl⟩ := owner_exact_rows j y r a ha
+      have htime := V2.Event.tick.inj
+        (Option.some.inj ((trace_premises_sat.2.2.1 k).1.symm.trans he))
+      have hp : (k.val + 1, (block k).root) = (h, e) := Option.some.inj hn
+      have hh : k.val + 1 = h := congrArg Prod.fst hp
+      rw [← hh]
+      change k.val + 1 ≤ 3
+      rw [← htime.2] at ht
+      change (4 : Int) * (k.val * 2 : Nat) + 6 ≤ 22 at ht
+      omega
+    · rw [mu]; decide
+    · decide
+    · decide
+    · exact ⟨72, 9, wire (row 3), (block 3).root, release 3, rfl⟩
+    · intro r h
+      obtain ⟨j, y, a, e, ha, hn⟩ := h
+      obtain ⟨k, rfl, rfl, rfl, rfl⟩ := owner_exact_rows j y r a ha
+      have hp : (k.val + 1, (block k).root) = (4, e) := Option.some.inj hn
+      have hh : k.val + 1 = 4 := congrArg Prod.fst hp
+      change 3 ≤ k.val
+      omega
+    · rfl
+    · refine ⟨72, 9, wire (row 3), block 3, release 3, ?_, ?_, rfl, ?_⟩
+      · decide +kernel
+      · exact trace_premises_sat.2.2.2 3 1
+      · decide +kernel
+    · decide
+  · constructor
+    · exact ⟨by decide⟩
+    · rw [Gen.Pure.FGoodE_W_def]
+      exact ⟨by decide, by decide, ⟨12, by decide, by decide, by decide⟩, by decide⟩
+    · decide
+    · decide
+    · decide
+    · rfl
+    · decide
+  · constructor
+    · exact schedule_premises_sat
+    · decide
+    · decide
+    · intro i j _; exact Subsingleton.elim _ _
+    · intro x hx t ht hhor; rfl
+
+#print axioms reset_premises_sat
+
 end Owner
 
 end AvailableChain.FGCompose.Tests.PopulationKernel
