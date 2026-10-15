@@ -1,7 +1,8 @@
 module
+public import AvailableChainFGCompose.Proofs.Population.HolderBaseGap
 public import AvailableChainFGCompose.Proofs.Population.FrontierSearchAge
 public import AvailableChainFGCompose.Proofs.Population.FrontierSearchRepair
-public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchTop
+public import AvailableChainFGCompose.Proofs.Population.HolderBaseTop
 
 public section
 
@@ -167,7 +168,7 @@ private theorem p0d5c_top_phase_holder (hT : FGTimingLaws T) (hk : 1 ≤ leaseSl
     nlinarith [hT.delta_pos]
   have hGST : E.t_GST ≤ u := hJst.trans hready
   have hd := hT.delta_pos
-  have hP := frontierSearch_period_bound T hT
+  have hP := frontierSearch_period_bound_core T hT
   have hΓ := (healing_promotion_gap_remainder T hT G).1
   have hbudget0 : u + ρbar ≤ Dl := hrepairBudget
   have hF : 0 ≤ ΔF := by rw [hdelta] at deltaF; linarith
@@ -175,13 +176,13 @@ private theorem p0d5c_top_phase_holder (hT : FGTimingLaws T) (hk : 1 ≤ leaseSl
   obtain ⟨_, l, hl, hrep⟩ := allowance
   obtain ⟨hafter, hseedEx⟩ := hrep hG Dl m (some J) false hready hp
   obtain ⟨q, Q, hlq, hgate, hQ, hsvc⟩ := hseedEx hbudget0
-  have hseed := frontierSearch_seed_of_start E T leaseSlots hl hlq
-  have huq := frontierSearch_seed_after T leaseSlots hT hk hseed
+  have hseed := frontierSearch_seed_of_start_core E T leaseSlots hl hlq
+  have huq := frontierSearch_seed_after_core T leaseSlots hT hk hseed
   have hqg : T.proposal q ≤ T.gate q := by rw [hT.gate_eq]; linarith
   have hgateD : T.gate q ≤ Dl := hgate.trans hbudget0
   obtain ⟨iq, xq, Qfg, hiq0, hiq1, hxq, hQmem, hErase⟩ :=
     gateCopy u Dl m (some J) false q Q hready hp hseed hgateD hQ
-  obtain ⟨hlo, hhi⟩ := frontierSearch_proposal_heights R E rho O T I Jst Ef obs cert inv
+  obtain ⟨hlo, hhi⟩ := frontierSearch_proposal_heights_core R E rho O T I Jst Ef obs cert inv
     floor hready hp huq hgateD hQ hErase ⟨iq, xq, hiq0, hiq1, hxq, hQmem⟩
   have finishAt {s : Slot} {X : FGBlock (Fin n)} (hls : T.proposal l < T.proposal s)
       (hnew : HonestProposal E rho I s (R.erase X)) (hut : u ≤ T.proposal s)
@@ -189,20 +190,20 @@ private theorem p0d5c_top_phase_holder (hT : FGTimingLaws T) (hk : 1 ≤ leaseSl
       ∃ t, u ≤ t ∧ t ≤ Dl ∧
       StrongServedFG R S E rho O T I D.heightPair Jst leaseSlots m t := by
     have hsg : u ≤ T.gate s := hut.trans (by rw [hT.gate_eq]; linarith)
-    have hps := frontierSearch_phase_cut R E rho O hp hsg hsD
+    have hps := frontierSearch_phase_cut_core R E rho O hp hsg hsD
     have hss := (hrep hG (T.gate s) m (some J) false hready hps).1 s _ hls le_rfl hnew
-    have hseedS := frontierSearch_seed_of_start E T leaseSlots hl hls
+    have hseedS := frontierSearch_seed_of_start_core E T leaseSlots hl hls
     obtain ⟨j, y, Y, hj0, hj1, hy, hYmem, hYe⟩ :=
       gateCopy u Dl m (some J) false s _ hready hp hseedS hsD hnew
     have hYX : Y = X := eraseInj hYe
     subst Y
-    have hheights := frontierSearch_proposal_heights R E rho O T I Jst Ef obs cert inv
+    have hheights := frontierSearch_proposal_heights_core R E rho O T I Jst Ef obs cert inv
       floor hready hp hut hsD hnew rfl ⟨j, y, hj0, hj1, hy, hYmem⟩
     have hh' : (O.height X).h = m := Nat.le_antisymm hheights.2 hh
     exact ⟨_, hsg, hsD, frontierSearch_save_seed_holder R S E rho O T I D.heightPair Jst leaseSlots
       obs hT hk hready hp hseedS hnew rfl hh' hss hsD
       (service u (T.gate s) m (some J) false s _ X hready hnew rfl hh' hss hseedS hut hps le_rfl
-        (hsD.trans hp.2.1) (frontierSearch_phase_cap R E rho O obs hp hsD))⟩
+        (hsD.trans hp.2.1) (frontierSearch_phase_cap_core R E rho O obs hp hsD))⟩
   by_cases hhigh : (O.height Qfg).h = m
   · exact finishAt hlq (hErase ▸ hQ) huq hgateD hhigh.ge
   have hlow : (O.height Qfg).h = m - 1 := by
@@ -219,7 +220,7 @@ private theorem p0d5c_top_phase_holder (hT : FGTimingLaws T) (hk : 1 ≤ leaseSl
   have har : T.action r ≤ u + ρbar + (FGCompose.P T - 4 * T.delta) := by linarith
   have harD : T.action r ≤ Dl := by linarith
   have hur : u ≤ T.action r := by linarith
-  have hpr := frontierSearch_phase_cut R E rho O hp hur harD
+  have hpr := frontierSearch_phase_cut_core R E rho O hp hur harD
   obtain ⟨hc, hlowOr⟩ := common u m (some J) false q Q Qfg r hready hQ hErase hsvc hseed huq hqr
     hfirst hpr
   have hqrT : T.proposal q ≤ (r : Time) * FGCompose.P T := by
@@ -318,7 +319,7 @@ private theorem p0d5c_top_phase_holder (hT : FGTimingLaws T) (hk : 1 ≤ leaseSl
       have he' : 4 * (s : Time) * T.delta = 4 * T.delta * s := by ring
       rw [he, he']
       linarith
-    have hpts := frontierSearch_phase_cut R E rho O hp (hur.trans hat.le)
+    have hpts := frontierSearch_phase_cut_core R E rho O hp (hur.trans hat.le)
       (by rw [hT.gate_eq] at hsD; linarith)
     have hpath := sourceParent u m (some J) false r s X x K hready hpts huvote hat.le hslabel
       hnew hx hK
@@ -445,7 +446,7 @@ theorem frontier_hg3_topJ_holder (hT : FGTimingLaws T) (hk : 1 ≤ leaseSlots)
     (FrontierSearchStart_def R E rho O T Jst i ev m .topJ).mp hstart
   have hρ : 0 ≤ ρbar := allowance.1
   have hd := hT.delta_pos
-  have hP := frontierSearch_period_bound T hT
+  have hP := frontierSearch_period_bound_core T hT
   have hΓ := (healing_promotion_gap_remainder T hT G).1
   have hF : 0 ≤ ΔF := by rw [hdelta] at deltaF; linarith
   have heps := p0d5c_top_eps_nonneg T hT hF
@@ -642,7 +643,7 @@ theorem frontier_hg3_topJ_holder (hT : FGTimingLaws T) (hk : 1 ≤ leaseSlots)
         hfront.le).2.1
       simp only [Height] at *
       omega
-    have hage := frontierSearch_initial_J_age R S O T E rho Ef cert hT hs justifiedSource
+    have hage := frontierSearch_initial_J_age_core R S O T E rho Ef cert hT hs justifiedSource
       sourceSlot ancestorSlot hi hx hj0
     have heJ := p0d5c_top_low_entry hs parentFrame hp hQ
       he huq (hqg.trans hgate) hlow

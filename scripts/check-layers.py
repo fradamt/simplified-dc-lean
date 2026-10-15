@@ -971,6 +971,12 @@ COMPOSE_EDGES |= frozenset({
     (PROOFS + ".Proofs.Foundations.RowPermission", COMPOSE + ".Proofs.RowPermission"),
 })
 
+# POP-C: direct imports of the extracted client and read helpers.
+COMPOSE_PROOF_IMPORTS |= frozenset({
+    (COMPOSE + ".Proofs.Population.HolderBaseHighTarget", "AvailableChainSimplexFG.Client"),
+    (COMPOSE + ".Proofs.Population.HolderBaseTop", GEN + ".Proofs.V2.Duty.Reads"),
+})
+
 # P0d7a2: high-record consumers and the frozen wrapper.
 COMPOSE_MODULES += (
     'AvailableChainFGCompose.Statements.FinalityRecords',

@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchTasks
 public import AvailableChainFGCompose.Proofs.Population.FrontierSearchTasks
 
 public section
@@ -137,7 +138,7 @@ theorem frontierSearch_family_holder (hT : FGTimingLaws T) (hk : 1 ≤ leaseSlot
         M < frontierAtIdx R E rho (j + 1) ∧
         (∀ k, timeIdx rho u₀ ≤ k → k ≤ j → frontierAtIdx R E rho k ≤ M) := by
     intro hhor
-    have hb := (frontierSearch_task_bounds T hT hG hbound hρ .gap).2.2.2.2.1
+    have hb := (frontierSearch_task_bounds_core T hT hG hbound hρ .gap).2.2.2.2.1
     have hcutHor : u₀ ≤ rho.horizon := by linarith only [hhor, hb]
     obtain ⟨i, ev, kind, hstart, ht, hidx⟩ :=
       frontierSearch_cut_start (R := R) (O := O) (T := T) (E := E) (rho := rho) (Ef := Ef)
@@ -180,11 +181,11 @@ theorem frontierSearch_family_holder (hT : FGTimingLaws T) (hk : 1 ≤ leaseSlot
           (∀ k, timeIdx rho u₀ ≤ k → k ≤ j → frontierAtIdx R E rho k ≤ M) ∧
           FirstHeightRowBy S E rho T D.heightPair (M + 1)
             (ev.time + frontierSearchRowBudget T G ΔF ρbar) := by
-      have hb := (frontierSearch_task_bounds T hT hG hbound hρ .gap).2.2.2.2.2
+      have hb := (frontierSearch_task_bounds_core T hT hG hbound hρ .gap).2.2.2.2.2
       have hRiseHor : u₀ + frontierSearchRiseBudget T G ΔF ρbar ≤ rho.horizon := by
         linarith only [hhor, hb]
       obtain ⟨j, ev, hjcut, hj, hlow, ht, hh, hcap⟩ := rise hRiseHor
-      have hP := frontierSearch_period_bound T hT
+      have hP := frontierSearch_period_bound_core T hT
       have hd := hT.delta_pos
       have hrowHor : ev.time + frontierSearchRowBudget T G ΔF ρbar ≤ rho.horizon := by
         linarith only [ht, hhor]

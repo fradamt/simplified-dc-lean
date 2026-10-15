@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGCompose.Proofs.Healing.PromotionAge
+public import AvailableChainFGCompose.Proofs.Population.FrontierSearchAge
 
 public section
 
@@ -20,49 +20,6 @@ variable (parentHeight : Prot.State → Slot → FGBlock (Fin n) → Height × B
 variable (validFor : Prot.State → Slot → FGBlock (Fin n) → Wire → Bool)
 variable (fold : Prot.State → Slot → FGBlock (Fin n) → Window.State (Fin n))
 variable (laws : FGHeightLaws Ef O.height)
-
-private theorem p0d5b_search_action (hT : FGTimingLaws T) (r : Nat) :
-    T.action r = (r : Time) * FGCompose.P T + 6 * T.delta := by
-  rw [hT.action_eq, hT.gate_eq, hT.proposal_eq]
-  unfold FGCompose.P
-  push_cast
-  ring
-
-private theorem p0d5b_search_vote (hT : FGTimingLaws T) (r : Nat) :
-    T.vote (r * T.roundSlots) ≤ T.action r := by
-  rw [hT.action_eq, hT.gate_eq, hT.vote_eq]
-  linarith [hT.delta_pos]
-
-private theorem p0d5b_search_kappa_two (hT : FGTimingLaws T) (ΔF : Time) (hF : 0 ≤ ΔF) :
-    (2 : Time) ≤ kappaF T ΔF := by
-  have hd : 0 < 4 * T.delta := by linarith [hT.delta_pos]
-  have hn : 0 ≤ 6 * T.delta + ΔF + 4 * T.delta - 1 := by
-    have hd1 : (1 : Time) ≤ T.delta := hT.delta_pos
-    linarith
-  have hc : 6 * T.delta + ΔF ≤ (kappaF T ΔF : Time) * (4 * T.delta) := by
-    delta kappaF
-    rw [Int.toNat_of_nonneg (Int.ediv_nonneg hn hd.le)]
-    have hhi := Int.lt_ediv_add_one_mul_self (6 * T.delta + ΔF + 4 * T.delta - 1) hd
-    nlinarith
-  have hnat : 2 ≤ kappaF T ΔF := by
-    by_contra hk
-    have hk' : (kappaF T ΔF : Time) ≤ 1 := by
-      exact_mod_cast (show kappaF T ΔF ≤ 1 by omega)
-    nlinarith [hT.delta_pos]
-  exact_mod_cast hnat
-
-private theorem p0d5b_search_phase_cut {u v w : Time} {m : Nat}
-    {J : Option (FGBlock (Fin n))} {contested : Bool}
-    (hp : PhaseInterval R E rho O u v m J contested) (huw : u ≤ w) (hwv : w ≤ v) :
-    PhaseInterval R E rho O u w m J contested := by
-  refine ⟨huw, hwv.trans hp.2.1, hp.2.2.1, ?_⟩
-  intro i x hui hiw hx
-  apply hp.2.2.2 i x hui _ hx
-  apply hiw.trans
-  rw [timeIdx_def, timeIdx_def, ← List.countP_eq_length_filter,
-    ← List.countP_eq_length_filter]
-  exact List.countP_mono_left (fun e _ he => decide_eq_true
-    ((of_decide_eq_true he).trans hwv))
 
 include laws in
 /-- Blueprint 21 HG.3/HG.2. DC: SAME the actual source entry is an explicit
@@ -114,57 +71,23 @@ theorem frontierSearch_age_service (hT : FGTimingLaws T)
       (T.proposal U.slot + 2 * FGCompose.P T + Γ T G + 2 * T.delta) ≤ D') :
     ∃ s X, HonestProposal E rho I s (R.erase X) ∧ X.slot = s ∧
       T.action r < T.proposal s ∧ T.gate s ≤ D' ∧ height + 1 ≤ (O.height X).h := by
-  have hsync : E.t_GST ≤ u := hJst.trans hready
-  obtain ⟨x₀, K₀, hx₀, hK₀, hK₀U⟩ := hsource
-  obtain ⟨U', hU', _, hrows⟩ := healing_promotion_bounded_rows R S E rho O.height T
-    D.heightPair Ef laws ⟨x₀, hx₀⟩ hentry hcovered entryAgreement sourceSlot ancestorSlot
-  have hUU : U' = U := by
-    obtain ⟨K, _, _, _, _, _, hK, _, _, _, _, _, hKU, _⟩ := hrows x₀ hx₀
-    have hKK : K = K₀ := Option.some.inj (Option.some.inj (hK.symm.trans hK₀))
-    exact hKU.symm.trans (hKK ▸ hK₀U)
-  subst hUU
-  have hF : 0 ≤ ΔF := by
-    rw [hdelta] at deltaF
-    linarith [hT.delta_pos]
-  obtain ⟨_, s, hlo, _, hslot, _, hgate⟩ :=
-    healing_promotion_age_gap T hT I E rho gap hF r U'.slot hstart hwin
-  have hgateD : T.gate s ≤ D' := hgate.trans hbudget
-  have hgs : T.gate s = T.proposal s + 6 * T.delta := hT.gate_eq s
-  have hhor : T.proposal s ≤ rho.horizon := by linarith [hT.delta_pos, hp.2.1]
-  obtain ⟨hc, hage⟩ := promotion_age_grid T hT r s U' ΔF hlo
-  have hk := p0d5b_search_kappa_two T hT ΔF hF
-  have hb8 : 8 * T.delta ≤ betaF T ΔF := by
-    change 8 * T.delta ≤ 4 * (kappaF T ΔF : Time) * T.delta
-    nlinarith [hT.delta_pos]
-  have hcarrier : T.action r < carrierTimeW T ΔF r := by
-    rw [p0d5b_search_action T hT]
-    change _ < (r : Time) * FGCompose.P T + betaF T ΔF
-    linarith [hT.delta_pos]
-  have hat : T.action r < T.proposal s := hcarrier.trans_le hc
-  have hut : u ≤ T.proposal s := hu.trans ((p0d5b_search_vote T hT r).trans hat.le)
-  have hpT := p0d5b_search_phase_cut R O E rho hp hut (by linarith [hT.delta_pos])
-  have hstartAction : E.t_GST ≤ T.action r := by
-    rw [p0d5b_search_action T hT]
-    linarith [hT.delta_pos]
-  have hgsts : E.t_GST + 4 * T.delta ≤ T.proposal s := by
-    have hc' := hc
-    change (r : Time) * FGCompose.P T + betaF T ΔF ≤ T.proposal s at hc'
-    linarith
-  obtain ⟨X, hnew, hXslot⟩ := slotProposal s hslot hgsts hhor
-  obtain ⟨_, _, _, _, _, hafter⟩ :=
-    healing_promotion_row_deadline T hT E hF hbound (rSent := r) le_rfl hstartAction hc
-  obtain ⟨K, _, _, _, _, _, hK, _, _, hUK, _⟩ := hrows x₀ hx₀
-  have hKX := sourceParent u m J contested r s X x₀ K hready hpT hu hat.le hafter hnew hx₀ hK
-  have src : PromotionSourceAt R S E rho O T I D ΔF r height U' s X := by
-    refine ⟨hU', KitFG.preceq_trans hUK hKX, hnew, hXslot, hstartAction, hc, hage, hhor, ?_⟩
-    intro x hx
-    obtain ⟨_, _, j, rSent, a, _, _, _, _, _, _, _, _, hr, ha, hn⟩ := hrows x hx
-    exact ⟨j, rSent, a, hr, ha, hn⟩
-  have hh := promotion_age_advance_of_source R S O T E rho I D Ef decodeProposal bodyErase
-    bodyRows blockWireRows parentFG parentHeight validFor fold laws hT schedule faultWeight
-    deltaF hdelta src hδ hbound rowsReceipt progressCoverage hfold honestQuorum read order
-    signer
-  exact ⟨s, X, hnew, hXslot, hat, hgateD, hh⟩
+  classical
+  obtain ⟨A, hA, hAQ⟩ := honestQuorum
+  have hAh : A ⊆ FGHonestSeats S rho := by
+    intro i hi
+    simpa only [FGHonestSeats_def, Finset.mem_filter, Finset.mem_univ, true_and] using hA i hi
+  have hn : A.Nonempty := by
+    by_contra h
+    have he := Finset.not_nonempty_iff_eq_empty.mp h
+    rw [he] at hAQ
+    change Ef.q ≤ ∑ i ∈ (∅ : Finset (Fin n)), Ef.weight i at hAQ
+    simp only [Finset.sum_empty] at hAQ
+    omega
+  exact frontierSearch_age_service_holder R S O T E rho I D Ef decodeProposal bodyErase
+    bodyRows blockWireRows parentFG parentHeight validFor fold laws hAh hn hT schedule
+    faultWeight deltaF hdelta gap hJst slotProposal read order signer sourceParent hδ hbound
+    rowsReceipt progressCoverage hfold hAQ hentry (fun i hi => hcovered _ (hA i hi)) hsource
+    entryAgreement sourceSlot ancestorSlot hready hstart hu hp hwin hbudget
 
 end AvailableChain.FGCompose
 end

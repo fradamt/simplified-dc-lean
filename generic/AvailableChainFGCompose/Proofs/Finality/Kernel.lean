@@ -1,7 +1,8 @@
 module
-public import AvailableChainFGCompose.Proofs.Finality.RowsPrem
-public import AvailableChainFGCompose.Proofs.Finality.Receipt
-public import AvailableChainFGCompose.Proofs.Finality.Accept
+
+public import AvailableChainFGCompose.Proofs.Population.Kernel
+
+public import AvailableChainFGCompose.Proofs.Population.HolderBaseMiddleWitness
 
 public section
 
@@ -16,22 +17,7 @@ theorem kernel_terminal_bounds_W (T : FGTiming) (L : FGTimingLaws T) {ΔF gst : 
     max (T.action q) gst + ΔF ≤ T.proposal (q * T.roundSlots + kappaF T ΔF) ∧
       T.proposal (q * T.roundSlots + kappaF T ΔF) + T.delta = kernelDeadlineW T ΔF q ∧
       T.proposal (q * T.roundSlots + kappaF T ΔF) < T.action (q + 1) := by
-  have hcov := kmid_kappa_cover T L ΔF hF
-  have hκ := bound.kappa_le_R
-  have hd := L.delta_pos
-  have hκR : (kappaF T ΔF : Time) ≤ T.roundSlots := by exact_mod_cast hκ
-  rw [max_eq_left hG]
-  refine ⟨?_, ?_, ?_⟩
-  · rw [kmid_actionTime_eq T L, L.proposal_eq]
-    push_cast at hcov ⊢
-    nlinarith
-  · rw [L.proposal_eq]
-    unfold kernelDeadlineW betaF FGCompose.P
-    push_cast
-    ring
-  · rw [kmid_actionTime_eq T L, L.proposal_eq]
-    push_cast
-    nlinarith
+  exact kernel_terminal_bounds_W_core T L q bound hF hG
 
 variable {In V : Type} {P : V2.ProtocolSpecD In} [DecidableEq V]
 variable {n : Nat} {Base Proposal Wire Body : Type}
@@ -39,23 +25,6 @@ variable (R : FGCoreReads P n Base Proposal Wire) (S : FGSafetyReads P n Wire)
 variable (O : FGObservationReads R) (T : FGTiming) (L : FGTimingLaws T)
 variable (E : Generic.Env V) (rho : V2.D.Run V P) (I : V2.D.Interface P)
 variable (D : FGHistoryWireReads S) (Ef : Electorate (Fin n))
-
-/-- The proposer's read state holds its tree at its own tick, before any later cut. -/
-private theorem kernel_proposal_held (CL : FGCoreLaws R) (hs : V2.D.ScheduleWellFormed E rho)
-    {s : Slot} {nd : P.State} {W : FGBlock (Fin n)}
-    (hst : proposalStateAt E rho I s = some nd) (hW : W ∈ (R.core nd).fg.TF)
-    (hx : V2.D.proposerOf rho I s ∈ rho.honest) (cut : Time)
-    (hlt : V2.D.proposalTime I s < cut) :
-    ∃ j, j ≤ V2.D.Run.idxBefore rho cut ∧ HeldAt R E rho j (V2.D.proposerOf rho I s) W := by
-  unfold proposalStateAt postClock preTick at hst
-  cases hk : V2.D.Run.tickIdx? rho (V2.D.proposerOf rho I s) (V2.D.proposalTime I s) with
-  | none => simp only [hk, Option.map_none] at hst; contradiction
-  | some k =>
-    simp only [hk, Option.map_some, Option.some.injEq] at hst
-    have he := V2.D.Run.tickIdx?_spec hk
-    refine ⟨k, Nat.le_of_lt ((Gen.V2.Duty.index_lt_idxBefore_iff hs he cut).mpr hlt), hx, ?_⟩
-    rw [← hst, CL.clock_fg] at hW
-    exact hW
 
 variable (decodeProposal : P.Object → Option (Slot × Body))
 variable (bodyErase : Body → Block) (bodyRows : Body → List Wire)
@@ -235,165 +204,31 @@ theorem finality_kernel_W_of
         (T.proposal X.slot + T.delta))) :
     KernelConclusion_W R E rho O T I decodeProposal bodyErase bodyRows
       (fun nd Q => parentFG nd Q.parent) makeFG ΔF pt.r := by
-  classical
-  have hs := run.schedule
-  have hK2 := hK.capacity_ge
-  have height := hc.height
   have hF0 : 0 ≤ ΔF := le_trans (le_of_lt E.Δ_pos) run.deltaF
-  have hNames : HighRecordNames R S O T E rho D := by
-    intro j x r a e ha he
-    obtain ⟨C, hsrc, hn, _⟩ := hEmittedSource j x r a e ha he
-    exact ⟨C, hsrc, hn⟩
-  obtain ⟨_, hκ2, _, _, _, hGST, hhorA⟩ :=
+  obtain ⟨_, _, _, _, _, hGST, hhorA⟩ :=
     kmid_kernel_bounds T L hK.bound hK.start hK.hhor hF0 hreset hGSTstart
-  have hGSTq : E.t_GST ≤ T.action (pt.r + 2) :=
-    hGST.trans (kmid_proposal_le_action T L (Nat.mul_le_mul_right _ (by omega)))
-  obtain ⟨hTdel, hTdl, hTnext⟩ :=
-    kernel_terminal_bounds_W T L (pt.r + 2) hK.bound hF0 hGSTq
-  have hThor : T.proposal ((pt.r + 2) * T.roundSlots + kappaF T ΔF) ≤ rho.horizon := by
-    have hd := L.delta_pos
-    have := hK.hhor
-    rw [← hTdl] at this
-    linarith
-  intro A hA
-  obtain ⟨m⟩ := kernel_opening_and_middle R S O T L E rho I D Ef decodeProposal bodyErase
-    bodyRows blockWireRows parentFG parentHeight validFor makeFG valid ac cfg K ΔF sp pt A
-    CL HL keep restore hs hc heightBridge height_eq finality_eq hne target foldTarget noMixed
-    honestSlot hK hF0 run.deltaF hreset hGSTstart reset history reflect parent hNames hOrigin
-    emission decoded run.fault_weight run.linked receipt run.awake honest_slot proposal carrier
-    exactService source_read source_eq head_read head_held slot_chain closed roots validRows
-    parentEq matchValid hBatch hSOCOVTarget hA
-  have act := action A m
-  -- The action sources, pending heads, records and fresh rows at action pt.r + 2.
-  have sources := rowsPrem_action_source m CL height act.read act.service
-  have heads := rowsPrem_pending_head m height heightBridge act.read act.head act.walk
-    (fun nd A B _ _ h => reflect A B h)
-  have records := rowsPrem_action_record m chain hc reflect hQC recordHead clientLaws
-    emission own hNames L hs
-  have hawake : ∀ x ∈ rho.honest, E.awake x (T.action (pt.r + 2)) = true :=
-    fun x hx => run.awake x hx _ hGSTq m.actionsInRun
-  have hseats : ∀ i ∈ Finset.univ \ historyFaulty S rho,
-      safetyHolder S rho i ∈ rho.honest := by
-    intro i hi
-    exact kmid_honest_seat (S := S) (rho := rho) ⟨i, .empty, none⟩
-      (Finset.mem_sdiff.mp hi).2
-  obtain ⟨rows, hfresh, hentry, _⟩ := rowsPrem_fresh_rows m height heightBridge makeWire
-    wireDecode wireValid client release sources heads fields records L _ hseats
-    hK.honest_quorum hawake
-  -- The terminal honest proposal and its carrier.
-  have hwin := hK.window
-  rw [Gen.Pure.FGoodE_W_def] at hwin
-  obtain ⟨b, hb⟩ := terminalProposal hwin.2.2.2
-  obtain ⟨X, heX, _, hXs, hcar, st, hst, hlook, hpar⟩ := carrier _ _ hb
-  subst heX
-  have hX : HonestProposal E rho I X.slot (R.erase X) := by rw [hXs]; exact hb
-  have hstX : proposalStateAt E rho I X.slot = some st := by rw [hXs]; exact hst
-  have hxh : V2.D.proposerOf rho I X.slot ∈ rho.honest := hX.1.2
-  have hXne : X ≠ .genesis := by
-    intro he
-    have h0 := hXs
-    rw [he] at h0
-    change 0 = (pt.r + 2) * T.roundSlots + kappaF T ΔF at h0
-    omega
-  have hXhor : T.proposal X.slot ≤ rho.horizon := by rw [hXs]; exact hThor
-  -- The terminal parent extends the middle carrier through the actual action source.
-  have hpath : FGBlock.Preceq m.X_D X.parent := by
-    obtain ⟨nd, C, hnd, hsrc, hDC, hCh, _⟩ := sources _ hxh
-    have hsource : actionSourceFG R E rho T (V2.D.proposerOf rho I X.slot) (pt.r + 2) =
-        some (some C) := by
-      change (postClock E rho _ (T.action (pt.r + 2))).map R.source = some (some C)
-      rw [hnd]
-      exact congrArg some hsrc
-    have hhigh : sp.reset.M + 1 ≤ (O.height C).h := by
-      rw [hCh]
-      have := m.highA
-      omega
-    have hp := history _ (pt.r + 2) C hxh hsource hhigh m.actionsInRun X.slot (R.erase X)
-      hX hXhor (by rw [hXs]; exact Nat.add_le_add_left hκ2 _)
-    rw [← parent] at hp
-    exact KitFG.preceq_trans hDC (reflect _ _ hp)
-  -- The anchor cap at the proposer's read, before the next action.
-  have hcap : (O.height X.parent).h ≤ m.d + 3 := by
-    have hlt : V2.D.proposalTime I X.slot < T.action (pt.r + 3) := by
-      rw [← dutyTime, hXs]
-      exact hTnext
-    obtain ⟨j, hj, hheld⟩ := kernel_proposal_held R E rho I CL hs hstX hpar hxh _ hlt
-    exact rowsPrem_anchor_cap m CL L hs hNames hcapBefore j _ X.parent hj hheld
-  have hret := rowsPrem_anchor_retained_or_covered m (by rw [height_eq]; rfl) hne hK2
-    X.parent hpath hcap
-  -- Terminal carriage of the fixed fresh rows with their actual receipts.
-  have hdel : max (T.action (pt.r + 2)) E.t_GST + ΔF ≤ T.proposal X.slot := by
-    rw [hXs]; exact hTdel
-  let carriage : TerminalCarriagePrem_W R S O T E rho I D Ef cfg K valid
-      (kernelCarrier decodeProposal bodyErase bodyRows) blockWireRows parentFG ΔF
-      (pt.r + 2) (m.d + 1) m.X_D m.U X := {
-    schedule := hs
-    fault_weight := run.fault_weight
-    deltaF := run.deltaF
-    carrier := by rw [hXs]; exact hcar
-    parent := ⟨st, hstX, hlook⟩
-    path := hpath
-    freshHeight := m.heightD
-    retainedOrCovered := hret
-    horizon := ⟨hdel, hXhor⟩
-    seats := Finset.univ \ historyFaulty S rho
-    rows := rows
-    fresh := hfresh
-    heightEntry := hentry
-    receipt := by
-      intro i hi
-      obtain ⟨_, _, hf⟩ := hfresh
-      obtain ⟨j, _, ha, _⟩ := hf i hi
-      have hh := receipt j _ _ (rows i) ha (hdel.trans hXhor) _ hxh
-      refine ⟨hh, ?_⟩
-      exact finality_heldBefore_at_proposal R E rho I blockWireRows hs rowDurable rowClock
-        hstX hh (by rw [← dutyTime]; exact hdel) }
-  have hfinal := receipt_finalized_of_carriage R S T E rho I D Ef cfg K
-    (kernelCarrier decodeProposal bodyErase bodyRows) chainWireRows blockWireRows parentFG
-    validFor hsel hne hK2 decode occurrence O height height_eq parentHeight parentEq validFor_eq
-    valid ΔF (pt.r + 2) (m.d + 1) m.X_D m.U X hXne carriage
-    (pathValid _ _ hstX X.parent hpar)
-  -- The selected terminal receipts and their acceptance guards.
-  have hgst : E.t_GST ≤ T.proposal X.slot :=
-    (le_max_right _ _).trans (le_trans (le_add_of_nonneg_right hF0) hdel)
-  have hdl : T.proposal X.slot + T.delta = kernelDeadlineW T ΔF (pt.r + 2) := by
-    rw [hXs]; exact hTdl
-  have hcarX := carriage.carrier
-  obtain ⟨wires, hwires, _⟩ := hcarX
-  obtain ⟨deliv⟩ := delivery X m.U wires hwires hgst (by rw [hdl]; exact hK.hhor) hfinal
-  rw [hdl] at deliv
-  have hM : 1 ≤ sp.reset.M := le_trans (le_max_left _ _) reset.mu_le
-  have hheight : m.d + 1 + 1 ≤ (O.height X).h := by
-    rw [← m.heightD]
-    exact height.h_mono (KitFG.preceq_trans hpath (kmid_parent_preceq X))
-  have hrows : ∀ j z r a row h B timeout, HonestRowAt S E rho T j z r a →
-      S.decode a = some row → row.height_pair = .vote h B timeout →
-      T.action r < T.action (pt.r + 2 + 1) → h ≤ m.d + 1 + 1 := by
-    intro j z r a row h B timeout ha hd hp hr
-    obtain ⟨C, hsrc, he⟩ := hNames j z r a (h, B) ha (by
-      rw [D.decode_height a row hd, hp]; rfl)
-    have hrq : r ≤ pt.r + 2 := by
-      have := (kmid_action_strictMono T L).lt_iff_lt.mp hr
-      omega
-    have hh : h = (O.height C).h := congrArg Prod.fst he
-    rw [hh]
-    obtain ⟨i, hi, hilt, hheld⟩ := kmid_source_held_at_tick R T E rho CL hs ha.1 hsrc
-    have hcut := kmid_tick_lt_afterTicks E rho hs hi ((kmid_action_strictMono T L).monotone hrq)
-    exact m.capThroughFinalAction i z C (List.getElem?_eq_some_iff.mp hi).1.le hcut.le hheld
-  obtain ⟨accept⟩ := receipt_acceptPrem_W R S T E rho I Ef cfg K O height_eq finality_eq hne
-    hK2 L hs (fun a => namedEntry (D.heightPair a)) reflect parent ready finBlock hI3
-    readyBlock stored inv ΔF (pt.r + 2) (m.d + 1) m.X_D m.U X run.deltaF hpath hX hXhor sp hM
-    history hK.bound (by rw [hXs]) m.justifiedHeightD (by have := m.highA; omega) hStrat
-    hEmittedSource rootScope hheight hcapBefore hrows hfinal _ deliv hK.hhor
-  have hinv : ∀ i x, x ∈ rho.honest → KitFG.FGStoreInvariant
-      (KitFG.Window.certificateHeight Ef cfg K) (KitFG.Window.certificateFinality Ef cfg K)
-      (R.core (V2.D.Run.stateBefore E rho i x)).fg := by
-    intro i x hx
-    rw [← height_eq, ← finality_eq]
-    exact inv i x hx
-  have ha := acceptBefore_W R E rho Ef cfg K hne hK2 durable ready step hinv X m.U _ _ accept
-  refine ⟨m.A₀, m.eraseA, m.carrierA, m.heldAAtEnd, m.U, m.strictAU.1, m.strictAU.2, ?_, ha⟩
-  rw [m.freshEntry.1, m.heightA]
+  have hAwake : ∀ x ∈ rho.honest, E.awake x (T.action (pt.r + 1)) = true := by
+    intro x hx
+    exact run.awake x hx _
+      (hGST.trans (kmid_proposal_le_action T L (Nat.mul_le_mul_right _ (by omega))))
+      (le_trans ((kmid_action_strictMono T L).monotone (by omega)) hhorA)
+  have holderAction : ∀ A (m : KernelMiddleWitnessFG_W R S O T E rho I D Ef decodeProposal
+      bodyErase bodyRows blockWireRows parentFG parentHeight validFor makeFG valid ac cfg K
+      ΔF sp pt A), KernelActionSupplyFG_W R S O T E rho I D Ef m := by
+    intro A m
+    let targets := kernel_middle_targets_of_service_core m L hSOCOVTarget hAwake
+    exact kernel_middle_action_to_holder_core m targets
+      (action A (kernel_middle_to_node_core m targets))
+  exact finality_kernel_W_of_holder R S O T L E rho I D Ef decodeProposal bodyErase bodyRows
+    blockWireRows chainWireRows parentFG parentHeight validFor makeFG valid ac cfg K ΔF sp pt CL HL
+    keep restore hc heightBridge height_eq finality_eq hne target foldTarget noMixed honestSlot hK
+    run hreset hGSTstart reset history chain reflect parent hOrigin emission decoded receipt
+    honest_slot proposal terminalProposal carrier exactService source_read source_eq head_read
+    head_held slot_chain closed roots validRows parentEq matchValid hBatch (fun i hi =>
+    hSOCOVTarget _ hi) holderAction makeWire wireDecode wireValid client release fields hQC
+    recordHead clientLaws own hsel decode occurrence validFor_eq pathValid dutyTime rowDurable
+    rowClock ready step durable inv finBlock hI3 readyBlock stored rootScope hStrat hEmittedSource
+    hcapBefore delivery
 
 end AvailableChain.FGCompose
 end

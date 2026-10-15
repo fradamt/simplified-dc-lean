@@ -1,6 +1,8 @@
 module
-public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchStop
-public import AvailableChainFGCompose.Proofs.Healing.PhaseSettle
+
+public import AvailableChainFGCompose.Proofs.Population.FrontierSearchRepair
+
+public import AvailableChainFGCompose.Proofs.Population.HolderBaseService
 
 public section
 
@@ -32,44 +34,20 @@ omit [DecidableEq V] in
 /-- Blueprint 21 HG.3. DC: SAME inclusive-prefix monotonicity. -/
 theorem frontierSearch_timeIdx_mono {u v : Time} (h : u ≤ v) :
     timeIdx rho u ≤ timeIdx rho v := by
-  rw [timeIdx_def, timeIdx_def, ← List.countP_eq_length_filter,
-    ← List.countP_eq_length_filter]
-  exact List.countP_mono_left (fun e _ he => decide_eq_true
-    ((of_decide_eq_true he).trans h))
+  exact frontierSearch_timeIdx_mono_core rho h
 
 /-- Blueprint 21 HG.3. DC: SAME a shorter phase keeps the lower read cut. -/
 theorem frontierSearch_phase_cut {u v w : Time} {m : Nat}
     {J : Option (FGBlock (Fin n))} {contested : Bool}
     (hp : PhaseInterval R E rho O u v m J contested) (huw : u ≤ w) (hwv : w ≤ v) :
-    PhaseInterval R E rho O u w m J contested :=
-  ⟨huw, hwv.trans hp.2.1, hp.2.2.1, fun i x hui hiw hx =>
-    hp.2.2.2 i x hui (hiw.trans (frontierSearch_timeIdx_mono rho hwv)) hx⟩
+    PhaseInterval R E rho O u w m J contested := by
+  exact frontierSearch_phase_cut_core R E rho O hp huw hwv
 
 /-- Blueprint 21 HG.3. DC: SAME a seed follows its phase start in both arms. -/
 theorem frontierSearch_seed_after (hT : FGTimingLaws T) (hk : 1 ≤ leaseSlots)
     {GST u : Time} {q : Slot}
     (hseed : FrontierSeedQualification T leaseSlots GST u q) : u ≤ T.proposal q := by
-  have hd := hT.delta_pos
-  rcases (FrontierSeedQualification_def T leaseSlots GST u q).mp hseed with
-    ⟨β, hβ, _, hlt⟩ | ⟨b, hb, _, _, _, hlt⟩
-  · have hl : β ≤ β + 2 * leaseSlots - 1 :=
-      Nat.le_sub_of_add_le (Nat.add_le_add_left (show 1 ≤ 2 * leaseSlots by omega) β)
-    have hli : (β : Time) ≤ ((β + 2 * leaseSlots - 1 : Nat) : Time) := by exact_mod_cast hl
-    have ht : T.proposal β ≤ T.proposal (β + 2 * leaseSlots - 1) := by
-      rw [hT.proposal_eq, hT.proposal_eq]
-      nlinarith
-    exact hβ.le.trans (ht.trans hlt.le)
-  · rw [hT.vote_eq, hT.proposal_eq] at hb
-    rw [hT.proposal_eq, hT.proposal_eq] at hlt
-    rw [hT.proposal_eq]
-    have hqN : b + 1 ≤ q := by
-      by_contra hn
-      have hle : (q : Time) ≤ ((b + leaseSlots : Nat) : Time) := by
-        exact_mod_cast (Nat.le_trans (Nat.le_of_lt_succ (Nat.lt_of_not_le hn))
-          (Nat.le_add_right b leaseSlots))
-      nlinarith
-    have hq : (b : Time) + 1 ≤ q := by exact_mod_cast hqN
-    nlinarith
+  exact frontierSearch_seed_after_core T leaseSlots hT hk hseed
 
 omit [DecidableEq V] in
 /-- A first label after the phase start gives the seed qualification of each later
@@ -77,9 +55,7 @@ proposal of the repair window. -/
 theorem frontierSearch_seed_of_start {u : Time} {l q : Slot}
     (hstart : FrontierRepairStart E T leaseSlots u l) (hlq : T.proposal l < T.proposal q) :
     FrontierSeedQualification T leaseSlots E.t_GST u q := by
-  cases hstart with
-  | two β after least => exact Or.inl ⟨β, after, least, hlq⟩
-  | one b after least window sync => exact Or.inr ⟨b, after, least, window, sync, hlq⟩
+  exact frontierSearch_seed_of_start_core E T leaseSlots hstart hlq
 
 omit [DecidableEq V] in
 /-- A seed-qualified proposal stays qualified for every later proposal. -/
@@ -87,17 +63,7 @@ theorem frontierSearch_seed_later {GST u : Time} {q s : Slot}
     (hseed : FrontierSeedQualification T leaseSlots GST u q)
     (hqs : T.proposal q < T.proposal s) :
     FrontierSeedQualification T leaseSlots GST u s := by
-  rcases hseed with ⟨β, hβ, hmin, hlt⟩ | ⟨b, hb, hmin, hw, hsync, hlt⟩
-  · exact Or.inl ⟨β, hβ, hmin, hlt.trans hqs⟩
-  · exact Or.inr ⟨b, hb, hmin, hw, hsync, hlt.trans hqs⟩
-
-omit [DecidableEq V] in
-private theorem p0d5c_rep_idx_le (t : Time) :
-    V2.D.Run.idxBefore rho t ≤ timeIdx rho t := by
-  change (rho.events.filter (fun e => decide (e.time < t))).length ≤
-    (rho.events.filter (fun e => decide (e.time ≤ t))).length
-  rw [← List.countP_eq_length_filter, ← List.countP_eq_length_filter]
-  exact List.countP_mono_left fun e _ he => decide_eq_true (of_decide_eq_true he).le
+  exact frontierSearch_seed_later_core T leaseSlots hseed hqs
 
 include obs in
 /-- The phase cap read: inside the phase cut, each honest cumulative frontier is m. -/
@@ -106,9 +72,7 @@ theorem frontierSearch_phase_hmax {u v : Time} {m : Nat}
     (hp : PhaseInterval R E rho O u v m J contested) {i : Nat} {x : V}
     (hui : V2.D.Run.idxBefore rho u ≤ i) (hiv : i ≤ timeIdx rho v) (hx : x ∈ rho.honest) :
     (R.core (rho.stateBefore E i x)).fg.h_max = m := by
-  have h := (hp.2.2.2 i x hui hiv hx).1
-  rw [obs.controls_eq] at h
-  exact h
+  exact frontierSearch_phase_hmax_core R E rho O obs hp hui hiv hx
 
 include obs in
 /-- The saved seed's honest cap from the inclusive phase start through the gate. -/
@@ -117,9 +81,7 @@ theorem frontierSearch_phase_cap {u v t : Time} {m : Nat}
     (hp : PhaseInterval R E rho O u v m J contested) (htv : t ≤ v) :
     ∀ i x, timeIdx rho u ≤ i → i ≤ timeIdx rho t → x ∈ rho.honest →
       (R.core (rho.stateBefore E i x)).fg.h_max ≤ m := by
-  intro i x hui hit hx
-  exact (frontierSearch_phase_hmax R E rho O obs hp ((p0d5c_rep_idx_le rho u).trans hui)
-    (hit.trans (frontierSearch_timeIdx_mono rho htv)) hx).le
+  exact frontierSearch_phase_cap_core R E rho O obs hp htv
 
 include obs cert inv in
 /-- ROOT-DIGEST W2b. Blueprint 21 HG.3. DC: SAME the proposer floor and exact-gate cap.
@@ -133,16 +95,8 @@ theorem frontierSearch_proposal_heights (floor : AttemptProposalFloor R E rho O 
     (hcopy : ∃ i x, V2.D.Run.idxBefore rho u ≤ i ∧ i ≤ timeIdx rho D ∧
       x ∈ rho.honest ∧ Qfg ∈ (R.core (rho.stateBefore E i x)).fg.TF) :
     (if contested then m else m - 1) ≤ (O.height Qfg).h ∧ (O.height Qfg).h ≤ m := by
-  have hlo := floor u D m J contested q Q Qfg hready hp hu hgate hQ heq
-  have hparent : FGBlock.Preceq Qfg.parent Qfg := by
-    cases Qfg with
-    | genesis => exact KitFG.preceq_refl _
-    | node P s root body rows => exact KitFG.preceq_parent_node _ _ _ _ _
-  refine ⟨hlo.trans (cert.height.h_mono hparent), ?_⟩
-  obtain ⟨i, x, hui, hiD, hx, hK⟩ := hcopy
-  have hh := healing_phase_height_le (R := R) (E := E) (rho := rho) (O := O) (inv := inv) hK
-  rw [frontierSearch_phase_hmax R E rho O obs hp hui hiD hx] at hh
-  exact hh
+  exact frontierSearch_proposal_heights_core R E rho O T I Jst Ef obs cert inv floor hready hp hu
+    hgate hQ heq hcopy
 
 include obs in
 /-- Blueprint 21 HG.3. DC: SAME save a complete seed at its actual gate.
@@ -157,13 +111,8 @@ theorem frontierSearch_save_seed (hT : FGTimingLaws T) (hk : 1 ≤ leaseSlots)
     (hg : T.gate q ≤ D)
     (hlocal : FrontierLocalService R S E rho O T I pair q Q Qfg m (T.gate q)) :
     StrongServed R S E rho O T I pair Jst leaseSlots m (T.gate q) := by
-  have hu := frontierSearch_seed_after T leaseSlots hT hk hseed
-  have huq : u ≤ T.gate q := by
-    rw [hT.gate_eq]
-    linarith [hT.delta_pos]
-  exact ⟨u, J, contested, q, Q, Qfg, hready, hQ, he, hh, hs, hseed, hu,
-    frontierSearch_phase_cut R E rho O hp huq hg, le_rfl, hg.trans hp.2.1,
-    frontierSearch_phase_cap R E rho O obs hp hg, hlocal⟩
+  exact frontierSearch_save_seed_holder_local_core R S E rho O T I pair Jst leaseSlots obs hT hk
+    hready hp hseed hQ he hh hs hg hlocal
 
 include obs cert inv justif keep positive coreLaws erasePreceq in
 /-- ROOT-DIGEST W2b. Blueprint 21 HG.3 contest; plan R2-b.
@@ -209,41 +158,15 @@ theorem frontier_hg3_contest (hT : FGTimingLaws T) (hk : 1 ≤ leaseSlots)
     (hhor : ev.time + (ρbar + 3 * T.delta) ≤ rho.horizon) :
     FrontierHG3Result R S E rho O T I pair Jst leaseSlots i m ev.time
       (ev.time + (ρbar + 3 * T.delta)) := by
-  obtain ⟨hi, hgst0, _, hfront, hm, hkind⟩ :=
-    (FrontierSearchStart_def R E rho O T Jst i ev m .contest).mp hstart
-  obtain ⟨_, l, hl, hrep⟩ := allowance
-  rcases frontierSearch_first_effective_split R E rho O hs i
-      (ev.time + (ρbar + 3 * T.delta)) with hstop | hquiet
-  · rcases frontierSearch_classify_stop R E rho O mono hfront hstop with h | h
-    · exact Or.inl h
-    · exact Or.inr (Or.inl h)
-  obtain ⟨J, hp, _⟩ := healing_settle_start_on (R := R) (E := E) (rho := rho) (O := O)
-    (Ef := Ef) (obs := obs) (cert := cert) (inv := inv) (justif := justif) (keep := keep)
-    (Jst := Jst) (T := T) (positive := positive) (coreLaws := coreLaws)
-    (erasePreceq := erasePreceq) (joined := joined) (receipt := receipt)
-    crossing hs mono hdelta gst awake joinedTick readyCut hServices receiptHeld
-    i ev _ m .contest hi hgst0 (by linarith) hhor hm hfront hkind hquiet
-  have hready : Jst ≤ ev.time + 3 * T.delta := by linarith [hT.delta_pos]
-  obtain ⟨_, hseedEx⟩ := hrep hG _ m none true hready hp
-  obtain ⟨q, Q, hlq, hgate, hQ, hsvc⟩ := hseedEx (by linarith)
-  have hseed := frontierSearch_seed_of_start E T leaseSlots hl hlq
-  have hu := frontierSearch_seed_after T leaseSlots hT hk hseed
-  have hgateD : T.gate q ≤ ev.time + (ρbar + 3 * T.delta) := by linarith
-  obtain ⟨j, x, Qfg, hj0, hj1, hx, hmem, hErase⟩ :=
-    gateCopy _ _ m none true q Q hready hp hseed hgateD hQ
-  obtain ⟨hlo, hhi⟩ := frontierSearch_proposal_heights R E rho O T I Jst Ef obs cert inv
-    floor hready hp hu hgateD hQ hErase ⟨j, x, hj0, hj1, hx, hmem⟩
-  have hh : (O.height Qfg).h = m := Nat.le_antisymm hhi hlo
-  have ht : ev.time ≤ T.gate q := by
-    rw [hT.gate_eq]
-    linarith [hT.delta_pos]
-  have hpq := frontierSearch_phase_cut R E rho O hp (hu.trans (by
-    rw [hT.gate_eq]; linarith [hT.delta_pos])) hgateD
-  exact Or.inr (Or.inr ⟨_, ht, hgateD,
-    frontierSearch_save_seed R S E rho O T I pair Jst leaseSlots obs hT hk hready hp hseed hQ
-      hErase hh hsvc hgateD
-      (service _ _ m none true q Q Qfg hready hQ hErase hh hsvc hseed hu hpq le_rfl
-        (hgateD.trans hhor) (frontierSearch_phase_cap R E rho O obs hp hgateD))⟩)
+  have result := frontier_hg3_contest_holder R S E rho O T I pair Jst leaseSlots Ef obs cert inv
+    justif keep positive coreLaws erasePreceq joined receipt hT hk crossing hs mono hdelta gst
+    awake joinedTick readyCut hServices receiptHeld hG floor gateCopy (fun u v m J c q Q Qfg hr hQ
+    he hh hs hseed hu hp hg ht hc => frontierLocalService_to_holder_core (service u v m J c q Q Qfg
+    hr hQ he hh hs hseed hu hp hg ht hc)) hstart allowance hhor
+  rcases result with h | h | ⟨t, hlo, hhi, hs⟩
+  · exact Or.inl h
+  · exact Or.inr (Or.inl h)
+  · exact Or.inr (Or.inr ⟨t, hlo, hhi, strongServed_of_holder_service_core service hs⟩)
 
 end AvailableChain.FGCompose
 end

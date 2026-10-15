@@ -1,8 +1,10 @@
 module
+public import AvailableChainFGCompose.Proofs.Finality.Receipt
+public import AvailableChainFGCompose.Proofs.Finality.Accept
 public import AvailableChainFGCompose.Proofs.Population.Middle
 public import AvailableChainFGCompose.Proofs.Population.RowsPrem
 public import AvailableChainFGCompose.Proofs.Population.RowsRecords
-public import AvailableChainFGCompose.Proofs.Finality.Kernel
+public import AvailableChainFGCompose.Proofs.Population.HolderBaseKernel
 
 public section
 
@@ -209,7 +211,7 @@ theorem finality_kernel_W_of_holder
   have hGSTq : E.t_GST ≤ T.action (pt.r + 2) :=
     hGST.trans (kmid_proposal_le_action T L (Nat.mul_le_mul_right _ (by omega)))
   obtain ⟨hTdel, hTdl, hTnext⟩ :=
-    kernel_terminal_bounds_W T L (pt.r + 2) hK.bound hF0 hGSTq
+    kernel_terminal_bounds_W_core T L (pt.r + 2) hK.bound hF0 hGSTq
   have hThor : T.proposal ((pt.r + 2) * T.roundSlots + kappaF T ΔF) ≤ rho.horizon := by
     have hd := L.delta_pos
     have := hK.hhor

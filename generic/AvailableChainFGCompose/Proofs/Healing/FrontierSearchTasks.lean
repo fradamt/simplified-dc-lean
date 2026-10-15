@@ -1,8 +1,10 @@
 module
-public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchCompose
-public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchRise
-public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchBudget
+public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchGap
 public import AvailableChainFGCompose.Proofs.Healing.ResetCut
+
+public import AvailableChainFGCompose.Proofs.Population.FrontierSearchTasks
+
+public import AvailableChainFGCompose.Proofs.Population.HolderBaseService
 
 public section
 
@@ -50,31 +52,7 @@ theorem frontierSearch_task_bounds (hT : FGTimingLaws T) {G ΔF ρbar : Time}
         frontierSearchRowBudget T G ΔF ρbar ∧
     0 ≤ 2 * FGCompose.P T + Γ T G - 9 * T.delta ∧ 0 ≤ FGCompose.P T - 4 * T.delta ∧
     0 ≤ frontierSearchRiseBudget T G ΔF ρbar ∧ 0 ≤ frontierSearchRowBudget T G ΔF ρbar := by
-  have hP := frontierSearch_period_bound T hT
-  have hΓ := (healing_promotion_gap_remainder T hT G).1
-  have hd := hT.delta_pos
-  have hg : 0 ≤ E_gF T ΔF G ρbar := by
-    unfold E_gF
-    have := le_max_right (FGCompose.P T + 3 * T.delta + epsF T ΔF) (2 * FGCompose.P T - T.delta)
-    linarith
-  have hj : 0 ≤ E_jF T ΔF G ρbar := by
-    unfold E_jF
-    exact le_trans (by linarith) (le_max_right _ _)
-  have hcR := frontierSearch_contest_rise_cost T hT G ΔF ρbar hbound
-  have hcW := frontierSearch_contest_row_cost T ρbar
-  refine ⟨?_, ?_, by linarith, by linarith, ?_, ?_⟩
-  · rw [frontierSearchRiseBudget_def, ← hcR]
-    cases kind <;> simp only [frontierSearch_remaining_def, frontierSearch_phaseRank_gap_def,
-      frontierSearch_phaseRank_topJ_def, frontierSearch_phaseRank_contest_def,
-      Nat.reduceEqDiff, ↓reduceIte] <;> linarith only [hg, hj]
-  · rw [frontierSearchRowBudget_def, ← hcW]
-    cases kind <;> simp only [frontierSearch_remaining_def, frontierSearch_phaseRank_gap_def,
-      frontierSearch_phaseRank_topJ_def, frontierSearch_phaseRank_contest_def,
-      Nat.reduceEqDiff, ↓reduceIte] <;> linarith only [hg, hj]
-  · rw [frontierSearchRiseBudget_def, ← hcR]
-    linarith
-  · rw [frontierSearchRowBudget_def, ← hcW]
-    linarith
+  exact frontierSearch_task_bounds_core T hT hG hbound hρ kind
 
 include obs cert inv justif keep positive coreLaws erasePreceq in
 /-- Blueprint 21:1722–1800; S5 F3, first task.
@@ -171,46 +149,17 @@ theorem frontierSearch_rise_task (hT : FGTimingLaws T) (hk : 1 ≤ leaseSlots)
     (hdelay : Jst + 2 * FGCompose.P T ≤ ev.time)
     (hhor : ev.time + frontierSearchRiseBudget T G ΔF ρbar ≤ rho.horizon) :
     FrontierRiseBy R E rho i m (ev.time + frontierSearchRiseBudget T G ΔF ρbar) := by
-  obtain ⟨hb, _, ht, _, _, _⟩ := frontierSearch_task_bounds T hT hG hbound
-    (allowance i ev m kind hstart hdelay).1 kind
-  have hbudget : ev.time + frontierSearch_remaining T G ΔF ρbar
-      (2 * FGCompose.P T + Γ T G - 9 * T.delta) kind ≤
-      ev.time + frontierSearchRiseBudget T G ΔF ρbar := by
-    linarith only [hb]
-  rcases frontierSearch_phase_tail (R := R) (S := S) (O := O) (T := T) (E := E) (rho := rho)
-    (I := I) (D := D) (Ef := Ef) (decodeProposal := decodeProposal)
-    (bodyErase := bodyErase) (bodyRows := bodyRows) (blockWireRows := blockWireRows)
-    (parentFG := parentFG) (parentHeight := parentHeight) (validFor := validFor)
-    (fold := fold) (Jst := Jst) (leaseSlots := leaseSlots) (obs := obs) (cert := cert)
-    (inv := inv) (justif := justif) (keep := keep) (positive := positive)
-    (coreLaws := coreLaws) (erasePreceq := erasePreceq) (joined := joined)
-    (receipt := receipt) hT hk crossing schedule mono awake joinedTick readyCut
-    hServices receiptHeld faultWeight deltaF hdelta gap hJst hG slotProposal read
-    order signer sourceParent hδ hbound rowsReceipt progressCoverage hfold
-    honestQuorum entryAgreement sourceSlot ancestorSlot eraseReflect floor gateCopy
-    service common heldSlot proposalSlot justifiedSource parentFrame allowance _ ht hstart hdelay
-    (hbudget.trans hhor) with
-      hr | ⟨t, _, htail, hserved⟩
-  · exact frontierSearch_rise_mono R E rho hbudget hr
-  · have hf := ((FrontierSearchStart_def R E rho O T Jst i ev m kind).mp hstart).2.2.2.1
-    obtain ⟨u, J, contested, q, Q, Qfg, hready, hQ, he, hQm, hsvc, hseed, hu, hp, hqt, _, _,
-        _⟩ :=
-      (StrongServed_def R S E rho O T I D.heightPair Jst leaseSlots m t).mp hserved
-    obtain ⟨j, x, Qfg', _, _, _, hmem, he'⟩ :=
-      gateCopy u (T.gate q) m J contested q Q hready hp hseed le_rfl hQ
-    have hQQ : Qfg' = Qfg := coreLaws.erase_inj (he'.trans he.symm)
-    exact frontierSearch_rise_mono R E rho (htail.trans hbudget)
-      (healing_frontierTail_rise_of_seed (R := R) (S := S) (O := O) (T := T) (E := E) (rho := rho)
-        (I := I) (D := D) (Ef := Ef) (decodeProposal := decodeProposal)
-        (bodyErase := bodyErase) (bodyRows := bodyRows) (blockWireRows := blockWireRows)
-        (parentFG := parentFG) (parentHeight := parentHeight) (validFor := validFor)
-        (fold := fold) (Jst := Jst) (cert := cert) (inv := inv) (keep := keep) hT schedule
-        faultWeight deltaF hdelta gap
-        hJst mono eraseParent eraseReflect slotProposal read order signer capReceipt hδ
-        hbound rowsReceipt progressCoverage hfold honestQuorum entryAgreement sourceSlot
-        ancestorSlot heldSlot proposalSlot hready hQ he hQm hu hqt ⟨j, x, hQQ ▸ hmem⟩
-        (fun v hv hvh hc => service u v m J contested q Q Qfg hready hQ he hQm hsvc hseed
-          hu hp hv hvh hc) hf.le ((htail.trans hbudget).trans hhor))
+  exact frontierSearch_rise_task_holder R S O T E rho I D Ef decodeProposal bodyErase bodyRows
+    blockWireRows parentFG parentHeight validFor fold Jst leaseSlots obs cert inv justif keep
+    positive coreLaws erasePreceq joined receipt hT hk crossing schedule mono awake joinedTick
+    readyCut hServices receiptHeld faultWeight deltaF hdelta gap hJst hG slotProposal read order
+    signer sourceParent hδ hbound rowsReceipt progressCoverage hfold honestQuorum entryAgreement
+    sourceSlot ancestorSlot eraseReflect floor gateCopy (fun u v m J c q Q Qfg hr hQ he hh hs hseed
+    hu hp hg ht hc => frontierLocalService_to_holder_core (service u v m J c q Q Qfg hr hQ he hh hs
+    hseed hu hp hg ht hc)) (fun u m J c q Q Qfg r hr hQ he hs hseed hu hqr hfirst hp => ⟨fun i hi
+    => (common u m J c q Q Qfg r hr hQ he hs hseed hu hqr hfirst hp).1 _ (Finset.mem_filter.mp
+    hi).2, (common u m J c q Q Qfg r hr hQ he hs hseed hu hqr hfirst hp).2⟩) heldSlot proposalSlot
+    justifiedSource parentFrame allowance eraseParent capReceipt hstart hdelay hhor
 
 include cert inv in
 /-- Blueprint 21:1722–1800; S5 F3, row provenance.
@@ -220,20 +169,7 @@ theorem frontierSearch_row_of_rise (hT : FGTimingLaws T)
     (cap : RCap R S E rho O T (fun a => namedEntry (D.heightPair a)) chainRows)
     {i m : Nat} {Dl : Time} (hm : 1 ≤ m) (hrise : FrontierRiseBy R E rho i m Dl) :
     FirstHeightRowBy S E rho T D.heightPair m Dl := by
-  obtain ⟨j, ev, _, hj, ht, hh, _⟩ := (FrontierRiseBy_def R E rho i m Dl).mp hrise
-  obtain ⟨x, hx, hxh⟩ := Finset.lt_sup_iff.mp hh
-  obtain ⟨W, hW, hWh⟩ := healing_phase_frontier_witness (R := R) (E := E) (rho := rho)
-    (O := O) (Ef := Ef) (cert := cert) (inv := inv) (j + 1) x
-  obtain ⟨l, z, r, a, e, hlj, ha, hn, _⟩ := cap (m - 1) (j + 1) x W ⟨hx, hW⟩
-    (by simp only [Height] at *; omega)
-  have hn' : namedEntry (D.heightPair a) = some (m, e) := by
-    simpa only [Nat.sub_add_cancel hm] using hn
-  have hcut : l < timeIdx rho ev.time := by
-    have hjcut : j < timeIdx rho ev.time :=
-      (V2.D.Engine.index_lt_read_length_iff hs ev.time hj).mpr le_rfl
-    exact (Nat.le_of_lt_succ hlj).trans_lt hjcut
-  exact frontierSearch_first_row S E rho T D.heightPair hT ⟨l, z, a, e, ha, hn'⟩
-    ((frontierSearch_event_time_le E rho hs ha.2.1 hcut).trans ht)
+  exact frontierSearch_row_of_rise_core R S O T E rho D Ef cert inv chainRows hT hs cap hm hrise
 
 include obs cert inv justif keep positive coreLaws erasePreceq in
 /-- Blueprint 21:1722–1800; S5 F3, second task.
@@ -330,42 +266,17 @@ theorem frontierSearch_row_task (hT : FGTimingLaws T) (hk : 1 ≤ leaseSlots)
     (hhor : ev.time + frontierSearchRowBudget T G ΔF ρbar ≤ rho.horizon) :
     FirstHeightRowBy S E rho T D.heightPair m
       (ev.time + frontierSearchRowBudget T G ΔF ρbar) := by
-  obtain ⟨_, hb, _, ht, _, _⟩ := frontierSearch_task_bounds T hT hG hbound
-    (allowance i ev m kind hstart hdelay).1 kind
-  have hbudget : ev.time + frontierSearch_remaining T G ΔF ρbar
-      (FGCompose.P T - 4 * T.delta) kind ≤
-      ev.time + frontierSearchRowBudget T G ΔF ρbar := by
-    linarith only [hb]
-  rcases frontierSearch_phase_tail (R := R) (S := S) (O := O) (T := T) (E := E) (rho := rho)
-    (I := I) (D := D) (Ef := Ef) (decodeProposal := decodeProposal)
-    (bodyErase := bodyErase) (bodyRows := bodyRows) (blockWireRows := blockWireRows)
-    (parentFG := parentFG) (parentHeight := parentHeight) (validFor := validFor)
-    (fold := fold) (Jst := Jst) (leaseSlots := leaseSlots) (obs := obs) (cert := cert)
-    (inv := inv) (justif := justif) (keep := keep) (positive := positive)
-    (coreLaws := coreLaws) (erasePreceq := erasePreceq) (joined := joined)
-    (receipt := receipt) hT hk crossing schedule mono awake joinedTick readyCut
-    hServices receiptHeld faultWeight deltaF hdelta gap hJst hG slotProposal read
-    order signer sourceParent hδ hbound rowsReceipt progressCoverage hfold
-    honestQuorum entryAgreement sourceSlot ancestorSlot eraseReflect floor gateCopy
-    service common heldSlot proposalSlot justifiedSource parentFrame allowance _ ht hstart hdelay
-    (hbudget.trans hhor) with
-      hr | ⟨t, _, htail, hserved⟩
-  · have hm := ((FrontierSearchStart_def R E rho O T Jst i ev m kind).mp hstart).2.2.2.2.1
-    exact frontierSearch_row_of_rise (R := R) (S := S) (O := O) (T := T) (E := E)
-      (rho := rho) (D := D) (Ef := Ef) (cert := cert) (inv := inv) (chainRows := chainRows)
-      hT schedule cap hm (frontierSearch_rise_mono R E rho hbudget hr)
-  · obtain ⟨u, J, contested, q, Q, Qfg, hready, hQ, he, hQm, hsvc, hseed, hu, hp, hqt, _, _,
-        _⟩ :=
-      (StrongServed_def R S E rho O T I D.heightPair Jst leaseSlots m t).mp hserved
-    obtain ⟨r, hr, hfirst, htime⟩ :=
-      (FirstHeightRowBy_def S E rho T D.heightPair m _).mp
-        (healing_frontierTail_row (R := R) (S := S) (E := E) (rho := rho) (O := O) (T := T)
-          (I := I) (pair := D.heightPair) (chainRows := chainRows) (Ef := Ef) (cert := cert)
-          (inv := inv) hT schedule mono cap hp hQ hqt
-          (fun v hv hvh hc => service u v m J contested q Q Qfg hready hQ he hQm hsvc hseed
-            hu hp hv hvh hc) ((htail.trans hbudget).trans hhor))
-    exact (FirstHeightRowBy_def S E rho T D.heightPair m _).mpr
-      ⟨r, hr, hfirst, htime.trans (htail.trans hbudget)⟩
+  exact frontierSearch_row_task_holder R S O T E rho I D Ef decodeProposal bodyErase bodyRows
+    blockWireRows parentFG parentHeight validFor fold Jst leaseSlots obs cert inv justif keep
+    positive coreLaws erasePreceq joined receipt chainRows hT hk crossing schedule mono awake
+    joinedTick readyCut hServices receiptHeld faultWeight deltaF hdelta gap hJst hG slotProposal
+    read order signer sourceParent hδ hbound rowsReceipt progressCoverage hfold honestQuorum
+    entryAgreement sourceSlot ancestorSlot eraseReflect floor gateCopy (fun u v m J c q Q Qfg hr hQ
+    he hh hs hseed hu hp hg ht hc => frontierLocalService_to_holder_core (service u v m J c q Q Qfg
+    hr hQ he hh hs hseed hu hp hg ht hc)) (fun u m J c q Q Qfg r hr hQ he hs hseed hu hqr hfirst hp
+    => ⟨fun i hi => (common u m J c q Q Qfg r hr hQ he hs hseed hu hqr hfirst hp).1 _
+    (Finset.mem_filter.mp hi).2, (common u m J c q Q Qfg r hr hQ he hs hseed hu hqr hfirst hp).2⟩)
+    heldSlot proposalSlot justifiedSource parentFrame allowance cap hstart hdelay hhor
 
 /-- Blueprint 21:1744–1800; S5 F3.
 DC: SAME classify a frontier by its accepted evidence. -/

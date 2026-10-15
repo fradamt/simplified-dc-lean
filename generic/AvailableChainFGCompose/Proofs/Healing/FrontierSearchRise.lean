@@ -1,6 +1,6 @@
 module
-public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchHG2a
 public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchTail
+public import AvailableChainFGCompose.Proofs.Population.FrontierSearchRise
 
 public section
 
@@ -35,27 +35,6 @@ variable (erasePreceq : ∀ {A B}, FGBlock.Preceq A B → Block.Preceq (R.erase 
 variable (joined : Prot.State → Bool) (receipt : Block → Time → V → Prop)
 
 variable (chainRows : Prot.State → Block → List Wire)
-
-private theorem p0d5c_rise_first_time (hT : FGTimingLaws T) {q r : Nat}
-    (hqr : q ≤ r * T.roundSlots) (hfirst : ∀ r', q ≤ r' * T.roundSlots → r ≤ r') :
-    T.action r ≤ T.gate q + FGCompose.P T - 4 * T.delta := by
-  have hd := hT.delta_pos
-  rw [hT.action_eq, hT.gate_eq, hT.gate_eq, hT.proposal_eq, hT.proposal_eq]
-  have hup : r * T.roundSlots + 1 ≤ q + T.roundSlots := by
-    rcases Nat.eq_zero_or_pos r with hr | hr
-    · subst hr
-      have := hT.rounds
-      omega
-    · have hlt : ¬ q ≤ (r - 1) * T.roundSlots := fun h => by
-        have := hfirst (r - 1) h
-        omega
-      have he : (r - 1) * T.roundSlots + T.roundSlots = r * T.roundSlots := by
-        rw [← Nat.succ_mul, Nat.succ_eq_add_one, Nat.sub_add_cancel hr]
-      omega
-  have hupI : ((r * T.roundSlots : Nat) : Time) + 1 ≤ (q : Time) + T.roundSlots := by
-    exact_mod_cast hup
-  unfold FGCompose.P
-  nlinarith
 
 include cert inv keep in
 /-- ROOT-DIGEST W2b. Blueprint 21:1695–1720; S5 F2, saved-seed rise tail.
@@ -109,39 +88,17 @@ theorem healing_frontierTail_rise_of_seed (hT : FGTimingLaws T)
     (hstart : frontierAtIdx R E rho (i + 1) ≤ m)
     (hhor : t + (2 * FGCompose.P T + Γ T G - 9 * T.delta) ≤ rho.horizon) :
     FrontierRiseBy R E rho i m (t + (2 * FGCompose.P T + Γ T G - 9 * T.delta)) := by
-  classical
-  have hd := hT.delta_pos
-  have hex : ∃ r, q ≤ r * T.roundSlots := ⟨q, by
-    simpa only [Nat.mul_one] using Nat.mul_le_mul_left q
-      (show 1 ≤ T.roundSlots from (by decide : 1 ≤ 2).trans hT.rounds)⟩
-  let r := Nat.find hex
-  have hqr : q ≤ r * T.roundSlots := Nat.find_spec hex
-  have hfirst : ∀ r', q ≤ r' * T.roundSlots → r ≤ r' := fun r' hr' => Nat.find_min' hex hr'
-  have har := p0d5c_rise_first_time T hT hqr hfirst
-  have ha : T.action r ≤ t + FGCompose.P T - 4 * T.delta := by linarith
-  let U := (O.height Qfg).T_h
-  obtain ⟨j, x, hmem⟩ := hcopy
-  have hUslot : U.slot ≤ q := (heldSlot j x U Qfg hmem (cert.height.entry_preceq Qfg)).trans_eq
-    (proposalSlot q Q Qfg hQ he)
-  have hUage : T.proposal U.slot ≤ t - 6 * T.delta := by
-    have hc : (U.slot : Time) ≤ q := by exact_mod_cast hUslot
-    rw [hT.gate_eq, hT.proposal_eq] at hqt
-    rw [hT.proposal_eq]
-    nlinarith
-  have hD := frontierSearch_hg2a_bound T hT G ΔF t (T.action r) (T.proposal U.slot) hbound
-    ha hUage
-  have hresult := frontier_hg2a_receipt (R := R) (S := S) (O := O) (T := T) (E := E)
-    (rho := rho) (I := I) (D := D) (Ef := Ef) (decodeProposal := decodeProposal)
-    (bodyErase := bodyErase) (bodyRows := bodyRows) (blockWireRows := blockWireRows)
-    (parentFG := parentFG) (parentHeight := parentHeight) (validFor := validFor)
-    (fold := fold) (laws := cert.height) hT schedule faultWeight deltaF hdelta gap hJst mono
-    keep eraseParent eraseReflect slotProposal read order signer capReceipt hδ hbound
-    rowsReceipt progressCoverage hfold honestQuorum hready hQ he hQm hu hqr rfl hservice
-    (entryAgreement r) (sourceSlot r) (ancestorSlot r) hstart (hD.trans hhor)
-  rcases (FrontierHG2aResult_def R E rho O T I G ΔF i m r U).mp hresult with
-      hrise | ⟨s, X, _, _, hh, y, hy, hheld⟩
-  · exact frontierSearch_rise_mono R E rho hD hrise
-  · exact frontierSearch_rise_of_receipt R E rho O inv keep schedule mono hstart hy hh hheld hD
+  exact healing_frontierTail_rise_of_seed_holder R S O T E rho I D Ef decodeProposal bodyErase
+    bodyRows blockWireRows parentFG parentHeight validFor fold Jst cert inv keep hT schedule
+    faultWeight deltaF hdelta gap hJst mono eraseParent eraseReflect slotProposal read order
+    signer capReceipt hδ hbound rowsReceipt progressCoverage hfold honestQuorum entryAgreement
+    sourceSlot ancestorSlot heldSlot proposalSlot hready hQ he hQm hu hqt hcopy
+    (fun v hv hh hcap => by
+      have h := hservice v hv hh hcap
+      refine ⟨h.1, h.2.1, h.2.2.1, h.2.2.2.1, ?_⟩
+      intro r hr ht
+      obtain ⟨hc, rest⟩ := h.2.2.2.2 r hr ht
+      exact ⟨fun i hi => hc _ (Finset.mem_filter.mp hi).2, rest⟩) hstart hhor
 
 include cert inv keep in
 /-- ROOT-DIGEST W2b. Blueprint 21:1695–1720; S5 F2, HG.4 rise.

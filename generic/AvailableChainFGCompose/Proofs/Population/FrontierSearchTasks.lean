@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchTasks
+public import AvailableChainFGCompose.Proofs.Population.HolderBaseTasks
 public import AvailableChainFGCompose.Proofs.Population.FrontierSearchCompose
 public import AvailableChainFGCompose.Proofs.Population.FrontierSearchRise
 
@@ -128,7 +128,7 @@ theorem frontierSearch_rise_task_holder (hT : FGTimingLaws T) (hk : 1 ≤ leaseS
     (hdelay : Jst + 2 * FGCompose.P T ≤ ev.time)
     (hhor : ev.time + frontierSearchRiseBudget T G ΔF ρbar ≤ rho.horizon) :
     FrontierRiseBy R E rho i m (ev.time + frontierSearchRiseBudget T G ΔF ρbar) := by
-  obtain ⟨hb, _, ht, _, _, _⟩ := frontierSearch_task_bounds T hT hG hbound
+  obtain ⟨hb, _, ht, _, _, _⟩ := frontierSearch_task_bounds_core T hT hG hbound
     (allowance i ev m kind hstart hdelay).1 kind
   have hbudget : ev.time + frontierSearch_remaining T G ΔF ρbar
       (2 * FGCompose.P T + Γ T G - 9 * T.delta) kind ≤
@@ -279,7 +279,7 @@ theorem frontierSearch_row_task_holder (hT : FGTimingLaws T) (hk : 1 ≤ leaseSl
     refine ⟨seat, ?_⟩
     simpa only [FGHonestSeats_def, Finset.mem_filter, Finset.mem_univ, true_and]
       using hA seat hs
-  obtain ⟨_, hb, _, ht, _, _⟩ := frontierSearch_task_bounds T hT hG hbound
+  obtain ⟨_, hb, _, ht, _, _⟩ := frontierSearch_task_bounds_core T hT hG hbound
     (allowance i ev m kind hstart hdelay).1 kind
   have hbudget : ev.time + frontierSearch_remaining T G ΔF ρbar
       (FGCompose.P T - 4 * T.delta) kind ≤
@@ -300,7 +300,7 @@ theorem frontierSearch_row_task_holder (hT : FGTimingLaws T) (hk : 1 ≤ leaseSl
     (hbudget.trans hhor) with
       hr | ⟨t, _, htail, hserved⟩
   · have hm := ((FrontierSearchStart_def R E rho O T Jst i ev m kind).mp hstart).2.2.2.2.1
-    exact frontierSearch_row_of_rise (R := R) (S := S) (O := O) (T := T) (E := E)
+    exact frontierSearch_row_of_rise_core (R := R) (S := S) (O := O) (T := T) (E := E)
       (rho := rho) (D := D) (Ef := Ef) (cert := cert) (inv := inv) (chainRows := chainRows)
       hT schedule cap hm (frontierSearch_rise_mono R E rho hbudget hr)
   · obtain ⟨u, J, contested, q, Q, Qfg, hready, hQ, he, hQm, hsvc, hseed, hu, hp, hqt, _, _,

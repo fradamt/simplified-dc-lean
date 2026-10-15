@@ -1,7 +1,7 @@
 module
 public import AvailableChainFGCompose.Statements.Population.FinalityKernel
 public import AvailableChainFGCompose.Proofs.Population.MiddleSupport
-public import AvailableChainFGCompose.Proofs.Finality.Middle
+public import AvailableChainFGCompose.Proofs.Population.HolderBaseMiddle
 
 public section
 
@@ -170,7 +170,7 @@ theorem kernel_opening_and_middle_holder
   have exD := exactService _ _ hxd n0D
   have hhD := kmid_slot_horizon T L hhorA hcD2
   have highA : sp.reset.M + 1 ≤ (O.height A₀).h :=
-    middle_reset_opening_height R S O T L E rho I D Ef sp rho.horizon Jst
+    middle_reset_opening_height_core R S O T L E rho I D Ef sp rho.horizon Jst
       reset history laws reflect parent pt.r A₀ hA' hhA.1 _hs2
   -- Step 6–8: rows through action q and the first raw cut.
   have rowsQ : ∀ j x r a h, r ≤ pt.r → HonestRowAt S E rho T j x r a →

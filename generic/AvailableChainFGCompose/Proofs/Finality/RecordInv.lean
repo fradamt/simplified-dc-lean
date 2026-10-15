@@ -1,10 +1,12 @@
 module
 public import AvailableChainFGCompose.Statements.FinalityRecords
-public import AvailableChainFGCompose.Proofs.RowPermission
 public import AvailableChainKitFG.ProvenanceCore
 public import AvailableChainKitFG.StoreSafetyDef
-public import AvailableChainFGCompose.Proofs.SafetyClient
 public import AvailableChainGeneric.Proofs.V2.Duty.Fields
+
+public import AvailableChainFGCompose.Proofs.Population.HighTarget
+
+public import AvailableChainFGCompose.Proofs.Population.Seats
 
 public section
 
@@ -91,19 +93,7 @@ theorem high_record_target_choice (Λ : Record) (y : Nat) (T : BlockId)
     (hl : Λ.lock y = none ∨ Λ.lock y = some T)
     (hf : ∀ f, fp = some f → f.height = y → f.target = T) :
     height_pair Λ (some (y, T)) fp = .vote y T false := by
-  have hol : own_lock Λ y fp = none ∨ own_lock Λ y fp = some T := by
-    cases hp : fp with
-    | none => simpa only [own_lock, hp] using hl
-    | some f =>
-      by_cases hy : f.height = y
-      · right; simp only [own_lock, hy, ite_true, hf f hp hy]
-      · simpa only [own_lock, hp, hy, ite_false] using hl
-  rw [d7r_height_pair_some_def]
-  simp only [hn, Bool.false_eq_true, ite_false]
-  rcases hol with hol | hol
-  · rw [hol]
-    rcases ht with ht | ht <;> simp [ht]
-  · simp [hol]
+  exact high_record_target_choice_core Λ y T fp ht hn hl hf
 
 include hh cert hreflect hqc hhead in
 private theorem d7r_finality_source (i : Nat) (x : V) (t : Time)
@@ -950,26 +940,6 @@ theorem ff2_high_record_guards :
     i x hx (O.height C).h hhigh
   simpa only [hentry] using And.intro ht (And.intro hn hl)
 
-include J in
-private theorem d7r_history (e : Fin n ≃ V)
-    (he : ∀ k, rho.seatOf S.fgLabel (S.fgSeats k) = e k) (i : Nat) (x : V) :
-    FGRowRecordHistory (S.record (V2.D.Run.stateBefore E rho i x)) := by
-  rw [(safety_client_trace S Ef cfg E rho J e he x i).1]
-  let inputs := (List.range i).filterMap (safetyInputAt S E rho x)
-  have hc := clientRunOnce_covers Ef cfg (e.symm x) inputs RecordOnce.initial recordInv_initial
-  refine ⟨hc.1, ?_⟩
-  intro h U timeout fp hm
-  rw [clientRecordOnce_sent] at hm
-  change (.vote h U timeout, fp) ∈
-    ((clientRunOnce Ef cfg (e.symm x) RecordOnce.initial inputs).map
-      Row.onceKey).reverse ++ [] at hm
-  simp only [List.append_nil, List.mem_reverse, List.mem_map] at hm
-  obtain ⟨a, ha, hk⟩ := hm
-  have hh := congrArg Prod.fst hk
-  change a.height_pair = .vote h U timeout at hh
-  exact ⟨fun ht => (hc.2.2 a ha).1 h U (ht ▸ hh),
-    fun ht => (hc.2.2 a ha).2.1 h U (ht ▸ hh)⟩
-
 private theorem d7r_sent_origin (ls : List P.Object) (Λ : RecordOnce)
     (b : NamedHeightPair × Option FinalityPair)
     (hm : b ∈ (ls.foldl (safetyRecordStep S) Λ).sent) :
@@ -1019,40 +989,23 @@ theorem high_target_row_covered (x : V) (hx : x ∈ rho.honest) (r : Nat)
     ∃ j rSent a, rSent ≤ r ∧ HonestRowAt S E rho T j x rSent a ∧
       RowComplete S rho D.signer valid x a ∧
       D.heightPair a = .vote (O.height C).h (O.height C).T_h.root false := by
-  obtain ⟨nd, hnd, hC⟩ := Option.map_eq_some_iff.mp hsource
-  obtain ⟨i, htick, hclock⟩ := postClock_tick E rho hnd
-  have hrec : S.record nd = S.record (V2.D.Run.stateBefore E rho i x) := by
-    rw [← hclock, J.clock_record]
-  have hentry := d7r_entry_source hh cert hreflect x r C hx hsource hhigh
-  obtain ⟨_, _, hl, _⟩ := d7r_all hh cert hreflect hqc hhead J emission hown hnames
-    i x hx (O.height C).h hhigh
-  have hol : own_lock (S.record nd).toRecord (O.height C).h
-      (finality_pair (S.record nd).toRecord (S.inputs nd).2) = none ∨
-      own_lock (S.record nd).toRecord (O.height C).h
-        (finality_pair (S.record nd).toRecord (S.inputs nd).2) = some (O.height C).T_h.root := by
-    cases hp : finality_pair (S.record nd).toRecord (S.inputs nd).2 with
-    | none => simpa only [own_lock, hrec, hentry] using hl
-    | some fp =>
-      by_cases hy : fp.height = (O.height C).h
-      · have hf : fp.target = (O.height C).T_h.root := by
-          have hfp := d7r_finality_source hh cert hreflect hqc hhead i x (T.action r)
-            (S.record nd).toRecord fp hx (by rw [hclock]; exact hp) (hy ▸ hhigh)
-          simpa only [hy, hentry] using hfp
-        exact Or.inr (by simp only [own_lock, hy, ite_true, hf])
-      · simpa only [own_lock, hy, ite_false, hrec, hentry] using hl
-  have hist : FGRowRecordHistory (S.record nd) := by
-    rw [hrec]; exact d7r_history J e he i x
-  obtain ⟨j, rSent, a, hr, ha, hn⟩ := rowPermission_covered S O.height Ef cfg T hT E rho J
-    (fun a => namedEntry (D.heightPair a)) wireLaws e he hs hheight x hx r i nd htick hclock C
-    ⟨(hsrc nd).trans hC, hol⟩ hist (d7r_prior_origin (D := D) J hown i x hx) hawake (enabled r)
-  obtain ⟨u, hd, hcomplete⟩ := complete j x rSent a ha
-  have hn' : namedEntry u.height_pair =
-      some ((O.height C).h, (O.height C).T_h.root) := by
-    rwa [D.decode_height a u hd] at hn
-  have hp := d7r_honest_pair hh cert hreflect hqc hhead J emission hown hnames
-    j x rSent a u ha hd _ _ hn' hhigh
-  exact ⟨j, rSent, a, hr, ha, hcomplete, (D.decode_height a u hd).trans (by
-    simpa only [hentry] using hp)⟩
+  have he' : safetyHolder S rho = e := funext he
+  have client : FGHolderClientLaws S Ef cfg E rho (ordinaryFGExecutionObs E rho)
+      (safetyHolder S rho) := by
+    rw [he']
+    exact ordinary_FGHolderClientLaws S Ef cfg E rho J e he
+  have trace : FGHolderClientTrace S Ef cfg E rho (ordinaryFGExecutionObs E rho)
+      (safetyHolder S rho) := by
+    apply (ordinary_FGHolderClientTrace_iff S Ef cfg E rho _).mpr
+    intro i _ k
+    simpa only [he', Equiv.symm_apply_apply] using safety_client_trace S Ef cfg E rho J e he (e i) k
+  have hseat : safetyHolder S rho (e.symm x) = x :=
+    (he (e.symm x)).trans (e.apply_symm_apply x)
+  rw [← hseat] at hx hsource hawake ⊢
+  exact high_target_row_covered_holder (highRecordEntry R O T E rho) (d7r_entry_source hh cert
+    hreflect) (d7r_all hh cert hreflect hqc hhead J emission hown hnames) (d7r_finality_source hh
+    cert hreflect hqc hhead) (d7r_prior_origin (D := D) J hown) hsrc hheight J client trace
+    emission complete wireLaws hT hs enabled (e.symm x) hx r C hsource hhigh hawake
 
 include hh cert hreflect hqc hhead hsrc hheight J emission hown hnames complete
   wireLaws e he hT hs enabled in
@@ -1064,16 +1017,23 @@ theorem high_target_first_row (x : V) (hx : x ∈ rho.honest) (r : Nat)
       historyRowHeight S D a = some h → h < (O.height C).h) :
     ∃ j a, HonestRowAt S E rho T j x r a ∧ RowComplete S rho D.signer valid x a ∧
       D.heightPair a = .vote (O.height C).h (O.height C).T_h.root false := by
-  obtain ⟨j, q, a, hqr, ha, hcomplete, hp⟩ := high_target_row_covered
-    hh cert hreflect hqc hhead hsrc hheight J emission hown hnames complete wireLaws
-    e he hT hs enabled x hx r C hsource hhigh hawake
-  have hq : q = r := by
-    by_contra hne
-    have hlt := hbefore j q a _ (lt_of_le_of_ne hqr hne) ha (by
-      exact d7r_row_height_eq a _ hp)
-    exact (Nat.lt_irrefl _ hlt).elim
-  subst q
-  exact ⟨j, a, ha, hcomplete, hp⟩
+  have he' : safetyHolder S rho = e := funext he
+  have client : FGHolderClientLaws S Ef cfg E rho (ordinaryFGExecutionObs E rho)
+      (safetyHolder S rho) := by
+    rw [he']
+    exact ordinary_FGHolderClientLaws S Ef cfg E rho J e he
+  have trace : FGHolderClientTrace S Ef cfg E rho (ordinaryFGExecutionObs E rho)
+      (safetyHolder S rho) := by
+    apply (ordinary_FGHolderClientTrace_iff S Ef cfg E rho _).mpr
+    intro i _ k
+    simpa only [he', Equiv.symm_apply_apply] using safety_client_trace S Ef cfg E rho J e he (e i) k
+  have hseat : safetyHolder S rho (e.symm x) = x :=
+    (he (e.symm x)).trans (e.apply_symm_apply x)
+  rw [← hseat] at hx hsource hawake hbefore ⊢
+  exact high_target_first_row_holder (highRecordEntry R O T E rho) (d7r_entry_source hh cert
+    hreflect) (d7r_all hh cert hreflect hqc hhead J emission hown hnames) (d7r_finality_source hh
+    cert hreflect hqc hhead) (d7r_prior_origin (D := D) J hown) hsrc hheight J client trace
+    emission complete wireLaws hT hs enabled (e.symm x) hx r C hsource hhigh hawake hbefore
 
 include e he in
 /-- Unit FG seats transport the honest count without identifying arbitrary populations. -/
@@ -1137,50 +1097,30 @@ theorem high_target_quorum_covered [Fintype V] (unit : FGSafetyUnitLaws Ef)
       D.heightPair (rows i) = .vote (O.height C).h (O.height C).T_h.root false ∧
       ∀ x ∈ rho.honest, HeldBefore R E rho blockWireRows x (rows i)
         (max (T.action rSent) E.t_GST + deltaF) := by
+  have he' : safetyHolder S rho = e := funext he
+  have client : FGHolderClientLaws S Ef cfg E rho (ordinaryFGExecutionObs E rho)
+      (safetyHolder S rho) := by
+    rw [he']
+    exact ordinary_FGHolderClientLaws S Ef cfg E rho J e he
+  have trace : FGHolderClientTrace S Ef cfg E rho (ordinaryFGExecutionObs E rho)
+      (safetyHolder S rho) := by
+    apply (ordinary_FGHolderClientTrace_iff S Ef cfg E rho _).mpr
+    intro i _ k
+    simpa only [he', Equiv.symm_apply_apply] using safety_client_trace S Ef cfg E rho J e he (e i) k
   classical
-  let honest := Finset.univ.filter (fun k => safetyHolder S rho k ∈ rho.honest)
-  have hQ : Ef.IsQuorum honest := high_target_honest_quorum e he unit hf
-  refine ⟨hQ, ?_⟩
-  have haction : T.action r ≤ rho.horizon := by linarith
-  have forSeat : ∀ i ∈ honest, ∃ a, ∃ j rSent,
-      rSent ≤ r ∧ HonestRowAt S E rho T j (safetyHolder S rho i) rSent a ∧
-      RowComplete S rho D.signer valid (safetyHolder S rho i) a ∧ D.signer a = some i ∧
-      D.heightPair a = .vote (O.height C).h (O.height C).T_h.root false ∧
-      ∀ x ∈ rho.honest, HeldBefore R E rho blockWireRows x a
-        (max (T.action rSent) E.t_GST + deltaF) := by
-    intro i hi
-    have hx : safetyHolder S rho i ∈ rho.honest := (Finset.mem_filter.mp hi).2
-    obtain ⟨j, rSent, a, hr, ha, hcomplete, hp⟩ := high_target_row_covered
-      hh cert hreflect hqc hhead hsrc hheight J emission hown hnames complete wireLaws
-      e he hT hs enabled _ hx r C (hsource _ hx) hhigh (awake _ hx _ hGST haction)
-    have hauth : D.signer a = some i := by
-      obtain ⟨k, hk, hki⟩ := hcomplete.2
-      have hsame : k = i := e.injective ((he k).symm.trans (hki.trans (he i)))
-      exact hk.trans (congrArg some hsame)
-    have hdeadline : max (T.action rSent) E.t_GST + deltaF ≤ rho.horizon := by
-      have := max_le (d7r_action_mono hT hr) hGST
-      linarith
-    exact ⟨a, j, rSent, hr, ha, hcomplete, hauth, hp, receipt j _ rSent a ha hdeadline⟩
-  have hpos : 0 < honest.card := by
-    change Ef.q ≤ Ef.weightOf honest at hQ
-    rw [unit.quorum, unit.weight, Gen.Pure.qF_def] at hQ
+  have hQ := high_target_honest_quorum_holder S rho Ef unit
+    (by rw [fg_fault_count_eq_nodes_of_equiv S rho e he]; exact hf)
+  have hpos : 0 < Ef.q := by
+    rw [unit.quorum, Gen.Pure.qF_def]
     have := unit.n_pos
     omega
-  obtain ⟨k, hk⟩ := Finset.card_pos.mp hpos
-  obtain ⟨fallback, _⟩ := forSeat k hk
-  have total : ∀ i : Fin n, ∃ a, i ∈ honest → ∃ j rSent,
-      rSent ≤ r ∧ HonestRowAt S E rho T j (safetyHolder S rho i) rSent a ∧
-      RowComplete S rho D.signer valid (safetyHolder S rho i) a ∧ D.signer a = some i ∧
-      D.heightPair a = .vote (O.height C).h (O.height C).T_h.root false ∧
-      ∀ x ∈ rho.honest, HeldBefore R E rho blockWireRows x a
-        (max (T.action rSent) E.t_GST + deltaF) := by
-    intro i
-    by_cases hi : i ∈ honest
-    · obtain ⟨a, ha⟩ := forSeat i hi
-      exact ⟨a, fun _ => ha⟩
-    · exact ⟨fallback, fun h => (hi h).elim⟩
-  choose rows hrows using total
-  exact ⟨rows, hrows⟩
+  have hn := fgHonestSeats_nonempty_of_quorum S rho Ef hpos hQ
+  exact high_target_quorum_covered_holder (highRecordEntry R O T E rho) (d7r_entry_source hh cert
+    hreflect) (d7r_all hh cert hreflect hqc hhead J emission hown hnames) (d7r_finality_source hh
+    cert hreflect hqc hhead) (d7r_prior_origin (D := D) J hown) hsrc hheight J client trace
+    emission complete wireLaws hT hs enabled (FGHonestSeats S rho) (Finset.Subset.refl _) hn hQ
+    blockWireRows deltaF hdeltaF receipt awake r C hhigh (fun i hi => hsource _
+    (Finset.mem_filter.mp hi).2) hGST hhor
 
 end AvailableChain.FGCompose
 end

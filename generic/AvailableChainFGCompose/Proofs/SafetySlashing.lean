@@ -2,6 +2,7 @@ module
 public import AvailableChainFGCompose.Proofs.SafetyStore
 public import AvailableChainFGCompose.Proofs.SafetyClient
 public import AvailableChainFGCompose.Statements.SafetyClaims
+public import AvailableChainFGCompose.Proofs.Population.Safety
 
 public section
 
@@ -79,20 +80,10 @@ theorem safety_honest_never_slashed
     (hi : safetySlashesRead R S E rho I)
     (hu : V2.D.UnforgeableSignatures E rho) (hl : V2.D.Linked linked rho) :
     Gen.V2.Duty.HonestNeverSlashed I rho := by
-  rw [Gen.V2.Duty.HonestNeverSlashed_def]
-  intro v hv hs
-  rw [safetySlashesRead_def] at hi
-  obtain ⟨x, y, t, t', i, ⟨a, ha, b, hb, hai, hbi, hab⟩, rfl⟩ := (hi v).mp hs
-  have hca := safety_read_carriage C L W hu t x
-  have hcb := safety_read_carriage C L W hu t' y
-  rw [safetyCarriage_def] at hca hcb
-  obtain ⟨wa, hwa, hea⟩ := hca a ha
-  obtain ⟨wb, hwb, heb⟩ := hcb b hb
-  rw [hai] at hea
-  rw [hbi] at heb
-  have hn := safety_emitted_noSlash S Ef cfg E rho W J linked hfg hl (safetyHolder S rho i)
-  rw [safetyNoSlash_def] at hn
-  exact hn wa wb (hea hv) (heb hv) a b hwa hwb hab
+  exact safety_honest_never_slashed_holder S E rho R
+    (fun t x => safety_read_carriage C L W hu t x)
+    (fun i _ => safety_emitted_noSlash S Ef cfg E rho W J linked hfg hl
+      (safetyHolder S rho i)) I hi
 
 end AvailableChain.FGCompose
 end

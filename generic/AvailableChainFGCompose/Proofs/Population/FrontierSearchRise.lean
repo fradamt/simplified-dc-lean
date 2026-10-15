@@ -127,7 +127,7 @@ theorem healing_frontierTail_rise_of_seed_holder (hT : FGTimingLaws T)
     rw [hT.gate_eq, hT.proposal_eq] at hqt
     rw [hT.proposal_eq]
     nlinarith
-  have hD := frontierSearch_hg2a_bound T hT G ΔF t (T.action r) (T.proposal U.slot) hbound
+  have hD := frontierSearch_hg2a_bound_core T hT G ΔF t (T.action r) (T.proposal U.slot) hbound
     ha hUage
   have hresult := frontier_hg2a_receipt_holder (R := R) (S := S) (O := O) (T := T) (E := E)
     (rho := rho) (I := I) (D := D) (Ef := Ef) (decodeProposal := decodeProposal)
