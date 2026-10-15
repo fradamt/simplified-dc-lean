@@ -9097,4 +9097,17 @@
             'AvailableChain.FGCompose.healing_frontierTail_row_holder',
         ),
     },
+    'AvailableChainFGCompose.Tests.PopulationOwnerSearchAxioms': {
+        'AvailableChainFGCompose.Proofs.Population.FrontierSearchCompose': (
+            'AvailableChain.FGCompose.frontierSearch_phase_tail_holder',
+        ),
+        'AvailableChainFGCompose.Proofs.Population.FrontierSearchFull': (
+            'AvailableChain.FGCompose.frontierSearch_family_holder',
+            'AvailableChain.FGCompose.frontierSearch_holder',
+        ),
+        'AvailableChainFGCompose.Proofs.Population.FrontierSearchTasks': (
+            'AvailableChain.FGCompose.frontierSearch_rise_task_holder',
+            'AvailableChain.FGCompose.frontierSearch_row_task_holder',
+        ),
+    },
 }
