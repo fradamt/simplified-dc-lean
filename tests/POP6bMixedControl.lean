@@ -131,5 +131,47 @@ private theorem chain_facts_premises_sat : ∀ s : Fin 65,
 
 #print axioms chain_facts_premises_sat
 
+private theorem geometry_premises_sat :
+    FGCertificateLaws v5E obs.height obs.finality ∧ FGObservationLaws core obs ∧
+    (∀ st, FGStoreInvariant obs.height obs.finality (core.core st).fg) := by
+  refine ⟨v5cert, ⟨fun _ => rfl, fun _ _ => rfl⟩, ?_⟩
+  intro st
+  have mem (s : Nat) (hs : s ≤ min st 64) : chain s ∈ stored st :=
+    List.mem_toFinset.mpr (List.mem_map.mpr ⟨s, List.mem_range.mpr (by omega), rfl⟩)
+  have extract (B : FGBlock (Fin 1)) (hB : B ∈ stored st) :
+      ∃ s, s ≤ min st 64 ∧ B = chain s := by
+    obtain ⟨s, hs, rfl⟩ := List.mem_map.mp (List.mem_toFinset.mp hB)
+    exact ⟨s, Nat.le_of_lt_succ (List.mem_range.mp hs), rfl⟩
+  have facts (s : Nat) (hs : s ≤ min st 64) :=
+    chain_facts_premises_sat ⟨s, by omega⟩
+  refine ⟨?_, mem 0 (by omega), mem 0 (by omega), ?_, ?_, rfl, ?_⟩
+  · intro B hB
+    obtain ⟨s, hs, rfl⟩ := extract B hB
+    cases s with
+    | zero => exact mem 0 (by omega)
+    | succ s => exact mem s (Nat.le_of_succ_le hs)
+  · change heightAt (min st 64) = (stored st).sup (fun B => (v5H B).h) ⊔ 1
+    apply le_antisymm
+    · have h := Finset.le_sup (f := fun B => (v5H B).h) (mem _ le_rfl)
+      rw [(facts _ le_rfl).1] at h
+      exact h.trans le_sup_left
+    · apply sup_le
+      · apply Finset.sup_le
+        intro B hB
+        obtain ⟨s, hs, rfl⟩ := extract B hB
+        rw [(facts s hs).1]
+        exact Nat.add_le_add_left (Nat.div_le_div_right hs) 1
+      · dsimp only [heightAt]
+        omega
+  · refine ⟨⟨.genesis, mem 0 (by omega), ?_, rfl, rfl⟩, ?_⟩
+    · exact genesis_preceq _
+    · intro B hB _
+      obtain ⟨s, hs, rfl⟩ := extract B hB
+      change lexKey ((v5H (chain s)).h_j, (v5H (chain s)).J) ≤ lexKey (0, .genesis)
+      rw [(facts s hs).2.2.1, (facts s hs).2.2.2.1]
+  · exact ⟨.genesis, mem 0 (by omega), rfl⟩
+
+#print axioms geometry_premises_sat
+
 end AvailableChain.FGCompose.Tests.POP6bMixed
 end
