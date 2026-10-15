@@ -108,5 +108,90 @@ private theorem promotion_premises_sat :
 
 #print axioms promotion_premises_sat
 
+private theorem phase_premises_sat :
+    (∀ st, (obs.controls st).contest = false ∧ (obs.controls st).Z = .genesis) ∧
+    (∀ u v m J c q, PhaseInterval core env run obs u v m J c →
+      u ≤ v5T.proposal q → v5T.gate q ≤ v → m = heightAt (q + 1) ∧ c = false) ∧
+    AttemptProposalFloor core env run obs v5T iface 12 ∧
+    (∀ u v m J c q Q, (12 : Time) ≤ u → PhaseInterval core env run obs u v m J c →
+      FrontierSeedQualification v5T 1 env.t_GST u q → v5T.gate q ≤ v →
+      HonestProposal env run iface q Q → ∃ i x Qfg,
+      V2.D.Run.idxBefore run u ≤ i ∧ i ≤ timeIdx run v ∧ x ∈ run.honest ∧
+      Qfg ∈ (core.core (run.stateBefore env i x)).fg.TF ∧ v5erase Qfg = Q) := by
+  have bits (st : Nat) : (obs.controls st).contest = false ∧
+      (obs.controls st).Z = .genesis := by
+    have hn : ¬ ∃ W ∈ stored st, FGBlock.Preceq .genesis W ∧
+        (v5H W).h = heightAt (min st 64) ∧ ¬ FGBlock.Preceq .genesis W := by
+      rintro ⟨W, _, _, _, h⟩
+      exact h (genesis_preceq W)
+    constructor
+    · change (decide (heightAt (min st 64) = 1) && decide (∃ W ∈ stored st,
+        FGBlock.Preceq .genesis W ∧ (v5H W).h = heightAt (min st 64) ∧
+          ¬ FGBlock.Preceq .genesis W)) = false
+      rw [decide_eq_false hn, Bool.and_false]
+    · change (if (obs.controls st).rootIsJ then FGBlock.genesis else .genesis) = .genesis
+      split <;> rfl
+  have gate (q : Nat) (hq : v5T.gate q ≤ run.horizon) :
+      q ≤ 62 ∧ run.stateBeforeTime env (v5T.gate q) 7 = q + 1 := by
+    simp only [Time] at *
+    have hz : (q : Int) ≤ 62 := by change 4 * (q : Int) + 6 ≤ 256 at hq; omega
+    have hn : q ≤ 62 := by exact_mod_cast hz
+    refine ⟨hn, ?_⟩
+    have ht : v5T.gate q = ((4 * q + 6 : Nat) : Time) := by dsimp [v5T]
+    rw [ht, (clock_premises_sat.1 ⟨4 * q + 6, by omega⟩).1]
+    change @Eq Nat ((4 * q + 6 - 1) / 4) (q + 1)
+    omega
+  have height (u v : Time) (m : Nat) (J : Option (FGBlock (Fin 1))) (c : Bool) (q : Nat)
+      (hp : PhaseInterval core env run obs u v m J c) (hu : u ≤ v5T.proposal q)
+      (hg : v5T.gate q ≤ v) : m = heightAt (q + 1) ∧ c = false := by
+    simp only [Time] at *
+    have hread := gate q (hg.trans hp.2.1)
+    have hug : u ≤ v5T.gate q := by
+      change u ≤ 4 * (q : Int) + 6
+      change u ≤ 4 * (q : Int) at hu
+      simp only [Time] at *
+      omega
+    have hf := hp.2.2.2 (V2.D.Run.idxBefore run (v5T.gate q)) 7
+      (v9idxBefore_mono run hug)
+      ((v9idxBefore_le_timeIdx run _).trans (frontierSearch_timeIdx_mono run hg)) (by decide)
+    rw [Gen.V2.Duty.stateBefore_idxBefore env run _ execution_premises_sat.1,
+      hread.2] at hf
+    have hh := hf.1
+    change heightAt (min (q + 1) 64) = m at hh
+    rw [Nat.min_eq_left (by omega)] at hh
+    exact ⟨hh.symm, hf.2.1.symm.trans (bits (q + 1)).1⟩
+  refine ⟨bits, height, ?_, ?_⟩
+  · intro u v m J c q Q Qfg _ hp hu hg hQ he
+    obtain ⟨h1, h64, hprop⟩ := classification_premises_sat.1 q Q hQ
+    have hQfg : Qfg = chain q := v5erase_inj (he.trans hprop)
+    subst Qfg
+    obtain ⟨hm, rfl⟩ := height u v m J c q hp hu hg
+    simp only [Slot, Time] at *
+    have parent (s : Nat) : (chain s).parent = chain (s - 1) := by cases s <;> rfl
+    rw [parent, (chain_facts_premises_sat ⟨q - 1, by omega⟩).1]
+    change m - 1 ≤ heightAt (q - 1)
+    dsimp only [heightAt] at hm ⊢
+    omega
+  · intro u v m J c q Q _ hp seed hg hQ
+    obtain ⟨_, _, hprop⟩ := classification_premises_sat.1 q Q hQ
+    have hu := frontierSearch_seed_after v5T 1 v5TLaws le_rfl seed
+    simp only [Slot, Time] at *
+    have hug : u ≤ v5T.gate q := by
+      change u ≤ 4 * (q : Int) + 6
+      change u ≤ 4 * (q : Int) at hu
+      simp only [Time] at *
+      omega
+    have hread := gate q (hg.trans hp.2.1)
+    refine ⟨V2.D.Run.idxBefore run (v5T.gate q), 7, chain q,
+      v9idxBefore_mono run hug,
+      (v9idxBefore_le_timeIdx run _).trans (frontierSearch_timeIdx_mono run hg), by decide,
+      ?_, hprop.symm⟩
+    rw [Gen.V2.Duty.stateBefore_idxBefore env run _ execution_premises_sat.1, hread.2]
+    change chain q ∈ stored (q + 1)
+    exact List.mem_toFinset.mpr (List.mem_map.mpr
+      ⟨q, List.mem_range.mpr (by omega), rfl⟩)
+
+#print axioms phase_premises_sat
+
 end AvailableChain.FGCompose.Tests.POP6bMixed
 end
