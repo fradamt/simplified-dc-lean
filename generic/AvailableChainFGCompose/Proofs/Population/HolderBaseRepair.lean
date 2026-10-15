@@ -1,6 +1,8 @@
 module
-public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchStop
-public import AvailableChainFGCompose.Proofs.Healing.PhaseSettle
+public import AvailableChainFGCompose.Statements.FrontierSearch
+public import AvailableChainFGCompose.Proofs.Healing.PhaseFrame
+public import Mathlib.Tactic.Linarith -- shake: keep (arithmetic tactics)
+public import Mathlib.Tactic.Ring -- shake: keep (ring tactic)
 
 public section
 

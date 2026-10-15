@@ -1,4 +1,6 @@
 module
+public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchStop
+public import AvailableChainFGCompose.Proofs.Population.HolderBasePromotionAge
 public import AvailableChainFGCompose.Proofs.Population.HolderBaseHG2a
 public import AvailableChainFGCompose.Proofs.Population.Promotion
 public import AvailableChainFGCompose.Proofs.Population.PromotionSource
@@ -133,7 +135,7 @@ theorem frontier_hg2a_receipt_holder (hT : FGTimingLaws T)
       frontierSearch_hg2a_gap_core T E rho I hT deltaF hdelta gap r U hsync hhor
     have htD : T.proposal s < Dl := by linarith [hT.delta_pos]
     have hshor : T.proposal s ≤ rho.horizon := htD.le.trans hhor
-    obtain ⟨hc, hage⟩ := promotion_age_grid T hT r s U ΔF hlo
+    obtain ⟨hc, hage⟩ := promotion_age_grid_core T hT r s U ΔF hlo
     have hF : 0 ≤ ΔF := by
       rw [hdelta] at deltaF
       linarith [hT.delta_pos]

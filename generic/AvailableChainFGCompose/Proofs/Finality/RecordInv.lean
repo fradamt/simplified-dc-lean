@@ -1,9 +1,7 @@
 module
 public import AvailableChainFGCompose.Statements.FinalityRecords
-public import AvailableChainFGCompose.Proofs.RowPermission
 public import AvailableChainKitFG.ProvenanceCore
 public import AvailableChainKitFG.StoreSafetyDef
-public import AvailableChainFGCompose.Proofs.SafetyClient
 public import AvailableChainGeneric.Proofs.V2.Duty.Fields
 
 public import AvailableChainFGCompose.Proofs.Population.HighTarget

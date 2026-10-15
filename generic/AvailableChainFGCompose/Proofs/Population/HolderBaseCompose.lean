@@ -1,5 +1,7 @@
 module
-public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchTop
+public import AvailableChainFGCompose.Proofs.Healing.PromotionArithmetic
+public import AvailableChainFGCompose.Proofs.Population.HolderBaseGap
+public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchStop
 
 public section
 
@@ -102,7 +104,7 @@ theorem frontierSearch_phase_compose_core (hT : FGTimingLaws T) (crossing : RXin
     ∃ t, ev.time ≤ t ∧ t + tail ≤ ev.time + frontierSearch_remaining T G ΔF ρbar tail kind ∧
       Served m t := by
   classical
-  have hP := frontierSearch_period_bound T hT
+  have hP := frontierSearch_period_bound_core T hT
   have hΓ := (healing_promotion_gap_remainder T hT G).1
   have hd := hT.delta_pos
   have hj : 0 ≤ E_jF T ΔF G ρbar := by

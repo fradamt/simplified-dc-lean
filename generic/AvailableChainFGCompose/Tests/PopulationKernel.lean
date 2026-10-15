@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGCompose.Proofs.Finality.RowsPrem
 public import AvailableChainFGCompose.Proofs.Population.Kernel
 public import AvailableChainFGCompose.Proofs.Population.KernelBridges
 

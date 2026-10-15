@@ -1,7 +1,5 @@
 module
-public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchCompose
-public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchRise
-public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchBudget
+public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchGap
 public import AvailableChainFGCompose.Proofs.Healing.ResetCut
 
 public import AvailableChainFGCompose.Proofs.Population.FrontierSearchTasks

@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGCompose.Proofs.Healing.PromotionAge
 public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchHG2a
 
 set_option linter.privateModule false

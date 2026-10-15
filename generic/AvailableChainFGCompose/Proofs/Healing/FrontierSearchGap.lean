@@ -1,6 +1,4 @@
 module
-public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchAge
-public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchRepair
 
 public import AvailableChainFGCompose.Proofs.Population.FrontierSearchGap
 

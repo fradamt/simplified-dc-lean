@@ -1,6 +1,5 @@
 module
-public import AvailableChainFGCompose.Proofs.Healing.PromotionAge
-public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchStop
+public import AvailableChainFGCompose.Proofs.Healing.PromotionArithmetic
 
 public section
 
@@ -8,19 +7,8 @@ namespace AvailableChain.FGCompose
 open AvailableChain.SimplexFG AvailableChain.KitFG
 
 variable {In V : Type} {Prot : V2.ProtocolSpecD In} [DecidableEq V]
-variable {n : Nat} {Base Proposal Wire Body : Type}
-variable (R : FGCoreReads Prot n Base Proposal Wire) (S : FGSafetyReads Prot n Wire)
-variable (O : FGObservationReads R) (T : FGTiming)
+variable {n : Nat} (T : FGTiming)
 variable (E : Generic.Env V) (rho : V2.D.Run V Prot) (I : V2.D.Interface Prot)
-variable (D : FGHistoryWireReads S) (Ef : Electorate (Fin n))
-variable (decodeProposal : Prot.Object → Option (Slot × Body))
-variable (bodyErase : Body → Block) (bodyRows : Body → List Wire)
-variable (blockWireRows : Prot.State → List Wire)
-variable (parentFG : Prot.State → Block → Option (FGBlock (Fin n)))
-variable (parentHeight : Prot.State → Slot → FGBlock (Fin n) → Height × BlockId)
-variable (validFor : Prot.State → Slot → FGBlock (Fin n) → Wire → Bool)
-variable (fold : Prot.State → Slot → FGBlock (Fin n) → Window.State (Fin n))
-variable (laws : FGHeightLaws Ef O.height)
 
 private theorem p0d5b_hg2a_action (hT : FGTimingLaws T) (r : Nat) :
     T.action r = (r : Time) * FGCompose.P T + 6 * T.delta := by

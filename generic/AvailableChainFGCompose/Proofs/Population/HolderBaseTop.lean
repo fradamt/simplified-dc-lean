@@ -1,5 +1,7 @@
 module
-public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchGap
+public import AvailableChainFGCompose.Statements.Channels
+public import AvailableChainGeneric.Proofs.V2.Duty.Reads
+public import Mathlib.Tactic.Linarith -- shake: keep (arithmetic tactics)
 
 public section
 
@@ -11,27 +13,11 @@ namespace AvailableChain.FGCompose
 open AvailableChain.SimplexFG AvailableChain.KitFG
 
 variable {In V : Type} {Prot : V2.ProtocolSpecD In} [DecidableEq V]
-variable {n : Nat} {Base Proposal Wire Body : Type}
+variable {n : Nat} {Base Proposal Wire : Type}
 variable (R : FGCoreReads Prot n Base Proposal Wire) (S : FGSafetyReads Prot n Wire)
 variable (O : FGObservationReads R) (T : FGTiming)
-variable (E : Generic.Env V) (rho : V2.D.Run V Prot) (I : V2.D.Interface Prot)
-variable (D : FGHistoryWireReads S) (Ef : Electorate (Fin n))
-variable (decodeProposal : Prot.Object → Option (Slot × Body))
-variable (bodyErase : Body → Block) (bodyRows : Body → List Wire)
-variable (blockWireRows : Prot.State → List Wire)
-variable (parentFG : Prot.State → Block → Option (FGBlock (Fin n)))
-variable (parentHeight : Prot.State → Slot → FGBlock (Fin n) → Height × BlockId)
-variable (validFor : Prot.State → Slot → FGBlock (Fin n) → Wire → Bool)
-variable (fold : Prot.State → Slot → FGBlock (Fin n) → Window.State (Fin n))
-variable (Jst : Time) (leaseSlots : Nat)
-variable (obs : FGObservationLaws R O) (cert : FGCertificateLaws Ef O.height O.finality)
-variable (inv : ∀ i x, FGStoreInvariant O.height O.finality
-  (R.core (rho.stateBefore E i x)).fg)
-variable (justif : FGJustificationLaws O.height)
-variable (keep : ∀ i j, i ≤ j → ∀ x, TFAt R E rho i x ⊆ TFAt R E rho j x)
-variable (positive : 0 < T.delta) (coreLaws : FGCoreLaws R)
-variable (erasePreceq : ∀ {A B}, FGBlock.Preceq A B → Block.Preceq (R.erase A) (R.erase B))
-variable (joined : Prot.State → Bool) (receipt : Block → Time → V → Prop)
+variable (E : Generic.Env V) (rho : V2.D.Run V Prot)
+variable (Ef : Electorate (Fin n)) (cert : FGCertificateLaws Ef O.height O.finality)
 
 omit [DecidableEq V] in
 private theorem p0d5c_top_idx_le (hs : V2.D.ScheduleWellFormed E rho)

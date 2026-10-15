@@ -1,6 +1,4 @@
 module
-public import AvailableChainFGCompose.Proofs.Healing.PromotionSource
-public import AvailableChainFGCompose.Proofs.Healing.Promotion
 
 public import AvailableChainFGCompose.Proofs.Population.PromotionAge
 

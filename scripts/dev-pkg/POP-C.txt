@@ -1,6 +1,5 @@
 # POP-C shared holder corollaries and their audit roots.
 [TARGETS]
-AvailableChainFGCompose.Tests.PopulationSearchSeed
 AvailableChainFGCompose.Proofs.Finality.Kernel
 AvailableChainFGCompose.Proofs.Finality.Middle
 AvailableChainFGCompose.Proofs.Finality.RecordInv
@@ -43,10 +42,16 @@ AvailableChainFGCompose.Proofs.Population.Middle
 AvailableChainFGCompose.Proofs.Population.PromotionAge
 AvailableChainFGCompose.Proofs.Population.RowsRecords
 AvailableChainFGCompose.Proofs.SafetySlashing
+AvailableChainFGCompose.Tests.P0d5b
+AvailableChainFGCompose.Tests.P0d5c
+AvailableChainFGCompose.Tests.P0d5da
 AvailableChainFGCompose.Tests.PopulationAgeAxioms
+AvailableChainFGCompose.Tests.PopulationKernel
 AvailableChainFGCompose.Tests.PopulationKernelAxioms
 AvailableChainFGCompose.Tests.PopulationOwnerSearchAxioms
 AvailableChainFGCompose.Tests.PopulationRowsAxioms
+AvailableChainFGCompose.Tests.PopulationSearchPhase
+AvailableChainFGCompose.Tests.PopulationSearchSeed
 AvailableChainFGCompose.Tests.PopulationTailAxioms
 AvailableChainFGCompose.Tests.SafetyAxioms
 AvailableChainFGSAProofs.Tests.FGCompose

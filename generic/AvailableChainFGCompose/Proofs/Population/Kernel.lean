@@ -1,4 +1,6 @@
 module
+public import AvailableChainFGCompose.Proofs.Finality.Receipt
+public import AvailableChainFGCompose.Proofs.Finality.Accept
 public import AvailableChainFGCompose.Proofs.Population.Middle
 public import AvailableChainFGCompose.Proofs.Population.RowsPrem
 public import AvailableChainFGCompose.Proofs.Population.RowsRecords

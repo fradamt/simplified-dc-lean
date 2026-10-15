@@ -1,7 +1,5 @@
 module
-public import AvailableChainFGCompose.Proofs.Finality.RowsPrem
-public import AvailableChainFGCompose.Proofs.Finality.Receipt
-public import AvailableChainFGCompose.Proofs.Finality.Accept
+public import AvailableChainFGCompose.Proofs.Finality.MiddleSupport
 
 public section
 

@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchRepair
 public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchCompose
 public import AvailableChainFGCompose.Proofs.Finality.History -- shake: keep (window views)
 

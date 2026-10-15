@@ -1,8 +1,9 @@
 module
-public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchCompose
-public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchRise
+public import AvailableChainFGCompose.Proofs.Healing.PromotionArithmetic
 public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchBudget
-public import AvailableChainFGCompose.Proofs.Healing.ResetCut
+public import AvailableChainFGCompose.Proofs.Population.HolderBaseGap
+public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchStop
+public import AvailableChainFGCompose.Proofs.Healing.PhaseFrame
 
 public section
 
@@ -47,7 +48,7 @@ theorem frontierSearch_task_bounds_core (hT : FGTimingLaws T) {G ΔF ρbar : Tim
         frontierSearchRowBudget T G ΔF ρbar ∧
     0 ≤ 2 * FGCompose.P T + Γ T G - 9 * T.delta ∧ 0 ≤ FGCompose.P T - 4 * T.delta ∧
     0 ≤ frontierSearchRiseBudget T G ΔF ρbar ∧ 0 ≤ frontierSearchRowBudget T G ΔF ρbar := by
-  have hP := frontierSearch_period_bound T hT
+  have hP := frontierSearch_period_bound_core T hT
   have hΓ := (healing_promotion_gap_remainder T hT G).1
   have hd := hT.delta_pos
   have hg : 0 ≤ E_gF T ΔF G ρbar := by

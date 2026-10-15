@@ -1,6 +1,5 @@
 module
-public import AvailableChainFGCompose.Proofs.Finality.Middle -- shake: keep (kernel middle API)
-public import AvailableChainFGCompose.Proofs.Finality.RecordInv -- shake: keep (client record laws)
+public import AvailableChainFGCompose.Proofs.Finality.MiddleSupport
 
 public section
 
