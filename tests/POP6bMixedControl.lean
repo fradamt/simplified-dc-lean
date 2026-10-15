@@ -435,5 +435,44 @@ private theorem observed_premises_sat :
 
 #print axioms observed_premises_sat
 
+private theorem entry_premises_sat :
+    (∀ r : Fin 32, namedEntry (wire.heightPair (wireAt r)) =
+      some ((obs.height (chain (2 * r.val))).h,
+        (obs.height (chain (2 * r.val))).T_h.root)) ∧
+    (∀ q r : Nat, q ≤ 2 * r → r < 32 →
+      OpeningCoveredFG core reads env run obs.height v5T wire.heightPair
+        (FGHonestSeats reads run) r (v5erase (chain q))) ∧
+    (∀ {j x r a e}, HonestRowAt reads env run v5T j x r a →
+      namedEntry (wire.heightPair a) = some e → ∃ C,
+      actionSourceFG core env run v5T x r = some (some C) ∧
+      e = ((obs.height C).h, (obs.height C).T_h.root)) := by
+  have name (r : Fin 32) : namedEntry (wire.heightPair (wireAt r)) =
+      some ((obs.height (chain (2 * r.val))).h,
+        (obs.height (chain (2 * r.val))).T_h.root) := by
+    have facts := chain_facts_premises_sat ⟨2 * r.val, by omega⟩
+    rw [facts.1, facts.2.1]
+    change some (heightAt (2 * r.val),
+      if entrySlot (2 * r.val) = 0 then genesisRoot else ⟨300 + entrySlot (2 * r.val)⟩) = _
+    have root (s : Nat) : (chain s).root = if s = 0 then genesisRoot else ⟨300 + s⟩ := by
+      cases s <;> rfl
+    rw [root]
+  refine ⟨name, ?_, ?_⟩
+  · intro q r hqr hr i _
+    have hi : i = 0 := Subsingleton.elim _ _
+    subst i
+    have hp := action_premises_sat ⟨r, hr⟩ 9 (by decide)
+    refine ⟨chain (2 * r), 2 * r + 1, rowIndex r, r, wireAt r, hp.1, hp.2, ?_,
+      v5erase_mono (core_premises_sat.2.2.2.2.1 q (2 * r) hqr), le_rfl,
+      observed_premises_sat.2.1 ⟨r, hr⟩, name ⟨r, hr⟩⟩
+    exact List.mem_toFinset.mpr (List.mem_map.mpr
+      ⟨2 * r, List.mem_range.mpr (by omega), rfl⟩)
+  · intro j x r a e ha he
+    have hx := ha.1
+    obtain ⟨hr, _, rfl⟩ := classification_premises_sat.2 j x r a ha
+    exact ⟨chain (2 * r), (action_premises_sat ⟨r, hr⟩ x hx).2,
+      Option.some.inj (he.symm.trans (name ⟨r, hr⟩))⟩
+
+#print axioms entry_premises_sat
+
 end AvailableChain.FGCompose.Tests.POP6bMixed
 end
