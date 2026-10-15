@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchCompose
+public import AvailableChainFGCompose.Proofs.Population.HolderBaseCompose
 public import AvailableChainFGCompose.Proofs.Population.FrontierSearchGap
 public import AvailableChainFGCompose.Proofs.Population.FrontierSearchTop
 
@@ -129,7 +129,7 @@ theorem frontierSearch_phase_tail_holder (hT : FGTimingLaws T) (hk : 1 ≤ lease
     FrontierRiseBy R E rho i m (ev.time + frontierSearch_remaining T G ΔF ρbar tail kind) ∨
     ∃ t, ev.time ≤ t ∧ t + tail ≤ ev.time + frontierSearch_remaining T G ΔF ρbar tail kind ∧
       StrongServedFG R S E rho O T I D.heightPair Jst leaseSlots m t := by
-  refine frontierSearch_phase_compose (R := R) (O := O) (T := T) (E := E) (rho := rho)
+  refine frontierSearch_phase_compose_core (R := R) (O := O) (T := T) (E := E) (rho := rho)
     (Ef := Ef) (Jst := Jst) (obs := obs) (cert := cert) (inv := inv) (justif := justif)
     (keep := keep) hT crossing schedule mono
     (StrongServedFG R S E rho O T I D.heightPair Jst leaseSlots) hG
