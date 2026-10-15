@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGCompose.Statements.Population.FinalityKernel
-public import AvailableChainFGCompose.Proofs.Finality.RowsRecords
+public import AvailableChainFGCompose.Proofs.Population.HolderBaseRowsRecords
 
 public section
 
@@ -47,7 +47,7 @@ theorem rowsPrem_action_record_holder
     (m.d + 1) m.heightB (by have high := m.highA; omega) (pt.r + 2) x hx
     (fun j r a h hr ha ht => by
       simpa only [Nat.add_assoc] using
-        rowsPrem_earlier_height L (pt.r + 2) (m.d + 2) m.noSecondHeight j x r a h hr ha ht)
+        rowsPrem_earlier_height_core L (pt.r + 2) (m.d + 2) m.noSecondHeight j x r a h hr ha ht)
     nd hnd
   simpa only [m.entryB, Nat.add_assoc] using result
 

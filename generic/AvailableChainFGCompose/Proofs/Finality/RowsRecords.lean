@@ -2,6 +2,8 @@ module
 public import AvailableChainFGCompose.Proofs.Finality.Middle -- shake: keep (kernel middle API)
 public import AvailableChainFGCompose.Proofs.Finality.RecordInv -- shake: keep (client record laws)
 
+public import AvailableChainFGCompose.Proofs.Population.RowsRecords
+
 public section
 
 namespace AvailableChain.FGCompose
@@ -21,11 +23,7 @@ theorem rowsPrem_earlier_height (L : FGTimingLaws T) (q y : Nat)
       T.action q ≤ t) :
     ∀ j x r a h, r < q → HonestRowAt S E rho T j x r a →
       historyRowHeight S D a = some h → h < y := by
-  intro j x r a h hr ha hh
-  by_contra hn
-  have late := hcut j x r a h (T.action r) ha hh (Nat.le_of_not_gt hn)
-    (kmid_event_time S T E rho ha)
-  exact not_le_of_gt ((kmid_action_strictMono T L) hr) late
+  exact rowsPrem_earlier_height_core L q y hcut
 
 variable {decodeProposal : P.Object → Option (Slot × Body)}
 variable {bodyErase : Body → Block} {bodyRows : Body → List Wire}
@@ -38,6 +36,63 @@ variable {valid : Wire → Bool} {ac : FGACServiceReads V}
 variable {cfg : FGConfig} {K : Nat} {ΔF : Time} {sp : FGServicePoint} {pt : KernelPt} {A : Block}
 variable (m : KernelMiddleWitness_W R S O T E rho I D Ef decodeProposal bodyErase bodyRows
   blockWireRows parentFG parentHeight validFor makeFG valid ac cfg K ΔF sp pt A)
+
+private def popc_record_middle_holder :
+    KernelMiddleWitnessFG_W R S O T E rho I D Ef decodeProposal bodyErase bodyRows
+      blockWireRows parentFG parentHeight validFor makeFG valid ac cfg K ΔF sp pt A := {
+    A₀ := m.A₀
+    B := m.B
+    U := m.U
+    X_D := m.X_D
+    cD := m.cD
+    d := m.d
+    opening := m.opening
+    eraseA := m.eraseA
+    carrierA := m.carrierA
+    carrierB := m.carrierB
+    carrierD := m.carrierD
+    honestB := m.honestB
+    honestD := m.honestD
+    slotA := m.slotA
+    slotB := m.slotB
+    slotD := m.slotD
+    earlySlot := m.earlySlot
+    heightA := m.heightA
+    highA := m.highA
+    heightB := m.heightB
+    entryB := m.entryB
+    freshEntry := m.freshEntry
+    strictAU := m.strictAU
+    pathUB := m.pathUB
+    freshSlot := m.freshSlot
+    parentAB := m.parentAB
+    parentBD := m.parentBD
+    sourceA := m.sourceA
+    sourceB := m.sourceB
+    serviceD := m.serviceD
+    heightD := m.heightD
+    justifiedD := m.justifiedD
+    justifiedHeightD := m.justifiedHeightD
+    pendingD := m.pendingD
+    retainedD := m.retainedD
+    noFirstHeight := m.noFirstHeight
+    noSecondHeight := m.noSecondHeight
+    noEarlyFinality := m.noEarlyFinality
+    chainA := m.chainA
+    chainB := m.chainB
+    chainD := m.chainD
+    freshD := m.freshD
+    noMixedD := m.noMixedD
+    batchB := m.batchB
+    batchD := m.batchD
+    targetsB := fun _ hi => m.targetsB _ hi
+    actionsInRun := m.actionsInRun
+    capThroughBAction := m.capThroughBAction
+    capThroughFinalAction := m.capThroughFinalAction
+    finalityThroughFinalAction := m.finalityThroughFinalAction
+    heldDAtFinalAction := m.heldDAtFinalAction
+    heldAAtEnd := m.heldAAtEnd
+  }
 
 /-- The published record producer supplies all seven guards at the same middle action. -/
 theorem rowsPrem_action_record
@@ -54,15 +109,8 @@ theorem rowsPrem_action_record
     ∀ x nd, x ∈ rho.honest → postClock E rho x (T.action (pt.r + 2)) = some nd →
       HighRecordGuard_W (S.record nd) (m.d + 1) m.U ∧
         HighRecordFresh (m.d + 2) (S.record nd) := by
-  intro x nd hx hnd
-  have result := high_record_guards_and_fresh_at_action hh cert reflect hqc head client
-    emission own names L hs x (pt.r + 1) m.B hx (m.sourceB x hx)
-    (m.d + 1) m.heightB (by have high := m.highA; omega) (pt.r + 2) x hx
-    (fun j r a h hr ha ht => by
-      simpa only [Nat.add_assoc] using
-        rowsPrem_earlier_height L (pt.r + 2) (m.d + 2) m.noSecondHeight j x r a h hr ha ht)
-    nd hnd
-  simpa only [m.entryB, Nat.add_assoc] using result
+  exact rowsPrem_action_record_holder (popc_record_middle_holder m) hh cert reflect hqc head
+    client emission own names L hs
 
 end AvailableChain.FGCompose
 end
