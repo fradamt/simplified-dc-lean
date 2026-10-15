@@ -361,5 +361,40 @@ private theorem chain_premises_sat :
 
 #print axioms chain_premises_sat
 
+private abbrev rowIndex (r : Nat) : Nat := tickIndex (8 * r + 6) + 1
+
+private theorem clock_premises_sat :
+    (∀ t : Fin 257, run.stateBeforeTime env (t : Time) 7 = (t.val - 1) / 4 ∧
+      run.stateBeforeTime env (t : Time) 9 = (t.val - 1) / 4) ∧
+    run.events.length = 642 ∧
+    (∀ r : Fin 32, frontierAtIdx core env run (rowIndex r) = heightAt (2 * r.val)) := by
+  have table : ∀ t : Fin 257,
+      shapeState (eventShape.filter (fun e => decide ((e.2.2 : Time) < (t : Time)))) 7 =
+        (t.val - 1) / 4 ∧
+      shapeState (eventShape.filter (fun e => decide ((e.2.2 : Time) < (t : Time)))) 9 =
+        (t.val - 1) / 4 := by decide +kernel
+  refine ⟨?_, ?_, ?_⟩
+  · intro t
+    simp only [fold_premises_sat.2.1]
+    exact table t
+  · change (eventShape.map eventOf).length = 642
+    rw [List.length_map]
+    decide +kernel
+  · have rows : ∀ r : Fin 32,
+        shapeState (eventShape.take (rowIndex r)) 7 = 2 * r.val + 1 ∧
+        shapeState (eventShape.take (rowIndex r)) 9 = 2 * r.val + 1 := by decide +kernel
+    intro r
+    unfold frontierAtIdx
+    change ({7, 9} : Finset Nat).sup
+      (fun x => heightAt (min (run.stateBefore env (rowIndex r) x) 64)) = _
+    simp only [Finset.sup_insert, Finset.sup_singleton, fold_premises_sat.1]
+    rw [(rows r).1, (rows r).2, Nat.min_eq_left (by omega)]
+    have hh : heightAt (2 * r.val + 1) = heightAt (2 * r.val) := by
+      dsimp only [heightAt]
+      omega
+    rw [hh, sup_idem]
+
+#print axioms clock_premises_sat
+
 end AvailableChain.FGCompose.Tests.POP6bMixed
 end
