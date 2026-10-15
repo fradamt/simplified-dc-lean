@@ -1347,6 +1347,7 @@
     'AvailableChain.FGCompose.frontierSearch_phase_hmax',
     'AvailableChain.FGCompose.frontierSearch_phase_step_of_crossing',
     'AvailableChain.FGCompose.frontierSearch_phase_tail',
+    'AvailableChain.FGCompose.frontierSearch_phase_tail_holder',
     'AvailableChain.FGCompose.frontierSearch_proposal_heights',
     'AvailableChain.FGCompose.frontierSearch_remaining',
     'AvailableChain.FGCompose.frontierSearch_remaining_def',
