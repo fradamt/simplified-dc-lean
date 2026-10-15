@@ -616,5 +616,33 @@ private theorem family_premises_sat :
 
 #print axioms family_premises_sat
 
+private theorem mixed_family :
+    FrontierSearchFamilyStatement core reads env run obs v5T iface wire.heightPair
+      12 1 4 4 1 16 := by
+  obtain ⟨hT, hk, crossing, schedule, mono, awake, joinedTick, readyCut, hServices,
+    receiptHeld, faultWeight, deltaF, hdelta, gap, hJst, hG, slotProposal, read, order,
+    signer, sourceParent, rowsReceipt, progressCoverage, hfold, honestQuorum, entryAgreement,
+    sourceSlot, ancestorSlot, eraseReflect, floor, gateCopy, service, common, heldSlot,
+    proposalSlot, justifiedSource, parentFrame, eraseParent, capReceipt, cap, hne⟩ :=
+    family_premises_sat
+  exact frontierSearch_family_holder (R := core) (S := reads) (O := obs) (T := v5T)
+    (E := env) (rho := run)
+    (I := iface) (D := wire) (Ef := v5E) (decodeProposal := decodeProposal) (bodyErase := v5erase)
+    (bodyRows := FGBlock.rows) (blockWireRows := fun _ => []) (parentFG := parentFG)
+    (parentHeight := parentHeight) (validFor := validFor) (fold := fold) (Jst := 12)
+    (leaseSlots := 1) (obs := geometry_premises_sat.2.1) (cert := v5cert)
+    (inv := fun _ _ => geometry_premises_sat.2.2 _) (justif := v5justif)
+    (keep := core_premises_sat.2.2.1) (positive := by decide) (coreLaws := core_premises_sat.1)
+    (erasePreceq := fun h => v5erase_mono h) (joined := fun _ => true) (receipt := receipt)
+    (chainRows := fun _ _ => allRows) (G := 4) (ΔF := 1) (deltaT := 4)
+    hT hk crossing schedule mono awake joinedTick readyCut hServices receiptHeld faultWeight
+    deltaF hdelta gap hJst hG slotProposal read order signer sourceParent rowsReceipt
+    progressCoverage hfold honestQuorum entryAgreement sourceSlot ancestorSlot eraseReflect
+    floor gateCopy service common heldSlot proposalSlot justifiedSource parentFrame eraseParent
+    capReceipt cap hne 16
+
+
+#print axioms mixed_family
+
 end AvailableChain.FGCompose.Tests.POP6bMixed
 end
