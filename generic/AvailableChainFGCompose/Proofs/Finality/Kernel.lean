@@ -219,9 +219,9 @@ theorem finality_kernel_W_of
       bodyErase bodyRows blockWireRows parentFG parentHeight validFor makeFG valid ac cfg K
       ΔF sp pt A), KernelActionSupplyFG_W R S O T E rho I D Ef m := by
     intro A m
-    have a := action A (kernel_middle_to_node_core m
-      (kernel_middle_targets_of_service_core m L hSOCOVTarget hAwake))
-    exact ⟨a.read, a.service, a.head, a.walk⟩
+    let targets := kernel_middle_targets_of_service_core m L hSOCOVTarget hAwake
+    exact kernel_middle_action_to_holder_core m targets
+      (action A (kernel_middle_to_node_core m targets))
   exact finality_kernel_W_of_holder R S O T L E rho I D Ef decodeProposal bodyErase bodyRows
     blockWireRows chainWireRows parentFG parentHeight validFor makeFG valid ac cfg K ΔF sp pt CL HL
     keep restore hc heightBridge height_eq finality_eq hne target foldTarget noMixed honestSlot hK

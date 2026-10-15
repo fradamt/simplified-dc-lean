@@ -23,7 +23,7 @@ variable {validFor : P.State → Slot → FGBlock (Fin n) → Wire → Bool}
 variable {makeFG : FGBlock (Fin n) → Block → List Wire → FGBlock (Fin n)}
 variable {valid : Wire → Bool} {ac : FGACServiceReads V}
 variable {cfg : FGConfig} {K : Nat} {ΔF : Time} {sp : FGServicePoint} {pt : KernelPt} {A : Block}
-@[expose] def kernel_middle_to_holder_core (m : KernelMiddleWitness_W R S O T E rho I D Ef
+def kernel_middle_to_holder_core (m : KernelMiddleWitness_W R S O T E rho I D Ef
       decodeProposal bodyErase bodyRows
       blockWireRows parentFG parentHeight validFor makeFG valid ac cfg K ΔF sp pt A) :
     KernelMiddleWitnessFG_W R S O T E rho I D Ef
@@ -83,7 +83,7 @@ variable {cfg : FGConfig} {K : Nat} {ΔF : Time} {sp : FGServicePoint} {pt : Ker
     heldAAtEnd := m.heldAAtEnd
   }
 
-@[expose] def kernel_middle_to_node_core (m : KernelMiddleWitnessFG_W R S O T E rho I D Ef
+def kernel_middle_to_node_core (m : KernelMiddleWitnessFG_W R S O T E rho I D Ef
       decodeProposal bodyErase bodyRows
       blockWireRows parentFG parentHeight validFor makeFG valid ac cfg K ΔF sp pt A)
     (targets : ∀ x ∈ rho.honest, ∃ j a,
@@ -177,6 +177,25 @@ theorem kernel_middle_targets_of_service_core
   refine ⟨j, a, ha, hc, ?_⟩
   change D.heightPair a = .vote _ _ false
   rw [hp, m.heightB, m.entryB]
+
+/-- The forward restriction preserves all selected blocks, slots, and heights. -/
+theorem kernel_middle_to_holder_selected_core
+    (m : KernelMiddleWitness_W R S O T E rho I D Ef decodeProposal bodyErase bodyRows
+      blockWireRows parentFG parentHeight validFor makeFG valid ac cfg K ΔF sp pt A) :
+    let h := kernel_middle_to_holder_core m
+    h.A₀ = m.A₀ ∧ h.B = m.B ∧ h.U = m.U ∧ h.X_D = m.X_D ∧ h.cD = m.cD ∧ h.d = m.d := by
+  exact ⟨rfl, rfl, rfl, rfl, rfl, rfl⟩
+
+/-- The reconstructed node witness supplies the same selected holder action. -/
+theorem kernel_middle_action_to_holder_core
+    (m : KernelMiddleWitnessFG_W R S O T E rho I D Ef decodeProposal bodyErase bodyRows
+      blockWireRows parentFG parentHeight validFor makeFG valid ac cfg K ΔF sp pt A)
+    (targets : ∀ x ∈ rho.honest, ∃ j a,
+      HonestRowAt S E rho T j x (pt.r + 1) a ∧ RowComplete S rho D.signer valid x a ∧
+      NamesEntry (pair := D.heightPair) .target a (m.d + 1) m.U)
+    (a : KernelActionSupply_W R S O T E rho I D Ef (kernel_middle_to_node_core m targets)) :
+    KernelActionSupplyFG_W R S O T E rho I D Ef m := by
+  exact ⟨a.read, a.service, a.head, a.walk⟩
 
 end AvailableChain.FGCompose
 end

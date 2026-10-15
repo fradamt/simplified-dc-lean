@@ -152,9 +152,10 @@ variable (m : KernelMiddleWitness_W R S O T E rho I D Ef decodeProposal bodyEras
 theorem kernel_middle_fresh_U :
     FGBlock.Preceq m.A₀ m.U ∧ m.A₀ ≠ m.U ∧
     (O.height m.U).h = (O.height m.A₀).h + 1 ∧ FGBlock.Preceq m.U m.B := by
-  exact kernel_middle_fresh_U_holder R S O T E rho I D Ef decodeProposal bodyErase bodyRows
-    blockWireRows parentFG parentHeight validFor makeFG valid ac cfg K ΔF sp pt A
-    (kernel_middle_to_holder_core m)
+  obtain ⟨hA, hB, hU, hX, _, hd⟩ := kernel_middle_to_holder_selected_core m
+  simpa only [hA, hB, hU, hX, hd] using kernel_middle_fresh_U_holder R S O T E rho I D Ef
+    decodeProposal bodyErase bodyRows blockWireRows parentFG parentHeight validFor makeFG valid ac
+    cfg K ΔF sp pt A (kernel_middle_to_holder_core m)
 
 /-- The selected early carrier retains the same pending justification. -/
 theorem kernel_middle_early_justification :
@@ -162,18 +163,20 @@ theorem kernel_middle_early_justification :
     (O.height m.X_D).h_j = m.d + 1 ∧
     (SimplexFG.Window.derive Ef cfg K m.X_D).h_F < m.d + 1 ∧
     KitFG.Window.RetainedW Ef cfg K m.X_D (m.d + 1) m.U := by
-  exact kernel_middle_early_justification_holder R S O T E rho I D Ef decodeProposal bodyErase
-    bodyRows blockWireRows parentFG parentHeight validFor makeFG valid ac cfg K ΔF sp pt A
-    (kernel_middle_to_holder_core m)
+  obtain ⟨hA, hB, hU, hX, _, hd⟩ := kernel_middle_to_holder_selected_core m
+  simpa only [hA, hB, hU, hX, hd] using kernel_middle_early_justification_holder R S O T E rho I D
+    Ef decodeProposal bodyErase bodyRows blockWireRows parentFG parentHeight validFor makeFG valid
+    ac cfg K ΔF sp pt A (kernel_middle_to_holder_core m)
 
 /-- The cap includes the actual source read at the final action. -/
 theorem kernel_middle_source_cap (CL : FGCoreLaws R) (hs : V2.D.ScheduleWellFormed E rho)
     {x : V} {C : FGBlock (Fin n)} (hx : x ∈ rho.honest)
     (hsrc : actionSourceFG R E rho T x (pt.r + 2) = some (some C)) :
     (O.height C).h ≤ m.d + 2 := by
-  exact kernel_middle_source_cap_holder R S O T E rho I D Ef decodeProposal bodyErase bodyRows
-    blockWireRows parentFG parentHeight validFor makeFG valid ac cfg K ΔF sp pt A
-    (kernel_middle_to_holder_core m) CL hs hx hsrc
+  obtain ⟨hA, hB, hU, hX, _, hd⟩ := kernel_middle_to_holder_selected_core m
+  simpa only [hA, hB, hU, hX, hd] using kernel_middle_source_cap_holder R S O T E rho I D Ef
+    decodeProposal bodyErase bodyRows blockWireRows parentFG parentHeight validFor makeFG valid ac
+    cfg K ΔF sp pt A (kernel_middle_to_holder_core m) CL hs hx hsrc
 
 end AvailableChain.FGCompose
 end
