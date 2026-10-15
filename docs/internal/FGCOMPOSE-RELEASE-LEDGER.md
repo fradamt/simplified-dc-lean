@@ -25080,3 +25080,28 @@ no edit. These changes are committed separately from this document.
 │ X1b.txt                                              │ 18                   │
 └──────────────────────────────────────────────────────┴──────────────────────┘
 ```
+
+## Population package acceptance (P0 batch 11)
+
+Accepted population packages integrated onto ee6fbdc7 in the five-folder layout.
+Package maps below retain the accepted module scopes; Compose library sources live under
+generic/AvailableChainFGCompose/. The accepted declaration bodies and frozen FG-SA snapshots
+are unchanged. These additive packages do not change the frozen-wrapper release classes
+or credit a new FG-SA production re-point. Generated declarations and dependencies are
+recorded in docs/internal/api/compose-api.json.
+
+```text
+┌──────────────┬──────────────────┬──────────────────────────────────────────┐
+│ Package      │ Accepted head    │ Package map under scripts/dev-pkg        │
+├──────────────┼──────────────────┼──────────────────────────────────────────┤
+│ POP-2        │ 2b8a122e         │ POP-2.txt                                │
+│ POP-3/4      │ 11e91784         │ POP-34.txt                               │
+│ POP-5        │ 137ef31e         │ POP-5.txt                                │
+│ POP-6a       │ 52f38f92         │ POP-6a.txt                               │
+│ POP-6b       │ 4d4c385e         │ POP-6b.txt                               │
+│ POP-7        │ 773259b7         │ POP-7.txt                                │
+│ POP-8        │ 4cc02eac         │ POP-8.txt                                │
+│ POP-9        │ cace9a15         │ POP-9.txt                                │
+│ POP-10       │ 1849cbbf         │ POP-10.txt                               │
+└──────────────┴──────────────────┴──────────────────────────────────────────┘
+```

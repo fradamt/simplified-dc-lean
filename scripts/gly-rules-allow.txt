@@ -79,3 +79,7 @@ F-3 AvailableChain.FGCompose.kernel_opening_and_middle
 
 # P0d7b-a: pass-through of the allowed kernel_opening_and_middle ViewRootInj premise (lead ruling 2026-10-13)
 F-3 AvailableChain.FGCompose.finality_kernel_W_of
+F-3 AvailableChain.FGCompose.kmid_batchPrem_holder
+F-3 AvailableChain.FGCompose.kernel_opening_and_middle_holder
+F-3 AvailableChain.FGCompose.finality_kernel_W_of_holder
+F-3 AvailableChain.FGCompose.Tests.PopulationKernel.FrozenOwner.frozen_owner_specialization
