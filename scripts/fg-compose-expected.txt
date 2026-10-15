@@ -1325,6 +1325,7 @@
     'AvailableChain.FGCompose.frontierSearch_event_time_le',
     'AvailableChain.FGCompose.frontierSearch_event_time_mono',
     'AvailableChain.FGCompose.frontierSearch_family',
+    'AvailableChain.FGCompose.frontierSearch_family_holder',
     'AvailableChain.FGCompose.frontierSearch_first_effective_split',
     'AvailableChain.FGCompose.frontierSearch_first_rise',
     'AvailableChain.FGCompose.frontierSearch_first_row',
