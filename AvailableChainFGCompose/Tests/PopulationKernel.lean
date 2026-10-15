@@ -938,29 +938,6 @@ private theorem opening_premises_sat :
 
 #print axioms opening_premises_sat
 
--- Bounded owner composition: the selected holder middle and its exact terminal acceptance
--- give the original, all-honest-receiver conclusion without constructing an old middle.
-private theorem kernel_conclusion_premises_sat :
-    KernelConclusion_W core (env Nat) run obs timing interface decodeProposal erase
-      (fun X => X.rows.map wire) (fun nd Q => parentRead nd Q.parent) makeFG 2 1 ∧
-    AcceptsFinalBefore core (env Nat) run 7 bBlock (kernelDeadlineW timing 2 3) ∧
-    AcceptsFinalBefore core (env Nat) run 9 bBlock (kernelDeadlineW timing 2 3) := by
-  obtain ⟨m, ⟨hA, _, hU, _, _, _⟩, _⟩ := action_premises_sat
-  obtain ⟨prem⟩ := receipt_premises_sat
-  have accepted := acceptBefore_W core (env Nat) run electorate cfg 2
-    (by change ¬ (1 ≤ 0); decide) (by decide) durable_premises_sat ready
-    acceptance_effect_premises_sat.1 (fun i x _ => store_premises_sat _)
-    xBlock bBlock 32 _ prem
-  refine ⟨?_, accepted 7 (by decide), accepted 9 (by decide)⟩
-  intro A h
-  obtain rfl := opening_premises_sat.2 A h
-  refine ⟨m.A₀, m.eraseA, m.carrierA, m.heldAAtEnd, m.U, m.strictAU.1, m.strictAU.2, ?_, ?_⟩
-  · rw [m.freshEntry.1, m.heightA]
-  · rw [hU]
-    exact accepted
-
-#print axioms kernel_conclusion_premises_sat
-
 -- Isolated old supplier failure: its source antecedent is active at honest nonholder 7.
 private theorem old_target_supplier_impossible :
     ¬ (∀ x ∈ run.honest, ∀ r C,
@@ -3568,6 +3545,36 @@ private theorem owner_premises_sat : OwnerPremises := by
       · exact (trace_premises_sat.2.2.1 k).2.2.2
 
 #print axioms owner_premises_sat
+
+-- Apply the owner with every premise discharged, then trigger its actual opening.
+private theorem kernel_conclusion_premises_sat :
+    KernelConclusion_W core (env Nat) run obs timing interface decodeProposal erase
+      (fun X => X.rows.map wire) (fun nd Q => parentRead nd Q.parent) makeFG 2 pt.r ∧
+    ∃ Afg U : FGBlock (Fin 1), core.erase Afg = erase (block 4) ∧
+      FGBlock.Preceq Afg U ∧ Afg ≠ U ∧ (obs.height U).h = (obs.height Afg).h + 1 ∧
+      AcceptsFinalBefore core (env Nat) run 7 U (kernelDeadlineW timing 2 (pt.r + 2)) ∧
+      AcceptsFinalBefore core (env Nat) run 9 U (kernelDeadlineW timing 2 (pt.r + 2)) := by
+  let p := owner_premises_sat
+  have kernel := finality_kernel_W_of_holder core reads obs timing
+    (by constructor <;> intros <;> simp) (env Nat) run interface history electorate
+    decodeProposal erase (fun X => X.rows.map wire) (fun _ => []) chainRowsRead parentRead
+    parentHeight validFor makeFG valid service cfg 2 2 point pt (Jst := 0)
+    (storedCarrier := storedCarrier) (SourceService := sourceService)
+    p.CL p.HL p.keep p.restore p.hc p.heightBridge p.height_eq p.finality_eq p.hne p.target
+    p.foldTarget p.noMixed honestSlot p.hK p.runFacts p.hreset p.hGSTstart p.reset
+    p.historyTransfer p.chain p.reflect p.parent p.hOrigin p.emission p.decoded p.receipt
+    p.honest_slot p.proposal p.terminalProposal p.carrier p.exactService p.source_read
+    p.source_eq p.head_read p.head_held p.slot_chain p.closed p.roots p.validRows p.parentEq
+    p.matchValid p.hBatch p.hSOCOVTarget p.action wire p.wireDecode p.wireValid p.client
+    p.release p.fields p.hQC p.recordHead p.clientLaws p.own p.hsel p.decode p.occurrence
+    p.validFor_eq p.pathValid p.dutyTime p.rowDurable p.rowClock ready p.step p.durable p.inv
+    finBlock p.hI3 p.readyBlock p.stored p.rootScope p.hStrat p.hEmittedSource p.hcapBefore
+    p.delivery
+  obtain ⟨Afg, hA, _, _, U, hpath, hne, hh, ha⟩ := kernel _
+    (proposal_data_premises_sat 3).1
+  exact ⟨kernel, Afg, U, hA, hpath, hne, hh, ha 7 (by decide), ha 9 (by decide)⟩
+
+#print axioms kernel_conclusion_premises_sat
 
 end Owner
 
