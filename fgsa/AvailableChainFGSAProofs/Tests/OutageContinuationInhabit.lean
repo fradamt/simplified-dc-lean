@@ -33,6 +33,78 @@ private abbrev events : List (V2.Event (Fin 1) (fgsa p unitCodec).Object) :=
     let r := mkRun (es ++ [.tick 0 n])
     es ++ [.tick 0 n] ++ (V2.D.Run.emitsAt E r es.length).map (fun o => .deliver 0 o n)) []
 private abbrev rho := mkRun events
+
+-- Concrete data shared by the schedule and execution certificates.
+private abbrev head (s b : Nat) : HeadWire p.n := ⟨.seat (.head s) 0, ⟨b⟩⟩
+private abbrev row1 : RowWire p.n :=
+  ⟨.seat .fg 0, .vote ⟨.vote 1 ⟨0⟩ false, none⟩⟩
+private abbrev row2 : RowWire p.n :=
+  ⟨.seat .fg 0, .vote ⟨.vote 2 ⟨6⟩ false, some ⟨1, ⟨0⟩⟩⟩⟩
+private abbrev body1 : NamedProposal p.n :=
+  .node .genesis 1 ⟨2⟩ 2 [head 0 0] [head 0 0] []
+private abbrev body2 : NamedProposal p.n :=
+  .node body1 2 ⟨3⟩ 2 [head 1 2] [head 1 2] []
+private abbrev body3 : NamedProposal p.n :=
+  .node body2 3 ⟨4⟩ 2 [head 2 3] [head 2 3] []
+private abbrev body5 : NamedProposal p.n :=
+  .node body2 5 ⟨6⟩ 474839418492892347327 [] [] [row1]
+private abbrev body6 : NamedProposal p.n :=
+  .node body5 6 ⟨7⟩ 2 [head 5 6] [head 5 6] []
+private abbrev body7 : NamedProposal p.n :=
+  .node body6 7 ⟨8⟩ 2 [head 6 7] [head 6 7] []
+private abbrev body8 : NamedProposal p.n :=
+  .node body7 8 ⟨9⟩ 34202398735908265492430813541546585471 [head 7 8] [head 7 8] [row2]
+private abbrev body9 : NamedProposal p.n :=
+  .node body8 9 ⟨10⟩ 2 [head 8 9] [head 8 9] []
+
+private abbrev eventTable : List (V2.Event (Fin 1) (fgsa p unitCodec).Object) :=
+  [.tick 0 0, .tick 0 1, .deliver 0 (ofHead p (head 0 0)) 1,
+    .tick 0 2, .tick 0 3, .tick 0 4,
+    .deliver 0 (ofWire p ⟨.proposer 1, .proposal body1⟩) 4,
+    .tick 0 5, .deliver 0 (ofHead p (head 1 2)) 5,
+    .tick 0 6, .tick 0 7, .tick 0 8,
+    .deliver 0 (ofWire p ⟨.proposer 2, .proposal body2⟩) 8,
+    .tick 0 9, .deliver 0 (ofHead p (head 2 3)) 9,
+    .tick 0 10, .tick 0 11, .tick 0 12,
+    .deliver 0 (ofWire p ⟨.proposer 3, .proposal body3⟩) 12,
+    .tick 0 13, .deliver 0 (ofHead p (head 3 4)) 13,
+    .tick 0 14, .deliver 0 (ofRow p row1) 14, .restart 0 16,
+    .tick 0 16, .tick 0 17, .tick 0 18, .tick 0 19, .tick 0 20,
+    .deliver 0 (ofWire p ⟨.proposer 5, .proposal body5⟩) 20,
+    .tick 0 21, .deliver 0 (ofHead p (head 5 6)) 21,
+    .tick 0 22, .tick 0 23, .tick 0 24,
+    .deliver 0 (ofWire p ⟨.proposer 6, .proposal body6⟩) 24,
+    .tick 0 25, .deliver 0 (ofHead p (head 6 7)) 25,
+    .tick 0 26, .tick 0 27, .tick 0 28,
+    .deliver 0 (ofWire p ⟨.proposer 7, .proposal body7⟩) 28,
+    .tick 0 29, .deliver 0 (ofHead p (head 7 8)) 29,
+    .tick 0 30, .deliver 0 (ofRow p row2) 30, .tick 0 31, .tick 0 32,
+    .deliver 0 (ofWire p ⟨.proposer 8, .proposal body8⟩) 32,
+    .tick 0 33, .deliver 0 (ofHead p (head 8 9)) 33,
+    .tick 0 34, .tick 0 35, .tick 0 36,
+    .deliver 0 (ofWire p ⟨.proposer 9, .proposal body9⟩) 36,
+    .tick 0 37, .deliver 0 (ofHead p (head 9 10)) 37]
+
+private theorem events_eq : events = eventTable := by decide +kernel
+
+private theorem run_eq : rho = mkRun eventTable := congrArg mkRun events_eq
+
+-- Every emission is the object delivered immediately after its tick.
+private def emissionTable (i : Nat) : List (fgsa p unitCodec).Object :=
+  match eventTable[i + 1]? with
+  | some (.deliver _ o _) => [o]
+  | _ => []
+
+private theorem emits_eq (i : Nat) :
+    V2.D.Run.emitsAt E (mkRun eventTable) i = emissionTable i := by
+  have cert : ∀ j : Fin eventTable.length,
+      V2.D.Run.emitsAt E (mkRun eventTable) j = emissionTable j := by decide +kernel
+  by_cases hi : i < eventTable.length
+  · exact cert ⟨i, hi⟩
+  · have h0 : eventTable[i]? = none := List.getElem?_eq_none (by omega)
+    have h1 : eventTable[i + 1]? = none := List.getElem?_eq_none (by omega)
+    simp only [V2.D.Run.emitsAt, h0, emissionTable, h1]
+
 private abbrev children (o : (fgsa p unitCodec).Object) : List (fgsa p unitCodec).Object :=
   match o.payload with
   | .proposal N => N.raw.map (ofHead p) ++ N.support.map (ofHead p) ++ N.rows.map (ofRow p)
@@ -77,21 +149,30 @@ private instance (i : Nat) (e : V2.Event (Fin 1) (fgsa p unitCodec).Object) :
   cases e <;> unfold EventOK <;> infer_instance
 
 private theorem checks : ∀ i : Fin rho.events.length, EventOK i rho.events[i.val] := by
+  simp only [EventOK, events_eq, run_eq, emits_eq]
+  apply @of_decide_eq_true _ (by
+    refine @Fintype.decidableForallFintype _ _ (fun i => ?_) inferInstance
+    split <;> infer_instance)
   decide +kernel
 
 private theorem lsync_schedule : V2.D.ScheduleWellFormed E rho where
   horizon_nonneg := by decide
   sorted := by
+    rw [run_eq]
     decide +kernel
   nodup := by
+    rw [run_eq]
     decide +kernel
   in_horizon := by
+    rw [run_eq]
     decide +kernel
   honest_only := by
+    rw [run_eq]
     decide +kernel
   tick_public := by
     intro v t ht
     have hall : ∀ e ∈ rho.events, 0 ≤ e.time := by
+      rw [run_eq]
       decide +kernel
     have hn : 0 ≤ t := hall _ ht
     exact ⟨t.toNat, by simp [Int.toNat_of_nonneg hn]⟩
@@ -105,7 +186,7 @@ private theorem lsync_schedule : V2.D.ScheduleWellFormed E rho where
       subst t
       exact Bool.noConfusion hawake
     have cert : ∀ n ∈ List.range 38, n ≠ 15 →
-        V2.Event.tick 0 (n : Int) ∈ rho.events := by decide +kernel
+        V2.Event.tick 0 (n : Int) ∈ rho.events := by rw [run_eq]; decide +kernel
     have he : (t.toNat : Int) = t := Int.toNat_of_nonneg ht
     rw [← he]
     exact cert t.toNat (List.mem_range.mpr (by simp only [Time] at *; omega))
@@ -124,10 +205,13 @@ private def RestartOK (e : V2.Event (Fin 1) (fgsa p unitCodec).Object) : Bool :=
 
 private theorem restart_time {v : Fin 1} {t : Time}
     (ht : V2.Event.restart v t ∈ rho.events) : t = 16 := by
-  have cert : ∀ e ∈ rho.events, RestartOK e = true := by decide +kernel
+  have cert : ∀ e ∈ rho.events, RestartOK e = true := by
+    rw [run_eq]
+    decide +kernel
   exact of_decide_eq_true (cert _ ht)
 
 private theorem event_awake : ∀ e ∈ rho.events, E.awake e.node e.time = true := by
+  rw [run_eq]
   decide +kernel
 
 private theorem fgp_sleep_valid : V2.D.SleepWellFormed E rho where
@@ -138,7 +222,7 @@ private theorem fgp_sleep_valid : V2.D.SleepWellFormed E rho where
     intro v _ t _ _ hw
     have hv : v = 0 := Subsingleton.elim _ _
     subst v
-    rw [wake_eq hw]
+    rw [wake_eq hw, run_eq]
     decide +kernel
 
 private theorem restarts : V2.D.RestartsAtWakes E rho := by
@@ -200,6 +284,10 @@ private instance (i : Nat) (e : V2.Event (Fin 1) (fgsa p unitCodec).Object) :
   cases e <;> unfold Delivered <;> infer_instance
 
 private theorem lsync_delivered : ∀ i : Fin rho.events.length, Delivered i rho.events[i.val] := by
+  simp only [Delivered, events_eq, run_eq, emits_eq]
+  apply @of_decide_eq_true _ (by
+    refine @Fintype.decidableForallFintype _ _ (fun i => ?_) inferInstance
+    split <;> infer_instance)
   decide +kernel
 
 private def ProcessedDelivery (j : Nat) : Prop :=
@@ -213,6 +301,10 @@ private instance (j : Nat) : Decidable (ProcessedDelivery j) := by
   split <;> infer_instance
 
 private theorem delivery_processed : ∀ j : Fin rho.events.length, ProcessedDelivery j := by
+  simp only [ProcessedDelivery, events_eq, run_eq]
+  apply @of_decide_eq_true _ (by
+    refine @Fintype.decidableForallFintype _ _ (fun i => ?_) inferInstance
+    split <;> infer_instance)
   decide +kernel
 
 private theorem deliveryPrefix :
@@ -378,7 +470,9 @@ private theorem delay_receiptRoots : NamedReceiptRootCollisionFree p unitCodec E
     have cert : ∀ j : Fin rho.events.length, ∀ o ∈ V2.D.Run.emitsAt E rho j,
         (match o.payload with
           | .proposal _ => decide (V2.Event.deliver 0 o rho.events[j.val].time ∈ rho.events)
-          | _ => true) = true := by decide +kernel
+          | _ => true) = true := by
+      simp only [events_eq, run_eq, emits_eq]
+      decide +kernel
     have hc := cert ⟨i, (List.getElem?_eq_some_iff.mp hi).1⟩ o ho
     have hd : V2.Event.deliver 0 o t ∈ rho.events := by
       simp only [hp, (List.getElem?_eq_some_iff.mp hi).2,
