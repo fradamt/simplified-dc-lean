@@ -979,5 +979,35 @@ private theorem old_target_supplier_impossible :
 
 #print axioms old_target_supplier_impossible
 
+private abbrev honestSlot (s : Slot) : Prop := s = 2 ∨ s = 4 ∨ s = 6 ∨ s = 8
+
+private theorem kernel_population_premises_sat :
+    KernelPrem_W timing 2 run.horizon point pt honestSlot electorate.q
+      (electorate.weightOf (Finset.univ \ historyFaulty reads run)) cfg.timeoutDelay 2 ∧
+    KernelRunFacts reads (env Nat) run electorate 2 ∧
+    ∃ m : middleType run,
+      KernelActionSupplyFG_W core reads obs timing (env Nat) run interface history
+        electorate m := by
+  refine ⟨?_, ?_, ?_⟩
+  · constructor
+    · exact ⟨by decide⟩
+    · rw [Gen.Pure.FGoodE_W_def]
+      exact ⟨by decide, by decide, ⟨6, by decide, by decide, by decide⟩, by decide⟩
+    · decide
+    · decide
+    · decide
+    · rfl
+    · decide
+  · constructor
+    · exact schedule_premises_sat
+    · decide
+    · exact le_rfl
+    · intro i j _; exact Subsingleton.elim _ _
+    · intro x hx t ht hhor; rfl
+  · obtain ⟨m, _, act⟩ := action_premises_sat
+    exact ⟨m, act⟩
+
+#print axioms kernel_population_premises_sat
+
 end AvailableChain.FGCompose.Tests.PopulationKernel
 end
