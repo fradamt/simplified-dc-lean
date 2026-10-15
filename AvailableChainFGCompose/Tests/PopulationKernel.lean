@@ -2224,6 +2224,31 @@ private theorem owner_exact_rows (j x r : Nat) (a : protocol.Object)
 
 #print axioms owner_exact_rows
 
+private theorem source_cases (x r : Nat) (C : FGBlock (Fin 1))
+    (hs : actionSourceFG core (env Nat) run timing x r = some (some C)) :
+    x ∈ run.honest ∧ r < 7 ∧ C = block r := by
+  have hs' := hs
+  unfold actionSourceFG postClock preTick at hs'
+  cases hi : V2.D.Run.tickIdx? run x (timing.action r) with
+  | none => simp only [hi, Option.map_none] at hs'; contradiction
+  | some j =>
+    have he := V2.D.Run.tickIdx?_spec hi
+    have hm := List.mem_of_getElem? he
+    have hx := schedule_premises_sat.honest_only _ hm
+    have htime := (schedule_premises_sat.in_horizon _ hm).2
+    change 4 * (r * 2 : Nat) + 6 ≤ (57 : Int) at htime
+    have hr : r < 7 := by omega
+    change x ∈ run.honest at hx
+    have hx' : x = 7 ∨ x = 9 := by simpa using hx
+    have hsrc : actionSourceFG core (env Nat) run timing x r = some (some (block r)) := by
+      rcases hx' with rfl | rfl
+      · exact trace_premises_sat.2.2.2 ⟨r, hr⟩ 0
+      · exact trace_premises_sat.2.2.2 ⟨r, hr⟩ 1
+    rw [hsrc] at hs
+    exact ⟨hx, hr, (Option.some.inj (Option.some.inj hs)).symm⟩
+
+#print axioms source_cases
+
 end Owner
 
 end AvailableChain.FGCompose.Tests.PopulationKernel
