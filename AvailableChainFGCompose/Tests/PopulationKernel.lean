@@ -2189,6 +2189,41 @@ private theorem data_premises_sat :
 
 #print axioms data_premises_sat
 
+private theorem owner_exact_rows (j x r : Nat) (a : protocol.Object)
+    (ha : HonestRowAt reads (env Nat) run timing j x r a) :
+    ∃ k : Fin 7, j = 20 * k.val + 12 ∧ x = 9 ∧ r = k.val ∧ a = wire (row k) := by
+  have hj : j < 144 := (List.getElem?_eq_some_iff.mp ha.2.1).1
+  have hw := ha.2.2
+  change a ∈ V2.D.Run.emitsAt (env Nat) run j at hw
+  rw [trace_premises_sat.2.1 ⟨j, hj⟩] at hw
+  dsimp only [Fin.val_mk] at hw
+  split_ifs at hw with hr hp
+  · have hk : j / 20 < 7 := by omega
+    let k : Fin 7 := ⟨j / 20, hk⟩
+    have he : j = 20 * k.val + 12 := by dsimp only [k]; omega
+    have ht := (trace_premises_sat.2.2.1 k).1
+    rw [← he] at ht
+    have htick := V2.Event.tick.inj (Option.some.inj (ht.symm.trans ha.2.1))
+    have ht' : 4 * (k.val * 2) + 6 = 4 * (r * 2) + 6 := by
+      have h := htick.2
+      change (4 : Int) * (k.val * 2 : Nat) + 6 = (4 : Int) * (r * 2 : Nat) + 6 at h
+      exact_mod_cast h
+    exact ⟨k, he, htick.1.symm, by omega, List.mem_singleton.mp hw⟩
+  · have hk : j / 20 < 7 := by omega
+    let k : Fin 7 := ⟨j / 20, hk⟩
+    have he : j = 20 * k.val + 19 := by dsimp only [k]; omega
+    have ht := (trace_premises_sat.2.2.1 k).2.1
+    rw [← he] at ht
+    have htick := V2.Event.tick.inj (Option.some.inj (ht.symm.trans ha.2.1))
+    have ht' : 4 * (2 * (k.val + 1)) = 4 * (r * 2) + 6 := by
+      have h := htick.2
+      change (4 : Int) * (2 * (k.val + 1) : Nat) = (4 : Int) * (r * 2 : Nat) + 6 at h
+      exact_mod_cast h
+    omega
+  · contradiction
+
+#print axioms owner_exact_rows
+
 end Owner
 
 end AvailableChain.FGCompose.Tests.PopulationKernel
