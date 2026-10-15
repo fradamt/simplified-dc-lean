@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchRepair
+public import AvailableChainFGCompose.Proofs.Population.HolderBaseRepair
 public import AvailableChainFGCompose.Statements.Population.FrontierSearch
 
 public section
@@ -36,13 +36,13 @@ theorem frontierSearch_save_seed_holder (hT : FGTimingLaws T) (hk : 1 ≤ leaseS
     (hg : T.gate q ≤ D)
     (hlocal : FrontierLocalServiceFG R S E rho O T I pair q Q Qfg m (T.gate q)) :
     StrongServedFG R S E rho O T I pair Jst leaseSlots m (T.gate q) := by
-  have hu := frontierSearch_seed_after T leaseSlots hT hk hseed
+  have hu := frontierSearch_seed_after_core T leaseSlots hT hk hseed
   have huq : u ≤ T.gate q := by
     rw [hT.gate_eq]
     linarith [hT.delta_pos]
   exact ⟨u, J, contested, q, Q, Qfg, hready, hQ, he, hh, hs, hseed, hu,
-    frontierSearch_phase_cut R E rho O hp huq hg, le_rfl, hg.trans hp.2.1,
-    frontierSearch_phase_cap R E rho O obs hp hg, hlocal⟩
+    frontierSearch_phase_cut_core R E rho O hp huq hg, le_rfl, hg.trans hp.2.1,
+    frontierSearch_phase_cap_core R E rho O obs hp hg, hlocal⟩
 
 include obs cert inv justif keep positive coreLaws erasePreceq in
 /-- ROOT-DIGEST W2b. Blueprint 21 HG.3 contest; plan R2-b.
@@ -105,24 +105,24 @@ theorem frontier_hg3_contest_holder (hT : FGTimingLaws T) (hk : 1 ≤ leaseSlots
   have hready : Jst ≤ ev.time + 3 * T.delta := by linarith [hT.delta_pos]
   obtain ⟨_, hseedEx⟩ := hrep hG _ m none true hready hp
   obtain ⟨q, Q, hlq, hgate, hQ, hsvc⟩ := hseedEx (by linarith)
-  have hseed := frontierSearch_seed_of_start E T leaseSlots hl hlq
-  have hu := frontierSearch_seed_after T leaseSlots hT hk hseed
+  have hseed := frontierSearch_seed_of_start_core E T leaseSlots hl hlq
+  have hu := frontierSearch_seed_after_core T leaseSlots hT hk hseed
   have hgateD : T.gate q ≤ ev.time + (ρbar + 3 * T.delta) := by linarith
   obtain ⟨j, x, Qfg, hj0, hj1, hx, hmem, hErase⟩ :=
     gateCopy _ _ m none true q Q hready hp hseed hgateD hQ
-  obtain ⟨hlo, hhi⟩ := frontierSearch_proposal_heights R E rho O T I Jst Ef obs cert inv
+  obtain ⟨hlo, hhi⟩ := frontierSearch_proposal_heights_core R E rho O T I Jst Ef obs cert inv
     floor hready hp hu hgateD hQ hErase ⟨j, x, hj0, hj1, hx, hmem⟩
   have hh : (O.height Qfg).h = m := Nat.le_antisymm hhi hlo
   have ht : ev.time ≤ T.gate q := by
     rw [hT.gate_eq]
     linarith [hT.delta_pos]
-  have hpq := frontierSearch_phase_cut R E rho O hp (hu.trans (by
+  have hpq := frontierSearch_phase_cut_core R E rho O hp (hu.trans (by
     rw [hT.gate_eq]; linarith [hT.delta_pos])) hgateD
   exact Or.inr (Or.inr ⟨_, ht, hgateD,
     frontierSearch_save_seed_holder R S E rho O T I pair Jst leaseSlots obs hT hk hready hp hseed hQ
       hErase hh hsvc hgateD
       (service _ _ m none true q Q Qfg hready hQ hErase hh hsvc hseed hu hpq le_rfl
-        (hgateD.trans hhor) (frontierSearch_phase_cap R E rho O obs hp hgateD))⟩)
+        (hgateD.trans hhor) (frontierSearch_phase_cap_core R E rho O obs hp hgateD))⟩)
 
 end AvailableChain.FGCompose
 end
