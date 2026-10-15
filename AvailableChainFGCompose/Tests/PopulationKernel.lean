@@ -1,10 +1,6 @@
 module
 public import AvailableChainFGCompose.Proofs.Population.Kernel
-public import AvailableChainFGCompose.Proofs.Population.MiddleSupport
-public import AvailableChainFGCompose.Proofs.Population.RowsPrem
-public import AvailableChainFGCompose.Proofs.Population.RowsRecords -- shake: keep (record control)
-public import AvailableChainFGCompose.Proofs.Population.KernelBridges -- shake: keep (controls)
-public import AvailableChainFGCompose.Statements.Population.Seats -- shake: keep (private controls)
+public import AvailableChainFGCompose.Proofs.Population.KernelBridges
 
 set_option linter.privateModule false
 noncomputable section
@@ -1798,6 +1794,20 @@ private theorem frozen_owner_specialization
 #print axioms frozen_owner_specialization
 
 end FrozenOwner
+
+-- Type-level owner application on these exact mixed data: all unchanged global leaves
+-- remain arguments. The holder target/window/run and active acceptance effect are supplied.
+#check finality_kernel_W_of_holder core reads obs timing timing_premises_sat (env Nat) run
+  interface history electorate decodeProposal erase (fun X => X.rows.map wire)
+  (fun _ => []) (fun _ _ => []) parentRead parentHeight (fun _ _ _ _ => true) makeFG
+  (fun _ => true) (ac Nat) cfg 2 2 point pt
+  (honestSlot := honestSlot) (hK := kernel_population_premises_sat.1)
+  (run := kernel_population_premises_sat.2.1)
+  (hSOCOVTarget := target_supplier_premises_sat) (Jst := 0)
+  (storedCarrier := fun _ X a => a ∈ X.rows.map wire)
+  (SourceService := fun x r C =>
+    actionSourceFG core (env Nat) run timing x r = some (some C)) (ready := ready)
+  (step := acceptance_effect_premises_sat.1) (durable := durable_premises_sat)
 
 end AvailableChain.FGCompose.Tests.PopulationKernel
 end

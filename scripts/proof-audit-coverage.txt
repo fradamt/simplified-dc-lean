@@ -1678,6 +1678,11 @@
             'AvailableChain.FGCompose.high_target_row_covered_holder',
         ),
     },
+    'AvailableChainFGCompose.Tests.PopulationKernelAxioms': {
+        'AvailableChainFGCompose.Proofs.Population.Kernel': (
+            'AvailableChain.FGCompose.finality_kernel_W_of_holder',
+        ),
+    },
     'AvailableChainFGCompose.Tests.PopulationMiddleAxioms': {
         'AvailableChainFGCompose.Proofs.Population.KernelBridges': (
             'AvailableChain.FGCompose.kernel_action_holder_frozen_iff',

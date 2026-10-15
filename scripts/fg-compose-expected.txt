@@ -1346,6 +1346,7 @@
     'AvailableChain.FGCompose.finality_action_time_bounds',
     'AvailableChain.FGCompose.finality_heldBefore_at_proposal',
     'AvailableChain.FGCompose.finality_kernel_W_of',
+    'AvailableChain.FGCompose.finality_kernel_W_of_holder',
     'AvailableChain.FGCompose.finality_kernel_joined_W_of',
     'AvailableChain.FGCompose.finality_kernel_prem_W_of_joined',
     'AvailableChain.FGCompose.finality_liveness_FE_W_of',
