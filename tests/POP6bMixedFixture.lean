@@ -9,15 +9,15 @@ open AvailableChain.SimplexFG AvailableChain.KitFG
 open P0d5db
 
 -- Generic event-fold control: one FG seat at 9, honest proposer and receiver 7.
-private def entrySlot (s : Nat) : Nat := 6 * (s / 6)
-private def heightAt (s : Nat) : Nat := 1 + s / 6
+private def entrySlot (s : Nat) : Nat := 4 * (s / 4)
+private def heightAt (s : Nat) : Nat := 1 + s / 4
 private def wireAt (r : Nat) : Row (Fin 1) :=
   ⟨0, .vote (heightAt (2 * r))
     (if entrySlot (2 * r) = 0 then genesisRoot else ⟨300 + entrySlot (2 * r)⟩) true, none⟩
 private def chain : Nat → FGBlock (Fin 1)
   | 0 => .genesis
   | s + 1 => .node (chain s) (s + 1) ⟨300 + s + 1⟩ 0
-      (((List.range ((s + 1) / 2)).filter (fun r => decide (r % 3 = 2))).map wireAt)
+      ((List.range ((s + 1) / 2)).map wireAt)
 private abbrev allRows : List (Row (Fin 1)) := (List.range 32).map wireAt
 private abbrev protocol : V2.ProtocolSpecD Unit where
   State := Nat
@@ -33,7 +33,7 @@ private abbrev protocol : V2.ProtocolSpecD Unit where
   duties t := [t]
   duties_spec := by intro d t; simp
   duties_nodup := by intro t; simp
-  act _ t _ := if t % 24 = 22 then some (.inl (wireAt (t.toNat / 8)))
+  act _ t _ := if t % 8 = 6 then some (.inl (wireAt (t.toNat / 8)))
     else if t % 4 = 0 ∧ 4 ≤ t ∧ t ≤ 256 then some (.inr (chain (t.toNat / 4)))
     else none
   gossip _ _ := []
@@ -50,11 +50,11 @@ private abbrev protocol : V2.ProtocolSpecD Unit where
   carries _ _ := False
 private abbrev env : Generic.Env Nat := ⟨1, by decide, 0, le_rfl, fun _ _ => true⟩
 private abbrev delivery (s x : Nat) : V2.Event Nat protocol.Object :=
-  .deliver x ⟨.none, .inr (chain s)⟩ (4 * (s : Time) + 3)
+  .deliver x ⟨.none, .inr (chain s)⟩ (4 * (s : Time))
 private def eventShape : List (Bool × Nat × Nat) :=
   (List.range 257).flatMap fun t =>
     [(true, 7, t), (true, 9, t)] ++
-      (if 7 ≤ t ∧ t % 4 = 3 then [(false, 7, t), (false, 9, t)] else [])
+      (if 4 ≤ t ∧ t % 4 = 0 then [(false, 7, t), (false, 9, t)] else [])
 private def eventOf (e : Bool × Nat × Nat) : V2.Event Nat protocol.Object :=
   if e.1 then .tick e.2.1 (e.2.2 : Time)
   else .deliver e.2.1 ⟨.none, .inr (chain (e.2.2 / 4))⟩ (e.2.2 : Time)
@@ -83,7 +83,7 @@ private abbrev stored (st : Nat) : Finset (FGBlock (Fin 1)) :=
 private abbrev core : FGCoreReads protocol 1 Unit Unit (Row (Fin 1)) where
   core st := ⟨(), ⟨stored st, .genesis, .genesis, 0, heightAt (min st 64)⟩, [], allRows⟩
   erase := v5erase
-  source st := some (chain (min st 64))
+  source st := some (chain (min (st - 1) 64))
   headVote _ s := v5erase (chain s)
   finalityHead _ := some .genesis
   proposalFG _ _ := none
