@@ -299,5 +299,67 @@ private theorem classification_premises_sat :
 
 #print axioms classification_premises_sat
 
+private theorem chain_premises_sat :
+    (∀ A s, FGBlock.Preceq A (chain s) → ∃ a, a ≤ s ∧ A = chain a) ∧
+    PromotionRowOrder core env run obs iface ∧
+    (∀ r s : Nat, 2 * r + 2 ≤ s → wireAt r ∈ (chain s).rows) := by
+  have ancestor (A : FGBlock (Fin 1)) (s : Nat) (h : FGBlock.Preceq A (chain s)) :
+      ∃ a, a ≤ s ∧ A = chain a := by
+    induction s with
+    | zero => exact ⟨0, le_rfl, preceq_genesis.mp h⟩
+    | succ s ih =>
+      change (decide (A = chain (s + 1)) || FGBlock.preceq A (chain s)) = true at h
+      rw [Bool.or_eq_true] at h
+      rcases h with he | he
+      · exact ⟨s + 1, le_rfl, of_decide_eq_true he⟩
+      · obtain ⟨a, ha, he⟩ := ih he
+        exact ⟨a, ha.trans (Nat.le_succ _), he⟩
+  have root (s : Nat) : (chain s).root = if s = 0 then genesisRoot else ⟨300 + s⟩ := by
+    cases s <;> rfl
+  have rootInj {a b : Nat} (h : (chain a).root = (chain b).root) : a = b := by
+    have hv := congrArg BlockId.value h
+    rw [root, root] at hv
+    by_cases ha : a = 0 <;> by_cases hb : b = 0 <;> simp only [ha, hb, ite_true, ite_false,
+      genesisRoot] at hv <;> omega
+  have pair (r : Nat) : (wireAt r).height_pair =
+      .vote (heightAt (2 * r)) (chain (entrySlot (2 * r))).root true := by
+    rw [root]
+    rfl
+  refine ⟨ancestor, ?_, ?_⟩
+  · intro s X height U hp _ _ hU i W hW hrow
+    obtain ⟨hs, _, he⟩ := classification_premises_sat.1 s _ hp
+    have hX : X = chain s := v5erase_inj he
+    subst X
+    obtain ⟨k, hk⟩ := Nat.exists_eq_succ_of_ne_zero (Nat.ne_of_gt hs)
+    subst s
+    obtain ⟨a, ha, rfl⟩ := ancestor U k hU
+    obtain ⟨w, hw, rfl⟩ := ancestor W k hW
+    obtain ⟨row, hr, names⟩ := hrow
+    cases w with
+    | zero => cases hr
+    | succ w =>
+      change row ∈ (List.range ((w + 1) / 2)).map wireAt at hr
+      obtain ⟨r, hrange, heq⟩ : ∃ r ∈ List.range ((w + 1) / 2), wireAt r = row :=
+        List.mem_map.mp hr
+      subst row
+      have hrnum := List.mem_range.mp hrange
+      obtain ⟨timeout, hpair⟩ := names.2
+      rw [pair] at hpair
+      have hroot := congrArg (fun p : NamedHeightPair => match p with
+        | .vote _ e _ => e | .empty => genesisRoot) hpair
+      change (chain (entrySlot (2 * r))).root = (chain a).root at hroot
+      have hae : a = entrySlot (2 * r) := (rootInj hroot).symm
+      have hentry : entrySlot (2 * r) ≤ 2 * r := Nat.mul_div_le (2 * r) 4
+      apply core_premises_sat.2.2.2.2.1 a w
+      omega
+  · intro r s hs
+    cases s with
+    | zero => omega
+    | succ s =>
+      change wireAt r ∈ (List.range ((s + 1) / 2)).map wireAt
+      exact List.mem_map.mpr ⟨r, List.mem_range.mpr (by omega), rfl⟩
+
+#print axioms chain_premises_sat
+
 end AvailableChain.FGCompose.Tests.POP6bMixed
 end
