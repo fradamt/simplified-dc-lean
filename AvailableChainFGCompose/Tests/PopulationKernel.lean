@@ -2249,6 +2249,26 @@ private theorem source_cases (x r : Nat) (C : FGBlock (Fin 1))
 
 #print axioms source_cases
 
+private theorem stage_before_premises_sat (i : Nat) (x : Fin 2) :
+    (V2.D.Run.stateBefore (env Nat) run i (node x)).1.val = stage i x := by
+  by_cases hi : i < 145
+  · exact trace_premises_sat.1 ⟨i, hi⟩ x
+  · have hlen : run.events.length = 144 := by decide
+    have hge : run.events.length ≤ i := by omega
+    have he : V2.D.Run.stateBefore (env Nat) run i =
+        V2.D.Run.stateBefore (env Nat) run 144 := by
+      unfold V2.D.Run.stateBefore
+      rw [List.take_of_length_le hge, List.take_of_length_le (by omega :
+        run.events.length ≤ 144)]
+    rw [he, trace_premises_sat.1 ⟨144, by decide⟩ x]
+    fin_cases x
+    · change 7 = min 7 ((i - 1) / 20)
+      omega
+    · change 7 = min 7 ((i - 2) / 20)
+      omega
+
+#print axioms stage_before_premises_sat
+
 end Owner
 
 end AvailableChain.FGCompose.Tests.PopulationKernel
