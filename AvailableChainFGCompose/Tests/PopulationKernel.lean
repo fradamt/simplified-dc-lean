@@ -1532,5 +1532,58 @@ private theorem old_middle_impossible (m : KernelMiddleWitness_W core reads obs 
 
 #print axioms old_middle_impossible
 
+private abbrev frozenOldType :=
+  KernelMiddleWitness_W core reads obs timing (env (Fin 1)) frozenRun interface history
+    electorate decodeProposal erase (fun X => X.rows.map wire) (fun _ => []) parentRead
+    parentHeight (fun _ _ _ _ => true) makeFG (fun _ => true) (ac (Fin 1))
+    cfg 2 2 point pt (erase aBlock)
+
+
+set_option maxRecDepth 2048 in
+private theorem frozen_bridge_premises_sat :
+    (Nonempty frozenOldType ↔ Nonempty (middleType frozenRun)) ∧
+    ∃ m : frozenOldType, ∃ h : middleType frozenRun,
+      (m.A₀ = h.A₀ ∧ m.B = h.B ∧ m.U = h.U ∧
+        m.X_D = h.X_D ∧ m.cD = h.cD ∧ m.d = h.d) ∧
+      KernelActionSupply_W core reads obs timing (env (Fin 1)) frozenRun interface
+        history electorate m ∧
+      KernelActionSupplyFG_W core reads obs timing (env (Fin 1)) frozenRun interface
+        history electorate h ∧
+      (∀ x ∈ frozenRun.honest, ∃ H, core.finalityHead 30 = some H ∧
+        FGBlock.Preceq m.X_D H ∧ (obs.height H).h = m.d + 2 ∧
+        (obs.height H).J = m.U ∧ (obs.height H).h_j = m.d + 1) ∧
+      (∀ x ∈ frozenRun.honest, ∃ H, core.finalityHead 30 = some H ∧
+        FGBlock.Preceq h.X_D H ∧ (obs.height H).h = h.d + 2 ∧
+        (obs.height H).J = h.U ∧ (obs.height H).h_j = h.d + 1) := by
+  have bridge := kernel_middle_holder_frozen_iff core reads obs timing (env (Fin 1))
+    frozenRun interface history electorate decodeProposal erase (fun X => X.rows.map wire)
+    (fun _ => []) parentRead parentHeight (fun _ _ _ _ => true) makeFG (fun _ => true)
+    (ac (Fin 1)) cfg 2 2 point pt (erase aBlock) (Equiv.refl _) (by
+      intro i; exact Subsingleton.elim _ _)
+  obtain ⟨h, _, act⟩ := frozen_action_premises_sat
+  obtain ⟨m, selected⟩ := bridge.2.2 h
+  have oldAct := (kernel_action_holder_frozen_iff
+    (m := m) (h := h) (selected := selected)).mpr act
+  have newHead := rowsPrem_pending_head_holder h
+    (KitFG.Window.windowHeightLaws electorate cfg 2 (by decide))
+    (KitFG.Window.windowHeightBridge electorate cfg 2 (by decide))
+    act.read act.head act.walk (fun _ A B _ _ hp => reflection_premises_sat A B hp)
+  have oldHead := rowsPrem_pending_head m
+    (KitFG.Window.windowHeightLaws electorate cfg 2 (by decide))
+    (KitFG.Window.windowHeightBridge electorate cfg 2 (by decide))
+    oldAct.read oldAct.head oldAct.walk
+    (fun _ A B _ _ hp => reflection_premises_sat A B hp)
+  refine ⟨bridge.1, m, h, selected, oldAct, act, ?_, ?_⟩
+  · intro x hx
+    obtain rfl : x = 0 := Subsingleton.elim _ _
+    obtain ⟨H, hH, hp, hh, hJ, hj, _⟩ := oldHead 0 30 hx (by decide +kernel)
+    exact ⟨H, hH, hp, hh, hJ, hj⟩
+  · intro x hx
+    obtain rfl : x = 0 := Subsingleton.elim _ _
+    obtain ⟨H, hH, hp, hh, hJ, hj, _⟩ := newHead 0 30 hx (by decide +kernel)
+    exact ⟨H, hH, hp, hh, hJ, hj⟩
+
+#print axioms frozen_bridge_premises_sat
+
 end AvailableChain.FGCompose.Tests.PopulationKernel
 end
