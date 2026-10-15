@@ -197,5 +197,30 @@ private theorem fold_premises_sat :
 
 #print axioms fold_premises_sat
 
+private theorem action_premises_sat : ∀ r : Fin 32, ∀ x ∈ run.honest,
+    postClock env run x (v5T.action r) = some (2 * r.val) ∧
+    actionSourceFG core env run v5T x r = some (some (chain (2 * r.val))) := by
+  have table : ∀ r : Fin 32,
+      shapeState (eventShape.take (tickIndex (8 * r.val + 6))) 7 = 2 * r.val ∧
+      shapeState (eventShape.take (tickIndex (8 * r.val + 6) + 1)) 9 = 2 * r.val := by
+    decide +kernel
+  intro r x hx
+  have hx' : x = 7 ∨ x = 9 := by simpa [run] using hx
+  have ht : v5T.action r = ((8 * r.val + 6 : Nat) : Time) := by
+    dsimp [v5T]
+  have hs := execution_premises_sat.2.2.2 ⟨8 * r.val + 6, by omega⟩
+  have hp : postClock env run x (v5T.action r) = some (2 * r.val) := by
+    rw [ht]
+    rcases hx' with rfl | rfl
+    · rw [fold_premises_sat.2.2 _ _ _ hs.1, (table r).1]
+    · rw [fold_premises_sat.2.2 _ _ _ hs.2, (table r).2]
+  refine ⟨hp, ?_⟩
+  change (postClock env run x (v5T.action r)).map core.source = _
+  rw [hp]
+  change some (some (chain (min (2 * r.val) 64))) = _
+  rw [Nat.min_eq_left (by omega)]
+
+#print axioms action_premises_sat
+
 end AvailableChain.FGCompose.Tests.POP6bMixed
 end
