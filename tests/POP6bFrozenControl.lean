@@ -123,7 +123,8 @@ private theorem frozen_full_bridge :
     sourceSlot, ancestorSlot, eraseReflect, floor, gateCopy, service, common, heldSlot,
     proposalSlot, justifiedSource, parentFrame, eraseParent, capReceipt, cap, hne, transfer⟩ :=
     frozen_premises_sat
-  exact frontierSearch_holder (R := ladR) (S := ladS) (O := ladO) (T := v5T) (E := v5env) (rho := ladrho)
+  exact frontierSearch_holder (R := ladR) (S := ladS) (O := ladO) (T := v5T)
+    (E := v5env) (rho := ladrho)
     (I := ladI) (D := ladD) (Ef := v5E) (decodeProposal := laddecode) (bodyErase := id)
     (bodyRows := fun _ => []) (blockWireRows := fun _ => []) (parentFG := ladparentFG)
     (parentHeight := ladparentHeight) (validFor := ladvalidFor) (fold := ladfold) (Jst := 12)
@@ -150,7 +151,8 @@ private theorem frozen_selected_witness :
         v5T.action rStar ≤ ev.time + frontierSearchRowBudget v5T 4 1 ρ := by
   obtain ⟨h1, h2, h3, h4, h5, ha7, ha8, _, hd7, hd8, hH, _⟩ := ladSearch_premises_sat
   obtain ⟨hrise, hrow⟩ := (FrontierSearchStatement_def ladR ladS v5env ladrho ladO v5T ladI
-    ladD.heightPair 12 1 4 4 1).mp frozen_full_bridge rfl ⟨by decide⟩ 1 30 4 h1 h2 h3 h4 h5 ladrowCap
+    ladD.heightPair 12 1 4 4 1).mp frozen_full_bridge rfl ⟨by decide⟩ 1 30 4
+      h1 h2 h3 h4 h5 ladrowCap
   refine ⟨?_, ?_⟩
   · obtain ⟨j, ev, hj, hev, ht, hh, hcap⟩ := hrise 7 ha7 (by decide +kernel)
     obtain ⟨rfl, rfl⟩ := ladriseWitness hj hev hh hcap
