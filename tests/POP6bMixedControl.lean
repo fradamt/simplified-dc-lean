@@ -396,5 +396,44 @@ private theorem clock_premises_sat :
 
 #print axioms clock_premises_sat
 
+private theorem observed_premises_sat :
+    (∀ r x K, x ∈ run.honest →
+      actionSourceFG core env run v5T x r = some (some K) →
+      r < 32 ∧ K = chain (2 * r)) ∧
+    (∀ r : Fin 32, HonestRowAt reads env run v5T (rowIndex r) 9 r (wireAt r)) ∧
+    (∀ s : Fin 64, ∀ x ∈ run.honest,
+      headAtLabel core env run v5T x s = some (v5erase (chain s))) := by
+  refine ⟨?_, ?_, ?_⟩
+  · intro r x K hx hs
+    have hm := hs
+    change (postClock env run x (v5T.action r)).map core.source = _ at hm
+    obtain ⟨nd, hnd, _⟩ := Option.map_eq_some_iff.mp hm
+    obtain ⟨j, hj, _⟩ := postClock_tick env run hnd
+    have ht := (execution_premises_sat.1.in_horizon _ (List.mem_of_getElem? hj)).2
+    have hr : r < 32 := by change 8 * (r : Int) + 6 ≤ 256 at ht; omega
+    rw [(action_premises_sat ⟨r, hr⟩ x hx).2] at hs
+    exact ⟨hr, (Option.some.inj (Option.some.inj hs)).symm⟩
+  · have out : ∀ r : Fin 32, output 9 (v5T.action r) = [reads.encode (wireAt r)] := by
+      decide +kernel
+    intro r
+    have hj := (execution_premises_sat.2.2.2 ⟨8 * r.val + 6, by omega⟩).2
+    have hj' : run.events[rowIndex r]? = some (.tick 9 (v5T.action r)) := hj
+    refine ⟨by decide, hj', ?_⟩
+    rw [emissions_premises_sat _ _ _ hj', out r]
+    exact List.mem_singleton_self _
+  · intro s x hx
+    have ht : v5T.vote s = ((4 * s.val + 1 : Nat) : Time) := by dsimp [v5T]
+    have hs := execution_premises_sat.2.2.2 ⟨4 * s.val + 1, by omega⟩
+    have hx' : x = 7 ∨ x = 9 := by simpa [run] using hx
+    change (postClock env run x (v5T.vote s)).map (fun _ => v5erase (chain s)) = _
+    rw [ht]
+    rcases hx' with rfl | rfl
+    · rw [fold_premises_sat.2.2 _ _ _ hs.1]
+      rfl
+    · rw [fold_premises_sat.2.2 _ _ _ hs.2]
+      rfl
+
+#print axioms observed_premises_sat
+
 end AvailableChain.FGCompose.Tests.POP6bMixed
 end
