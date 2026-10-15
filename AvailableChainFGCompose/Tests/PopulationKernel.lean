@@ -3576,6 +3576,23 @@ private theorem kernel_conclusion_premises_sat :
 
 #print axioms kernel_conclusion_premises_sat
 
+-- The old all-node target supplier fails only at honest nonholder 7, on an active source.
+private theorem old_target_supplier_impossible :
+    ¬ (∀ x ∈ run.honest, ∀ r C,
+      actionSourceFG core (env Nat) run timing x r = some (some C) →
+      point.reset.M + 1 ≤ (obs.height C).h → (env Nat).awake x (timing.action r) = true →
+      ∃ j rSent a, rSent ≤ r ∧ HonestRowAt reads (env Nat) run timing j x rSent a ∧
+        RowComplete reads run history.signer valid x a ∧
+        history.heightPair a = .vote (obs.height C).h (obs.height C).T_h.root false) := by
+  intro old
+  obtain ⟨j, rSent, a, _, _, complete, _⟩ := old 7 (by decide) 4 (block 4)
+    (trace_premises_sat.2.2.2 4 0) (by decide +kernel) rfl
+  obtain ⟨i, _, hi⟩ := complete.2
+  change 9 = 7 at hi
+  contradiction
+
+#print axioms old_target_supplier_impossible
+
 end Owner
 
 end AvailableChain.FGCompose.Tests.PopulationKernel
