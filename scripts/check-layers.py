@@ -971,6 +971,13 @@ COMPOSE_EDGES |= frozenset({
     (PROOFS + ".Proofs.Foundations.RowPermission", COMPOSE + ".Proofs.RowPermission"),
 })
 
+# POP-C: the shared target-choice core retains the existing record helper imports.
+COMPOSE_PROOF_IMPORTS |= frozenset({
+    (COMPOSE + ".Proofs.Population.HolderBaseHighTarget", KITFG + ".ProvenanceCore"),
+    (COMPOSE + ".Proofs.Population.HolderBaseHighTarget", KITFG + ".StoreSafetyDef"),
+    (COMPOSE + ".Proofs.Population.HolderBaseHighTarget", GEN + ".Proofs.V2.Duty.Fields"),
+})
+
 # P0d7a2: high-record consumers and the frozen wrapper.
 COMPOSE_MODULES += (
     'AvailableChainFGCompose.Statements.FinalityRecords',
