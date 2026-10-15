@@ -1,6 +1,8 @@
 module
 public import AvailableChainFGCompose.Proofs.Population.Kernel
 public import AvailableChainFGCompose.Proofs.Population.KernelBridges
+public import AvailableChainKitFG.HeightConsumeTransfer
+public import AvailableChainKitFG.HeightHistoryTransfer
 
 set_option linter.privateModule false
 noncomputable section
@@ -2052,6 +2054,126 @@ private theorem trace_premises_sat :
     fin_cases k <;> exact ⟨rfl, rfl, rfl, rfl⟩, by decide +kernel⟩
 
 #print axioms trace_premises_sat
+
+private theorem certificate_premises_sat :
+    TargetJustification electorate obs.height ∧
+    (∀ y U X, X ≠ .genesis → EntryAt obs.height U y →
+      FGBlock.Preceq U X.parent →
+      ((obs.height X.parent).h = y → TargetCoveredByChild electorate obs.height X U y) →
+      y + 1 ≤ (obs.height X).h) ∧
+    (∀ y U X, SlotChain X → EntryAt obs.height U y → FGBlock.Preceq U X.parent →
+      X.slot < U.slot + cfg.timeoutDelay + 1 → NoMixedOnPath obs.height X y) := by
+  let hb : HeightBridge electorate cfg obs.height :=
+    KitFG.Window.windowHeightBridge electorate cfg 2 (by decide)
+  let laws : FGHeightLaws electorate obs.height :=
+    KitFG.Window.windowHeightLaws electorate cfg 2 (by decide)
+  have parentPath (X : FGBlock (Fin 1)) : FGBlock.Preceq X.parent X := by
+    cases X with
+    | genesis => exact preceq_refl _
+    | node P s r x rs => exact preceq_parent_node P s r x rs
+  have target {U X : FGBlock (Fin 1)} {y : Nat} (hX : X ≠ .genesis)
+      (hU : EntryAt obs.height U y) (hUX : FGBlock.Preceq U X.parent)
+      (hP : (obs.height X.parent).h = y)
+      (hc : TargetCoveredByChild electorate obs.height X U y) :
+      JustifiedCross obs.height X U y := by
+    have hT := (laws.entry_plateau hUX (hU.1.trans hP.symm)).symm.trans hU.2
+    obtain ⟨Q, hQ, hc⟩ := hc
+    cases X with
+    | genesis => exact (hX rfl).elim
+    | node P s r x rs =>
+      obtain ⟨hh, hJ, hj⟩ := derive_target_of_cover_of_bridge electorate cfg obs.height hb
+        P s r x rs Q hQ (by
+          intro i hi
+          rcases hc i hi with hb | ⟨a, ha, hs, hp⟩
+          · exact Or.inl hb
+          · refine Or.inr ⟨a, ha, hs, ?_⟩
+            change (obs.height P).h = y at hP
+            change (obs.height P).T_h = U at hT
+            rw [hP, hT]
+            exact hp)
+      exact ⟨hP, hh.trans (congrArg (· + 1) hP), hJ.trans hT, hj.trans hP⟩
+  have fold (y : Nat) (U X : FGBlock (Fin 1)) (hX : X ≠ .genesis)
+      (hU : EntryAt obs.height U y) (hUX : FGBlock.Preceq U X.parent)
+      (hc : (obs.height X.parent).h = y →
+        TargetCoveredByChild electorate obs.height X U y) :
+      y + 1 ≤ (obs.height X).h ∧
+        ((∃ C, FGBlock.Preceq C X ∧ JustifiedCross obs.height C U y) ∨
+          ∃ W, FGBlock.Preceq W X.parent ∧ MixedCross obs.height W y) := by
+    have hlow := laws.h_mono hUX
+    rw [hU.1] at hlow
+    by_cases hP : (obs.height X.parent).h = y
+    · have hj := target hX hU hUX hP (hc hP)
+      exact ⟨by rw [hj.2.1], Or.inl ⟨X, preceq_refl _, hj⟩⟩
+    · have hhigh : y < (obs.height X.parent).h := by simp only [Height] at *; omega
+      obtain ⟨W, _, hUW, hWP, hp, hw⟩ :=
+        first_height_crossing_edge_of_bridge electorate cfg obs.height hb y hUX hU.1 hhigh
+      have hmono := laws.h_mono (parentPath X)
+      refine ⟨by simp only [Height] at *; omega, ?_⟩
+      rcases cross_cases_of_laws laws (FGJustificationLaws.of_bridge hb) hU hUW hp hw with
+        hj | hm
+      · exact Or.inl ⟨W, preceq_trans hWP (parentPath X), hj⟩
+      · exact Or.inr ⟨W, hWP, hm⟩
+  refine ⟨?_, fun y U X hX hU hUX hc => (fold y U X hX hU hUX hc).1, ?_⟩
+  · intro y U X hX hU hUX hc hn
+    rcases (fold y U X hX hU hUX hc).2 with hj | ⟨W, hWP, hm⟩
+    · exact hj
+    · exact (hn W hWP hm).elim
+  · intro y U X hs hU hUX hearly W hWP hm
+    have slot_le : ∀ Z A : FGBlock (Fin 1), SlotChain Z →
+        FGBlock.Preceq A Z → A.slot ≤ Z.slot := by
+      intro Z
+      induction Z with
+      | genesis => intro A _ h; obtain rfl := preceq_genesis.mp h; exact le_rfl
+      | node P s r x rs ih =>
+        intro A hz hA
+        by_cases heq : A = .node P s r x rs
+        · subst A; exact le_rfl
+        · exact le_trans (ih A (fun B hB hn =>
+            hz B (preceq_node_of_preceq s r x rs hB) hn)
+            (preceq_parent_of_preceq_node hA heq))
+            (Nat.le_of_lt (hz _ (preceq_refl _) (by simp)))
+    obtain ⟨hP, hW, hj⟩ := hm
+    have hne : W ≠ .genesis := by
+      intro heq
+      subst W
+      change (obs.height .genesis).h = y at hP
+      rw [hP] at hW
+      simp only [Height, Slot] at *
+      omega
+    have hUW : FGBlock.Preceq U W := by
+      rcases preceq_total_of_common hUX hWP with h | h
+      · exact h
+      · have hh := laws.h_mono h
+        rw [hU.1, hW] at hh
+        simp only [Height, Slot] at *
+        omega
+    have hUWp : FGBlock.Preceq U W.parent := by
+      cases W with
+      | genesis => exact (hne rfl).elim
+      | node P s r x rs =>
+        apply preceq_parent_of_preceq_node hUW
+        intro heq
+        rw [← heq, hU.1] at hW
+        simp only [Height, Slot] at *
+        omega
+    have hXne : X ≠ .genesis := by
+      intro heq
+      subst X
+      obtain rfl := preceq_genesis.mp hWP
+      exact hne rfl
+    have hPX := hs X (preceq_refl _) hXne
+    have hslots := slot_le X.parent W
+      (fun A hA hn => hs A (preceq_trans hA (parentPath X)) hn) hWP
+    have hwEarly : W.slot < U.slot + cfg.timeoutDelay := by
+      change X.slot < U.slot + cfg.timeoutDelay + 1 at hearly
+      simp only [Slot] at *
+      omega
+    have hjust := no_mixed_cross_before_maturity_of_bridge electorate cfg obs.height hb
+      y hne hUWp hU.1 hU.2 hP hwEarly hW
+    rw [hjust.2] at hj
+    exact (Nat.lt_irrefl y hj)
+
+#print axioms certificate_premises_sat
 
 end Owner
 
