@@ -885,5 +885,41 @@ private theorem receipt_premises_sat :
 
 #print axioms receipt_premises_sat
 
+private theorem target_supplier_premises_sat :
+    ∀ i : Fin 1, safetyHolder reads run i ∈ run.honest → ∀ r C,
+      actionSourceFG core (env Nat) run timing (safetyHolder reads run i) r = some (some C) →
+      point.reset.M + 1 ≤ (obs.height C).h →
+      (env Nat).awake (safetyHolder reads run i) (timing.action r) = true →
+      ∃ j rSent a, rSent ≤ r ∧
+        HonestRowAt reads (env Nat) run timing j (safetyHolder reads run i) rSent a ∧
+        RowComplete reads run history.signer (fun _ => true) (safetyHolder reads run i) a ∧
+        history.heightPair a = .vote (obs.height C).h (obs.height C).T_h.root false := by
+  intro i _ r C hs _ _
+  obtain rfl : i = 0 := Subsingleton.elim _ _
+  change actionSourceFG core (env Nat) run timing 9 r = some (some C) at hs
+  have bound : r ≤ 3 := by
+    unfold actionSourceFG postClock preTick at hs
+    cases hi : V2.D.Run.tickIdx? run 9 (timing.action r) with
+    | none => simp only [hi, Option.map_none] at hs; contradiction
+    | some j =>
+      have he := V2.D.Run.tickIdx?_spec hi
+      have ht := (schedule_premises_sat.in_horizon _ (List.mem_of_getElem? he)).2
+      change 4 * (r * 2 : Nat) + 6 ≤ (33 : Int) at ht
+      omega
+  interval_cases r
+  all_goals
+    have hc : _ = C := Option.some.inj (Option.some.inj hs)
+    subst C
+  · exact ⟨6, 0, wire row0, le_rfl, ⟨by decide, rfl, by decide +kernel⟩,
+      ⟨rfl, 0, rfl, rfl⟩, by decide +kernel⟩
+  · exact ⟨14, 1, wire row1, le_rfl, ⟨by decide, rfl, by decide +kernel⟩,
+      ⟨rfl, 0, rfl, rfl⟩, by decide +kernel⟩
+  · exact ⟨22, 2, wire row2, le_rfl, ⟨by decide, rfl, by decide +kernel⟩,
+      ⟨rfl, 0, rfl, rfl⟩, by decide +kernel⟩
+  · exact ⟨30, 3, wire row3, le_rfl, ⟨by decide, rfl, by decide +kernel⟩,
+      ⟨rfl, 0, rfl, rfl⟩, by decide +kernel⟩
+
+#print axioms target_supplier_premises_sat
+
 end AvailableChain.FGCompose.Tests.PopulationKernel
 end
