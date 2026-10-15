@@ -1,6 +1,19 @@
 # Fixed G-S1 scope. Entries are module names, not Lake library targets.
 # REQUIRED compiles; DEFERRED has an owner; STABLE lists unchanged library prefixes.
 [REQUIRED]
+AvailableChainFGCompose.Tests.PopulationKernelAxioms
+AvailableChainFGCompose.Tests.PopulationKernel
+AvailableChainFGCompose.Proofs.Population.Kernel
+AvailableChainFGCompose.Tests.PopulationRowsAxioms
+AvailableChainFGCompose.Tests.PopulationRows
+AvailableChainFGCompose.Proofs.Population.RowsRecords
+AvailableChainFGCompose.Proofs.Population.RowsPrem
+AvailableChainFGCompose.Tests.PopulationMiddleAxioms
+AvailableChainFGCompose.Tests.PopulationMiddle
+AvailableChainFGCompose.Proofs.Population.KernelBridges
+AvailableChainFGCompose.Proofs.Population.Middle
+AvailableChainFGCompose.Proofs.Population.MiddleSupport
+AvailableChainFGCompose.Statements.Population.FinalityKernel
 AvailableChainFGCompose.Statements.SafetyOrigin
 AvailableChainFGCompose.Proofs.SafetyOrigin
 AvailableChainFGCompose.Tests.P0Origin
@@ -632,6 +645,9 @@ AvailableChainFGCompose.Proofs.Population.PromotionRows
 AvailableChainFGCompose.Statements.Population.Promotion
 AvailableChainFGCompose.Tests.PopulationPromotion
 AvailableChainFGCompose.Tests.PopulationPromotionAxioms
+AvailableChainFGCompose.Proofs.Population.HighTarget
+AvailableChainFGCompose.Tests.PopulationHighTarget
+AvailableChainFGCompose.Tests.PopulationHighTargetAxioms
 [DEFERRED]
 AvailableChainFGSAProofs.Proofs.Shared.Claims P-ShA
 
