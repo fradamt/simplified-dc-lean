@@ -2385,7 +2385,7 @@ private abbrev history : FGHistoryWireReads reads where
     change decode a = some u at hd
     rw [hd]; rfl
 private abbrev lookup (Q : Block) : Option (FGBlock (Fin 1)) :=
-  ((List.range 8).map block).find? (fun X => decide (erase X = Q))
+  ((List.range 8).map block).find? (fun X => decide (X.root = Q.root))
 private abbrev parentRead (_ : protocol.State) (Q : Block) := lookup Q
 private abbrev parentHeight (_ : protocol.State) (_ : Slot) (X : FGBlock (Fin 1)) :
     Height × BlockId := ((obs.height X).h, (obs.height X).T_h.root)
@@ -2727,6 +2727,29 @@ private theorem acceptance_effect_premises_sat :
     exact KitFG.preceq_trans h (mono st.1 (protocol.process st o).1 hl)
 
 #print axioms acceptance_effect_premises_sat
+
+private theorem proposal_read_premises_sat (k : Fin 7) :
+    ∃ nd : protocol.State,
+      proposalStateAt (env Nat) run interface (2 * (k.val + 1)) = some nd ∧
+      nd.1.val = k.val := by
+  have proposer : ∀ s, V2.D.proposerOf run interface s = 7 := by
+    intro s
+    change (if 4 * s + 1 = 0 then 9 else 7) = 7
+    exact ite_eq_right (Nat.succ_ne_zero _)
+  
+  have getter : ∀ k : Fin 7, V2.D.Run.tickIdx? run 7
+      (V2.D.proposalTime interface (2 * (k.val + 1))) = some (20 * k.val + 19) := by
+    decide +kernel
+  refine ⟨V2.D.Run.stateBefore (env Nat) run (20 * k.val + 19) 7, ?_, ?_⟩
+  · unfold proposalStateAt postClock preTick
+    simp only [proposer, getter, Option.map_some]
+  · have h := stage_before_premises_sat (20 * k.val + 19) 0
+    change (V2.D.Run.stateBefore (env Nat) run (20 * k.val + 19) 7).1.val = _ at h
+    rw [h]
+    change min 7 ((20 * k.val + 19 - 1) / 20) = k.val
+    omega
+
+#print axioms proposal_read_premises_sat
 
 end Owner
 
