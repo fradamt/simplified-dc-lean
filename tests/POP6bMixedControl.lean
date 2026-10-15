@@ -278,5 +278,143 @@ private theorem receipt_premises_sat :
 
 #print axioms receipt_premises_sat
 
+private theorem owner_premises_sat :
+    (∀ q Q, HonestProposal env run iface q Q →
+      FrontierProposalService core env run v5T q Q) ∧
+    (∀ u m J c q Q Qfg r, (12 : Time) ≤ u → HonestProposal env run iface q Q →
+      v5erase Qfg = Q → FrontierProposalService core env run v5T q Q →
+      FrontierSeedQualification v5T 1 env.t_GST u q → u ≤ v5T.proposal q →
+      q ≤ r * v5T.roundSlots → (∀ r', q ≤ r' * v5T.roundSlots → r ≤ r') →
+      PhaseInterval core env run obs u (v5T.action r) m J c →
+      OpeningCoveredFG core reads env run obs.height v5T wire.heightPair
+        (FGHonestSeats reads run) r Q ∧
+      ((obs.height Qfg).h = m - 1 → OpeningEntry core env run obs.height v5T r (m - 1) ∨
+        ∃ x K, x ∈ run.honest ∧ actionSourceFG core env run v5T x r = some (some K) ∧
+          (obs.height K).h = m)) ∧
+    (∀ u v m J c q Q Qfg, (12 : Time) ≤ u → HonestProposal env run iface q Q →
+      v5erase Qfg = Q → (obs.height Qfg).h = m →
+      FrontierProposalService core env run v5T q Q →
+      FrontierSeedQualification v5T 1 env.t_GST u q → u ≤ v5T.proposal q →
+      PhaseInterval core env run obs u (v5T.gate q) m J c → v5T.gate q ≤ v →
+      v ≤ run.horizon →
+      (∀ i x, timeIdx run u ≤ i → i ≤ timeIdx run v → x ∈ run.honest →
+        (core.core (run.stateBefore env i x)).fg.h_max ≤ m) →
+      FrontierLocalServiceFG core reads env run obs v5T iface wire.heightPair q Q Qfg m v) := by
+  have service (q : Nat) (Q : Block) (hp : HonestProposal env run iface q Q) :
+      FrontierProposalService core env run v5T q Q := by
+    intro hv x hx _
+    obtain ⟨_, _, he⟩ := classification_premises_sat.1 q Q hp
+    have hq : q < 64 := by
+      change 4 * (q : Int) + 1 ≤ 256 at hv
+      exact_mod_cast (show (q : Int) < 64 by omega)
+    exact (observed_premises_sat.2.2 ⟨q, hq⟩ x hx).trans (congrArg some he.symm)
+  refine ⟨service, ?_, ?_⟩
+  · intro u m J c q Q Qfg r _ hp _ _ _ huq hqr _ phase
+    obtain ⟨_, _, he⟩ := classification_premises_sat.1 q Q hp
+    rw [he]
+    have hqr' : q ≤ 2 * r := by
+        change q ≤ r * 2 at hqr
+        exact hqr.trans_eq (Nat.mul_comm r 2)
+    have hr : @LT.lt Nat _ r 32 := by
+      have hh := phase.2.1
+      change 8 * (r : Int) + 6 ≤ 256 at hh
+      simp only [Slot] at *
+      omega
+    have hu : u ≤ v5T.proposal (2 * r) := by
+      change u ≤ 4 * (q : Int) at huq
+      change u ≤ 4 * ((2 * r : Nat) : Int)
+      push_cast
+      simp only [Slot, Time] at *
+      omega
+    have hg : v5T.gate (2 * r) ≤ v5T.action r := by
+      change 4 * ((2 * r : Nat) : Int) + 6 ≤ 8 * (r : Int) + 6
+      push_cast
+      omega
+    have hm := (phase_premises_sat.2.1 u _ m J c (2 * r) phase hu hg).1
+    have hh : (obs.height (chain (2 * r))).h = m := by
+      rw [(chain_facts_premises_sat ⟨2 * r, by omega⟩).1]
+      dsimp only [heightAt] at hm ⊢
+      simp only [Height, Slot] at *
+      omega
+    refine ⟨entry_premises_sat.2.1 q r hqr' hr, fun _ => Or.inr
+      ⟨9, chain (2 * r), by decide, (action_premises_sat ⟨r, hr⟩ 9 (by decide)).2, hh⟩⟩
+  · intro u v m J c q Q Qfg _ hp he hheight _ _ huq _ _ hhor cap
+    obtain ⟨h1, h64, hQ⟩ := classification_premises_sat.1 q Q hp
+    have hfg : Qfg = chain q := v5erase_inj (he.trans hQ)
+    subst Qfg
+    subst Q
+    have parent (s : Nat) : (chain s).parent = chain (s - 1) := by cases s <;> rfl
+    refine ⟨?_, ?_, ?_, ?_, ?_⟩
+    · intro x s H hx hqs htime head
+      have hs : s < 64 := by
+        have ht := htime.trans hhor
+        change 4 * (s : Int) + 1 ≤ 256 at ht
+        exact_mod_cast (show (s : Int) < 64 by omega)
+      have hH : H = v5erase (chain s) := Option.some.inj
+        (head.symm.trans (observed_premises_sat.2.2 ⟨s, hs⟩ x hx))
+      rw [hH]
+      exact v5erase_mono (core_premises_sat.2.2.2.2.1 q s (by simp only [Slot] at *; omega))
+    · intro s B hqs _ hB
+      obtain ⟨_, _, hB'⟩ := classification_premises_sat.1 s B hB
+      rw [hB', v9erase_parent, parent]
+      exact v5erase_mono (core_premises_sat.2.2.2.2.1 q (s - 1) (by simp only [Slot] at *; omega))
+    · intro i x _ _ _ _
+      exact v5erase_mono (core_premises_sat.2.2.2.2.1 q 64 h64)
+    · intro s B _ _ hB
+      exact service s B hB
+    · intro r hqr hrv
+      have hqr' : q ≤ 2 * r := by
+        change q ≤ r * 2 at hqr
+        exact hqr.trans_eq (Nat.mul_comm r 2)
+      have hr : @LT.lt Nat _ r 32 := by
+        have ht := hrv.trans hhor
+        change 8 * (r : Int) + 6 ≤ 256 at ht
+        simp only [Slot] at *
+        omega
+      have data := action_premises_sat ⟨r, hr⟩ 9 (by decide)
+      obtain ⟨j, hj, hn⟩ := postClock_tick env run data.1
+      have hua : u < v5T.action r := by
+        change u ≤ 4 * (q : Int) at huq
+        change u < 8 * (r : Int) + 6
+        simp only [Slot, Time] at *
+        omega
+      have low : timeIdx run u ≤ j := by
+        by_contra h
+        have ht := (V2.D.Engine.index_lt_read_length_iff execution_premises_sat.1 u hj).mp
+          (show j < timeIdx run u by omega)
+        exact (not_le_of_gt hua) ht
+      have high : j ≤ timeIdx run v :=
+        ((V2.D.Engine.index_lt_read_length_iff execution_premises_sat.1 v hj).mpr hrv).le
+      have bound := cap j 9 low high (by decide)
+      change run.stateBefore env j 9 = 2 * r + 1 at hn
+      change heightAt (min (run.stateBefore env j 9) 64) ≤ m at bound
+      rw [hn, Nat.min_eq_left (by omega)] at bound
+      have mono := v5cert.height.h_mono (core_premises_sat.2.2.2.2.1 q (2 * r) hqr')
+      rw [hheight] at mono
+      have hm : m = (obs.height (chain (2 * r))).h := by
+        rw [(chain_facts_premises_sat ⟨2 * r, by omega⟩).1] at mono ⊢
+        dsimp only [heightAt] at bound mono ⊢
+        simp only [Height, Slot] at *
+        omega
+      refine ⟨entry_premises_sat.2.1 q r hqr' hr, ?_, ?_, ?_⟩
+      · refine ⟨(obs.height (chain (2 * r))).T_h.root, ?_⟩
+        intro x K hx hK
+        obtain ⟨_, rfl⟩ := observed_premises_sat.1 r x K hx hK
+        exact ⟨hm.symm, rfl⟩
+      · intro x K hx hK
+        obtain ⟨_, rfl⟩ := observed_premises_sat.1 r x K hx hK
+        exact (v5cert.height.entry_plateau (core_premises_sat.2.2.2.2.1 q (2 * r) hqr')
+          (hheight.trans hm)).symm
+      · intro first
+        have hu := first ((q + 1) / 2) (by
+          change q ≤ ((q + 1) / 2) * 2
+          simp only [Slot] at *
+          omega)
+        change 8 * (r : Int) + 6 - (4 * (q : Int) + 6) ≤ 4
+        simp only [Slot] at *
+        omega
+
+#print axioms owner_premises_sat
+
 end AvailableChain.FGCompose.Tests.POP6bMixed
 end
