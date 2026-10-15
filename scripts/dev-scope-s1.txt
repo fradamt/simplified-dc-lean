@@ -1,6 +1,19 @@
 # Fixed G-S1 scope. Entries are module names, not Lake library targets.
 # REQUIRED compiles; DEFERRED has an owner; STABLE lists unchanged library prefixes.
 [REQUIRED]
+AvailableChainFGCompose.Proofs.Population.HolderBaseCompose
+AvailableChainFGCompose.Proofs.Population.HolderBaseGap
+AvailableChainFGCompose.Proofs.Population.HolderBaseHG2a
+AvailableChainFGCompose.Proofs.Population.HolderBaseHighTarget
+AvailableChainFGCompose.Proofs.Population.HolderBaseKernel
+AvailableChainFGCompose.Proofs.Population.HolderBaseMiddle
+AvailableChainFGCompose.Proofs.Population.HolderBaseMiddleWitness
+AvailableChainFGCompose.Proofs.Population.HolderBasePromotionAge
+AvailableChainFGCompose.Proofs.Population.HolderBaseRepair
+AvailableChainFGCompose.Proofs.Population.HolderBaseRowsRecords
+AvailableChainFGCompose.Proofs.Population.HolderBaseService
+AvailableChainFGCompose.Proofs.Population.HolderBaseTasks
+AvailableChainFGCompose.Proofs.Population.HolderBaseTop
 AvailableChainFGCompose.Tests.PopulationKernelAxioms
 AvailableChainFGCompose.Tests.PopulationKernel
 AvailableChainFGCompose.Proofs.Population.Kernel
