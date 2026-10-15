@@ -19,6 +19,7 @@ AUDITS = tuple('AvailableChain' + lib + '.Tests.Axioms' for lib in
                                             'AvailableChainFGCompose.Tests.PopulationServiceAxioms',
                                             'AvailableChainFGCompose.Tests.PopulationSearchAxioms',
                                             'AvailableChainFGCompose.Tests.PopulationTailAxioms',
+                                            'AvailableChainFGCompose.Tests.PopulationOwnerSearchAxioms',
                                             ('AvailableChainFGSAProofs.Tests.'
                                              'WeakContinuationGrowthAssemblyAxioms'))
 
