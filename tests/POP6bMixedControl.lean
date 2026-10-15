@@ -9,15 +9,15 @@ open AvailableChain.SimplexFG AvailableChain.KitFG
 open P0d5db
 
 -- Generic event-fold control: one FG seat at 9, honest proposer and receiver 7.
-private def entrySlot (s : Nat) : Nat := if s < 6 then 0 else 6 + 4 * ((s - 6) / 4)
-private def heightAt (s : Nat) : Nat := if s < 6 then 1 else 2 + (s - 6) / 4
+private def entrySlot (s : Nat) : Nat := 6 * (s / 6)
+private def heightAt (s : Nat) : Nat := 1 + s / 6
 private def wireAt (r : Nat) : Row (Fin 1) :=
   ⟨0, .vote (heightAt (2 * r))
     (if entrySlot (2 * r) = 0 then genesisRoot else ⟨300 + entrySlot (2 * r)⟩) true, none⟩
 private def chain : Nat → FGBlock (Fin 1)
   | 0 => .genesis
   | s + 1 => .node (chain s) (s + 1) ⟨300 + s + 1⟩ 0
-      (((List.range ((s + 1) / 2)).filter (fun r => decide (2 ≤ r))).map wireAt)
+      (((List.range ((s + 1) / 2)).filter (fun r => decide (r % 3 = 2))).map wireAt)
 private abbrev allRows : List (Row (Fin 1)) := (List.range 32).map wireAt
 private abbrev protocol : V2.ProtocolSpecD Unit where
   State := Nat
@@ -33,7 +33,7 @@ private abbrev protocol : V2.ProtocolSpecD Unit where
   duties t := [t]
   duties_spec := by intro d t; simp
   duties_nodup := by intro t; simp
-  act _ t _ := if t % 8 = 6 ∧ 22 ≤ t then some (.inl (wireAt (t.toNat / 8)))
+  act _ t _ := if t % 24 = 22 then some (.inl (wireAt (t.toNat / 8)))
     else if t % 4 = 0 ∧ 4 ≤ t ∧ t ≤ 256 then some (.inr (chain (t.toNat / 4)))
     else none
   gossip _ _ := []
