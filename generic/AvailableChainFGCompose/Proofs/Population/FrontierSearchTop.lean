@@ -1,7 +1,7 @@
 module
 public import AvailableChainFGCompose.Proofs.Population.FrontierSearchAge
 public import AvailableChainFGCompose.Proofs.Population.FrontierSearchRepair
-public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchTop
+public import AvailableChainFGCompose.Proofs.Population.HolderBaseTop
 
 public section
 
@@ -642,7 +642,7 @@ theorem frontier_hg3_topJ_holder (hT : FGTimingLaws T) (hk : 1 ≤ leaseSlots)
         hfront.le).2.1
       simp only [Height] at *
       omega
-    have hage := frontierSearch_initial_J_age R S O T E rho Ef cert hT hs justifiedSource
+    have hage := frontierSearch_initial_J_age_core R S O T E rho Ef cert hT hs justifiedSource
       sourceSlot ancestorSlot hi hx hj0
     have heJ := p0d5c_top_low_entry hs parentFrame hp hQ
       he huq (hqg.trans hgate) hlow
