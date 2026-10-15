@@ -1521,5 +1521,16 @@ private theorem reflection_premises_sat (A B : FGBlock (Fin 1))
 
 #print axioms reflection_premises_sat
 
+private theorem old_middle_impossible (m : KernelMiddleWitness_W core reads obs timing
+    (env Nat) run interface history electorate decodeProposal erase (fun X => X.rows.map wire)
+    (fun _ => []) parentRead parentHeight (fun _ _ _ _ => true) makeFG (fun _ => true)
+    (ac Nat) cfg 2 2 point pt (erase aBlock)) : False := by
+  obtain ⟨_, _, _, complete, _⟩ := m.targetsB 7 (by decide)
+  obtain ⟨i, _, hi⟩ := complete.2
+  change (9 : Nat) = 7 at hi
+  omega
+
+#print axioms old_middle_impossible
+
 end AvailableChain.FGCompose.Tests.PopulationKernel
 end
