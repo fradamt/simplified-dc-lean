@@ -1896,7 +1896,6 @@ private abbrev point : FGServicePoint :=
   ⟨⟨0, 22, 3, 3, 6, erase (block 3)⟩, 8, erase (block 4), 32⟩
 private abbrev pt : KernelPt := ⟨4⟩
 
-set_option maxHeartbeats 8000000 in
 private theorem erase_injective_premises_sat : Function.Injective erase := by
   intro X
   induction X with
@@ -1916,7 +1915,6 @@ private theorem erase_injective_premises_sat : Function.Injective erase := by
       cases hrows
       rfl
 
-set_option maxHeartbeats 8000000 in
 private theorem core_premises_sat : FGCoreLaws core := by
   have mono : ∀ i j : Fin 8, i ≤ j → (store i).TF ⊆ (store j).TF := by decide +kernel
   have mem : ∀ i : Fin 8, block i ∈ (store i).TF := by decide +kernel
@@ -1935,7 +1933,6 @@ private theorem core_premises_sat : FGCoreLaws core := by
 
 #print axioms core_premises_sat
 
-set_option maxHeartbeats 8000000 in
 private theorem client_premises_sat : FGSafetyClientLaws reads electorate cfg where
   initial_record := rfl
   clock_record _ _ := rfl
@@ -1983,7 +1980,6 @@ private theorem client_premises_sat : FGSafetyClientLaws reads electorate cfg wh
 
 #print axioms client_premises_sat
 
-set_option maxHeartbeats 8000000 in
 private theorem schedule_premises_sat : V2.D.ScheduleWellFormed (env Nat) run := by
   have info : ∀ j : Fin 144,
       0 ≤ run.events[j.val].time ∧ run.events[j.val].time ≤ 57 ∧
@@ -2017,7 +2013,6 @@ private abbrev node (x : Fin 2) : Nat := if x = 0 then 7 else 9
 private abbrev stage (i : Nat) (x : Fin 2) : Nat :=
   min 7 ((i - if x = 0 then 1 else 2) / 20)
 
-set_option maxHeartbeats 8000000 in
 private theorem trace_premises_sat :
     (∀ i : Fin 145, ∀ x : Fin 2,
       (V2.D.Run.stateBefore (env Nat) run i (node x)).1.val = stage i x) ∧
@@ -2039,7 +2034,6 @@ private theorem trace_premises_sat :
 
 #print axioms trace_premises_sat
 
-set_option maxHeartbeats 8000000 in
 private theorem certificate_premises_sat :
     TargetJustification electorate obs.height ∧
     (∀ y U X, X ≠ .genesis → EntryAt obs.height U y →
@@ -2160,7 +2154,6 @@ private theorem certificate_premises_sat :
 
 #print axioms certificate_premises_sat
 
-set_option maxHeartbeats 8000000 in
 private theorem data_premises_sat :
     (∀ k : Fin 8,
       (obs.height (block k)).h = k.val + 1 ∧ (obs.height (block k)).T_h = block k ∧
@@ -2175,7 +2168,6 @@ private theorem data_premises_sat :
 
 #print axioms data_premises_sat
 
-set_option maxHeartbeats 8000000 in
 private theorem owner_exact_rows (j x r : Nat) (a : protocol.Object)
     (ha : HonestRowAt reads (env Nat) run timing j x r a) :
     ∃ k : Fin 7, j = 20 * k.val + 12 ∧ x = 9 ∧ r = k.val ∧ a = wire (row k) := by
@@ -2211,7 +2203,6 @@ private theorem owner_exact_rows (j x r : Nat) (a : protocol.Object)
 
 #print axioms owner_exact_rows
 
-set_option maxHeartbeats 8000000 in
 private theorem source_cases (x r : Nat) (C : FGBlock (Fin 1))
     (hs : actionSourceFG core (env Nat) run timing x r = some (some C)) :
     x ∈ run.honest ∧ r < 7 ∧ C = block r := by
@@ -2237,7 +2228,6 @@ private theorem source_cases (x r : Nat) (C : FGBlock (Fin 1))
 
 #print axioms source_cases
 
-set_option maxHeartbeats 8000000 in
 private theorem stage_before_premises_sat (i : Nat) (x : Fin 2) :
     (V2.D.Run.stateBefore (env Nat) run i (node x)).1.val = stage i x := by
   by_cases hi : i < 145
@@ -2260,7 +2250,6 @@ private theorem stage_before_premises_sat (i : Nat) (x : Fin 2) :
 
 private abbrev blocks : Finset (FGBlock (Fin 1)) := (Finset.range 8).image block
 
-set_option maxHeartbeats 8000000 in
 private theorem store_invariant_premises_sat : ∀ nd : protocol.State,
     FGStoreInvariant obs.height obs.finality (core.core nd).fg := by
   have closed : ∀ B ∈ blocks, B.parent ∈ blocks := by decide +kernel
@@ -2327,7 +2316,6 @@ private theorem store_invariant_premises_sat : ∀ nd : protocol.State,
 
 #print axioms store_invariant_premises_sat
 
-set_option maxHeartbeats 8000000 in
 private theorem tree_cases :
     (∀ k W, FGBlock.Preceq W (block k) → ∃ l ≤ k, W = block l) ∧
     (∀ (nd : protocol.State) W, W ∈ (core.core nd).fg.TF →
@@ -2427,7 +2415,6 @@ private abbrev middleType (A : Block) :=
     decodeProposal erase (fun X => X.rows.map wire) (fun _ => []) parentRead parentHeight
     validFor makeFG valid service cfg 2 2 point pt A
 
-set_option maxHeartbeats 8000000 in
 private theorem raw_origin_premises_sat :
     RawHistoryOrigin core reads (env Nat) run timing history := by
   have rows : ∀ k : Fin 8, ∀ u ∈ chainRows (block k),
@@ -2477,7 +2464,6 @@ private theorem raw_origin_premises_sat :
 
 #print axioms raw_origin_premises_sat
 
-set_option maxHeartbeats 8000000 in
 private theorem proposal_cases (s : Slot) (Q : Block)
     (h : HonestProposal (env Nat) run interface s Q) :
     ∃ k : Fin 7, s = 2 * (k.val + 1) ∧ Q = erase (block (k.val + 1)) := by
@@ -2506,7 +2492,6 @@ private theorem proposal_cases (s : Slot) (Q : Block)
 
 #print axioms proposal_cases
 
-set_option maxHeartbeats 8000000 in
 private theorem reset_premises_sat :
     H0Reset core reads (env Nat) run obs timing
       (fun a => namedEntry (history.heightPair a)) 0 point.reset ∧
@@ -2585,7 +2570,6 @@ private theorem reset_premises_sat :
 
 #print axioms reset_premises_sat
 
-set_option maxHeartbeats 8000000 in
 private theorem universal_action_premises_sat : ∀ A (m : middleType A),
     KernelActionSupplyFG_W core reads obs timing (env Nat) run interface history
       electorate m := by
@@ -2675,7 +2659,6 @@ private theorem universal_action_premises_sat : ∀ A (m : middleType A),
 
 #print axioms universal_action_premises_sat
 
-set_option maxHeartbeats 8000000 in
 private theorem acceptance_effect_premises_sat :
     AcceptStep_W core (env Nat) run electorate cfg 2 ready ∧
     FGFinalityDurableLaws core ∧ ready 140 7 (block 7) 56 ∧ ready 141 9 (block 7) 56 := by
@@ -2724,7 +2707,6 @@ private theorem acceptance_effect_premises_sat :
 
 #print axioms acceptance_effect_premises_sat
 
-set_option maxHeartbeats 8000000 in
 private theorem proposal_read_premises_sat (k : Fin 7) :
     ∃ nd : protocol.State,
       proposalStateAt (env Nat) run interface (2 * (k.val + 1)) = some nd ∧
@@ -2748,7 +2730,6 @@ private theorem proposal_read_premises_sat (k : Fin 7) :
 
 #print axioms proposal_read_premises_sat
 
-set_option maxHeartbeats 8000000 in
 private theorem proposal_data_premises_sat (k : Fin 7) :
     HonestProposal (env Nat) run interface (2 * (k.val + 1)) (erase (block (k.val + 1))) ∧
     OpeningCarrier_W (P := protocol) (n := 1) decodeProposal erase (fun X => X.rows.map wire)
@@ -3033,6 +3014,7 @@ private structure OwnerPremises : Prop where
         (timing.proposal X.slot + timing.delta))
 
 set_option maxHeartbeats 8000000 in
+-- Discharge all 71 owner leaves over the full mixed-run fold and certificate views.
 private theorem owner_premises_sat : OwnerPremises := by
   let hc : FGCertificateLaws electorate obs.height obs.finality :=
     KitFG.Window.windowCertificateLaws electorate cfg 2 (by change ¬ (1 ≤ 0); decide)
@@ -3585,7 +3567,6 @@ private theorem owner_premises_sat : OwnerPremises := by
 #print axioms owner_premises_sat
 
 -- Apply the owner with every premise discharged, then trigger its actual opening.
-set_option maxHeartbeats 8000000 in
 private theorem kernel_conclusion_premises_sat :
     KernelConclusion_W core (env Nat) run obs timing interface decodeProposal erase
       (fun X => X.rows.map wire) (fun nd Q => parentRead nd Q.parent) makeFG 2 pt.r ∧
@@ -3616,7 +3597,6 @@ private theorem kernel_conclusion_premises_sat :
 #print axioms kernel_conclusion_premises_sat
 
 -- The old all-node target supplier fails only at honest nonholder 7, on an active source.
-set_option maxHeartbeats 8000000 in
 private theorem old_target_supplier_impossible :
     ¬ (∀ x ∈ run.honest, ∀ r C,
       actionSourceFG core (env Nat) run timing x r = some (some C) →
