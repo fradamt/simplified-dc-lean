@@ -51,7 +51,7 @@ theorem healing_frontierTail_row_holder (hT : FGTimingLaws T) (hs : V2.D.Schedul
     intro x hx
     exact (mono.mono i j x hx hij).2.2.trans
       (Finset.le_sup (f := fun y => (R.core (rho.stateBefore E j y)).fg.h_max) hx)
-  
+
   have p0d5c_tail_first_time (T : FGTiming) (hT : FGTimingLaws T) {q r : Nat}
       (hqr : q ≤ r * T.roundSlots) (hfirst : ∀ r', q ≤ r' * T.roundSlots → r ≤ r') :
       T.action r ≤ T.gate q + FGCompose.P T - 4 * T.delta := by
@@ -72,7 +72,7 @@ theorem healing_frontierTail_row_holder (hT : FGTimingLaws T) (hs : V2.D.Schedul
       exact_mod_cast hup
     unfold FGCompose.P
     nlinarith
-  
+
   have p0d5c_tail_action_mono (T : FGTiming) (hT : FGTimingLaws T) {a b : Nat} (h : a ≤ b) :
       T.action a ≤ T.action b := by
     rw [hT.action_eq, hT.action_eq, hT.gate_eq, hT.gate_eq, hT.proposal_eq, hT.proposal_eq]
