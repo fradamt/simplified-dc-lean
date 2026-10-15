@@ -416,5 +416,36 @@ private theorem owner_premises_sat :
 
 #print axioms owner_premises_sat
 
+private theorem cap_premises_sat : RCap core reads env run obs v5T
+    (fun a => namedEntry (wire.heightPair a)) (fun _ _ => allRows) := by
+  unfold RCap
+  dsimp only [Height]
+  intro y i x W hheld hy
+  obtain ⟨hx, hW⟩ := hheld
+  have hle := healing_phase_height_le (R := core) (E := env) (rho := run) (O := obs)
+    (inv := fun _ _ => geometry_premises_sat.2.2 _) hW
+  have hhy := hy.trans hle
+  have hmin : min (run.stateBefore env i x) 64 ≤ 64 := Nat.min_le_right _ _
+  change y + 2 ≤ heightAt (min (run.stateBefore env i x) 64) at hhy
+  have hy15 : y ≤ 15 := by dsimp only [heightAt] at hhy; omega
+  have hr : 2 * y < 32 := by omega
+  have hmul : 2 * (2 * y) = 4 * y := by omega
+  have hh : heightAt (4 * y) = y + 1 := by dsimp only [heightAt]; omega
+  have hj : rowIndex (2 * y) < i := by
+    by_contra h
+    have hij : i ≤ rowIndex (2 * y) := by omega
+    have mono := (core_premises_sat.2.2.2.1.mono i (rowIndex (2 * y)) x hx hij).2.2
+    have hjmax := healing_phase_local_le_frontier (R := core) (E := env) (rho := run)
+      (i := rowIndex (2 * y)) hx
+    rw [clock_premises_sat.2.2 ⟨2 * y, hr⟩, hmul, hh] at hjmax
+    exact (Nat.not_succ_le_self (y + 1)) (hhy.trans (mono.trans hjmax))
+  have hn := entry_premises_sat.1 ⟨2 * y, hr⟩
+  rw [hmul, (chain_facts_premises_sat ⟨4 * y, by omega⟩).1, hh] at hn
+  exact ⟨rowIndex (2 * y), 9, 2 * y, wireAt (2 * y),
+    (obs.height (chain (4 * y))).T_h.root, hj, observed_premises_sat.2.1 ⟨2 * y, hr⟩, hn,
+    List.mem_map.mpr ⟨2 * y, List.mem_range.mpr hr, rfl⟩⟩
+
+#print axioms cap_premises_sat
+
 end AvailableChain.FGCompose.Tests.POP6bMixed
 end
