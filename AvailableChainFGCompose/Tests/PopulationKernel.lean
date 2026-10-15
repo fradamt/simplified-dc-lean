@@ -3,6 +3,7 @@ public import AvailableChainFGCompose.Proofs.Population.Kernel
 public import AvailableChainFGCompose.Proofs.Population.KernelBridges
 public import AvailableChainKitFG.HeightConsumeTransfer
 public import AvailableChainKitFG.HeightHistoryTransfer
+public import AvailableChainGeneric.Proofs.Pure.BlockOrder
 
 set_option linter.privateModule false
 noncomputable section
@@ -2859,6 +2860,714 @@ private theorem proposal_data_premises_sat (k : Fin 7) :
         rfl
 
 #print axioms proposal_data_premises_sat
+
+private structure OwnerPremises : Prop where
+  CL : FGCoreLaws core
+  HL : FGHeadLaws core (env Nat) run
+  keep : FGTreeKeepLaws core
+  restore : FGTreeRestoreLaws core
+  hc : FGCertificateLaws electorate obs.height obs.finality
+  heightBridge : HeightBridge electorate cfg obs.height
+  height_eq : obs.height = KitFG.Window.certificateHeight electorate cfg 2
+  finality_eq : obs.finality = KitFG.Window.certificateFinality electorate cfg 2
+  hne : ¬ electorate.IsQuorum ∅
+  target : TargetJustification electorate obs.height
+  foldTarget : ∀ y U X, X ≠ .genesis → EntryAt obs.height U y →
+      FGBlock.Preceq U X.parent →
+      ((obs.height X.parent).h = y → TargetCoveredByChild electorate obs.height X U y) →
+      y + 1 ≤ (obs.height X).h
+  noMixed : ∀ y U X, SlotChain X → EntryAt obs.height U y →
+      FGBlock.Preceq U X.parent → X.slot < U.slot + cfg.timeoutDelay + 1 →
+      NoMixedOnPath obs.height X y
+  hK : KernelPrem_W timing 2 run.horizon point pt honestSlot electorate.q
+      (electorate.weightOf (Finset.univ \ historyFaulty reads run)) cfg.timeoutDelay 2
+  runFacts : KernelRunFacts reads (env Nat) run electorate 2
+  hreset : timing.proposal (point.reset.sStar + 2) ≤ point.serviceStart
+  hGSTstart : (env Nat).t_GST ≤ point.serviceStart
+  reset : H0Reset core reads (env Nat) run obs timing (fun a => namedEntry (history.heightPair a)) 0 point.reset
+  historyTransfer : FGHistoricalHighTransfer core obs timing (env Nat) run interface point run.horizon
+  chain : ∀ horizon, FGHistoricalHighChain core obs timing (env Nat) run point horizon
+  reflect : ∀ A B, Block.Preceq (core.erase A) (core.erase B) → FGBlock.Preceq A B
+  parent : ∀ B, core.erase B.parent = (core.erase B).parent
+  hOrigin : RawHistoryOrigin core reads (env Nat) run timing history
+  emission : HighRecordEmission reads timing (env Nat) run electorate cfg
+  decoded : ∀ j x r a, HonestRowAt reads (env Nat) run timing j x r a → ∃ u, reads.decode a = some u
+  receipt : TRowsReceipt core reads (env Nat) run timing (fun _ => []) 2
+  honest_slot : ∀ s, honestSlot s → ∃ x, x ∈ run.honest
+  proposal : ∀ s, honestSlot s → pt.r * timing.roundSlots ≤ s →
+      s ≤ (pt.r + 2) * timing.roundSlots → ∃ Q, HonestProposal (env Nat) run interface s Q
+  terminalProposal : honestSlot ((pt.r + 2) * timing.roundSlots + kappaF timing 2) →
+      ∃ Q, HonestProposal (env Nat) run interface ((pt.r + 2) * timing.roundSlots + kappaF timing 2) Q
+  carrier : ∀ s Q, HonestProposal (env Nat) run interface s Q →
+      ∃ X : FGBlock (Fin 1), core.erase X = Q ∧
+        OpeningCarrier_W decodeProposal erase (fun X => X.rows.map wire) (fun nd Q => parentRead nd Q.parent)
+          makeFG (env Nat) run interface s Q X ∧ X.slot = s ∧
+        (∃ rows, HonestCarrier (env Nat) run interface (kernelCarrier decodeProposal erase (fun X => X.rows.map wire))
+          s Q rows ∧ X.rows = rows.filterMap reads.decode) ∧
+        ∃ nd, proposalStateAt (env Nat) run interface s = some nd ∧
+          parentRead nd Q.parent = some X.parent ∧ X.parent ∈ (core.core nd).fg.TF
+  exactService : ∀ s Q, HonestProposal (env Nat) run interface s Q → pt.r * timing.roundSlots ≤ s →
+      KernelExactService service run.horizon s Q
+  source_read : ∀ s Q r x, KernelExactService service run.horizon s Q →
+      timing.gate s ≤ run.horizon → s = r * timing.roundSlots → x ∈ run.honest →
+      pt.r * timing.roundSlots ≤ s → service.source x r = some (some Q)
+  source_eq : ∀ x r, service.source x r =
+      (actionSourceFG core (env Nat) run timing x r).map (Option.map core.erase)
+  head_read : ∀ s Q x, KernelExactService service run.horizon s Q →
+      pt.r * timing.roundSlots ≤ s → s ≤ (pt.r + 2) * timing.roundSlots → x ∈ run.honest →
+      headAtLabel core (env Nat) run timing x s = some Q
+  head_held : ∀ s X x, headAtLabel core (env Nat) run timing x s = some (core.erase X) →
+      ∃ i, run.events[i]? = some (.tick x (timing.vote s)) ∧
+        X ∈ (core.core (V2.D.Run.stateBefore (env Nat) run i x)).fg.TF
+  slot_chain : ∀ i x X, X ∈ (core.core (V2.D.Run.stateBefore (env Nat) run i x)).fg.TF → SlotChain X
+  closed : ∀ s nd, proposalStateAt (env Nat) run interface s = some nd →
+      ∀ X ∈ (core.core nd).fg.TF, X.parent ∈ (core.core nd).fg.TF
+  roots : ∀ s nd, proposalStateAt (env Nat) run interface s = some nd → ViewRootInj (core.core nd).fg.TF
+  validRows : ∀ s nd, proposalStateAt (env Nat) run interface s = some nd →
+      ∀ X ∈ (core.core nd).fg.TF, ∀ row ∈ X.rows,
+        SimplexFG.Window.r6w (SimplexFG.Window.derive electorate cfg 2 X.parent) row = true
+  parentEq : ∀ nd s X, parentHeight nd s X = ((obs.height X).h, (obs.height X).T_h.root)
+  matchValid : ∀ nd s X a, valid a = true →
+      namedEntry (history.heightPair a) = some (parentHeight nd s X) → validFor nd s X a = true
+  hBatch : ∀ q y U X,
+      BatchPrem core reads obs timing (env Nat) run interface history electorate decodeProposal erase (fun X => X.rows.map wire) (fun _ => [])
+        parentRead parentHeight validFor 2 .target q y U X →
+      (obs.height X.parent).h = y → TargetCoveredByChild electorate obs.height X U y
+  hSOCOVTarget : ∀ i : Fin 1, safetyHolder reads run i ∈ run.honest → ∀ r C,
+      actionSourceFG core (env Nat) run timing (safetyHolder reads run i) r = some (some C) →
+      point.reset.M + 1 ≤ (obs.height C).h →
+      (env Nat).awake (safetyHolder reads run i) (timing.action r) = true →
+      ∃ j rSent a, rSent ≤ r ∧ HonestRowAt reads (env Nat) run timing j (safetyHolder reads run i) rSent a ∧
+        RowComplete reads run history.signer valid (safetyHolder reads run i) a ∧
+        history.heightPair a = .vote (obs.height C).h (obs.height C).T_h.root false
+  action : ∀ A (m : KernelMiddleWitnessFG_W core reads obs timing (env Nat) run interface history electorate decodeProposal erase
+      (fun X => X.rows.map wire) (fun _ => []) parentRead parentHeight validFor makeFG valid service cfg 2 2 point pt A),
+      KernelActionSupplyFG_W core reads obs timing (env Nat) run interface history electorate m
+  wireDecode : ∀ row, reads.decode (wire row) = some row
+  wireValid : ∀ i y U B,
+      valid (wire ⟨i, .vote (y + 1) B false, some ⟨y, U⟩⟩) = true
+  client : ∀ nd, (reads.inputs nd).1 = core.source nd
+  release : ∀ i q nd row,
+      postClock (env Nat) run (safetyHolder reads run i) (timing.action q) = some nd →
+      (env Nat).awake (safetyHolder reads run i) (timing.action q) = true →
+      (createRowOnce electorate cfg (reads.record nd) i (reads.inputs nd).1 (reads.inputs nd).2).1 = some row →
+      ∃ j, run.events[j]? = some (.tick (safetyHolder reads run i) (timing.action q)) ∧
+        reads.encode (wire row) ∈ V2.D.Run.emitsAt (env Nat) run j
+  fields : ∀ nd H, core.finalityHead nd = some H →
+      (reads.inputs nd).2 = certificateHeadFields obs.height obs.finality H
+  hQC : RQCOrigin core reads (env Nat) run obs timing storedCarrier sourceService electorate
+  recordHead : HighRecordHead core reads obs (env Nat) run
+  clientLaws : FGSafetyClientLaws reads electorate cfg
+  own : HighRecordOwnOrigin reads timing (env Nat) run
+  hsel : TRowsSelect core reads (env Nat) run timing interface (kernelCarrier decodeProposal erase (fun X => X.rows.map wire))
+      chainRowsRead (fun _ => []) parentRead validFor
+  decode : ∀ a i, history.signer a = some i → ∃ u, reads.decode a = some u
+  occurrence : ∀ s (Q : Block) H nd a u,
+      proposalStateAt (env Nat) run interface s = some nd → parentRead nd Q.parent = some H →
+      a ∈ chainRowsRead nd Q.parent → reads.decode a = some u →
+      ∃ W, FGBlock.Preceq W H ∧ u ∈ W.rows
+  validFor_eq : ∀ nd s B a, validFor nd s B a =
+      ((reads.decode a).isSome && ((reads.decode a).map
+        (SimplexFG.Window.r6w (KitFG.Window.parentState electorate cfg 2 B s))).getD false)
+  pathValid : ∀ s nd, proposalStateAt (env Nat) run interface s = some nd → ∀ H ∈ (core.core nd).fg.TF,
+      ∀ B s' root body rs, FGBlock.Preceq (.node B s' root body rs) H → ∀ a ∈ rs,
+      (match a.height_pair with
+        | .empty => false
+        | .vote h _ _ => decide (1 ≤ h) &&
+            (a.finality_pair.map (fun fp => decide (fp.height < h))).getD true) = true ∧
+        SimplexFG.Window.r6w (SimplexFG.Window.derive electorate cfg 2 B) a = true
+  dutyTime : ∀ s, timing.proposal s = V2.D.proposalTime interface s
+  rowDurable : ∀ i j x a, i ≤ j →
+      rowHeld core (fun _ => []) (V2.D.Run.stateBefore (env Nat) run i x) a →
+      rowHeld core (fun _ => []) (V2.D.Run.stateBefore (env Nat) run j x) a
+  rowClock : ∀ nd t a, rowHeld core (fun _ => []) nd a →
+      rowHeld core (fun _ => []) (protocol.clock nd t) a
+  step : AcceptStep_W core (env Nat) run electorate cfg 2 ready
+  durable : FGFinalityDurableLaws core
+  inv : ∀ i x, x ∈ run.honest → KitFG.FGStoreInvariant obs.height obs.finality
+      (core.core (V2.D.Run.stateBefore (env Nat) run i x)).fg
+  hI3 : ∀ C W, finBlock C → finBlock W →
+      FGBlock.compatible (obs.finality C).F (obs.finality W).F = true
+  readyBlock : ∀ i x X t, ready i x X t → finBlock X
+  stored : ∀ i x, ∀ C ∈ (core.core (V2.D.Run.stateBefore (env Nat) run i x)).fg.TF,
+      C ≠ .genesis → finBlock C
+  rootScope : ∀ i x, x ∈ run.honest → ∀ C k u r a B,
+      C ∈ (core.core (V2.D.Run.stateBefore (env Nat) run i x)).fg.TF →
+      HonestRowAt reads (env Nat) run timing k u r a → actionSourceFG core (env Nat) run timing u r = some (some B) →
+      (obs.height C).J.root = (obs.height B).T_h.root → (obs.height C).J = (obs.height B).T_h
+  hStrat : ∀ j z W, z ∈ run.honest →
+      W ∈ (core.core (V2.D.Run.stateBefore (env Nat) run j z)).fg.TF →
+      ∀ J ∈ certified core obs W, J ≠ .genesis → ∃ u r a,
+        HonestRowBefore reads (env Nat) run timing j u r a ∧
+        namedEntry (history.heightPair a) = some ((obs.height J).h, J.root)
+  hEmittedSource : ∀ j z r a e, HonestRowAt reads (env Nat) run timing j z r a →
+      namedEntry (history.heightPair a) = some e → ∃ C,
+        actionSourceFG core (env Nat) run timing z r = some (some C) ∧
+        e = ((obs.height C).h, (obs.height C).T_h.root) ∧
+        FGBlock.Preceq (obs.height C).T_h C
+  hcapBefore : ∀ (cut : Time) (b j : Nat) (z : Nat) (W : FGBlock (Fin 1)),
+      j ≤ V2.D.Run.idxBefore run cut → HeldAt core (env Nat) run j z W →
+      (∀ k u r a row h B timeout, HonestRowAt reads (env Nat) run timing k u r a →
+        reads.decode a = some row → row.height_pair = .vote h B timeout →
+        timing.action r < cut → h < b + 1) → (obs.height W).h < b + 2
+  delivery : ∀ (X U : FGBlock (Fin 1)) rows,
+      HonestCarrier (env Nat) run interface (kernelCarrier decodeProposal erase (fun X => X.rows.map wire))
+        X.slot (core.erase X) rows →
+      (env Nat).t_GST ≤ timing.proposal X.slot → timing.proposal X.slot + timing.delta ≤ run.horizon →
+      FGBlock.Preceq U (SimplexFG.Window.derive electorate cfg 2 X).F →
+      Nonempty (BlockDelivery_W core (env Nat) run ready X U (timing.proposal X.slot)
+        (timing.proposal X.slot + timing.delta))
+
+private theorem owner_premises_sat : OwnerPremises := by
+  let hc : FGCertificateLaws electorate obs.height obs.finality :=
+    KitFG.Window.windowCertificateLaws electorate cfg 2 (by change ¬ (1 ≤ 0); decide)
+      (by decide)
+  let height := hc.height
+  have forward : ∀ A B : FGBlock (Fin 1), FGBlock.Preceq A B →
+      Block.Preceq (erase A) (erase B) := by
+    intro A B h
+    induction B with
+    | genesis =>
+      obtain rfl := preceq_genesis.mp h
+      exact Gen.Pure.block_preceq_refl _
+    | node P sl root body rs ih =>
+      change (decide (A = .node P sl root body rs) || FGBlock.preceq A P) = true at h
+      simp only [Bool.or_eq_true, decide_eq_true_eq] at h
+      rcases h with rfl | hp
+      · exact Gen.Pure.block_preceq_refl _
+      · rw [erase]
+        exact Bool.or_eq_true_iff.mpr (Or.inr (ih hp))
+  have compatible (i j : Fin 8) : Block.Compatible (erase (block i)) (erase (block j)) := by
+    apply Bool.or_eq_true_iff.mpr
+    rcases le_total i j with hij | hji
+    · exact Or.inl (forward _ _ ((data_premises_sat.2.1 i j).mpr hij))
+    · exact Or.inr (forward _ _ ((data_premises_sat.2.1 j i).mpr hji))
+  have releaseRow : ∀ l : Fin 7,
+      HonestRowAt reads (env Nat) run timing (20 * l.val + 12) 9 l (wire (row l)) := by
+    intro l
+    fin_cases l <;> exact ⟨by decide, rfl, by decide +kernel⟩
+  have closed : ∀ nd : protocol.State, ∀ X ∈ (core.core nd).fg.TF,
+      X.parent ∈ (core.core nd).fg.TF := by
+    have h : ∀ k : Fin 8, ∀ X ∈ (store k).TF, X.parent ∈ (store k).TF := by decide +kernel
+    intro nd
+    exact h nd.1
+  have slot : ∀ k : Fin 8, (block k).slot = 2 * k.val := by decide +kernel
+  have par : ∀ k : Fin 7, (block (k.val + 1)).parent = block k := by decide +kernel
+  have erasePar : ∀ k : Fin 7, (erase (block (k.val + 1))).parent = erase (block k) := by
+    intro k
+    rw [block, erase]
+    rfl
+  have look : ∀ k : Fin 8, lookup (erase (block k)) = some (block k) := by decide +kernel
+  have validRows : ∀ k : Fin 8, ∀ a ∈ (block k).rows,
+      (match a.height_pair with
+        | .empty => false
+        | .vote h _ _ => decide (1 ≤ h) &&
+            (a.finality_pair.map (fun fp => decide (fp.height < h))).getD true) = true ∧
+      SimplexFG.Window.r6w (SimplexFG.Window.derive electorate cfg 2 (block k).parent) a =
+        true := by decide +kernel
+  have rootScope : ∀ c : Fin 8, ∀ k : Fin 7,
+      (obs.height (block c)).J.root = (obs.height (block k)).T_h.root →
+      (obs.height (block c)).J = (obs.height (block k)).T_h := by decide +kernel
+  have emittedSource : ∀ j z r a e, HonestRowAt reads (env Nat) run timing j z r a →
+      namedEntry (history.heightPair a) = some e → ∃ C,
+        actionSourceFG core (env Nat) run timing z r = some (some C) ∧
+        e = ((obs.height C).h, (obs.height C).T_h.root) ∧
+        FGBlock.Preceq (obs.height C).T_h C := by
+    intro j z r a e ha he
+    obtain ⟨k, rfl, rfl, rfl, rfl⟩ := owner_exact_rows j z r a ha
+    have hn : (k.val + 1, (block k).root) = e := Option.some.inj he
+    refine ⟨block k, trace_premises_sat.2.2.2 k 1, ?_, ?_⟩
+    · rw [← hn, (data_premises_sat.1 ⟨k.val, by omega⟩).1,
+        (data_premises_sat.1 ⟨k.val, by omega⟩).2.1]
+    · rw [(data_premises_sat.1 ⟨k.val, by omega⟩).2.1]
+      exact preceq_refl _
+  refine {
+    CL := core_premises_sat
+    HL := ⟨?_, ?_⟩
+    keep := ⟨fun _ _ => Finset.Subset.refl _⟩
+    restore := ⟨fun _ _ => rfl⟩
+    hc := hc
+    heightBridge := KitFG.Window.windowHeightBridge electorate cfg 2 (by decide)
+    height_eq := rfl
+    finality_eq := rfl
+    hne := by change ¬ (1 ≤ 0); decide
+    target := certificate_premises_sat.1
+    foldTarget := certificate_premises_sat.2.1
+    noMixed := certificate_premises_sat.2.2
+    hK := reset_premises_sat.2.2.2.1
+    runFacts := reset_premises_sat.2.2.2.2
+    hreset := reset_premises_sat.2.1
+    hGSTstart := reset_premises_sat.2.2.1
+    reset := reset_premises_sat.1
+    historyTransfer := ?_
+    chain := ?_
+    reflect := reflection_premises_sat
+    parent := ?_
+    hOrigin := raw_origin_premises_sat
+    emission := ?_
+    decoded := ?_
+    receipt := ?_
+    honest_slot := fun _ _ => ⟨7, by decide⟩
+    proposal := ?_
+    terminalProposal := ?_
+    carrier := ?_
+    exactService := ?_
+    source_read := ?_
+    source_eq := fun _ _ => rfl
+    head_read := ?_
+    head_held := ?_
+    slot_chain := ?_
+    closed := fun _ nd _ => closed nd
+    roots := ?_
+    validRows := ?_
+    parentEq := fun _ _ _ => rfl
+    matchValid := ?_
+    hBatch := ?_
+    hSOCOVTarget := ?_
+    action := universal_action_premises_sat
+    wireDecode := fun _ => rfl
+    wireValid := fun _ _ _ _ => rfl
+    client := fun _ => rfl
+    release := ?_
+    fields := ?_
+    hQC := ?_
+    recordHead := ?_
+    clientLaws := client_premises_sat
+    own := ?_
+    hsel := ?_
+    decode := ?_
+    occurrence := ?_
+    validFor_eq := fun _ _ _ _ => rfl
+    pathValid := ?_
+    dutyTime := fun _ => rfl
+    rowDurable := fun _ _ _ _ _ h => h
+    rowClock := fun _ _ _ h => h
+    step := acceptance_effect_premises_sat.1
+    durable := acceptance_effect_premises_sat.2.1
+    inv := fun _ _ _ => store_invariant_premises_sat _
+    hI3 := ?_
+    readyBlock := ?_
+    stored := ?_
+    rootScope := ?_
+    hStrat := ?_
+    hEmittedSource := emittedSource
+    hcapBefore := ?_
+    delivery := ?_ }
+  · intro i x t s
+    exact ⟨block (V2.D.Run.stateBefore (env Nat) run i x).1,
+      core_premises_sat.source_mem _ _ rfl, rfl⟩
+  · intro i x X hX
+    exact closed _ X hX
+  · intro x r C _ hs _ _ s Q hp _ hafter
+    obtain ⟨_, hr, rfl⟩ := source_cases x r C hs
+    obtain ⟨k, rfl, rfl⟩ := proposal_cases s Q hp
+    have hle : r ≤ k.val := by change r * 2 + 2 ≤ 2 * (k.val + 1) at hafter; omega
+    rw [erasePar k]
+    exact forward _ _ ((data_premises_sat.2.1 ⟨r, by omega⟩ ⟨k.val, by omega⟩).mpr hle)
+  · intro horizon x y r r' C D _ _ hs hs' hh _ _ _
+    obtain ⟨_, hr, rfl⟩ := source_cases x r C hs
+    obtain ⟨_, hr', rfl⟩ := source_cases y r' D hs'
+    have hheight := (data_premises_sat.1 ⟨r, by omega⟩).1
+    rw [hheight] at hh
+    refine ⟨compatible ⟨r, by omega⟩ ⟨r', by omega⟩, compatible ⟨r, by omega⟩ 3, ?_⟩
+    change 6 ≤ r * 2
+    change 4 ≤ r + 1 at hh
+    omega
+  · intro B
+    cases B <;> simp [erase, FGBlock.parent, Block.parent]
+  · intro j x r a u ha hu
+    obtain ⟨k, rfl, rfl, rfl, rfl⟩ := owner_exact_rows j x r a ha
+    have he : row k = u := Option.some.inj hu
+    subst u
+    fin_cases k <;> decide +kernel
+  · intro j x r a ha
+    obtain ⟨k, _, _, _, rfl⟩ := owner_exact_rows j x r a ha
+    exact ⟨row k, rfl⟩
+  · intro j y r a ha _ x _
+    obtain ⟨k, _, _, _, rfl⟩ := owner_exact_rows j y r a ha
+    apply Or.inl
+    exact List.mem_map.mpr ⟨k.val, List.mem_range.mpr k.isLt, rfl⟩
+  · intro s hs _ _
+    rcases hs with rfl | rfl | rfl | rfl
+    · exact ⟨_, (proposal_data_premises_sat 3).1⟩
+    · exact ⟨_, (proposal_data_premises_sat 4).1⟩
+    · exact ⟨_, (proposal_data_premises_sat 5).1⟩
+    · exact ⟨_, (proposal_data_premises_sat 6).1⟩
+  · intro _
+    exact ⟨_, (proposal_data_premises_sat 6).1⟩
+  · intro s Q hp
+    obtain ⟨k, rfl, rfl⟩ := proposal_cases s Q hp
+    obtain ⟨_, hcar, hrows, hnd, _⟩ := proposal_data_premises_sat k
+    refine ⟨block (k.val + 1), rfl, hcar, slot ⟨k.val + 1, by omega⟩, hrows, ?_⟩
+    rw [par k]
+    exact hnd
+  · intro s Q hp _
+    obtain ⟨k, rfl, rfl⟩ := proposal_cases s Q hp
+    exact (proposal_data_premises_sat k).2.2.2.2
+  · intro s Q r x hs hg he hx _
+    exact (hs.2 hg x hx trivial).2 r he
+  · intro s Q x hs _ hhi hx
+    apply hs.1 _ x hx trivial
+    change (4 : Int) * (s : Nat) + 1 ≤ 57
+    change s ≤ 12 at hhi
+    simp only [Slot] at *
+    omega
+  · intro s X x hh
+    unfold headAtLabel postClock preTick at hh
+    cases hi : V2.D.Run.tickIdx? run x (timing.vote s) with
+    | none => simp only [hi, Option.map_none] at hh; contradiction
+    | some j =>
+      simp only [hi, Option.map_some, Option.some.injEq] at hh
+      have hx : block (V2.D.Run.stateBefore (env Nat) run j x).1 = X :=
+        erase_injective_premises_sat hh
+      refine ⟨j, V2.D.Run.tickIdx?_spec hi, ?_⟩
+      rw [← hx]
+      exact core_premises_sat.source_mem _ _ rfl
+  · intro i x X hX W hW hn
+    obtain ⟨k, _, rfl⟩ := tree_cases.2 _ X hX
+    obtain ⟨l, hl, rfl⟩ := tree_cases.1 k W hW
+    exact (by decide +kernel : ∀ l : Fin 8, block l ≠ .genesis →
+      (block l).parent.slot < (block l).slot) ⟨l, by omega⟩ hn
+  · intro s nd _ X Y ⟨W, hW, hX⟩ ⟨Z, hZ, hY⟩ hr
+    have hx := KitFG.ancestor_closed_of_parent_closed _ (closed nd) W hW X hX
+    have hy := KitFG.ancestor_closed_of_parent_closed _ (closed nd) Z hZ Y hY
+    obtain ⟨k, _, rfl⟩ := tree_cases.2 nd X hx
+    obtain ⟨l, _, rfl⟩ := tree_cases.2 nd Y hy
+    have he := data_premises_sat.2.2 k l hr
+    cases he
+    rfl
+  · intro s nd _ X hX a ha
+    obtain ⟨k, _, rfl⟩ := tree_cases.2 nd X hX
+    exact (validRows k a ha).2
+  · intro nd s X a hv hn
+    cases hd : decode a with
+    | none => change (decode a).isSome = true at hv; rw [hd] at hv; cases hv
+    | some u =>
+      have hm : u.height_pair.matchesEntry (obs.height X).h (obs.height X).T_h.root =
+          true := by
+        rw [history.decode_height a u hd] at hn
+        cases hp : u.height_pair with
+        | empty => rw [hp] at hn; cases hn
+        | vote h b timeout =>
+          rw [hp] at hn
+          have he : (h, b) = ((obs.height X).h, (obs.height X).T_h.root) :=
+            Option.some.inj hn
+          obtain ⟨rfl, rfl⟩ := Prod.mk.inj he
+          simp [NamedHeightPair.matchesEntry]
+      change ((decode a).isSome && ((decode a).map _).getD false) = true
+      rw [hd]
+      change SimplexFG.Window.r6w _ u = true
+      rw [SimplexFG.Window.r6w_def]
+      apply Bool.or_eq_true_iff.mpr
+      exact Or.inl hm
+  · intro q y U X h hp
+    obtain ⟨rows, hcar, _⟩ := h.carrier
+    obtain ⟨k, hs, hX⟩ := proposal_cases X.slot (erase X) hcar.1
+    have he : X = block (k.val + 1) := erase_injective_premises_sat hX
+    subst X
+    have hpath := h.path
+    rw [par k] at hp hpath
+    have hT := (height.entry_plateau hpath (h.entry.1.trans hp.symm)).symm.trans h.entry.2
+    have cover : ∀ k : Fin 7, TargetCoveredByChild electorate obs.height
+        (block (k.val + 1)) (obs.height (block k)).T_h (obs.height (block k)).h := by
+      intro k
+      refine ⟨{0}, by decide, ?_⟩
+      intro i hi
+      have hi' : i = 0 := Subsingleton.elim _ _
+      subst i
+      right
+      refine ⟨row k, ?_, rfl, ?_⟩
+      · exact (by decide +kernel : ∀ k : Fin 7, row k ∈ (block (k.val + 1)).rows) k
+      · rw [(data_premises_sat.1 ⟨k.val, by omega⟩).1,
+          (data_premises_sat.1 ⟨k.val, by omega⟩).2.1]
+    rw [← hp, ← hT]
+    exact cover k
+  · intro i _ r C hs _ _
+    obtain rfl : i = 0 := Subsingleton.elim _ _
+    obtain ⟨_, hr, rfl⟩ := source_cases 9 r C hs
+    let k : Fin 7 := ⟨r, hr⟩
+    refine ⟨20 * r + 12, r, wire (row r), le_rfl, releaseRow k, ⟨rfl, 0, rfl, rfl⟩, ?_⟩
+    rw [(data_premises_sat.1 ⟨r, by omega⟩).1,
+      (data_premises_sat.1 ⟨r, by omega⟩).2.1]
+    rfl
+  · intro i q nd u hnd _ hu
+    obtain rfl : i = 0 := Subsingleton.elim _ _
+    change postClock (env Nat) run 9 (timing.action q) = some nd at hnd
+    unfold postClock preTick at hnd
+    cases hi : V2.D.Run.tickIdx? run 9 (timing.action q) with
+    | none => simp only [hi, Option.map_none] at hnd; contradiction
+    | some j =>
+      simp only [hi, Option.map_some, Option.some.injEq] at hnd
+      subst nd
+      have he := V2.D.Run.tickIdx?_spec hi
+      have ht : timing.action q % 8 = 6 := by
+        change ((4 : Int) * (q * 2 : Nat) + 6) % 8 = 6
+        omega
+      have hl : protocol.signLabel (timing.action q) = 0 := ite_eq_left ht
+      have hf : run.ownSeats (protocol.signLabel (timing.action q)) 9 = [0] := by
+        rw [hl]
+        rfl
+      have hu' : (createRowOnce electorate cfg
+          (V2.D.Run.stateBefore (env Nat) run j 9).2 0
+          (some (block (V2.D.Run.stateBefore (env Nat) run j 9).1))
+          (head (V2.D.Run.stateBefore (env Nat) run j 9).1)).1 = some u := hu
+      have ha : protocol.act (V2.D.Run.stateBefore (env Nat) run j 9) (timing.action q) () =
+          some (.inr u) := by
+        change (if timing.action q % 8 = 6 then _ else _) = _
+        rw [ite_eq_left ht, hu']
+        rfl
+      refine ⟨j, he, ?_⟩
+      rw [V2.D.Run.emitsAt, he]
+      have ht' := ht
+      change ((4 : Int) * (q * 2 : Nat) + 6) % 8 = 6 at ht'
+      push_cast at ht'
+      simp [V2.D.tick, V2.D.Run.ownSeats, List.finRange_succ, ht', hu']
+  · intro nd H hH
+    have he : block nd.1 = H := Option.some.inj hH
+    subst H
+    rfl
+  · intro i x W hx hW
+    let origin := fun C (u : Row (Fin 1)) =>
+      ∃ y r a, HonestRowBefore reads (env Nat) run timing i y r a ∧ reads.decode a = some u ∧
+        storedCarrier (V2.D.Run.stateBefore (env Nat) run i x) C a ∧ ∃ B,
+          actionSourceFG core (env Nat) run timing y r = some (some B) ∧
+          namedEntry u.height_pair = some ((obs.height B).h, (obs.height B).T_h.root) ∧
+          FGBlock.Preceq (obs.height B).T_h B ∧ sourceService y r B
+    have origins : ∀ C u, FGBlock.Preceq C W → u ∈ C.rows → origin C u := by
+      intro C u hCW hu
+      obtain ⟨a, r, ha, hs, j, o, t, hji, he, hold⟩ := raw_origin_premises_sat i x W
+        ⟨hx, hW⟩ u (KitFG.mem_chainRows_of_carrier hCW hu)
+      obtain ⟨⟨l, hli, hl⟩, _⟩ := hold 9 ⟨u.signer, hs, rfl⟩ (by decide)
+      obtain ⟨k, _, _, hr, hw⟩ := owner_exact_rows l 9 r a hl
+      subst r
+      subst a
+      have heq : row k = u := Option.some.inj ha
+      subst u
+      have hsrc := trace_premises_sat.2.2.2 k 1
+      refine ⟨9, k, wire (row k), ⟨l, hli, hl⟩, rfl,
+        List.mem_map.mpr ⟨row k, hu, rfl⟩, block k, hsrc, ?_, ?_, hsrc⟩
+      · rw [(data_premises_sat.1 ⟨k.val, by omega⟩).1,
+          (data_premises_sat.1 ⟨k.val, by omega⟩).2.1]
+        rfl
+      · rw [(data_premises_sat.1 ⟨k.val, by omega⟩).2.1]
+        exact preceq_refl _
+    refine ⟨?_, ?_, ?_⟩
+    · intro m X Q rows _ _ _ _ hQ hrows
+      obtain ⟨j, hj, _⟩ := KitFG.honest_in_quorum electorate ∅ hQ (by change 0 < 1; decide)
+      exact ⟨j, hj, origins _ _ (hrows j hj).1 (hrows j hj).2.1⟩
+    · intro Q rows _ hQ hrows
+      obtain ⟨j, hj, _⟩ := KitFG.honest_in_quorum electorate ∅ hQ (by change 0 < 1; decide)
+      exact ⟨j, hj, origins _ _ (hrows j hj).1 (hrows j hj).2.1⟩
+    · intro hfin
+      obtain ⟨k, _, rfl⟩ := tree_cases.2 _ W hW
+      have facts : ∀ k : Fin 8, (obs.finality (block k)).F ≠ .genesis →
+          FGBlock.Preceq (block (k.val - 1)) (block k) ∧
+          (obs.height (block (k.val - 1))).J = (obs.finality (block k)).F ∧
+          (obs.height (block (k.val - 1))).h_j = (obs.finality (block k)).h_F ∧
+          (∀ j : Fin 1, FGBlock.Preceq (block (k.val - 1)) (block (k.val - 1)) ∧
+            row (k.val - 2) ∈ (block (k.val - 1)).rows ∧ (row (k.val - 2)).signer = j ∧
+            (row (k.val - 2)).height_pair = .vote
+              (obs.height (block (k.val - 1))).h_j
+              (obs.height (block (k.val - 1))).J.root false) := by decide +kernel
+      obtain ⟨hp, hJ, hh, hrs⟩ := facts k hfin
+      refine ⟨block (k.val - 1), hp, hJ, hh, Finset.univ,
+        (fun _ => (block (k.val - 1), row (k.val - 2))), (by change (1 : Nat) ≤ 1; decide),
+        fun j _ => hrs j, 0, by decide, origins _ _ hp (hrs 0).2.1⟩
+  · intro i x t _
+    right
+    exact ⟨block (V2.D.Run.stateBefore (env Nat) run i x).1,
+      core_premises_sat.source_mem _ _ rfl, rfl⟩
+  · intro j x o u hx ho hd
+    split_ifs at ho with hnode
+    · have hi : j < 144 := by
+        by_contra hn
+        have he : run.events[j]? = none := List.getElem?_eq_none_iff.mpr (by change 144 ≤ j; omega)
+        unfold V2.D.Run.emitsAt at ho
+        rw [he] at ho
+        contradiction
+      rw [trace_premises_sat.2.1 ⟨j, hi⟩] at ho
+      dsimp only [Fin.val_mk] at ho
+      split_ifs at ho with hr hp
+      · obtain rfl := List.mem_singleton.mp ho
+        let k : Fin 7 := ⟨j / 20, by omega⟩
+        have hj : j = 20 * k.val + 12 := by dsimp only [k]; omega
+        have he := (trace_premises_sat.2.2.1 k).1
+        rw [← hj] at he
+        rw [he] at hnode
+        have hx' : x = 9 := (Option.some.inj hnode).symm
+        subst x
+        refine ⟨k, wire (row k), ?_, hd⟩
+        rw [hj]
+        exact releaseRow k
+      · obtain rfl := List.mem_singleton.mp ho
+        change none = some u at hd
+        cases hd
+      · contradiction
+    · contradiction
+  · intro s Q rows j y r a hcar ha hv _
+    obtain ⟨k, rfl, rfl⟩ := proposal_cases s Q hcar.1
+    obtain ⟨o, _, N, hd, he, hr⟩ := hcar.2
+    have hN : N = block (k.val + 1) := erase_injective_premises_sat he
+    subst N
+    obtain ⟨l, _, _, _, rfl⟩ := owner_exact_rows j y r a ha
+    obtain ⟨nd, H, _, hp, hvalid⟩ := hv
+    change lookup (erase (block (k.val + 1))).parent = some H at hp
+    rw [erasePar k, look ⟨k.val, by omega⟩] at hp
+    have hH : block k = H := Option.some.inj hp
+    subst H
+    have valid_le : ∀ k l : Fin 7,
+        validFor protocol.init (2 * (k.val + 1)) (block k) (wire (row l)) = true →
+        l.val ≤ k.val := by decide +kernel
+    have hle := valid_le k l hvalid
+    rcases Nat.eq_or_lt_of_le hle with heq | hlt
+    · left
+      have he' : l = k := Fin.ext heq
+      subst l
+      rw [← hr]
+      exact List.mem_map.mpr ⟨row k,
+        (by decide +kernel : ∀ k : Fin 7, row k ∈ (block (k.val + 1)).rows) k, rfl⟩
+    · right
+      obtain ⟨nd, hnd, _, _⟩ := (proposal_data_premises_sat k).2.2.2.1
+      refine ⟨nd, hnd, ?_⟩
+      change wire (row l) ∈ ((lookup _).map _).getD []
+      rw [erasePar k, look ⟨k.val, by omega⟩]
+      change wire (row l) ∈ (List.range ((block k).slot / 2)).map _
+      rw [slot ⟨k.val, by omega⟩]
+      change wire (row l) ∈ (List.range (2 * k.val / 2)).map _
+      apply List.mem_map.mpr
+      exact ⟨l.val, List.mem_range.mpr (by omega), rfl⟩
+  · intro a i hs
+    cases hd : decode a with
+    | none => change (decode a).map _ = some i at hs; rw [hd] at hs; cases hs
+    | some u => exact ⟨u, hd⟩
+  · intro s Q H nd a u _ hp ha hd
+    change lookup Q.parent = some H at hp
+    have hm := List.mem_of_find?_eq_some hp
+    obtain ⟨k, hk, hH⟩ := List.mem_map.mp hm
+    have hk' : k < 8 := List.mem_range.mp hk
+    subst H
+    change a ∈ ((lookup Q.parent).map _).getD [] at ha
+    rw [hp] at ha
+    change a ∈ (List.range ((block k).slot / 2)).map _ at ha
+    rw [slot ⟨k, hk'⟩] at ha
+    change a ∈ (List.range (2 * k / 2)).map _ at ha
+    obtain ⟨l, hl, rfl⟩ := List.mem_map.mp ha
+    have hl' : l < k := by have := List.mem_range.mp hl; omega
+    have hu : row l = u := Option.some.inj hd
+    subst u
+    refine ⟨block (l + 1), ?_, ?_⟩
+    · exact (data_premises_sat.2.1 ⟨l + 1, by omega⟩ ⟨k, hk'⟩).mpr (show l + 1 ≤ k by omega)
+    · exact (by decide +kernel : ∀ l : Fin 7, row l ∈ (block (l.val + 1)).rows) ⟨l, by omega⟩
+  · intro s nd _ H hH B s' root body rs hp a ha
+    have hm := KitFG.ancestor_closed_of_parent_closed _ (closed nd) H hH _ hp
+    obtain ⟨k, _, he⟩ := tree_cases.2 nd (.node B s' root body rs) hm
+    have hB : B = (block k).parent := congrArg FGBlock.parent he
+    have hrs : rs = (block k).rows := congrArg FGBlock.rows he
+    have ha' : a ∈ (block k).rows := hrs ▸ ha
+    rw [hB]
+    exact validRows k a ha'
+  · intro C W hC hW
+    obtain ⟨k, hk⟩ := hC
+    obtain ⟨l, hl⟩ := hW
+    rw [hk, hl]
+    exact (by decide +kernel : ∀ k l : Fin 8,
+      FGBlock.compatible (obs.finality (block k)).F (obs.finality (block l)).F = true) k l
+  · rintro i x X t ⟨k, rfl, _⟩
+    exact ⟨⟨k.val + 1, by omega⟩, rfl⟩
+  · intro i x C hC _
+    obtain ⟨k, _, he⟩ := tree_cases.2 _ C hC
+    exact ⟨k, he⟩
+  · intro i x _ C j u r a B hC ha hs hr
+    obtain ⟨c, _, rfl⟩ := tree_cases.2 _ C hC
+    obtain ⟨k, _, rfl, rfl, _⟩ := owner_exact_rows j u r a ha
+    obtain ⟨_, _, rfl⟩ := source_cases 9 k B hs
+    exact rootScope c k hr
+  · intro i x W hx hW J hJ hn
+    obtain ⟨k, hk, rfl⟩ := tree_cases.2 _ W hW
+    obtain ⟨B, hB, hJ⟩ := hJ
+    obtain ⟨m, hm, rfl⟩ := tree_cases.1 k B hB
+    let mi : Fin 8 := ⟨m, by omega⟩
+    have entries : ∀ k m : Fin 8, m ≤ k →
+        ((obs.height (block m)).J ≠ .genesis → ∃ l : Fin 7,
+          l.val < k.val ∧ (obs.height (block m)).J = block l) ∧
+        ((obs.finality (block m)).F ≠ .genesis → ∃ l : Fin 7,
+          l.val < k.val ∧ (obs.finality (block m)).F = block l) ∧
+        ((obs.height (block m)).h < (obs.height (block k)).h →
+          (obs.height (block m)).T_h ≠ .genesis → ∃ l : Fin 7,
+            l.val < k.val ∧ (obs.height (block m)).T_h = block l) := by decide +kernel
+    have earlier : ∃ l : Fin 7, l.val < k.val ∧ J = block l := by
+      rcases hJ with rfl | rfl | ⟨rfl, hh⟩
+      · exact (entries k mi hm).1 hn
+      · exact (entries k mi hm).2.1 hn
+      · exact (entries k mi hm).2.2 hh hn
+    obtain ⟨l, hl, rfl⟩ := earlier
+    refine ⟨9, l, wire (row l), ⟨20 * l.val + 12, ?_, releaseRow l⟩, ?_⟩
+    · have hx' : x = 7 ∨ x = 9 := by simpa using hx
+      rcases hx' with rfl | rfl
+      · have hs := stage_before_premises_sat i 0
+        change (V2.D.Run.stateBefore (env Nat) run i 7).1.val = _ at hs
+        change k.val ≤ (V2.D.Run.stateBefore (env Nat) run i 7).1.val at hk
+        rw [hs] at hk
+        change k.val ≤ min 7 ((i - 1) / 20) at hk
+        omega
+      · have hs := stage_before_premises_sat i 1
+        change (V2.D.Run.stateBefore (env Nat) run i 9).1.val = _ at hs
+        change k.val ≤ (V2.D.Run.stateBefore (env Nat) run i 9).1.val at hk
+        rw [hs] at hk
+        change k.val ≤ min 7 ((i - 2) / 20) at hk
+        omega
+    · rw [(data_premises_sat.1 ⟨l.val, by omega⟩).1]
+      rfl
+  · intro cut b j z W hj hW hrows
+    have cap := raw_causal_cap_before (R := core) (S := reads) (E := env Nat) (rho := run)
+      (T := timing) (D := history) (Ef := electorate) (H := obs.height) (f := obs.finality)
+      (hc := hc) (horigin := raw_origin_premises_sat) schedule_premises_sat
+      (by decide) b cut (by
+        intro k u r a h t ha hh he ht
+        obtain ⟨l, rfl, rfl, rfl, rfl⟩ := owner_exact_rows k u r a ha
+        change some (l.val + 1) = some h at hh
+        have hh' : l.val + 1 = h := Option.some.inj hh
+        subst h
+        change run.events[20 * l.val + 12]?.map V2.Event.time = some t at he
+        rw [(trace_premises_sat.2.2.1 l).1] at he
+        have htime : timing.action l = t := Option.some.inj he
+        have hbound := hrows (20 * l.val + 12) 9 l (wire (row l)) (row l)
+          (l.val + 1) (block l).root false (releaseRow l) rfl rfl (htime ▸ ht)
+        change l.val + 1 < b + 1 at hbound
+        change l.val + 1 ≤ b
+        exact Nat.le_of_lt_succ hbound) j z W hj hW
+    change (obs.height W).h ≤ b + 1 at cap
+    simp only [Height] at *
+    omega
+  · intro X U rows hcar _ _ _
+    obtain ⟨k, hs, hX⟩ := proposal_cases X.slot (erase X) hcar.1
+    have he : X = block (k.val + 1) := erase_injective_premises_sat hX
+    subst X
+    rw [slot ⟨k.val + 1, by omega⟩]
+    refine ⟨{
+      selected := fun x _ => if x = 7 then
+      ⟨20 * k.val + 20, timing.proposal (2 * (k.val + 1))⟩ else
+      ⟨20 * k.val + 21, timing.proposal (2 * (k.val + 1))⟩
+      witness := ?_ }⟩
+    intro x hx
+    have hx' : x = 7 ∨ x = 9 := by simpa using hx
+    rcases hx' with rfl | rfl
+    · change run.events[20 * k.val + 20]?.map V2.Event.time = some _ ∧ _ ∧ _
+      refine ⟨?_, ?_, Or.inr ⟨le_rfl, k, rfl, ?_⟩⟩
+      · rw [(trace_premises_sat.2.2.1 k).2.2.1]; rfl
+      · change (4 : Int) * (2 * (k.val + 1) : Nat) <
+          (4 : Int) * (2 * (k.val + 1) : Nat) + 1
+        omega
+      · exact (trace_premises_sat.2.2.1 k).2.2.1
+    · change run.events[20 * k.val + 21]?.map V2.Event.time = some _ ∧ _ ∧ _
+      refine ⟨?_, ?_, Or.inr ⟨le_rfl, k, rfl, ?_⟩⟩
+      · rw [(trace_premises_sat.2.2.1 k).2.2.2]; rfl
+      · change (4 : Int) * (2 * (k.val + 1) : Nat) <
+          (4 : Int) * (2 * (k.val + 1) : Nat) + 1
+        omega
+      · exact (trace_premises_sat.2.2.1 k).2.2.2
+
+#print axioms owner_premises_sat
 
 end Owner
 
