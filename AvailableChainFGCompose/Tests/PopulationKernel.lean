@@ -2028,6 +2028,31 @@ private theorem schedule_premises_sat : V2.D.ScheduleWellFormed (env Nat) run :=
 
 #print axioms schedule_premises_sat
 
+private abbrev node (x : Fin 2) : Nat := if x = 0 then 7 else 9
+private abbrev stage (i : Nat) (x : Fin 2) : Nat :=
+  min 7 ((i - if x = 0 then 1 else 2) / 20)
+
+private theorem trace_premises_sat :
+    (∀ i : Fin 145, ∀ x : Fin 2,
+      (V2.D.Run.stateBefore (env Nat) run i (node x)).1.val = stage i x) ∧
+    (∀ j : Fin 144, V2.D.Run.emitsAt (env Nat) run j =
+      if j.val % 20 = 12 then [wire (row (j.val / 20))] else
+      if j.val % 20 = 19 ∧ j.val < 140 then [prop (j.val / 20 + 1)] else []) ∧
+    (∀ k : Fin 7,
+      run.events[20 * k.val + 12]? = some (.tick 9 (timing.action k)) ∧
+      run.events[20 * k.val + 19]? = some (.tick 7 (timing.proposal (2 * (k.val + 1)))) ∧
+      run.events[20 * k.val + 20]? =
+        some (.deliver 7 (prop (k.val + 1)) (timing.proposal (2 * (k.val + 1)))) ∧
+      run.events[20 * k.val + 21]? =
+        some (.deliver 9 (prop (k.val + 1)) (timing.proposal (2 * (k.val + 1))))) ∧
+    (∀ k : Fin 7, ∀ x : Fin 2,
+      actionSourceFG core (env Nat) run timing (node x) k = some (some (block k))) := by
+  exact ⟨by decide +kernel, by decide +kernel, by
+    intro k
+    fin_cases k <;> exact ⟨rfl, rfl, rfl, rfl⟩, by decide +kernel⟩
+
+#print axioms trace_premises_sat
+
 end Owner
 
 end AvailableChain.FGCompose.Tests.PopulationKernel
