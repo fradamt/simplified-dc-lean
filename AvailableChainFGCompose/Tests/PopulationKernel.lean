@@ -962,5 +962,22 @@ private theorem kernel_conclusion_premises_sat :
 
 #print axioms kernel_conclusion_premises_sat
 
+-- Isolated old supplier failure: its source antecedent is active at honest nonholder 7.
+private theorem old_target_supplier_impossible :
+    ¬ (∀ x ∈ run.honest, ∀ r C,
+      actionSourceFG core (env Nat) run timing x r = some (some C) →
+      point.reset.M + 1 ≤ (obs.height C).h → (env Nat).awake x (timing.action r) = true →
+      ∃ j rSent a, rSent ≤ r ∧ HonestRowAt reads (env Nat) run timing j x rSent a ∧
+        RowComplete reads run history.signer (fun _ => true) x a ∧
+        history.heightPair a = .vote (obs.height C).h (obs.height C).T_h.root false) := by
+  intro old
+  obtain ⟨_, _, _, _, _, complete, _⟩ := old 7 (by decide) 1 aBlock
+    (by decide +kernel) (by decide +kernel) rfl
+  obtain ⟨i, _, hi⟩ := complete.2
+  change (9 : Nat) = 7 at hi
+  omega
+
+#print axioms old_target_supplier_impossible
+
 end AvailableChain.FGCompose.Tests.PopulationKernel
 end
