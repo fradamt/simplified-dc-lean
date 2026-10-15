@@ -1143,5 +1143,123 @@ private theorem frozen_schedule_premises_sat :
 
 #print axioms frozen_schedule_premises_sat
 
+private theorem frozen_batch_premises_sat :
+    batchType frozenRun 1 2 aBlock bBlock ∧ batchType frozenRun 2 3 bBlock dBlock := by
+  have hweight : electorate.weightOf (historyFaulty reads frozenRun) < electorate.q := by
+    change (0 : Nat) < 1
+    decide
+  have receipt : TRowsReceipt core reads (env (Fin 1)) frozenRun timing (fun _ => []) 2 := by
+    intro j x q a ha _ z _
+    rcases frozen_rows j x q a ha with h | h | h | h
+    all_goals
+      obtain ⟨rfl, rfl, rfl, rfl⟩ := h
+      exact Or.inl (by
+        change wire _ ∈ [wire row0, wire row1, wire row2, wire row3]
+        decide +kernel)
+  have height := KitFG.Window.windowHeightLaws electorate cfg 2 (by decide)
+  constructor
+  · refine kmid_batchPrem_holder core reads obs timing (env (Fin 1)) frozenRun interface history
+      electorate cfg 2 height rfl decodeProposal erase (fun X => X.rows.map wire)
+      (fun _ => []) parentRead parentHeight (fun _ _ _ _ => true) (fun _ => true) 2
+      frozen_schedule_premises_sat hweight ?_ {0} ?_ (by change (1 : Nat) ≤ 1; decide)
+      (by decide) receipt 1 2 aBlock bBlock (by decide) ?_ 16 (by decide +kernel)
+      (by decide +kernel) (by decide +kernel) ?_ ?_ ?_ rfl (by intros; rfl)
+      (by decide) (by constructor <;> decide +kernel) (preceq_refl _) (by decide +kernel) ?_
+    · intro i i' _; exact Subsingleton.elim _ _
+    · intro i _; change (0 : Fin 1) ∈ (Finset.univ : Finset (Fin 1)); decide
+    · refine ⟨[wire row1], ?_, rfl⟩
+      refine ⟨⟨⟨by decide, by decide⟩, prop bBlock, ⟨8, rfl, by decide +kernel⟩, rfl⟩,
+        prop bBlock, ⟨8, rfl, by decide +kernel⟩, bBlock, rfl, rfl, rfl⟩
+    · intro W hW
+      change W ∈ ({.genesis, aBlock, bBlock} : Finset (FGBlock (Fin 1))) at hW
+      simp only [Finset.mem_insert, Finset.mem_singleton] at hW
+      rcases hW with rfl | rfl | rfl <;> decide +kernel
+    · have ancestors (X : FGBlock (Fin 1))
+          (hX : ∃ W ∈ ({.genesis, aBlock, bBlock} : Finset (FGBlock (Fin 1))), FGBlock.Preceq X W) :
+          X ∈ ({.genesis, aBlock, bBlock} : Finset (FGBlock (Fin 1))) := by
+        obtain ⟨W, hW, hXW⟩ := hX
+        simp only [Finset.mem_insert, Finset.mem_singleton] at hW ⊢
+        rcases hW with rfl | rfl | rfl
+        all_goals
+          simp only [FGBlock.Preceq, FGBlock.preceq, Bool.or_eq_true,
+            decide_eq_true_eq] at hXW
+          tauto
+      intro W Z hW hZ he
+      have hw := ancestors W hW
+      have hz := ancestors Z hZ
+      simp only [Finset.mem_insert, Finset.mem_singleton] at hw hz
+      rcases hw with rfl | rfl | rfl <;> rcases hz with rfl | rfl | rfl <;>
+        simp_all [FGBlock.root, genesisRoot]
+    · intro W hW row hr
+      change W ∈ ({.genesis, aBlock, bBlock} : Finset (FGBlock (Fin 1))) at hW
+      simp only [Finset.mem_insert, Finset.mem_singleton] at hW
+      rcases hW with rfl | rfl | rfl
+      · cases hr
+      · have he : row = row0 := List.mem_singleton.mp hr
+        subst row
+        decide +kernel
+      · have he : row = row1 := List.mem_singleton.mp hr
+        subst row
+        decide +kernel
+    · intro i _
+      have hi : i = 0 := Subsingleton.elim _ _
+      subst i
+      exact ⟨7, 1, wire row1, le_rfl, ⟨by decide, rfl, by decide +kernel⟩,
+        ⟨rfl, 0, rfl, rfl⟩, rfl⟩
+  · refine kmid_batchPrem_holder core reads obs timing (env (Fin 1)) frozenRun interface history
+      electorate cfg 2 height rfl decodeProposal erase (fun X => X.rows.map wire)
+      (fun _ => []) parentRead parentHeight (fun _ _ _ _ => true) (fun _ => true) 2
+      frozen_schedule_premises_sat hweight ?_ {0} ?_ (by change (1 : Nat) ≤ 1; decide)
+      (by decide) receipt 2 3 bBlock dBlock (by decide) ?_ 24 (by decide +kernel)
+      (by decide +kernel) (by decide +kernel) ?_ ?_ ?_ rfl (by intros; rfl)
+      (by decide) (by constructor <;> decide +kernel) (preceq_refl _) (by decide +kernel) ?_
+    · intro i i' _; exact Subsingleton.elim _ _
+    · intro i _; change (0 : Fin 1) ∈ (Finset.univ : Finset (Fin 1)); decide
+    · refine ⟨[wire row2], ?_, rfl⟩
+      refine ⟨⟨⟨by decide, by decide⟩, prop dBlock, ⟨12, rfl, by decide +kernel⟩, rfl⟩,
+        prop dBlock, ⟨12, rfl, by decide +kernel⟩, dBlock, rfl, rfl, rfl⟩
+    · intro W hW
+      change W ∈ ({.genesis, aBlock, bBlock, dBlock} : Finset (FGBlock (Fin 1))) at hW
+      simp only [Finset.mem_insert, Finset.mem_singleton] at hW
+      rcases hW with rfl | rfl | rfl | rfl <;> decide +kernel
+    · have ancestors (X : FGBlock (Fin 1))
+          (hX : ∃ W ∈ ({.genesis, aBlock, bBlock, dBlock} : Finset (FGBlock (Fin 1))),
+            FGBlock.Preceq X W) :
+          X ∈ ({.genesis, aBlock, bBlock, dBlock} : Finset (FGBlock (Fin 1))) := by
+        obtain ⟨W, hW, hXW⟩ := hX
+        simp only [Finset.mem_insert, Finset.mem_singleton] at hW ⊢
+        rcases hW with rfl | rfl | rfl | rfl
+        all_goals
+          simp only [FGBlock.Preceq, FGBlock.preceq, Bool.or_eq_true,
+            decide_eq_true_eq] at hXW
+          tauto
+      intro W Z hW hZ he
+      have hw := ancestors W hW
+      have hz := ancestors Z hZ
+      simp only [Finset.mem_insert, Finset.mem_singleton] at hw hz
+      rcases hw with rfl | rfl | rfl | rfl <;> rcases hz with rfl | rfl | rfl | rfl <;>
+        simp_all [FGBlock.root, genesisRoot]
+    · intro W hW row hr
+      change W ∈ ({.genesis, aBlock, bBlock, dBlock} : Finset (FGBlock (Fin 1))) at hW
+      simp only [Finset.mem_insert, Finset.mem_singleton] at hW
+      rcases hW with rfl | rfl | rfl | rfl
+      · cases hr
+      · have he : row = row0 := List.mem_singleton.mp hr
+        subst row
+        decide +kernel
+      · have he : row = row1 := List.mem_singleton.mp hr
+        subst row
+        decide +kernel
+      · have he : row = row2 := List.mem_singleton.mp hr
+        subst row
+        decide +kernel
+    · intro i _
+      have hi : i = 0 := Subsingleton.elim _ _
+      subst i
+      exact ⟨11, 2, wire row2, le_rfl, ⟨by decide, rfl, by decide +kernel⟩,
+        ⟨rfl, 0, rfl, rfl⟩, rfl⟩
+
+#print axioms frozen_batch_premises_sat
+
 end AvailableChain.FGCompose.Tests.PopulationKernel
 end
