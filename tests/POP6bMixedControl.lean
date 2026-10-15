@@ -915,5 +915,75 @@ private theorem mixed_reset : ∃ w : FGResetHistory,
 
 #print axioms mixed_reset
 
+private theorem active_premises_sat :
+    run.honest = {7, 9} ∧ FGHonestSeats reads run = {0} ∧
+    safetyHolder reads run 0 = 9 ∧ V2.D.proposerOf run iface 6 = 7 ∧
+    HonestProposal env run iface 6 (v5erase (chain 6)) ∧
+    FrontierSeedQualification v5T 1 env.t_GST 17 6 ∧
+    PhaseInterval core env run obs 17 30 2 none false ∧
+    FrontierProposalService core env run v5T 6 (v5erase (chain 6)) ∧
+    (∀ i x, timeIdx run 17 ≤ i → i ≤ timeIdx run 30 → x ∈ run.honest →
+      (core.core (run.stateBefore env i x)).fg.h_max ≤ 2) ∧
+    HonestRowAt reads env run v5T 75 9 3 (wireAt 3) ∧
+    protocol.objSelfVisible (reads.encode (wireAt 3)) = true ∧
+    reads.decodeObject (reads.encode (wireAt 3)) = some (wireAt 3) ∧
+    (∀ x ∈ run.honest, actionSourceFG core env run v5T x 3 = some (some (chain 6))) ∧
+    OpeningCoveredFG core reads env run obs.height v5T wire.heightPair
+      (FGHonestSeats reads run) 3 (v5erase (chain 6)) ∧
+    FrontierLocalServiceFG core reads env run obs v5T iface wire.heightPair
+      6 (v5erase (chain 6)) (chain 6) 2 30 := by
+  have table : ∀ i : Fin 77, 42 ≤ i.val →
+      heightAt (min (shapeState (eventShape.take i) 7) 64) = 2 ∧
+      heightAt (min (shapeState (eventShape.take i) 9) 64) = 2 := by decide +kernel
+  have low : V2.D.Run.idxBefore run 17 = 42 := by decide +kernel
+  have high : timeIdx run 30 = 76 := by decide +kernel
+  have frame (st : Nat) (hh : heightAt (min st 64) = 2) :
+      (obs.controls st).H = 2 ∧ (obs.controls st).contest = false ∧
+      (obs.controls st).rootIsJ = false := by
+    refine ⟨hh, (phase_premises_sat.1 st).1, ?_⟩
+    change (decide (heightAt (min st 64) = 1) && !(obs.controls st).contest) = false
+    rw [hh]
+    rfl
+  have phase : PhaseInterval core env run obs 17 30 2 none false := by
+    refine ⟨by decide, by decide, by decide, ?_⟩
+    intro i x hi hv hx
+    rw [low] at hi
+    rw [high] at hv
+    have ht := table ⟨i, by omega⟩ hi
+    simp only [fold_premises_sat.1]
+    have hx' : x = 7 ∨ x = 9 := by simpa [run] using hx
+    rcases hx' with rfl | rfl
+    · exact frame _ ht.1
+    · exact frame _ ht.2
+  have cap : ∀ i x, timeIdx run 17 ≤ i → i ≤ timeIdx run 30 → x ∈ run.honest →
+      (core.core (run.stateBefore env i x)).fg.h_max ≤ 2 := by
+    intro i x hi hv hx
+    exact (phase.2.2.2 i x ((v9idxBefore_le_timeIdx run 17).trans hi) hv hx).1.le
+  have seed : FrontierSeedQualification v5T 1 env.t_GST 17 6 := by
+    refine Or.inr ⟨4, by decide, ?_, by decide, by decide, by decide⟩
+    intro i hi
+    change 17 ≤ 4 * (i : Int) + 1 at hi
+    simp only [Slot] at *
+    omega
+  have prop := (proposal_premises_sat ⟨6, by decide⟩ (by decide)).2.1.1
+  have svc := owner_premises_sat.1 6 _ prop
+  have common := owner_premises_sat.2.1 17 2 none false 6 (v5erase (chain 6)) (chain 6) 3
+    (by decide) prop rfl svc seed (by decide) (by decide) (fun r hr => by
+      change 6 ≤ r * 2 at hr
+      simp only [Slot] at *
+      omega) phase
+  have localService := owner_premises_sat.2.2 17 30 2 none false 6 (v5erase (chain 6))
+    (chain 6) (by decide) prop rfl (by decide +kernel) svc seed (by decide) phase
+      le_rfl (by decide) cap
+  have row := observed_premises_sat.2.1 (⟨3, by decide⟩ : Fin 32)
+  change HonestRowAt reads env run v5T (rowIndex 3) 9 3 (wireAt 3) at row
+  have index : rowIndex 3 = 75 := by decide +kernel
+  rw [index] at row
+  exact ⟨rfl, execution_premises_sat.2.1, rfl, by decide, prop, seed, phase, svc, cap,
+    row, rfl, rfl,
+    fun x hx => (action_premises_sat ⟨3, by decide⟩ x hx).2, common.1, localService⟩
+
+#print axioms active_premises_sat
+
 end AvailableChain.FGCompose.Tests.POP6bMixed
 end
