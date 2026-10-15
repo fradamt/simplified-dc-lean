@@ -1,7 +1,7 @@
 module
 public import AvailableChainFGCompose.Proofs.Population.PromotionSource
 public import AvailableChainFGCompose.Proofs.Population.Promotion
-public import AvailableChainFGCompose.Proofs.Healing.PromotionAge
+public import AvailableChainFGCompose.Proofs.Population.HolderBasePromotionAge
 
 public section
 
@@ -134,7 +134,7 @@ theorem healing_promotion_age_receipt_holder
     healing_promotion_age_gap T hT I E rho gap hF r U.slot hstart hwin
   have hreceiptv : T.proposal s + T.delta ≤ v := hterminal.trans hbudget
   have hhor : T.proposal s ≤ rho.horizon := by linarith [hT.delta_pos, hp.2.1]
-  obtain ⟨hc, hage⟩ := promotion_age_grid T hT r s U ΔF hlo
+  obtain ⟨hc, hage⟩ := promotion_age_grid_core T hT r s U ΔF hlo
   have hk := p0d5b_age_kappa_two T hT ΔF hF
   have hb8 : 8 * T.delta ≤ betaF T ΔF := by
     change 8 * T.delta ≤ 4 * (kappaF T ΔF : Time) * T.delta
@@ -256,7 +256,7 @@ theorem healing_promotion_age_service_holder
   obtain ⟨s, X, hnew, hslot, hlo, hhi, hh, hr, ht⟩ := hreceipt v hp hwin hb
   refine ⟨s, X, hnew, hslot, hlo, hhi, hh, hr, ht, ?_⟩
   intro hpgate
-  exact healing_promotion_age_service_tail R O T E rho I hT deltaF hdelta hl hrepair hnew hlo
+  exact healing_promotion_age_service_tail_core R O T E rho I hT deltaF hdelta hl hrepair hnew hlo
     hhi hpgate
 
 end AvailableChain.FGCompose
