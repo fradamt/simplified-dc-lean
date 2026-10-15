@@ -447,5 +447,174 @@ private theorem cap_premises_sat : RCap core reads env run obs v5T
 
 #print axioms cap_premises_sat
 
+private theorem family_premises_sat :
+    (FGTimingLaws v5T) ∧
+    (1 ≤ 1) ∧
+    (RXing core env run obs) ∧
+    (V2.D.ScheduleWellFormed env run) ∧
+    (FGRunOrderLaws env run core) ∧
+    (∀ y ∈ run.honest, ∀ t, env.t_GST ≤ t → t ≤ run.horizon → env.awake y t = true) ∧
+    (∀ iy y t, y ∈ run.honest → run.events[iy]? = some (.tick y t) → t ≤ run.horizon →
+      env.t_GST ≤ slotStartZ v5T (((slotAt v5T t : Slot) : Int) - 1) → (fun _ => true)
+      (protocol.clock (run.stateBefore env iy y) t) = true) ∧
+    (∀ t, 12 ≤ t → env.t_GST ≤ slotStartZ v5T (((slotAt v5T t : Slot) : Int) - 1)) ∧
+    (∀ i (ev : V2.Event Nat protocol.Object) m, run.events[i]? = some ev → 12 ≤ ev.time → 1 ≤ m →
+      frontierAtIdx core env run (i + 1) = m → ev.time + v5T.delta ≤ run.horizon →
+      PhaseWitnessReceiptScope core env run obs (fun _ => true) receipt (i + 1) m
+      (ev.time + v5T.delta)) ∧
+    (∀ W d y, y ∈ run.honest → receipt (core.erase W) d y → W ∈ (core.core
+      (run.stateBeforeTime env d y)).fg.TF) ∧
+    (v5E.weightOf (historyFaulty reads run) < v5E.q) ∧
+    (env.Δ ≤ 1) ∧
+    (env.Δ = v5T.delta) ∧
+    (∀ t, env.t_GST ≤ t → t + 4 ≤ run.horizon → ∃ s, t < v5T.proposal s ∧ v5T.proposal s ≤ t
+      + 4 ∧ Gen.V2.Duty.HonestSlot run iface s) ∧
+    (env.t_GST ≤ 12) ∧
+    (4 * v5T.delta ≤ 4) ∧
+    (PromotionSlotProposal core env run v5T iface) ∧
+    (PromotionProposalRead core reads env run obs iface decodeProposal v5erase FGBlock.rows
+      parentFG parentHeight validFor fold) ∧
+    (PromotionRowOrder core env run obs iface) ∧
+    (PromotionRowSigner reads env run v5T wire) ∧
+    (PromotionSourceParent core env run obs v5T iface 12) ∧
+    (TRowsReceipt core reads env run v5T (fun _ => []) 1) ∧
+    (∀ (r height : Nat) (U X : FGBlock (Fin 1)), BatchPrem core reads obs v5T env run iface
+      wire v5E decodeProposal v5erase FGBlock.rows (fun _ => []) parentFG parentHeight validFor 1
+      .progress r height U X → (obs.height X.parent).h = height → ProgressCoveredByChild v5E
+      obs.height X U height) ∧
+    (ProgressFoldAdvance v5E obs.height 4) ∧
+    (∃ Q : Finset (Fin 1), (∀ i ∈ Q, safetyHolder reads run i ∈ run.honest) ∧ v5E.q ≤
+      v5E.weightOf Q) ∧
+    (∀ r x y K L, x ∈ run.honest → y ∈ run.honest → actionSourceFG core env run v5T x
+      r = some (some K) → actionSourceFG core env run v5T y r = some (some L) → (obs.height
+      K).T_h.root = (obs.height L).T_h.root → (obs.height K).T_h = (obs.height L).T_h) ∧
+    (∀ r x K, x ∈ run.honest → actionSourceFG core env run v5T x r = some (some K) →
+      K.slot ≤ r * v5T.roundSlots) ∧
+    (∀ r x K A, x ∈ run.honest → actionSourceFG core env run v5T x r = some (some K) →
+      FGBlock.Preceq A K → A.slot ≤ K.slot) ∧
+    (∀ A B : FGBlock (Fin 1), Block.Preceq (core.erase A) (core.erase B) → FGBlock.Preceq A B) ∧
+    (AttemptProposalFloor core env run obs v5T iface 12) ∧
+    (∀ u v m J contested q Q, 12 ≤ u → PhaseInterval core env run obs u v m J contested →
+      FrontierSeedQualification v5T 1 env.t_GST u q → v5T.gate q ≤ v → HonestProposal env
+      run iface q Q → ∃ i x Qfg, V2.D.Run.idxBefore run u ≤ i ∧ i ≤ timeIdx run v ∧ x ∈
+      run.honest ∧ Qfg ∈ (core.core (run.stateBefore env i x)).fg.TF ∧ core.erase Qfg =
+      Q) ∧
+    (∀ u v m J contested q Q Qfg, 12 ≤ u → HonestProposal env run iface q Q → core.erase Qfg
+      = Q → (obs.height Qfg).h = m → FrontierProposalService core env run v5T q Q →
+      FrontierSeedQualification v5T 1 env.t_GST u q → u ≤ v5T.proposal q → PhaseInterval core
+      env run obs u (v5T.gate q) m J contested → v5T.gate q ≤ v → v ≤ run.horizon → (∀ i
+      x, timeIdx run u ≤ i → i ≤ timeIdx run v → x ∈ run.honest → (core.core
+      (run.stateBefore env i x)).fg.h_max ≤ m) → FrontierLocalServiceFG core reads env run
+      obs v5T iface wire.heightPair q Q Qfg m v) ∧
+    (∀ u m J contested q Q Qfg r, 12 ≤ u → HonestProposal env run iface q Q → core.erase Qfg
+      = Q → FrontierProposalService core env run v5T q Q → FrontierSeedQualification v5T 1
+      env.t_GST u q → u ≤ v5T.proposal q → q ≤ r * v5T.roundSlots → (∀ r', q ≤ r' *
+      v5T.roundSlots → r ≤ r') → PhaseInterval core env run obs u (v5T.action r) m J
+      contested → OpeningCoveredFG core reads env run obs.height v5T wire.heightPair
+      (FGHonestSeats reads run) r Q ∧
+      ((obs.height Qfg).h = m - 1 → OpeningEntry core env run obs.height v5T r (m - 1) ∨ ∃
+      x K, x ∈ run.honest ∧ actionSourceFG core env run v5T x r = some (some K) ∧
+      (obs.height K).h = m)) ∧
+    (∀ i x A K, K ∈ (core.core (run.stateBefore env i x)).fg.TF → FGBlock.Preceq A K →
+      A.slot ≤ K.slot) ∧
+    (∀ q Q K, HonestProposal env run iface q Q → core.erase K = Q → K.slot = q) ∧
+    (∀ i x, x ∈ run.honest → (core.core (run.stateBefore env i x)).fg.h_j ≠ 0 → ∃ j y r a
+      K, j < i ∧ HonestRowAt reads env run v5T j y r a ∧ actionSourceFG core env run v5T
+      y r = some (some K) ∧ (obs.height K).T_h = (core.core (run.stateBefore env i
+      x)).fg.J) ∧
+    (∀ q Q, HonestProposal env run iface q Q → ∃ j, run.events[j]? = some (.tick
+      (V2.D.proposerOf run iface q) (v5T.proposal q)) ∧ ∀ Qfg, core.erase Qfg = Q →
+      FGBlock.Preceq (obs.controls (run.stateBefore env j (V2.D.proposerOf run iface
+      q))).Z Qfg.parent) ∧
+    (∀ X : FGBlock (Fin 1), (core.erase X).parent = core.erase X.parent) ∧
+    (PromotionCapReceipt core env run obs v5T iface) ∧
+    (RCap core reads env run obs v5T (fun a => namedEntry (wire.heightPair a)) (fun _ _ =>
+      allRows)) ∧
+    (run.honest.Nonempty) := by
+  obtain ⟨slot, read, signer, sourceParent, rowsReceipt, progress, proposalSlot,
+    heldSlot, capReceipt⟩ := promotion_premises_sat
+  have crossing : RXing core env run obs := by
+    intro i i' x y K W _ _ _ _ _ _
+    exact genesis_preceq W
+  have gap : ∀ t, env.t_GST ≤ t → t + 4 ≤ run.horizon → ∃ s,
+      t < v5T.proposal s ∧ v5T.proposal s ≤ t + 4 ∧ Gen.V2.Duty.HonestSlot run iface s := by
+    intro t ht _
+    obtain ⟨z, hz⟩ : ∃ z : Int, z = t := ⟨t, rfl⟩
+    subst hz
+    change (0 : Int) ≤ z at ht
+    have hs : (((z / 4 + 1).toNat : Nat) : Int) = z / 4 + 1 :=
+      Int.toNat_of_nonneg (by omega)
+    have hpos : 0 < (z / 4 + 1).toNat := by omega
+    refine ⟨(z / 4 + 1).toNat, ?_, ?_, hpos, ?_⟩
+    · change z < 4 * (((z / 4 + 1).toNat : Nat) : Int)
+      rw [hs]
+      omega
+    · change 4 * (((z / 4 + 1).toNat : Nat) : Int) ≤ z + 4
+      rw [hs]
+      omega
+    · have hp : V2.D.proposerOf run iface (z / 4 + 1).toNat = 7 := by
+        change (if 4 * (((z / 4 + 1).toNat : Nat) : Int) = 6 then 9 else 7) = 7
+        rw [ite_eq_right (by omega)]
+      rw [hp]
+      decide
+  have quorum : ∃ Q : Finset (Fin 1),
+      (∀ i ∈ Q, safetyHolder reads run i ∈ run.honest) ∧ v5E.q ≤ v5E.weightOf Q := by
+    refine ⟨{0}, ?_, by decide⟩
+    intro i hi
+    have hi' : i = 0 := by simpa using hi
+    subst i
+    decide
+  have agreement : ∀ r x y K L, x ∈ run.honest → y ∈ run.honest →
+      actionSourceFG core env run v5T x r = some (some K) →
+      actionSourceFG core env run v5T y r = some (some L) →
+      (obs.height K).T_h.root = (obs.height L).T_h.root →
+      (obs.height K).T_h = (obs.height L).T_h := by
+    intro r x y K L hx hy hK hL _
+    obtain ⟨_, rfl⟩ := observed_premises_sat.1 r x K hx hK
+    obtain ⟨_, rfl⟩ := observed_premises_sat.1 r y L hy hL
+    rfl
+  have sourceSlot : ∀ r x K, x ∈ run.honest →
+      actionSourceFG core env run v5T x r = some (some K) → K.slot ≤ r * v5T.roundSlots := by
+    intro r x K hx hK
+    obtain ⟨_, rfl⟩ := observed_premises_sat.1 r x K hx hK
+    rw [chain_slot]
+    change 2 * r ≤ r * 2
+    simp only [Slot] at *
+    omega
+  have ancestorSlot : ∀ r x K A, x ∈ run.honest →
+      actionSourceFG core env run v5T x r = some (some K) →
+      FGBlock.Preceq A K → A.slot ≤ K.slot := by
+    intro r x K A hx hK hA
+    obtain ⟨_, rfl⟩ := observed_premises_sat.1 r x K hx hK
+    obtain ⟨a, ha, rfl⟩ := chain_premises_sat.1 A (2 * r) hA
+    simpa only [chain_slot] using ha
+  have justified : ∀ i x, x ∈ run.honest →
+      (core.core (run.stateBefore env i x)).fg.h_j ≠ 0 → ∃ j y r a K,
+      j < i ∧ HonestRowAt reads env run v5T j y r a ∧
+      actionSourceFG core env run v5T y r = some (some K) ∧
+      (obs.height K).T_h = (core.core (run.stateBefore env i x)).fg.J :=
+    fun _ _ _ h => (h rfl).elim
+  have frame : ∀ q Q, HonestProposal env run iface q Q → ∃ j,
+      run.events[j]? = some (.tick (V2.D.proposerOf run iface q) (v5T.proposal q)) ∧
+      ∀ Qfg, core.erase Qfg = Q → FGBlock.Preceq
+        (obs.controls (run.stateBefore env j (V2.D.proposerOf run iface q))).Z Qfg.parent := by
+    intro q Q hp
+    obtain ⟨_, o, ⟨j, hj, _⟩, _⟩ := hp
+    refine ⟨j, hj, ?_⟩
+    intro Qfg _
+    rw [(phase_premises_sat.1 _).2]
+    exact genesis_preceq _
+  exact ⟨v5TLaws, le_rfl, crossing, execution_premises_sat.1, core_premises_sat.2.2.2.1,
+    fun _ _ _ _ _ => rfl, fun _ _ _ _ _ _ _ => rfl, ladready,
+    receipt_premises_sat.1, receipt_premises_sat.2, execution_premises_sat.2.2.1,
+    le_rfl, rfl, gap, by decide, by decide, slot, read, chain_premises_sat.2.1,
+    signer, sourceParent, rowsReceipt, progress, v9foldAdvance, quorum, agreement,
+    sourceSlot, ancestorSlot, v9erase_reflect, phase_premises_sat.2.2.1,
+    phase_premises_sat.2.2.2, owner_premises_sat.2.2, owner_premises_sat.2.1,
+    heldSlot, proposalSlot, justified, frame, v9erase_parent, capReceipt, cap_premises_sat,
+    ⟨7, by decide⟩⟩
+
+#print axioms family_premises_sat
+
 end AvailableChain.FGCompose.Tests.POP6bMixed
 end
