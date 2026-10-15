@@ -1,6 +1,7 @@
 module
 public import AvailableChainFGCompose.Proofs.Finality.Rows
 public import AvailableChainFGCompose.Proofs.Finality.RowsRecords
+public import AvailableChainFGCompose.Proofs.Population.RowsPrem
 
 public section
 
@@ -27,6 +28,63 @@ variable (m : KernelMiddleWitness_W R S O T E rho I D Ef decodeProposal bodyEras
   blockWireRows parentFG parentHeight validFor makeFG valid ac cfg K ΔF sp pt A)
 
 
+private def popc_middle_holder :
+    KernelMiddleWitnessFG_W R S O T E rho I D Ef decodeProposal bodyErase bodyRows
+      blockWireRows parentFG parentHeight validFor makeFG valid ac cfg K ΔF sp pt A := {
+    A₀ := m.A₀
+    B := m.B
+    U := m.U
+    X_D := m.X_D
+    cD := m.cD
+    d := m.d
+    opening := m.opening
+    eraseA := m.eraseA
+    carrierA := m.carrierA
+    carrierB := m.carrierB
+    carrierD := m.carrierD
+    honestB := m.honestB
+    honestD := m.honestD
+    slotA := m.slotA
+    slotB := m.slotB
+    slotD := m.slotD
+    earlySlot := m.earlySlot
+    heightA := m.heightA
+    highA := m.highA
+    heightB := m.heightB
+    entryB := m.entryB
+    freshEntry := m.freshEntry
+    strictAU := m.strictAU
+    pathUB := m.pathUB
+    freshSlot := m.freshSlot
+    parentAB := m.parentAB
+    parentBD := m.parentBD
+    sourceA := m.sourceA
+    sourceB := m.sourceB
+    serviceD := m.serviceD
+    heightD := m.heightD
+    justifiedD := m.justifiedD
+    justifiedHeightD := m.justifiedHeightD
+    pendingD := m.pendingD
+    retainedD := m.retainedD
+    noFirstHeight := m.noFirstHeight
+    noSecondHeight := m.noSecondHeight
+    noEarlyFinality := m.noEarlyFinality
+    chainA := m.chainA
+    chainB := m.chainB
+    chainD := m.chainD
+    freshD := m.freshD
+    noMixedD := m.noMixedD
+    batchB := m.batchB
+    batchD := m.batchD
+    targetsB := fun _ hi => m.targetsB _ hi
+    actionsInRun := m.actionsInRun
+    capThroughBAction := m.capThroughBAction
+    capThroughFinalAction := m.capThroughFinalAction
+    finalityThroughFinalAction := m.finalityThroughFinalAction
+    heldDAtFinalAction := m.heldDAtFinalAction
+    heldAAtEnd := m.heldAAtEnd
+  }
+
 /-- The selected action head consumes the exact walk and the middle's held caps. -/
 theorem rowsPrem_pending_head (height : FGHeightLaws Ef O.height)
     (bridge : HeightBridge Ef cfg O.height)
@@ -44,21 +102,7 @@ theorem rowsPrem_pending_head (height : FGHeightLaws Ef O.height)
         (O.height H).h = m.d + 2 ∧ (O.height H).J = m.U ∧
         (O.height H).h_j = m.d + 1 ∧ (O.finality H).h_F < m.d + 1 ∧
         (O.height H).T_h = (O.height m.X_D).T_h := by
-  intro x nd hx hnd
-  have hread := read x nd hnd
-  have hi : afterTicksIdx rho (T.action (pt.r + 2)) ≤ rho.events.length :=
-    List.length_filter_le _ _
-  apply pending_action_head_capped R O Ef cfg height bridge (m.d + 1) m.X_D m.U nd
-    (head x nd hx hnd) (walk x nd hx hnd) (reflect nd)
-  · rw [← hread]
-    exact m.heldDAtFinalAction x hx
-  · exact m.heightD
-  · exact m.justifiedD
-  · exact m.justifiedHeightD
-  · intro B hB
-    exact m.capThroughFinalAction _ x B hi le_rfl ⟨hx, by rw [hread]; exact hB⟩
-  · intro B hB
-    exact m.finalityThroughFinalAction _ x B hi le_rfl ⟨hx, by rw [hread]; exact hB⟩
+  exact rowsPrem_pending_head_holder (popc_middle_holder m) height bridge read head walk reflect
 
 /-- The opening/covered supplier produces an actual source at the middle action. -/
 theorem rowsPrem_action_source (CL : FGCoreLaws R) (height : FGHeightLaws Ef O.height)
@@ -71,16 +115,7 @@ theorem rowsPrem_action_source (CL : FGCoreLaws R) (height : FGHeightLaws Ef O.h
       postClock E rho x (T.action (pt.r + 2)) = some nd ∧ R.source nd = some C ∧
       FGBlock.Preceq m.X_D C ∧ (O.height C).h = m.d + 2 ∧
       (O.height C).T_h = (O.height m.X_D).T_h := by
-  intro x hx
-  apply finality_action_source R O T E rho CL Ef height x (pt.r + 2) (m.d + 1)
-    m.cD m.X_D (service x hx) m.earlySlot.2 m.heightD
-  intro nd hnd B hB
-  exact m.capThroughFinalAction _ x B (List.length_filter_le _ _) le_rfl
-    ⟨hx, by
-      change B ∈ (R.core (V2.D.Run.stateBefore E rho
-        (afterTicksIdx rho (T.action (pt.r + 2))) x)).fg.TF
-      rw [read x nd hnd]
-      exact hB⟩
+  exact rowsPrem_action_source_holder (popc_middle_holder m) CL height read service
 
 /-- The actual earlier sources and the middle cap bound the anchor height. -/
 theorem rowsPrem_anchor_cap (CL : FGCoreLaws R) (L : FGTimingLaws T)
@@ -92,20 +127,7 @@ theorem rowsPrem_anchor_cap (CL : FGCoreLaws R) (L : FGTimingLaws T)
         T.action r < cut → h < b + 1) → (O.height W).h < b + 2) :
     ∀ i x W, i ≤ V2.D.Run.idxBefore rho (T.action (pt.r + 3)) →
       HeldAt R E rho i x W → (O.height W).h ≤ m.d + 3 := by
-  apply actual_anchor_cap R S O T E rho (pt.r + 2) (m.d + 1) hcapBefore
-  intro j x r a u h B timeout ha hu hp hr
-  obtain ⟨C, hsrc, he⟩ := names j x r a (h, B) ha (by
-    rw [D.decode_height a u hu, hp]; rfl)
-  obtain ⟨i, hi, _hilt, hheld⟩ := kmid_source_held_at_tick R T E rho CL hs ha.1 hsrc
-  have hrq : r ≤ pt.r + 2 := by
-    have hlt : r < pt.r + 3 := (kmid_action_strictMono T L).lt_iff_lt.mp hr
-    omega
-  have hcut := kmid_tick_lt_afterTicks E rho hs hi ((kmid_action_strictMono T L).monotone hrq)
-  have bound := m.capThroughFinalAction i x C (List.getElem?_eq_some_iff.mp hi).1.le
-    hcut.le hheld
-  have hh : h = (O.height C).h := congrArg Prod.fst he
-  rw [hh]
-  exact bound
+  exact rowsPrem_anchor_cap_holder (popc_middle_holder m) CL L hs names hcapBefore
 
 /-- The same pending key survives the proved anchor cap or is already covered. -/
 theorem rowsPrem_anchor_retained_or_covered
@@ -114,9 +136,8 @@ theorem rowsPrem_anchor_retained_or_covered
     (hDB : FGBlock.Preceq m.X_D B) (hcap : (O.height B).h ≤ m.d + 3) :
     KitFG.Window.RetainedW Ef cfg K B (m.d + 1) m.U ∨
       KitFG.Window.CoveredW Ef cfg K B (m.d + 1) m.U := by
-  apply actual_anchor_retained_or_covered Ef cfg K hne hK (m.d + 1) m.X_D m.U B hDB m.retainedD
-  simpa only [height_eq] using hcap
-
+  exact rowsPrem_anchor_retained_or_covered_holder (popc_middle_holder m)
+    height_eq hne hK B hDB hcap
 
 /-- Combine the proved action source, pending head, and record guards at one action. -/
 theorem rowsPrem_fresh_rows (height : FGHeightLaws Ef O.height)
@@ -157,21 +178,8 @@ theorem rowsPrem_fresh_rows (height : FGHeightLaws Ef O.height)
         some (m.d + 2, (O.height m.X_D).T_h.root)) ∧
       (∀ i ∈ seats, D.heightPair (rows i) =
         .vote (m.d + 2) (O.height m.X_D).T_h.root false) := by
-  apply fresh_unanimous_rows R S O T E rho D Ef cfg valid height bridge makeWire
-    wireDecode wireValid client release (pt.r + 2) (m.d + 1) m.X_D m.U seats hS hQ m.heightD
-  · intro i hi
-    obtain ⟨nd, C, hnd, hsrc, hDC, hCh, _⟩ :=
-      sources _ (hS i hi)
-    exact ⟨nd, C, hnd, awake _ (hS i hi), hsrc, hDC, hCh⟩
-  · intro i hi nd hnd
-    obtain ⟨H, hH, _, _, hJ, hj, hF, _⟩ :=
-      heads _ nd (hS i hi) hnd
-    rw [fields nd H hH]
-    exact ⟨hj, congrArg FGBlock.root hJ, hF⟩
-  · intro i hi nd hnd
-    exact records _ nd (hS i hi) hnd
-  · intro i _ j r a h hr ha hh
-    exact rowsPrem_earlier_height L (pt.r + 2) (m.d + 2) m.noSecondHeight j _ r a h hr ha hh
+  exact rowsPrem_fresh_rows_holder (popc_middle_holder m) height bridge makeWire wireDecode
+    wireValid client release sources heads fields records L seats hS hQ awake
 
 end AvailableChain.FGCompose
 end
