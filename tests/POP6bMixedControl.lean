@@ -133,5 +133,69 @@ private theorem execution_premises_sat :
 
 #print axioms execution_premises_sat
 
+private def shapeStep (w : Nat → Nat) (e : Bool × Nat × Nat) : Nat → Nat :=
+  if e.1 then w else Function.update w e.2.1 (max (w e.2.1) (e.2.2 / 4))
+private def shapeState (es : List (Bool × Nat × Nat)) : Nat → Nat :=
+  es.foldl shapeStep (fun _ => 0)
+
+-- This is a proved calculation of this ordinary event fold, with the actual releases.
+private theorem fold_premises_sat :
+    (∀ i x, run.stateBefore env i x = shapeState (eventShape.take i) x) ∧
+    (∀ t x, run.stateBeforeTime env t x =
+      shapeState (eventShape.filter (fun e => decide ((e.2.2 : Time) < t))) x) ∧
+    (∀ j x t, run.events[j]? = some (.tick x t) →
+      postClock env run x t = some (shapeState (eventShape.take j) x)) := by
+  have tick (st x : Nat) (t : Time) : (V2.D.tick env run st x t).1 = st := by
+    change List.foldl (fun st (_ : protocol.Object) => st) st _ = st
+    exact List.foldl_fixed _
+  have step (w : Nat → Nat) (e : Bool × Nat × Nat) :
+      V2.D.World.step env run w (eventOf e) = shapeStep w e := by
+    obtain ⟨b, x, t⟩ := e
+    cases b
+    · change Function.update w x (max (w x) (chain (t / 4)).slot) =
+        Function.update w x (max (w x) (t / 4))
+      rw [chain_slot]
+    · change Function.update w x (V2.D.tick env run (w x) x (t : Time)).1 = w
+      rw [tick, Function.update_eq_self]
+  have fold (es : List (Bool × Nat × Nat)) (w : Nat → Nat) :
+      (es.map eventOf).foldl (V2.D.World.step env run) w = es.foldl shapeStep w := by
+    rw [List.foldl_map]
+    simp only [step]
+  have prefixCalc (i x : Nat) : run.stateBefore env i x = shapeState (eventShape.take i) x := by
+    unfold V2.D.Run.stateBefore
+    change (((eventShape.map eventOf).take i).foldl (V2.D.World.step env run)
+      (fun _ => 0)) x = _
+    rw [← List.map_take, fold]
+    rfl
+  have before (t : Time) (x : Nat) : run.stateBeforeTime env t x =
+      shapeState (eventShape.filter (fun e => decide ((e.2.2 : Time) < t))) x := by
+    have time (e : Bool × Nat × Nat) : (eventOf e).time = (e.2.2 : Time) := by
+      obtain ⟨b, x, d⟩ := e
+      cases b <;> rfl
+    unfold V2.D.Run.stateBeforeTime
+    change (((eventShape.map eventOf).filter (fun e => decide (e.time < t))).foldl
+      (V2.D.World.step env run) (fun _ => 0)) x = _
+    rw [List.filter_map, fold]
+    simp only [Function.comp_def, time]
+    rfl
+  refine ⟨prefixCalc, before, ?_⟩
+  intro j x t hj
+  have hjl : j < run.events.length := (List.getElem?_eq_some_iff.mp hj).1
+  obtain ⟨k, hk⟩ : ∃ k, V2.D.Run.tickIdx? run x t = some k := by
+    rw [V2.D.Run.tickIdx?, ← Option.isSome_iff_exists, List.findIdx?_isSome, List.any_eq_true]
+    refine ⟨run.events[j], List.getElem_mem hjl, ?_⟩
+    rw [(List.getElem?_eq_some_iff.mp hj).2]
+    simp
+  have hk' := V2.D.Run.tickIdx?_spec hk
+  have hkj : k = j := by
+    have hkl : k < run.events.length := (List.getElem?_eq_some_iff.mp hk').1
+    apply (execution_premises_sat.1.nodup.getElem_inj_iff (hi := hkl) (hj := hjl)).mp
+    rw [(List.getElem?_eq_some_iff.mp hk').2, (List.getElem?_eq_some_iff.mp hj).2]
+  simp only [postClock, preTick, hk, hkj, Option.map_some]
+  change some (run.stateBefore env j x) = _
+  rw [prefixCalc]
+
+#print axioms fold_premises_sat
+
 end AvailableChain.FGCompose.Tests.POP6bMixed
 end
