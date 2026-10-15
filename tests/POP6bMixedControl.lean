@@ -830,5 +830,50 @@ private theorem mixed_full :
 
 #print axioms mixed_full
 
+private theorem reset_premises_sat :
+    FGHeightLaws v5E obs.height ∧ FGCoreLaws core ∧ FGTreeKeepLaws core ∧
+    (∀ i x, FGStoreInvariant obs.height obs.finality
+      (core.core (run.stateBefore env i x)).fg) ∧
+    (∀ {j : Nat} {x : Nat} {r : Nat} {a : Row (Fin 1)} {e : Height × BlockId},
+      HonestRowAt reads env run v5T j x r a → namedEntry (Row.height_pair a) = some e →
+      ∃ C, actionSourceFG core env run v5T x r = some (some C) ∧
+        e = ((obs.height C).h, (obs.height C).T_h.root)) ∧
+    V2.D.ScheduleWellFormed env run ∧ (0 : Time) ≤ 12 ∧ env.t_GST ≤ (12 : Time) ∧
+    (4 : Nat) = 2 * v5T.roundSlots ∧ LivenessBoundW v5T 1 ∧ (0 : Time) ≤ 16 ∧
+    (∀ i ev m kind, FrontierSearchStart core env run obs v5T 12 i ev m kind →
+      (12 : Time) + 2 * FGCompose.P v5T ≤ ev.time →
+      FrontierRepairAllowance core env run obs v5T iface 12 1 4 16
+        (ev.time + 3 * v5T.delta)) ∧
+    FrontierSearchFamilyStatement core reads env run obs v5T iface Row.height_pair 12 1 4
+      4 1 16 ∧
+    (209 : Time) = 3 * FGCompose.P v5T +
+      (E_gF v5T 1 4 16 + E_jF v5T 1 4 16 + B_cF v5T 1 4 16) +
+      (E_gF v5T 1 4 16 + E_jF v5T 1 4 16 + D_cF v5T 16) ∧
+    (12 : Time) + 209 ≤ run.horizon ∧ run.honest.Nonempty := by
+  obtain ⟨hd, hb, _, _, _, _, _, _, family, _, _⟩ := search_premises_sat
+  have search : FrontierSearchFamilyStatement core reads env run obs v5T iface
+      Row.height_pair 12 1 4 4 1 16 := by
+    apply (FrontierSearchFamilyStatement_def core reads env run obs v5T iface
+      Row.height_pair 12 1 4 4 1 16).mpr
+    intro hδ hbound _ _ rG u M ha first hcut hdelay hm cap
+    have hu : 12 ≤ u := by
+      change 12 + 16 ≤ u at hdelay
+      simp only [Time] at *
+      omega
+    have allow := allowance_premises_sat u 16 hu le_rfl
+    obtain ⟨rise, rows⟩ := (FrontierSearchStatement_def core reads env run obs v5T iface
+      Row.height_pair 12 1 4 4 1).mp mixed_full hδ hbound rG u M ha first hcut hdelay hm cap
+    refine ⟨rise 16 allow, ?_⟩
+    intro hor
+    obtain ⟨r, hr, hfirst, hall⟩ := rows ⟨16, allow, hor⟩
+    exact ⟨r, hr, hfirst, hall 16 allow hor⟩
+  exact ⟨v5cert.height, core_premises_sat.1, core_premises_sat.2.1,
+    fun _ _ => geometry_premises_sat.2.2 _, entry_premises_sat.2.2,
+    execution_premises_sat.1, by decide, by decide, hd, hb, by decide, family, search,
+    by decide +kernel, by decide, ⟨7, by decide⟩⟩
+
+#print axioms reset_premises_sat
+
+
 end AvailableChain.FGCompose.Tests.POP6bMixed
 end
