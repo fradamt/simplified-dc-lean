@@ -1335,6 +1335,7 @@
     'AvailableChain.FGCompose.frontierSearch_hg2a_bound',
     'AvailableChain.FGCompose.frontierSearch_hg2a_gap',
     'AvailableChain.FGCompose.frontierSearch_hg2a_gate_cost',
+    'AvailableChain.FGCompose.frontierSearch_holder',
     'AvailableChain.FGCompose.frontierSearch_initial_J_age',
     'AvailableChain.FGCompose.frontierSearch_period_bound',
     'AvailableChain.FGCompose.frontierSearch_phaseRank',
