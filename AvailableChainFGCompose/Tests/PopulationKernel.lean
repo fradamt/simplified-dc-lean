@@ -2591,6 +2591,95 @@ private theorem reset_premises_sat :
 
 #print axioms reset_premises_sat
 
+private theorem universal_action_premises_sat : ∀ A (m : middleType A),
+    KernelActionSupplyFG_W core reads obs timing (env Nat) run interface history
+      electorate m := by
+  have readStage : ∀ x : Fin 2,
+      (postClock (env Nat) run (node x) 54).map (fun st : protocol.State => st.1.val) =
+        some 6 := by decide +kernel
+  have endStage : ∀ x : Fin 2,
+      (V2.D.Run.stateBefore (env Nat) run (afterTicksIdx run 54) (node x)).1.val = 6 := by
+    decide +kernel
+  have honestRead (x : Nat) (nd : protocol.State)
+      (hnd : postClock (env Nat) run x 54 = some nd) : x = 7 ∨ x = 9 := by
+    unfold postClock preTick at hnd
+    cases hi : V2.D.Run.tickIdx? run x 54 with
+    | none => simp only [hi, Option.map_none] at hnd; contradiction
+    | some j =>
+      have he := V2.D.Run.tickIdx?_spec hi
+      have hx := schedule_premises_sat.honest_only _ (List.mem_of_getElem? he)
+      change x ∈ run.honest at hx
+      simpa using hx
+  have stageRead (x : Nat) (nd : protocol.State)
+      (hnd : postClock (env Nat) run x 54 = some nd) : nd.1.val = 6 := by
+    have h := congrArg (Option.map (fun st : protocol.State => st.1.val)) hnd
+    rcases honestRead x nd hnd with rfl | rfl
+    · have hr := readStage 0
+      change (postClock (env Nat) run 7 54).map _ = some 6 at hr
+      rw [hr] at h
+      exact (Option.some.inj h).symm
+    · have hr := readStage 1
+      change (postClock (env Nat) run 9 54).map _ = some 6 at hr
+      rw [hr] at h
+      exact (Option.some.inj h).symm
+  intro A m
+  have hc : m.cD = 12 := by
+    have h := m.earlySlot
+    have hk : kappaF timing 2 = 2 := by decide
+    change 10 + kappaF timing 2 ≤ m.cD ∧ m.cD ≤ 12 at h
+    rw [hk] at h
+    simp only [Slot] at *
+    omega
+  obtain ⟨k, hs, hQ⟩ := proposal_cases m.cD (erase m.X_D) m.honestD
+  rw [hc] at hs
+  have hk : k = 5 := Fin.ext (by simp only [Slot] at *; omega)
+  subst k
+  have hD : m.X_D = block 6 := erase_injective_premises_sat hQ
+  constructor
+  · intro x nd hnd
+    change postClock (env Nat) run x 54 = some nd at hnd
+    have hv := stageRead x nd hnd
+    change store (V2.D.Run.stateBefore (env Nat) run (afterTicksIdx run 54) x).1.val =
+      store nd.1.val
+    rw [hv]
+    rcases honestRead x nd hnd with rfl | rfl
+    · have he := endStage 0
+      change (V2.D.Run.stateBefore (env Nat) run (afterTicksIdx run 54) 7).1.val = 6 at he
+      rw [he]
+    · have he := endStage 1
+      change (V2.D.Run.stateBefore (env Nat) run (afterTicksIdx run 54) 9).1.val = 6 at he
+      rw [he]
+  · intro x hx
+    rw [hc, hD]
+    constructor
+    · intro _
+      have hx' : x = 7 ∨ x = 9 := by simpa using hx
+      have hs : actionSourceFG core (env Nat) run timing x 6 = some (some (block 6)) := by
+        rcases hx' with rfl | rfl
+        · exact trace_premises_sat.2.2.2 6 0
+        · exact trace_premises_sat.2.2.2 6 1
+      change (postClock (env Nat) run x 54).map core.source = _ at hs
+      cases hst : postClock (env Nat) run x 54 with
+      | none => simp only [hst, Option.map_none] at hs; contradiction
+      | some st =>
+        rw [hst] at hs
+        exact ⟨st, hst, Option.some.inj hs⟩
+    · intro h
+      change (12 : Nat) < 12 at h
+      omega
+  · intro x nd _ _
+    exact ⟨block nd.1, rfl, core_premises_sat.source_mem nd _ rfl⟩
+  · intro x nd _ hnd H hH
+    change postClock (env Nat) run x 54 = some nd at hnd
+    have hv := stageRead x nd hnd
+    have he : block nd.1 = H := Option.some.inj hH
+    subst H
+    change Block.Preceq (erase m.X_D) (erase (block nd.1.val))
+    rw [hD, hv]
+    decide +kernel
+
+#print axioms universal_action_premises_sat
+
 end Owner
 
 end AvailableChain.FGCompose.Tests.PopulationKernel
