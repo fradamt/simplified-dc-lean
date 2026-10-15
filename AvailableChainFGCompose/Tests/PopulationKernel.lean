@@ -2175,6 +2175,20 @@ private theorem certificate_premises_sat :
 
 #print axioms certificate_premises_sat
 
+private theorem data_premises_sat :
+    (∀ k : Fin 8,
+      (obs.height (block k)).h = k.val + 1 ∧ (obs.height (block k)).T_h = block k ∧
+      (obs.height (block k)).J = block (k.val - 1) ∧ (obs.height (block k)).h_j = k.val ∧
+      (obs.finality (block k)).F = block (k.val - 2) ∧
+      (obs.finality (block k)).h_F = k.val - 1 ∧
+      (store k).TF = (Finset.range (k.val + 1)).image block ∧
+      (store k).h_max = k.val + 1 ∧ (store k).F = block (k.val - 2)) ∧
+    (∀ i j : Fin 8, FGBlock.Preceq (block i) (block j) ↔ i ≤ j) ∧
+    (∀ i j : Fin 8, (block i).root = (block j).root → i = j) := by
+  exact ⟨by decide +kernel, by decide +kernel, by decide +kernel⟩
+
+#print axioms data_premises_sat
+
 end Owner
 
 end AvailableChain.FGCompose.Tests.PopulationKernel
