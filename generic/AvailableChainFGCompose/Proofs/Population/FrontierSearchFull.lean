@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchTasks
 public import AvailableChainFGCompose.Proofs.Population.FrontierSearchTasks
 
 public section

@@ -942,26 +942,6 @@ theorem ff2_high_record_guards :
     i x hx (O.height C).h hhigh
   simpa only [hentry] using And.intro ht (And.intro hn hl)
 
-include J in
-private theorem d7r_history (e : Fin n ≃ V)
-    (he : ∀ k, rho.seatOf S.fgLabel (S.fgSeats k) = e k) (i : Nat) (x : V) :
-    FGRowRecordHistory (S.record (V2.D.Run.stateBefore E rho i x)) := by
-  rw [(safety_client_trace S Ef cfg E rho J e he x i).1]
-  let inputs := (List.range i).filterMap (safetyInputAt S E rho x)
-  have hc := clientRunOnce_covers Ef cfg (e.symm x) inputs RecordOnce.initial recordInv_initial
-  refine ⟨hc.1, ?_⟩
-  intro h U timeout fp hm
-  rw [clientRecordOnce_sent] at hm
-  change (.vote h U timeout, fp) ∈
-    ((clientRunOnce Ef cfg (e.symm x) RecordOnce.initial inputs).map
-      Row.onceKey).reverse ++ [] at hm
-  simp only [List.append_nil, List.mem_reverse, List.mem_map] at hm
-  obtain ⟨a, ha, hk⟩ := hm
-  have hh := congrArg Prod.fst hk
-  change a.height_pair = .vote h U timeout at hh
-  exact ⟨fun ht => (hc.2.2 a ha).1 h U (ht ▸ hh),
-    fun ht => (hc.2.2 a ha).2.1 h U (ht ▸ hh)⟩
-
 private theorem d7r_sent_origin (ls : List P.Object) (Λ : RecordOnce)
     (b : NamedHeightPair × Option FinalityPair)
     (hm : b ∈ (ls.foldl (safetyRecordStep S) Λ).sent) :

@@ -1,5 +1,6 @@
 # POP-C shared holder corollaries and their audit roots.
 [TARGETS]
+AvailableChainFGCompose.Tests.PopulationSearchSeed
 AvailableChainFGCompose.Proofs.Finality.Kernel
 AvailableChainFGCompose.Proofs.Finality.Middle
 AvailableChainFGCompose.Proofs.Finality.RecordInv
