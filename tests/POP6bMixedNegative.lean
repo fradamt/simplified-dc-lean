@@ -37,5 +37,28 @@ private theorem old_coverage_rejected : ¬ OpeningCovered core reads env run obs
 
 #print axioms old_coverage_rejected
 
+-- All common-supplier antecedents are inhabited by active_premises_sat.
+-- Its sole failed output is the legacy row requirement at honest nonholder 7.
+private theorem old_owner_common_rejected : ¬ (∀ u m J c q Q Qfg r,
+    (12 : Time) ≤ u → HonestProposal env run iface q Q → v5erase Qfg = Q →
+    FrontierProposalService core env run v5T q Q →
+    FrontierSeedQualification v5T 1 env.t_GST u q → u ≤ v5T.proposal q →
+    q ≤ r * v5T.roundSlots → (∀ r', q ≤ r' * v5T.roundSlots → r ≤ r') →
+    PhaseInterval core env run obs u (v5T.action r) m J c →
+    OpeningCovered core reads env run obs.height v5T wire.heightPair r Q ∧
+    ((obs.height Qfg).h = m - 1 → OpeningEntry core env run obs.height v5T r (m - 1) ∨
+      ∃ x K, x ∈ run.honest ∧ actionSourceFG core env run v5T x r = some (some K) ∧
+        (obs.height K).h = m)) := by
+  intro common
+  obtain ⟨_, _, _, _, prop, seed, phase, svc, _, _, _, _, _, _, _⟩ := active_premises_sat
+  have h := common 17 2 none false 6 (v5erase (chain 6)) (chain 6) 3 (by decide)
+    prop rfl svc seed (by decide) (by decide) (fun r hr => by
+      change 6 ≤ r * 2 at hr
+      simp only [Slot] at *
+      omega) phase
+  exact old_coverage_rejected h.1
+
+#print axioms old_owner_common_rejected
+
 end AvailableChain.FGCompose.Tests.POP6bNegative
 end
