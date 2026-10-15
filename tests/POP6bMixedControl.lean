@@ -255,5 +255,49 @@ private theorem proposal_premises_sat : ∀ s : Fin 65, 1 ≤ s.val →
 
 #print axioms proposal_premises_sat
 
+private theorem classification_premises_sat :
+    (∀ s B, HonestProposal env run iface s B →
+      1 ≤ s ∧ s ≤ 64 ∧ B = v5erase (chain s)) ∧
+    (∀ j x r a, HonestRowAt reads env run v5T j x r a →
+      r < 32 ∧ x = 9 ∧ a = wireAt r) := by
+  constructor
+  · intro s B h
+    obtain ⟨⟨hs, _⟩, o, ⟨j, hj, ho⟩, hb⟩ := h
+    have hp : V2.D.proposerOf run iface s = 7 := by
+      change (if 4 * (s : Int) = 6 then 9 else 7) = 7
+      rw [ite_eq_right (by omega)]
+    rw [hp] at hj
+    have ht := (execution_premises_sat.1.in_horizon _ (List.mem_of_getElem? hj)).2
+    have hs64 : s ≤ 64 := by
+      change 4 * (s : Int) ≤ 256 at ht
+      have hsi : (s : Int) ≤ 64 := by omega
+      exact_mod_cast hsi
+    rw [emissions_premises_sat j 7 _ hj] at ho
+    have table : ∀ s : Fin 65, 1 ≤ s.val → output 7 (v5T.proposal s) =
+        [⟨.seat (4 * (s.val : Time)) 0, .inr (chain s)⟩] := by decide +kernel
+    rw [show V2.D.proposalTime iface s = v5T.proposal s from rfl,
+      table ⟨s, Nat.lt_succ_of_le hs64⟩ hs, List.mem_singleton] at ho
+    subst o
+    exact ⟨hs, hs64, (Option.some.inj hb).symm⟩
+  · intro j x r a h
+    have ht := (execution_premises_sat.1.in_horizon _ (List.mem_of_getElem? h.2.1)).2
+    have hr : r < 32 := by change 8 * (r : Int) + 6 ≤ 256 at ht; omega
+    have table : ∀ r : Fin 32,
+        output 7 (v5T.action r) = [] ∧
+        output 9 (v5T.action r) =
+          [reads.encode (wireAt r)] := by decide +kernel
+    have hx : x = 7 ∨ x = 9 := by simpa only [run, Finset.mem_insert,
+      Finset.mem_singleton] using h.1
+    have hem := h.2.2
+    rw [emissions_premises_sat j x _ h.2.1] at hem
+    rcases hx with rfl | rfl
+    · rw [(table ⟨r, hr⟩).1] at hem
+      cases hem
+    · rw [(table ⟨r, hr⟩).2] at hem
+      have ha := congrArg V2.Signed.payload (List.mem_singleton.mp hem)
+      exact ⟨hr, rfl, Sum.inl.inj ha⟩
+
+#print axioms classification_premises_sat
+
 end AvailableChain.FGCompose.Tests.POP6bMixed
 end
