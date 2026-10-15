@@ -39,10 +39,11 @@ private theorem core_premises_sat : FGCoreLaws core ∧ FGTreeKeepLaws core ∧
       | inl a => exact Finset.Subset.refl _
       | inr X => exact stores (Nat.le_max_left st X.slot)
     · intro st C hC
-      have hC' : chain (min st 64) = C := Option.some.inj hC
+      have hC' : chain (min (st - 1) 64) = C := Option.some.inj hC
       rw [← hC']
       exact List.mem_toFinset.mpr (List.mem_map.mpr
-        ⟨min st 64, List.mem_range.mpr (by omega), rfl⟩)
+        ⟨min (st - 1) 64, List.mem_range.mpr (Nat.lt_succ_of_le
+          (min_le_min (Nat.sub_le st 1) le_rfl)), rfl⟩)
   have tree : FGTreeKeepLaws core := ⟨fun _ _ => Finset.Subset.refl _⟩
   refine ⟨laws, tree, fun _ _ hij x => tf_cumulative_all core env run laws tree hij x,
     ?_, fun _ _ h => ancestry h, fun _ _ h => stores h⟩
@@ -57,7 +58,7 @@ private theorem core_premises_sat : FGCoreLaws core ∧ FGTreeKeepLaws core ∧
 
 #print axioms core_premises_sat
 
-private abbrev tickIndex (t : Nat) : Nat := 2 * t + 2 * ((t - 4) / 4)
+private abbrev tickIndex (t : Nat) : Nat := 2 * t + 2 * ((t - 1) / 4)
 
 private theorem execution_premises_sat :
     V2.D.ScheduleWellFormed env run ∧ FGHonestSeats reads run = {0} ∧
@@ -198,18 +199,18 @@ private theorem fold_premises_sat :
 #print axioms fold_premises_sat
 
 private theorem action_premises_sat : ∀ r : Fin 32, ∀ x ∈ run.honest,
-    postClock env run x (v5T.action r) = some (2 * r.val) ∧
+    postClock env run x (v5T.action r) = some (2 * r.val + 1) ∧
     actionSourceFG core env run v5T x r = some (some (chain (2 * r.val))) := by
   have table : ∀ r : Fin 32,
-      shapeState (eventShape.take (tickIndex (8 * r.val + 6))) 7 = 2 * r.val ∧
-      shapeState (eventShape.take (tickIndex (8 * r.val + 6) + 1)) 9 = 2 * r.val := by
+      shapeState (eventShape.take (tickIndex (8 * r.val + 6))) 7 = 2 * r.val + 1 ∧
+      shapeState (eventShape.take (tickIndex (8 * r.val + 6) + 1)) 9 = 2 * r.val + 1 := by
     decide +kernel
   intro r x hx
   have hx' : x = 7 ∨ x = 9 := by simpa [run] using hx
   have ht : v5T.action r = ((8 * r.val + 6 : Nat) : Time) := by
     dsimp [v5T]
   have hs := execution_premises_sat.2.2.2 ⟨8 * r.val + 6, by omega⟩
-  have hp : postClock env run x (v5T.action r) = some (2 * r.val) := by
+  have hp : postClock env run x (v5T.action r) = some (2 * r.val + 1) := by
     rw [ht]
     rcases hx' with rfl | rfl
     · rw [fold_premises_sat.2.2 _ _ _ hs.1, (table r).1]
@@ -221,6 +222,38 @@ private theorem action_premises_sat : ∀ r : Fin 32, ∀ x ∈ run.honest,
   rw [Nat.min_eq_left (by omega)]
 
 #print axioms action_premises_sat
+
+private theorem proposal_premises_sat : ∀ s : Fin 65, 1 ≤ s.val →
+    V2.D.proposerOf run iface s = 7 ∧
+    HonestCarrier env run iface (kernelCarrier decodeProposal v5erase FGBlock.rows)
+      s (v5erase (chain s)) (chain s).rows ∧
+    postClock env run 7 (v5T.proposal s) = some (s.val - 1) := by
+  have table : ∀ s : Fin 65, 1 ≤ s.val →
+      shapeState (eventShape.take (tickIndex (4 * s.val))) 7 = s.val - 1 := by decide +kernel
+  have out : ∀ s : Fin 65, 1 ≤ s.val → output 7 (v5T.proposal s) =
+      [⟨.seat (4 * (s.val : Time)) 0, .inr (chain s)⟩] := by decide +kernel
+  intro s hs
+  have hp : V2.D.proposerOf run iface s = 7 := by
+    change (if 4 * (s.val : Int) = 6 then 9 else 7) = 7
+    rw [ite_eq_right (by omega)]
+  have ht : v5T.proposal s = (4 * s.val : Nat) := by dsimp [v5T]
+  have hj : run.events[tickIndex (4 * s.val)]? = some (.tick 7 (v5T.proposal s)) := by
+    rw [ht]
+    exact (execution_premises_sat.2.2.2 ⟨4 * s.val, by omega⟩).1
+  have he : (⟨.seat (4 * (s.val : Time)) 0, .inr (chain s)⟩ : protocol.Object) ∈
+      V2.D.Run.emitsAt env run (tickIndex (4 * s.val)) := by
+    rw [emissions_premises_sat _ _ _ hj, out s hs]
+    exact List.mem_singleton_self _
+  have honest : HonestProposal env run iface s (v5erase (chain s)) :=
+    ⟨⟨hs, hp ▸ (by decide)⟩, ⟨.seat (4 * (s.val : Time)) 0, .inr (chain s)⟩,
+      ⟨tickIndex (4 * s.val), hp ▸ hj, he⟩, rfl⟩
+  exact ⟨hp, ⟨honest, ⟨.seat (4 * (s.val : Time)) 0, .inr (chain s)⟩,
+    ⟨tickIndex (4 * s.val), hp ▸ hj, he⟩, chain s, by
+      change some ((chain s).slot, chain s) = _
+      rw [chain_slot], rfl, rfl⟩,
+    (fold_premises_sat.2.2 _ _ _ hj).trans (congrArg some (table s hs))⟩
+
+#print axioms proposal_premises_sat
 
 end AvailableChain.FGCompose.Tests.POP6bMixed
 end
