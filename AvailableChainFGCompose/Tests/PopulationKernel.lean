@@ -921,5 +921,23 @@ private theorem target_supplier_premises_sat :
 
 #print axioms target_supplier_premises_sat
 
+private theorem opening_premises_sat :
+    HonestProposal (env Nat) run interface 2 (erase aBlock) ∧
+    ∀ A, HonestProposal (env Nat) run interface 2 A → A = erase aBlock := by
+  refine ⟨⟨⟨by decide, by decide⟩, prop aBlock, ⟨9, rfl, by decide +kernel⟩, rfl⟩, ?_⟩
+  intro A ⟨_, o, ⟨j, hj, ho⟩, hb⟩
+  have he : run.events[j]? = some (.tick 7 8) := hj
+  have idx : j = 9 := by
+    have hjlt : j < 34 := (List.getElem?_eq_some_iff.mp he).1
+    have unique : ∀ k : Fin 34, run.events[k.val]? = some (.tick 7 8) → k.val = 9 := by
+      decide +kernel
+    exact unique ⟨j, hjlt⟩ he
+  subst j
+  change o ∈ [prop aBlock] at ho
+  obtain rfl := List.mem_singleton.mp ho
+  exact (Option.some.inj hb).symm
+
+#print axioms opening_premises_sat
+
 end AvailableChain.FGCompose.Tests.PopulationKernel
 end
