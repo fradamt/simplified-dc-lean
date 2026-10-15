@@ -1999,6 +1999,35 @@ private theorem client_premises_sat : FGSafetyClientLaws reads electorate cfg wh
 
 #print axioms client_premises_sat
 
+private theorem schedule_premises_sat : V2.D.ScheduleWellFormed (env Nat) run := by
+  have info : ∀ j : Fin 144,
+      0 ≤ run.events[j.val].time ∧ run.events[j.val].time ≤ 57 ∧
+        run.events[j.val].node ∈ run.honest := by decide +kernel
+  constructor
+  · decide
+  · decide +kernel
+  · decide +kernel
+  · intro e he
+    obtain ⟨j, hj, rfl⟩ := List.getElem_of_mem he
+    exact ⟨(info ⟨j, hj⟩).1, (info ⟨j, hj⟩).2.1⟩
+  · intro e he
+    obtain ⟨j, hj, rfl⟩ := List.getElem_of_mem he
+    exact (info ⟨j, hj⟩).2.2
+  · intro x t ht
+    obtain ⟨j, hj, h⟩ := List.getElem_of_mem ht
+    have htime : run.events[j].time = t := congrArg V2.Event.time h
+    have hn : 0 ≤ t := by rw [← htime]; exact (info ⟨j, hj⟩).1
+    exact ⟨t.toNat, by simpa using (Int.toNat_of_nonneg hn).symm⟩
+  · intro x hx t ht hn hh _
+    have hx' : x = 7 ∨ x = 9 := by simpa using hx
+    obtain ⟨k, rfl⟩ := ht
+    change 0 ≤ (k : Int) * 1 at hn
+    change (k : Int) * 1 ≤ 57 at hh
+    have hk : k ≤ 57 := by omega
+    rcases hx' with rfl | rfl <;> interval_cases k <;> decide +kernel
+
+#print axioms schedule_premises_sat
+
 end Owner
 
 end AvailableChain.FGCompose.Tests.PopulationKernel
