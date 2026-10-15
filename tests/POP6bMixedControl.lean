@@ -779,5 +779,56 @@ private theorem search_premises_sat :
 
 #print axioms search_premises_sat
 
+-- The production family selects the witnesses; inspection retains every original budget.
+private theorem mixed_full :
+    FrontierSearchStatement core reads env run obs v5T iface wire.heightPair 12 1 4 4 1 := by
+  obtain ⟨hd, hb, hafter, hfirst, hcut, hdelay, hM, rowCap, family, hhor, idx,
+    atCut, beforeRise, afterRise, event, row4, lower, bounds⟩ := search_premises_sat
+  have mono (a b : Nat) (hab : a ≤ b) :
+      frontierAtIdx core env run a ≤ frontierAtIdx core env run b := by
+    unfold frontierAtIdx
+    apply Finset.sup_le
+    intro x hx
+    exact (core_premises_sat.2.2.2.1.mono a b x hx hab).2.2.trans
+      (Finset.le_sup (f := fun y => (core.core (run.stateBefore env b y)).fg.h_max) hx)
+  apply (FrontierSearchStatement_def core reads env run obs v5T iface wire.heightPair
+    12 1 4 4 1).mpr
+  intro hδ hbound rG u₀ M hgst first hu₀ _ hfront _
+  have hrG := ladfirst hgst first
+  rcases hrG with rfl
+  have hu : u₀ = 30 := hu₀
+  rcases hu with rfl
+  have hm : M = 2 := hfront.trans hM.symm
+  rcases hm with rfl
+  obtain ⟨_, rows⟩ := (FrontierSearchFamilyStatement_def core reads env run obs v5T iface
+    wire.heightPair 12 1 4 4 1 16).mp mixed_family hδ hbound (by decide) family
+      1 30 2 hafter hfirst hcut hdelay hM rowCap
+  obtain ⟨rStar, hr, hmin, j, ev, hj, hev, _, hh, cap, _⟩ := rows hhor
+  have jlow : 80 ≤ j := by
+    by_contra hn
+    have hi : j + 1 ≤ 80 := by omega
+    exact (Nat.not_lt_of_ge ((mono _ _ hi).trans_eq beforeRise)) hh
+  have jhigh : j ≤ 80 := by
+    by_contra hn
+    have hc := cap 81 (by rw [idx]; decide) (show 81 ≤ j by omega)
+    rw [afterRise] at hc
+    omega
+  have hj80 : j = 80 := Nat.le_antisymm jhigh jlow
+  rcases hj80 with rfl
+  have he : ev = .deliver 7 ⟨.none, .inr (chain 8)⟩ 32 :=
+    Option.some.inj (hev.symm.trans event)
+  rcases he with rfl
+  have hr4 : rStar = 4 := Nat.le_antisymm (hmin 4 row4) (lower rStar hr)
+  rcases hr4 with rfl
+  refine ⟨?_, ?_⟩
+  · intro ρ allow _
+    exact ⟨80, _, hj, hev, (bounds ρ allow.1).1, hh, cap⟩
+  · intro _
+    refine ⟨4, hr, hmin, ?_⟩
+    intro ρ allow _
+    exact ⟨80, _, hj, hev, (bounds ρ allow.1).1, hh, cap, (bounds ρ allow.1).2⟩
+
+#print axioms mixed_full
+
 end AvailableChain.FGCompose.Tests.POP6bMixed
 end
