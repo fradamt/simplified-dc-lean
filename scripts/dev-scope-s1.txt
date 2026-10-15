@@ -2,6 +2,7 @@
 # REQUIRED compiles; DEFERRED has an owner; STABLE lists unchanged library prefixes.
 [REQUIRED]
 AvailableChainFGCompose.Tests.PopulationTailAxioms
+AvailableChainFGCompose.Tests.PopulationOwnerSearchAxioms
 AvailableChainFGCompose.Proofs.Population.FrontierSearchRise
 AvailableChainFGCompose.Proofs.Population.FrontierSearchTail
 AvailableChainFGCompose.Proofs.Population.FrontierSearchCompose
