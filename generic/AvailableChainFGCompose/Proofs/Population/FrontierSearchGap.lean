@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchGap
+public import AvailableChainFGCompose.Proofs.Population.HolderBaseGap
 public import AvailableChainFGCompose.Proofs.Population.FrontierSearchAge
 public import AvailableChainFGCompose.Proofs.Population.FrontierSearchRepair
 
@@ -140,7 +140,7 @@ theorem frontierSearch_gap_phase_holder (hT : FGTimingLaws T) (hk : 1 ≤ leaseS
   classical
   have hGST : E.t_GST ≤ u := hJst.trans hready
   have hd := hT.delta_pos
-  have hP := frontierSearch_period_bound T hT
+  have hP := frontierSearch_period_bound_core T hT
   have hΓ := (healing_promotion_gap_remainder T hT G).1
   have hbudget0 : u + ρbar ≤ Dl := by linarith
   obtain ⟨_, l, hl, hrep⟩ := allowance
@@ -406,7 +406,7 @@ theorem frontier_hg3_gap_holder (hT : FGTimingLaws T) (hk : 1 ≤ leaseSlots)
     (FrontierSearchStart_def R E rho O T Jst i ev m .gap).mp hstart
   have hρ : 0 ≤ ρbar := allowance.1
   have hd := hT.delta_pos
-  have hP := frontierSearch_period_bound T hT
+  have hP := frontierSearch_period_bound_core T hT
   have hΓ := (healing_promotion_gap_remainder T hT G).1
   have hbudget : ev.time + 3 * T.delta + ρbar +
       (2 * FGCompose.P T + Γ T G - 4 * T.delta) = ev.time + E_gF T ΔF G ρbar := by

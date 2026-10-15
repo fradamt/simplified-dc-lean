@@ -2,6 +2,10 @@ module
 public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchAge
 public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchRepair
 
+public import AvailableChainFGCompose.Proofs.Population.FrontierSearchGap
+
+public import AvailableChainFGCompose.Proofs.Population.HolderBaseService
+
 public section
 
 /-! Blueprint 21 HG.3 gap. The repair allowance is the published local repair service.
@@ -37,53 +41,10 @@ variable (joined : Prot.State → Bool) (receipt : Block → Time → V → Prop
 
 /-- Blueprint 21 HG.3. DC: SAME period bound for the first opening. -/
 theorem frontierSearch_period_bound (hT : FGTimingLaws T) : 8 * T.delta ≤ FGCompose.P T := by
-  have hR : (2 : Time) ≤ T.roundSlots := by exact_mod_cast hT.rounds
-  change 8 * T.delta ≤ 4 * (T.roundSlots : Time) * T.delta
-  nlinarith [hT.delta_pos]
+  exact frontierSearch_period_bound_core T hT
 
-private theorem p0d5c_gap_action (hT : FGTimingLaws T) (r : Nat) :
-    T.action r = (r : Time) * FGCompose.P T + 6 * T.delta := by
-  rw [hT.action_eq, hT.gate_eq, hT.proposal_eq]
-  unfold FGCompose.P
-  push_cast
-  ring
-
-private theorem p0d5c_gap_beta (hT : FGTimingLaws T) {ΔF : Time}
-    (hbound : LivenessBoundW T ΔF) : betaF T ΔF ≤ FGCompose.P T := by
-  have hk : (kappaF T ΔF : Time) ≤ T.roundSlots := by exact_mod_cast hbound.kappa_le_R
-  delta betaF FGCompose.P
-  nlinarith [hT.delta_pos]
-
-/-- The first opening after a slot lies within one period of its gate. -/
-private theorem p0d5c_gap_first_time (hT : FGTimingLaws T) {q r : Nat}
-    (hqr : q ≤ r * T.roundSlots) (hfirst : ∀ r', q ≤ r' * T.roundSlots → r ≤ r') :
-    T.gate q ≤ T.action r ∧ T.action r ≤ T.gate q + FGCompose.P T - 4 * T.delta := by
-  have hd := hT.delta_pos
-  rw [hT.action_eq, hT.gate_eq, hT.gate_eq, hT.proposal_eq, hT.proposal_eq]
-  have hqrI : (q : Time) ≤ ((r * T.roundSlots : Nat) : Time) := by exact_mod_cast hqr
-  have hup : r * T.roundSlots + 1 ≤ q + T.roundSlots := by
-    rcases Nat.eq_zero_or_pos r with hr | hr
-    · subst hr
-      have := hT.rounds
-      omega
-    · have hlt : ¬ q ≤ (r - 1) * T.roundSlots := fun h => by
-        have := hfirst (r - 1) h
-        omega
-      have he : (r - 1) * T.roundSlots + T.roundSlots = r * T.roundSlots := by
-        rw [← Nat.succ_mul, Nat.succ_eq_add_one, Nat.sub_add_cancel hr]
-      omega
-  have hupI : ((r * T.roundSlots : Nat) : Time) + 1 ≤ (q : Time) + T.roundSlots := by
-    exact_mod_cast hup
-  unfold FGCompose.P
-  constructor <;> nlinarith
-
-/-- The two selected proposal times of a gap phase keep their order on the grid. -/
-private theorem p0d5c_gap_slot_time (hT : FGTimingLaws T) {a b : Slot} (h : a ≤ b) :
-    T.proposal a ≤ T.proposal b := by
-  rw [hT.proposal_eq, hT.proposal_eq]
-  have hI : (a : Time) ≤ b := by exact_mod_cast h
-  nlinarith [hT.delta_pos]
-
+/- The first opening after a slot lies within one period of its gate. -/
+/- The two selected proposal times of a gap phase keep their order on the grid. -/
 include obs cert inv in
 /-- ROOT-DIGEST W2b. Blueprint 21 HG.3 gap. DC: SAME finish repair in a quiet settled phase.
 The initial seed and every later seed keep the frozen first-label qualification.
@@ -153,168 +114,20 @@ theorem frontierSearch_gap_phase (hT : FGTimingLaws T) (hk : 1 ≤ leaseSlots)
     (hbudget : u + ρbar + (2 * FGCompose.P T + Γ T G - 4 * T.delta) ≤ Dl) :
     ∃ t, u ≤ t ∧ t ≤ Dl ∧
       StrongServed R S E rho O T I D.heightPair Jst leaseSlots m t := by
-  classical
-  have hGST : E.t_GST ≤ u := hJst.trans hready
-  have hd := hT.delta_pos
-  have hP := frontierSearch_period_bound T hT
-  have hΓ := (healing_promotion_gap_remainder T hT G).1
-  have hbudget0 : u + ρbar ≤ Dl := by linarith
-  obtain ⟨_, l, hl, hrep⟩ := allowance
-  obtain ⟨hafter, hseedEx⟩ := hrep hG Dl m none false hready hp
-  obtain ⟨q, Q, hlq, hgate, hQ, hsvc⟩ := hseedEx hbudget0
-  have hseed := frontierSearch_seed_of_start E T leaseSlots hl hlq
-  have huq := frontierSearch_seed_after T leaseSlots hT hk hseed
-  have hqg : T.proposal q ≤ T.gate q := by rw [hT.gate_eq]; linarith
-  have hgateD : T.gate q ≤ Dl := hgate.trans hbudget0
-  obtain ⟨iq, xq, Qfg, hiq0, hiq1, hxq, hQmem, hErase⟩ :=
-    gateCopy u Dl m none false q Q hready hp hseed hgateD hQ
-  obtain ⟨hlo, hhi⟩ := frontierSearch_proposal_heights R E rho O T I Jst Ef obs cert inv
-    floor hready hp huq hgateD hQ hErase ⟨iq, xq, hiq0, hiq1, hxq, hQmem⟩
-  have finishAt {s : Slot} {X : FGBlock (Fin n)} (hls : T.proposal l < T.proposal s)
-      (hnew : HonestProposal E rho I s (R.erase X)) (hut : u ≤ T.proposal s)
-      (hsD : T.gate s ≤ Dl) (hh : m ≤ (O.height X).h) :
-      ∃ t, u ≤ t ∧ t ≤ Dl ∧
-      StrongServed R S E rho O T I D.heightPair Jst leaseSlots m t := by
-    have hsg : u ≤ T.gate s := hut.trans (by rw [hT.gate_eq]; linarith)
-    have hps := frontierSearch_phase_cut R E rho O hp hsg hsD
-    have hss := (hrep hG (T.gate s) m none false hready hps).1 s _ hls le_rfl hnew
-    have hseedS := frontierSearch_seed_of_start E T leaseSlots hl hls
-    obtain ⟨j, y, Y, hj0, hj1, hy, hYmem, hYe⟩ :=
-      gateCopy u Dl m none false s _ hready hp hseedS hsD hnew
-    have hYX : Y = X := eraseInj hYe
-    subst Y
-    have hheights := frontierSearch_proposal_heights R E rho O T I Jst Ef obs cert inv
-      floor hready hp hut hsD hnew rfl ⟨j, y, hj0, hj1, hy, hYmem⟩
-    have hh' : (O.height X).h = m := Nat.le_antisymm hheights.2 hh
-    exact ⟨_, hsg, hsD, frontierSearch_save_seed R S E rho O T I D.heightPair Jst leaseSlots
-      obs hT hk hready hp hseedS hnew rfl hh' hss hsD
-      (service u (T.gate s) m none false s _ X hready hnew rfl hh' hss hseedS hut hps le_rfl
-        (hsD.trans hp.2.1) (frontierSearch_phase_cap R E rho O obs hp hsD))⟩
-  by_cases hhigh : (O.height Qfg).h = m
-  · exact finishAt hlq (hErase ▸ hQ) huq hgateD hhigh.ge
-  have hlow : (O.height Qfg).h = m - 1 := by
-    have hlo' : m - 1 ≤ (O.height Qfg).h := by simpa using hlo
-    exact Nat.le_antisymm (Nat.le_sub_one_of_lt (lt_of_le_of_ne hhi hhigh)) hlo'
-  have hex : ∃ r, q ≤ r * T.roundSlots := ⟨q, by
-    simpa only [Nat.mul_one] using Nat.mul_le_mul_left q
-      (show 1 ≤ T.roundSlots from (by decide : 1 ≤ 2).trans hT.rounds)⟩
-  let r := Nat.find hex
-  have hqr : q ≤ r * T.roundSlots := Nat.find_spec hex
-  have hfirst : ∀ r', q ≤ r' * T.roundSlots → r ≤ r' := fun r' hr' => Nat.find_min' hex hr'
-  obtain ⟨h0, h1⟩ := p0d5c_gap_first_time T hT hqr hfirst
-  have ha := p0d5c_gap_action T hT r
-  have har : T.action r ≤ u + ρbar + (FGCompose.P T - 4 * T.delta) := by linarith
-  have harD : T.action r ≤ Dl := by linarith
-  have hur : u ≤ T.action r := by linarith
-  have hpr := frontierSearch_phase_cut R E rho O hp hur harD
-  obtain ⟨hc, hlowOr⟩ := common u m none false q Q Qfg r hready hQ hErase hsvc hseed huq hqr
-    hfirst hpr
-  have hqrT : T.proposal q ≤ (r : Time) * FGCompose.P T := by
-    have hqrI : (q : Time) ≤ ((r * T.roundSlots : Nat) : Time) := by exact_mod_cast hqr
-    rw [hT.proposal_eq]
-    unfold FGCompose.P
-    push_cast at hqrI
-    nlinarith
-  have huvote : u ≤ T.vote (r * T.roundSlots) := by
-    rw [hT.vote_eq]
-    have := p0d5c_gap_slot_time T hT hqr
-    linarith
-  have hstart : E.t_GST ≤ (r : Time) * FGCompose.P T := hGST.trans (huq.trans hqrT)
-  rcases hlowOr hlow with he | ⟨x, K, hx, hK, hKh⟩
-  · obtain ⟨K, nd, j, rSent, a, _, hK, _, hQK, _, _, _⟩ := hc xq hxq
-    have hKheight := (he.choose_spec xq K hxq hK).1
-    have hQKfg : FGBlock.Preceq Qfg K := eraseReflect _ _ (hErase ▸ hQK)
-    have hKU : (O.height K).T_h = (O.height Qfg).T_h :=
-      (cert.height.entry_plateau hQKfg (hlow.trans hKheight.symm)).symm
-    let U := (O.height Qfg).T_h
-    have hslot : U.slot ≤ q :=
-      (heldSlot iq xq U Qfg hQmem (cert.height.entry_preceq Qfg)).trans_eq
-        (proposalSlot q Q Qfg hQ hErase)
-    have hage : T.proposal U.slot ≤ T.proposal q := p0d5c_gap_slot_time T hT hslot
-    have heps : epsF T ΔF ≤ FGCompose.P T - 8 * T.delta := by
-      have := p0d5c_gap_beta T hT hbound
-      unfold epsF
-      linarith
-    have hgateBudget : max (T.action r + Γ T G + 4 * T.delta + epsF T ΔF)
-        (T.proposal U.slot + 2 * FGCompose.P T + Γ T G + 2 * T.delta) ≤ Dl := by
-      apply max_le
-      · linarith
-      · rw [hT.gate_eq] at hgate
-        linarith
-    have hwindow : max ((r : Time) * FGCompose.P T + betaF T ΔF - 4 * T.delta)
-        (T.proposal U.slot + 2 * FGCompose.P T - 4 * T.delta) + G ≤ rho.horizon := by
-      have hb := p0d5c_gap_beta T hT hbound
-      apply le_trans _ hp.2.1
-      rw [← max_add_add_right]
-      apply max_le
-      · linarith
-      · rw [hT.gate_eq] at hgate
-        linarith
-    obtain ⟨s, X, hnew, _, hlater, hsD, hh⟩ := frontierSearch_age_service R S O T E rho I D Ef
-      decodeProposal bodyErase bodyRows blockWireRows parentFG parentHeight validFor fold
-      cert.height hT schedule faultWeight deltaF hdelta gap hJst slotProposal read order signer
-      sourceParent hδ hbound rowsReceipt progressCoverage hfold honestQuorum he hc
-      ⟨xq, K, hxq, hK, hKU⟩ (entryAgreement r) (sourceSlot r) (ancestorSlot r) hready hstart
-      huvote hp hwindow hgateBudget
-    have hls : T.proposal l < T.proposal s := by linarith
-    exact finishAt hls hnew (hur.trans hlater.le) hsD
-      (by simpa only [Nat.sub_add_cancel hp.2.2.1] using hh)
-  · let b := (r : Time) * FGCompose.P T + 4 * T.delta
-    have hbGST : E.t_GST ≤ b := by dsimp only [b]; linarith
-    have hbhor : b + G ≤ rho.horizon := by
-      apply le_trans _ hp.2.1
-      dsimp only [b]
-      linarith
-    obtain ⟨s, hloS, hhiS, hslotS⟩ := gap b hbGST hbhor
-    have hsD : T.gate s ≤ Dl := by
-      rw [hT.gate_eq]
-      dsimp only [b] at hhiS
-      linarith
-    have hsHor : T.proposal s ≤ rho.horizon := by
-      rw [hT.gate_eq] at hsD
-      linarith [hp.2.1]
-    obtain ⟨X, hnew, _⟩ := slotProposal s hslotS (by dsimp only [b] at hloS; linarith) hsHor
-    have hslabel : r * T.roundSlots + 2 ≤ s := by
-      dsimp only [b] at hloS
-      rw [hT.proposal_eq] at hloS
-      unfold FGCompose.P at hloS
-      have hz : ((r * T.roundSlots : Nat) : Time) + 1 < s := by push_cast; nlinarith
-      exact_mod_cast Int.add_one_le_iff.mpr hz
-    have hat : T.action r < T.proposal s := by
-      have hz : ((r * T.roundSlots + 2 : Nat) : Time) ≤ s := by exact_mod_cast hslabel
-      rw [ha, hT.proposal_eq]
-      unfold FGCompose.P
-      push_cast at hz
-      have hm := mul_le_mul_of_nonneg_left hz (show (0 : Time) ≤ 4 * T.delta by linarith)
-      have he : (r : Time) * (4 * (T.roundSlots : Time) * T.delta) =
-          4 * T.delta * ((r : Time) * T.roundSlots) := by ring
-      have he' : 4 * (s : Time) * T.delta = 4 * T.delta * s := by ring
-      rw [he, he']
-      linarith
-    have hpts := frontierSearch_phase_cut R E rho O hp (hur.trans hat.le)
-      (by rw [hT.gate_eq] at hsD; linarith)
-    have hpath := sourceParent u m none false r s X x K hready hpts huvote hat.le hslabel
-      hnew hx hK
-    have hPX : FGBlock.Preceq X.parent X := by
-      cases X with
-      | genesis => exact KitFG.preceq_refl _
-      | node P s root body rows => exact KitFG.preceq_parent_node _ _ _ _ _
-    have hh : m ≤ (O.height X).h :=
-      (hKh ▸ cert.height.h_mono hpath).trans (cert.height.h_mono hPX)
-    have hls : T.proposal l < T.proposal s := by linarith
-    exact finishAt hls hnew (hur.trans hat.le) hsD hh
+  have result := frontierSearch_gap_phase_holder R S O T E rho I D Ef decodeProposal bodyErase
+    bodyRows blockWireRows parentFG parentHeight validFor fold Jst leaseSlots obs cert inv hT hk
+    schedule faultWeight deltaF hdelta gap hJst hG slotProposal read order signer sourceParent hδ
+    hbound rowsReceipt progressCoverage hfold honestQuorum entryAgreement sourceSlot ancestorSlot
+    eraseInj eraseReflect floor gateCopy (fun u v m J c q Q Qfg hr hQ he hh hs hseed hu hp hg ht hc
+    => frontierLocalService_to_holder_core (service u v m J c q Q Qfg hr hQ he hh hs hseed hu hp hg
+    ht hc)) (fun u m J c q Q Qfg r hr hQ he hs hseed hu hqr hfirst hp => ⟨fun i hi => (common u m J
+    c q Q Qfg r hr hQ he hs hseed hu hqr hfirst hp).1 _ (Finset.mem_filter.mp hi).2, (common u m J
+    c q Q Qfg r hr hQ he hs hseed hu hqr hfirst hp).2⟩) heldSlot proposalSlot hready hp allowance
+    hbudget
+  obtain ⟨t, hlo, hhi, hs⟩ := result
+  exact ⟨t, hlo, hhi, strongServed_of_holder_service_core service hs⟩
 
-/-- Under the liveness bound the gap deadline is the repair allowance plus the gap tail. -/
-private theorem p0d5c_gap_deadline (hT : FGTimingLaws T) {ΔF G ρbar : Time}
-    (hbound : LivenessBoundW T ΔF) :
-    E_gF T ΔF G ρbar = ρbar + Γ T G + (2 * FGCompose.P T - T.delta) := by
-  have heps : epsF T ΔF ≤ FGCompose.P T - 8 * T.delta := by
-    have := p0d5c_gap_beta T hT hbound
-    unfold epsF
-    linarith
-  unfold E_gF
-  rw [max_eq_right (by linarith [hT.delta_pos])]
-
+/- Under the liveness bound the gap deadline is the repair allowance plus the gap tail. -/
 include obs cert inv justif keep positive coreLaws erasePreceq in
 /-- ROOT-DIGEST W2b. Blueprint 21 HG.3 gap; run 2 R2-b.
 DC: SAME finite first stop or the complete seed by the frozen gap deadline.
@@ -399,38 +212,21 @@ theorem frontier_hg3_gap (hT : FGTimingLaws T) (hk : 1 ≤ leaseSlots)
     (hhor : ev.time + E_gF T ΔF G ρbar ≤ rho.horizon) :
     FrontierHG3Result R S E rho O T I D.heightPair Jst leaseSlots i m ev.time
       (ev.time + E_gF T ΔF G ρbar) := by
-  obtain ⟨hi, hgst0, _, hfront, hm, hkind⟩ :=
-    (FrontierSearchStart_def R E rho O T Jst i ev m .gap).mp hstart
-  have hρ : 0 ≤ ρbar := allowance.1
-  have hd := hT.delta_pos
-  have hP := frontierSearch_period_bound T hT
-  have hΓ := (healing_promotion_gap_remainder T hT G).1
-  have hbudget : ev.time + 3 * T.delta + ρbar +
-      (2 * FGCompose.P T + Γ T G - 4 * T.delta) = ev.time + E_gF T ΔF G ρbar := by
-    rw [p0d5c_gap_deadline T hT hbound]
-    ring
-  rcases frontierSearch_first_effective_split R E rho O schedule i
-      (ev.time + E_gF T ΔF G ρbar) with hstop | hquiet
-  · rcases frontierSearch_classify_stop R E rho O mono hfront hstop with h | h
-    · exact Or.inl h
-    · exact Or.inr (Or.inl h)
-  obtain ⟨J, hp, _⟩ := healing_settle_start_on (R := R) (E := E) (rho := rho) (O := O)
-    (Ef := Ef) (obs := obs) (cert := cert) (inv := inv) (justif := justif) (keep := keep)
-    (Jst := Jst) (T := T) (positive := positive) (coreLaws := coreLaws)
-    (erasePreceq := erasePreceq) (joined := joined) (receipt := receipt)
-    crossing schedule mono hdelta hJst awake joinedTick readyCut hServices receiptHeld
-    i ev _ m .gap hi hgst0 (by linarith) hhor hm hfront hkind hquiet
-  have hready : Jst ≤ ev.time + 3 * T.delta := by linarith
-  obtain ⟨t, hut, htD, hs⟩ := frontierSearch_gap_phase (R := R) (S := S) (O := O) (T := T)
-    (E := E) (rho := rho) (I := I) (D := D) (Ef := Ef) (decodeProposal := decodeProposal)
-    (bodyErase := bodyErase) (bodyRows := bodyRows) (blockWireRows := blockWireRows)
-    (parentFG := parentFG) (parentHeight := parentHeight) (validFor := validFor)
-    (fold := fold) (Jst := Jst) (leaseSlots := leaseSlots) (obs := obs) (cert := cert)
-    (inv := inv) hT hk schedule faultWeight deltaF hdelta gap hJst hG slotProposal read order
-    signer sourceParent hδ hbound rowsReceipt progressCoverage hfold honestQuorum
-    entryAgreement sourceSlot ancestorSlot coreLaws.erase_inj eraseReflect floor gateCopy
-    service common heldSlot proposalSlot hready hp allowance hbudget.le
-  exact Or.inr (Or.inr ⟨t, by linarith, htD, hs⟩)
+  have result := frontier_hg3_gap_holder R S O T E rho I D Ef decodeProposal bodyErase bodyRows
+    blockWireRows parentFG parentHeight validFor fold Jst leaseSlots obs cert inv justif keep
+    positive coreLaws erasePreceq joined receipt hT hk crossing schedule mono awake joinedTick
+    readyCut hServices receiptHeld faultWeight deltaF hdelta gap hJst hG slotProposal read order
+    signer sourceParent hδ hbound rowsReceipt progressCoverage hfold honestQuorum entryAgreement
+    sourceSlot ancestorSlot eraseReflect floor gateCopy (fun u v m J c q Q Qfg hr hQ he hh hs hseed
+    hu hp hg ht hc => frontierLocalService_to_holder_core (service u v m J c q Q Qfg hr hQ he hh hs
+    hseed hu hp hg ht hc)) (fun u m J c q Q Qfg r hr hQ he hs hseed hu hqr hfirst hp => ⟨fun i hi
+    => (common u m J c q Q Qfg r hr hQ he hs hseed hu hqr hfirst hp).1 _ (Finset.mem_filter.mp
+    hi).2, (common u m J c q Q Qfg r hr hQ he hs hseed hu hqr hfirst hp).2⟩) heldSlot proposalSlot
+    hstart allowance hhor
+  rcases result with h | h | ⟨t, hlo, hhi, hs⟩
+  · exact Or.inl h
+  · exact Or.inr (Or.inl h)
+  · exact Or.inr (Or.inr ⟨t, hlo, hhi, strongServed_of_holder_service_core service hs⟩)
 
 end AvailableChain.FGCompose
 end
