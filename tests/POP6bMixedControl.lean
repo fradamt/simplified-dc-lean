@@ -644,5 +644,48 @@ private theorem mixed_family :
 
 #print axioms mixed_family
 
+private theorem allowance_premises_sat (u ρ : Time) (hu : 12 ≤ u) (hρ : 16 ≤ ρ) :
+    FrontierRepairAllowance core env run obs v5T iface 12 1 4 ρ u := by
+  let b : Nat := ((u + 2) / 4).toNat
+  have hb : (b : Int) = (u + 2) / 4 := Int.toNat_of_nonneg (by
+    simp only [Time] at *
+    omega)
+  have after : u ≤ v5T.vote b := by
+    change u ≤ 4 * (b : Int) + 1
+    simp only [Time] at *
+    omega
+  have least : ∀ i, u ≤ v5T.vote i → b ≤ i := by
+    intro i hi
+    change u ≤ 4 * (i : Int) + 1 at hi
+    simp only [Time] at *
+    omega
+  have sync : env.t_GST ≤ v5T.vote (b + 1 - 1) := by
+    change 0 ≤ 4 * ((b + 1 - 1 : Nat) : Int) + 1
+    omega
+  refine ⟨by simp only [Time] at *; omega, b + 1,
+    FrontierRepairStart.one b after least (by omega) sync, ?_⟩
+  intro _ v m J c _ hp
+  refine ⟨fun s Q _ _ hQ => owner_premises_sat.1 s Q hQ, ?_⟩
+  intro hv
+  have gate : v5T.gate (b + 2) ≤ u + ρ := by
+    change 4 * ((b + 2 : Nat) : Int) + 6 ≤ u + ρ
+    push_cast
+    simp only [Time] at *
+    omega
+  have bound : b + 2 ≤ 64 := by
+    have hg := gate.trans (hv.trans hp.2.1)
+    change 4 * ((b + 2 : Nat) : Int) + 6 ≤ 256 at hg
+    have hz : ((b + 2 : Nat) : Int) ≤ 64 := by omega
+    exact_mod_cast hz
+  have prop := (proposal_premises_sat ⟨b + 2, Nat.lt_succ_of_le bound⟩
+    (Nat.le_trans (by decide) (Nat.le_add_left 2 b))).2.1.1
+  refine ⟨b + 2, v5erase (chain (b + 2)), ?_, gate, prop,
+    owner_premises_sat.1 _ _ prop⟩
+  change 4 * ((b + 1 : Nat) : Int) < 4 * ((b + 2 : Nat) : Int)
+  push_cast
+  omega
+
+#print axioms allowance_premises_sat
+
 end AvailableChain.FGCompose.Tests.POP6bMixed
 end
