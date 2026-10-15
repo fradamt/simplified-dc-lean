@@ -29,5 +29,13 @@ private theorem nonholder_no_encoded (j : Nat) (t : Time)
 
 #print axioms nonholder_no_encoded
 
+private theorem old_coverage_rejected : ¬ OpeningCovered core reads env run obs.height
+    v5T wire.heightPair 3 (v5erase (chain 6)) := by
+  intro hc
+  obtain ⟨K, nd, j, r, a, _, _, _, _, _, row, _⟩ := hc 7 (by decide)
+  exact nonholder_no_encoded j _ row.2.1 a row.2.2
+
+#print axioms old_coverage_rejected
+
 end AvailableChain.FGCompose.Tests.POP6bNegative
 end
