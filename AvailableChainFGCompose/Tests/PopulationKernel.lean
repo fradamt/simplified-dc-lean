@@ -2485,6 +2485,34 @@ private theorem raw_origin_premises_sat :
 
 #print axioms raw_origin_premises_sat
 
+private theorem proposal_cases (s : Slot) (Q : Block)
+    (h : HonestProposal (env Nat) run interface s Q) :
+    ∃ k : Fin 7, s = 2 * (k.val + 1) ∧ Q = erase (block (k.val + 1)) := by
+  obtain ⟨_, o, ⟨j, hj, hw⟩, hQ⟩ := h
+  have hlen : j < 144 := (List.getElem?_eq_some_iff.mp hj).1
+  rw [trace_premises_sat.2.1 ⟨j, hlen⟩] at hw
+  dsimp only [Fin.val_mk] at hw
+  split_ifs at hw with hr hp
+  · obtain rfl := List.mem_singleton.mp hw
+    change none = some Q at hQ
+    cases hQ
+  · have hk : j / 20 < 7 := by omega
+    let k : Fin 7 := ⟨j / 20, hk⟩
+    have he : j = 20 * k.val + 19 := by dsimp only [k]; omega
+    obtain rfl := List.mem_singleton.mp hw
+    have ht := (trace_premises_sat.2.2.1 k).2.1
+    rw [← he] at ht
+    have htick := V2.Event.tick.inj (Option.some.inj (ht.symm.trans hj))
+    have ht' : 4 * (2 * (k.val + 1)) = 4 * s := by
+      have htime := htick.2
+      change (4 : Int) * (2 * (k.val + 1) : Nat) = (4 : Int) * (s : Nat) at htime
+      exact_mod_cast htime
+    change some (erase (block (j / 20 + 1))) = some Q at hQ
+    exact ⟨k, by simp only [Slot] at *; omega, (Option.some.inj hQ).symm⟩
+  · contradiction
+
+#print axioms proposal_cases
+
 end Owner
 
 end AvailableChain.FGCompose.Tests.PopulationKernel
