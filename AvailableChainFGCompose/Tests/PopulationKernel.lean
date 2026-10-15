@@ -2368,6 +2368,123 @@ private theorem tree_cases :
 
 #print axioms tree_cases
 
+private abbrev history : FGHistoryWireReads reads where
+  heightPair a := ((decode a).map (·.height_pair)).getD .empty
+  finalityPair a := (decode a).bind (·.finality_pair)
+  signer a := (decode a).map (·.signer)
+  decode_height a u hd := by
+    change ((decode a).map (·.height_pair)).getD .empty = u.height_pair
+    change decode a = some u at hd
+    rw [hd]; rfl
+  decode_finality a u hd := by
+    change (decode a).bind (·.finality_pair) = u.finality_pair
+    change decode a = some u at hd
+    rw [hd]; rfl
+  decode_signer a u hd := by
+    change (decode a).map (·.signer) = some u.signer
+    change decode a = some u at hd
+    rw [hd]; rfl
+private abbrev lookup (Q : Block) : Option (FGBlock (Fin 1)) :=
+  ((List.range 8).map block).find? (fun X => decide (erase X = Q))
+private abbrev parentRead (_ : protocol.State) (Q : Block) := lookup Q
+private abbrev parentHeight (_ : protocol.State) (_ : Slot) (X : FGBlock (Fin 1)) :
+    Height × BlockId := ((obs.height X).h, (obs.height X).T_h.root)
+private abbrev makeFG (_ : FGBlock (Fin 1)) (Q : Block) (_ : List protocol.Object) :=
+  (lookup Q).getD .genesis
+private abbrev valid (a : protocol.Object) : Bool := (decode a).isSome
+private abbrev validFor (_ : protocol.State) (s : Slot) (B : FGBlock (Fin 1))
+    (a : protocol.Object) : Bool :=
+  (decode a).isSome && ((decode a).map
+    (SimplexFG.Window.r6w (KitFG.Window.parentState electorate cfg 2 B s))).getD false
+private abbrev chainRowsRead (_ : protocol.State) (Q : Block) : List protocol.Object :=
+  ((lookup Q).map (fun X => (List.range (X.slot / 2)).map (fun k => wire (row k)))).getD []
+private abbrev service : FGACServiceReads Nat where
+  honest x := x ∈ run.honest
+  proposal s Q := HonestProposal (env Nat) run interface s Q
+  proposalTime := timing.proposal
+  actionHeadLabel r := r * 2 + 1
+  actionTime := timing.action
+  proposalScope _ _ := True
+  sourceScope _ _ _ := True
+  actionScope _ _ := True
+  actionHead x r := (actionHead core (env Nat) run timing x r).map (Option.map erase)
+  parent _ := some .genesis
+  gateFloor _ _ := some .genesis
+  frame _ _ _ := True
+  below := Block.Preceq
+  headScope _ _ := True
+  gateScope _ _ := True
+  voteTime := timing.vote
+  gateTime := timing.gate
+  gateLabel r := r * 2
+  headAtLabel := headAtLabel core (env Nat) run timing
+  gate x s := (actionSourceFG core (env Nat) run timing x (s / 2)).map (Option.map erase)
+  source x r := (actionSourceFG core (env Nat) run timing x r).map (Option.map erase)
+private abbrev honestSlot (s : Slot) : Prop := s = 8 ∨ s = 10 ∨ s = 12 ∨ s = 14
+private abbrev storedCarrier (_ : protocol.State) (X : FGBlock (Fin 1)) (a : protocol.Object) :=
+  a ∈ X.rows.map wire
+private abbrev sourceService (x r : Nat) (C : FGBlock (Fin 1)) :=
+  actionSourceFG core (env Nat) run timing x r = some (some C)
+private abbrev finBlock (X : FGBlock (Fin 1)) : Prop := ∃ k : Fin 8, X = block k
+private abbrev ready (i x : Nat) (X : FGBlock (Fin 1)) (t : Time) : Prop :=
+  ∃ k : Fin 7, X = block (k.val + 1) ∧
+    run.events[i]? = some (.deliver x (prop (k.val + 1)) t)
+private abbrev decodeProposal (o : protocol.Object) : Option (Slot × FGBlock (Fin 1)) :=
+  match o.payload with | .inl X => some (X.slot, X) | .inr _ => none
+private abbrev middleType (A : Block) :=
+  KernelMiddleWitnessFG_W core reads obs timing (env Nat) run interface history electorate
+    decodeProposal erase (fun X => X.rows.map wire) (fun _ => []) parentRead parentHeight
+    validFor makeFG valid service cfg 2 2 point pt A
+
+private theorem raw_origin_premises_sat :
+    RawHistoryOrigin core reads (env Nat) run timing history := by
+  have rows : ∀ k : Fin 8, ∀ u ∈ chainRows (block k),
+      ∃ l : Fin 7, l.val < k.val ∧ u = row l := by decide +kernel
+  have events : ∀ l : Fin 7,
+      run.events[20 * l.val + 16]? =
+        some (.deliver 7 (wire (row l)) (8 * l.val + 7)) ∧
+      run.events[20 * l.val + 17]? =
+        some (.deliver 9 (wire (row l)) (8 * l.val + 7)) := by
+    intro l
+    fin_cases l <;> exact ⟨rfl, rfl⟩
+  have release : ∀ l : Fin 7,
+      HonestRowAt reads (env Nat) run timing (20 * l.val + 12) 9 l (wire (row l)) := by
+    intro l
+    fin_cases l <;> exact ⟨by decide, rfl, by decide +kernel⟩
+  intro i x B hheld u hu
+  obtain ⟨k, hk, rfl⟩ := tree_cases.2 _ B hheld.2
+  obtain ⟨l, hl, rfl⟩ := rows k u hu
+  have hx : x = 7 ∨ x = 9 := by simpa using hheld.1
+  rcases hx with rfl | rfl
+  · change k.val ≤ (V2.D.Run.stateBefore (env Nat) run i 7).1.val at hk
+    have hi := stage_before_premises_sat i 0
+    change (V2.D.Run.stateBefore (env Nat) run i 7).1.val = _ at hi
+    rw [hi] at hk
+    change k.val ≤ min 7 ((i - 1) / 20) at hk
+    refine ⟨wire (row l), l, rfl, rfl, 20 * l.val + 16, wire (row l),
+      8 * l.val + 7, by omega, (events l).1, ?_⟩
+    intro z hz _
+    obtain ⟨seat, _, hseat⟩ := hz
+    change 9 = z at hseat
+    subst z
+    exact ⟨⟨20 * l.val + 12, by omega, release l⟩, by change
+      (4 : Int) * (l.val * 2 : Nat) + 6 ≤ 8 * l.val + 7; omega⟩
+  · change k.val ≤ (V2.D.Run.stateBefore (env Nat) run i 9).1.val at hk
+    have hi := stage_before_premises_sat i 1
+    change (V2.D.Run.stateBefore (env Nat) run i 9).1.val = _ at hi
+    rw [hi] at hk
+    change k.val ≤ min 7 ((i - 2) / 20) at hk
+    refine ⟨wire (row l), l, rfl, rfl, 20 * l.val + 17, wire (row l),
+      8 * l.val + 7, by omega, (events l).2, ?_⟩
+    intro z hz _
+    obtain ⟨seat, _, hseat⟩ := hz
+    change 9 = z at hseat
+    subst z
+    exact ⟨⟨20 * l.val + 12, by omega, release l⟩, by change
+      (4 : Int) * (l.val * 2 : Nat) + 6 ≤ 8 * l.val + 7; omega⟩
+
+#print axioms raw_origin_premises_sat
+
 end Owner
 
 end AvailableChain.FGCompose.Tests.PopulationKernel
