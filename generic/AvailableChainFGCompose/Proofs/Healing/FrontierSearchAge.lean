@@ -80,7 +80,8 @@ theorem frontierSearch_age_service (hT : FGTimingLaws T)
     by_contra h
     have he := Finset.not_nonempty_iff_eq_empty.mp h
     rw [he] at hAQ
-    simp only [Electorate.weightOf, Finset.sum_empty] at hAQ
+    change Ef.q ≤ ∑ i ∈ (∅ : Finset (Fin n)), Ef.weight i at hAQ
+    simp only [Finset.sum_empty] at hAQ
     omega
   exact frontierSearch_age_service_holder R S O T E rho I D Ef decodeProposal bodyErase
     bodyRows blockWireRows parentFG parentHeight validFor fold laws hAh hn hT schedule
