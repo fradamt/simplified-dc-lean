@@ -1795,19 +1795,159 @@ private theorem frozen_owner_specialization
 
 end FrozenOwner
 
--- Type-level owner application on these exact mixed data: all unchanged global leaves
--- remain arguments. The holder target/window/run and active acceptance effect are supplied.
-#check finality_kernel_W_of_holder core reads obs timing timing_premises_sat (env Nat) run
-  interface history electorate decodeProposal erase (fun X => X.rows.map wire)
-  (fun _ => []) (fun _ _ => []) parentRead parentHeight (fun _ _ _ _ => true) makeFG
-  (fun _ => true) (ac Nat) cfg 2 2 point pt
-  (honestSlot := honestSlot) (hK := kernel_population_premises_sat.1)
-  (run := kernel_population_premises_sat.2.1)
-  (hSOCOVTarget := target_supplier_premises_sat) (Jst := 0)
-  (storedCarrier := fun _ X a => a ∈ X.rows.map wire)
-  (SourceService := fun x r C =>
-    actionSourceFG core (env Nat) run timing x r = some (some C)) (ready := ready)
-  (step := acceptance_effect_premises_sat.1) (durable := durable_premises_sat)
+namespace Owner
+private abbrev env (V : Type) : Generic.Env V :=
+  ⟨1, by decide, 0, by decide, fun _ _ => true⟩
+
+private def block : Nat → FGBlock (Fin 1)
+  | 0 => .genesis
+  | k + 1 => .node (block k) (2 * (k + 1)) ⟨k + 1⟩ 0
+      [⟨0, .vote (k + 1) (block k).root false,
+        if k = 0 then none else some ⟨k, (block (k - 1)).root⟩⟩]
+private abbrev row (k : Nat) : Row (Fin 1) :=
+  ⟨0, .vote (k + 1) (block k).root false,
+    if k = 0 then none else some ⟨k, (block (k - 1)).root⟩⟩
+private def store : Nat → Store (Fin 1)
+  | 0 => Store.init
+  | k + 1 => SimplexFG.Window.on_block electorate cfg 2 (store k) (block (k + 1))
+private abbrev head (k : Nat) : HeadFields :=
+  certificateHeadFields (KitFG.Window.certificateHeight electorate cfg 2)
+    (KitFG.Window.certificateFinality electorate cfg 2) (block k)
+private abbrev objType := V2.Signed Nat (fun _ => 1) (FGBlock (Fin 1) ⊕ Row (Fin 1))
+private abbrev protocol : V2.ProtocolSpecD Unit where
+  State := Fin 8 × RecordOnce
+  Label := Nat
+  Duty := Time
+  signLabel t := if t % 8 = 6 then 0 else t.toNat + 1
+  seats _ := 1
+  Payload := FGBlock (Fin 1) ⊕ Row (Fin 1)
+  Durable := Fin 8 × RecordOnce
+  init := (0, RecordOnce.initial)
+  clock st _ := st
+  actTime := id
+  duties t := [t]
+  duties_spec := by intro d t; simp
+  duties_nodup := by intro t; simp
+  act st t _ := if t % 8 = 6 then
+    ((createRowOnce electorate cfg st.2 0 (some (block st.1)) (head st.1)).1.map Sum.inr)
+    else if 0 < t ∧ t ≤ 56 ∧ t % 8 = 0 then
+      some (.inl (block (t.toNat / 8))) else none
+  gossip _ _ := []
+  process st o := (match o.payload with
+    | .inl X => max st.1 ⟨min 7 (X.slot / 2), by omega⟩
+    | .inr _ => st.1, st.2)
+  selfVisible _ := true
+  recordOwn st o := (st.1, match o.auth, o.payload with
+    | .seat 0 _, .inr u => record_row_once st.2 u
+    | _, _ => st.2)
+  durable := id
+  restore st _ := st
+  wellFormed _ := true
+  depsPresent _ _ := true
+  processed _ _ := false
+  excludes _ _ := false
+  handles _ _ _ := False
+  carries _ _ := False
+private abbrev wire (u : Row (Fin 1)) : protocol.Object := ⟨.seat 0 0, .inr u⟩
+private abbrev prop (k : Nat) : protocol.Object :=
+  ⟨.seat (8 * k + 1) 0, .inl (block k)⟩
+private abbrev decode (o : protocol.Object) : Option (Row (Fin 1)) :=
+  match o.auth, o.payload with | .seat 0 _, .inr u => some u | _, _ => none
+private abbrev reads : FGSafetyReads protocol 1 protocol.Object where
+  proposalErase o := match o.payload with | .inl X => some (erase X) | .inr _ => none
+  proposalRows o := match o.payload with | .inl X => X.rows.map wire | .inr _ => []
+  encode := id
+  decode := decode
+  decodeObject := decode
+  fgLabel := 0
+  fgSeats := Equiv.refl _
+  record := Prod.snd
+  inputs st := (some (block st.1), head st.1)
+  enabled t := decide (t % 8 = 6)
+  finalizedOut st := erase (store st.1).F
+private abbrev core : FGCoreReads protocol 1 Unit Unit protocol.Object where
+  core st := ⟨(), store st.1, [], (List.range 7).map (fun k => wire (row k))⟩
+  erase := erase
+  source st := some (block st.1)
+  headVote st _ := erase (block st.1)
+  finalityHead st := some (block st.1)
+  proposalFG _ _ := none
+private abbrev obs : FGObservationReads core where
+  height := KitFG.Window.certificateHeight electorate cfg 2
+  finality := KitFG.Window.certificateFinality electorate cfg 2
+  controls _ := ⟨.genesis, 1, 0, .genesis, false⟩
+  viable _ X := X
+private abbrev interface : V2.D.Interface protocol where
+  confirmed _ := .genesis
+  stable _ := .genesis
+  block o := match o with | .inl X => some (erase X) | .inr _ => none
+  opening _ := True
+  propLabel s := 4 * s + 1
+  propDuty s := 4 * s
+  propDuty_label s := by
+    change (if (4 * s : Int) % 8 = 6 then 0 else (4 * s : Int).toNat + 1) = 4 * s + 1
+    have hn : (4 * s : Int) % 8 ≠ 6 := by omega
+    rw [ite_eq_right hn]
+    have ht : (4 * s : Int) = ((4 * s : Nat) : Int) := by push_cast; rfl
+    rw [ht, Int.toNat_natCast]
+  propLabel_single _ := rfl
+  propLabel_injective := by
+    intro a b h
+    change 4 * a + 1 = 4 * b + 1 at h
+    exact Nat.eq_of_mul_eq_mul_left (by decide : 0 < 4) (Nat.add_right_cancel h)
+private abbrev run : V2.D.Run Nat protocol where
+  honest := {7, 9}
+  horizon := 57
+  events := (List.range 57).flatMap fun t =>
+    [.tick 9 t, .tick 7 t] ++
+    (if t % 8 = 7 then [.deliver 7 (wire (row (t / 8))) t,
+        .deliver 9 (wire (row (t / 8))) t] else []) ++
+    (if 0 < t ∧ t % 8 = 0 then [.deliver 7 (prop (t / 8)) t,
+        .deliver 9 (prop (t / 8)) t] else [])
+  seatOf label _ := if label = 0 then 9 else 7
+  input _ _ := ()
+private abbrev point : FGServicePoint :=
+  ⟨⟨0, 22, 3, 3, 6, erase (block 3)⟩, 8, erase (block 4), 32⟩
+private abbrev pt : KernelPt := ⟨4⟩
+
+private theorem erase_injective_premises_sat : Function.Injective erase := by
+  intro X
+  induction X with
+  | genesis => intro Y he; cases Y <;> simp_all [erase]
+  | node p s r x rs ih =>
+    intro Y he
+    cases Y with
+    | genesis => simp [erase] at he
+    | node q t u y ts =>
+      simp only [erase, Block.node.injEq] at he
+      obtain ⟨hp, hs, hr, hb⟩ := he
+      obtain ⟨hx, hrows⟩ := encFGBody_inj hb
+      cases ih hp
+      cases hs
+      cases hr
+      cases hx
+      cases hrows
+      rfl
+
+private theorem core_premises_sat : FGCoreLaws core := by
+  have mono : ∀ i j : Fin 8, i ≤ j → (store i).TF ⊆ (store j).TF := by decide +kernel
+  have mem : ∀ i : Fin 8, block i ∈ (store i).TF := by decide +kernel
+  refine ⟨fun _ _ => rfl, fun _ _ => rfl, fun _ _ => rfl, ?_,
+    fun _ _ => List.prefix_rfl, fun _ _ => List.prefix_rfl, fun _ _ => rfl,
+    ?_, erase_injective_premises_sat⟩
+  · intro nd o
+    cases hp : o.payload with
+    | inl X =>
+      simpa only [core, protocol, hp] using
+        (mono nd.1 (max nd.1 ⟨min 7 (X.slot / 2), by omega⟩) (le_max_left _ _))
+    | inr u => simpa only [core, protocol, hp] using Finset.Subset.refl (store nd.1).TF
+  · intro nd C h
+    obtain rfl := Option.some.inj h
+    exact mem nd.1
+
+#print axioms core_premises_sat
+
+end Owner
 
 end AvailableChain.FGCompose.Tests.PopulationKernel
 end
