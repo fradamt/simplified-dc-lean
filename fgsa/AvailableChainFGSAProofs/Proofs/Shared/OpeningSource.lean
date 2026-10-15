@@ -10,6 +10,9 @@ open AvailableChain.SimplexFG
 variable {p : Params} {In V : Type} {c : AppCodec In} [DecidableEq V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
+private theorem openingSource_fastWriteAt_eq {n : Nat} (st : State n) (s : Slot) :
+    fastWriteAt st s = (st.fastWrite.find? (fun row => row.1 == s)).map Prod.snd := rfl
+
 set_option maxHeartbeats 800000 in
 -- The adapter compares the nested gate, clock, and tick state projections.
 /-- 6c / F1b.9, R15; 21 H.17 and 22 FF1: service at the opening gate
@@ -92,7 +95,7 @@ theorem openingSource_candidate_of_gateService (hs : V2.D.ScheduleWellFormed E r
   rw [sourceCandidates_def, (fgsa_action_slot_round nd r).2]
   apply Finset.mem_filter.mpr
   constructor
-  · change D ∈ (((st.fastWrite.find? (fun row => row.1 == r * p.R)).map Prod.snd).getD []).toFinset
+  · rw [openingSource_fastWriteAt_eq]
     simpa only [hfind, Option.map_some, Option.getD_some, List.mem_toFinset] using hfast
   · change ((st.base.obligations.find? (fun row => row.1 == D)).map
       (fun row => row.2.2)).any (fun d => decide (st.base.now < d)) = true
