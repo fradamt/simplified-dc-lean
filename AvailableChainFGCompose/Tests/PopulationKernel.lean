@@ -1796,6 +1796,9 @@ private theorem frozen_owner_specialization
 end FrozenOwner
 
 namespace Owner
+
+set_option maxRecDepth 8192
+set_option maxHeartbeats 8000000
 private abbrev env (V : Type) : Generic.Env V :=
   ⟨1, by decide, 0, by decide, fun _ _ => true⟩
 
@@ -1837,9 +1840,9 @@ private abbrev protocol : V2.ProtocolSpecD Unit where
     | .inl X => max st.1 ⟨min 7 (X.slot / 2), by omega⟩
     | .inr _ => st.1, st.2)
   selfVisible _ := true
-  recordOwn st o := (st.1, match o.auth, o.payload with
-    | .seat 0 _, .inr u => record_row_once st.2 u
-    | _, _ => st.2)
+  recordOwn st o := (st.1, if o.auth = .seat 0 0 then
+    match o.payload with | .inr u => record_row_once st.2 u | .inl _ => st.2
+    else st.2)
   durable := id
   restore st _ := st
   wellFormed _ := true
@@ -1852,7 +1855,9 @@ private abbrev wire (u : Row (Fin 1)) : protocol.Object := ⟨.seat 0 0, .inr u�
 private abbrev prop (k : Nat) : protocol.Object :=
   ⟨.seat (8 * k + 1) 0, .inl (block k)⟩
 private abbrev decode (o : protocol.Object) : Option (Row (Fin 1)) :=
-  match o.auth, o.payload with | .seat 0 _, .inr u => some u | _, _ => none
+  if o.auth = .seat 0 0 then
+    match o.payload with | .inr u => some u | .inl _ => none
+  else none
 private abbrev reads : FGSafetyReads protocol 1 protocol.Object where
   proposalErase o := match o.payload with | .inl X => some (erase X) | .inr _ => none
   proposalRows o := match o.payload with | .inl X => X.rows.map wire | .inr _ => []
@@ -1898,7 +1903,7 @@ private abbrev interface : V2.D.Interface protocol where
 private abbrev run : V2.D.Run Nat protocol where
   honest := {7, 9}
   horizon := 57
-  events := (List.range 57).flatMap fun t =>
+  events := (List.range 58).flatMap fun t =>
     [.tick 9 t, .tick 7 t] ++
     (if t % 8 = 7 then [.deliver 7 (wire (row (t / 8))) t,
         .deliver 9 (wire (row (t / 8))) t] else []) ++
@@ -1946,6 +1951,53 @@ private theorem core_premises_sat : FGCoreLaws core := by
     exact mem nd.1
 
 #print axioms core_premises_sat
+
+private theorem client_premises_sat : FGSafetyClientLaws reads electorate cfg where
+  initial_record := rfl
+  clock_record _ _ := rfl
+  process_record _ _ := rfl
+  restart_record _ _ := rfl
+  own_record nd o := by
+    cases o with
+    | mk auth payload =>
+      cases auth with
+      | none => cases payload <;> rfl
+      | seat label i =>
+        obtain rfl : i = 0 := Subsingleton.elim _ _
+        cases label <;> cases payload <;> rfl
+  tick_rows E rho e he nd x t := by
+    have hx : e 0 = x := by
+      rw [← e.apply_symm_apply x]
+      congr 1
+      exact Subsingleton.elim _ _
+    have hs : e.symm x = 0 := Subsingleton.elim _ _
+    have hseat : rho.seatOf 0 0 = x := (he 0).trans hx
+    change ((V2.D.tick E rho nd x t).2.filter protocol.objSelfVisible).filterMap decode =
+      if E.awake x t = true ∧ decide (t % 8 = 6) = true then
+        (createRowOnce electorate cfg nd.2 (e.symm x) (some (block nd.1)) (head nd.1)).1.toList
+      else []
+    cases ha : E.awake x t <;> by_cases ht : t % 8 = 6
+    · simp [V2.D.tick, ha]
+    · simp [V2.D.tick, ha]
+    · cases hr : (createRowOnce electorate cfg nd.2 0 (some (block nd.1)) (head nd.1)).1 <;>
+        simp [V2.D.tick, V2.D.Run.ownSeats, List.finRange_succ,
+          ha, ht, hr, hs, decode]
+      all_goals
+        have hf : List.filter (fun i : Fin 1 =>
+            decide (rho.seatOf (if t % 8 = 6 then 0 else t.toNat + 1) i = x)) [0] = [0] := by
+          rw [ite_eq_left ht]
+          simp [hseat]
+        rw [hf]
+        rfl
+    · by_cases hp : 0 < t ∧ t ≤ 56 ∧ t % 8 = 0
+      · by_cases hb : rho.seatOf (protocol.signLabel t) 0 = x <;>
+          simp [V2.D.tick, V2.D.Run.ownSeats, List.finRange_succ, ha, ht, hb,
+            V2.ProtocolSpecD.objSelfVisible, decode]
+        all_goals aesop
+      · simp [V2.D.tick, ha, ht]
+        aesop
+
+#print axioms client_premises_sat
 
 end Owner
 
