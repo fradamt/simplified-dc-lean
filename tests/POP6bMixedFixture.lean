@@ -51,12 +51,17 @@ private abbrev protocol : V2.ProtocolSpecD Unit where
 private abbrev env : Generic.Env Nat := ⟨1, by decide, 0, le_rfl, fun _ _ => true⟩
 private abbrev delivery (s x : Nat) : V2.Event Nat protocol.Object :=
   .deliver x ⟨.none, .inr (chain s)⟩ (4 * (s : Time) + 3)
+private def eventShape : List (Bool × Nat × Nat) :=
+  (List.range 257).flatMap fun t =>
+    [(true, 7, t), (true, 9, t)] ++
+      (if 7 ≤ t ∧ t % 4 = 3 then [(false, 7, t), (false, 9, t)] else [])
+private def eventOf (e : Bool × Nat × Nat) : V2.Event Nat protocol.Object :=
+  if e.1 then .tick e.2.1 (e.2.2 : Time)
+  else .deliver e.2.1 ⟨.none, .inr (chain (e.2.2 / 4))⟩ (e.2.2 : Time)
 private def run : V2.D.Run Nat protocol where
   honest := {7, 9}
   horizon := 256
-  events := (List.range 257).flatMap fun (t : Nat) =>
-    [.tick 7 (t : Time), .tick 9 (t : Time)] ++
-      (if 7 ≤ t ∧ t % 4 = 3 then [delivery (t / 4) 7, delivery (t / 4) 9] else [])
+  events := eventShape.map eventOf
   seatOf l _ := if l = 6 then 9 else 7
   input _ _ := ()
 private abbrev reads : FGSafetyReads protocol 1 (Row (Fin 1)) where
