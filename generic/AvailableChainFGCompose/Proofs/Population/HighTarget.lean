@@ -3,7 +3,7 @@ public import AvailableChainFGCompose.Statements.FinalityRecords
 public import AvailableChainFGCompose.Statements.Population.Seats
 public import AvailableChainFGCompose.Proofs.HolderClient
 public import AvailableChainFGCompose.Proofs.OrdinaryHolderClient
-public import AvailableChainFGCompose.Proofs.Finality.RecordInv
+public import AvailableChainFGCompose.Proofs.Population.HolderBaseHighTarget
 
 public section
 
@@ -135,7 +135,7 @@ theorem high_target_row_covered_holder (seat : Fin n)
       cases hhp
       rw [height_pair_vote_fields hpair] at hpair
       obtain ⟨ht, hn, hl, _⟩ := records j x hx (O.height C).h hhigh
-      have choice := high_record_target_choice Λ.toRecord (O.height C).h
+      have choice := high_record_target_choice_core Λ.toRecord (O.height C).h
         (O.height C).T_h.root (finality_pair Λ.toRecord (S.inputs duty).2)
         (by simpa only [he] using ht) hn (by simpa only [he] using hl)
         (by
