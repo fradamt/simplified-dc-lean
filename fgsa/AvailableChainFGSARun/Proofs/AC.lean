@@ -160,6 +160,13 @@ private theorem ac_veto_true {n : Nat} (v : GridCO.State n .root) (h : Block)
 
 
 
+private theorem ac_normalize_onView_stable {n : Nat} (st : State n)
+    (f : GridCO.State n .root → GridCO.State n .root) (rows : List (Slot × List Block)) :
+    (normalizeS { onView f st with fastWrite := rows }).base.stableRecord =
+      Gen.AC.normalizeOutput (eraseFG st.fg.F) (f (actView st)).stableRecord := by
+  rw [normalizeS_fields, Gen.AC.normalizeOutput_def]
+  rfl
+
 set_option maxHeartbeats 1600000 in
 -- The gate proof compares nested store updates and two lease folds.
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
@@ -266,10 +273,7 @@ theorem fgsaAC_gate_write (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
       have houtput : (fgsaAC E rho).output (i + 1) x =
           Gen.AC.normalizeOutput (eraseFG st.fg.F)
             (SA.Root.gateFrom p.toParams (eraseFG pre.fg.F) v s).stableRecord := by
-        rw [hout, hgate, normalizeS_fields]
-        change Gen.AC.normalizeOutput (eraseFG pre.fg.F)
-          (SA.Root.gateFrom p.toParams (eraseFG pre.fg.F) v s).stableRecord = _
-        rw [hfg]
+        rw [hout, hgate, ac_normalize_onView_stable, hfg]
       have hleases : (fgsaAC E rho).leases (i + 1) x =
           (SA.Root.gateFrom p.toParams (eraseFG pre.fg.F) v s).obligations := by
         rw [hlease, hgate, normalizeS_fields]
