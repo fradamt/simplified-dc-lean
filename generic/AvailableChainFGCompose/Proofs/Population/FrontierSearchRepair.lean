@@ -2,6 +2,7 @@ module
 public import AvailableChainFGCompose.Proofs.Healing.FrontierSearchStop
 public import AvailableChainFGCompose.Proofs.Healing.PhaseSettle
 public import AvailableChainFGCompose.Proofs.Population.HolderBaseRepair
+public import AvailableChainFGCompose.Proofs.Population.HolderBaseService
 public import AvailableChainFGCompose.Statements.Population.FrontierSearch
 
 public section
@@ -26,6 +27,32 @@ variable (erasePreceq : ∀ {A B}, FGBlock.Preceq A B → Block.Preceq (R.erase 
 variable (joined : Prot.State → Bool) (receipt : Block → Time → V → Prop)
 
 include obs in
+/-- The holder construction exposes its selected seed so an existing service can be restored. -/
+theorem frontierSearch_save_seed_holder_witness_core (hT : FGTimingLaws T) (hk : 1 ≤ leaseSlots)
+    {u D : Time} {m q : Nat} {J : Option (FGBlock (Fin n))} {contested : Bool}
+    {Q : Block} {Qfg : FGBlock (Fin n)}
+    (hready : Jst ≤ u) (hp : PhaseInterval R E rho O u D m J contested)
+    (hseed : FrontierSeedQualification T leaseSlots E.t_GST u q)
+    (hQ : HonestProposal E rho I q Q) (he : R.erase Qfg = Q)
+    (hh : (O.height Qfg).h = m) (hs : FrontierProposalService R E rho T q Q)
+    (hg : T.gate q ≤ D)
+    (hlocal : FrontierLocalServiceFG R S E rho O T I pair q Q Qfg m (T.gate q)) :
+    ∃ u' J' contested' q' Q' Qfg',
+      q' = q ∧ Q' = Q ∧ Qfg' = Qfg ∧
+      Jst ≤ u' ∧ HonestProposal E rho I q' Q' ∧ R.erase Qfg' = Q' ∧
+      (O.height Qfg').h = m ∧ FrontierProposalService R E rho T q' Q' ∧
+      FrontierSeedQualification T leaseSlots E.t_GST u' q' ∧ u' ≤ T.proposal q' ∧
+      PhaseInterval R E rho O u' (T.gate q') m J' contested' ∧ T.gate q' ≤ T.gate q ∧
+      T.gate q ≤ rho.horizon ∧
+      (∀ i x, timeIdx rho u' ≤ i → i ≤ timeIdx rho (T.gate q) → x ∈ rho.honest →
+        (R.core (rho.stateBefore E i x)).fg.h_max ≤ m) ∧
+      FrontierLocalServiceFG R S E rho O T I pair q' Q' Qfg' m (T.gate q) := by
+  obtain ⟨hu, hphase, hcap⟩ :=
+    frontierSearch_save_seed_fields_core R E rho O T leaseSlots obs hT hk hp hseed hg
+  exact ⟨u, J, contested, q, Q, Qfg, rfl, rfl, rfl, hready, hQ, he, hh, hs, hseed, hu,
+    hphase, le_rfl, hg.trans hp.2.1, hcap, hlocal⟩
+
+include obs in
 /-- Blueprint 21 HG.3. DC: SAME save a complete seed at its actual gate.
 The HEAD service and the local service at the gate are explicit leaves. -/
 theorem frontierSearch_save_seed_holder (hT : FGTimingLaws T) (hk : 1 ≤ leaseSlots)
@@ -38,13 +65,13 @@ theorem frontierSearch_save_seed_holder (hT : FGTimingLaws T) (hk : 1 ≤ leaseS
     (hg : T.gate q ≤ D)
     (hlocal : FrontierLocalServiceFG R S E rho O T I pair q Q Qfg m (T.gate q)) :
     StrongServedFG R S E rho O T I pair Jst leaseSlots m (T.gate q) := by
-  obtain ⟨hu, hphase, hcap⟩ :=
-    frontierSearch_save_seed_fields_core R E rho O T leaseSlots obs hT hk hp hseed hg
-  exact ⟨u, J, contested, q, Q, Qfg, hready, hQ, he, hh, hs, hseed, hu,
-    hphase, le_rfl, hg.trans hp.2.1, hcap, hlocal⟩
+  obtain ⟨u', J', c', q', Q', Qfg', _, _, _, h⟩ :=
+    frontierSearch_save_seed_holder_witness_core R S E rho O T I pair Jst leaseSlots obs hT hk
+      hready hp hseed hQ he hh hs hg hlocal
+  exact ⟨u', J', c', q', Q', Qfg', h⟩
 
 include obs in
-/-- The same fixed holder-seed construction retains an existing all-node local supplier. -/
+/-- Restore the given all-node service for the exact seed selected by the holder construction. -/
 theorem frontierSearch_save_seed_holder_local_core (hT : FGTimingLaws T) (hk : 1 ≤ leaseSlots)
     {u D : Time} {m q : Nat} {J : Option (FGBlock (Fin n))} {contested : Bool}
     {Q : Block} {Qfg : FGBlock (Fin n)}
@@ -55,10 +82,12 @@ theorem frontierSearch_save_seed_holder_local_core (hT : FGTimingLaws T) (hk : 1
     (hg : T.gate q ≤ D)
     (hlocal : FrontierLocalService R S E rho O T I pair q Q Qfg m (T.gate q)) :
     StrongServed R S E rho O T I pair Jst leaseSlots m (T.gate q) := by
-  obtain ⟨hu, hphase, hcap⟩ :=
-    frontierSearch_save_seed_fields_core R E rho O T leaseSlots obs hT hk hp hseed hg
-  exact ⟨u, J, contested, q, Q, Qfg, hready, hQ, he, hh, hs, hseed, hu,
-    hphase, le_rfl, hg.trans hp.2.1, hcap, hlocal⟩
+  obtain ⟨u', J', c', q', Q', Qfg', rfl, rfl, rfl,
+    hr, hQ', he', hh', hs', hseed', hu, hp', hg', ht, hc, _⟩ :=
+    frontierSearch_save_seed_holder_witness_core R S E rho O T I pair Jst leaseSlots obs hT hk
+      hready hp hseed hQ he hh hs hg (frontierLocalService_to_holder_core hlocal)
+  exact ⟨u', J', c', q', Q', Qfg', hr, hQ', he', hh', hs', hseed', hu, hp', hg', ht, hc,
+    hlocal⟩
 
 include obs cert inv justif keep positive coreLaws erasePreceq in
 /-- ROOT-DIGEST W2b. Blueprint 21 HG.3 contest; plan R2-b.
