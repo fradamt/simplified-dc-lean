@@ -1,4 +1,5 @@
 # POP-6b holder-aware owner phase, tasks and full search.
+# Standalone controls: bash scripts/check-pop-6b-controls.sh
 [TARGETS]
 AvailableChainFGCompose.Proofs.Population.FrontierSearchCompose
 AvailableChainFGCompose.Proofs.Population.FrontierSearchTasks
