@@ -144,5 +144,21 @@ theorem frontierSearch_proposal_heights_core (floor : AttemptProposalFloor R E r
   rw [frontierSearch_phase_hmax_core R E rho O obs hp hui hiD hx] at hh
   exact hh
 
+include obs in
+/-- The fixed seed's shared bounds, before choosing a population for its local service. -/
+theorem frontierSearch_save_seed_fields_core (hT : FGTimingLaws T) (hk : 1 ≤ leaseSlots)
+    {u D : Time} {m q : Nat} {J : Option (FGBlock (Fin n))} {contested : Bool}
+    (hp : PhaseInterval R E rho O u D m J contested)
+    (hseed : FrontierSeedQualification T leaseSlots E.t_GST u q) (hg : T.gate q ≤ D) :
+    u ≤ T.proposal q ∧ PhaseInterval R E rho O u (T.gate q) m J contested ∧
+      (∀ i x, timeIdx rho u ≤ i → i ≤ timeIdx rho (T.gate q) → x ∈ rho.honest →
+        (R.core (rho.stateBefore E i x)).fg.h_max ≤ m) := by
+  have hu := frontierSearch_seed_after_core T leaseSlots hT hk hseed
+  have huq : u ≤ T.gate q := by
+    rw [hT.gate_eq]
+    linarith [hT.delta_pos]
+  exact ⟨hu, frontierSearch_phase_cut_core R E rho O hp huq hg,
+    frontierSearch_phase_cap_core R E rho O obs hp hg⟩
+
 end AvailableChain.FGCompose
 end

@@ -113,13 +113,8 @@ theorem frontierSearch_save_seed (hT : FGTimingLaws T) (hk : 1 ≤ leaseSlots)
     (hg : T.gate q ≤ D)
     (hlocal : FrontierLocalService R S E rho O T I pair q Q Qfg m (T.gate q)) :
     StrongServed R S E rho O T I pair Jst leaseSlots m (T.gate q) := by
-  have hu := frontierSearch_seed_after T leaseSlots hT hk hseed
-  have huq : u ≤ T.gate q := by
-    rw [hT.gate_eq]
-    linarith [hT.delta_pos]
-  exact ⟨u, J, contested, q, Q, Qfg, hready, hQ, he, hh, hs, hseed, hu,
-    frontierSearch_phase_cut R E rho O hp huq hg, le_rfl, hg.trans hp.2.1,
-    frontierSearch_phase_cap R E rho O obs hp hg, hlocal⟩
+  exact frontierSearch_save_seed_holder_local_core R S E rho O T I pair Jst leaseSlots obs hT hk
+    hready hp hseed hQ he hh hs hg hlocal
 
 include obs cert inv justif keep positive coreLaws erasePreceq in
 /-- ROOT-DIGEST W2b. Blueprint 21 HG.3 contest; plan R2-b.
