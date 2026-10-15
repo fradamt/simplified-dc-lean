@@ -939,5 +939,28 @@ private theorem opening_premises_sat :
 
 #print axioms opening_premises_sat
 
+-- Bounded owner composition: the selected holder middle and its exact terminal acceptance
+-- give the original, all-honest-receiver conclusion without constructing an old middle.
+private theorem kernel_conclusion_premises_sat :
+    KernelConclusion_W core (env Nat) run obs timing interface decodeProposal erase
+      (fun X => X.rows.map wire) (fun nd Q => parentRead nd Q.parent) makeFG 2 1 ∧
+    AcceptsFinalBefore core (env Nat) run 7 bBlock (kernelDeadlineW timing 2 3) ∧
+    AcceptsFinalBefore core (env Nat) run 9 bBlock (kernelDeadlineW timing 2 3) := by
+  obtain ⟨m, ⟨hA, _, hU, _, _, _⟩, _⟩ := action_premises_sat
+  obtain ⟨prem⟩ := receipt_premises_sat
+  have accepted := acceptBefore_W core (env Nat) run electorate cfg 2
+    (by change ¬ (1 ≤ 0); decide) (by decide) durable_premises_sat ready
+    acceptance_effect_premises_sat.1 (fun i x _ => store_premises_sat _)
+    xBlock bBlock 32 _ prem
+  refine ⟨?_, accepted 7 (by decide), accepted 9 (by decide)⟩
+  intro A h
+  obtain rfl := opening_premises_sat.2 A h
+  refine ⟨m.A₀, m.eraseA, m.carrierA, m.heldAAtEnd, m.U, m.strictAU.1, m.strictAU.2, ?_, ?_⟩
+  · rw [m.freshEntry.1, m.heightA]
+  · rw [hU]
+    exact accepted
+
+#print axioms kernel_conclusion_premises_sat
+
 end AvailableChain.FGCompose.Tests.PopulationKernel
 end
