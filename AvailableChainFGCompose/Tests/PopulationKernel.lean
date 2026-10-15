@@ -1775,6 +1775,8 @@ private theorem frozen_owner_specialization
 
 end FrozenOwner
 
+-- The full owner run starts at genesis, retains its core on clocks, and updates stores
+-- at actual deliveries. Its reset precedes the active kernel window.
 namespace Owner
 
 set_option maxRecDepth 8192
@@ -2838,6 +2840,7 @@ private theorem proposal_data_premises_sat (k : Fin 7) :
 
 #print axioms proposal_data_premises_sat
 
+-- Every owner proof argument on these exact data; action supplies every dependent witness.
 private structure OwnerPremises : Prop where
   CL : FGCoreLaws core
   HL : FGHeadLaws core (env Nat) run
@@ -2861,8 +2864,10 @@ private structure OwnerPremises : Prop where
   runFacts : KernelRunFacts reads (env Nat) run electorate 2
   hreset : timing.proposal (point.reset.sStar + 2) ≤ point.serviceStart
   hGSTstart : (env Nat).t_GST ≤ point.serviceStart
-  reset : H0Reset core reads (env Nat) run obs timing (fun a => namedEntry (history.heightPair a)) 0 point.reset
-  historyTransfer : FGHistoricalHighTransfer core obs timing (env Nat) run interface point run.horizon
+  reset : H0Reset core reads (env Nat) run obs timing (fun a => namedEntry (history.heightPair a)) 0
+    point.reset
+  historyTransfer : FGHistoricalHighTransfer core obs timing (env Nat) run interface point
+    run.horizon
   chain : ∀ horizon, FGHistoricalHighChain core obs timing (env Nat) run point horizon
   reflect : ∀ A B, Block.Preceq (core.erase A) (core.erase B) → FGBlock.Preceq A B
   parent : ∀ B, core.erase B.parent = (core.erase B).parent
@@ -2874,12 +2879,15 @@ private structure OwnerPremises : Prop where
   proposal : ∀ s, honestSlot s → pt.r * timing.roundSlots ≤ s →
       s ≤ (pt.r + 2) * timing.roundSlots → ∃ Q, HonestProposal (env Nat) run interface s Q
   terminalProposal : honestSlot ((pt.r + 2) * timing.roundSlots + kappaF timing 2) →
-      ∃ Q, HonestProposal (env Nat) run interface ((pt.r + 2) * timing.roundSlots + kappaF timing 2) Q
+      ∃ Q, HonestProposal (env Nat) run interface ((pt.r + 2) * timing.roundSlots + kappaF timing 2)
+        Q
   carrier : ∀ s Q, HonestProposal (env Nat) run interface s Q →
       ∃ X : FGBlock (Fin 1), core.erase X = Q ∧
-        OpeningCarrier_W decodeProposal erase (fun X => X.rows.map wire) (fun nd Q => parentRead nd Q.parent)
+        OpeningCarrier_W decodeProposal erase (fun X => X.rows.map wire) (fun nd Q => parentRead nd
+          Q.parent)
           makeFG (env Nat) run interface s Q X ∧ X.slot = s ∧
-        (∃ rows, HonestCarrier (env Nat) run interface (kernelCarrier decodeProposal erase (fun X => X.rows.map wire))
+        (∃ rows, HonestCarrier (env Nat) run interface (kernelCarrier decodeProposal erase (fun X =>
+          X.rows.map wire))
           s Q rows ∧ X.rows = rows.filterMap reads.decode) ∧
         ∃ nd, proposalStateAt (env Nat) run interface s = some nd ∧
           parentRead nd Q.parent = some X.parent ∧ X.parent ∈ (core.core nd).fg.TF
@@ -2899,7 +2907,8 @@ private structure OwnerPremises : Prop where
   slot_chain : ∀ i x X, X ∈ (core.core (V2.D.Run.stateBefore (env Nat) run i x)).fg.TF → SlotChain X
   closed : ∀ s nd, proposalStateAt (env Nat) run interface s = some nd →
       ∀ X ∈ (core.core nd).fg.TF, X.parent ∈ (core.core nd).fg.TF
-  roots : ∀ s nd, proposalStateAt (env Nat) run interface s = some nd → ViewRootInj (core.core nd).fg.TF
+  roots : ∀ s nd, proposalStateAt (env Nat) run interface s = some nd → ViewRootInj (core.core
+    nd).fg.TF
   validRows : ∀ s nd, proposalStateAt (env Nat) run interface s = some nd →
       ∀ X ∈ (core.core nd).fg.TF, ∀ row ∈ X.rows,
         SimplexFG.Window.r6w (SimplexFG.Window.derive electorate cfg 2 X.parent) row = true
@@ -2907,18 +2916,22 @@ private structure OwnerPremises : Prop where
   matchValid : ∀ nd s X a, valid a = true →
       namedEntry (history.heightPair a) = some (parentHeight nd s X) → validFor nd s X a = true
   hBatch : ∀ q y U X,
-      BatchPrem core reads obs timing (env Nat) run interface history electorate decodeProposal erase (fun X => X.rows.map wire) (fun _ => [])
+      BatchPrem core reads obs timing (env Nat) run interface history electorate decodeProposal
+        erase (fun X => X.rows.map wire) (fun _ => [])
         parentRead parentHeight validFor 2 .target q y U X →
       (obs.height X.parent).h = y → TargetCoveredByChild electorate obs.height X U y
   hSOCOVTarget : ∀ i : Fin 1, safetyHolder reads run i ∈ run.honest → ∀ r C,
       actionSourceFG core (env Nat) run timing (safetyHolder reads run i) r = some (some C) →
       point.reset.M + 1 ≤ (obs.height C).h →
       (env Nat).awake (safetyHolder reads run i) (timing.action r) = true →
-      ∃ j rSent a, rSent ≤ r ∧ HonestRowAt reads (env Nat) run timing j (safetyHolder reads run i) rSent a ∧
+      ∃ j rSent a, rSent ≤ r ∧ HonestRowAt reads (env Nat) run timing j (safetyHolder reads run i)
+        rSent a ∧
         RowComplete reads run history.signer valid (safetyHolder reads run i) a ∧
         history.heightPair a = .vote (obs.height C).h (obs.height C).T_h.root false
-  action : ∀ A (m : KernelMiddleWitnessFG_W core reads obs timing (env Nat) run interface history electorate decodeProposal erase
-      (fun X => X.rows.map wire) (fun _ => []) parentRead parentHeight validFor makeFG valid service cfg 2 2 point pt A),
+  action : ∀ A (m : KernelMiddleWitnessFG_W core reads obs timing (env Nat) run interface history
+    electorate decodeProposal erase
+      (fun X => X.rows.map wire) (fun _ => []) parentRead parentHeight validFor makeFG valid service
+        cfg 2 2 point pt A),
       KernelActionSupplyFG_W core reads obs timing (env Nat) run interface history electorate m
   wireDecode : ∀ row, reads.decode (wire row) = some row
   wireValid : ∀ i y U B,
@@ -2927,7 +2940,8 @@ private structure OwnerPremises : Prop where
   release : ∀ i q nd row,
       postClock (env Nat) run (safetyHolder reads run i) (timing.action q) = some nd →
       (env Nat).awake (safetyHolder reads run i) (timing.action q) = true →
-      (createRowOnce electorate cfg (reads.record nd) i (reads.inputs nd).1 (reads.inputs nd).2).1 = some row →
+      (createRowOnce electorate cfg (reads.record nd) i (reads.inputs nd).1 (reads.inputs nd).2).1 =
+        some row →
       ∃ j, run.events[j]? = some (.tick (safetyHolder reads run i) (timing.action q)) ∧
         reads.encode (wire row) ∈ V2.D.Run.emitsAt (env Nat) run j
   fields : ∀ nd H, core.finalityHead nd = some H →
@@ -2936,7 +2950,8 @@ private structure OwnerPremises : Prop where
   recordHead : HighRecordHead core reads obs (env Nat) run
   clientLaws : FGSafetyClientLaws reads electorate cfg
   own : HighRecordOwnOrigin reads timing (env Nat) run
-  hsel : TRowsSelect core reads (env Nat) run timing interface (kernelCarrier decodeProposal erase (fun X => X.rows.map wire))
+  hsel : TRowsSelect core reads (env Nat) run timing interface (kernelCarrier decodeProposal erase
+    (fun X => X.rows.map wire))
       chainRowsRead (fun _ => []) parentRead validFor
   decode : ∀ a i, history.signer a = some i → ∃ u, reads.decode a = some u
   occurrence : ∀ s (Q : Block) H nd a u,
@@ -2946,7 +2961,8 @@ private structure OwnerPremises : Prop where
   validFor_eq : ∀ nd s B a, validFor nd s B a =
       ((reads.decode a).isSome && ((reads.decode a).map
         (SimplexFG.Window.r6w (KitFG.Window.parentState electorate cfg 2 B s))).getD false)
-  pathValid : ∀ s nd, proposalStateAt (env Nat) run interface s = some nd → ∀ H ∈ (core.core nd).fg.TF,
+  pathValid : ∀ s nd, proposalStateAt (env Nat) run interface s = some nd → ∀ H ∈ (core.core
+    nd).fg.TF,
       ∀ B s' root body rs, FGBlock.Preceq (.node B s' root body rs) H → ∀ a ∈ rs,
       (match a.height_pair with
         | .empty => false
@@ -2970,7 +2986,8 @@ private structure OwnerPremises : Prop where
       C ≠ .genesis → finBlock C
   rootScope : ∀ i x, x ∈ run.honest → ∀ C k u r a B,
       C ∈ (core.core (V2.D.Run.stateBefore (env Nat) run i x)).fg.TF →
-      HonestRowAt reads (env Nat) run timing k u r a → actionSourceFG core (env Nat) run timing u r = some (some B) →
+      HonestRowAt reads (env Nat) run timing k u r a → actionSourceFG core (env Nat) run timing u r
+        = some (some B) →
       (obs.height C).J.root = (obs.height B).T_h.root → (obs.height C).J = (obs.height B).T_h
   hStrat : ∀ j z W, z ∈ run.honest →
       W ∈ (core.core (V2.D.Run.stateBefore (env Nat) run j z)).fg.TF →
@@ -2988,9 +3005,11 @@ private structure OwnerPremises : Prop where
         reads.decode a = some row → row.height_pair = .vote h B timeout →
         timing.action r < cut → h < b + 1) → (obs.height W).h < b + 2
   delivery : ∀ (X U : FGBlock (Fin 1)) rows,
-      HonestCarrier (env Nat) run interface (kernelCarrier decodeProposal erase (fun X => X.rows.map wire))
+      HonestCarrier (env Nat) run interface (kernelCarrier decodeProposal erase (fun X => X.rows.map
+        wire))
         X.slot (core.erase X) rows →
-      (env Nat).t_GST ≤ timing.proposal X.slot → timing.proposal X.slot + timing.delta ≤ run.horizon →
+      (env Nat).t_GST ≤ timing.proposal X.slot → timing.proposal X.slot + timing.delta ≤ run.horizon
+        →
       FGBlock.Preceq U (SimplexFG.Window.derive electorate cfg 2 X).F →
       Nonempty (BlockDelivery_W core (env Nat) run ready X U (timing.proposal X.slot)
         (timing.proposal X.slot + timing.delta))
