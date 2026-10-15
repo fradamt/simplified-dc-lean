@@ -687,5 +687,97 @@ private theorem allowance_premises_sat (u ρ : Time) (hu : 12 ≤ u) (hρ : 16 �
 
 #print axioms allowance_premises_sat
 
+private theorem search_premises_sat :
+    (4 : Nat) = 2 * v5T.roundSlots ∧ LivenessBoundW v5T 1 ∧
+    (12 : Time) ≤ v5T.action 1 ∧
+    (∀ r, (12 : Time) ≤ v5T.action r → 1 ≤ r) ∧
+    (30 : Time) = v5T.action (1 + 2) ∧ 12 + 2 * FGCompose.P v5T ≤ (30 : Time) ∧
+    (2 : Nat) = honestFrontier core env run 30 ∧
+    (∀ j y r a h e t, HonestRowAt reads env run v5T j y r a →
+      run.events[j]? = some (.tick y t) → t ≤ (30 : Time) →
+      namedEntry (wire.heightPair a) = some (h, e) → h ≤ 2) ∧
+    (∀ i ev m kind, FrontierSearchStart core env run obs v5T 12 i ev m kind →
+      12 + 2 * FGCompose.P v5T ≤ ev.time →
+      FrontierRepairAllowance core env run obs v5T iface 12 1 4 16 (ev.time + 3 * v5T.delta)) ∧
+    (30 + frontierSearchRiseBudget v5T 4 1 16 + frontierSearchRowBudget v5T 4 1 16 ≤
+      run.horizon) ∧
+    timeIdx run 30 = 76 ∧ frontierAtIdx core env run 76 = 2 ∧
+    frontierAtIdx core env run 80 = 2 ∧ frontierAtIdx core env run 81 = 3 ∧
+    run.events[80]? = some (.deliver 7 ⟨.none, .inr (chain 8)⟩ 32) ∧
+    HeightRow reads env run v5T (fun a => namedEntry (wire.heightPair a)) 4 3 ∧
+    (∀ r, HeightRow reads env run v5T (fun a => namedEntry (wire.heightPair a)) r 3 → 4 ≤ r) ∧
+    (∀ ρ : Time, 0 ≤ ρ → 32 ≤ 30 + frontierSearchRiseBudget v5T 4 1 ρ ∧
+      38 ≤ 32 + frontierSearchRowBudget v5T 4 1 ρ) := by
+  have indices : timeIdx run 30 = 76 := by decide +kernel
+  have points : frontierAtIdx core env run 76 = 2 ∧ frontierAtIdx core env run 80 = 2 ∧
+      frontierAtIdx core env run 81 = 3 := by
+    refine ⟨?_, ?_, ?_⟩
+    all_goals
+      unfold frontierAtIdx
+      change ({7, 9} : Finset Nat).sup _ = _
+      simp only [Finset.sup_insert, Finset.sup_singleton, fold_premises_sat.1]
+      decide +kernel
+  have cutFrontier : honestFrontier core env run 30 = 2 := by
+    rw [reset_inclusive_frontier (R := core) (E := env) (rho := run)
+      execution_premises_sat.1 30, indices, points.1]
+  have first : resetFirstRound v5T v5TLaws 12 = 1 :=
+    ladfirst (reset_rG_after v5T v5TLaws 12) (reset_rG_first v5T v5TLaws 12)
+  have cut : resetCutTime v5T v5TLaws 12 = 30 := by
+    rw [reset_cut, first]
+    rfl
+  have cutM : resetCutFrontier core env run v5T v5TLaws 12 = 2 := by
+    rw [reset_frontier, cut, cutFrontier]
+  have rowCap := healing_reset_rowCap (T := v5T) (L := v5TLaws) (Jst := 12)
+    (R := core) (S := reads) (E := env) (rho := run) (O := obs) (pair := wire.heightPair)
+    (CL := core_premises_sat.1) (K := core_premises_sat.2.1)
+    (storeInv := fun _ _ => geometry_premises_sat.2.2 _)
+    (emittedName := entry_premises_sat.2.2) execution_premises_sat.1
+  rw [cut, cutM] at rowCap
+  have row4 : HeightRow reads env run v5T (fun a => namedEntry (wire.heightPair a)) 4 3 := by
+    refine ⟨rowIndex 4, 9, wireAt 4, (obs.height (chain 8)).T_h.root, ?_, ?_⟩
+    · exact observed_premises_sat.2.1 (⟨4, by decide⟩ : Fin 32)
+    · have hn := entry_premises_sat.1 (⟨4, by decide⟩ : Fin 32)
+      change namedEntry (wire.heightPair (wireAt 4)) =
+        some ((obs.height (chain 8)).h, (obs.height (chain 8)).T_h.root) at hn
+      rw [(chain_facts_premises_sat (⟨8, by decide⟩ : Fin 65)).1] at hn
+      exact hn
+  have lower (r : Nat)
+      (hr : HeightRow reads env run v5T (fun a => namedEntry (wire.heightPair a)) r 3) :
+      4 ≤ r := by
+    obtain ⟨j, x, a, e, ha, he⟩ := hr
+    obtain ⟨hr, _, rfl⟩ := classification_premises_sat.2 j x r a ha
+    have hh := congrArg Prod.fst (Option.some.inj
+      (he.symm.trans (entry_premises_sat.1 ⟨r, hr⟩)))
+    rw [(chain_facts_premises_sat ⟨2 * r, by omega⟩).1] at hh
+    dsimp only [heightAt] at hh
+    simp only [Height] at *
+    omega
+  refine ⟨rfl, ⟨by decide⟩, by decide, ?_, rfl, by decide, cutFrontier.symm, rowCap,
+    ?_, by decide +kernel, indices, points.1, points.2.1, points.2.2, by decide +kernel,
+    row4, lower, ?_⟩
+  · intro r hr
+    change 12 ≤ 8 * (r : Int) + 6 at hr
+    simp only [Time] at *
+    omega
+  · intro i ev m kind _ hd
+    apply allowance_premises_sat _ 16 ?_ le_rfl
+    change 12 + 16 ≤ ev.time at hd
+    change 12 ≤ ev.time + 3
+    simp only [Time] at *
+    omega
+  · intro ρ hρ
+    have hm : (16 : Time) ≤ max (ρ + 15) 16 := le_max_right _ _
+    constructor
+    · norm_num [frontierSearchRiseBudget, E_gF, E_jF, B_cF, FGCompose.P, Γ, epsF,
+        betaF, kappaF, v5T]
+      simp only [Time] at *
+      omega
+    · norm_num [frontierSearchRowBudget, E_gF, E_jF, D_cF, FGCompose.P, Γ, epsF,
+        betaF, kappaF, v5T]
+      simp only [Time] at *
+      omega
+
+#print axioms search_premises_sat
+
 end AvailableChain.FGCompose.Tests.POP6bMixed
 end
