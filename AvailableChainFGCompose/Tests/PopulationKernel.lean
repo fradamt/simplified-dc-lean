@@ -1,9 +1,6 @@
 module
 public import AvailableChainFGCompose.Proofs.Population.Kernel
 public import AvailableChainFGCompose.Proofs.Population.KernelBridges
-public import AvailableChainKitFG.HeightConsumeTransfer
-public import AvailableChainKitFG.HeightHistoryTransfer
-public import AvailableChainGeneric.Proofs.Pure.BlockOrder
 
 set_option linter.privateModule false
 noncomputable section
@@ -2046,6 +2043,46 @@ private theorem certificate_premises_sat :
     KitFG.Window.windowHeightBridge electorate cfg 2 (by decide)
   let laws : FGHeightLaws electorate obs.height :=
     KitFG.Window.windowHeightLaws electorate cfg 2 (by decide)
+  have advance (σ : ChainState (Fin 1)) (B : FGBlock (Fin 1))
+      (rs : List (Row (Fin 1))) (Q : Finset (Fin 1)) (hQ : electorate.IsQuorum Q)
+      (cover : ∀ i ∈ Q, i ∈ σ.target_participation ∨ ∃ a ∈ rs,
+        a.signer = i ∧ a.height_pair = .vote σ.h σ.T_h.root false) :
+      (process_height_events electorate cfg (foldRows σ B rs)).h = σ.h + 1 ∧
+        (process_height_events electorate cfg (foldRows σ B rs)).J = σ.T_h ∧
+        (process_height_events electorate cfg (foldRows σ B rs)).h_j = σ.h := by
+    have fold (rows : List (Row (Fin 1))) (σ : ChainState (Fin 1)) (i : Fin 1)
+        (hi : i ∈ σ.target_participation ∨ ∃ a ∈ rows,
+          a.signer = i ∧ a.height_pair = .vote σ.h σ.T_h.root false) :
+        i ∈ (rows.foldl process_row σ).target_participation := by
+      induction rows generalizing σ with
+      | nil => simpa using hi
+      | cons a rows ih =>
+        apply ih
+        rw [(process_row_fields σ a).2.2.1, (process_row_fields σ a).2.2.2.1]
+        rcases hi with hi | ⟨b, hb, hbi, hm⟩
+        · left
+          rw [process_row_target]
+          split_ifs
+          · exact Finset.mem_insert_of_mem hi
+          · exact hi
+        · rcases List.mem_cons.mp hb with rfl | hb
+          · left
+            rw [process_row_target, ite_eq_left hm]
+            exact Finset.mem_insert.mpr (Or.inl hbi.symm)
+          · exact Or.inr ⟨b, hb, hbi, hm⟩
+    have hq : electorate.IsQuorum (foldRows σ B rs).target_participation :=
+      isQuorum_of_subset electorate hQ
+        (fun i hi => fold rs { σ with s := B.slot } i (cover i hi))
+    have ht : (afterFin electorate (foldRows σ B rs)).targetQuorum electorate = true := by
+      change decide (electorate.q ≤ electorate.weightOf
+        (afterFin electorate (foldRows σ B rs)).target_participation) = true
+      rw [decide_eq_true_eq, afterFin_target_participation]
+      exact hq
+    rw [process_height_events_eq, ite_eq_left ht]
+    have hh := (afterFin_h electorate (foldRows σ B rs)).trans (foldRows_fields σ B rs).2.1
+    have he := (afterFin_T_h electorate (foldRows σ B rs)).trans
+      (foldRows_fields σ B rs).2.2.1
+    exact ⟨congrArg (· + 1) hh, he, hh⟩
   have parentPath (X : FGBlock (Fin 1)) : FGBlock.Preceq X.parent X := by
     cases X with
     | genesis => exact preceq_refl _
@@ -2060,16 +2097,26 @@ private theorem certificate_premises_sat :
     cases X with
     | genesis => exact (hX rfl).elim
     | node P s r x rs =>
-      obtain ⟨hh, hJ, hj⟩ := derive_target_of_cover_of_bridge electorate cfg obs.height hb
-        P s r x rs Q hQ (by
-          intro i hi
-          rcases hc i hi with hb | ⟨a, ha, hs, hp⟩
-          · exact Or.inl hb
-          · refine Or.inr ⟨a, ha, hs, ?_⟩
-            change (obs.height P).h = y at hP
-            change (obs.height P).T_h = U at hT
-            rw [hP, hT]
-            exact hp)
+      have covered : ∀ i ∈ Q, i ∈ (obs.height P).target_participation ∨
+          ∃ a ∈ rs, a.signer = i ∧ a.height_pair =
+            .vote (obs.height P).h (obs.height P).T_h.root false := by
+        intro i hi
+        rcases hc i hi with hb | ⟨a, ha, hs, hp⟩
+        · exact Or.inl hb
+        · refine Or.inr ⟨a, ha, hs, ?_⟩
+          change (obs.height P).h = y at hP
+          change (obs.height P).T_h = U at hT
+          rw [hP, hT]
+          exact hp
+      have heq : ∀ B, KitFG.Window.certificateHeight electorate cfg 2 B =
+          heightOf (SimplexFG.derive electorate cfg B) := hb
+      have result := advance (SimplexFG.derive electorate cfg P) (.node P s r x rs) rs Q hQ
+        (by simpa only [heq, heightOf_def] using covered)
+      have lifted : (obs.height (.node P s r x rs)).h = (obs.height P).h + 1 ∧
+          (obs.height (.node P s r x rs)).J = (obs.height P).T_h ∧
+          (obs.height (.node P s r x rs)).h_j = (obs.height P).h := by
+        simpa only [heq, heightOf_def, derive_node] using result
+      obtain ⟨hh, hJ, hj⟩ := lifted
       exact ⟨hP, hh.trans (congrArg (· + 1) hP), hJ.trans hT, hj.trans hP⟩
   have fold (y : Nat) (U X : FGBlock (Fin 1)) (hX : X ≠ .genesis)
       (hU : EntryAt obs.height U y) (hUX : FGBlock.Preceq U X.parent)
@@ -3020,18 +3067,25 @@ private theorem owner_premises_sat : OwnerPremises := by
     KitFG.Window.windowCertificateLaws electorate cfg 2 (by change ¬ (1 ≤ 0); decide)
       (by decide)
   let height := hc.height
+  have baseRefl (B : Block) : Block.Preceq B B := by
+    cases B with
+    | genesis => rfl
+    | node P sl root body =>
+      change (decide (Block.node P sl root body = .node P sl root body) ||
+        Block.preceq (.node P sl root body) P) = true
+      simp only [decide_true, Bool.true_or]
   have forward : ∀ A B : FGBlock (Fin 1), FGBlock.Preceq A B →
       Block.Preceq (erase A) (erase B) := by
     intro A B h
     induction B with
     | genesis =>
       obtain rfl := preceq_genesis.mp h
-      exact Gen.Pure.block_preceq_refl _
+      exact baseRefl _
     | node P sl root body rs ih =>
       change (decide (A = .node P sl root body rs) || FGBlock.preceq A P) = true at h
       simp only [Bool.or_eq_true, decide_eq_true_eq] at h
       rcases h with rfl | hp
-      · exact Gen.Pure.block_preceq_refl _
+      · exact baseRefl _
       · rw [erase]
         exact Bool.or_eq_true_iff.mpr (Or.inr (ih hp))
   have compatible (i j : Fin 8) : Block.Compatible (erase (block i)) (erase (block j)) := by
