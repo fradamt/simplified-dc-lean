@@ -1453,7 +1453,7 @@ private theorem d7n_f_chain (w : HealingWitness) (h : THigh p c E rho w) (horizo
       (d7n_timing p) E rho (d7n_point p w) horizon := by
   intro x y r q C D hx hy hC hD hc hd _ _
   rw [d7n_reads_eq p c] at hC hD ⊢
-  exact h x y r q C D hx hy hC hD hc hd
+  exact ⟨(h x y r q C D hx hy hC hD hc hd).1, (h x y r q C D hx hy hC hD hc hd).2.1⟩
 
 private theorem d7n_f_reflect (A B : FGBlock (Fin p.n))
     (h : Block.Preceq ((fgsaCoreReads p c).erase A) ((fgsaCoreReads p c).erase B)) :

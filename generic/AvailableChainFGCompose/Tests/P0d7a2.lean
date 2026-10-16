@@ -392,7 +392,7 @@ private theorem d7t_history (horizon : Time) :
   rcases d7t_source_cases hC with rfl | rfl <;>
     rcases d7t_source_cases hB with rfl | rfl
   all_goals exact ⟨by unfold Block.Compatible; decide +kernel,
-    by unfold Block.Compatible; decide +kernel, Nat.zero_le _⟩
+    by unfold Block.Compatible; decide +kernel⟩
 
 private theorem d7t_pre_service_sources :
     actionSourceFG d7t_R d7t_env d7t_run d7t_T 0 0 = some (some d7g_X) ∧
@@ -754,7 +754,7 @@ private theorem d7v_history (horizon : Time) :
     | exact False.elim (by change 2 ≤ 1 at hc; omega)
     | exact False.elim (by change 2 ≤ 1 at hb; omega)
     | exact ⟨by unfold Block.Compatible; decide +kernel,
-        by unfold Block.Compatible; decide +kernel, Nat.zero_le _⟩
+        by unfold Block.Compatible; decide +kernel⟩
 private theorem d7v_head : HighRecordHead d7v_R d7v_S d7v_O d7v_env d7v_run := by
   intro i x t hx
   exact Or.inl rfl

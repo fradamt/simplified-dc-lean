@@ -140,6 +140,8 @@ def FGHistoricalHighTransfer (R : FGCoreReads P n Base Proposal Wire)
     ∀ v Q, HonestProposal E rho I v Q → T.proposal v ≤ horizon →
       r * T.roundSlots + 2 ≤ v → Block.Preceq (R.erase C) Q.parent
 
+/-- The label floor is not part of the historical chain (false for PC-SA sources of PC holders
+without an FG identity; FG-SA keeps it in THigh). -/
 def FGHistoricalHighChain (R : FGCoreReads P n Base Proposal Wire)
     (O : FGObservationReads R) (T : FGTiming) (E : Generic.Env V)
     (rho : V2.D.Run V P) (pt : FGServicePoint) (horizon : Time) : Prop :=
@@ -149,7 +151,7 @@ def FGHistoricalHighChain (R : FGCoreReads P n Base Proposal Wire)
     pt.reset.M + 1 ≤ (O.height C).h → pt.reset.M + 1 ≤ (O.height D).h →
     T.action r ≤ horizon → T.action r' ≤ horizon →
     Block.Compatible (R.erase C) (R.erase D) ∧
-      Block.Compatible (R.erase C) pt.reset.source ∧ pt.reset.sStar ≤ r * T.roundSlots
+      Block.Compatible (R.erase C) pt.reset.source
 
 -- HonestCarrier, heldAtProposal, ValidForParent, onParentChain, HeldBefore.
 def TRowsSelect : Prop := ∀ s Q rows j y r (a : Wire),

@@ -497,7 +497,7 @@ private theorem c2_history_chain (w : HealingWitness) (h : THigh p c E rho w)
       (c2_timing p) E rho (c2_point p w) horizon := by
   intro x y r q C D hx hy hC hD hc hd _ _
   rw [d7a4r_reads_eq] at hC hD ⊢
-  exact h x y r q C D hx hy hC hD hc hd
+  exact ⟨(h x y r q C D hx hy hC hD hc hd).1, (h x y r q C D hx hy hC hD hc hd).2.1⟩
 
 private theorem c2_service_laws (w : HealingWitness)
     (h1 : THigh p c E rho w) (h2 : TCarrier p c E rho w)
