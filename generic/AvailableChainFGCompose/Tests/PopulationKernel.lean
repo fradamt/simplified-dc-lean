@@ -3215,15 +3215,10 @@ private theorem owner_premises_sat : OwnerPremises := by
     have hle : r ≤ k.val := by change r * 2 + 2 ≤ 2 * (k.val + 1) at hafter; omega
     rw [erasePar k]
     exact forward _ _ ((data_premises_sat.2.1 ⟨r, by omega⟩ ⟨k.val, by omega⟩).mpr hle)
-  · intro horizon x y r r' C D _ _ hs hs' hh _ _ _
+  · intro horizon x y r r' C D _ _ hs hs' _ _ _ _
     obtain ⟨_, hr, rfl⟩ := source_cases x r C hs
     obtain ⟨_, hr', rfl⟩ := source_cases y r' D hs'
-    have hheight := (data_premises_sat.1 ⟨r, by omega⟩).1
-    rw [hheight] at hh
-    refine ⟨compatible ⟨r, by omega⟩ ⟨r', by omega⟩, compatible ⟨r, by omega⟩ 3, ?_⟩
-    change 6 ≤ r * 2
-    change 4 ≤ r + 1 at hh
-    omega
+    exact ⟨compatible ⟨r, by omega⟩ ⟨r', by omega⟩, compatible ⟨r, by omega⟩ 3⟩
   · intro B
     cases B <;> simp [erase, FGBlock.parent, Block.parent]
   · intro j x r a u ha hu

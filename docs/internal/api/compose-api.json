@@ -2451,7 +2451,7 @@
       "module": "AvailableChainFGCompose.Statements.CoreReads"
     },
     "AvailableChain.FGCompose.FGHistoricalHighChain": {
-      "digest": "58f2e60bad9fbc9600753640b28fb1f29087012bd11c849fcc43e1f2184f9c60",
+      "digest": "a81958300f6906e8ca2855ab61f176681ddba9f982b6552fc422485745f38999",
       "kind": "def",
       "module": "AvailableChainFGCompose.Statements.Service"
     },
@@ -6761,22 +6761,22 @@
       "module": "AvailableChainFGCompose.Statements.FinalityHistory"
     },
     "AvailableChain.FGCompose.ff2_high_qc_identity": {
-      "digest": "29ab7bb255f4743d337fc0b9cb1fb240eb5480114f428fb3350683adb2a0e4f2",
+      "digest": "45b3dec5926fcbac73a99aaf550b9235d4b5c3e020f417c862ec9620df0ff985",
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Proofs.Finality.RecordInv"
     },
     "AvailableChain.FGCompose.ff2_high_record_guards": {
-      "digest": "0531abcc3fcf8e7bac6c32450e683722351bda8453898f7580be63acfe3b5f30",
+      "digest": "9d3cb08e3f9a0779e2cfac076a5dccccaf9da6de29ce870d817efc979f6b2774",
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Proofs.Finality.RecordInv"
     },
     "AvailableChain.FGCompose.ff2_no_high_contest": {
-      "digest": "7908a1f3140351eac4e4ffe95eac21f61f106aa7b4f7765525866e3f2d52e4e5",
+      "digest": "8702a47f71a77324e25dc885cffd67771ea9658fd5f121b7334c16ebd858a077",
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Proofs.Finality.RecordInv"
     },
     "AvailableChain.FGCompose.ff2_stored_high_qc_identity": {
-      "digest": "f527b4aa406b035a2e2c127b818c8a1a51494b78eaadf0407bec5c54a1b598fe",
+      "digest": "058258fb205dda9e0def761a8d553eccb9139fcd1480b55bbdb7dd7b109b2a5c",
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Proofs.Finality.RecordInv"
     },
@@ -6851,12 +6851,12 @@
       "module": "AvailableChainFGCompose.Proofs.Finality.RestoreReads"
     },
     "AvailableChain.FGCompose.finality_kernel_W_of": {
-      "digest": "4b8e82a4008b27532154a791978590fdf1bc94d07aa9ef832e429b464bb9a75c",
+      "digest": "364bfebc56eea681ff8344fb41420947773ac3803acbbbd76be1dc9847dc20d2",
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Proofs.Finality.Kernel"
     },
     "AvailableChain.FGCompose.finality_kernel_W_of_holder": {
-      "digest": "6d2a7bac0f8d1d5181397d570cfd91c77edff13b58add21224b12df74bd72aa0",
+      "digest": "8398c44f79764c81a0f0560d5516985517bc2d59d25d6d580fd50fc2e4cd9a93",
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Proofs.Population.Kernel"
     },
@@ -7836,12 +7836,12 @@
       "module": "AvailableChainFGCompose.Statements.FinalityRecords"
     },
     "AvailableChain.FGCompose.high_action_target_choice": {
-      "digest": "d7b61aeb1ed556c1a8bf5e321f488d59e4975664d13773b17551a7303dd89d36",
+      "digest": "3463a9f6eb93ed37a451d50ad02248d1457d51eae81af2e0657a11dcc347bfa4",
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Proofs.Finality.RecordInv"
     },
     "AvailableChain.FGCompose.high_entry_record_invariant": {
-      "digest": "55ed70f48f780e60284f7804a54936d2d62f502e583c291242db1fcdfca33f6d",
+      "digest": "9bf354e53d04ddd100089636ab2a3d8490943cf7aeed7f4a45ab85598fae07fc",
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Proofs.Finality.RecordInv"
     },
@@ -7851,12 +7851,12 @@
       "module": "AvailableChainFGCompose.Proofs.Finality.RecordInv"
     },
     "AvailableChain.FGCompose.high_record_guards_and_fresh": {
-      "digest": "0d93c0059019a4249b9be8cb85fdd08796864b9b2bd220ff72a783460c63e15b",
+      "digest": "cbd5f51adfa4cec7f2ee841e458a455f264ebc498db413dc8d9f6d47c0dc6845",
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Proofs.Finality.RecordInv"
     },
     "AvailableChain.FGCompose.high_record_guards_and_fresh_at_action": {
-      "digest": "54191c080dfd420cd4835941a4d60367d481c1c69e941eb478cd500731256ac4",
+      "digest": "fe6a1ef7b308e81975b647ed7aeedec9df56506f8d3c08f399d30abdbf97e2f4",
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Proofs.Finality.RecordInv"
     },
@@ -7876,12 +7876,12 @@
       "module": "AvailableChainFGCompose.Proofs.Population.HolderBaseHighTarget"
     },
     "AvailableChain.FGCompose.high_source_entry_eq": {
-      "digest": "a25c10ed53b5054d0761e726cc11f659c3a62fcab139cbc4ab89e644bb8ff9a1",
+      "digest": "33128f389af71c025d5c2f37742c1a7e38e2612e3f89f6de0e7a0d5608f1df2a",
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Proofs.Finality.RecordInv"
     },
     "AvailableChain.FGCompose.high_target_first_row": {
-      "digest": "6cf79dd82305e883e49f5b0d999cca160aa3479c62a4c8175f06e8515f32558e",
+      "digest": "9f567b10eaf6d04fa621b920961ed039f9968afd1d59e405aa9380b6218aca45",
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Proofs.Finality.RecordInv"
     },
@@ -7901,7 +7901,7 @@
       "module": "AvailableChainFGCompose.Proofs.Population.Seats"
     },
     "AvailableChain.FGCompose.high_target_quorum_covered": {
-      "digest": "d2dcb6739eda9f882189b6d7f2f2e2897ea254da2e608ac2dcae95b9cc163eb5",
+      "digest": "59f427c61a542fb9c277b556533856ca781aa8b8bac1d733fbaf587d47667271",
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Proofs.Finality.RecordInv"
     },
@@ -7911,7 +7911,7 @@
       "module": "AvailableChainFGCompose.Proofs.Population.HighTarget"
     },
     "AvailableChain.FGCompose.high_target_row_covered": {
-      "digest": "7d96c9852f909b80de474feecc7cf56c74847aeb49b60b842f4c1ddad7661d5f",
+      "digest": "dc12863c509c3f37e2aa44b440059b62ae0c902f5faa1530861bf7515bda2fb3",
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Proofs.Finality.RecordInv"
     },
@@ -7936,12 +7936,12 @@
       "module": "AvailableChainFGCompose.Proofs.HistoricalReads"
     },
     "AvailableChain.FGCompose.historical_chain_horizon": {
-      "digest": "010cfaf8c6dae21c4a6c504fec9e9ceec1ef17bcfd8657467347be700b20e9a0",
+      "digest": "f75ebd9f9aca0ad97f683ea4d739db992822f0ffddfd89915b4205930455db68",
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Proofs.ServiceTransport"
     },
     "AvailableChain.FGCompose.historical_chain_reseed": {
-      "digest": "f135adb9cb880a5b8f22bce9cbb1261566fad76493b1f83d879f45ba2db6fa0d",
+      "digest": "6edd6d7e90c8546a065682f524582f57533618c5b7388c338f34365daa9ec616",
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Proofs.ServiceTransport"
     },
@@ -9101,12 +9101,12 @@
       "module": "AvailableChainFGCompose.Proofs.RowPermission"
     },
     "AvailableChain.FGCompose.rowsPrem_action_record": {
-      "digest": "cafc2bd55fd2bc1776b54cac032edb7fc2b8f14dad114377dfac9e5e406f222f",
+      "digest": "b452ccbb559478c80e0134bcd4da9a93a8751421dd012bc520657d350e0cc342",
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Proofs.Finality.RowsRecords"
     },
     "AvailableChain.FGCompose.rowsPrem_action_record_holder": {
-      "digest": "a6755cc071398f98979e87e9f10200c510c116735cdab27a2d34e339bdb23469",
+      "digest": "cf2fd966ea5d363e80bbc93334401f1c39bbc619f78b318bb3b29b2d4920c669",
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Proofs.Population.RowsRecords"
     },
@@ -9601,7 +9601,7 @@
       "module": "AvailableChainFGCompose.Proofs.ServiceTransport"
     },
     "AvailableChain.FGCompose.shield_high_entry_record_invariant": {
-      "digest": "7c4b1ee9e0274cbec07e02eed7a8ea9dd1dfb813108fcf9f463a35d1b1d0df7e",
+      "digest": "ddfc9a7f817b77480ed7d10598fd1a90bcaeb04ff0dd652cbbc768be2d567f60",
       "kind": "theorem",
       "module": "AvailableChainFGCompose.Proofs.Finality.RecordInv"
     },
@@ -40625,8 +40625,7 @@
         "                Int.instLEInt.le (T.action r) horizon →",
         "                  Int.instLEInt.le (T.action r') horizon →",
         "                    And ((R.erase C).Compatible (R.erase D))",
-        "                      (And ((R.erase C).Compatible pt.reset.source)",
-        "                        (instLENat.le pt.reset.sStar (instHMul.hMul r T.roundSlots)))"
+        "                      ((R.erase C).Compatible pt.reset.source)"
       ],
       "dependencies": [
         "And",
@@ -40637,18 +40636,15 @@
         "AvailableChain.FGCompose.FGObservationReads",
         "AvailableChain.FGCompose.FGObservationReads.height",
         "AvailableChain.FGCompose.FGResetHistory.M",
-        "AvailableChain.FGCompose.FGResetHistory.sStar",
         "AvailableChain.FGCompose.FGResetHistory.source",
         "AvailableChain.FGCompose.FGServicePoint",
         "AvailableChain.FGCompose.FGServicePoint.reset",
         "AvailableChain.FGCompose.FGTiming",
         "AvailableChain.FGCompose.FGTiming.action",
-        "AvailableChain.FGCompose.FGTiming.roundSlots",
         "AvailableChain.FGCompose.postClock",
         "AvailableChain.Generic.Env",
         "AvailableChain.KitFG.FGHeight.h",
         "AvailableChain.SimplexFG.FGBlock",
-        "AvailableChain.Slot",
         "AvailableChain.Time",
         "AvailableChain.V2.D.Run",
         "AvailableChain.V2.D.Run.honest",
@@ -40660,7 +40656,6 @@
         "Finset",
         "Finset.instSetLike",
         "HAdd.hAdd",
-        "HMul.hMul",
         "Int.instLEInt",
         "LE.le",
         "Membership.mem",
@@ -40672,12 +40667,10 @@
         "SetLike.instMembership",
         "instAddNat",
         "instHAdd",
-        "instHMul",
         "instLENat",
-        "instMulNat",
         "instOfNatNat"
       ],
-      "digest": "3487ecc7b07525bb85541465e898bbf46496d0f757275a0864ac9a4481cf9de0",
+      "digest": "83792247a8c40a0fca01e6ecc9491d3ed892de346cb3074dbfcf00c6aed7013a",
       "kernel_name": "str:2:58:str:2:38:str:2:12:anonymous:0:14:AvailableChain9:FGCompose21:FGHistoricalHighChain",
       "kind": "def",
       "module": "AvailableChainFGCompose.Statements.Service",

@@ -18951,8 +18951,10 @@ Source: `AvailableChainFGCompose/Statements/Service.lean:143`.
 pt.reset.M + 1 ≤ (O.height C).h → pt.reset.M + 1 ≤ (O.height D).h →
 T.action r ≤ horizon → T.action r' ≤ horizon →
 Block.Compatible (R.erase C) (R.erase D) ∧
-Block.Compatible (R.erase C) pt.reset.source ∧ pt.reset.sStar ≤ r * T.roundSlots
+Block.Compatible (R.erase C) pt.reset.source
 ```
+
+C22: floor dropped; false for PC-SA sources of PC holders without an FG identity.
 
 ### C060 FGHistoricalHighTransfer
 
